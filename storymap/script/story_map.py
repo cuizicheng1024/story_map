@@ -31,8 +31,8 @@ from map_client import (
 )
 from map_html_renderer import (
     build_info_panel_html,
+    render_amap_html,
     render_multi_html,
-    render_osm_html,
     render_profile_html,
 )
 from story_agents import (
@@ -696,21 +696,11 @@ _ALLOWED_ORIGINS = [o.strip() for o in os.getenv("STORY_MAP_ALLOWED_ORIGINS", "*
 _VENDOR_CACHE: Dict[str, Tuple[str, bytes]] = {}
 _VENDOR_LOCK = threading.Lock()
 _VENDOR_SOURCES: Dict[str, List[str]] = {
-    # Frontend pages rely on CDN-hosted assets (React/Babel/Leaflet/Tailwind).
+    # Frontend pages rely on CDN-hosted assets (React/Babel/Tailwind).
     # In restricted networks these CDNs may be blocked; serving them via the
     # same origin (this server) avoids CORS/DNS issues and makes pages usable.
     "tailwindcss.js": [
         "https://cdn.tailwindcss.com",
-    ],
-    "leaflet.css": [
-        "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css",
-        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css",
-    ],
-    "leaflet.js": [
-        "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js",
-        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js",
     ],
     "react.production.min.js": [
         "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js",
@@ -1823,15 +1813,12 @@ def _build_profile_data(
         "pathColor": "#1e40af",
         "markers": {
             "normal": {
-                "iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
                 "color": "#3498db",
             },
             "birth": {
-                "iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
                 "color": "#2ecc71",
             },
             "death": {
-                "iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
                 "color": "#e74c3c",
             },
         },
@@ -2133,8 +2120,8 @@ def render_html(title: str, points: List[Dict[str, object]], md: str = "") -> st
         fields = _extract_intro_fields(md)
         if any(fields.values()):
             info_panel_html = build_info_panel_html(title, fields)
-            return render_osm_html(title, points, info_panel_html)
-    return render_osm_html(title, points, "")
+            return render_amap_html(title, points, info_panel_html)
+    return render_amap_html(title, points, "")
 
 
 def save_html(person: str, content: str) -> str:
@@ -2300,7 +2287,7 @@ def run_interactive() -> None:
                 html = render_html(person, pts, md=md)
             except Exception as exc:
                 _LOGGER.warning("render_failed person=%s error=%s", person, exc)
-                html = render_osm_html(person, [], "")
+                html = render_amap_html(person, [], "")
             t_render = time.perf_counter() - t_step
             out = save_html(person, html)
             print(out)
@@ -2416,7 +2403,7 @@ def _generate_for_person(
         except Exception as exc:
             render_error = str(exc).strip() or "地图渲染失败"
             _LOGGER.warning("render_failed person=%s error=%s", person, exc)
-            html = render_osm_html(person, [], "")
+            html = render_amap_html(person, [], "")
         t_render = time.perf_counter() - t_step
         steps.append({"label": "地图渲染", "duration": _format_seconds(t_render)})
 
@@ -2481,7 +2468,7 @@ def _generate_for_person(
     except Exception as exc:
         render_error = str(exc).strip() or "地图渲染失败"
         _LOGGER.warning("render_failed person=%s error=%s", person, exc)
-        html = render_osm_html(person, [], "")
+        html = render_amap_html(person, [], "")
     t_render = time.perf_counter() - t_step
     if progress:
         progress(f"{person} 文件写入")

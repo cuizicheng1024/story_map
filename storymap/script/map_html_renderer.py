@@ -1,127 +1,106 @@
 import json
+import os
 from typing import Dict, List
 
 
-def _leaflet_tiles_js(center_lat_expr: str, center_lng_expr: str, map_var: str, map_el_id: str) -> str:
-    tile_sources = """const tileSources = [
-        {
-          id: 'osm_std',
-          label: 'OpenStreetMap',
-          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          options: { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap contributors' }
-        }
-      ];"""
+def _first_env(*names: str) -> str:
+    for name in names:
+        value = os.getenv(name)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
 
-    tile_fallback = f"""const isInChina = (lat, lng) => lat >= 18 && lat <= 54 && lng >= 73 && lng <= 135;
-      const addTileLayer = (mapInstance, center) => {{
-        const findIdx = (id) => {{
-          try {{
-            return tileSources.findIndex((x) => x && x.id === id);
-          }} catch (_) {{
-            return -1;
-          }}
-        }};
-        let idx = findIdx('osm_std');
-        if (idx < 0) idx = 0;
-        let errorCount = 0;
-        let tileLoadCount = 0;
-        let layer = null;
-        let timer = null;
-        let blankAdded = false;
 
-        const addBlankBase = () => {{
-          if (blankAdded) return;
-          blankAdded = true;
-          const el = document.getElementById('{map_el_id}');
-          if (el) el.style.background = '#f6f4ee';
-          const blank = L.gridLayer({{ attribution: '' }});
-          blank.createTile = () => {{
-            const tile = document.createElement('div');
-            tile.style.background = 'transparent';
-            return tile;
-          }};
-          blank.addTo(mapInstance);
-          try {{
-            const Tip = L.control({{ position: 'topleft' }});
-            Tip.onAdd = () => {{
-              const div = L.DomUtil.create('div', '');
-              div.style.background = 'rgba(255,255,255,0.92)';
-              div.style.padding = '6px 8px';
-              div.style.borderRadius = '8px';
-              div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.12)';
-              div.style.font = '12px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial';
-              div.style.color = '#333';
-              div.style.border = '1px solid rgba(0,0,0,0.08)';
-              div.textContent = '底图加载失败（仍可查看足迹轨迹）';
-              L.DomEvent.disableClickPropagation(div);
-              L.DomEvent.disableScrollPropagation(div);
-              return div;
-            }};
-            Tip.addTo(mapInstance);
-          }} catch (_) {{}}
-        }};
-
-        const attach = () => {{
-          if (layer) {{
-            mapInstance.removeLayer(layer);
-          }}
-          errorCount = 0;
-          tileLoadCount = 0;
-          if (idx >= tileSources.length) {{
-            addBlankBase();
-            return;
-          }}
-          const src = tileSources[idx];
-          const sublayers = [];
-          if (src && Array.isArray(src.layers) && src.layers.length) {{
-            for (const spec of src.layers) {{
-              if (!spec || !spec.url) continue;
-              const l = L.tileLayer(spec.url, spec.options || {{}});
-              sublayers.push(l);
-            }}
-            layer = L.layerGroup(sublayers);
-          }} else {{
-            layer = L.tileLayer(src.url, (src && src.options) || {{}});
-            sublayers.push(layer);
-          }}
-
-          const handleError = () => {{
-            errorCount += 1;
-            if (errorCount >= 6) addBlankBase();
-          }};
-          const handleLoad = () => {{
-            tileLoadCount += 1;
-            if (timer) {{
-              clearTimeout(timer);
-              timer = null;
-            }}
-          }};
-
-          for (const l of sublayers) {{
-            try {{
-              l.on('tileerror', handleError);
-              l.on('tileload', handleLoad);
-            }} catch (_) {{}}
-          }}
-          layer.addTo(mapInstance);
-
-          if (timer) clearTimeout(timer);
-          timer = setTimeout(() => {{
-            if (tileLoadCount === 0) addBlankBase();
-          }}, 3500);
-        }};
-
-        attach();
-      }};
-      addTileLayer({map_var}, {{ lat: {center_lat_expr}, lng: {center_lng_expr} }});"""
-
-    scale = f"L.control.scale({{ position: 'bottomleft', imperial: false }}).addTo({map_var});"
-    return "\n".join([tile_sources, tile_fallback, scale])
+def _amap_bootstrap_html() -> str:
+    key = _first_env("AMAP_KEY", "AMAP_JS_KEY", "AMAP_WEB_KEY", "Amap_API_Key", "AMAP_API_KEY")
+    security = _first_env(
+        "AMAP_SECURITY",
+        "AMAP_SECURITY_JSCODE",
+        "AMAP_SECURITY_JS_CODE",
+        "Amap_API_Security",
+        "AMAP_API_SECURITY",
+        "Amap_API_Secret",
+    )
+    parts: List[str] = []
+    if key:
+        parts.append(f"window.AMAP_KEY={json.dumps(key, ensure_ascii=False)};")
+    if security:
+        parts.append(f"window.AMAP_SECURITY={json.dumps(security, ensure_ascii=False)};")
+    inline = f"<script>{''.join(parts)}</script>" if parts else ""
+    loader = """<script>
+(() => {
+  try {
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__) {
+      window.__MAP_STORY_AMAP_CONFIG__ = true;
+      const cfg = document.createElement('script');
+      cfg.src = '/amap-config.js';
+      cfg.async = false;
+      document.head.appendChild(cfg);
+    }
+  } catch (_) {}
+})();
+let amapLoading = false;
+const _getAmapKey = () => {
+  let k = '';
+  try {
+    k = (new URLSearchParams(window.location.search).get('amapKey') || '').trim();
+  } catch (_) {}
+  if (!k) k = String(window.AMAP_KEY || '').trim();
+  try {
+    if (!k) k = String(localStorage.getItem('AMAP_KEY') || '').trim();
+  } catch (_) {}
+  return k;
+};
+const _getAmapSecurity = () => {
+  let s = '';
+  try {
+    s = (new URLSearchParams(window.location.search).get('amapSec') || '').trim();
+  } catch (_) {}
+  if (!s) s = String(window.AMAP_SECURITY || '').trim();
+  try {
+    if (!s) s = String(localStorage.getItem('AMAP_SECURITY') || '').trim();
+  } catch (_) {}
+  return s;
+};
+const _ensureAmap = () => new Promise((resolve, reject) => {
+  if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+  const key = _getAmapKey();
+  if (!key) return reject(new Error('AMAP_KEY_REQUIRED'));
+  const sec = _getAmapSecurity();
+  if (sec) {
+    window._AMapSecurityConfig = { securityJsCode: sec };
+  }
+  if (amapLoading) {
+    const t0 = Date.now();
+    const tick = () => {
+      if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+      if (Date.now() - t0 > 12000) return reject(new Error('AMAP_LOAD_TIMEOUT'));
+      setTimeout(tick, 80);
+    };
+    return tick();
+  }
+  amapLoading = true;
+  const sEl = document.createElement('script');
+  sEl.async = true;
+  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
+  sEl.onload = () => {
+    amapLoading = false;
+    if (window.AMap && typeof window.AMap.Map === 'function') resolve(true);
+    else reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  sEl.onerror = () => {
+    amapLoading = false;
+    reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  document.head.appendChild(sEl);
+});
+</script>"""
+    return inline + loader
 
 
 
 
-def build_info_panel_html(title: str, fields: Dict[str, str]) -> str:
+def build_info_panel_html(_title: str, fields: Dict[str, str]) -> str:
     """
     构建基础地图页左上角的信息面板。
     """
@@ -151,7 +130,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     name = (data.get("person", {}) or {}).get("name", "")
     title = f"{name}的人生足迹地图" if name else "人生足迹地图"
-    leaflet_tiles = _leaflet_tiles_js("first.lat", "first.lng", "map", "map")
+    amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -162,8 +141,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" onerror="if(!this.dataset.f){this.dataset.f='1';this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';}else if(this.dataset.f==='1'){this.dataset.f='2';this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';}" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onerror="if(!this.dataset.f){this.dataset.f='1';this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';}else if(this.dataset.f==='1'){this.dataset.f='2';this.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';}"></script>
+__AMAP_BOOTSTRAP__
 <style>
 body {
   font-family: 'Noto Serif SC', serif;
@@ -321,15 +299,12 @@ const extractTeachingHighlights = (raw, maxItems) => {
 const markerStyles = mapStyle.markers || {};
 const defaultMarkerStyles = {
   normal: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#3498db'
   },
   birth: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#2ecc71'
   },
   death: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#e74c3c'
   }
 };
@@ -748,6 +723,53 @@ const App = () => {
     }
     return { doubtful: true, candidates: out };
   }, [data.person?.birthplace, data.person?.birthplace_candidates]);
+  const ageLabel = useMemo(() => {
+    if (stats.yearsValue != null) return `${stats.yearsValue}岁`;
+    return String(data.person?.lifespan || '').trim();
+  }, [stats.yearsValue, data.person?.lifespan]);
+  const introTags = useMemo(() => {
+    const out = [];
+    const push = (text) => {
+      const t = String(text || '').trim();
+      if (!t) return;
+      if (out.includes(t)) return;
+      out.push(t);
+    };
+    push(data.person?.dynasty);
+    push(ageLabel);
+    return out.slice(0, 3);
+  }, [data.person?.dynasty, ageLabel]);
+  const birthplaceLabel = useMemo(() => {
+    const ancient = String(birthplaceParts.ancient || '').trim();
+    const modern = String(birthplaceParts.modern || '').trim();
+    if (ancient && modern) return `${ancient}（${modern}）`;
+    return ancient || modern || '';
+  }, [birthplaceParts]);
+  const introFactLines = useMemo(() => {
+    const out = [];
+    const push = (label, value) => {
+      const v = String(value || '').trim();
+      if (!v) return;
+      out.push(`**${label}：** ${v}`);
+    };
+    push('核心身份', relatedIdentities);
+    push('历史定位', relatedStatus);
+    return out;
+  }, [relatedStatus, relatedIdentities]);
+  const introMetaItems = useMemo(() => {
+    const out = [];
+    const push = (label, value) => {
+      const v = String(value || '').trim();
+      if (!v) return;
+      out.push({ label, value: v });
+    };
+    push('籍贯', birthplaceLabel);
+    push('生卒', lifeDates);
+    if (relatedWorks.length) {
+      push('相关作品', relatedWorks.slice(0, 3).map((w) => `《${w}》`).join('、'));
+    }
+    return out;
+  }, [birthplaceLabel, lifeDates, relatedWorks]);
   const getAgeText = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return '';
@@ -758,14 +780,14 @@ const App = () => {
   const renderDescription = () => {
     if (!description) return null;
     return (
-      <div className="mb-4">
-        <div className={`text-gray-600 leading-relaxed ${showFullDesc ? '' : 'desc-clamp'}`}>
+      <div>
+        <div className={`text-gray-600 leading-7 ${showFullDesc ? '' : 'desc-clamp'}`}>
           {descSegments.map((seg, idx) => {
             const t = String(seg || '').trim();
             if (/^-{3,}$/.test(t)) {
               return <hr key={idx} className="my-2 border-gray-200" />;
             }
-            return <span key={idx} className="block">{seg}</span>;
+            return <span key={idx} className="block">{renderInline(seg)}</span>;
           })}
         </div>
         {isLongDesc ? (
@@ -790,89 +812,123 @@ const App = () => {
   };
   useEffect(() => {
     hideBootFallback();
-    if (!mapRef.current) {
+    let disposed = false;
+    if (mapRef.current) return () => { disposed = true; };
+    const initMap = async () => {
       const first = locations[0] || { lat: 35, lng: 105 };
-      if (!window.L || typeof window.L.map !== 'function') return;
-      const map = window.L.map('map', { zoomControl: false }).setView([first.lat, first.lng], 4);
-      window.L.control.zoom({ position: 'topright' }).addTo(map);
-      __LEAFLET_TILES_PROFILE__
-      const latlngs = locations.map((l) => [l.lat, l.lng]);
+      try {
+        await _ensureAmap();
+      } catch (err) {
+        const el = document.getElementById('boot-diag');
+        if (el) el.textContent = `高德地图加载失败：${String(err?.message || err)}`;
+        return;
+      }
+      if (disposed) return;
+      const map = new AMap.Map('map', {
+        zoom: 4,
+        center: [first.lng, first.lat],
+        viewMode: '2D',
+        resizeEnable: true
+      });
+      const overlays = [];
+      const latlngs = locations.map((l) => [l.lng, l.lat]);
       if (latlngs.length > 1) {
-        window.L.polyline(latlngs, {
-          color: mapStyle.pathColor || '#1e40af',
-          weight: 4,
-          opacity: 0.65
-        }).addTo(map);
+        const polyline = new AMap.Polyline({
+          path: latlngs,
+          strokeColor: mapStyle.pathColor || '#1e40af',
+          strokeWeight: 4,
+          strokeOpacity: 0.7,
+          lineJoin: 'round',
+          lineCap: 'round'
+        });
+        map.add(polyline);
+        overlays.push(polyline);
       }
 
       const pointLayers = [];
-      const ageLayers = [];
       const setActive = (activeIdx) => {
         for (const p of pointLayers) {
           const active = p.idx === activeIdx;
           try {
-            p.layer.setStyle({
+            p.layer.setOptions({
               radius: active ? 9 : 6,
-              weight: active ? 2 : 1,
-              color: active ? 'rgba(192,57,43,0.65)' : 'rgba(255,255,255,0.35)',
-              fillOpacity: active ? 0.48 : 0.35
+              strokeWeight: active ? 3 : 1,
+              strokeColor: active ? '#c0392b' : 'rgba(255,255,255,0.68)',
+              fillOpacity: active ? 0.58 : 0.36,
+              zIndex: active ? 160 : 120 + p.idx
             });
-          } catch (_) {}
-          try {
-            if (p.layer && typeof p.layer.bringToFront === 'function' && active) p.layer.bringToFront();
           } catch (_) {}
         }
       };
 
       locations.forEach((loc, idx) => {
         const activeColor = (markerStyles[loc.type] || markerStyles.normal || defaultMarkerStyles[loc.type] || defaultMarkerStyles.normal).color || '#22c55e';
-        const cm = window.L.circleMarker([loc.lat, loc.lng], {
+        const cm = new AMap.CircleMarker({
+          center: [loc.lng, loc.lat],
           radius: idx === activeIndex ? 9 : 6,
-          color: 'rgba(255,255,255,0.35)',
-          weight: idx === activeIndex ? 2 : 1,
+          strokeColor: idx === activeIndex ? '#c0392b' : 'rgba(255,255,255,0.68)',
+          strokeWeight: idx === activeIndex ? 3 : 1,
           fillColor: activeColor,
-          fillOpacity: 0.35
-        }).addTo(map);
-        pointLayers.push({ idx, layer: cm });
+          fillOpacity: idx === activeIndex ? 0.58 : 0.36,
+          bubble: true,
+          zIndex: 120 + idx
+        });
         cm.on('click', () => {
           setSelectedLoc(loc);
           setActiveIndex(idx);
-          map.setView([loc.lat, loc.lng], 7);
+          map.setZoomAndCenter(7, [loc.lng, loc.lat]);
         });
+        map.add(cm);
+        overlays.push(cm);
+        pointLayers.push({ idx, layer: cm });
 
         const ageText = getAgeText(loc);
         if (ageText) {
-          const icon = window.L.divIcon({
-            className: 'age-marker',
-            html: `<div class=\"age-badge\">${ageText}</div>`,
-            iconSize: [0, 0]
+          const label = new AMap.Text({
+            text: ageText,
+            position: [loc.lng, loc.lat],
+            anchor: 'bottom-center',
+            offset: new AMap.Pixel(0, -16),
+            style: {
+              background: 'rgba(255,255,255,0.68)',
+              color: '#7c2d12',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              border: '1px solid rgba(200,180,150,0.55)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              fontSize: '10px',
+              whiteSpace: 'nowrap'
+            }
           });
-          const m = window.L.marker([loc.lat, loc.lng], { icon, interactive: false }).addTo(map);
-          ageLayers.push(m);
+          map.add(label);
+          overlays.push(label);
         }
       });
 
-      try {
-        const bounds = window.L.latLngBounds(latlngs);
-        if (bounds && bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [48, 48], maxZoom: 7 });
-        }
-      } catch (_) {}
+      if (overlays.length > 0) {
+        try {
+          map.setFitView(overlays);
+        } catch (_) {}
+      }
 
       mapRef.current = {
-        _type: 'leaflet',
+        _type: 'amap',
         setView: (latlng, z) => {
           const lat = Array.isArray(latlng) ? latlng[0] : latlng?.lat;
           const lng = Array.isArray(latlng) ? latlng[1] : latlng?.lng;
           const zoom = Number.isFinite(z) ? z : 7;
           if (typeof lat === 'number' && typeof lng === 'number') {
-            map.setView([lat, lng], zoom);
+            map.setZoomAndCenter(zoom, [lng, lat]);
           }
         },
         setActive
       };
       setActive(activeIndex);
-    }
+    };
+    initMap();
+    return () => {
+      disposed = true;
+    };
   }, []);
   useEffect(() => {
     const onMove = (e) => {
@@ -1045,75 +1101,63 @@ const App = () => {
         </div>
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold">{data.person.name}</h1>
+          {introTags.length ? (
+            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
+              {introTags.map((tag, idx) => (
+                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                  {renderInline(tag)}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {headerSubtitle ? (
-            <p className="text-xs text-gray-500 mt-1 mb-2">{renderInline(headerSubtitle)}</p>
+            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
           ) : null}
-          {renderDescription()}
-          {(relatedHonor || relatedStatus || relatedIdentities || relatedWorks.length || teachingHighlights.length) ? (
-            <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-3 text-left">
-              <div className="flex flex-wrap gap-2 mb-3">
-                {relatedHonor ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(relatedHonor)}</span> : null}
-                {data.person?.dynasty ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.dynasty)}</span> : null}
-                {stats.yearsValue != null ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(`${stats.yearsValue}岁`)}</span> : (data.person?.lifespan ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.lifespan)}</span> : null)}
+          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
+            {relatedHonor && relatedHonor !== headerSubtitle ? (
+              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
+            ) : null}
+            {renderDescription()}
+            {introFactLines.length ? (
+              <div className="space-y-1 mt-3">
+                {introFactLines.map((line, idx) => (
+                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                    {renderInline(line)}
+                  </p>
+                ))}
               </div>
-              {relatedStatus ? (
-                <p className="text-sm text-gray-700 leading-relaxed mb-2">
-                  <span className="text-[#7c2d12] font-bold mr-1">历史定位：</span>
-                  {renderInline(relatedStatus)}
-                </p>
-              ) : null}
-              {relatedIdentities ? (
-                <p className="text-sm text-gray-700 leading-relaxed mb-2">
-                  <span className="text-[#7c2d12] font-bold mr-1">核心身份：</span>
-                  {renderInline(relatedIdentities)}
-                </p>
-              ) : null}
-              {teachingHighlights.length ? (
-                <div>
-                  <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
-                  <ul className="space-y-1">
-                    {teachingHighlights.map((item, idx) => (
-                      <li key={idx} className="text-sm text-gray-700 leading-relaxed">- {renderInline(item)}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : relatedWorks.length ? (
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  <span className="text-[#7c2d12] font-bold mr-1">相关作品：</span>
-                  {relatedWorks.slice(0, 4).map((w, idx) => (
-                    <span key={idx}>{idx ? '、' : ''}《{w}》</span>
+            ) : null}
+            {introMetaItems.length ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {introMetaItems.map((item, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
+                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                    <span>{renderInline(item.value)}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {birthplaceMeta.candidates.length ? (
+              <div className="mt-2 text-xs text-amber-800">
+                <span className="font-bold">籍贯存疑：</span>
+                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                  <span key={i}>{i ? '、' : ''}{t}</span>
+                ))}
+              </div>
+            ) : null}
+            {teachingHighlights.length ? (
+              <div className="mt-3 pt-3 border-t border-[#c8b496]/35">
+                <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
+                <ul className="space-y-1.5">
+                  {teachingHighlights.slice(0, 3).map((item, idx) => (
+                    <li key={idx} className="text-sm text-gray-700 leading-relaxed">
+                      <span className="mr-1 text-[#c0392b]">-</span>
+                      {renderInline(item)}
+                    </li>
                   ))}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-gray-400 text-sm">朝代</p>
-              <p className="font-bold">{data.person?.dynasty || ''}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">籍贯{birthplaceMeta.doubtful ? <span className="text-[10px] text-amber-600 ml-1">存疑</span> : null}</p>
-              <p className="font-bold">{birthplaceParts.ancient || ''}</p>
-              {birthplaceParts.modern ? (
-                <p className="text-[11px] text-gray-500 mt-0.5">{birthplaceParts.modern}</p>
-              ) : null}
-              {birthplaceMeta.candidates.length ? (
-                <div className="mt-1 flex flex-wrap gap-1 justify-center md:justify-start">
-                  {birthplaceMeta.candidates.map((t, i) => (
-                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">{renderInline(t)}</span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">生卒</p>
-              <p className="font-bold">{lifeDates}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">享年</p>
-              <p className="font-bold">{stats.yearsValue != null ? `${stats.yearsValue}岁` : (data.person?.lifespan || '')}</p>
-            </div>
+                </ul>
+              </div>
+            ) : null}
           </div>
         </div>
       </header>
@@ -1461,14 +1505,14 @@ root.render(<App />);
     return (
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
-        .replace("__LEAFLET_TILES_PROFILE__", leaflet_tiles)
+        .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 
 
 def render_multi_html(data: Dict[str, object]) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     title = data.get("title") or "多人物合并视图"
-    leaflet_tiles = _leaflet_tiles_js("35", "105", "map", "map").replace("addTileLayer(map, { lat: 35, lng: 105 });", "addTileLayer(map, { lat: 35, lng: 105 });")
+    amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1476,8 +1520,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" onerror="if(!this.dataset.f){this.dataset.f='1';this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';}else if(this.dataset.f==='1'){this.dataset.f='2';this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';}" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onerror="if(!this.dataset.f){this.dataset.f='1';this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';}else if(this.dataset.f==='1'){this.dataset.f='2';this.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';}"></script>
+__AMAP_BOOTSTRAP__
 <style>
 body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
 #map{height:80vh;width:100%;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.12);}
@@ -1493,31 +1536,6 @@ body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
 const data = __DATA__;
 window.__EXPORT_DATA__ = data;
 const people = data.people || [];
-const map = L.map('map', { zoomControl: false }).setView([35, 105], 4);
-L.control.zoom({ position: 'topright' }).addTo(map);
-__LEAFLET_TILES_MULTI__
-const bounds = [];
-people.forEach((p) => {
-  const color = p.color || '#1e40af';
-  const locations = p.locations || [];
-  const line = locations.map(loc => [loc.lat, loc.lng]);
-  if (line.length > 1) {
-    L.polyline(line, { color, weight: 3, opacity: 0.7 }).addTo(map);
-  }
-  locations.forEach((loc) => {
-    bounds.push([loc.lat, loc.lng]);
-    L.circleMarker([loc.lat, loc.lng], {
-      radius: 8,
-      color,
-      fillColor: color,
-      fillOpacity: 0.4,
-      weight: 2
-    }).addTo(map).bindPopup(`${p.person?.name || ''} · ${loc.name || ''}`);
-  });
-});
-if (bounds.length > 0) {
-  map.fitBounds(bounds, { padding: [48, 48], maxZoom: 6 });
-}
 const legend = document.getElementById('legend');
 const overlap = data.overlaps || [];
 const overlapText = overlap.length ? overlap.map(o => o.name).join('、') : '暂无';
@@ -1527,20 +1545,75 @@ legend.innerHTML = `<div class="text-sm font-semibold">人物轨迹</div>` + peo
     <span>${p.person?.name || ''}</span>
   </div>
 `).join('') + `<div class="text-[11px] text-slate-500 mt-2">交集地点：${overlapText}</div>`;
-// exports disabled
+const initMap = async () => {
+  await _ensureAmap();
+  const map = new AMap.Map('map', {
+    zoom: 4,
+    center: [105, 35],
+    viewMode: '2D',
+    resizeEnable: true
+  });
+  const overlays = [];
+  const infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -18) });
+  people.forEach((p) => {
+    const color = p.color || '#1e40af';
+    const locations = p.locations || [];
+    const line = locations.map((loc) => [loc.lng, loc.lat]);
+    if (line.length > 1) {
+      const polyline = new AMap.Polyline({
+        path: line,
+        strokeColor: color,
+        strokeWeight: 4,
+        strokeOpacity: 0.75,
+        lineJoin: 'round',
+        lineCap: 'round'
+      });
+      map.add(polyline);
+      overlays.push(polyline);
+    }
+    locations.forEach((loc) => {
+      const marker = new AMap.CircleMarker({
+        center: [loc.lng, loc.lat],
+        radius: 8,
+        strokeColor: color,
+        strokeWeight: 2,
+        fillColor: color,
+        fillOpacity: 0.35,
+        bubble: true
+      });
+      marker.on('click', () => {
+        infoWindow.setContent(`<div style="font-size:12px;line-height:1.5;"><strong>${p.person?.name || ''}</strong><br/>${loc.name || ''}</div>`);
+        infoWindow.open(map, [loc.lng, loc.lat]);
+      });
+      map.add(marker);
+      overlays.push(marker);
+    });
+  });
+  if (overlays.length > 0) {
+    try {
+      map.setFitView(overlays);
+    } catch (_) {}
+  }
+};
+initMap().catch((err) => {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;right:16px;top:16px;z-index:9999;background:rgba(255,255,255,0.94);padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);font-size:12px;color:#7c2d12;';
+  box.textContent = `高德地图加载失败：${String(err?.message || err)}`;
+  document.body.appendChild(box);
+});
 </script>
 </body>
 </html>"""
     return (
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
-        .replace("__LEAFLET_TILES_MULTI__", leaflet_tiles)
+        .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 
 
-def render_osm_html(title: str, points: List[Dict[str, object]], info_panel_html: str = "") -> str:
+def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_html: str = "") -> str:
     """
-    渲染基础地图页（点位与连线）。
+    渲染基础高德地图页（点位与连线）。
     """
     center = {"lat": 35.0, "lon": 105.0, "zoom": 4}
     if points:
@@ -1548,38 +1621,70 @@ def render_osm_html(title: str, points: List[Dict[str, object]], info_panel_html
         lon = float(points[0]["lon"])
         center = {"lat": lat, "lon": lon, "zoom": 6}
     pts_json = json.dumps(points, ensure_ascii=False)
-    leaflet_tiles = _leaflet_tiles_js(str(center["lat"]), str(center["lon"]), "map", "map")
+    amap_bootstrap = _amap_bootstrap_html()
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>{title} - 生平地图</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{amap_bootstrap}
 <style>html,body,#map{{height:100%;margin:0;padding:0}}</style>
 </head>
 <body>
 <div id="map"></div>
 {info_panel_html}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-const map = L.map('map').setView([{center["lat"]},{center["lon"]}], {center["zoom"]});
-__LEAFLET_TILES_OSM__
 const pts = {pts_json};
-const latlngs = pts.map(p => [p.lat, p.lon]);
-if (latlngs.length > 1) {{
-  L.polyline(latlngs, {{color:'#555', weight:2, opacity:0.7}}).addTo(map);
-}}
-pts.forEach((p, i) => {{
-  let style = {{radius: 7, color: '#3498db', fillColor: '#3498db', fillOpacity: 0.9}};
-  if (i === 0) style = {{radius: 8, color: '#2ecc71', fillColor: '#2ecc71', fillOpacity: 1.0}};
-  if (i === pts.length - 1) style = {{radius: 8, color: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 1.0}};
-  const m = L.circleMarker([p.lat, p.lon], style).addTo(map);
-  const html = marked.parse(p.md || '');
-  m.bindPopup(html);
+const initMap = async () => {{
+  await _ensureAmap();
+  const map = new AMap.Map('map', {{
+    zoom: {center["zoom"]},
+    center: [{center["lon"]}, {center["lat"]}],
+    viewMode: '2D',
+    resizeEnable: true
+  }});
+  const overlays = [];
+  const latlngs = pts.map((p) => [p.lon, p.lat]);
+  const infoWindow = new AMap.InfoWindow({{ offset: new AMap.Pixel(0, -18) }});
+  if (latlngs.length > 1) {{
+    const polyline = new AMap.Polyline({{
+      path: latlngs,
+      strokeColor: '#555',
+      strokeWeight: 3,
+      strokeOpacity: 0.75,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }});
+    map.add(polyline);
+    overlays.push(polyline);
+  }}
+  pts.forEach((p, i) => {{
+    let style = {{radius: 7, strokeColor: '#3498db', fillColor: '#3498db', fillOpacity: 0.9, strokeWeight: 2, bubble: true}};
+    if (i === 0) style = {{radius: 8, strokeColor: '#2ecc71', fillColor: '#2ecc71', fillOpacity: 1.0, strokeWeight: 2, bubble: true}};
+    if (i === pts.length - 1) style = {{radius: 8, strokeColor: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 1.0, strokeWeight: 2, bubble: true}};
+    const marker = new AMap.CircleMarker(Object.assign({{ center: [p.lon, p.lat] }}, style));
+    marker.on('click', () => {{
+      infoWindow.setContent(marked.parse(p.md || ''));
+      infoWindow.open(map, [p.lon, p.lat]);
+    }});
+    map.add(marker);
+    overlays.push(marker);
+  }});
+  if (overlays.length > 0) {{
+    try {{
+      map.setFitView(overlays);
+    }} catch (_) {{}}
+  }}
+}};
+initMap().catch((err) => {{
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;right:16px;top:16px;z-index:9999;background:rgba(255,255,255,0.94);padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);font-size:12px;color:#7c2d12;';
+  box.textContent = `高德地图加载失败：${{String(err?.message || err)}}`;
+  document.body.appendChild(box);
 }});
 </script>
 </body>
 </html>"""
-    return html.replace("__LEAFLET_TILES_OSM__", leaflet_tiles)
+    return html

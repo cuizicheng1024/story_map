@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """generate_pure_story_map.py
 
-纯 HTML（Leaflet）地图生成入口。
+纯 HTML（高德地图）生成入口。
 
 目标：
-- 只产出交互式 HTML 地图（Leaflet）
-- 不依赖 / 不触发任何 OSMnx、matplotlib 等静态海报逻辑
+- 只产出交互式 HTML 地图（高德底图）
+- 不依赖 / 不触发任何 matplotlib 等静态海报逻辑
 
 用法示例：
   python3 cli/generate_pure_story_map.py --md storymap/examples/story/苏轼.md
@@ -25,7 +25,7 @@ import webbrowser
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Optional, Set
 from urllib.parse import quote
 
 
@@ -62,7 +62,7 @@ def _write_text(path: str, content: str) -> None:
 
 
 def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geocode: bool = False) -> dict:
-    """Generate pure Leaflet HTML and return metadata."""
+    """Generate pure AMap HTML and return metadata."""
 
     _add_import_paths()
     import story_map as sm
@@ -89,7 +89,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
             points = sm.build_points(places, events, allow_geocode=False)
             fields = sm._extract_intro_fields(md)
             info_panel_html = sm.build_info_panel_html(person_name, fields) if any(fields.values()) else ""
-            html = sm.render_osm_html(person_name, points, info_panel_html)
+            html = sm.render_amap_html(person_name, points, info_panel_html)
     else:
         profile = sm._load_profile_from_md(md)
         t1 = time.perf_counter()
@@ -253,7 +253,7 @@ def render_all_people_html(*, mode: str = "nogeocode") -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="纯 HTML（Leaflet）地图生成：只输出交互式 HTML")
+    parser = argparse.ArgumentParser(description="纯 HTML（高德地图）生成：只输出交互式 HTML")
     parser.add_argument("--md", type=str, help="直接指定人物 Markdown 路径")
     parser.add_argument("-p", "--person", type=str, help="人物名（用于定位 examples/story/<person>.md）")
     parser.add_argument("--out", type=str, help="输出 HTML 路径（可选）")

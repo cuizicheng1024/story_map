@@ -878,7 +878,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
           </div>
           <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70">
             <label class="inline-flex items-center gap-1 select-none cursor-pointer">
-              <input id="onlyActiveMarkers" type="checkbox" class="accent-white/70" />
+              <input id="onlyActiveMarkers" type="checkbox" class="accent-white/70" checked />
               <span>仅显示时间窗</span>
             </label>
             <button id="focusPerson" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15">定位人物</button>
@@ -2035,7 +2035,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       let amap = null;
       let amapLoading = false;
       let clusterer = null;
-      let onlyActiveMarkers = false;
+      let onlyActiveMarkers = true;
       let _fitMapTimer = null;
       let _persistTimer = null;
       let mapStyleValue = "amap://styles/macaron";
