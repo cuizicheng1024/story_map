@@ -2,7 +2,7 @@
 简要说明：
 - 读取人物生平 Markdown，解析“年份”表中的地点与事件列
 - 调用 geocode_city 获取 WGS84 坐标（若来源为高德 GCJ-02 则会自动转换）
-- 生成可交互 HTML 地图：支持行政/地形/Esri 多种底图，连线展示顺序，Markdown 弹窗显示大事
+- 生成可交互 HTML 地图：支持高德多种底图，连线展示顺序，Markdown 弹窗显示大事
 """
 import argparse
 import atexit
@@ -64,6 +64,63 @@ for p in env_candidates:
             load_dotenv(dotenv_path=p, override=True)
     except Exception:
         pass
+
+
+def _first_env(*names: str) -> str:
+    for name in names:
+        val = os.getenv(name)
+        if val is not None and str(val).strip():
+            return str(val).strip()
+    return ""
+
+
+def _apply_minimax_env_aliases() -> None:
+    key = _first_env(
+        "LLM_API_KEY",
+        "MINIMAX_API_KEY",
+        "MINIMAX_API_Key",
+        "minimax_API_KEY",
+        "minimax_API_Key",
+        "MIMO_API_KEY",
+        "MIMO_API_Key",
+    )
+    base = _first_env(
+        "LLM_BASE_URL",
+        "MINIMAX_BASE_URL",
+        "MINIMAX_API_BASE_URL",
+        "minimax_BASE_URL",
+        "minimax_API_Base_URL",
+        "MIMO_BASE_URL",
+    )
+    model = _first_env(
+        "LLM_MODEL_ID",
+        "MINIMAX_MODEL",
+        "MINIMAX_MODEL_ID",
+        "minimax_MODEL",
+        "minimax_MODEL_ID",
+        "MODEL",
+        "MIMO_MODEL",
+        "MIMO_MODEL_ID",
+    )
+    if key:
+        os.environ.setdefault("LLM_API_KEY", key)
+        os.environ.setdefault("MIMO_API_KEY", key)
+        os.environ.setdefault("API_KEY", key)
+    if base:
+        os.environ.setdefault("LLM_BASE_URL", base)
+        os.environ.setdefault("MIMO_BASE_URL", base)
+        os.environ.setdefault("BASE_URL", base)
+    if model:
+        os.environ.setdefault("LLM_MODEL_ID", model)
+        os.environ.setdefault("MODEL", model)
+        os.environ.setdefault("MIMO_MODEL", model)
+    if key and base and not os.getenv("LLM_PROVIDER"):
+        base_lower = base.lower()
+        if "minimax" in base_lower:
+            os.environ["LLM_PROVIDER"] = "minimax"
+
+
+_apply_minimax_env_aliases()
 
 _LOGGER = logging.getLogger("story_map")
 if not _LOGGER.handlers:
@@ -2891,7 +2948,7 @@ def _submit_task(text: str) -> Dict[str, object]:
             if "模型ID、API密钥和服务地址必须被提供或在.env文件中定义" in error:
                 error = (
                     "缺少大模型配置：请在项目根目录创建 .env 并填写 "
-                    "MIMO_API_KEY、MIMO_BASE_URL、MODEL（或 LLM_API_KEY/LLM_BASE_URL/LLM_MODEL_ID），"
+                    "LLM_API_KEY、LLM_BASE_URL、LLM_MODEL_ID（或 MINIMAX_API_KEY/MINIMAX_BASE_URL/MINIMAX_MODEL），"
                     "然后重启服务。"
                 )
             _update_task(task_id, status="failed", error=error)
@@ -3226,10 +3283,12 @@ class StoryMapServerHandler(BaseHTTPRequestHandler):
                     fut = _PROXY_EXECUTOR.submit(client.think, messages, temperature=temperature)
                     timeout_s = int(os.getenv("STORY_MAP_PROXY_LLM_TIMEOUT", "25") or "25")
                     content = fut.result(timeout=timeout_s)
-                except Exception:
+                except Exception as e:
+                    _LOGGER.warning("llm_proxy_primary_failed error=%s", e)
                     content = _local_history_reply(messages)
                     used_fallback = True
                 if not content:
+                    _LOGGER.warning("llm_proxy_empty_response use_fallback=true")
                     content = _local_history_reply(messages)
                     used_fallback = True
                 
@@ -3280,7 +3339,7 @@ class StoryMapServerHandler(BaseHTTPRequestHandler):
 def _run_server(port: int) -> None:
     server = ThreadingHTTPServer(("0.0.0.0", port), StoryMapServerHandler)
     _LOGGER.info("server_start port=%s", port)
-    print(f"服务已启动：http://localhost:{port}")
+    print(f"故事地图服务已启动：http://localhost:{port}")
     server.serve_forever()
 
 

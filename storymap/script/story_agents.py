@@ -7,7 +7,7 @@ import json
 import os
 import requests
 import urllib3
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 
@@ -69,29 +69,46 @@ class StoryAgentLLM:
         """
         初始化客户端。
         优先使用传入的参数；如果某个参数为 None，则会回退到环境变量：
-        - LLM_MODEL_ID  -> 模型 ID
-        - LLM_API_KEY   -> Qveris API Key
-        - LLM_BASE_URL  -> Qveris API Base URL (例如 https://qveris.ai/api/v1)
+        - LLM_MODEL_ID  -> 大模型 ID
+        - LLM_API_KEY   -> OpenAI 兼容接口 API Key
+        - LLM_BASE_URL  -> OpenAI 兼容接口 Base URL
         """
-        fallback_model = os.getenv("MODEL") or os.getenv("MIMO_MODEL") or os.getenv("MIMO_MODEL_ID")
+        fallback_model = (
+            os.getenv("LLM_MODEL_ID")
+            or os.getenv("MINIMAX_MODEL")
+            or os.getenv("MINIMAX_MODEL_ID")
+            or os.getenv("minimax_MODEL")
+            or os.getenv("minimax_MODEL_ID")
+            or os.getenv("MODEL")
+            or os.getenv("MIMO_MODEL")
+            or os.getenv("MIMO_MODEL_ID")
+        )
         fallback_key = (
-            os.getenv("MIMO_API_KEY")
+            os.getenv("MINIMAX_API_KEY")
+            or os.getenv("MINIMAX_API_Key")
+            or os.getenv("minimax_API_KEY")
+            or os.getenv("minimax_API_Key")
+            or os.getenv("MIMO_API_KEY")
             or os.getenv("MIMO_API_Key")
             or os.getenv("MIMO_APIKEY")
             or os.getenv("MIMO_APIKey")
-            or os.getenv("MIMO_APIKEY")
             or os.getenv("API_KEY")
             or os.getenv("API_Key")
         )
         fallback_base = (
-            os.getenv("MIMO_BASE_URL")
+            os.getenv("LLM_BASE_URL")
+            or os.getenv("MINIMAX_BASE_URL")
+            or os.getenv("minimax_BASE_URL")
+            or os.getenv("MINIMAX_API_BASE_URL")
+            or os.getenv("minimax_API_Base_URL")
+            or os.getenv("MIMO_BASE_URL")
             or os.getenv("BASE_URL")
-            or os.getenv("Amap_API_Base_URL")
-            or "https://api.xiaomimimo.com/v1"
+            or "https://api.minimaxi.com/anthropic"
         )
 
         resolved_base = (baseUrl or os.getenv("LLM_BASE_URL") or fallback_base or "").strip()
-        default_model = "mimo-v2.5-pro" if "xiaomimimo.com" in resolved_base else "mimo-v2-pro"
+        base_lower = str(resolved_base or "").strip().lower()
+        default_model = "MiniMax-M3" if "minimax" in base_lower else "MiniMax-M3"
         self.model = model or os.getenv("LLM_MODEL_ID") or fallback_model or default_model
         self.event_callback = event_callback
         self.apiKey = apiKey or os.getenv("LLM_API_KEY") or fallback_key
@@ -100,8 +117,12 @@ class StoryAgentLLM:
         self.timeout = timeout or int(os.getenv("LLM_TIMEOUT", "300"))
         provider = (os.getenv("LLM_PROVIDER") or "").strip().lower()
         if not provider:
-            provider = "mimo" if "xiaomimimo.com" in str(self.baseUrl or "") else "qveris"
+            provider = "minimax" if "minimax" in str(self.baseUrl or "").lower() else "qveris"
+        if provider == "mimo":
+            provider = "minimax"
         self.provider = provider
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", os.getenv("MINIMAX_MAX_TOKENS", "4096")) or "4096")
+        self._uses_anthropic_api = self._detect_anthropic_api(self.baseUrl, self.provider)
 
         self.tool_id = "bigmodel.chat.completions.create.v4.bbf1f5ab"
 
@@ -121,7 +142,9 @@ class StoryAgentLLM:
         silent = (os.getenv("STORY_AGENT_SILENT") or "").strip().lower() in {"1", "true", "yes", "y", "on"}
         max_retries = 3
         provider = (self.provider or "qveris").strip().lower()
-        if provider not in {"qveris", "mimo"}:
+        if provider == "mimo":
+            provider = "minimax"
+        if provider not in {"qveris", "minimax"}:
             provider = "qveris"
 
         if not silent:
@@ -130,8 +153,8 @@ class StoryAgentLLM:
 
         for attempt in range(1, max_retries + 1):
             try:
-                if provider == "mimo":
-                    content = self._think_mimo(messages, temperature=temperature)
+                if provider == "minimax":
+                    content = self._think_minimax(messages, temperature=temperature)
                 else:
                     content = self._think_qveris(messages, temperature=temperature)
 
@@ -161,7 +184,65 @@ class StoryAgentLLM:
 
         return None
 
-    def _think_mimo(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    @staticmethod
+    def _detect_anthropic_api(base_url: str, provider: str) -> bool:
+        base = str(base_url or "").strip().lower()
+        provider_name = str(provider or "").strip().lower()
+        if "/anthropic" in base:
+            return True
+        if "api.minimaxi.com" in base and provider_name == "minimax":
+            return True
+        return False
+
+    @staticmethod
+    def _anthropic_endpoint(base_url: str) -> str:
+        base = (base_url or "").strip().rstrip("/")
+        if not base:
+            base = "https://api.minimaxi.com/anthropic"
+        if base.endswith("/v1/messages"):
+            return base
+        if base.endswith("/v1"):
+            return f"{base}/messages"
+        return f"{base}/v1/messages"
+
+    @staticmethod
+    def _normalize_anthropic_messages(messages: List[Dict[str, str]]) -> Tuple[str, List[Dict[str, str]]]:
+        system_parts: List[str] = []
+        normalized: List[Dict[str, str]] = []
+        for item in messages or []:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "").strip().lower()
+            content = item.get("content") or ""
+            if isinstance(content, list):
+                texts = []
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        texts.append(str(block.get("text") or ""))
+                content = "\n".join(t for t in texts if t)
+            content_str = str(content or "").strip()
+            if not content_str:
+                continue
+            if role == "system":
+                system_parts.append(content_str)
+                continue
+            if role not in {"user", "assistant"}:
+                role = "user"
+            if normalized and normalized[-1].get("role") == role:
+                prev = str(normalized[-1].get("content") or "").strip()
+                normalized[-1]["content"] = f"{prev}\n\n{content_str}" if prev else content_str
+            else:
+                normalized.append({"role": role, "content": content_str})
+        if not normalized:
+            normalized = [{"role": "user", "content": "请继续。"}]
+        return "\n\n".join(system_parts).strip(), normalized
+
+    def _think_minimax(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+        if self._uses_anthropic_api:
+            return self._think_minimax_anthropic(messages, temperature=temperature)
+        return self._think_minimax_openai(messages, temperature=temperature)
+
+    def _think_minimax_openai(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
         url = f"{self.baseUrl.rstrip('/')}/chat/completions"
         headers = {
             "Content-Type": "application/json",
@@ -186,6 +267,41 @@ class StoryAgentLLM:
                 return message.get("content") or ""
         if isinstance(data, dict) and isinstance(data.get("content"), str):
             return data.get("content") or ""
+        return ""
+
+    def _think_minimax_anthropic(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+        url = self._anthropic_endpoint(self.baseUrl)
+        system_prompt, normalized_messages = self._normalize_anthropic_messages(messages)
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.apiKey,
+            "anthropic-version": os.getenv("MINIMAX_ANTHROPIC_VERSION", "2023-06-01"),
+        }
+        payload: Dict[str, object] = {
+            "model": self.model,
+            "messages": normalized_messages,
+            "max_tokens": self.max_tokens,
+        }
+        if system_prompt:
+            payload["system"] = system_prompt
+        if temperature is not None:
+            payload["temperature"] = temperature
+        resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout)
+        if not resp.ok:
+            body = (resp.text or "").strip()
+            raise RuntimeError(f"MiniMax Token Plan request failed ({resp.status_code}): {body[:500]}")
+        data = resp.json()
+        blocks = data.get("content", []) if isinstance(data, dict) else []
+        texts: List[str] = []
+        for block in blocks:
+            if isinstance(block, dict) and block.get("type") == "text":
+                text = str(block.get("text") or "")
+                if text:
+                    texts.append(text)
+        if texts:
+            return "\n".join(texts).strip()
+        if isinstance(data, dict) and isinstance(data.get("output_text"), str):
+            return data.get("output_text") or ""
         return ""
 
     def _think_qveris(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:

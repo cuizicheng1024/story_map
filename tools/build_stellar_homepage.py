@@ -3043,8 +3043,8 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         edgesAll = [];
         minYear = data.min_year ?? -800;
         maxYear = data.max_year ?? 1840;
-        startYear = data.default_start ?? 0;
-        endYear = data.default_end ?? 1840;
+        startYear = data.default_start ?? 100;
+        endYear = data.default_end ?? 1200;
         const savedWin = readTimeWindow();
         if (savedWin) {{
           const a = clamp(savedWin.a, minYear, maxYear);
@@ -3075,8 +3075,8 @@ def main() -> int:
     p.add_argument("--out-index", default="index.html")
     p.add_argument("--out-data", default="stellar_home_data.json")
     p.add_argument("--title", default="故事地图")
-    p.add_argument("--default-start", type=int, default=0)
-    p.add_argument("--default-end", type=int, default=MAX_YEAR)
+    p.add_argument("--default-start", type=int, default=100)
+    p.add_argument("--default-end", type=int, default=1200)
     args = p.parse_args()
 
     story_map_dir = Path(args.story_map_dir).resolve()

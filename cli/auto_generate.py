@@ -135,7 +135,7 @@ def build_story_system_prompt() -> str:
 
 
 # -----------------------------------------------------------------------------
-# OpenAI compatible client (reads env API_KEY)
+# LLM client helpers
 # -----------------------------------------------------------------------------
 
 def _resolve_openai_endpoint(base_url: str) -> str:
@@ -146,6 +146,51 @@ def _resolve_openai_endpoint(base_url: str) -> str:
     if base.endswith("/v1"):
         return f"{base}/chat/completions"
     return f"{base}/v1/chat/completions"
+
+
+def _resolve_anthropic_endpoint(base_url: str) -> str:
+    base = (base_url or "").strip().rstrip("/")
+    if not base:
+        base = "https://api.minimaxi.com/anthropic"
+    if base.endswith("/v1/messages"):
+        return base
+    if base.endswith("/v1"):
+        return f"{base}/messages"
+    return f"{base}/v1/messages"
+
+
+def _uses_anthropic_compat(base_url: str) -> bool:
+    base = (base_url or "").strip().lower()
+    return "/anthropic" in base or "api.minimaxi.com" in base
+
+
+def _normalize_anthropic_messages(messages: List[Dict[str, str]]) -> Dict[str, object]:
+    system_parts: List[str] = []
+    normalized: List[Dict[str, str]] = []
+    for item in messages or []:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        content = str(item.get("content") or "").strip()
+        if not content:
+            continue
+        if role == "system":
+            system_parts.append(content)
+            continue
+        if role not in {"user", "assistant"}:
+            role = "user"
+        if normalized and normalized[-1].get("role") == role:
+            prev = str(normalized[-1].get("content") or "").strip()
+            normalized[-1]["content"] = f"{prev}\n\n{content}" if prev else content
+        else:
+            normalized.append({"role": role, "content": content})
+    if not normalized:
+        normalized = [{"role": "user", "content": "请继续。"}]
+    payload: Dict[str, object] = {"messages": normalized}
+    system_prompt = "\n\n".join(system_parts).strip()
+    if system_prompt:
+        payload["system"] = system_prompt
+    return payload
 
 
 def call_openai_compatible(
@@ -183,6 +228,47 @@ def call_openai_compatible(
     raise RuntimeError(f"无法解析模型返回：{type(data)}")
 
 
+def call_anthropic_compatible(
+    *,
+    messages: List[Dict[str, str]],
+    api_key: str,
+    model: str,
+    base_url: str,
+    timeout: int = 120,
+    temperature: float = 0.2,
+) -> str:
+    url = _resolve_anthropic_endpoint(base_url)
+    payload = _normalize_anthropic_messages(messages)
+    payload.update(
+        {
+            "model": model,
+            "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "4096") or "4096"),
+            "temperature": temperature,
+        }
+    )
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": os.getenv("MINIMAX_ANTHROPIC_VERSION", "2023-06-01"),
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
+    if not resp.ok:
+        raise RuntimeError(f"调用 MiniMax Token Plan 失败（{resp.status_code}）：{resp.text[:500]}")
+    data = resp.json()
+    if isinstance(data, dict):
+        blocks = data.get("content")
+        if isinstance(blocks, list):
+            texts = [
+                str(block.get("text") or "")
+                for block in blocks
+                if isinstance(block, dict) and block.get("type") == "text"
+            ]
+            merged = "\n".join(t for t in texts if t).strip()
+            if merged:
+                return merged
+    raise RuntimeError(f"无法解析模型返回：{type(data)}")
+
+
 def _strip_md_fence(text: str) -> str:
     s = (text or "").strip()
     if not s:
@@ -216,20 +302,39 @@ def generate_story_markdown(name: str) -> str:
     load_dotenv(dotenv_path=str((repo_root.parent / ".env").resolve()))
 
     api_key = (
-        os.getenv("MIMO_API_KEY")
+        os.getenv("LLM_API_KEY")
+        or os.getenv("MINIMAX_API_KEY")
+        or os.getenv("MINIMAX_API_Key")
+        or os.getenv("minimax_API_KEY")
+        or os.getenv("minimax_API_Key")
+        or os.getenv("MIMO_API_KEY")
         or os.getenv("MIMO_API_Key")
         or os.getenv("API_KEY")
-        or os.getenv("LLM_API_KEY")
         or ""
     ).strip()
     base_url = (
-        os.getenv("MIMO_BASE_URL")
+        os.getenv("LLM_BASE_URL")
+        or os.getenv("MINIMAX_BASE_URL")
+        or os.getenv("MINIMAX_API_BASE_URL")
+        or os.getenv("minimax_BASE_URL")
+        or os.getenv("minimax_API_Base_URL")
+        or os.getenv("MIMO_BASE_URL")
         or os.getenv("BASE_URL")
-        or os.getenv("LLM_BASE_URL")
         or os.getenv("OPENAI_BASE_URL")
-        or "https://api.xiaomimimo.com/v1"
+        or "https://api.minimaxi.com/anthropic"
     ).strip()
-    model = (os.getenv("MODEL") or os.getenv("LLM_MODEL_ID") or os.getenv("OPENAI_MODEL") or "mimo-v2-pro").strip()
+    model = (
+        os.getenv("LLM_MODEL_ID")
+        or os.getenv("MIMO_MODEL")
+        or os.getenv("MIMO_MODEL_ID")
+        or os.getenv("MINIMAX_MODEL")
+        or os.getenv("MINIMAX_MODEL_ID")
+        or os.getenv("minimax_MODEL")
+        or os.getenv("minimax_MODEL_ID")
+        or os.getenv("MODEL")
+        or os.getenv("OPENAI_MODEL")
+        or "MiniMax-M3"
+    ).strip()
     timeout = int(os.getenv("TIMEOUT", "120"))
 
     sys_prompt = build_story_system_prompt()
@@ -239,16 +344,26 @@ def generate_story_markdown(name: str) -> str:
     ]
 
     if not api_key:
-        raise RuntimeError("未配置 API key，请在 .env 文件中设置 MIMO_API_KEY（或 API_KEY）。")
+        raise RuntimeError("未配置 API key，请在 .env 文件中设置 LLM_API_KEY（或 MINIMAX_API_KEY / API_KEY）。")
 
-    raw = call_openai_compatible(
-        messages=messages,
-        api_key=api_key,
-        model=model,
-        base_url=base_url,
-        timeout=timeout,
-        temperature=0.2,
-    )
+    if _uses_anthropic_compat(base_url):
+        raw = call_anthropic_compatible(
+            messages=messages,
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            timeout=timeout,
+            temperature=0.2,
+        )
+    else:
+        raw = call_openai_compatible(
+            messages=messages,
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            timeout=timeout,
+            temperature=0.2,
+        )
     md = _strip_md_fence(raw)
     if not md:
         raise RuntimeError("模型返回内容为空")

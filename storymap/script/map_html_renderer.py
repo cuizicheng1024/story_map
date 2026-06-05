@@ -288,6 +288,36 @@ const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('
 const mergedTeachingPointsNormalized = mergedTeachingPoints
   .replace(/^(#{0,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/gm, '')
   .replace(/^\\s*$/gm, (m) => m);
+const extractTeachingHighlights = (raw, maxItems) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}n`, 'g');
+  const lines = String(raw || '').split(splitRe).map((x) => String(x || '').trim()).filter(Boolean);
+  const out = [];
+  const seen = new Set();
+  const push = (text) => {
+    const t = String(text || '').replace(/^[-•]\s*/, '').trim();
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    out.push(t);
+  };
+  for (const line of lines) {
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    if (/\*\*重点\*\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
+    if (out.length >= (maxItems || 5)) return out.slice(0, maxItems || 5);
+  }
+  for (const line of lines) {
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    push(line);
+    if (out.length >= (maxItems || 5)) break;
+  }
+  return out.slice(0, maxItems || 5);
+};
 const markerStyles = mapStyle.markers || {};
 const defaultMarkerStyles = {
   normal: {
@@ -614,6 +644,7 @@ const App = () => {
   const relatedHonor = String(highlights.honor || data.person?.title || '').trim();
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
+  const teachingHighlights = useMemo(() => extractTeachingHighlights(mergedTeachingPointsNormalized, 4), [mergedTeachingPointsNormalized]);
   const surname = String(data.person?.name || '').slice(0, 1);
   const headerSubtitle = String(relatedReviews[0] || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
@@ -946,16 +977,25 @@ const App = () => {
   const _postChat = async (messages) => {
     const toUrl = (u) => String(u || '').trim();
     const tryUrls = [];
+    const pushUrl = (u) => {
+      const val = toUrl(u);
+      if (!val) return;
+      if (!tryUrls.includes(val)) tryUrls.push(val);
+    };
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
-      tryUrls.push(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
-      tryUrls.push(toUrl(window.MAP_STORY_API_BASE).replace(/\\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\\/+$/, '') + '/api/ai/proxy');
     }
     if (window.location && window.location.protocol !== 'file:') {
-      tryUrls.push('/api/ai/proxy');
+      pushUrl('/api/ai/proxy');
+      if (window.location.origin) {
+        pushUrl(toUrl(window.location.origin).replace(/\\/+$/, '') + '/api/ai/proxy');
+      }
     }
-    tryUrls.push('http://localhost:8765/api/ai/proxy');
+    pushUrl('http://127.0.0.1:8765/api/ai/proxy');
+    pushUrl('http://localhost:8765/api/ai/proxy');
     let lastErr = null;
     for (const url of tryUrls) {
       try {
@@ -1009,6 +1049,44 @@ const App = () => {
             <p className="text-xs text-gray-500 mt-1 mb-2">{renderInline(headerSubtitle)}</p>
           ) : null}
           {renderDescription()}
+          {(relatedHonor || relatedStatus || relatedIdentities || relatedWorks.length || teachingHighlights.length) ? (
+            <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-3 text-left">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {relatedHonor ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(relatedHonor)}</span> : null}
+                {data.person?.dynasty ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.dynasty)}</span> : null}
+                {stats.yearsValue != null ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(`${stats.yearsValue}岁`)}</span> : (data.person?.lifespan ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.lifespan)}</span> : null)}
+              </div>
+              {relatedStatus ? (
+                <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                  <span className="text-[#7c2d12] font-bold mr-1">历史定位：</span>
+                  {renderInline(relatedStatus)}
+                </p>
+              ) : null}
+              {relatedIdentities ? (
+                <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                  <span className="text-[#7c2d12] font-bold mr-1">核心身份：</span>
+                  {renderInline(relatedIdentities)}
+                </p>
+              ) : null}
+              {teachingHighlights.length ? (
+                <div>
+                  <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
+                  <ul className="space-y-1">
+                    {teachingHighlights.map((item, idx) => (
+                      <li key={idx} className="text-sm text-gray-700 leading-relaxed">- {renderInline(item)}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : relatedWorks.length ? (
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <span className="text-[#7c2d12] font-bold mr-1">相关作品：</span>
+                  {relatedWorks.slice(0, 4).map((w, idx) => (
+                    <span key={idx}>{idx ? '、' : ''}《{w}》</span>
+                  ))}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-gray-400 text-sm">朝代</p>
@@ -1039,52 +1117,6 @@ const App = () => {
           </div>
         </div>
       </header>
-      {(relatedHonor || relatedStatus || relatedIdentities || relatedWorks.length || relatedReviews.length) ? (
-        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <h2 className="text-lg font-bold text-[#7c2d12]">人物要点</h2>
-            <span className="text-[10px] text-gray-500">强相关速览</span>
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {relatedHonor ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(relatedHonor)}</span> : null}
-            {data.person?.dynasty ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.dynasty)}</span> : null}
-            {stats.yearsValue != null ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(`${stats.yearsValue}岁`)}</span> : (data.person?.lifespan ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.lifespan)}</span> : null)}
-          </div>
-          {relatedStatus ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">历史地位</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(relatedStatus)}</p>
-            </div>
-          ) : null}
-          {relatedIdentities ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">身份</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(relatedIdentities)}</p>
-            </div>
-          ) : null}
-          {relatedWorks.length ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">代表作</p>
-              <div className="flex flex-wrap gap-2">
-                {relatedWorks.slice(0, 6).map((w, idx) => (
-                  <span key={idx} className="text-[11px] px-2 py-1 rounded bg-gray-50 border border-gray-200">《{w}》</span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {relatedReviews.length ? (
-            <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">他人评价 / 史料</p>
-              <ul className="space-y-1">
-                {relatedReviews.slice(0, 6).map((t, idx) => {
-                  const s = String(t || '').replace(/^\s*[-•]\s*/, '').trim();
-                  return <li key={idx} className="text-sm text-gray-700 leading-relaxed">- {renderInline(s)}</li>;
-                })}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
       <div className="space-y-6">
         <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
           <div
@@ -1137,10 +1169,6 @@ const App = () => {
                       </span>
                     </div>
                     <div className="space-y-1 text-[11px] text-gray-500 mb-2">
-                      <div className="flex justify-between">
-                        <span>公元纪年</span>
-                        <span className="text-gray-700">{loc.time || '未知'}</span>
-                      </div>
                       <div className="flex justify-between">
                         <span>停留时间</span>
                         <span className="text-gray-700">{loc.duration || '未知'}</span>
@@ -1400,8 +1428,8 @@ const App = () => {
       </button>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">
         <p>
-          built by cuicheng (
-          <a className="underline hover:text-gray-600" href="mailto:cuizicheng.1024@gmail.com">cuizicheng.1024@gmail.com</a>
+          built by cuicheng(
+          <a className="underline hover:text-gray-600" href="mailto:cuichengzi@foxmail.com">cuichengzi@foxmail.com</a>
           )
         </p>
       </footer>
