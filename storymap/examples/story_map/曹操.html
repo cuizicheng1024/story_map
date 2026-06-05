@@ -8,8 +8,74 @@
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" onerror="if(!this.dataset.f){this.dataset.f='1';this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';}else if(this.dataset.f==='1'){this.dataset.f='2';this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';}" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onerror="if(!this.dataset.f){this.dataset.f='1';this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';}else if(this.dataset.f==='1'){this.dataset.f='2';this.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';}"></script>
+<script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
+(() => {
+  try {
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__) {
+      window.__MAP_STORY_AMAP_CONFIG__ = true;
+      const cfg = document.createElement('script');
+      cfg.src = '/amap-config.js';
+      cfg.async = false;
+      document.head.appendChild(cfg);
+    }
+  } catch (_) {}
+})();
+let amapLoading = false;
+const _getAmapKey = () => {
+  let k = '';
+  try {
+    k = (new URLSearchParams(window.location.search).get('amapKey') || '').trim();
+  } catch (_) {}
+  if (!k) k = String(window.AMAP_KEY || '').trim();
+  try {
+    if (!k) k = String(localStorage.getItem('AMAP_KEY') || '').trim();
+  } catch (_) {}
+  return k;
+};
+const _getAmapSecurity = () => {
+  let s = '';
+  try {
+    s = (new URLSearchParams(window.location.search).get('amapSec') || '').trim();
+  } catch (_) {}
+  if (!s) s = String(window.AMAP_SECURITY || '').trim();
+  try {
+    if (!s) s = String(localStorage.getItem('AMAP_SECURITY') || '').trim();
+  } catch (_) {}
+  return s;
+};
+const _ensureAmap = () => new Promise((resolve, reject) => {
+  if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+  const key = _getAmapKey();
+  if (!key) return reject(new Error('AMAP_KEY_REQUIRED'));
+  const sec = _getAmapSecurity();
+  if (sec) {
+    window._AMapSecurityConfig = { securityJsCode: sec };
+  }
+  if (amapLoading) {
+    const t0 = Date.now();
+    const tick = () => {
+      if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+      if (Date.now() - t0 > 12000) return reject(new Error('AMAP_LOAD_TIMEOUT'));
+      setTimeout(tick, 80);
+    };
+    return tick();
+  }
+  amapLoading = true;
+  const sEl = document.createElement('script');
+  sEl.async = true;
+  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
+  sEl.onload = () => {
+    amapLoading = false;
+    if (window.AMap && typeof window.AMap.Map === 'function') resolve(true);
+    else reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  sEl.onerror = () => {
+    amapLoading = false;
+    reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  document.head.appendChild(sEl);
+});
+</script>
 <style>
 body {
   font-family: 'Noto Serif SC', serif;
@@ -120,7 +186,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "曹操", "title": "", "description": "曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。", "quote": "《蒿里行》：“白骨露于野，千里无鸡鸣。”", "dynasty": "东汉末年", "birthplace": "沛国谯县（今安徽省亳州市）", "avatar": "", "birth": {"date": "155年", "location": "沛国谯县（今安徽省亳州市）", "lat": 33.8693, "lng": 115.7793}, "death": {"date": "220年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454}, "lifespan": "六十六岁（虚岁，周岁六十五岁）", "highlights": {"honor": "", "status": "三国时期曹魏政权的奠基者，建安文学的领袖。", "identities": "政治家、军事家、文学家", "achievements": "统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。", "works": [], "reviews": []}}, "locations": [{"name": "沛国谯县", "ancientName": "沛国谯县", "modernName": "安徽省亳州市", "lat": 33.8693, "lng": 115.7793, "type": "birth", "event": "出生于官宦家庭，父曹嵩为宦官曹腾养子。", "time": "公元155年", "duration": "少年时期", "significance": "其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "normal", "event": "年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。", "time": "约公元174年 - 188年", "duration": "断续数年", "significance": "初入政坛，展现了不畏强权的执法风格，赢得了声誉。", "works": [], "quoteLines": []}, {"name": "兖州", "ancientName": "兖州（古州名，东汉末年治所昌邑县，", "modernName": "山东省巨野县南）", "lat": 35.3933, "lng": 116.0894, "type": "normal", "event": "领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。", "time": "公元192年 - 195年", "duration": "约3年", "significance": "获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。", "works": [], "quoteLines": []}, {"name": "许县", "ancientName": "许县", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "type": "normal", "event": "迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。", "time": "公元196年 - 220年", "duration": "24年（作为政治中心）", "significance": "取得了政治上的绝对主动权，建立了霸业的政治与经济中心。", "works": ["置屯田令"], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县东北", "lat": 34.74, "lng": 114.02, "type": "normal", "event": "以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。", "time": "公元200年", "duration": "数月", "significance": "扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.3, "lng": 114.55, "type": "normal", "event": "攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。", "time": "公元204年 - 220年", "duration": "16年（作为实际统治中心）", "significance": "取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。", "works": ["登台赋"], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市西南", "lat": 41.55, "lng": 120.4, "type": "normal", "event": "北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。", "time": "公元207年", "duration": "短暂", "significance": "彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。", "works": ["步出夏门行", "观沧海"], "quoteLines": []}, {"name": "赤壁", "ancientName": "赤壁", "modernName": "赤壁（一般认为在今湖北省赤壁市西北）", "lat": 29.75, "lng": 113.85, "type": "normal", "event": "率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。", "time": "公元208年", "duration": "数月", "significance": "**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。", "works": [], "quoteLines": []}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "type": "normal", "event": "公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。", "time": "公元215年、219年", "duration": "断续数月", "significance": "得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "death", "event": "病逝于洛阳，临终前作《遗令》。", "time": "公元220年", "duration": "晚年常居", "significance": "一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。", "works": ["遗令"], "quoteLines": ["《蒿里行》：“白骨露于野，千里无鸡鸣。”", "《短歌行》：“对酒当歌，人生几何！”", "《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”"]}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", "color": "#3498db"}, "birth": {"iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", "color": "#2ecc71"}, "death": {"iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", "color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。", "examPoints": "### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。", "markdown": "# 曹操\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹操\n- **别名/外文名**：魏武帝、曹孟德、阿瞒\n- **时代**：东汉末年\n- **出生**：公元155年，沛国谯县（今安徽省亳州市）\n- **去世**：公元220年，洛阳（今河南省洛阳市）\n- **享年**：六十六岁（虚岁，周岁六十五岁）\n- **主要身份**：政治家、军事家、文学家\n- **历史地位**：三国时期曹魏政权的奠基者，建安文学的领袖。\n- **主要成就**：统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。\n\n### 生平概述\n曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：沛国谯县\n- **时间**：公元155年\n- **停留时间**：少年时期\n- **地点**：沛国谯县（今安徽省亳州市）\n- **事件**：出生于官宦家庭，父曹嵩为宦官曹腾养子。\n- **意义**：其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元174年 - 188年\n- **停留时间**：断续数年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。\n- **意义**：初入政坛，展现了不畏强权的执法风格，赢得了声誉。\n\n### 📍 重要地点：兖州\n- **时间**：公元192年 - 195年\n- **停留时间**：约3年\n- **地点**：兖州（古州名，东汉末年治所昌邑县，今山东省巨野县南）\n- **事件**：领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。\n- **意义**：获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。\n\n### 📍 重要地点：许县\n- **时间**：公元196年 - 220年\n- **停留时间**：24年（作为政治中心）\n- **地点**：许县（今河南省许昌市）\n- **事件**：迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。\n- **意义**：取得了政治上的绝对主动权，建立了霸业的政治与经济中心。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：数月\n- **地点**：官渡（今河南省中牟县东北）\n- **事件**：以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。\n- **意义**：扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年 - 220年\n- **停留时间**：16年（作为实际统治中心）\n- **地点**：邺城（今河北省临漳县西南）\n- **事件**：攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。\n- **意义**：取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。\n\n### 📍 重要地点：柳城\n- **时间**：公元207年\n- **停留时间**：短暂\n- **地点**：柳城（今辽宁省朝阳市西南）\n- **事件**：北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。\n- **意义**：彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。\n\n### 📍 重要地点：赤壁\n- **时间**：公元208年\n- **停留时间**：数月\n- **地点**：赤壁（一般认为在今湖北省赤壁市西北）\n- **事件**：率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。\n- **意义**：**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。\n\n### 📍 重要地点：汉中\n- **时间**：公元215年、219年\n- **停留时间**：断续数月\n- **地点**：汉中（今陕西省汉中市）\n- **事件**：公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。\n- **意义**：得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。\n\n### 🔴 去世地：洛阳\n- **时间**：公元220年\n- **停留时间**：晚年常居\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：病逝于洛阳，临终前作《遗令》。\n- **意义**：一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。\n- **名篇名句**：《蒿里行》：“白骨露于野，千里无鸡鸣。”；《短歌行》：“对酒当歌，人生几何！”；《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 安徽省亳州市 | 33.8693 | 115.7793 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省巨野县 | 35.3933 | 116.0894 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省中牟县 | 34.7400 | 114.0200 |\n| 河北省临漳县 | 36.3000 | 114.5500 |\n| 辽宁省朝阳市 | 41.5500 | 120.4000 |\n| 湖北省赤壁市 | 29.7500 | 113.8500 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。\n\n## 初高中阶段考点\n\n### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。\n"};
+      const data = {"person": {"name": "曹操", "title": "", "description": "曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。", "quote": "《蒿里行》：“白骨露于野，千里无鸡鸣。”", "dynasty": "东汉末年", "birthplace": "沛国谯县（今安徽省亳州市）", "avatar": "", "birth": {"date": "155年", "location": "沛国谯县（今安徽省亳州市）", "lat": 33.8693, "lng": 115.7793}, "death": {"date": "220年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454}, "lifespan": "六十六岁（虚岁，周岁六十五岁）", "highlights": {"honor": "", "status": "三国时期曹魏政权的奠基者，建安文学的领袖。", "identities": "政治家、军事家、文学家", "achievements": "统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。", "works": [], "reviews": []}}, "locations": [{"name": "沛国谯县", "ancientName": "沛国谯县", "modernName": "安徽省亳州市", "lat": 33.8693, "lng": 115.7793, "type": "birth", "event": "出生于官宦家庭，父曹嵩为宦官曹腾养子。", "time": "公元155年", "duration": "少年时期", "significance": "其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "normal", "event": "年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。", "time": "约公元174年 - 188年", "duration": "断续数年", "significance": "初入政坛，展现了不畏强权的执法风格，赢得了声誉。", "works": [], "quoteLines": []}, {"name": "兖州", "ancientName": "兖州（古州名，东汉末年治所昌邑县，", "modernName": "山东省巨野县南）", "lat": 35.3933, "lng": 116.0894, "type": "normal", "event": "领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。", "time": "公元192年 - 195年", "duration": "约3年", "significance": "获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。", "works": [], "quoteLines": []}, {"name": "许县", "ancientName": "许县", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "type": "normal", "event": "迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。", "time": "公元196年 - 220年", "duration": "24年（作为政治中心）", "significance": "取得了政治上的绝对主动权，建立了霸业的政治与经济中心。", "works": ["置屯田令"], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县东北", "lat": 34.74, "lng": 114.02, "type": "normal", "event": "以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。", "time": "公元200年", "duration": "数月", "significance": "扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.3, "lng": 114.55, "type": "normal", "event": "攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。", "time": "公元204年 - 220年", "duration": "16年（作为实际统治中心）", "significance": "取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。", "works": ["登台赋"], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市西南", "lat": 41.55, "lng": 120.4, "type": "normal", "event": "北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。", "time": "公元207年", "duration": "短暂", "significance": "彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。", "works": ["步出夏门行", "观沧海"], "quoteLines": []}, {"name": "赤壁", "ancientName": "赤壁", "modernName": "赤壁（一般认为在今湖北省赤壁市西北）", "lat": 29.75, "lng": 113.85, "type": "normal", "event": "率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。", "time": "公元208年", "duration": "数月", "significance": "**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。", "works": [], "quoteLines": []}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "type": "normal", "event": "公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。", "time": "公元215年、219年", "duration": "断续数月", "significance": "得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "death", "event": "病逝于洛阳，临终前作《遗令》。", "time": "公元220年", "duration": "晚年常居", "significance": "一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。", "works": ["遗令"], "quoteLines": ["《蒿里行》：“白骨露于野，千里无鸡鸣。”", "《短歌行》：“对酒当歌，人生几何！”", "《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”"]}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。", "examPoints": "### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。", "markdown": "# 曹操\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹操\n- **别名/外文名**：魏武帝、曹孟德、阿瞒\n- **时代**：东汉末年\n- **出生**：公元155年，沛国谯县（今安徽省亳州市）\n- **去世**：公元220年，洛阳（今河南省洛阳市）\n- **享年**：六十六岁（虚岁，周岁六十五岁）\n- **主要身份**：政治家、军事家、文学家\n- **历史地位**：三国时期曹魏政权的奠基者，建安文学的领袖。\n- **主要成就**：统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。\n\n### 生平概述\n曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：沛国谯县\n- **时间**：公元155年\n- **停留时间**：少年时期\n- **地点**：沛国谯县（今安徽省亳州市）\n- **事件**：出生于官宦家庭，父曹嵩为宦官曹腾养子。\n- **意义**：其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元174年 - 188年\n- **停留时间**：断续数年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。\n- **意义**：初入政坛，展现了不畏强权的执法风格，赢得了声誉。\n\n### 📍 重要地点：兖州\n- **时间**：公元192年 - 195年\n- **停留时间**：约3年\n- **地点**：兖州（古州名，东汉末年治所昌邑县，今山东省巨野县南）\n- **事件**：领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。\n- **意义**：获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。\n\n### 📍 重要地点：许县\n- **时间**：公元196年 - 220年\n- **停留时间**：24年（作为政治中心）\n- **地点**：许县（今河南省许昌市）\n- **事件**：迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。\n- **意义**：取得了政治上的绝对主动权，建立了霸业的政治与经济中心。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：数月\n- **地点**：官渡（今河南省中牟县东北）\n- **事件**：以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。\n- **意义**：扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年 - 220年\n- **停留时间**：16年（作为实际统治中心）\n- **地点**：邺城（今河北省临漳县西南）\n- **事件**：攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。\n- **意义**：取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。\n\n### 📍 重要地点：柳城\n- **时间**：公元207年\n- **停留时间**：短暂\n- **地点**：柳城（今辽宁省朝阳市西南）\n- **事件**：北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。\n- **意义**：彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。\n\n### 📍 重要地点：赤壁\n- **时间**：公元208年\n- **停留时间**：数月\n- **地点**：赤壁（一般认为在今湖北省赤壁市西北）\n- **事件**：率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。\n- **意义**：**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。\n\n### 📍 重要地点：汉中\n- **时间**：公元215年、219年\n- **停留时间**：断续数月\n- **地点**：汉中（今陕西省汉中市）\n- **事件**：公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。\n- **意义**：得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。\n\n### 🔴 去世地：洛阳\n- **时间**：公元220年\n- **停留时间**：晚年常居\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：病逝于洛阳，临终前作《遗令》。\n- **意义**：一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。\n- **名篇名句**：《蒿里行》：“白骨露于野，千里无鸡鸣。”；《短歌行》：“对酒当歌，人生几何！”；《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 安徽省亳州市 | 33.8693 | 115.7793 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省巨野县 | 35.3933 | 116.0894 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省中牟县 | 34.7400 | 114.0200 |\n| 河北省临漳县 | 36.3000 | 114.5500 |\n| 辽宁省朝阳市 | 41.5500 | 120.4000 |\n| 湖北省赤壁市 | 29.7500 | 113.8500 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。\n\n## 初高中阶段考点\n\n### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。\n"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -134,18 +200,45 @@ const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('
 const mergedTeachingPointsNormalized = mergedTeachingPoints
   .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
   .replace(/^\s*$/gm, (m) => m);
+const extractTeachingHighlights = (raw, maxItems) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}n`, 'g');
+  const lines = String(raw || '').split(splitRe).map((x) => String(x || '').trim()).filter(Boolean);
+  const out = [];
+  const seen = new Set();
+  const push = (text) => {
+    const t = String(text || '').replace(/^[-•]\s*/, '').trim();
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    out.push(t);
+  };
+  for (const line of lines) {
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    if (/\*\*重点\*\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
+    if (out.length >= (maxItems || 5)) return out.slice(0, maxItems || 5);
+  }
+  for (const line of lines) {
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    push(line);
+    if (out.length >= (maxItems || 5)) break;
+  }
+  return out.slice(0, maxItems || 5);
+};
 const markerStyles = mapStyle.markers || {};
 const defaultMarkerStyles = {
   normal: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#3498db'
   },
   birth: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#2ecc71'
   },
   death: {
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     color: '#e74c3c'
   }
 };
@@ -460,6 +553,7 @@ const App = () => {
   const relatedHonor = String(highlights.honor || data.person?.title || '').trim();
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
+  const teachingHighlights = useMemo(() => extractTeachingHighlights(mergedTeachingPointsNormalized, 4), [mergedTeachingPointsNormalized]);
   const surname = String(data.person?.name || '').slice(0, 1);
   const headerSubtitle = String(relatedReviews[0] || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
@@ -563,6 +657,45 @@ const App = () => {
     }
     return { doubtful: true, candidates: out };
   }, [data.person?.birthplace, data.person?.birthplace_candidates]);
+  const ageLabel = useMemo(() => {
+    if (stats.yearsValue != null) return `${stats.yearsValue}岁`;
+    return String(data.person?.lifespan || '').trim();
+  }, [stats.yearsValue, data.person?.lifespan]);
+  const introTags = useMemo(() => {
+    const out = [];
+    const push = (text) => {
+      const t = String(text || '').trim();
+      if (!t) return;
+      if (out.includes(t)) return;
+      out.push(t);
+    };
+    push(data.person?.dynasty);
+    push(ageLabel);
+    push(relatedIdentities.split(/[、,，]/)[0]);
+    return out.slice(0, 4);
+  }, [data.person?.dynasty, ageLabel, relatedIdentities]);
+  const birthplaceLabel = useMemo(() => {
+    const ancient = String(birthplaceParts.ancient || '').trim();
+    const modern = String(birthplaceParts.modern || '').trim();
+    if (ancient && modern) return `${ancient}（${modern}）`;
+    return ancient || modern || '';
+  }, [birthplaceParts]);
+  const introFactLines = useMemo(() => {
+    const out = [];
+    const push = (label, value) => {
+      const v = String(value || '').trim();
+      if (!v) return;
+      out.push(`**${label}：** ${v}`);
+    };
+    push('历史定位', relatedStatus);
+    push('核心身份', relatedIdentities);
+    push('籍贯', birthplaceLabel);
+    push('生卒', lifeDates);
+    if (relatedWorks.length) {
+      push('相关作品', relatedWorks.slice(0, 4).map((w) => `《${w}》`).join('、'));
+    }
+    return out;
+  }, [relatedStatus, relatedIdentities, birthplaceLabel, lifeDates, relatedWorks]);
   const getAgeText = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return '';
@@ -580,7 +713,7 @@ const App = () => {
             if (/^-{3,}$/.test(t)) {
               return <hr key={idx} className="my-2 border-gray-200" />;
             }
-            return <span key={idx} className="block">{seg}</span>;
+            return <span key={idx} className="block">{renderInline(seg)}</span>;
           })}
         </div>
         {isLongDesc ? (
@@ -605,199 +738,123 @@ const App = () => {
   };
   useEffect(() => {
     hideBootFallback();
-    if (!mapRef.current) {
+    let disposed = false;
+    if (mapRef.current) return () => { disposed = true; };
+    const initMap = async () => {
       const first = locations[0] || { lat: 35, lng: 105 };
-      if (!window.L || typeof window.L.map !== 'function') return;
-      const map = window.L.map('map', { zoomControl: false }).setView([first.lat, first.lng], 4);
-      window.L.control.zoom({ position: 'topright' }).addTo(map);
-      const tileSources = [
-        {
-          id: 'osm_std',
-          label: 'OpenStreetMap',
-          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          options: { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap contributors' }
-        }
-      ];
-const isInChina = (lat, lng) => lat >= 18 && lat <= 54 && lng >= 73 && lng <= 135;
-      const addTileLayer = (mapInstance, center) => {
-        const findIdx = (id) => {
-          try {
-            return tileSources.findIndex((x) => x && x.id === id);
-          } catch (_) {
-            return -1;
-          }
-        };
-        let idx = findIdx('osm_std');
-        if (idx < 0) idx = 0;
-        let errorCount = 0;
-        let tileLoadCount = 0;
-        let layer = null;
-        let timer = null;
-        let blankAdded = false;
-
-        const addBlankBase = () => {
-          if (blankAdded) return;
-          blankAdded = true;
-          const el = document.getElementById('map');
-          if (el) el.style.background = '#f6f4ee';
-          const blank = L.gridLayer({ attribution: '' });
-          blank.createTile = () => {
-            const tile = document.createElement('div');
-            tile.style.background = 'transparent';
-            return tile;
-          };
-          blank.addTo(mapInstance);
-          try {
-            const Tip = L.control({ position: 'topleft' });
-            Tip.onAdd = () => {
-              const div = L.DomUtil.create('div', '');
-              div.style.background = 'rgba(255,255,255,0.92)';
-              div.style.padding = '6px 8px';
-              div.style.borderRadius = '8px';
-              div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.12)';
-              div.style.font = '12px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial';
-              div.style.color = '#333';
-              div.style.border = '1px solid rgba(0,0,0,0.08)';
-              div.textContent = '底图加载失败（仍可查看足迹轨迹）';
-              L.DomEvent.disableClickPropagation(div);
-              L.DomEvent.disableScrollPropagation(div);
-              return div;
-            };
-            Tip.addTo(mapInstance);
-          } catch (_) {}
-        };
-
-        const attach = () => {
-          if (layer) {
-            mapInstance.removeLayer(layer);
-          }
-          errorCount = 0;
-          tileLoadCount = 0;
-          if (idx >= tileSources.length) {
-            addBlankBase();
-            return;
-          }
-          const src = tileSources[idx];
-          const sublayers = [];
-          if (src && Array.isArray(src.layers) && src.layers.length) {
-            for (const spec of src.layers) {
-              if (!spec || !spec.url) continue;
-              const l = L.tileLayer(spec.url, spec.options || {});
-              sublayers.push(l);
-            }
-            layer = L.layerGroup(sublayers);
-          } else {
-            layer = L.tileLayer(src.url, (src && src.options) || {});
-            sublayers.push(layer);
-          }
-
-          const handleError = () => {
-            errorCount += 1;
-            if (errorCount >= 6) addBlankBase();
-          };
-          const handleLoad = () => {
-            tileLoadCount += 1;
-            if (timer) {
-              clearTimeout(timer);
-              timer = null;
-            }
-          };
-
-          for (const l of sublayers) {
-            try {
-              l.on('tileerror', handleError);
-              l.on('tileload', handleLoad);
-            } catch (_) {}
-          }
-          layer.addTo(mapInstance);
-
-          if (timer) clearTimeout(timer);
-          timer = setTimeout(() => {
-            if (tileLoadCount === 0) addBlankBase();
-          }, 3500);
-        };
-
-        attach();
-      };
-      addTileLayer(map, { lat: first.lat, lng: first.lng });
-L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
-      const latlngs = locations.map((l) => [l.lat, l.lng]);
+      try {
+        await _ensureAmap();
+      } catch (err) {
+        const el = document.getElementById('boot-diag');
+        if (el) el.textContent = `高德地图加载失败：${String(err?.message || err)}`;
+        return;
+      }
+      if (disposed) return;
+      const map = new AMap.Map('map', {
+        zoom: 4,
+        center: [first.lng, first.lat],
+        viewMode: '2D',
+        resizeEnable: true
+      });
+      const overlays = [];
+      const latlngs = locations.map((l) => [l.lng, l.lat]);
       if (latlngs.length > 1) {
-        window.L.polyline(latlngs, {
-          color: mapStyle.pathColor || '#1e40af',
-          weight: 4,
-          opacity: 0.65
-        }).addTo(map);
+        const polyline = new AMap.Polyline({
+          path: latlngs,
+          strokeColor: mapStyle.pathColor || '#1e40af',
+          strokeWeight: 4,
+          strokeOpacity: 0.7,
+          lineJoin: 'round',
+          lineCap: 'round'
+        });
+        map.add(polyline);
+        overlays.push(polyline);
       }
 
       const pointLayers = [];
-      const ageLayers = [];
       const setActive = (activeIdx) => {
         for (const p of pointLayers) {
           const active = p.idx === activeIdx;
           try {
-            p.layer.setStyle({
+            p.layer.setOptions({
               radius: active ? 9 : 6,
-              weight: active ? 2 : 1,
-              color: active ? 'rgba(192,57,43,0.65)' : 'rgba(255,255,255,0.35)',
-              fillOpacity: active ? 0.48 : 0.35
+              strokeWeight: active ? 3 : 1,
+              strokeColor: active ? '#c0392b' : 'rgba(255,255,255,0.68)',
+              fillOpacity: active ? 0.58 : 0.36,
+              zIndex: active ? 160 : 120 + p.idx
             });
-          } catch (_) {}
-          try {
-            if (p.layer && typeof p.layer.bringToFront === 'function' && active) p.layer.bringToFront();
           } catch (_) {}
         }
       };
 
       locations.forEach((loc, idx) => {
         const activeColor = (markerStyles[loc.type] || markerStyles.normal || defaultMarkerStyles[loc.type] || defaultMarkerStyles.normal).color || '#22c55e';
-        const cm = window.L.circleMarker([loc.lat, loc.lng], {
+        const cm = new AMap.CircleMarker({
+          center: [loc.lng, loc.lat],
           radius: idx === activeIndex ? 9 : 6,
-          color: 'rgba(255,255,255,0.35)',
-          weight: idx === activeIndex ? 2 : 1,
+          strokeColor: idx === activeIndex ? '#c0392b' : 'rgba(255,255,255,0.68)',
+          strokeWeight: idx === activeIndex ? 3 : 1,
           fillColor: activeColor,
-          fillOpacity: 0.35
-        }).addTo(map);
-        pointLayers.push({ idx, layer: cm });
+          fillOpacity: idx === activeIndex ? 0.58 : 0.36,
+          bubble: true,
+          zIndex: 120 + idx
+        });
         cm.on('click', () => {
           setSelectedLoc(loc);
           setActiveIndex(idx);
-          map.setView([loc.lat, loc.lng], 7);
+          map.setZoomAndCenter(7, [loc.lng, loc.lat]);
         });
+        map.add(cm);
+        overlays.push(cm);
+        pointLayers.push({ idx, layer: cm });
 
         const ageText = getAgeText(loc);
         if (ageText) {
-          const icon = window.L.divIcon({
-            className: 'age-marker',
-            html: `<div class="age-badge">${ageText}</div>`,
-            iconSize: [0, 0]
+          const label = new AMap.Text({
+            text: ageText,
+            position: [loc.lng, loc.lat],
+            anchor: 'bottom-center',
+            offset: new AMap.Pixel(0, -16),
+            style: {
+              background: 'rgba(255,255,255,0.68)',
+              color: '#7c2d12',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              border: '1px solid rgba(200,180,150,0.55)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              fontSize: '10px',
+              whiteSpace: 'nowrap'
+            }
           });
-          const m = window.L.marker([loc.lat, loc.lng], { icon, interactive: false }).addTo(map);
-          ageLayers.push(m);
+          map.add(label);
+          overlays.push(label);
         }
       });
 
-      try {
-        const bounds = window.L.latLngBounds(latlngs);
-        if (bounds && bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [48, 48], maxZoom: 7 });
-        }
-      } catch (_) {}
+      if (overlays.length > 0) {
+        try {
+          map.setFitView(overlays);
+        } catch (_) {}
+      }
 
       mapRef.current = {
-        _type: 'leaflet',
+        _type: 'amap',
         setView: (latlng, z) => {
           const lat = Array.isArray(latlng) ? latlng[0] : latlng?.lat;
           const lng = Array.isArray(latlng) ? latlng[1] : latlng?.lng;
           const zoom = Number.isFinite(z) ? z : 7;
           if (typeof lat === 'number' && typeof lng === 'number') {
-            map.setView([lat, lng], zoom);
+            map.setZoomAndCenter(zoom, [lng, lat]);
           }
         },
         setActive
       };
       setActive(activeIndex);
-    }
+    };
+    initMap();
+    return () => {
+      disposed = true;
+    };
   }, []);
   useEffect(() => {
     const onMove = (e) => {
@@ -902,16 +959,25 @@ L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
   const _postChat = async (messages) => {
     const toUrl = (u) => String(u || '').trim();
     const tryUrls = [];
+    const pushUrl = (u) => {
+      const val = toUrl(u);
+      if (!val) return;
+      if (!tryUrls.includes(val)) tryUrls.push(val);
+    };
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
-      tryUrls.push(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
-      tryUrls.push(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (window.location && window.location.protocol !== 'file:') {
-      tryUrls.push('/api/ai/proxy');
+      pushUrl('/api/ai/proxy');
+      if (window.location.origin) {
+        pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
+      }
     }
-    tryUrls.push('http://localhost:8765/api/ai/proxy');
+    pushUrl('http://127.0.0.1:8765/api/ai/proxy');
+    pushUrl('http://localhost:8765/api/ai/proxy');
     let lastErr = null;
     for (const url of tryUrls) {
       try {
@@ -961,10 +1027,46 @@ L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
         </div>
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {headerSubtitle ? (
-            <p className="text-xs text-gray-500 mt-1 mb-2">{renderInline(headerSubtitle)}</p>
+          {introTags.length ? (
+            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
+              {introTags.map((tag, idx) => (
+                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                  {renderInline(tag)}
+                </span>
+              ))}
+            </div>
           ) : null}
-          {renderDescription()}
+          {headerSubtitle ? (
+            <p className="text-sm text-gray-500 mb-2">{renderInline(headerSubtitle)}</p>
+          ) : null}
+          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
+            {relatedHonor ? (
+              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
+            ) : null}
+            {renderDescription()}
+            {introFactLines.length ? (
+              <div className="space-y-1.5 mt-3">
+                {introFactLines.map((line, idx) => (
+                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                    {renderInline(line)}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+            {teachingHighlights.length ? (
+              <div className="mt-3 pt-3 border-t border-[#c8b496]/35">
+                <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
+                <ul className="space-y-1.5">
+                  {teachingHighlights.map((item, idx) => (
+                    <li key={idx} className="text-sm text-gray-700 leading-relaxed">
+                      <span className="mr-1 text-[#c0392b]">-</span>
+                      {renderInline(item)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-gray-400 text-sm">朝代</p>
@@ -990,57 +1092,11 @@ L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
             </div>
             <div>
               <p className="text-gray-400 text-sm">享年</p>
-              <p className="font-bold">{stats.yearsValue != null ? `${stats.yearsValue}岁` : (data.person?.lifespan || '')}</p>
+              <p className="font-bold">{ageLabel}</p>
             </div>
           </div>
         </div>
       </header>
-      {(relatedHonor || relatedStatus || relatedIdentities || relatedWorks.length || relatedReviews.length) ? (
-        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <h2 className="text-lg font-bold text-[#7c2d12]">人物要点</h2>
-            <span className="text-[10px] text-gray-500">强相关速览</span>
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {relatedHonor ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(relatedHonor)}</span> : null}
-            {data.person?.dynasty ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.dynasty)}</span> : null}
-            {stats.yearsValue != null ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(`${stats.yearsValue}岁`)}</span> : (data.person?.lifespan ? <span className="text-[11px] px-2 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50">{renderInline(data.person.lifespan)}</span> : null)}
-          </div>
-          {relatedStatus ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">历史地位</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(relatedStatus)}</p>
-            </div>
-          ) : null}
-          {relatedIdentities ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">身份</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(relatedIdentities)}</p>
-            </div>
-          ) : null}
-          {relatedWorks.length ? (
-            <div className="mb-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">代表作</p>
-              <div className="flex flex-wrap gap-2">
-                {relatedWorks.slice(0, 6).map((w, idx) => (
-                  <span key={idx} className="text-[11px] px-2 py-1 rounded bg-gray-50 border border-gray-200">《{w}》</span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {relatedReviews.length ? (
-            <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">他人评价 / 史料</p>
-              <ul className="space-y-1">
-                {relatedReviews.slice(0, 6).map((t, idx) => {
-                  const s = String(t || '').replace(/^\s*[-•]\s*/, '').trim();
-                  return <li key={idx} className="text-sm text-gray-700 leading-relaxed">- {renderInline(s)}</li>;
-                })}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
       <div className="space-y-6">
         <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
           <div
@@ -1093,10 +1149,6 @@ L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
                       </span>
                     </div>
                     <div className="space-y-1 text-[11px] text-gray-500 mb-2">
-                      <div className="flex justify-between">
-                        <span>公元纪年</span>
-                        <span className="text-gray-700">{loc.time || '未知'}</span>
-                      </div>
                       <div className="flex justify-between">
                         <span>停留时间</span>
                         <span className="text-gray-700">{loc.duration || '未知'}</span>
