@@ -619,7 +619,6 @@ const App = () => {
   const relatedHonor = String(highlights.honor || data.person?.title || '').trim();
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
-  const teachingHighlights = useMemo(() => extractTeachingHighlights(mergedTeachingPointsNormalized, 4), [mergedTeachingPointsNormalized]);
   const surname = String(data.person?.name || '').slice(0, 1);
   const headerSubtitle = String(relatedReviews[0] || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
@@ -1143,19 +1142,6 @@ const App = () => {
                 {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
                   <span key={i}>{i ? '、' : ''}{t}</span>
                 ))}
-              </div>
-            ) : null}
-            {teachingHighlights.length ? (
-              <div className="mt-3 pt-3 border-t border-[#c8b496]/35">
-                <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
-                <ul className="space-y-1.5">
-                  {teachingHighlights.slice(0, 3).map((item, idx) => (
-                    <li key={idx} className="text-sm text-gray-700 leading-relaxed">
-                      <span className="mr-1 text-[#c0392b]">-</span>
-                      {renderInline(item)}
-                    </li>
-                  ))}
-                </ul>
               </div>
             ) : null}
           </div>

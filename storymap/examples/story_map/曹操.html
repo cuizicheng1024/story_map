@@ -553,7 +553,6 @@ const App = () => {
   const relatedHonor = String(highlights.honor || data.person?.title || '').trim();
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
-  const teachingHighlights = useMemo(() => extractTeachingHighlights(mergedTeachingPointsNormalized, 4), [mergedTeachingPointsNormalized]);
   const surname = String(data.person?.name || '').slice(0, 1);
   const headerSubtitle = String(relatedReviews[0] || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
@@ -671,9 +670,8 @@ const App = () => {
     };
     push(data.person?.dynasty);
     push(ageLabel);
-    push(relatedIdentities.split(/[、,，]/)[0]);
-    return out.slice(0, 4);
-  }, [data.person?.dynasty, ageLabel, relatedIdentities]);
+    return out.slice(0, 3);
+  }, [data.person?.dynasty, ageLabel]);
   const birthplaceLabel = useMemo(() => {
     const ancient = String(birthplaceParts.ancient || '').trim();
     const modern = String(birthplaceParts.modern || '').trim();
@@ -687,15 +685,24 @@ const App = () => {
       if (!v) return;
       out.push(`**${label}：** ${v}`);
     };
-    push('历史定位', relatedStatus);
     push('核心身份', relatedIdentities);
+    push('历史定位', relatedStatus);
+    return out;
+  }, [relatedStatus, relatedIdentities]);
+  const introMetaItems = useMemo(() => {
+    const out = [];
+    const push = (label, value) => {
+      const v = String(value || '').trim();
+      if (!v) return;
+      out.push({ label, value: v });
+    };
     push('籍贯', birthplaceLabel);
     push('生卒', lifeDates);
     if (relatedWorks.length) {
-      push('相关作品', relatedWorks.slice(0, 4).map((w) => `《${w}》`).join('、'));
+      push('相关作品', relatedWorks.slice(0, 3).map((w) => `《${w}》`).join('、'));
     }
     return out;
-  }, [relatedStatus, relatedIdentities, birthplaceLabel, lifeDates, relatedWorks]);
+  }, [birthplaceLabel, lifeDates, relatedWorks]);
   const getAgeText = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return '';
@@ -706,8 +713,8 @@ const App = () => {
   const renderDescription = () => {
     if (!description) return null;
     return (
-      <div className="mb-4">
-        <div className={`text-gray-600 leading-relaxed ${showFullDesc ? '' : 'desc-clamp'}`}>
+      <div>
+        <div className={`text-gray-600 leading-7 ${showFullDesc ? '' : 'desc-clamp'}`}>
           {descSegments.map((seg, idx) => {
             const t = String(seg || '').trim();
             if (/^-{3,}$/.test(t)) {
@@ -1037,15 +1044,15 @@ const App = () => {
             </div>
           ) : null}
           {headerSubtitle ? (
-            <p className="text-sm text-gray-500 mb-2">{renderInline(headerSubtitle)}</p>
+            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
           ) : null}
           <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor ? (
+            {relatedHonor && relatedHonor !== headerSubtitle ? (
               <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
             ) : null}
             {renderDescription()}
             {introFactLines.length ? (
-              <div className="space-y-1.5 mt-3">
+              <div className="space-y-1 mt-3">
                 {introFactLines.map((line, idx) => (
                   <p key={idx} className="text-sm text-gray-700 leading-relaxed">
                     {renderInline(line)}
@@ -1053,47 +1060,24 @@ const App = () => {
                 ))}
               </div>
             ) : null}
-            {teachingHighlights.length ? (
-              <div className="mt-3 pt-3 border-t border-[#c8b496]/35">
-                <p className="text-sm font-bold text-[#7c2d12] mb-1">学习要点</p>
-                <ul className="space-y-1.5">
-                  {teachingHighlights.map((item, idx) => (
-                    <li key={idx} className="text-sm text-gray-700 leading-relaxed">
-                      <span className="mr-1 text-[#c0392b]">-</span>
-                      {renderInline(item)}
-                    </li>
-                  ))}
-                </ul>
+            {introMetaItems.length ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {introMetaItems.map((item, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
+                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                    <span>{renderInline(item.value)}</span>
+                  </span>
+                ))}
               </div>
             ) : null}
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-gray-400 text-sm">朝代</p>
-              <p className="font-bold">{data.person?.dynasty || ''}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">籍贯{birthplaceMeta.doubtful ? <span className="text-[10px] text-amber-600 ml-1">存疑</span> : null}</p>
-              <p className="font-bold">{birthplaceParts.ancient || ''}</p>
-              {birthplaceParts.modern ? (
-                <p className="text-[11px] text-gray-500 mt-0.5">{birthplaceParts.modern}</p>
-              ) : null}
-              {birthplaceMeta.candidates.length ? (
-                <div className="mt-1 flex flex-wrap gap-1 justify-center md:justify-start">
-                  {birthplaceMeta.candidates.map((t, i) => (
-                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">{renderInline(t)}</span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">生卒</p>
-              <p className="font-bold">{lifeDates}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">享年</p>
-              <p className="font-bold">{ageLabel}</p>
-            </div>
+            {birthplaceMeta.candidates.length ? (
+              <div className="mt-2 text-xs text-amber-800">
+                <span className="font-bold">籍贯存疑：</span>
+                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                  <span key={i}>{i ? '、' : ''}{t}</span>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </header>
