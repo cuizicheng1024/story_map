@@ -82,7 +82,7 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
   amapLoading = true;
   const sEl = document.createElement('script');
   sEl.async = true;
-  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
+  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.TileLayer.Satellite,AMap.TerrainLayer`;
   sEl.onload = () => {
     amapLoading = false;
     if (window.AMap && typeof window.AMap.Map === 'function') resolve(true);
@@ -672,6 +672,47 @@ const renderTextbookPoints = (raw, options) => {
   });
 };
 
+const MapDropdown = ({ label, value, onChange, options }) => {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  const current = options.find((o) => o.id === value) || options[0] || { id: '', label: '' };
+  React.useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="glass-panel rounded-lg px-3 py-1.5 text-xs flex items-center gap-2 shadow-lg hover:bg-white/95 transition-colors"
+      >
+        <span className="text-gray-500">{label}</span>
+        <span className="text-[#7c2d12] font-bold">{current.label}</span>
+        <span className="text-gray-400 text-[10px]">▾</span>
+      </button>
+      {open ? (
+        <div className="absolute top-full right-0 mt-1 glass-panel rounded-lg shadow-xl py-1 min-w-[120px] z-20">
+          {options.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => { onChange(opt.id); setOpen(false); }}
+              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 transition-colors ${
+                opt.id === value ? 'text-[#c0392b] font-bold bg-amber-50/60' : 'text-gray-700'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const App = () => {
   const [selectedLoc, setSelectedLoc] = useState(locations[0] || null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -689,7 +730,9 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
+  const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
   const splitRef = useRef(null);
   const draggingRef = useRef(false);
@@ -1061,6 +1104,37 @@ const App = () => {
     } catch (_) {}
   }, [mapStyleId]);
   useEffect(() => {
+    const m = amapMapRef.current;
+    if (!m || !window.AMap) return;
+    try {
+      const oldLayers = mapLayerRef.current || [];
+      for (const lyr of oldLayers) {
+        try { m.remove(lyr); } catch (_) {}
+      }
+      mapLayerRef.current = [];
+      if (mapLayerType === 'standard') {
+        m.setLayers([new window.AMap.TileLayer()]);
+      } else if (mapLayerType === 'satellite') {
+        const SatCtor = window.AMap.TileLayer && window.AMap.TileLayer.Satellite;
+        if (SatCtor) {
+          const layer = new SatCtor();
+          m.setLayers([layer]);
+          mapLayerRef.current = [layer];
+        }
+      } else if (mapLayerType === 'terrain') {
+        const TerrainCtor = window.AMap.TerrainLayer;
+        const baseLayer = new window.AMap.TileLayer();
+        const layers = [baseLayer];
+        if (TerrainCtor) {
+          const terrain = new TerrainCtor();
+          layers.push(terrain);
+        }
+        m.setLayers(layers);
+        mapLayerRef.current = layers;
+      }
+    } catch (_) {}
+  }, [mapLayerType]);
+  useEffect(() => {
     const onMove = (e) => {
       if (!draggingRef.current || !splitRef.current) return;
       const rect = splitRef.current.getBoundingClientRect();
@@ -1352,31 +1426,33 @@ const App = () => {
           ></div>
           <div className="relative flex-1">
             <div id="map"></div>
-            <div className="absolute top-4 right-4 z-[1000] glass-panel rounded-lg px-2 py-1.5 shadow-lg flex items-center gap-1 flex-wrap max-w-[260px]">
-              <span className="text-[10px] text-gray-500 font-semibold mr-1">底图</span>
-              {[
-                { id: 'macaron', label: '马卡龙' },
-                { id: 'normal', label: '标准' },
-                { id: 'light', label: '清雅' },
-                { id: 'fresh', label: '草色青' },
-                { id: 'whitesmoke', label: '雾霾灰' },
-                { id: 'grey', label: '远山黛' },
-                { id: 'blue', label: '靛青蓝' },
-                { id: 'darkblue', label: '极夜蓝' },
-                { id: 'dark', label: '幻影黑' }
-              ].map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setMapStyleId(opt.id)}
-                  className={`px-1.5 py-0.5 rounded text-[11px] transition-colors ${
-                    mapStyleId === opt.id
-                      ? 'bg-[#c0392b] text-white font-bold'
-                      : 'text-gray-700 hover:bg-amber-50'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2 items-end">
+              <MapDropdown
+                label="底图"
+                value={mapStyleId}
+                onChange={setMapStyleId}
+                options={[
+                  { id: 'macaron', label: '马卡龙' },
+                  { id: 'normal', label: '标准' },
+                  { id: 'light', label: '清雅' },
+                  { id: 'fresh', label: '草色青' },
+                  { id: 'whitesmoke', label: '雾霾灰' },
+                  { id: 'grey', label: '远山黛' },
+                  { id: 'blue', label: '靛青蓝' },
+                  { id: 'darkblue', label: '极夜蓝' },
+                  { id: 'dark', label: '幻影黑' }
+                ]}
+              />
+              <MapDropdown
+                label="图层"
+                value={mapLayerType}
+                onChange={setMapLayerType}
+                options={[
+                  { id: 'standard', label: '标准矢量' },
+                  { id: 'satellite', label: '卫星影像' },
+                  { id: 'terrain', label: '地形叠加' }
+                ]}
+              />
             </div>
             {selectedLoc && (
               <div className="absolute top-4 left-4 z-[1000] w-72 glass-panel p-4 rounded-xl shadow-xl border-t-4 border-[#c0392b]">
