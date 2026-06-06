@@ -170,3 +170,5 @@ skill.md                    # Agent 技能说明文件
 ## 作者信息
 
 作者：崔成 `cuichengzi@foxmail.com`
+
+本项目采用 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) 开源协议。

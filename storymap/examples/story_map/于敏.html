@@ -124,6 +124,88 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   white-space: nowrap;
 }
+.story-marker {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Noto Serif SC', serif;
+}
+.story-marker-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #c0392b;
+  opacity: 0;
+  pointer-events: none;
+}
+.story-marker.is-active .story-marker-ring {
+  opacity: 1;
+  animation: story-marker-pulse 1.8s ease-out infinite;
+}
+.story-marker-dot {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fdf6e3;
+  border: 2px solid #c8b496;
+  color: #7c2d12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+.story-marker:hover .story-marker-dot {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+}
+.story-marker.is-start .story-marker-dot {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  border-color: #15803d;
+}
+.story-marker.is-end .story-marker-dot {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #fff;
+  border-color: #0f172a;
+}
+.story-marker.is-passed .story-marker-dot {
+  background: #c8b496;
+  color: #fff;
+  border-color: #a0826d;
+  opacity: 0.85;
+}
+.story-marker.is-active .story-marker-dot {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+  color: #fff;
+  border-color: #c0392b;
+  transform: scale(1.2);
+  box-shadow: 0 6px 14px rgba(192, 57, 43, 0.45);
+  z-index: 10;
+}
+@keyframes story-marker-pulse {
+  0% { transform: scale(0.65); opacity: 0.95; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.story-label {
+  background: rgba(255, 255, 255, 0.9);
+  color: #7c2d12;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(200, 180, 150, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  font-family: 'Noto Serif SC', serif;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -540,6 +622,8 @@ const App = () => {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
+  const [mapStyleId, setMapStyleId] = useState('macaron');
+  const amapMapRef = useRef(null);
   const mapRef = useRef(null);
   const splitRef = useRef(null);
   const draggingRef = useRef(false);
@@ -670,8 +754,10 @@ const App = () => {
     };
     push(data.person?.dynasty);
     push(ageLabel);
-    return out.slice(0, 3);
-  }, [data.person?.dynasty, ageLabel]);
+    if (birthplaceLabel) push(`籍贯：${birthplaceLabel}`);
+    if (lifeDates) push(`生卒：${lifeDates}`);
+    return out.slice(0, 6);
+  }, [data.person?.dynasty, ageLabel, birthplaceLabel, lifeDates]);
   const birthplaceLabel = useMemo(() => {
     const ancient = String(birthplaceParts.ancient || '').trim();
     const modern = String(birthplaceParts.modern || '').trim();
@@ -696,13 +782,11 @@ const App = () => {
       if (!v) return;
       out.push({ label, value: v });
     };
-    push('籍贯', birthplaceLabel);
-    push('生卒', lifeDates);
     if (relatedWorks.length) {
       push('相关作品', relatedWorks.slice(0, 3).map((w) => `《${w}》`).join('、'));
     }
     return out;
-  }, [birthplaceLabel, lifeDates, relatedWorks]);
+  }, [relatedWorks]);
   const getAgeText = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return '';
@@ -763,79 +847,119 @@ const App = () => {
         viewMode: '2D',
         resizeEnable: true
       });
+      amapMapRef.current = map;
+      try { map.setMapStyle(`amap://styles/${mapStyleId}`); } catch (_) {}
       const overlays = [];
       const latlngs = locations.map((l) => [l.lng, l.lat]);
+      const total = locations.length;
       if (latlngs.length > 1) {
         const polyline = new AMap.Polyline({
           path: latlngs,
-          strokeColor: mapStyle.pathColor || '#1e40af',
+          strokeColor: '#c0392b',
           strokeWeight: 4,
-          strokeOpacity: 0.7,
+          strokeOpacity: 0.85,
           lineJoin: 'round',
-          lineCap: 'round'
+          lineCap: 'round',
+          showDir: true
         });
         map.add(polyline);
         overlays.push(polyline);
+        const shadowLine = new AMap.Polyline({
+          path: latlngs,
+          strokeColor: 'rgba(192,57,43,0.18)',
+          strokeWeight: 12,
+          strokeOpacity: 0.5,
+          lineJoin: 'round',
+          lineCap: 'round'
+        });
+        map.add(shadowLine);
+        overlays.push(shadowLine);
       }
 
       const pointLayers = [];
+      const buildMarkerHtml = (idx, isActive, isPassed) => {
+        const div = document.createElement('div');
+        const classes = ['story-marker'];
+        if (idx === 0) classes.push('is-start');
+        if (idx === total - 1 && total > 1) classes.push('is-end');
+        if (isPassed) classes.push('is-passed');
+        if (isActive) classes.push('is-active');
+        div.className = classes.join(' ');
+        const ring = document.createElement('div');
+        ring.className = 'story-marker-ring';
+        const dot = document.createElement('div');
+        dot.className = 'story-marker-dot';
+        const span = document.createElement('span');
+        if (idx === 0) span.textContent = '起';
+        else if (idx === total - 1 && total > 1) span.textContent = '终';
+        else span.textContent = String(idx + 1);
+        dot.appendChild(span);
+        div.appendChild(ring);
+        div.appendChild(dot);
+        return div;
+      };
       const setActive = (activeIdx) => {
         for (const p of pointLayers) {
-          const active = p.idx === activeIdx;
-          try {
-            p.layer.setOptions({
-              radius: active ? 9 : 6,
-              strokeWeight: active ? 3 : 1,
-              strokeColor: active ? '#c0392b' : 'rgba(255,255,255,0.68)',
-              fillOpacity: active ? 0.58 : 0.36,
-              zIndex: active ? 160 : 120 + p.idx
-            });
-          } catch (_) {}
+          const isActive = p.idx === activeIdx;
+          const isPassed = p.idx < activeIdx;
+          if (p.el) {
+            const classes = ['story-marker'];
+            if (p.idx === 0) classes.push('is-start');
+            if (p.idx === total - 1 && total > 1) classes.push('is-end');
+            if (isPassed) classes.push('is-passed');
+            if (isActive) classes.push('is-active');
+            p.el.className = classes.join(' ');
+          }
+          if (p.labelEl) {
+            p.labelEl.style.opacity = isActive ? '1' : (isPassed ? '0.65' : '0.85');
+          }
         }
       };
 
       locations.forEach((loc, idx) => {
-        const activeColor = (markerStyles[loc.type] || markerStyles.normal || defaultMarkerStyles[loc.type] || defaultMarkerStyles.normal).color || '#22c55e';
-        const cm = new AMap.CircleMarker({
-          center: [loc.lng, loc.lat],
-          radius: idx === activeIndex ? 9 : 6,
-          strokeColor: idx === activeIndex ? '#c0392b' : 'rgba(255,255,255,0.68)',
-          strokeWeight: idx === activeIndex ? 3 : 1,
-          fillColor: activeColor,
-          fillOpacity: idx === activeIndex ? 0.58 : 0.36,
+        const el = buildMarkerHtml(idx, idx === activeIndex, idx < activeIndex);
+        const marker = new AMap.Marker({
+          position: [loc.lng, loc.lat],
+          content: el,
+          offset: new AMap.Pixel(-18, -18),
+          zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
-          zIndex: 120 + idx
+          raiseOnEnable: true
         });
-        cm.on('click', () => {
+        marker.on('click', () => {
           setSelectedLoc(loc);
           setActiveIndex(idx);
           map.setZoomAndCenter(7, [loc.lng, loc.lat]);
         });
-        map.add(cm);
-        overlays.push(cm);
-        pointLayers.push({ idx, layer: cm });
+        map.add(marker);
+        overlays.push(marker);
 
         const ageText = getAgeText(loc);
+        let labelEl = null;
         if (ageText) {
           const label = new AMap.Text({
             text: ageText,
             position: [loc.lng, loc.lat],
             anchor: 'bottom-center',
-            offset: new AMap.Pixel(0, -16),
+            offset: new AMap.Pixel(0, -18),
             style: {
-              background: 'rgba(255,255,255,0.68)',
-              color: '#7c2d12',
-              padding: '2px 6px',
-              borderRadius: '10px',
-              border: '1px solid rgba(200,180,150,0.55)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-              fontSize: '10px',
-              whiteSpace: 'nowrap'
+              'background': 'rgba(255,255,255,0.92)',
+              'color': '#7c2d12',
+              'padding': '2px 8px',
+              'borderRadius': '12px',
+              'border': '1px solid rgba(200,180,150,0.6)',
+              'boxShadow': '0 2px 6px rgba(0,0,0,0.12)',
+              'fontSize': '10px',
+              'fontWeight': '600',
+              'fontFamily': "'Noto Serif SC', serif",
+              'whiteSpace': 'nowrap'
             }
           });
           map.add(label);
           overlays.push(label);
+          labelEl = label.getElement ? label.getElement() : null;
         }
+        pointLayers.push({ idx, layer: marker, el, labelEl });
       });
 
       if (overlays.length > 0) {
@@ -863,6 +987,13 @@ const App = () => {
       disposed = true;
     };
   }, []);
+  useEffect(() => {
+    const m = amapMapRef.current;
+    if (!m || typeof m.setMapStyle !== 'function') return;
+    try {
+      m.setMapStyle(`amap://styles/${mapStyleId}`);
+    } catch (_) {}
+  }, [mapStyleId]);
   useEffect(() => {
     const onMove = (e) => {
       if (!draggingRef.current || !splitRef.current) return;
@@ -1155,6 +1286,32 @@ const App = () => {
           ></div>
           <div className="relative flex-1">
             <div id="map"></div>
+            <div className="absolute top-4 right-4 z-[1000] glass-panel rounded-lg px-2 py-1.5 shadow-lg flex items-center gap-1 flex-wrap max-w-[260px]">
+              <span className="text-[10px] text-gray-500 font-semibold mr-1">底图</span>
+              {[
+                { id: 'macaron', label: '马卡龙' },
+                { id: 'normal', label: '标准' },
+                { id: 'light', label: '清雅' },
+                { id: 'fresh', label: '草色青' },
+                { id: 'whitesmoke', label: '雾霾灰' },
+                { id: 'grey', label: '远山黛' },
+                { id: 'blue', label: '靛青蓝' },
+                { id: 'darkblue', label: '极夜蓝' },
+                { id: 'dark', label: '幻影黑' }
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setMapStyleId(opt.id)}
+                  className={`px-1.5 py-0.5 rounded text-[11px] transition-colors ${
+                    mapStyleId === opt.id
+                      ? 'bg-[#c0392b] text-white font-bold'
+                      : 'text-gray-700 hover:bg-amber-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             {selectedLoc && (
               <div className="absolute top-4 left-4 z-[1000] w-72 glass-panel p-4 rounded-xl shadow-xl border-t-4 border-[#c0392b]">
                 <button
