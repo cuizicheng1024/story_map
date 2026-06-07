@@ -126,21 +126,57 @@ body {
 }
 .story-marker {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 72px;
+  height: 62px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   cursor: pointer;
   font-family: 'Noto Serif SC', serif;
+  --marker-color: #6366f1;
+  --marker-soft: rgba(99, 102, 241, 0.16);
+  --marker-soft-strong: rgba(99, 102, 241, 0.28);
 }
 .story-marker-ring {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  bottom: 0;
+  width: 28px;
+  height: 28px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  border: 2px solid #c0392b;
+  border: 2px solid var(--marker-color);
   opacity: 0;
   pointer-events: none;
+}
+.story-marker-core {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.story-marker-badge {
+  min-width: 38px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--marker-color);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease, opacity 200ms ease;
+  white-space: nowrap;
+}
+.story-marker-tail {
+  width: 2px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.82), rgba(255, 255, 255, 0));
+  opacity: 0.72;
 }
 .story-marker.is-active .story-marker-ring {
   opacity: 1;
@@ -148,51 +184,132 @@ body {
 }
 .story-marker-dot {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #fdf6e3;
-  border: 2px solid #c8b496;
-  color: #7c2d12;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease;
+  background: var(--marker-color);
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 18px var(--marker-soft);
+  transition: transform 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+}
+.story-marker:hover .story-marker-badge,
+.story-marker:hover .story-marker-dot {
+  transform: translateY(-1px);
 }
 .story-marker:hover .story-marker-dot {
-  transform: scale(1.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 10px 22px var(--marker-soft-strong);
 }
-.story-marker.is-start .story-marker-dot {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  color: #fff;
-  border-color: #15803d;
+.story-marker.is-start .story-marker-badge {
+  background: rgba(240, 249, 255, 0.98);
+  border-color: rgba(14, 165, 233, 0.28);
+  color: #0369a1;
 }
-.story-marker.is-end .story-marker-dot {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  color: #fff;
-  border-color: #0f172a;
+.story-marker.is-end .story-marker-badge {
+  background: rgba(245, 243, 255, 0.98);
+  border-color: rgba(99, 102, 241, 0.30);
+  color: #4338ca;
 }
-.story-marker.is-passed .story-marker-dot {
-  background: #c8b496;
+.story-marker.is-passed .story-marker-badge,
+.story-marker.is-passed .story-marker-dot,
+.story-marker.is-passed .story-marker-tail {
+  opacity: 0.78;
+}
+.story-marker.is-active .story-marker-badge {
+  background: var(--marker-color);
   color: #fff;
-  border-color: #a0826d;
-  opacity: 0.85;
+  border-color: var(--marker-color);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 10px 20px var(--marker-soft-strong);
 }
 .story-marker.is-active .story-marker-dot {
-  background: linear-gradient(135deg, #c0392b, #a93226);
-  color: #fff;
-  border-color: #c0392b;
-  transform: scale(1.2);
-  box-shadow: 0 6px 14px rgba(192, 57, 43, 0.45);
+  transform: scale(1.16);
+  box-shadow: 0 10px 22px var(--marker-soft-strong);
   z-index: 10;
 }
 @keyframes story-marker-pulse {
   0% { transform: scale(0.65); opacity: 0.95; }
   100% { transform: scale(2.4); opacity: 0; }
+}
+.life-rail {
+  background: linear-gradient(180deg, #06b6d4 0%, #6366f1 42%, #8b5cf6 78%, #0f172a 100%);
+}
+.life-rail-base {
+  background: linear-gradient(180deg, rgba(203, 213, 225, 0.78), rgba(226, 232, 240, 0.46));
+}
+.timeline-connector {
+  position: absolute;
+  left: 14px;
+  width: 3px;
+  border-radius: 999px;
+  z-index: 0;
+}
+.timeline-connector.is-passed {
+  background: linear-gradient(180deg, #06b6d4 0%, #6366f1 42%, #8b5cf6 78%, #0f172a 100%);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.20), 0 0 10px rgba(99, 102, 241, 0.10);
+}
+.timeline-connector.is-future {
+  background: linear-gradient(180deg, rgba(203,213,225,0.72), rgba(226,232,240,0.42));
+}
+.timeline-node {
+  position: relative;
+  z-index: 10;
+}
+.timeline-node.is-start,
+.timeline-node.is-end {
+  width: 22px;
+  height: 22px;
+  left: 5px;
+  top: 12px;
+}
+.timeline-node-core {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.62), 0 6px 14px rgba(15, 23, 42, 0.10);
+}
+.timeline-node.is-start .timeline-node-core,
+.timeline-node.is-end .timeline-node-core {
+  width: 22px;
+  height: 22px;
+  border-width: 4px;
+}
+.timeline-node-halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  opacity: 0.22;
+}
+.timeline-ritual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.timeline-ritual-badge.birth {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.08);
+  border-color: rgba(14, 165, 233, 0.20);
+}
+.timeline-ritual-badge.death {
+  color: #4338ca;
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.20);
+}
+.timeline-card {
+  position: relative;
+  overflow: hidden;
+}
+.timeline-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.16));
+  pointer-events: none;
 }
 .story-label {
   background: rgba(255, 255, 255, 0.9);
@@ -648,8 +765,17 @@ const MapDropdown = ({ label, value, onChange, options }) => {
 };
 
 const App = () => {
-  const [selectedLoc, setSelectedLoc] = useState(locations[0] || null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  // 从 URL hash #loc=N 还原初始定位（分享链接能定位到具体地点）
+  const initialLocIdx = (() => {
+    if (typeof window === 'undefined' || !window.location) return 0;
+    const m = /#loc=(\d+)/.exec(window.location.hash || '');
+    if (!m) return 0;
+    const idx = parseInt(m[1], 10);
+    if (Number.isFinite(idx) && idx >= 0 && idx < locations.length) return idx;
+    return 0;
+  })();
+  const [selectedLoc, setSelectedLoc] = useState(locations[initialLocIdx] || null);
+  const [activeIndex, setActiveIndex] = useState(initialLocIdx);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [showTeachingFull, setShowTeachingFull] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -664,7 +790,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('standard');
+  const [mapLayerType, setMapLayerType] = useState('satellite');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -830,12 +956,75 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
-  const getAgeText = (loc) => {
+  const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
+  const hexToRgba = (hex, alpha) => {
+    const s = String(hex || '').replace('#', '').trim();
+    const raw = s.length === 3 ? s.split('').map((x) => x + x).join('') : s;
+    if (!/^[0-9a-fA-F]{6}$/.test(raw)) return `rgba(192,57,43,${alpha})`;
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+  const mixHex = (a, b, t) => {
+    const parse = (hex) => {
+      const s = String(hex || '').replace('#', '').trim();
+      const raw = s.length === 3 ? s.split('').map((x) => x + x).join('') : s;
+      if (!/^[0-9a-fA-F]{6}$/.test(raw)) return [192, 57, 43];
+      return [
+        parseInt(raw.slice(0, 2), 16),
+        parseInt(raw.slice(2, 4), 16),
+        parseInt(raw.slice(4, 6), 16)
+      ];
+    };
+    const ta = clampValue(t, 0, 1);
+    const [r1, g1, b1] = parse(a);
+    const [r2, g2, b2] = parse(b);
+    const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
+    return `#${toHex(r1 + (r2 - r1) * ta)}${toHex(g1 + (g2 - g1) * ta)}${toHex(b1 + (b2 - b1) * ta)}`;
+  };
+  const getAgeValue = (loc) => {
     const year = extractYear(loc.time || '');
-    if (!birthYear || !year) return '';
-    const age = year - birthYear + 1;
-    if (!Number.isFinite(age) || age <= 0 || age > 150) return '';
+    if (!birthYear || !year) return null;
+    const age = year - birthYear;
+    if (!Number.isFinite(age) || age < 0 || age > 150) return null;
+    return age;
+  };
+  const getAgeText = (loc) => {
+    const age = getAgeValue(loc);
+    if (age === null) return '';
     return `${age}岁`;
+  };
+  const getMarkerBadgeText = (loc, idx) => {
+    const ageText = getAgeText(loc);
+    if (loc.type === 'birth' || idx === 0) return ageText || '0岁';
+    if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
+    return ageText || `第${idx + 1}站`;
+  };
+  const getLifeProgress = (loc, idx) => {
+    const age = getAgeValue(loc);
+    if (age !== null && stats.yearsValue != null && stats.yearsValue >= 0) {
+      const base = Math.max(stats.yearsValue, 1);
+      return clampValue(age / base, 0, 1);
+    }
+    if (totalEvents <= 1) return 0;
+    return clampValue(idx / Math.max(totalEvents - 1, 1), 0, 1);
+  };
+  const getLifeStage = (loc, idx) => {
+    if (loc.type === 'birth' || idx === 0) return '出生';
+    if (loc.type === 'death' || idx === totalEvents - 1) return '终章';
+    const p = getLifeProgress(loc, idx);
+    if (p < 0.18) return '少时';
+    if (p < 0.42) return '成长';
+    if (p < 0.68) return '盛年';
+    if (p < 0.88) return '晚年';
+    return '暮年';
+  };
+  const getLifeColor = (loc, idx) => {
+    const p = getLifeProgress(loc, idx);
+    if (p <= 0.34) return mixHex('#06b6d4', '#6366f1', p / 0.34);
+    if (p <= 0.72) return mixHex('#6366f1', '#8b5cf6', (p - 0.34) / 0.38);
+    return mixHex('#8b5cf6', '#0f172a', (p - 0.72) / 0.28);
   };
   const renderDescription = () => {
     if (!description) return null;
@@ -896,31 +1085,48 @@ const App = () => {
       const latlngs = locations.map((l) => [l.lng, l.lat]);
       const total = locations.length;
       if (latlngs.length > 1) {
-        const polyline = new AMap.Polyline({
+        const baseLine = new AMap.Polyline({
           path: latlngs,
-          strokeColor: '#c0392b',
-          strokeWeight: 4,
+          strokeColor: 'rgba(148,163,184,0.18)',
+          strokeWeight: 14,
           strokeOpacity: 0.85,
-          lineJoin: 'round',
-          lineCap: 'round',
-          showDir: true
-        });
-        map.add(polyline);
-        overlays.push(polyline);
-        const shadowLine = new AMap.Polyline({
-          path: latlngs,
-          strokeColor: 'rgba(192,57,43,0.18)',
-          strokeWeight: 12,
-          strokeOpacity: 0.5,
           lineJoin: 'round',
           lineCap: 'round'
         });
-        map.add(shadowLine);
-        overlays.push(shadowLine);
+        map.add(baseLine);
+        overlays.push(baseLine);
+        for (let i = 0; i < latlngs.length - 1; i++) {
+          const segmentPath = [latlngs[i], latlngs[i + 1]];
+          const fromColor = getLifeColor(locations[i], i);
+          const toColor = getLifeColor(locations[i + 1], i + 1);
+          const segmentColor = mixHex(fromColor, toColor, 0.5);
+          const segmentShadow = new AMap.Polyline({
+            path: segmentPath,
+            strokeColor: hexToRgba(segmentColor, 0.14),
+            strokeWeight: 10,
+            strokeOpacity: 0.75,
+            lineJoin: 'round',
+            lineCap: 'round'
+          });
+          const segmentLine = new AMap.Polyline({
+            path: segmentPath,
+            strokeColor: segmentColor,
+            strokeWeight: 4.5,
+            strokeOpacity: 0.96,
+            lineJoin: 'round',
+            lineCap: 'round'
+          });
+          map.add(segmentShadow);
+          map.add(segmentLine);
+          overlays.push(segmentShadow);
+          overlays.push(segmentLine);
+        }
       }
 
       const pointLayers = [];
-      const buildMarkerHtml = (idx, isActive, isPassed) => {
+      const buildMarkerHtml = (loc, idx, isActive, isPassed) => {
+        const ageText = getMarkerBadgeText(loc, idx);
+        const markerColor = getLifeColor(loc, idx);
         const div = document.createElement('div');
         const classes = ['story-marker'];
         if (idx === 0) classes.push('is-start');
@@ -928,17 +1134,25 @@ const App = () => {
         if (isPassed) classes.push('is-passed');
         if (isActive) classes.push('is-active');
         div.className = classes.join(' ');
+        div.style.setProperty('--marker-color', markerColor);
+        div.style.setProperty('--marker-soft', hexToRgba(markerColor, 0.20));
+        div.style.setProperty('--marker-soft-strong', hexToRgba(markerColor, 0.34));
         const ring = document.createElement('div');
         ring.className = 'story-marker-ring';
+        const core = document.createElement('div');
+        core.className = 'story-marker-core';
+        const badge = document.createElement('div');
+        badge.className = 'story-marker-badge';
+        badge.textContent = ageText;
+        const tail = document.createElement('div');
+        tail.className = 'story-marker-tail';
         const dot = document.createElement('div');
         dot.className = 'story-marker-dot';
-        const span = document.createElement('span');
-        if (idx === 0) span.textContent = '起';
-        else if (idx === total - 1 && total > 1) span.textContent = '终';
-        else span.textContent = String(idx + 1);
-        dot.appendChild(span);
+        core.appendChild(badge);
+        core.appendChild(tail);
+        core.appendChild(dot);
         div.appendChild(ring);
-        div.appendChild(dot);
+        div.appendChild(core);
         return div;
       };
       const setActive = (activeIdx) => {
@@ -953,18 +1167,15 @@ const App = () => {
             if (isActive) classes.push('is-active');
             p.el.className = classes.join(' ');
           }
-          if (p.labelEl) {
-            p.labelEl.style.opacity = isActive ? '1' : (isPassed ? '0.65' : '0.85');
-          }
         }
       };
 
       locations.forEach((loc, idx) => {
-        const el = buildMarkerHtml(idx, idx === activeIndex, idx < activeIndex);
+        const el = buildMarkerHtml(loc, idx, idx === activeIndex, idx < activeIndex);
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-18, -18),
+          offset: new AMap.Pixel(-36, -52),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -976,33 +1187,7 @@ const App = () => {
         });
         map.add(marker);
         overlays.push(marker);
-
-        const ageText = getAgeText(loc);
-        let labelEl = null;
-        if (ageText) {
-          const label = new AMap.Text({
-            text: ageText,
-            position: [loc.lng, loc.lat],
-            anchor: 'bottom-center',
-            offset: new AMap.Pixel(0, -18),
-            style: {
-              'background': 'rgba(255,255,255,0.92)',
-              'color': '#7c2d12',
-              'padding': '2px 8px',
-              'borderRadius': '12px',
-              'border': '1px solid rgba(200,180,150,0.6)',
-              'boxShadow': '0 2px 6px rgba(0,0,0,0.12)',
-              'fontSize': '10px',
-              'fontWeight': '600',
-              'fontFamily': "'Noto Serif SC', serif",
-              'whiteSpace': 'nowrap'
-            }
-          });
-          map.add(label);
-          overlays.push(label);
-          labelEl = label.getElement ? label.getElement() : null;
-        }
-        pointLayers.push({ idx, layer: marker, el, labelEl });
+        pointLayers.push({ idx, layer: marker, el });
       });
 
       if (overlays.length > 0) {
@@ -1068,6 +1253,14 @@ const App = () => {
       }
     } catch (_) {}
   }, [mapLayerType]);
+  // 把当前位置写到 URL hash，分享链接可定位到具体地点
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.history) return;
+    const newHash = '#loc=' + activeIndex;
+    if (window.location.hash !== newHash) {
+      window.history.replaceState(null, '', newHash);
+    }
+  }, [activeIndex]);
   useEffect(() => {
     const onMove = (e) => {
       if (!draggingRef.current || !splitRef.current) return;
@@ -1292,60 +1485,142 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-[#c0392b] text-white font-bold flex items-center justify-between">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
               <span>足迹时间轴</span>
               <div className="flex items-center gap-2 text-xs">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
-                  className="px-2 py-1 rounded bg-white/20 disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
                 >上一事件</button>
-                <span className="opacity-80">{totalEvents ? activeIndex + 1 : 0} / {totalEvents}</span>
+                <span className="opacity-80">
+                  {selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : ''}
+                  {totalEvents ? activeIndex + 1 : 0} / {totalEvents}
+                </span>
                 <button
                   onClick={() => changeEvent(activeIndex + 1)}
                   disabled={activeIndex + 1 >= totalEvents}
-                  className="px-2 py-1 rounded bg-white/20 disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
                 >下一事件</button>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
               {locations.length ? (
-                locations.map((loc, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => handleLocClick(loc, idx)}
-                    ref={(el) => { locItemRefs.current[idx] = el; }}
-                    className={`p-3 rounded-lg cursor-pointer transition-all border-l-4 ${
-                      idx === activeIndex
-                        ? 'bg-white shadow-md border-[#c0392b]'
-                        : 'bg-white/70 border-transparent hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm truncate">{loc.name}</span>
-                          {loc.type === 'birth' ? (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">出生</span>
-                          ) : loc.type === 'death' ? (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">去世</span>
+                <div className="relative">
+                  <div className="space-y-4">
+                    {locations.map((loc, idx) => {
+                      const ageText = getAgeText(loc) || (idx === 0 ? '0岁' : (idx === totalEvents - 1 ? '终章' : '年龄待考'));
+                      const stageText = getLifeStage(loc, idx);
+                      const lifeColor = getLifeColor(loc, idx);
+                      const lifeProgress = Math.round(getLifeProgress(loc, idx) * 100);
+                      const glowColor = hexToRgba(lifeColor, idx === activeIndex ? 0.22 : 0.12);
+                      const isStartNode = loc.type === 'birth' || idx === 0;
+                      const isEndNode = loc.type === 'death' || idx === totalEvents - 1;
+                      const topPassed = idx <= activeIndex;
+                      const bottomPassed = idx < activeIndex;
+                      return (
+                        <div
+                          key={idx}
+                          className="relative pl-10"
+                        >
+                          {idx > 0 ? (
+                            <div
+                              className={`timeline-connector ${topPassed ? 'is-passed' : 'is-future'}`}
+                              style={{ top: 0, height: '18px' }}
+                            ></div>
                           ) : null}
+                          {idx < totalEvents - 1 ? (
+                            <div
+                              className={`timeline-connector ${bottomPassed ? 'is-passed' : 'is-future'}`}
+                              style={{ top: '34px', bottom: '-18px' }}
+                            ></div>
+                          ) : null}
+                          <div
+                            className={`absolute transition-all timeline-node ${isStartNode ? 'is-start' : ''} ${isEndNode ? 'is-end' : ''}`}
+                            style={{ left: '8px', top: '16px' }}
+                          >
+                            <div
+                              className="timeline-node-halo"
+                              style={{
+                                background: lifeColor,
+                                boxShadow: `0 0 0 ${idx === activeIndex ? 10 : 5}px ${glowColor}`
+                              }}
+                            ></div>
+                            <div
+                              className="timeline-node-core"
+                              style={{ background: lifeColor }}
+                            ></div>
+                          </div>
+                          <div
+                            onClick={() => handleLocClick(loc, idx)}
+                            ref={(el) => { locItemRefs.current[idx] = el; }}
+                            className={`timeline-card p-3 rounded-xl cursor-pointer transition-all border ${
+                              idx === activeIndex
+                                ? 'bg-white shadow-lg'
+                                : 'bg-white/85 border-slate-200/80 hover:bg-white hover:shadow-md'
+                            }`}
+                            style={idx === activeIndex ? {
+                              borderColor: hexToRgba(lifeColor, 0.42),
+                              boxShadow: `0 14px 28px ${hexToRgba(lifeColor, 0.16)}`
+                            } : undefined}
+                          >
+                            <div className="relative z-[1]">
+                              <div className="flex justify-between items-start gap-3 mb-2">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-bold text-sm truncate">{loc.name}</span>
+                                    <span
+                                      className="text-[10px] px-2 py-0.5 rounded-full border font-semibold"
+                                      style={{
+                                        color: lifeColor,
+                                        borderColor: hexToRgba(lifeColor, 0.3),
+                                        background: hexToRgba(lifeColor, 0.08)
+                                      }}
+                                    >
+                                      {ageText}
+                                    </span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40">
+                                      {stageText}
+                                    </span>
+                                    {loc.type === 'birth' ? (
+                                      <span className="timeline-ritual-badge birth">起点</span>
+                                    ) : loc.type === 'death' ? (
+                                      <span className="timeline-ritual-badge death">终章</span>
+                                    ) : null}
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 truncate">{loc.ancientName} → {loc.modernName}</div>
+                                </div>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500">
+                                  {loc.time || '未知'}
+                                </span>
+                              </div>
+                              <div className="space-y-1 text-[11px] text-gray-500 mb-2">
+                                <div className="flex justify-between">
+                                  <span>停留时间</span>
+                                  <span className="text-gray-700">{loc.duration || '未知'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>生命进度</span>
+                                  <span className="text-gray-700">{lifeProgress}%</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${Math.max(6, lifeProgress)}%`,
+                                      background: `linear-gradient(90deg, #06b6d4 0%, #6366f1 45%, ${lifeColor} 100%)`
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500">{renderInline(loc.event)}</p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[10px] text-gray-400 truncate">{loc.ancientName} → {loc.modernName}</div>
-                      </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                        {loc.time || '未知'}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-[11px] text-gray-500 mb-2">
-                      <div className="flex justify-between">
-                        <span>停留时间</span>
-                        <span className="text-gray-700">{loc.duration || '未知'}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">{renderInline(loc.event)}</p>
+                      );
+                    })}
                   </div>
-                ))
+                </div>
               ) : (
                 <div className="text-xs text-gray-400">暂无事件</div>
               )}
@@ -1366,15 +1641,7 @@ const App = () => {
                 value={mapStyleId}
                 onChange={setMapStyleId}
                 options={[
-                  { id: 'macaron', label: '马卡龙' },
-                  { id: 'normal', label: '标准' },
-                  { id: 'light', label: '清雅' },
-                  { id: 'fresh', label: '草色青' },
-                  { id: 'whitesmoke', label: '雾霾灰' },
-                  { id: 'grey', label: '远山黛' },
-                  { id: 'blue', label: '靛青蓝' },
-                  { id: 'darkblue', label: '极夜蓝' },
-                  { id: 'dark', label: '幻影黑' }
+                  { id: 'macaron', label: '马卡龙' }
                 ]}
               />
               <MapDropdown
@@ -1382,9 +1649,7 @@ const App = () => {
                 value={mapLayerType}
                 onChange={setMapLayerType}
                 options={[
-                  { id: 'standard', label: '标准矢量' },
-                  { id: 'satellite', label: '卫星影像' },
-                  { id: 'terrain', label: '地形叠加' }
+                  { id: 'satellite', label: '卫星影像' }
                 ]}
               />
             </div>

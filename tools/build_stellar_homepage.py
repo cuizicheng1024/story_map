@@ -1798,7 +1798,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
         const bpline = bp ? `<div class="text-white/70 text-[11px] mt-1">籍贯：${{esc(bp)}}</div>` : "";
         const tline = tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tagline)}}”</div>` : "";
-        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(n.person)}}</div><div class="text-white/70 text-[11px] mt-1">生卒：${{esc(years)}}</div>${{dline}}${{akaline}}${{foreignline}}${{tagline2}}${{bpline}}${{tline}}`;
+        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(n.person)}}${{n.has_story === false ? ' <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">暂未生成</span>' : ''}}</div><div class="text-white/70 text-[11px] mt-1">生卒：${{esc(years)}}</div>${{dline}}${{akaline}}${{foreignline}}${{tagline2}}${{bpline}}${{tline}}`;
         const rect = $c.getBoundingClientRect();
         let left = clientX - rect.left + 10;
         let top = clientY - rect.top + 10;
@@ -1857,6 +1857,11 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         const q = String(name || "").trim();
         if (!q) return;
         const found = nodes.find((n) => n && String(n.person || "").trim() === q) || null;
+        if (found && found.has_story === false) {{
+          setGenStatus("「" + q + "」暂未生成人物页，点此尝试 AI 生成");
+          ensurePersonGenerated(q);
+          return;
+        }}
         const file = found && found.file ? String(found.file) : "";
         if (file) {{
           window.location.href = "./" + encodeURIComponent(file);
