@@ -29,6 +29,8 @@
 - [演示](#演示)
 - [环境要求](#环境要求)
 - [快速开始](#快速开始)
+- [当前交互更新](#当前交互更新)
+- [数据重建与重渲染](#数据重建与重渲染)
 - [配置说明](#配置说明)
 - [无 LLM 也能体验什么](#无-llm-也能体验什么)
 - [项目结构](#项目结构)
@@ -83,8 +85,18 @@
 人物页默认展示：
 - 人物简介
 - 空间轨迹
+- 现代化足迹时间轴（年龄标签、生命进度、起点/终章样式）
 - 对话窗口
 - 考点信息
+
+## 当前交互更新
+
+最近一轮交互更新主要集中在人物页和主页：
+
+- **人物页支持分享具体地点**：切换地点后，URL 会写入 `#loc=N`，可直接把“人物页 + 当前地点”作为分享链接发给别人。
+- **足迹时间轴已现代化**：地图点位默认显示年龄而不是序号；左侧时间轴支持“已走过 / 未走过”动态高亮，并区分起点与终章。
+- **主页缺图兜底**：首页搜索或点击尚未生成人物页的节点时，不再直接进入死链，而是提示并尝试触发生成流程。
+- **地图选项已精简**：当前人物页默认保留 `马卡龙` 底图和 `卫星影像` 图层，减少不必要的视觉切换。
 
 ## 🧩 环境要求
 - **Python 版本**：建议 `Python 3.10+`
@@ -103,6 +115,10 @@ python3 storymap/script/story_map.py --serve --port 8765
 2) 浏览器打开主页：
 - `http://localhost:8765/`
 
+3) 打开任意人物页后，可直接分享带地点状态的链接：
+- 例如：`http://localhost:8765/苏轼.html#loc=3`
+- 其中 `#loc=N` 表示人物页左侧时间轴中第 `N` 个地点节点（从 `0` 开始）
+
 ### 未收录人物
 如果主页搜索框输入的人物不在当前库中，会通过服务端实时生成（需自动配置LLM接口），生成完成后自动跳转到人物页。
 生成过程中会在主页显示“排队/执行进度”，建议保持页面打开并等待完成。
@@ -111,6 +127,37 @@ python3 storymap/script/story_map.py --serve --port 8765
 - 苏轼
 - 李白
 - 辛弃疾
+
+## 数据重建与重渲染
+
+当前仓库的数据单源为：
+
+- `storymap/examples/story/*.md`
+
+推荐使用统一构建入口：
+
+```bash
+python3 tools/build_all.py --concurrency 8
+```
+
+这个脚本会统一重建：
+
+- `data/people_master.json`
+- `data/people_master_pep.json`
+- `storymap/examples/story_map/stellar_home_data.json`
+- `storymap/examples/story_map/index.html`
+
+如果你只想重渲染全部人物页 HTML：
+
+```bash
+MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+```
+
+说明：
+
+- `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
+- `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
+- 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
 
 ## ⚙️ 配置说明
 至少建议在 `.env` 中配置以下变量：
@@ -146,9 +193,11 @@ storymap/
 ├── script/                 # 主服务、人物页渲染、地图与对话代理逻辑
 ├── examples/
 │   ├── story/              # 人物 Markdown 原始资料
-│   └── story_map/          # 已生成的人物 HTML 页面
+│   └── story_map/          # 首页数据、首页产物、已生成的人物 HTML 页面
 ├── docs/assets/            # README 展示图片
 cli/                        # 批量生成、重渲染、辅助脚本
+tools/                      # 数据主索引、首页数据、统一构建脚本
+data/                       # 人物主索引、坐标缓存、教材人物聚合结果
 .env                        # 地图与 LLM 的本地配置
 README.md                   # 项目说明
 skill.md                    # Agent 技能说明文件
