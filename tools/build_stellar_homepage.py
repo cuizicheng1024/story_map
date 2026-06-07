@@ -25,6 +25,10 @@ try:
     from dotenv import load_dotenv  # type: ignore
 except Exception:
     load_dotenv = None
+try:
+    from pypinyin import lazy_pinyin  # type: ignore
+except Exception:
+    lazy_pinyin = None
 
 if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
@@ -115,6 +119,85 @@ def _is_valid_person_name(name: str) -> bool:
     if s in BAD_PERSON_NAMES:
         return False
     return True
+
+
+def _unique_keep_order(items: List[str]) -> List[str]:
+    out: List[str] = []
+    seen = set()
+    for item in items:
+        s = str(item or "").strip()
+        if not s or s in seen:
+            continue
+        seen.add(s)
+        out.append(s)
+    return out
+
+
+def _normalize_search_text(text: str) -> str:
+    s = str(text or "").strip().lower()
+    if not s:
+        return ""
+    s = s.replace("·", "").replace("・", "").replace("•", "").replace("‧", "")
+    s = re.sub(r"[“”\"'`‘’]+", "", s)
+    s = re.sub(r"[\s\-_./,，、:：;；()（）\[\]{}<>《》]+", "", s)
+    s = re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", s)
+    return s.strip()
+
+
+def _split_search_terms(text: str) -> List[str]:
+    s = str(text or "").strip()
+    if not s:
+        return []
+    parts = [s]
+    parts.extend(re.split(r"[\\/|,，、;；:：\s（）()]+", s))
+    return _unique_keep_order(parts)
+
+
+def _pinyin_variants(text: str) -> List[str]:
+    s = str(text or "").strip()
+    if not s or lazy_pinyin is None:
+        return []
+    if not re.search(r"[\u4e00-\u9fff]", s):
+        return []
+    try:
+        arr = [str(x).strip().lower() for x in lazy_pinyin(s, errors="ignore") if str(x).strip()]
+    except Exception:
+        return []
+    if not arr:
+        return []
+    full = _normalize_search_text("".join(arr))
+    initials = _normalize_search_text("".join([x[0] for x in arr if x]))
+    out: List[str] = []
+    if len(full) >= 2:
+        out.append(full)
+    if len(initials) >= 2 and initials != full:
+        out.append(initials)
+    return _unique_keep_order(out)
+
+
+def _build_search_fields(name: str, aliases: List[str], foreign_name: str) -> Dict[str, Any]:
+    raw_terms: List[str] = []
+    raw_terms.extend(_split_search_terms(name))
+    for alias in aliases or []:
+        raw_terms.extend(_split_search_terms(alias))
+    if foreign_name:
+        raw_terms.extend(_split_search_terms(foreign_name))
+    raw_terms = _unique_keep_order(raw_terms)
+
+    normalized_terms: List[str] = []
+    pinyin_terms: List[str] = []
+    for term in raw_terms:
+        norm = _normalize_search_text(term)
+        if norm:
+            normalized_terms.append(norm)
+        pinyin_terms.extend(_pinyin_variants(term))
+
+    search_tokens = _unique_keep_order(normalized_terms + pinyin_terms)
+    return {
+        "search_keys": raw_terms[:16],
+        "search_tokens": search_tokens[:32],
+        "search_pinyin": _unique_keep_order(pinyin_terms)[:12],
+    }
 
 
 @dataclass
@@ -511,19 +594,27 @@ def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
     domains: List[str] = []
 
     def pick(field: str) -> str:
-        m = re.search(rf"\\*\\*{re.escape(field)}\\*\\*\\s*[:：]\\s*([^\\n]+)", text)
+        m = re.search(rf"\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text)
         if m:
             return m.group(1).strip()
-        m = re.search(rf"^-\\s*\\*\\*{re.escape(field)}\\*\\*\\s*[:：]\\s*([^\\n]+)", text, flags=re.MULTILINE)
+        m = re.search(rf"^-\s*\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text, flags=re.MULTILINE)
         if m:
             return m.group(1).strip()
         return ""
 
-    a = pick("别名") or pick("又名") or pick("号") or ""
-    if a:
+    alias_raw = [
+        pick("别名"),
+        pick("别名/称号"),
+        pick("别名/字"),
+        pick("又名"),
+        pick("原名"),
+        pick("号"),
+    ]
+    for a in [x for x in alias_raw if x]:
         parts = [p.strip() for p in re.split(r"[、,，/｜|；;]", a) if p.strip()]
         for p in parts:
-            x = re.sub(r"[\\[\\]（）()“”\"'‘’\\s·•]+", "", p).strip()
+            x = re.sub(r"^(原名|别名|别名/称号|别名/字|又名|号|字|笔名|曾用名|化名|小字|学名|谱名)[:：]?", "", p).strip()
+            x = re.sub(r"[\[\]（）()“”\"'‘’\s·•]+", "", x).strip()
             if 1 < len(x) <= 16 and x not in aliases:
                 aliases.append(x)
     foreign = pick("外文名") or pick("英文名") or pick("原文名") or pick("外文名称") or ""
@@ -532,7 +623,7 @@ def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
     if d:
         parts = [p.strip() for p in re.split(r"[、,，/｜|；;]", d) if p.strip()]
         for p in parts:
-            x = re.sub(r"[\\[\\]（）()“”\"'‘’\\s·•]+", "", p).strip()
+            x = re.sub(r"[\[\]（）()“”\"'‘’\s·•]+", "", p).strip()
             if 1 < len(x) <= 18 and x not in domains:
                 domains.append(x)
     return aliases[:6], (foreign or ""), domains[:6]
@@ -843,9 +934,13 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
 
       <div class="glass card px-6 py-5">
         <div class="text-sm font-bold text-slate-800 mb-2">检索人物</div>
-        <div class="flex items-center gap-3">
-          <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼" />
-          <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">查看</button>
+        <div class="relative">
+          <div class="flex items-center gap-3">
+            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 苏东坡 / Su Shi" />
+            <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">查看</button>
+          </div>
+          <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名检索</div>
+          <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-xl overflow-hidden"></div>
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs text-slate-600"></div>
       </div>
@@ -956,6 +1051,8 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       const DATA_FILE = "{data_file}";
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
+      const $searchHint = document.getElementById("searchHint");
+      const $searchSuggest = document.getElementById("searchSuggest");
       const $c = document.getElementById("c");
       const ctx = $c.getContext("2d");
       const $tip = document.getElementById("tip");
@@ -1099,6 +1196,42 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         const m = m0.replace(/^今\s*/g, "今").trim();
         if (a && m && a !== m) return a + " · " + m;
         return a || m || "";
+      }};
+      const normalizeSearchText = (s) => {{
+        let t = String(s || "").trim().toLowerCase();
+        if (!t) return "";
+        t = t.replace(/[·・•‧]/g, "");
+        t = t.replace(/[“”"'`‘’]/g, "");
+        t = t.replace(/[\s\-_./,，、:：;；()（）\[\]{{}}<>《》]+/g, "");
+        t = t.replace(/[^0-9a-z\u4e00-\u9fff]+/g, "");
+        return t.trim();
+      }};
+      const uniqStrings = (items) => {{
+        const out = [];
+        const seen = new Set();
+        for (const item of (Array.isArray(items) ? items : [])) {{
+          const s = String(item || "").trim();
+          if (!s || seen.has(s)) continue;
+          seen.add(s);
+          out.push(s);
+        }}
+        return out;
+      }};
+      const searchSummaryLabel = (reason) => {{
+        const r = String(reason || "").trim();
+        if (r === "person_exact") return "本名精确";
+        if (r === "alias_exact") return "别名精确";
+        if (r === "foreign_exact") return "外文精确";
+        if (r === "pinyin_exact") return "拼音精确";
+        if (r === "person_prefix") return "本名前缀";
+        if (r === "alias_prefix") return "别名前缀";
+        if (r === "foreign_prefix") return "外文前缀";
+        if (r === "pinyin_prefix") return "拼音前缀";
+        if (r === "person_fuzzy") return "本名模糊";
+        if (r === "alias_fuzzy") return "别名模糊";
+        if (r === "foreign_fuzzy") return "外文模糊";
+        if (r === "token_fuzzy") return "关键词模糊";
+        return "相关结果";
       }};
 
       let nodes = [];
@@ -1995,22 +2128,124 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       }} catch (_) {{}}
       setTimeout(resumeGenTask, 300);
 
-      const findPersonNode = (name) => {{
-        const q = String(name || "").trim();
-        if (!q) return null;
-        for (const n of nodes) {{
-          if (String(n.person || "").trim() === q) return n;
+      const hideSearchSuggest = () => {{
+        searchSuggestItems = [];
+        searchSuggestActive = -1;
+        if ($searchSuggest) {{
+          $searchSuggest.classList.add("hidden");
+          $searchSuggest.innerHTML = "";
         }}
-        const q2 = q.toLowerCase();
-        for (const n of nodes) {{
-          const p = String(n.person || "").trim().toLowerCase();
-          if (p === q2) return n;
-        }}
-        for (const n of nodes) {{
-          const p = String(n.person || "").trim().toLowerCase();
-          if (p && p.includes(q2)) return n;
+      }};
+      const setSearchHint = () => {{
+        if (!$searchHint) return;
+        const parts = ["支持本名", "别名", "外文名"];
+        if (searchCapabilities && searchCapabilities.pinyin) parts.push("拼音");
+        $searchHint.textContent = parts.join("、") + "检索";
+      }};
+      const scoreNodeMatch = (n, rawQuery) => {{
+        const qRaw = String(rawQuery || "").trim();
+        const q = normalizeSearchText(qRaw);
+        if (!qRaw || !q) return null;
+        const person = String(n.person || "").trim();
+        const personNorm = normalizeSearchText(person);
+        const aliases = uniqStrings(Array.isArray(n.aliases) ? n.aliases : []);
+        const aliasNorms = aliases.map((x) => normalizeSearchText(x)).filter(Boolean);
+        const foreignName = String(n.foreign_name || "").trim();
+        const foreignNorm = normalizeSearchText(foreignName);
+        const searchKeys = uniqStrings(Array.isArray(n.search_keys) ? n.search_keys : []);
+        const searchTokens = uniqStrings(Array.isArray(n.search_tokens) ? n.search_tokens : []);
+        const searchPinyin = uniqStrings(Array.isArray(n.search_pinyin) ? n.search_pinyin : []);
+
+        if (person === qRaw) return {{ score: 1200, reason: "person_exact" }};
+        if (personNorm === q) return {{ score: 1160, reason: "person_exact" }};
+        if (aliases.some((x) => x === qRaw) || aliasNorms.includes(q)) return {{ score: 1120, reason: "alias_exact" }};
+        if (foreignName && (foreignName === qRaw || foreignNorm === q)) return {{ score: 1090, reason: "foreign_exact" }};
+        if (searchPinyin.includes(q)) return {{ score: 1060, reason: "pinyin_exact" }};
+
+        if (personNorm && personNorm.startsWith(q)) return {{ score: 980, reason: "person_prefix" }};
+        if (aliasNorms.some((x) => x.startsWith(q))) return {{ score: 950, reason: "alias_prefix" }};
+        if (foreignNorm && foreignNorm.startsWith(q)) return {{ score: 930, reason: "foreign_prefix" }};
+        if (searchPinyin.some((x) => x.startsWith(q))) return {{ score: 900, reason: "pinyin_prefix" }};
+
+        if (q.length >= 2) {{
+          if (personNorm && personNorm.includes(q)) return {{ score: 860, reason: "person_fuzzy" }};
+          if (aliasNorms.some((x) => x.includes(q))) return {{ score: 830, reason: "alias_fuzzy" }};
+          if (foreignNorm && foreignNorm.includes(q)) return {{ score: 810, reason: "foreign_fuzzy" }};
+          if (searchTokens.some((x) => x.includes(q))) return {{ score: 760, reason: "token_fuzzy" }};
+          if (searchKeys.some((x) => normalizeSearchText(x).includes(q))) return {{ score: 740, reason: "token_fuzzy" }};
         }}
         return null;
+      }};
+      const findPersonMatches = (query, limit = 8) => {{
+        const qRaw = String(query || "").trim();
+        const q = normalizeSearchText(qRaw);
+        if (!qRaw || !q) return [];
+        const matches = [];
+        for (const n of nodes) {{
+          const scored = scoreNodeMatch(n, qRaw);
+          if (!scored) continue;
+          matches.push({{ node: n, score: scored.score, reason: scored.reason }});
+        }}
+        matches.sort((a, b) => {{
+          if (b.score !== a.score) return b.score - a.score;
+          const ah = a.node && a.node.has_story === false ? 0 : 1;
+          const bh = b.node && b.node.has_story === false ? 0 : 1;
+          if (bh !== ah) return bh - ah;
+          const ay = Number(a.node?.time_year ?? a.node?.birth_year ?? 0);
+          const by = Number(b.node?.time_year ?? b.node?.birth_year ?? 0);
+          if (by !== ay) return by - ay;
+          return String(a.node?.person || "").localeCompare(String(b.node?.person || ""), "zh-Hans-CN");
+        }});
+        return matches.slice(0, Math.max(1, limit | 0));
+      }};
+      const renderSearchSuggest = (query) => {{
+        if (!$searchSuggest) return;
+        const matches = findPersonMatches(query, 8);
+        searchSuggestItems = matches;
+        searchSuggestActive = matches.length ? 0 : -1;
+        if (!matches.length) {{
+          hideSearchSuggest();
+          return;
+        }}
+        $searchSuggest.innerHTML = matches.map((item, idx) => {{
+          const n = item.node || {{}};
+          const person = esc(String(n.person || ""));
+          const reason = esc(searchSummaryLabel(item.reason));
+          const years = esc(formatYearRange(n.birth_year, n.death_year));
+          const aliasText = uniqStrings(Array.isArray(n.aliases) ? n.aliases : []).slice(0, 2).join(" / ");
+          const foreignText = String(n.foreign_name || "").trim();
+          const meta = [aliasText, foreignText].filter(Boolean).join(" · ");
+          const metaLine = meta ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate">${{esc(meta)}}</div>` : "";
+          const badge = n.has_story === false
+            ? '<span class="ml-2 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-medium">暂未生成</span>'
+            : "";
+          const activeCls = idx === searchSuggestActive ? "bg-slate-50" : "bg-white";
+          return (
+            `<button type="button" data-search-idx="${{idx}}" class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 ${{activeCls}}">` +
+              `<div class="flex items-center justify-between gap-3">` +
+                `<div class="min-w-0">` +
+                  `<div class="text-sm font-semibold text-slate-800 truncate">${{person}}${{badge}}</div>` +
+                  `<div class="text-[11px] text-slate-400 mt-0.5">${{years}}</div>` +
+                  `${{metaLine}}` +
+                `</div>` +
+                `<div class="shrink-0 text-[11px] text-slate-400">${{reason}}</div>` +
+              `</div>` +
+            `</button>`
+          );
+        }}).join("");
+        $searchSuggest.classList.remove("hidden");
+      }};
+      const pickSearchMatch = (fallbackName) => {{
+        if (!searchSuggestItems.length) {{
+          const list = findPersonMatches(fallbackName, 1);
+          return list.length ? list[0] : null;
+        }}
+        if (searchSuggestActive >= 0 && searchSuggestActive < searchSuggestItems.length) return searchSuggestItems[searchSuggestActive];
+        return searchSuggestItems[0] || null;
+      }};
+      const findPersonNode = (name) => {{
+        const picked = pickSearchMatch(name);
+        return picked ? picked.node : null;
       }};
       const focusPersonInGraph = (name, clientX, clientY) => {{
         const n = findPersonNode(name);
@@ -2024,15 +2259,73 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       }};
 
       const onSearch = (ev) => {{
-        const name = $q.value;
+        const rawName = String($q.value || "").trim();
+        const picked = pickSearchMatch(rawName);
+        const name = picked && picked.node ? String(picked.node.person || "").trim() : rawName;
+        if (name) $q.value = name;
+        hideSearchSuggest();
         if (focusPersonInGraph(name, ev?.clientX, ev?.clientY)) return;
-        openPerson(name);
+        openPerson(name || rawName);
       }};
 
       $go.addEventListener("click", (ev) => onSearch(ev));
-      $q.addEventListener("keydown", (e) => {{
-        if (e.key === "Enter") onSearch(e);
+      $q.addEventListener("input", () => {{
+        renderSearchSuggest($q.value);
       }});
+      $q.addEventListener("focus", () => {{
+        renderSearchSuggest($q.value);
+      }});
+      $q.addEventListener("keydown", (e) => {{
+        if (e.key === "ArrowDown") {{
+          if (!searchSuggestItems.length) {{
+            renderSearchSuggest($q.value);
+          }} else {{
+            searchSuggestActive = (searchSuggestActive + 1 + searchSuggestItems.length) % searchSuggestItems.length;
+            renderSearchSuggest($q.value);
+          }}
+          e.preventDefault();
+          return;
+        }}
+        if (e.key === "ArrowUp") {{
+          if (searchSuggestItems.length) {{
+            searchSuggestActive = (searchSuggestActive - 1 + searchSuggestItems.length) % searchSuggestItems.length;
+            renderSearchSuggest($q.value);
+          }}
+          e.preventDefault();
+          return;
+        }}
+        if (e.key === "Escape") {{
+          hideSearchSuggest();
+          return;
+        }}
+        if (e.key === "Enter") {{
+          onSearch(e);
+        }}
+      }});
+      if ($searchSuggest) {{
+        $searchSuggest.addEventListener("mousedown", (e) => e.preventDefault());
+        $searchSuggest.addEventListener("click", (e) => {{
+          const btn = e.target && e.target.closest ? e.target.closest("[data-search-idx]") : null;
+          if (!btn) return;
+          const idx = Number(btn.getAttribute("data-search-idx"));
+          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length) return;
+          searchSuggestActive = idx;
+          const picked = searchSuggestItems[idx];
+          const person = picked && picked.node ? String(picked.node.person || "").trim() : "";
+          if (person) {{
+            $q.value = person;
+            onSearch(e);
+          }}
+        }});
+      }}
+      try {{
+        document.addEventListener("click", (e) => {{
+          const t = e.target;
+          if (t === $q || t === $go) return;
+          if ($searchSuggest && t && $searchSuggest.contains(t)) return;
+          hideSearchSuggest();
+        }});
+      }} catch (_) {{}}
 
       let currentTab = "graph";
       let mapInited = false;
@@ -2045,6 +2338,9 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       let _persistTimer = null;
       let mapStyleValue = "amap://styles/macaron";
       let markerStyleValue = "circle";
+      let searchCapabilities = {{ aliases: true, foreign_name: true, pinyin: false }};
+      let searchSuggestItems = [];
+      let searchSuggestActive = -1;
 
       const _setMapStyleValue = (style) => {{
         const s = String(style || "").trim();
@@ -2954,6 +3250,8 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
 
       migrateCoordCache();
       fetch(DATA_FILE).then((r) => r.json()).then((data) => {{
+        searchCapabilities = Object.assign({{ aliases: true, foreign_name: true, pinyin: false }}, data.search_capabilities || {{}});
+        setSearchHint();
         const raw = (data.nodes || []);
         const groups = new Map();
         raw.forEach((n) => {{
@@ -3799,6 +4097,7 @@ def main() -> int:
                     geocode_used += 1
         if birth_lat is not None and birth_lng is not None:
             _set_person_birth_coord(name, birth_lat, birth_lng)
+        search_fields = _build_search_fields(name, aliases, foreign_name)
         dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
         time_year = None
         by = birth_year if isinstance(birth_year, int) else None
@@ -3843,9 +4142,13 @@ def main() -> int:
                 "birth_lat": birth_lat,
                 "birth_lng": birth_lng,
                 "file": html_entry.file if html_entry else "",
+                "has_story": md_path.exists(),
                 "seed": _sha1_int(name),
                 "relations": relations,
                 "relations_meta": relations_meta,
+                "search_keys": search_fields.get("search_keys", []),
+                "search_tokens": search_fields.get("search_tokens", []),
+                "search_pinyin": search_fields.get("search_pinyin", []),
             }
         )
 
@@ -4026,6 +4329,11 @@ def main() -> int:
         "max_year": max_year_v,
         "default_start": int(args.default_start),
         "default_end": int(args.default_end),
+        "search_capabilities": {
+            "aliases": True,
+            "foreign_name": True,
+            "pinyin": lazy_pinyin is not None,
+        },
         "nodes": nodes,
         "edges": edges,
         "kg_edges": kg_edges,

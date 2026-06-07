@@ -28,6 +28,8 @@ from pathlib import Path
 from typing import Optional, Set
 from urllib.parse import quote
 
+BAD_PERSON_NAMES = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
+
 
 def _repo_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -155,101 +157,130 @@ def _scan_people_from_story_map_html(story_map_dir: Path) -> Set[str]:
     return out
 
 
-def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> int:
+def _render_workers() -> int:
+    return max(1, int(os.getenv("MAP_STORY_RENDER_CONCURRENCY", "4") or "4"))
+
+
+def _template_dependency_paths(root: Path) -> list[Path]:
+    return [
+        root / "storymap" / "script" / "map_html_renderer.py",
+        root / "storymap" / "script" / "story_map.py",
+        root / "cli" / "generate_pure_story_map.py",
+    ]
+
+
+def _latest_mtime(paths: list[Path]) -> float:
+    vals = []
+    for p in paths:
+        if p.exists():
+            vals.append(p.stat().st_mtime)
+    return max(vals) if vals else 0.0
+
+
+def _changed_people(md_dir: Path, html_dir: Path) -> list[tuple[str, str]]:
+    deps_mtime = _latest_mtime(_template_dependency_paths(Path(_repo_root()).resolve()))
+    out: list[tuple[str, str]] = []
+    md_people = sorted([p for p in _scan_people_from_story_md(md_dir) if p not in BAD_PERSON_NAMES])
+    for person in md_people:
+        md_path = md_dir / f"{person}.md"
+        html_path = html_dir / f"{person}.html"
+        if not html_path.exists():
+            out.append((person, "missing_html"))
+            continue
+        try:
+            md_mtime = md_path.stat().st_mtime
+            html_mtime = html_path.stat().st_mtime
+        except Exception:
+            out.append((person, "stat_failed"))
+            continue
+        if md_mtime > html_mtime:
+            out.append((person, "md_newer"))
+            continue
+        if deps_mtime > html_mtime:
+            out.append((person, "template_newer"))
+            continue
+    return out
+
+
+def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str, allow_cache: bool) -> int:
     _add_import_paths()
     import story_map as sm
 
+    def work(person: str) -> tuple[str, bool, float, str]:
+        t0 = time.perf_counter()
+        try:
+            if mode == "cache":
+                sm._generate_for_person(client=None, person=person, progress=None, allow_cache=allow_cache)
+            else:
+                md_path = str((md_dir / f"{person}.md").resolve())
+                out_path = str((html_dir / f"{person}.html").resolve())
+                generate_pure_html(md_path=md_path, out_path=out_path, no_geocode=(mode == "nogeocode"))
+            return (person, True, time.perf_counter() - t0, "")
+        except Exception as exc:
+            return (person, False, time.perf_counter() - t0, str(exc).replace("\n", " ").strip())
+
+    ok = 0
+    fail = 0
+    done = 0
+    with ThreadPoolExecutor(max_workers=_render_workers()) as ex:
+        futs = [ex.submit(work, person) for person in people]
+        for fut in as_completed(futs):
+            person, is_ok, dt, info = fut.result()
+            done += 1
+            if is_ok:
+                ok += 1
+                tag = "OK"
+            else:
+                fail += 1
+                tag = "FAIL"
+            info = (info[:160] + "…") if len(info) > 160 else info
+            print(f"[{done}/{len(people)}] {tag} {person} {dt:.2f}s {info}".rstrip(), flush=True)
+    print(f"done ok={ok} fail={fail} total={ok+fail}")
+    return 0 if fail == 0 else 2
+
+
+def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> int:
     root = Path(_repo_root()).resolve()
     md_dir = root / "storymap" / "examples" / "story"
     html_dir = root / "storymap" / "examples" / "story_map"
-
-    bad_names = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
-
     md_people = _scan_people_from_story_md(md_dir)
     html_people = _scan_people_from_story_map_html(html_dir)
-    missing = sorted([p for p in (md_people - html_people) if p not in bad_names])
+    missing = sorted([p for p in (md_people - html_people) if p not in BAD_PERSON_NAMES])
 
     if max_people and max_people > 0:
         missing = missing[:max_people]
 
     print(f"md={len(md_people)} html_people={len(html_people)} missing={len(missing)}")
-
-    def work(person: str) -> tuple[str, bool, float, str]:
-        t0 = time.perf_counter()
-        try:
-            if mode == "cache":
-                sm._generate_for_person(client=None, person=person, progress=None, allow_cache=True)
-            else:
-                md_path = str((md_dir / f"{person}.md").resolve())
-                out_path = str((html_dir / f"{person}.html").resolve())
-                generate_pure_html(md_path=md_path, out_path=out_path, no_geocode=(mode == "nogeocode"))
-            return (person, True, time.perf_counter() - t0, "")
-        except Exception as exc:
-            return (person, False, time.perf_counter() - t0, str(exc).replace("\n", " ").strip())
-
-    ok = 0
-    fail = 0
-    done = 0
-    with ThreadPoolExecutor(max_workers=max(1, int(os.getenv("MAP_STORY_RENDER_CONCURRENCY", "4") or "4"))) as ex:
-        futs = [ex.submit(work, person) for person in missing]
-        for fut in as_completed(futs):
-            person, is_ok, dt, info = fut.result()
-            done += 1
-            if is_ok:
-                ok += 1
-                tag = "OK"
-            else:
-                fail += 1
-                tag = "FAIL"
-            info = (info[:160] + "…") if len(info) > 160 else info
-            print(f"[{done}/{len(missing)}] {tag} {person} {dt:.2f}s {info}".rstrip(), flush=True)
-    print(f"done ok={ok} fail={fail} total={ok+fail}")
-    return 0 if fail == 0 else 2
+    return _render_people(missing, md_dir=md_dir, html_dir=html_dir, mode=mode, allow_cache=True)
 
 
 def render_all_people_html(*, mode: str = "nogeocode") -> int:
-    _add_import_paths()
-    import story_map as sm
-
     root = Path(_repo_root()).resolve()
     md_dir = root / "storymap" / "examples" / "story"
     html_dir = root / "storymap" / "examples" / "story_map"
 
-    bad_names = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
-    md_people = sorted([p for p in _scan_people_from_story_md(md_dir) if p not in bad_names])
+    md_people = sorted([p for p in _scan_people_from_story_md(md_dir) if p not in BAD_PERSON_NAMES])
     print(f"md={len(md_people)} mode={mode}")
+    return _render_people(md_people, md_dir=md_dir, html_dir=html_dir, mode=mode, allow_cache=False)
 
-    def work(person: str) -> tuple[str, bool, float, str]:
-        t0 = time.perf_counter()
-        try:
-            if mode == "cache":
-                sm._generate_for_person(client=None, person=person, progress=None, allow_cache=False)
-            else:
-                md_path = str((md_dir / f"{person}.md").resolve())
-                out_path = str((html_dir / f"{person}.html").resolve())
-                generate_pure_html(md_path=md_path, out_path=out_path, no_geocode=(mode == "nogeocode"))
-            return (person, True, time.perf_counter() - t0, "")
-        except Exception as exc:
-            return (person, False, time.perf_counter() - t0, str(exc).replace("\n", " ").strip())
-
-    ok = 0
-    fail = 0
-    done = 0
-    with ThreadPoolExecutor(max_workers=max(1, int(os.getenv("MAP_STORY_RENDER_CONCURRENCY", "4") or "4"))) as ex:
-        futs = [ex.submit(work, person) for person in md_people]
-        for fut in as_completed(futs):
-            person, is_ok, dt, info = fut.result()
-            done += 1
-            if is_ok:
-                ok += 1
-                tag = "OK"
-            else:
-                fail += 1
-                tag = "FAIL"
-            info = (info[:160] + "…") if len(info) > 160 else info
-            print(f"[{done}/{len(md_people)}] {tag} {person} {dt:.2f}s {info}".rstrip(), flush=True)
-    print(f"done ok={ok} fail={fail} total={ok+fail}")
-    return 0 if fail == 0 else 2
+ 
+def render_changed_people_html(*, mode: str = "nogeocode", max_people: int = 0) -> int:
+    root = Path(_repo_root()).resolve()
+    md_dir = root / "storymap" / "examples" / "story"
+    html_dir = root / "storymap" / "examples" / "story_map"
+    changed = _changed_people(md_dir, html_dir)
+    reason_counts: dict[str, int] = {}
+    for _, reason in changed:
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+    if max_people and max_people > 0:
+        changed = changed[:max_people]
+    summary = " ".join([f"{k}={v}" for k, v in sorted(reason_counts.items())])
+    print(f"changed={len(changed)}" + (f" {summary}" if summary else ""))
+    if not changed:
+        print("done ok=0 fail=0 total=0")
+        return 0
+    people = [person for person, _ in changed]
+    return _render_people(people, md_dir=md_dir, html_dir=html_dir, mode=mode, allow_cache=False)
 
 
 def main() -> None:
@@ -259,9 +290,12 @@ def main() -> None:
     parser.add_argument("--out", type=str, help="输出 HTML 路径（可选）")
     parser.add_argument("--render-missing", action="store_true", help="批量渲染：为缺失 HTML 的人物补齐 examples/story_map/<person>.html（不调用模型）")
     parser.add_argument("--render-all", action="store_true", help="批量渲染：重渲染所有人物 HTML 到 examples/story_map/<person>.html")
+    parser.add_argument("--render-changed", action="store_true", help="批量渲染：只重建 Markdown 更新或模板失效的人物 HTML")
     parser.add_argument("--missing-limit", type=int, default=0, help="批量渲染时，最多处理多少人（0 表示不限制）")
     parser.add_argument("--missing-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="nogeocode=不做地理编码（最快）；pure=正常渲染（可能触发地理编码）；cache=复用 Markdown 并做地理编码+渲染（最慢）")
     parser.add_argument("--all-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="render-all 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
+    parser.add_argument("--changed-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="render-changed 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
+    parser.add_argument("--changed-limit", type=int, default=0, help="render-changed 时最多处理多少人（0 表示不限制）")
     parser.add_argument("--no-geocode", action="store_true", help="生成单人 HTML 时不触发地理编码（只渲染现有坐标）")
     parser.add_argument("--no-browser", action="store_true", help="生成单人 HTML 后不自动打开浏览器")
     args = parser.parse_args()
@@ -270,6 +304,8 @@ def main() -> None:
         raise SystemExit(render_missing_people_html(max_people=int(args.missing_limit or 0), mode=str(args.missing_mode or "pure")))
     if args.render_all:
         raise SystemExit(render_all_people_html(mode=str(args.all_mode or "nogeocode")))
+    if args.render_changed:
+        raise SystemExit(render_changed_people_html(mode=str(args.changed_mode or "nogeocode"), max_people=int(args.changed_limit or 0)))
 
     md_path: Optional[str] = args.md
     if not md_path:
