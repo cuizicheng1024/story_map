@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 
-from dotenv import load_dotenv
+from env_utils import load_project_env
 from map_client import (
     append_coords_section,
     compute_total_distance_km,
@@ -47,23 +47,7 @@ def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
-local_env = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(dotenv_path=local_env, override=True)
-root = _project_root()
-env_candidates = [
-    os.path.join(root, ".env"),
-    os.path.join(root, "data", ".env"),
-    os.path.join(root, "map_story_poster", ".env"),
-    os.path.join(root, "external", "map_story_poster", ".env"),
-    os.path.abspath(os.path.join(root, "..", ".env")),
-    os.path.abspath(os.path.join(root, "..", "..", ".env")),
-]
-for p in env_candidates:
-    try:
-        if p and os.path.isfile(p):
-            load_dotenv(dotenv_path=p, override=True)
-    except Exception:
-        pass
+load_project_env(from_file=__file__, override=True)
 
 
 def _first_env(*names: str) -> str:
@@ -140,18 +124,94 @@ _HISTORICAL_INDEX: Optional[Dict[str, Tuple[float, float]]] = None
 _HISTORICAL_INDEX_LOCK = threading.Lock()
 _TGAZ_CACHE: Dict[str, Optional[Tuple[float, float]]] = {}
 _TGAZ_CACHE_LOCK = threading.Lock()
+_TGAZ_CACHE_PATH: Optional[str] = None
+_TGAZ_CACHE_LAST_SAVE_TS = 0.0
+_TGAZ_RL_LOCK = threading.Lock()
+_TGAZ_LAST_REQ_TS = 0.0
 
 
 def _normalize_place_key(text: str) -> str:
-    """Normalize place text so different spellings can still match."""
     s = str(text or "").strip().lower()
     if not s:
         return ""
-    # Remove common wrappers and punctuation, keep Chinese/letters/numbers.
     s = re.sub(r"[\s\t\r\n]+", "", s)
     s = re.sub(r"[（(].*?[）)]", "", s)
     s = re.sub(r"[，,。.;；:：、】【\[\]{}<>《》\"'“”‘’·•/\\|-]+", "", s)
-    return s
+    s = re.sub(r"(一带|附近|周边|地区|境内|境外|等地|之地|左右|一线)$", "", s)
+    return s.strip()
+
+
+def _resolve_tgaz_cache_path() -> str:
+    p = (os.getenv("MAP_STORY_TGAZ_CACHE") or "").strip()
+    if p:
+        return os.path.abspath(os.path.expanduser(p))
+    return os.path.join(_project_root(), ".cache", "story_map_tgaz_cache.json")
+
+
+def _load_tgaz_cache() -> None:
+    global _TGAZ_CACHE_PATH
+    _TGAZ_CACHE_PATH = _resolve_tgaz_cache_path()
+    p = _TGAZ_CACHE_PATH
+    if not p or not os.path.exists(p):
+        return
+    try:
+        data = json.loads(Path(p).read_text(encoding="utf-8"))
+    except Exception:
+        return
+    if not isinstance(data, dict):
+        return
+    with _TGAZ_CACHE_LOCK:
+        for k, v in data.items():
+            if not isinstance(k, str):
+                continue
+            if v is None:
+                _TGAZ_CACHE[k] = None
+                continue
+            if isinstance(v, list) and len(v) >= 2:
+                try:
+                    lat = float(v[0])
+                    lon = float(v[1])
+                except Exception:
+                    continue
+                _TGAZ_CACHE[k] = (lat, lon)
+
+
+def _save_tgaz_cache(force: bool = False) -> None:
+    global _TGAZ_CACHE_LAST_SAVE_TS
+    p = _TGAZ_CACHE_PATH or _resolve_tgaz_cache_path()
+    if not p:
+        return
+    now = time.time()
+    if (not force) and (now - _TGAZ_CACHE_LAST_SAVE_TS < 2.0):
+        return
+    try:
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with _TGAZ_CACHE_LOCK:
+            data = {
+                k: (None if v is None else [float(v[0]), float(v[1])])
+                for k, v in _TGAZ_CACHE.items()
+            }
+        Path(p).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        _TGAZ_CACHE_LAST_SAVE_TS = now
+    except Exception:
+        return
+
+
+_load_tgaz_cache()
+atexit.register(_save_tgaz_cache, True)
+
+
+def _tgaz_rate_limit() -> None:
+    min_interval = float(os.getenv("MAP_STORY_TGAZ_MIN_INTERVAL", "1.1"))
+    if min_interval <= 0:
+        return
+    global _TGAZ_LAST_REQ_TS
+    with _TGAZ_RL_LOCK:
+        now = time.monotonic()
+        wait = (_TGAZ_LAST_REQ_TS + min_interval) - now
+        if wait > 0:
+            time.sleep(wait)
+        _TGAZ_LAST_REQ_TS = time.monotonic()
 
 
 def _historical_index_candidates() -> List[str]:
@@ -275,18 +335,21 @@ def _tgaz_query(name: str, year: Optional[int]) -> Optional[Tuple[float, float]]
         url += f"&yr={yr}"
 
     try:
+        _tgaz_rate_limit()
         req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
         with urlopen(req, timeout=12) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception:
         with _TGAZ_CACHE_LOCK:
             _TGAZ_CACHE[cache_key] = None
+        _save_tgaz_cache(force=False)
         return None
 
     items = data.get("placenames") if isinstance(data, dict) else None
     if not isinstance(items, list):
         with _TGAZ_CACHE_LOCK:
             _TGAZ_CACHE[cache_key] = None
+        _save_tgaz_cache(force=False)
         return None
 
     def parse_xy(s: str) -> Optional[Tuple[float, float]]:
@@ -326,6 +389,7 @@ def _tgaz_query(name: str, year: Optional[int]) -> Optional[Tuple[float, float]]
 
     with _TGAZ_CACHE_LOCK:
         _TGAZ_CACHE[cache_key] = best
+    _save_tgaz_cache(force=False)
     return best
 
 
@@ -1145,18 +1209,6 @@ def _pick_geocode_name(text: str) -> str:
                 break
         text = re.sub(r"[（(].*?[）)]", "", text).strip()
     return text
-
-
-def _normalize_place_key(text: str) -> str:
-    if not text:
-        return ""
-    s = str(text)
-    s = re.sub(r"\s+", "", s)
-    s = re.sub(r"[（(].*?[）)]", "", s)
-    s = re.sub(r"[，,；;。.!！?？·•]", "", s)
-    s = re.sub(r"(一带|附近|周边|地区|境内|境外|等地|之地|左右|一线)$", "", s)
-    return s.strip()
-
 
 def _fuzzy_coord_lookup(coords_cache: Dict[str, Tuple[float, float]], candidates: List[str]) -> Optional[Tuple[float, float]]:
     if not coords_cache:

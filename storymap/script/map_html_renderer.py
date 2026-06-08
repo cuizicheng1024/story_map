@@ -207,11 +207,12 @@ body {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   transform: translateX(-50%);
   border-radius: 50%;
-  border: 2px solid var(--marker-color);
+  border: 3px solid var(--marker-color);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.28), 0 10px 26px var(--marker-soft-strong);
   opacity: 0;
   pointer-events: none;
 }
@@ -293,8 +294,8 @@ body {
   z-index: 10;
 }
 @keyframes story-marker-pulse {
-  0% { transform: scale(0.65); opacity: 0.95; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0% { transform: scale(0.55); opacity: 0.95; }
+  100% { transform: scale(3.1); opacity: 0; }
 }
 .life-rail {
   background: linear-gradient(180deg, #06b6d4 0%, #6366f1 42%, #8b5cf6 78%, #0f172a 100%);
@@ -463,7 +464,10 @@ const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\\n\\n');
 const mergedTeachingPointsNormalized = mergedTeachingPoints
+  .replace(/^(#{0,4}\\s*)?(教材知识点与考点|教材知识点|考点)\\s*$/gm, '')
   .replace(/^(#{0,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/gm, '')
+  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
   .replace(/^\\s*$/gm, (m) => m);
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
@@ -474,22 +478,22 @@ const extractTeachingHighlights = (raw, maxItems) => {
   const out = [];
   const seen = new Set();
   const push = (text) => {
-    const t = String(text || '').replace(/^[-•]\s*/, '').trim();
+    const t = String(text || '').replace(/^[-•]\\s*/, '').trim();
     if (!t || seen.has(t)) return;
     seen.add(t);
     out.push(t);
   };
   for (const line of lines) {
-    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
-    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
-    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
-    if (/\*\*重点\*\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
+    if (/^(#{1,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(line)) continue;
+    if (/^###\\s+/.test(line) || /^####\\s+/.test(line)) continue;
+    if (!/^[-•]\\s+/.test(line) && !/^\\d+\\.\\s+/.test(line)) continue;
+    if (/\\*\\*重点\\*\\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
     if (out.length >= (maxItems || 5)) return out.slice(0, maxItems || 5);
   }
   for (const line of lines) {
-    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
-    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
-    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    if (/^(#{1,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(line)) continue;
+    if (/^###\\s+/.test(line) || /^####\\s+/.test(line)) continue;
+    if (!/^[-•]\\s+/.test(line) && !/^\\d+\\.\\s+/.test(line)) continue;
     push(line);
     if (out.length >= (maxItems || 5)) break;
   }
@@ -532,9 +536,9 @@ const extractYear = (text) => {
 const renderInline = (text) => {
   const raw = String(text || '');
   // 支持 Markdown 的 **加粗**。如果上游文本被截断导致 ** 不成对，兜底移除残留的 **，避免页面出现星号。
-  const parts = raw.split(/(\*\*.*?\*\*)/g).filter(Boolean);
+  const parts = raw.split(/(\\*\\*.*?\\*\\*)/g).filter(Boolean);
   return parts.map((p, idx) => {
-    const m = p.match(/^\*\*(.+?)\*\*$/);
+    const m = p.match(/^\\*\\*(.+?)\\*\\*$/);
     if (m) {
       return <strong key={idx} className="font-extrabold text-gray-900">{m[1]}</strong>;
     }
@@ -570,13 +574,13 @@ const renderMdBlock = (text) => {
       out.push(<div key={`sp-${i}`} className="h-2" />);
       continue;
     }
-    const h1 = t.match(/^#{1,2}\s+(.*)$/);
+    const h1 = t.match(/^#{1,2}\\s+(.*)$/);
     if (h1) {
       flushList();
       out.push(<div key={`h-${i}`} className="text-sm font-semibold">{renderInline(h1[1])}</div>);
       continue;
     }
-    const li = t.match(/^(?:[-•]\s+)(.*)$/);
+    const li = t.match(/^(?:[-•]\\s+)(.*)$/);
     if (li) {
       listBuf.push(li[1]);
       continue;
@@ -628,7 +632,7 @@ const renderTextbookPoints = (raw, options) => {
   const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS_RE}+n`, 'g');
 
   const lines = String(raw || '').split(splitRe);
-  const isStageHeading = (t) => /^(#{3,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(String(t || '').trim());
+  const isStageHeading = (t) => /^(#{3,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(String(t || '').trim());
   const expanded = Boolean(options && options.expanded);
   if (expanded) {
     return lines.map((line, idx) => {
@@ -643,7 +647,7 @@ const renderTextbookPoints = (raw, options) => {
       const indentClass = level === 1 ? 'ml-0' : (level === 2 ? 'ml-4' : 'ml-8');
 
       if (t.startsWith('### ')) {
-        const heading = t.replace(/^###\s*/, '');
+        const heading = t.replace(/^###\\s*/, '');
         return (
           <h3 key={idx} className="mt-2 text-base font-bold text-[#7c2d12]">
             {renderInline(heading)}
@@ -652,7 +656,7 @@ const renderTextbookPoints = (raw, options) => {
       }
 
       if (t.startsWith('#### ')) {
-        const heading = t.replace(/^####\s*/, '');
+        const heading = t.replace(/^####\\s*/, '');
         return (
           <h4 key={idx} className="mt-2 text-sm font-semibold text-gray-700">
             {renderInline(heading)}
@@ -671,7 +675,7 @@ const renderTextbookPoints = (raw, options) => {
         );
       }
 
-      const ordered = t.match(/^(\d+)\.\s+(.*)$/);
+      const ordered = t.match(/^(\\d+)\\.\\s+(.*)$/);
       if (ordered) {
         return (
           <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
@@ -714,19 +718,19 @@ const renderTextbookPoints = (raw, options) => {
       kept.push(rawLine);
       continue;
     }
-    const isBullet = t.startsWith('- ') || /^\d+\.\s+/.test(t);
+    const isBullet = t.startsWith('- ') || /^\\d+\\.\\s+/.test(t);
     if (isBullet) {
       totalBulletCount += 1;
       sectionBulletCount += 1;
       if (totalBulletCount > maxTotalBullets || sectionBulletCount > maxBulletsPerSection) {
         continue;
       }
-      const normalized = safeTruncateMdBold(rawLine.replace(/\s+$/g, '').trim(), maxLineLen);
+      const normalized = safeTruncateMdBold(rawLine.replace(/\\s+$/g, '').trim(), maxLineLen);
       kept.push(normalized);
       continue;
     }
     if (totalBulletCount < maxTotalBullets) {
-      const normalized = safeTruncateMdBold(rawLine.replace(/\s+$/g, '').trim(), maxLineLen);
+      const normalized = safeTruncateMdBold(rawLine.replace(/\\s+$/g, '').trim(), maxLineLen);
       kept.push(normalized);
     }
   }
@@ -743,7 +747,7 @@ const renderTextbookPoints = (raw, options) => {
     const indentClass = level === 1 ? 'ml-0' : (level === 2 ? 'ml-4' : 'ml-8');
 
     if (t.startsWith('### ')) {
-      const heading = t.replace(/^###\s*/, '');
+      const heading = t.replace(/^###\\s*/, '');
       return (
         <h3 key={idx} className="mt-2 text-base font-bold text-[#7c2d12]">
           {renderInline(heading)}
@@ -752,7 +756,7 @@ const renderTextbookPoints = (raw, options) => {
     }
 
     if (t.startsWith('#### ')) {
-      const heading = t.replace(/^####\s*/, '');
+      const heading = t.replace(/^####\\s*/, '');
       return (
         <h4 key={idx} className="mt-2 text-sm font-semibold text-gray-700">
           {renderInline(heading)}
@@ -771,7 +775,7 @@ const renderTextbookPoints = (raw, options) => {
       );
     }
 
-    const ordered = t.match(/^(\d+)\.\s+(.*)$/);
+    const ordered = t.match(/^(\\d+)\\.\\s+(.*)$/);
     if (ordered) {
       return (
         <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
@@ -832,14 +836,25 @@ const MapDropdown = ({ label, value, onChange, options }) => {
 
 const App = () => {
   // 从 URL hash #loc=N 还原初始定位（分享链接能定位到具体地点）
-  const initialLocIdx = (() => {
+  const initialLoc = (() => {
     if (typeof window === 'undefined' || !window.location) return 0;
     const m = /#loc=(\d+)/.exec(window.location.hash || '');
-    if (!m) return 0;
+    if (!m) return { idx: 0, fromHash: false };
     const idx = parseInt(m[1], 10);
-    if (Number.isFinite(idx) && idx >= 0 && idx < locations.length) return idx;
-    return 0;
+    if (Number.isFinite(idx) && idx >= 0 && idx < locations.length) return { idx, fromHash: true };
+    return { idx: 0, fromHash: false };
   })();
+  const initialLocIdx = initialLoc?.idx || 0;
+  const initialLocFromHash = Boolean(initialLoc?.fromHash);
+  const focusZoom = useMemo(() => {
+    if (typeof window === 'undefined' || !window.location) return 10;
+    let z = NaN;
+    try {
+      z = parseFloat(new URLSearchParams(window.location.search || '').get('locZoom') || '');
+    } catch (_) {}
+    const v = Number.isFinite(z) ? z : 10;
+    return Math.min(18, Math.max(3, v));
+  }, []);
   const [selectedLoc, setSelectedLoc] = useState(locations[initialLocIdx] || null);
   const [activeIndex, setActiveIndex] = useState(initialLocIdx);
   const [showFullDesc, setShowFullDesc] = useState(false);
@@ -1122,7 +1137,7 @@ const App = () => {
     setActiveIndex(nextIndex);
     setSelectedLoc(nextLoc);
     if (mapRef.current && nextLoc) {
-      mapRef.current.setView([nextLoc.lat, nextLoc.lng], 7);
+      mapRef.current.setView([nextLoc.lat, nextLoc.lng], focusZoom, true);
     }
   };
   useEffect(() => {
@@ -1190,6 +1205,51 @@ const App = () => {
       }
 
       const pointLayers = [];
+      let pulseCircle = null;
+      let pulseRaf = null;
+      const runPulse = (lng, lat, color) => {
+        const lngNum = typeof lng === 'number' ? lng : NaN;
+        const latNum = typeof lat === 'number' ? lat : NaN;
+        if (!Number.isFinite(lngNum) || !Number.isFinite(latNum)) return;
+        try { if (pulseRaf) cancelAnimationFrame(pulseRaf); } catch (_) {}
+        pulseRaf = null;
+        try { if (pulseCircle) map.remove(pulseCircle); } catch (_) {}
+        pulseCircle = null;
+        const c = String(color || '#ef4444');
+        const circle = new AMap.Circle({
+          center: [lngNum, latNum],
+          radius: 120,
+          strokeColor: c,
+          strokeWeight: 2,
+          strokeOpacity: 0.85,
+          fillColor: c,
+          fillOpacity: 0.16,
+          bubble: false,
+          zIndex: 50
+        });
+        map.add(circle);
+        pulseCircle = circle;
+        const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        const duration = 950;
+        const maxR = 1800;
+        const tick = (now) => {
+          const t = ((now || 0) - t0) / duration;
+          if (t >= 1) {
+            try { map.remove(circle); } catch (_) {}
+            if (pulseCircle === circle) pulseCircle = null;
+            pulseRaf = null;
+            return;
+          }
+          const ease = t * (2 - t);
+          const r = 120 + (maxR - 120) * ease;
+          const op = 0.85 * (1 - t);
+          try {
+            circle.setOptions({ radius: r, strokeOpacity: op, fillOpacity: 0.16 * (1 - t) });
+          } catch (_) {}
+          pulseRaf = requestAnimationFrame(tick);
+        };
+        pulseRaf = requestAnimationFrame(tick);
+      };
       const buildMarkerHtml = (loc, idx, isActive, isPassed) => {
         const ageText = getMarkerBadgeText(loc, idx);
         const markerColor = getLifeColor(loc, idx);
@@ -1232,8 +1292,27 @@ const App = () => {
             if (isPassed) classes.push('is-passed');
             if (isActive) classes.push('is-active');
             p.el.className = classes.join(' ');
+            try {
+              const ring = p.el.querySelector('.story-marker-ring');
+              if (ring && isActive) {
+                ring.style.animation = 'none';
+                ring.offsetHeight;
+                ring.style.animation = '';
+              }
+            } catch (_) {}
+          }
+          if (p.layer && typeof p.layer.setzIndex === 'function') {
+            try {
+              p.layer.setzIndex(isActive ? 300 : (100 + p.idx));
+            } catch (_) {}
           }
         }
+      };
+      const pulseByIndex = (idx) => {
+        const loc = locations[idx];
+        if (!loc) return;
+        const c = getLifeColor(loc, idx);
+        runPulse(loc.lng, loc.lat, c);
       };
 
       locations.forEach((loc, idx) => {
@@ -1249,14 +1328,15 @@ const App = () => {
         marker.on('click', () => {
           setSelectedLoc(loc);
           setActiveIndex(idx);
-          map.setZoomAndCenter(7, [loc.lng, loc.lat]);
+          map.setZoomAndCenter(focusZoom, [loc.lng, loc.lat]);
+          pulseByIndex(idx);
         });
         map.add(marker);
         overlays.push(marker);
         pointLayers.push({ idx, layer: marker, el });
       });
 
-      if (overlays.length > 0) {
+      if (overlays.length > 0 && !initialLocFromHash) {
         try {
           map.setFitView(overlays);
         } catch (_) {}
@@ -1264,17 +1344,26 @@ const App = () => {
 
       mapRef.current = {
         _type: 'amap',
-        setView: (latlng, z) => {
+        setView: (latlng, z, pulse) => {
           const lat = Array.isArray(latlng) ? latlng[0] : latlng?.lat;
           const lng = Array.isArray(latlng) ? latlng[1] : latlng?.lng;
-          const zoom = Number.isFinite(z) ? z : 7;
+          const zoom = Number.isFinite(z) ? z : focusZoom;
           if (typeof lat === 'number' && typeof lng === 'number') {
             map.setZoomAndCenter(zoom, [lng, lat]);
+            if (pulse) runPulse(lng, lat, '#ef4444');
           }
         },
-        setActive
+        setActive,
+        pulse: pulseByIndex
       };
       setActive(activeIndex);
+      if (initialLocFromHash) {
+        const loc = locations[activeIndex];
+        if (loc) {
+          map.setZoomAndCenter(focusZoom, [loc.lng, loc.lat]);
+          pulseByIndex(activeIndex);
+        }
+      }
     };
     initMap();
     return () => {
@@ -1352,7 +1441,7 @@ const App = () => {
       setActiveIndex(idx);
     }
     if (mapRef.current) {
-      mapRef.current.setView([loc.lat, loc.lng], 7);
+      mapRef.current.setView([loc.lat, loc.lng], focusZoom, true);
     }
   };
   useEffect(() => {
@@ -1366,6 +1455,9 @@ const App = () => {
     }
     if (mapRef.current && typeof mapRef.current.setActive === 'function') {
       mapRef.current.setActive(activeIndex);
+    }
+    if (mapRef.current && typeof mapRef.current.pulse === 'function') {
+      mapRef.current.pulse(activeIndex);
     }
   }, [activeIndex]);
   const historyChatSystemPrompt = useMemo(() => {
@@ -1703,19 +1795,17 @@ const App = () => {
             <div id="map"></div>
             <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2 items-end">
               <MapDropdown
-                label="底图"
-                value={mapStyleId}
-                onChange={setMapStyleId}
+                label="地图"
+                value={`${mapStyleId}|${mapLayerType}`}
+                onChange={(v) => {
+                  const parts = String(v || '').split('|');
+                  const nextStyle = (parts[0] || '').trim();
+                  const nextLayer = (parts[1] || '').trim();
+                  if (nextStyle) setMapStyleId(nextStyle);
+                  if (nextLayer) setMapLayerType(nextLayer);
+                }}
                 options={[
-                  { id: 'macaron', label: '马卡龙' }
-                ]}
-              />
-              <MapDropdown
-                label="图层"
-                value={mapLayerType}
-                onChange={setMapLayerType}
-                options={[
-                  { id: 'satellite', label: '卫星影像' }
+                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
                 ]}
               />
             </div>

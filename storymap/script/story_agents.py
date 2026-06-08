@@ -9,7 +9,7 @@ import requests
 import urllib3
 from typing import Dict, List, Optional, Tuple
 
-from dotenv import load_dotenv
+from env_utils import load_project_env
 
 # 禁用 urllib3 的不安全请求警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -19,23 +19,7 @@ def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
-local_env = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(dotenv_path=local_env)
-root = _project_root()
-env_candidates = [
-    os.path.join(root, ".env"),
-    os.path.join(root, "data", ".env"),
-    os.path.join(root, "map_story_poster", ".env"),
-    os.path.join(root, "external", "map_story_poster", ".env"),
-    os.path.abspath(os.path.join(root, "..", ".env")),
-    os.path.abspath(os.path.join(root, "..", "..", ".env")),
-]
-for p in env_candidates:
-    try:
-        if p and os.path.isfile(p):
-            load_dotenv(dotenv_path=p)
-    except Exception:
-        pass
+load_project_env(from_file=__file__, override=False)
 
 _MAX_TEXT_LEN = 200
 

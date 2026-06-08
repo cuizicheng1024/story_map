@@ -19,7 +19,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from dotenv import load_dotenv
+from env_utils import load_project_env
 
 
 _DEFAULT_USER_AGENT = "map-story/1.0"
@@ -139,23 +139,7 @@ def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
-local_env = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(dotenv_path=local_env)
-root = _project_root()
-env_candidates = [
-    os.path.join(root, ".env"),
-    os.path.join(root, "data", ".env"),
-    os.path.join(root, "map_story_poster", ".env"),
-    os.path.join(root, "external", "map_story_poster", ".env"),
-    os.path.abspath(os.path.join(root, "..", ".env")),
-    os.path.abspath(os.path.join(root, "..", "..", ".env")),
-]
-for p in env_candidates:
-    try:
-        if p and os.path.isfile(p):
-            load_dotenv(dotenv_path=p)
-    except Exception:
-        pass
+load_project_env(from_file=__file__, override=False)
 _load_geocode_cache()
 
 
