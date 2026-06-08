@@ -1,0 +1,64 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      MAP_STORY_OUTPUT_DIR: artifacts/story_map
+      MAP_STORY_STATIC_SITE: "1"
+      AMAP_KEY: ${{ secrets.AMAP_KEY }}
+      AMAP_SECURITY: ${{ secrets.AMAP_SECURITY }}
+      MAP_STORY_API_BASE: ${{ vars.MAP_STORY_API_BASE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+
+      - name: Build static story map site
+        run: |
+          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          python tools/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+          cp artifacts/story_map/index.html artifacts/story_map/404.html
+          touch artifacts/story_map/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/story_map
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -801,6 +801,13 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
     safe_title = title.strip() or "故事地图"
     # Always render a fresh index.html instead of patching an existing template.
     # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
+    static_site = str(os.getenv("MAP_STORY_STATIC_SITE", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    api_base = str(os.getenv("MAP_STORY_API_BASE", "") or os.getenv("STORY_MAP_API_BASE", "")).strip()
     amap_key = (
         os.getenv("AMAP_KEY")
         or os.getenv("AMAP_JS_KEY")
@@ -824,6 +831,10 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         if amap_sec:
             parts.append(f"window.AMAP_SECURITY={json.dumps(amap_sec, ensure_ascii=False)};")
         amap_inline = "<script>" + "".join(parts) + "</script>"
+    runtime_parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
+    if api_base:
+        runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
+    runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
     qhtml = ""
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -832,6 +843,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{safe_title}</title>
     {amap_inline}
+    {runtime_inline}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {{
@@ -1051,6 +1063,20 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
 
     <script>
       const DATA_FILE = "{data_file}";
+      const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
+      const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
+      const apiUrl = (path) => {{
+        const rel = String(path || "").replace(/^\\/+/, "");
+        if (!rel) return "./";
+        if (API_BASE) {{
+          return API_BASE.replace(/\\/+$/, "") + "/" + rel;
+        }}
+        return "./" + rel;
+      }};
+      const requireBackend = (actionText) => {{
+        const action = String(actionText || "该功能").trim() || "该功能";
+        return action + " 需要单独部署 FastAPI 后端；静态站当前仅展示已生成内容。";
+      }};
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
       const $searchHint = document.getElementById("searchHint");
@@ -2013,7 +2039,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         const tick = async () => {{
           let snapshot = null;
           try {{
-            const resp = await fetchWithTimeout("./task?id=" + encodeURIComponent(id), 12000);
+            const resp = await fetchWithTimeout(apiUrl("task?id=" + encodeURIComponent(id)), 12000);
             snapshot = await resp.json();
           }} catch (_) {{
             snapshot = null;
@@ -2078,6 +2104,11 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
       const ensurePersonGenerated = async (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return;
+        if (STATIC_SITE && !API_BASE) {{
+          setGenStatus(requireBackend("实时生成人物"));
+          setGeneratingUI(false);
+          return;
+        }}
         try {{
           const headResp = await fetch("./" + encodeURIComponent(person + ".html"), {{ method: "HEAD", cache: "no-store" }});
           if (headResp && headResp.ok) {{
@@ -2090,7 +2121,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         setGeneratingUI(true);
         setGenStatus("未找到本地人物「" + person + "」，正在生成，请稍候…");
         try {{
-          const resp = await fetchWithTimeout("./generate?person=" + encodeURIComponent(person), 12000);
+          const resp = await fetchWithTimeout(apiUrl("generate?person=" + encodeURIComponent(person)), 12000);
           const data = await resp.json();
           if (!data || data.ok !== true || !data.task_id) {{
             const msg = data && data.error ? String(data.error) : "生成任务创建失败";
@@ -2516,8 +2547,9 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
           _coordFlushTimer = null;
         }}
         if (!n) return;
+        if (STATIC_SITE && !API_BASE) return;
         try {{
-          fetch("/coords/bulk", {{
+          fetch(apiUrl("coords/bulk"), {{
             method: "POST",
             headers: {{ "Content-Type": "application/json" }},
             body: JSON.stringify({{ items }}),

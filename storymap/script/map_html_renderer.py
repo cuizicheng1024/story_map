@@ -14,6 +14,23 @@ def _first_env(*names: str) -> str:
     return ""
 
 
+def _runtime_page_config_html() -> str:
+    static_site = _first_env("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    api_base = _first_env("MAP_STORY_API_BASE", "STORY_MAP_API_BASE")
+    ai_endpoint = _first_env("MAP_STORY_AI_ENDPOINT", "STORY_MAP_AI_ENDPOINT")
+    parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
+    if api_base:
+        parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
+    if ai_endpoint:
+        parts.append(f"window.MAP_STORY_AI_ENDPOINT={json.dumps(ai_endpoint, ensure_ascii=False)};")
+    return "<script>" + "".join(parts) + "</script>"
+
+
 def _amap_bootstrap_html() -> str:
     key = _first_env("AMAP_KEY", "AMAP_JS_KEY", "AMAP_WEB_KEY", "Amap_API_Key", "AMAP_API_KEY")
     security = _first_env(
@@ -33,10 +50,10 @@ def _amap_bootstrap_html() -> str:
     loader = """<script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__) {
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
-      cfg.src = '/amap-config.js';
+      cfg.src = new URL('./amap-config.js', window.location.href).toString();
       cfg.async = false;
       document.head.appendChild(cfg);
     }
@@ -549,6 +566,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     payload = json.dumps(payload_dict, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     name = (payload_dict.get("person", {}) or {}).get("name", "")
     title = f"{name}的人生足迹地图" if name else "人生足迹地图"
+    runtime_config = _runtime_page_config_html()
     amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -560,6 +578,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
+__RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
 <style>
 body {
@@ -2153,20 +2172,26 @@ const App = () => {
       if (!val) return;
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
+    const staticSite = window.MAP_STORY_STATIC_SITE === true;
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\\/+$/, '') + '/api/ai/proxy');
     }
-    if (window.location && window.location.protocol !== 'file:') {
-      pushUrl('/api/ai/proxy');
+    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+      pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\\/+$/, '') + '/api/ai/proxy');
       }
     }
-    pushUrl('http://127.0.0.1:8765/api/ai/proxy');
-    pushUrl('http://localhost:8765/api/ai/proxy');
+    if (!staticSite) {
+      pushUrl('http://127.0.0.1:8765/api/ai/proxy');
+      pushUrl('http://localhost:8765/api/ai/proxy');
+    }
+    if (!tryUrls.length) {
+      throw new Error('当前为静态展示站，对话功能需要单独部署后端服务。');
+    }
     let lastErr = null;
     for (const url of tryUrls) {
       try {
@@ -2808,6 +2833,7 @@ root.render(<App />);
     return (
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
+        .replace("__RUNTIME_CONFIG__", runtime_config)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 
@@ -2815,6 +2841,7 @@ root.render(<App />);
 def render_multi_html(data: Dict[str, object]) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     title = data.get("title") or "多人物合并视图"
+    runtime_config = _runtime_page_config_html()
     amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -2823,6 +2850,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
 <script src="https://cdn.tailwindcss.com"></script>
+__RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
 <style>
 body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
@@ -2910,6 +2938,7 @@ initMap().catch((err) => {
     return (
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
+        .replace("__RUNTIME_CONFIG__", runtime_config)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 
@@ -2924,6 +2953,7 @@ def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_htm
         lon = float(points[0]["lon"])
         center = {"lat": lat, "lon": lon, "zoom": 6}
     pts_json = json.dumps(points, ensure_ascii=False)
+    runtime_config = _runtime_page_config_html()
     amap_bootstrap = _amap_bootstrap_html()
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -2931,6 +2961,7 @@ def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_htm
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>{title} - 生平地图</title>
+{runtime_config}
 {amap_bootstrap}
 <style>html,body,#map{{height:100%;margin:0;padding:0}}</style>
 </head>
