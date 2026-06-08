@@ -4,8 +4,8 @@
 职责：
   1. 重新生成 data/people_master.json（教材总索引）
   2. 重新生成 data/people_master_pep.json（PEP 教材人物）
-  3. 增量重渲染 artifacts/story_map/*.html（人物页）
-  4. 重新生成 data/people_birth_coords_wgs84.json（出生地经纬度）
+  3. 预生成 artifacts/story_map/stellar_home_data.json（供人物页图谱注入使用）
+  4. 增量重渲染 artifacts/story_map/*.html（人物页）
   5. 重新生成 artifacts/story_map/stellar_home_data.json + index.html
 
 数据源：单一来源 = storymap/examples/story/*.md
@@ -505,9 +505,21 @@ def main() -> int:
         stat = _patch_master_with_has_story(pep_fp)
         print(f"  ✓ pep has_story 字段按 .md 存在性强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
 
-    # ── 3. 增量重渲染人物页 ───────────────────────────────────────
+    # ── 3. 预生成 home data，供人物页 relatedGraph 注入 ────────────
+    if not args.skip_home:
+        _print_section("3/5 prebuild stellar_home_data.json")
+        rc = _run([
+            sys.executable, "tools/build_stellar_homepage.py",
+            "--story-map-dir", str(STORY_MAP_DIR),
+            "--story-md-dir", str(STORY_DIR),
+        ])
+        if rc != 0:
+            print(f"  ✗ build_stellar_homepage.py 预生成退出码 {rc}", flush=True)
+            return rc
+
+    # ── 4. 增量重渲染人物页 ───────────────────────────────────────
     if not args.skip_html:
-        _print_section("3/5 render changed artifacts/story_map/*.html")
+        _print_section("4/5 render changed artifacts/story_map/*.html")
         rc = _run([
             sys.executable, "cli/generate_pure_story_map.py",
             "--render-changed",
@@ -518,15 +530,11 @@ def main() -> int:
             print(f"  ✗ generate_pure_story_map.py --render-changed 退出码 {rc}", flush=True)
             return rc
 
-    # ── 4. 出生地经纬度 ─────────────────────────────────────────
-    _print_section("4/5 sync data/people_birth_coords_wgs84.json")
+    # ── 5. 出生地经纬度 + home data/index.html ───────────────────
+    _print_section("5/5 rebuild stellar_home_data.json + index.html")
     if args.refresh_geocode:
         print("  → 重新跑 build_stellar_homepage.py 以触发 geocode（如果有缺失）", flush=True)
-    # 后续 build_stellar_homepage 也会写 coords 文件，这里仅做提示
-
-    # ── 5. stellar_home_data.json + index.html ──────────────────
     if not args.skip_home:
-        _print_section("5/5 rebuild stellar_home_data.json + index.html")
         rc = _run([
             sys.executable, "tools/build_stellar_homepage.py",
             "--story-map-dir", str(STORY_MAP_DIR),
