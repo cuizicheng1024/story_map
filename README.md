@@ -31,7 +31,7 @@
 - [环境要求](#环境要求)
 - [快速开始](#快速开始)
 - [配置说明](#配置说明)
-- [无 LLM 也能体验什么](#无-llm-也能体验什么)
+- [在线静态版](#在线静态版)
 - [项目结构](#项目结构)
 - [作者信息](#作者信息)
 
@@ -43,7 +43,7 @@
 
 🛠️ **技术方案：**
 - **1. 输入姓名，生成故事**：通过 LLM 检索与整理资料生成结构化内容，重点抽取 **时间 - 地点 - 事件 / 作品 - 意义**。
-- **2. 地理定位，完成落图**：集成 **高德地图 ** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
+- **2. 地理定位，完成落图**：集成 **高德地图** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
 - **3. 交互式地图课件呈现**：基于人物足迹、时间轴和事件节点生成联动页面，支持课堂展示、人物浏览与互动讲解。
 
 
@@ -77,7 +77,7 @@
 
 主页默认展示：
 - 搜索框：输入人物姓名，即可生成/跳转到人物页
-- 时间轴：「人类群星闪耀时」关系图，查看历史长河中闪耀的人物群星
+- 时间轴：「人类群星闪耀时」关系图，查看闪耀的人物群星
 - 地图视角：从空间视角观察中国历史文化名人分布
 - 支持拖动筛选，起止年份可自定义
 
@@ -208,62 +208,27 @@ LLM_MODEL_ID=MiniMax-M3
 - `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
 - `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
 
-## GitHub Pages 部署
-仓库内已提供 GitHub Pages 工作流：
+## 在线静态版
 
-- `.github/workflows/deploy-pages.yml`
+在线体验地址：
 
-它会在推送 `main` 后自动完成：
+- GitHub Pages：<https://cuizicheng1024.github.io/storymap/>
 
-- 批量重渲染人物页到 `artifacts/story_map`
-- 重新生成首页 `index.html` 与 `stellar_home_data.json`
-- 复制 `404.html` 并写入 `.nojekyll`
-- 发布到 GitHub Pages
+### 无 LLM 也能体验什么
 
-### 启用步骤
-1. 进入 GitHub 仓库 `Settings -> Pages`
-2. 将 `Source` 设为 `GitHub Actions`
-3. 如需让线上页面直接加载地图，在仓库 `Settings -> Secrets and variables -> Actions` 中配置：
-   - `Secrets`
-   - `AMAP_KEY`
-   - `AMAP_SECURITY`（可选）
-4. 如需保留“实时生成”和“人物对话”，再配置：
-   - `Variables`
-   - `MAP_STORY_API_BASE=https://你的后端域名`
+- **主页可直接浏览**：可以查看首页时间轴、人物分布、已收录人物入口和人物关系图
+- **已生成人物页可直接打开**：可浏览人物简介、足迹地图、时间轴和考点信息
+- **地图静态展示可用**：若线上已配置高德前端 Key，可直接加载底图并查看轨迹联动
+- **已收录人物检索可用**：可以从首页搜索并跳转到仓库里已有的人物页面
 
-### 静态站能力边界
+### 静态能力边界
+
 - GitHub Pages 只托管静态文件，不能直接运行 `FastAPI`
-- 默认可用：主页浏览、人物检索、已生成人物页跳转、地图展示
-- 需要单独后端：`/generate`、`/task`、`/api/ai/proxy`
-- 若未配置 `AMAP_KEY`，页面会提示手动输入高德 Key，或使用 `?amapKey=xxx` 打开
-- 页面会显示“静态演示版”提示条，明确说明当前是否已接入外部后端
-
-### 当前静态部署适配清单
-- 人物页改为支持 `MAP_STORY_STATIC_SITE=1` 静态模式
-- 高德配置脚本改为相对路径加载，兼容仓库子路径 Pages
-- 人物页对话在静态站下改为明确提示“需要单独部署后端”
-- 首页生成人物/任务轮询改为可选后端能力，未配置后端时只展示现有内容
-- 首页坐标回写接口改为可选调用，静态站默认跳过
-
-### 本地模拟 GitHub Pages 构建
-```bash
-MAP_STORY_OUTPUT_DIR=artifacts/story_map \
-MAP_STORY_STATIC_SITE=1 \
-python3 cli/generate_pure_story_map.py --render-all --all-mode nogeocode
-
-MAP_STORY_OUTPUT_DIR=artifacts/story_map \
-MAP_STORY_STATIC_SITE=1 \
-python3 tools/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
-
-cp artifacts/story_map/index.html artifacts/story_map/404.html
-touch artifacts/story_map/.nojekyll
-```
-
-## 🧠 无 LLM 也能体验什么
-- **已有人物页可直接浏览**：仓库中已生成的人物 HTML 页面可以直接查看
-- **主页可浏览现有内容**：可以查看首页时间轴、人物分布和已收录人物入口
+- 需要单独后端的能力：`/generate`、`/task`、`/api/ai/proxy`
 - **新人物实时生成需要 LLM**：搜索未收录人物时，服务端需要调用大模型
 - **人物对话功能需要 LLM**：人物页里的“开始对话”依赖后端大模型接口
+- 若未配置 `AMAP_KEY`，页面会提示手动输入高德 Key，或使用 `?amapKey=xxx` 打开
+- 页面会显示“静态演示版”提示条，明确说明当前是否已接入外部后端
 
 ## 人物 Markdown 规范
 推荐每个人物文件都遵循以下主结构：
