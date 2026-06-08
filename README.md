@@ -19,20 +19,17 @@
 
 <p align="center">
   <a href="https://www.bilibili.com/video/BV1aLoCBnEiN">故事地图视频演示</a> ·
-  <a href="#快速开始">快速开始</a> ·
-  <a href="#配置说明">配置说明</a> ·
-  <a href="#项目结构">项目结构</a>
+  <a href="#快速开始与项目结构">快速开始与项目结构</a> ·
+  <a href="#环境要求与配置说明">环境要求与配置说明</a> ·
+  <a href="#演示与在线静态版">演示与在线静态版</a>
 </p>
 
 ## 目录
 - [项目概况](#项目概况)
 - [适用场景](#适用场景)
-- [演示](#演示)
-- [环境要求](#环境要求)
-- [快速开始](#快速开始)
-- [配置说明](#配置说明)
-- [在线静态版](#在线静态版)
-- [项目结构](#项目结构)
+- [演示与在线静态版](#演示与在线静态版)
+- [环境要求与配置说明](#环境要求与配置说明)
+- [快速开始与项目结构](#快速开始与项目结构)
 - [作者信息](#作者信息)
 
 ## 项目概况
@@ -51,7 +48,7 @@
 
 
 ## 🎯 适用场景
-面向中学教学与文史学习场景，适合把人物、地点、事件和作品放回同一时空框架中理解。
+面向中学教学与文史学习场景，适合把人物、地点、事件和作品在同一时空框架中理解。
 
 - **语文人物专题课**：围绕李白、苏轼、辛弃疾等人物，将作品、行旅和人生转折放在地图与时间轴中联动讲解。
 - **历史人物时空复盘**：从迁徙、贬谪、出使、征战、治学等轨迹切入，帮助学生理解人物处境与时代背景。
@@ -61,10 +58,10 @@
 
 - **💡 辅助高效备课**：自动抓取人物生平，省去翻阅史料、查找古地名的繁琐过程。
 - **📍 直观展现轨迹**：将文字叙述转化为地图足迹，人物生平一目了然。
-- **📚 跨学科教学**：契合“大语文”、“大历史”教学理念，在地图中讲诗词，在地理中读历史。
-- **✨ 吸引学生注意力**：生成可交互网页，支持时间轴联动和事件弹窗，让课堂更有参与感。
+- **📚 跨学科教学**：契合「大语文」、「大历史」学科融合理念，在地图中讲诗词，在地理中读历史。
+- **✨ 吸引学生注意力**：可交互网页支持时间轴联动和事件弹窗，让课堂更有参与感。
 
-## 📸 演示
+## 📸 演示与在线静态版
 #### [故事地图操作展示](https://www.bilibili.com/video/BV1aLoCBnEiN)
 
 演示内容包括：
@@ -88,16 +85,47 @@
 - 对话窗口
 - 考点信息
 
+### 在线静态版
 
-## 🧩 环境要求
+#### [故事地图在线体验版](https://cuizicheng1024.github.io/storymap/)
+
+- 可直接体验：首页浏览、已收录人物检索、已生成人物页查看
+- 地图功能：配置 `AMAP_KEY` 后可加载底图并查看轨迹联动
+- 当前不支持：`FastAPI`、`/generate`、`/task`、`/api/ai/proxy`
+- 人物对话和未收录人物实时生成仍依赖后端 LLM，无法在静态版本体验
+
+## 🧩 环境要求与配置说明
 - **Python 版本**：建议 `Python 3.11+`
 - **Node.js 版本**：当前主流程非必需；仅在查看已归档的 `archive/web-prototype/` 前端原型时才需要 `Node.js 22+`
 - **依赖安装**：先安装项目依赖；如果你本地还没有装，可优先尝试 `pip install -r requirements.txt`
 - **是否需要 `.env`**：需要。人物对话、实时生成人物页、以及高德地图底图都依赖环境变量配置
 - **高德 Key 是否必填**：主页和人物页底图至少需要 `AMAP_KEY`；若要在线补地理坐标，建议再配置 geocode key
 
+至少建议在 `.env` 中配置以下变量：
 
-## 🚀 快速开始
+```env
+AMAP_KEY=你的高德 JS Key
+AMAP_SECURITY=你的高德安全密钥
+MAP_STORY_API_BASE=http://127.0.0.1:8765
+AMAP_WEBSERVICE_KEY=你的高德 WebService Key
+
+LLM_PROVIDER=minimax
+LLM_API_KEY=你的大模型 Key
+LLM_BASE_URL=https://api.minimaxi.com/anthropic
+LLM_MODEL_ID=MiniMax-M3
+```
+
+说明：
+- `AMAP_KEY`：用于主页和人物页加载高德地图 JS
+- `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
+- `AMAP_WEBSERVICE_KEY`：用于在线地理编码补点
+- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8765`
+- `LLM_PROVIDER`：当前推荐使用 `minimax`
+- `LLM_API_KEY`：用于人物对话与新人物实时生成
+- `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
+- `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
+
+## 🚀 快速开始与项目结构
 
 ### 本地一键体验
 1) 启动新服务（`FastAPI`，提供主页、人物页生成、对话接口和 `/docs`）：
@@ -123,6 +151,24 @@ python3 storymap/script/story_map.py --serve --port 8765
 - 苏轼
 - 李白
 - 辛弃疾
+
+### 项目结构
+
+```text
+artifacts/
+├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
+storymap/
+├── script/                 # 主服务、人物页渲染、地图与对话代理逻辑
+├── examples/
+│   └── story/              # 人物 Markdown 原始资料（单一数据源）
+├── docs/assets/            # README 展示图片
+cli/                        # 批量生成、重渲染、辅助脚本
+tools/                      # 数据主索引、首页数据、统一构建脚本
+data/                       # 人物主索引、坐标缓存、教材人物聚合结果
+archive/
+└── web-prototype/         # 已归档的 React/Vite 前端原型，不属于当前主流程
+.env                        # 地图与 LLM 的本地配置
+```
 
 ## 开发自检
 
@@ -184,55 +230,10 @@ MAP_STORY_RENDER_CONCURRENCY=2 python3 cli/generate_pure_story_map.py --render-a
   - `data/low_coverage_story_report.json`
   - `data/low_coverage_story_report.md`
 
-## ⚙️ 配置说明
-至少建议在 `.env` 中配置以下变量：
-
-```env
-AMAP_KEY=你的高德 JS Key
-AMAP_SECURITY=你的高德安全密钥
-MAP_STORY_API_BASE=http://127.0.0.1:8765
-AMAP_WEBSERVICE_KEY=你的高德 WebService Key
-
-LLM_PROVIDER=minimax
-LLM_API_KEY=你的大模型 Key
-LLM_BASE_URL=https://api.minimaxi.com/anthropic
-LLM_MODEL_ID=MiniMax-M3
-```
-
-说明：
-- `AMAP_KEY`：用于主页和人物页加载高德地图 JS
-- `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
-- `AMAP_WEBSERVICE_KEY`：用于在线地理编码补点
-- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8765`
-- `LLM_PROVIDER`：当前推荐使用 `minimax`
-- `LLM_API_KEY`：用于人物对话与新人物实时生成
-- `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
-- `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
-
-## 在线静态版
-
-在线体验地址：
-
-### [故事地图在线体验版](https://cuizicheng1024.github.io/storymap/)
-
-### 静态网站说明
-
-- 可直接体验：首页浏览、已收录人物检索、已生成人物页查看
-- 地图功能：配置 `AMAP_KEY` 后可加载底图并查看轨迹联动
-- 当前不支持：`FastAPI`、`/generate`、`/task`、`/api/ai/proxy`
-- 未收录人物实时生成和人物对话仍依赖后端 LLM
-
 ## 人物 Markdown 规范
 推荐每个人物文件都遵循统一规范，完整说明已单独存放在：
 
 - `storymap/docs/person_markdown_spec.md`
-
-其中包含：
-
-- 推荐目录与章节结构
-- 地点段落写法
-- 时间线表格要求
-- 校验命令与说明
 
 校验命令：
 
@@ -252,27 +253,7 @@ python3 tools/build_all.py --markdown-smoke-check changed
 - 当前默认只把结构性问题视为错误；地点过少等问题先作为 warning，方便逐步清理历史数据
 - GitHub Pages workflow 会只校验本次 push 中改动过的 `storymap/examples/story/*.md`，用于拦截新增坏数据，不会被历史遗留文件阻塞
 
-## 🗂️ 项目结构
-
-```text
-artifacts/
-├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
-storymap/
-├── script/                 # 主服务、人物页渲染、地图与对话代理逻辑
-├── examples/
-│   └── story/              # 人物 Markdown 原始资料（单一数据源）
-├── docs/assets/            # README 展示图片
-cli/                        # 批量生成、重渲染、辅助脚本
-tools/                      # 数据主索引、首页数据、统一构建脚本
-data/                       # 人物主索引、坐标缓存、教材人物聚合结果
-archive/
-└── web-prototype/         # 已归档的 React/Vite 前端原型，不属于当前主流程
-.env                        # 地图与 LLM 的本地配置
-README.md                   # 项目说明
-```
-
-
-### ✅ 无奖测试
+## ✅ 无奖测试
 猜猜这些名句是谁写的？
 1. 峨眉山月半轮秋，影入平羌江水流
 <img src="storymap/docs/assets/moler_post_06.png" alt="人物页：事件卡片与地图联动" width="600" />
