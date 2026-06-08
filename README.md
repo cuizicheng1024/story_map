@@ -152,15 +152,21 @@ MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-a
 说明：
 
 - `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
+- `build_all.py` 默认会先对当前 git 变更中的 Markdown 跑一次冒烟校验；若结构性错误会直接中止，避免把坏数据继续发布。
 - `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
 - 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
+- 每次 `build_all.py` 完成后，还会刷新：
+  - `data/markdown_smoke_report.json`
+  - `data/low_coverage_story_report.json`
+  - `data/low_coverage_story_report.md`
 
 ## ⚙️ 配置说明
 至少建议在 `.env` 中配置以下变量：
 
 ```env
-Amap_API_Key=你的高德 JS Key
-Amap_API_Secret=你的高德安全密钥
+AMAP_KEY=你的高德 JS Key
+AMAP_SECURITY=你的高德安全密钥
+MAP_STORY_API_BASE=http://127.0.0.1:8766
 
 LLM_PROVIDER=minimax
 LLM_API_KEY=你的大模型 Key
@@ -169,12 +175,14 @@ LLM_MODEL_ID=MiniMax-M3
 ```
 
 说明：
-- `Amap_API_Key`：用于主页和人物页加载高德地图 JS
-- `Amap_API_Secret`：高德安全密钥，配合前端地图加载
+- `AMAP_KEY`：用于主页和人物页加载高德地图 JS
+- `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
+- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8766`
 - `LLM_PROVIDER`：当前推荐使用 `minimax`
 - `LLM_API_KEY`：用于人物对话与新人物实时生成
 - `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
 - `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
+- 兼容说明：历史别名如 `Amap_API_Key`、`Amap_API_Secret`、`STORY_MAP_API_BASE` 仍可读取，但新配置请统一使用上面的标准名
 
 ## GitHub Pages 部署
 仓库内已提供 GitHub Pages 工作流：
@@ -204,6 +212,7 @@ LLM_MODEL_ID=MiniMax-M3
 - 默认可用：主页浏览、人物检索、已生成人物页跳转、地图展示
 - 需要单独后端：`/generate`、`/task`、`/api/ai/proxy`
 - 若未配置 `AMAP_KEY`，页面会提示手动输入高德 Key，或使用 `?amapKey=xxx` 打开
+- 页面会显示“静态演示版”提示条，明确说明当前是否已接入外部后端
 
 ### 当前静态部署适配清单
 - 人物页改为支持 `MAP_STORY_STATIC_SITE=1` 静态模式
@@ -231,6 +240,66 @@ touch artifacts/story_map/.nojekyll
 - **主页可浏览现有内容**：可以查看首页时间轴、人物分布和已收录人物入口
 - **新人物实时生成需要 LLM**：搜索未收录人物时，服务端需要调用大模型
 - **人物对话功能需要 LLM**：人物页里的“开始对话”依赖后端大模型接口
+
+## 人物 Markdown 规范
+推荐每个人物文件都遵循以下主结构：
+
+```md
+# 人物名
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：
+- **时代**：
+- **出生**：
+- **去世**：
+- **享年**：
+
+### 生平概述
+...
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：...
+- **公元纪年**：
+- **位置**：
+- **事迹**：
+
+### 📍 重要地点：...
+- **公元纪年**：
+- **位置**：
+- **事迹**：
+
+### 🔴 去世地：...
+- **公元纪年**：
+- **位置**：
+- **经过**：
+
+## 四、生平时间线
+
+| 年份 | 年龄 | 关键事件 |
+| :--- | :--- | :--- |
+| ... | ... | ... |
+```
+
+校验命令：
+
+```bash
+python3 tools/validate_story_markdown.py
+```
+
+只校验当前改动文件：
+
+```bash
+python3 tools/build_all.py --markdown-smoke-check changed
+```
+
+说明：
+- 校验器会检查必需章节、关键字段、时间线表头
+- 校验器会调用解析器做一次离线解析，提示“地点为空”或“出生/去世地缺失”等高风险问题
+- 当前默认只把结构性问题视为错误；地点过少等问题先作为 warning，方便逐步清理历史数据
+- GitHub Pages workflow 会只校验本次 push 中改动过的 `storymap/examples/story/*.md`，用于拦截新增坏数据，不会被历史遗留文件阻塞
 
 ## 🗂️ 项目结构
 

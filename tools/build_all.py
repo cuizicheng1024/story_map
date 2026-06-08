@@ -32,6 +32,9 @@ DATA_DIR = REPO_ROOT / "data"
 HOME_DATA = STORY_MAP_DIR / "stellar_home_data.json"
 MANIFEST_JSON = DATA_DIR / "build_manifest.json"
 VALIDATION_JSON = DATA_DIR / "build_validation_report.json"
+MARKDOWN_SMOKE_JSON = DATA_DIR / "markdown_smoke_report.json"
+LOW_COVERAGE_JSON = DATA_DIR / "low_coverage_story_report.json"
+LOW_COVERAGE_MD = DATA_DIR / "low_coverage_story_report.md"
 BAD_PERSON_NAMES = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
 
 
@@ -43,6 +46,52 @@ def _print_section(title: str) -> None:
 def _run(cmd: list[str], cwd: str | None = None) -> int:
     print(f"  $ {' '.join(cmd)}", flush=True)
     return subprocess.call(cmd, cwd=cwd or str(REPO_ROOT))
+
+
+def _git_changed_story_files() -> list[Path]:
+    story_prefix = "storymap/examples/story/"
+    changed: set[Path] = set()
+    commands = [
+        ["git", "diff", "--name-only", "--diff-filter=ACMR", "HEAD", "--", story_prefix],
+        ["git", "ls-files", "--others", "--exclude-standard", "--", story_prefix],
+    ]
+    for cmd in commands:
+        try:
+            out = subprocess.check_output(cmd, cwd=str(REPO_ROOT), text=True, stderr=subprocess.DEVNULL)
+        except Exception:
+            continue
+        for raw in out.splitlines():
+            rel = raw.strip()
+            if not rel.endswith(".md"):
+                continue
+            p = (REPO_ROOT / rel).resolve()
+            if p.exists():
+                changed.add(p)
+    return sorted(changed)
+
+
+def _run_markdown_smoke_check(scope: str) -> int:
+    scope = (scope or "off").strip().lower()
+    if scope == "off":
+        print("  · 已跳过 Markdown 冒烟校验", flush=True)
+        return 0
+    files: list[Path]
+    if scope == "all":
+        files = _story_files()
+    else:
+        files = _git_changed_story_files()
+    if not files:
+        print("  · 未发现需要校验的 Markdown 变更", flush=True)
+        return 0
+    cmd = [
+        sys.executable,
+        "tools/validate_story_markdown.py",
+        "--report-json",
+        str(MARKDOWN_SMOKE_JSON),
+        "--files",
+        *[str(p.relative_to(REPO_ROOT)) for p in files],
+    ]
+    return _run(cmd)
 
 
 def _story_files() -> list[Path]:
@@ -228,6 +277,9 @@ def _build_manifest() -> dict:
             "map_html_renderer": _file_meta(REPO_ROOT / "storymap" / "script" / "map_html_renderer.py"),
             "build_stellar_homepage": _file_meta(REPO_ROOT / "tools" / "build_stellar_homepage.py"),
             "generate_pure_story_map": _file_meta(REPO_ROOT / "cli" / "generate_pure_story_map.py"),
+            "markdown_smoke_report": _file_meta(MARKDOWN_SMOKE_JSON),
+            "low_coverage_story_report_json": _file_meta(LOW_COVERAGE_JSON),
+            "low_coverage_story_report_md": _file_meta(LOW_COVERAGE_MD),
         },
         "people": people_rows,
     }
@@ -387,6 +439,12 @@ def main() -> int:
     ap.add_argument("--skip-home", action="store_true")
     ap.add_argument("--validate", action="store_true", help="构建结束后输出校验报告；若发现错误则返回非 0")
     ap.add_argument("--validate-only", action="store_true", help="只生成 manifest 与校验报告，不执行重建")
+    ap.add_argument(
+        "--markdown-smoke-check",
+        choices=["off", "changed", "all"],
+        default="changed",
+        help="构建前执行 Markdown 冒烟校验：changed=仅校验 git 变更文件，all=全量校验，off=关闭",
+    )
     ap.add_argument("--refresh-geocode", action="store_true",
                     help="重新跑一次高德地理编码（默认用现有缓存）")
     ap.add_argument("--fill-missing-md", action="store_true",
@@ -398,6 +456,12 @@ def main() -> int:
     story_files = _story_files()
     html_files = _existing_htmls()
     print(f"[init] .md 源文件: {len(story_files)} 个, 已渲染 .html: {len(html_files)} 个")
+
+    _print_section("0/5 markdown smoke check")
+    rc = _run_markdown_smoke_check(args.markdown_smoke_check)
+    if rc != 0:
+        print(f"  ✗ Markdown 冒烟校验未通过，退出码 {rc}", flush=True)
+        return rc
 
     if args.validate_only:
         manifest = _build_manifest()
@@ -490,6 +554,24 @@ def main() -> int:
     report = _build_validation_report()
     _write_json(MANIFEST_JSON, manifest)
     _write_json(VALIDATION_JSON, report)
+    _print_section("coverage report")
+    rc = _run(
+        [
+            sys.executable,
+            "tools/report_low_coverage_places.py",
+            "--story-dir",
+            str(STORY_DIR),
+            "--out-json",
+            str(LOW_COVERAGE_JSON),
+            "--out-md",
+            str(LOW_COVERAGE_MD),
+        ]
+    )
+    if rc != 0:
+        print(f"  ✗ report_low_coverage_places.py 退出码 {rc}", flush=True)
+        return rc
+    manifest = _build_manifest()
+    _write_json(MANIFEST_JSON, manifest)
     print(f"[manifest] {MANIFEST_JSON}")
     print(f"[validate] {VALIDATION_JSON}  ok={report['ok']} errors={report['summary']['error_count']} warnings={report['summary']['warning_count']}")
     if args.validate and not report["ok"]:

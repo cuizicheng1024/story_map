@@ -5,6 +5,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+try:
+    from .env_utils import apply_story_map_env_aliases, env_flag
+except ImportError:
+    from env_utils import apply_story_map_env_aliases, env_flag
+
+
+apply_story_map_env_aliases()
+
 
 def _first_env(*names: str) -> str:
     for name in names:
@@ -15,14 +23,9 @@ def _first_env(*names: str) -> str:
 
 
 def _runtime_page_config_html() -> str:
-    static_site = _first_env("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-    api_base = _first_env("MAP_STORY_API_BASE", "STORY_MAP_API_BASE")
-    ai_endpoint = _first_env("MAP_STORY_AI_ENDPOINT", "STORY_MAP_AI_ENDPOINT")
+    static_site = env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")
+    api_base = _first_env("MAP_STORY_API_BASE")
+    ai_endpoint = _first_env("MAP_STORY_AI_ENDPOINT")
     parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
     if api_base:
         parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
@@ -31,16 +34,27 @@ def _runtime_page_config_html() -> str:
     return "<script>" + "".join(parts) + "</script>"
 
 
+def _site_mode_notice_html() -> str:
+    static_site = env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")
+    api_base = _first_env("MAP_STORY_API_BASE")
+    if not static_site:
+        return ""
+    detail = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。"
+    return f"""
+<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div>
+      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
+      <div class="text-[11px] text-amber-800/90 mt-1">{detail}</div>
+    </div>
+    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
+  </div>
+</div>"""
+
+
 def _amap_bootstrap_html() -> str:
-    key = _first_env("AMAP_KEY", "AMAP_JS_KEY", "AMAP_WEB_KEY", "Amap_API_Key", "AMAP_API_KEY")
-    security = _first_env(
-        "AMAP_SECURITY",
-        "AMAP_SECURITY_JSCODE",
-        "AMAP_SECURITY_JS_CODE",
-        "Amap_API_Security",
-        "AMAP_API_SECURITY",
-        "Amap_API_Secret",
-    )
+    key = _first_env("AMAP_KEY")
+    security = _first_env("AMAP_SECURITY")
     parts: List[str] = []
     if key:
         parts.append(f"window.AMAP_KEY={json.dumps(key, ensure_ascii=False)};")
@@ -567,6 +581,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     name = (payload_dict.get("person", {}) or {}).get("name", "")
     title = f"{name}的人生足迹地图" if name else "人生足迹地图"
     runtime_config = _runtime_page_config_html()
+    site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -912,6 +927,7 @@ body {
 </style>
 </head>
 <body class="p-4 md:p-8">
+    __SITE_MODE_NOTICE__
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel p-4 rounded-xl border border-[#c8b496]/40 bg-white/70">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -2755,7 +2771,7 @@ const App = () => {
             </div>
           ) : (
             <div className="text-sm text-gray-600 leading-relaxed">
-              点击“开始对话”，即可在本页与人物进行对话；若你是直接双击打开 HTML，请先用本地服务打开（否则无法请求对话接口）。
+              若当前是静态演示版，仅支持浏览已生成内容；人物对话需要外部 FastAPI 后端。若你在本地开发，请通过服务方式打开页面后再进行对话。
             </div>
           )}
         </section>
@@ -2834,6 +2850,7 @@ root.render(<App />);
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
         .replace("__RUNTIME_CONFIG__", runtime_config)
+        .replace("__SITE_MODE_NOTICE__", site_mode_notice)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 
@@ -2842,6 +2859,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     title = data.get("title") or "多人物合并视图"
     runtime_config = _runtime_page_config_html()
+    site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -2861,6 +2879,7 @@ body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
 </style>
 </head>
 <body class="p-4 md:p-8">
+__SITE_MODE_NOTICE__
 <div id="legend" class="legend"></div>
 <div id="map"></div>
 <script>
@@ -2939,6 +2958,7 @@ initMap().catch((err) => {
         html.replace("__TITLE__", title)
         .replace("__DATA__", payload.replace("</script>", "<\\/script>"))
         .replace("__RUNTIME_CONFIG__", runtime_config)
+        .replace("__SITE_MODE_NOTICE__", site_mode_notice)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
     )
 

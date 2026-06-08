@@ -26,6 +26,11 @@ try:
 except Exception:
     load_dotenv = None
 try:
+    from storymap.script.env_utils import apply_story_map_env_aliases, env_flag
+except Exception:
+    apply_story_map_env_aliases = None
+    env_flag = None
+try:
     from pypinyin import lazy_pinyin  # type: ignore
 except Exception:
     lazy_pinyin = None
@@ -34,6 +39,8 @@ if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
     load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
     load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
+if apply_story_map_env_aliases:
+    apply_story_map_env_aliases()
 STORY_MD_DIR = REPO_ROOT / "storymap" / "examples" / "story"
 STORY_MAP_DIR = Path(os.getenv("MAP_STORY_OUTPUT_DIR", REPO_ROOT / "artifacts" / "story_map"))
 if not STORY_MAP_DIR.is_absolute():
@@ -801,28 +808,10 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
     safe_title = title.strip() or "故事地图"
     # Always render a fresh index.html instead of patching an existing template.
     # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
-    static_site = str(os.getenv("MAP_STORY_STATIC_SITE", "")).strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-    api_base = str(os.getenv("MAP_STORY_API_BASE", "") or os.getenv("STORY_MAP_API_BASE", "")).strip()
-    amap_key = (
-        os.getenv("AMAP_KEY")
-        or os.getenv("AMAP_JS_KEY")
-        or os.getenv("AMAP_WEB_KEY")
-        or os.getenv("Amap_API_Key")
-        or os.getenv("AMAP_API_KEY")
-        or ""
-    ).strip()
-    amap_sec = (
-        os.getenv("AMAP_SECURITY")
-        or os.getenv("AMAP_SECURITY_JSCODE")
-        or os.getenv("Amap_API_Security")
-        or os.getenv("AMAP_API_SECURITY")
-        or ""
-    ).strip()
+    static_site = bool(env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")) if env_flag else False
+    api_base = str(os.getenv("MAP_STORY_API_BASE", "")).strip()
+    amap_key = str(os.getenv("AMAP_KEY", "")).strip()
+    amap_sec = str(os.getenv("AMAP_SECURITY", "")).strip()
     amap_inline = ""
     if amap_key or amap_sec:
         parts = []
@@ -835,6 +824,20 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
     if api_base:
         runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
     runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
+    demo_banner = ""
+    if static_site:
+        mode_text = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；实时生成与人物对话需要额外部署 FastAPI 后端。"
+        demo_banner = f"""
+      <div class="glass card px-5 py-4 border border-amber-200/80 bg-amber-50/90">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div class="text-sm font-bold text-amber-900">静态演示版</div>
+            <div class="text-xs text-amber-800/90 mt-1">当前页面运行于 GitHub Pages 等静态站环境。{mode_text}</div>
+          </div>
+          <div class="text-[11px] font-semibold text-amber-700">Pages</div>
+        </div>
+      </div>
+"""
     qhtml = ""
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -940,6 +943,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
   </head>
   <body class="min-h-screen">
     <div class="max-w-5xl mx-auto px-4 py-6 space-y-4">
+      {demo_banner}
       <div class="glass card px-6 py-5">
         <div class="text-xl font-extrabold text-slate-900">故事地图</div>
         <div class="text-xs text-slate-500 mt-1">以人物→时空→事件为主线，探索历史人物的时空关联</div>
@@ -3429,6 +3433,8 @@ def main() -> int:
         load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
     except Exception:
         pass
+    if apply_story_map_env_aliases:
+        apply_story_map_env_aliases()
 
     latest_html = _scan_latest_html(story_map_dir)
     geocode_city = None

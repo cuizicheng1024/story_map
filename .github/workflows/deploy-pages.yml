@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,6 +38,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .[dev]
+
+      - name: Detect changed story markdown files
+        id: changed_story_md
+        shell: bash
+        run: |
+          before="${{ github.event.before }}"
+          if [ -n "$before" ] && [ "$before" != "0000000000000000000000000000000000000000" ]; then
+            git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" -- storymap/examples/story > /tmp/changed_story_md.txt || true
+          else
+            git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" -- storymap/examples/story > /tmp/changed_story_md.txt || true
+          fi
+          grep '\.md$' /tmp/changed_story_md.txt > /tmp/changed_story_md_filtered.txt || true
+          count=$(grep -c . /tmp/changed_story_md_filtered.txt || true)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Changed Markdown files: $count"
+          cat /tmp/changed_story_md_filtered.txt || true
+
+      - name: Markdown smoke check
+        if: steps.changed_story_md.outputs.count != '0'
+        shell: bash
+        run: |
+          mapfile -t files < /tmp/changed_story_md_filtered.txt
+          python tools/validate_story_markdown.py --report-json data/markdown_smoke_report.json --files "${files[@]}"
 
       - name: Build static story map site
         run: |

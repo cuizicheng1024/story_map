@@ -33,7 +33,7 @@ try:
         _write_text,
         save_html,
     )
-    from .env_utils import load_project_env
+    from .env_utils import apply_story_map_env_aliases, load_project_env
     from .map_client import (
         append_coords_section,
         compute_total_distance_km,
@@ -69,7 +69,7 @@ except ImportError:
         _write_text,
         save_html,
     )
-    from env_utils import load_project_env
+    from env_utils import apply_story_map_env_aliases, load_project_env
     from map_client import (
         append_coords_section,
         compute_total_distance_km,
@@ -94,6 +94,7 @@ except ImportError:
 
 
 load_project_env(from_file=__file__, override=True)
+apply_story_map_env_aliases()
 
 
 def _first_env(*names: str) -> str:
@@ -826,23 +827,9 @@ _VENDOR_SOURCES: Dict[str, List[str]] = {
 def _amap_config_js() -> bytes:
     # Expose AMap configuration to browsers without hardcoding secrets into
     # generated HTML. This endpoint is same-origin and can read local .env.
-    #
-    # Notes:
-    # - Amap_API_Key is a common key name used in this repo's .env.
-    # - "securityJsCode" is OPTIONAL and is NOT the same as WebService secret.
-    key = (
-        os.getenv("AMAP_KEY")
-        or os.getenv("Amap_API_Key")
-        or os.getenv("AMAP_API_KEY")
-        or ""
-    ).strip()
-    sec = (
-        os.getenv("AMAP_SECURITY")
-        or os.getenv("AMAP_SECURITY_JS_CODE")
-        or os.getenv("AMAP_SCODE")
-        or os.getenv("Amap_API_Secret")
-        or ""
-    ).strip()
+    # "securityJsCode" is OPTIONAL and is NOT the same as WebService secret.
+    key = (os.getenv("AMAP_KEY") or "").strip()
+    sec = (os.getenv("AMAP_SECURITY") or "").strip()
     payload = {
         "key": key,
         "security": sec,
