@@ -25,7 +25,12 @@ def test_health_endpoint_returns_ok():
     assert response.json()["service"] == "story_map"
 
 
-def test_root_serves_homepage_html():
+def test_root_serves_homepage_html(monkeypatch, tmp_path):
+    homepage = tmp_path / "index.html"
+    homepage.write_text("<html><body>StoryMap Home</body></html>", encoding="utf-8")
+    monkeypatch.setattr(story_map._STATIC_SERVICE, "_active_story_map_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(story_map._STATIC_SERVICE, "_public_story_map_dirs", lambda: [str(tmp_path)])
+
     response = client.get("/")
 
     assert response.status_code == 200

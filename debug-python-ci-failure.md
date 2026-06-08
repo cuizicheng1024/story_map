@@ -30,10 +30,22 @@
 - Commit `7fe5df1` added split CI steps and environment probes
 - GitHub run `#12` showed `Run Ruff Check` passed and `Run Pytest Suite` failed
 - Fresh local Python 3.11 venv reproduced the exact pytest command with `27 passed`
+- GitHub run `#14` narrowed the failure to `Pytest test_fastapi_app`
+- A clean local repro without `artifacts/story_map/` failed with `GET / -> 404`
+- After updating the test to create its own temporary homepage artifact, the same clean repro passed
 
 ## Hypothesis Review
 - H1 rejected: failure is not in `ruff`; it is in `pytest`
-- H2 still plausible: issue appears specific to GitHub Ubuntu runner
+- H2 rejected: the real trigger is a clean-checkout test assumption, not Ubuntu-specific Python behavior
 - H3 confirmed: earlier workflow logging was too coarse to identify the failing stage
-- H4 still plausible: resolver logic may not be root cause now that direct `pytest` still fails on CI
+- H4 rejected: resolver logic is not the root cause
 - H5 confirmed: Node 24 warning is unrelated to the Python test failure
+
+## Root Cause
+- `tests/test_fastapi_app.py::test_root_serves_homepage_html` assumed `artifacts/story_map/index.html` already existed
+- That file is not tracked by git, so GitHub Actions clean checkout returned `404` for `/`
+- Local developer machines masked the issue because the artifact often already existed from prior builds
+
+## Fix
+- Make `test_root_serves_homepage_html` create a temporary `index.html` and monkeypatch the static roots
+- Add a regression test to ensure `李斯` profile card prefers the death-scene quote when available

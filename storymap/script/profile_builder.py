@@ -421,11 +421,20 @@ def build_profile_data(
             ]
         else:
             loc_items = []
-    for loc in loc_items:
+    preferred_quote = ""
+    for loc in reversed(loc_items):
         quote_lines = loc.get("quoteLines") or []
-        if quote_lines:
-            person["quote"] = quote_lines[0]
+        if quote_lines and str(loc.get("type") or "").strip().lower() == "death":
+            preferred_quote = quote_lines[0]
             break
+    if not preferred_quote:
+        for loc in reversed(loc_items):
+            quote_lines = loc.get("quoteLines") or []
+            if quote_lines:
+                preferred_quote = quote_lines[0]
+                break
+    if preferred_quote:
+        person["quote"] = preferred_quote
     return {
         "person": person,
         "locations": loc_items,
