@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "马可·波罗", "title": "", "description": "马可·波罗出生于威尼斯商人家庭。约1271年，他随父亲尼科洛·波罗和叔父马泰奥·波罗沿陆上丝绸之路东行，历经约四年于1275年抵达元上都，觐见元世祖忽必烈。他在中国游历、仕宦约十七年，到过许多地方。约1292年，他从泉州出发海路西归，于1295年回到威尼斯。1298年，他在热那亚的狱中口述了著名的《马可·波罗行纪》，该书极大地丰富了欧洲人对东方的想象，影响了后来的地理大发现。", "quote": "《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "birthplace": "威尼斯共和国（今意大利威尼斯）", "avatar": "", "birth": {"date": "1254年", "location": "威尼斯共和国（今意大利威尼斯）", "lat": 45.4408, "lng": 12.3155}, "death": {"date": "1324年", "location": "威尼斯共和国（今意大利威尼斯）", "lat": 45.4408, "lng": 12.3155}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "其著作《马可·波罗行纪》是西方人系统描述中国和东方世界的重要文献，对东西方交流产生了深远影响。", "identities": "旅行家、商人、作家", "achievements": "1. 完成了从欧洲到中国的陆上长途旅行；2. 据其自述，曾受忽必烈信任（真实性存疑）；3. 口述完成《马可·波罗行纪》，首次向欧洲详细介绍了中国的地理、物产、城市和文化。", "works": ["马可·波罗行纪"], "reviews": []}}, "locations": [{"name": "威尼斯", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "birth", "event": "出生于一个富裕的威尼斯商人家庭。", "time": "约1254年", "duration": "约17年", "significance": "其家族的商业背景和冒险精神为他日后的东方之行奠定了基础。", "works": [], "quoteLines": []}, {"name": "威尼斯（出发）", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "normal", "event": "随父亲尼科洛·波罗和叔父马泰奥·波罗从威尼斯启程，开始第二次东方之行（首次由父辈完成）。", "time": "约1271年", "duration": "出发前短暂准备", "significance": "踏上了改变其一生、也改变西方对东方认知的旅程起点。", "works": [], "quoteLines": []}, {"name": "撒马尔罕", "ancientName": "撒马尔罕", "modernName": "乌兹别克斯坦撒马尔罕", "lat": 39.6542, "lng": 66.9597, "type": "normal", "event": "穿越中亚时在此停留，书中描述其为“一个非常大而高贵的城市”。", "time": "约1273年（途径）", "duration": "数月（据其自述）", "significance": "见证了蒙古帝国统治下中亚的繁荣，是丝绸之路上的重要枢纽。", "works": [], "quoteLines": []}, {"name": "元上都", "ancientName": "上都", "modernName": "内蒙古自治区锡林郭勒盟正蓝旗", "lat": 42.3522, "lng": 116.176, "type": "normal", "event": "首次觐见元世祖忽必烈，受到欢迎。", "time": "约1275年夏", "duration": "短暂觐见", "significance": "正式进入元朝宫廷视野，开启了在华服务的生涯。", "works": [], "quoteLines": []}, {"name": "元大都", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "在元朝宫廷担任官职，可能参与过行政或外交事务，据其自述，曾受忽必烈器重（真实性存疑）。", "time": "约1275年 - 约1292年（主要居住）", "duration": "约十七年（期间多次离开）", "significance": "作为其在华活动的核心基地，深度观察了元朝的政治、经济与社会生活。", "works": [], "quoteLines": ["《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”"]}, {"name": "杭州（行在）", "ancientName": "杭州，南宋旧都临安", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "游历并详细描述了这座繁华的城市，称其为“世界上最美丽华贵之天城”。", "time": "在华期间（具体时间不详）", "duration": "具体时长不详", "significance": "其描述让欧洲人对当时中国城市的规模与富庶产生了深刻印象。", "works": [], "quoteLines": ["《马可·波罗行纪》：“行在城所供给之快乐，世界诸城无有及之者，人处其中，自信为置身天堂。”"]}, {"name": "泉州（刺桐）", "ancientName": "泉州", "modernName": "福建省泉州市", "lat": 24.8741, "lng": 118.6757, "type": "normal", "event": "奉忽必烈之命，从泉州港启航，护送蒙古公主阔阔真前往伊儿汗国。", "time": "约1292年", "duration": "出发前短暂集结", "significance": "开启了经由海上丝绸之路的归途，见证了泉州作为东方第一大港的繁荣。", "works": [], "quoteLines": ["《马可·波罗行纪》：“刺桐是世界上最大的港口之一，大批商人云集于此，货物堆积如山。”"]}, {"name": "威尼斯（归国）", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "normal", "event": "历经约三年半的海路与陆路跋涉后返回故乡，携带大量东方珍宝。", "time": "约1295年", "duration": "余生（除被俘期间）", "significance": "结束传奇旅程，其见闻在威尼斯引起轰动。", "works": [], "quoteLines": []}, {"name": "威尼斯", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "death", "event": "在威尼斯去世，临终前据说有人劝他收回书中“夸张”的描述，他回答：“我还没有说出我所见的一半。”", "time": "公元1324年", "duration": "约29年", "significance": "其留下的行纪成为连接东西方文明的永恒桥梁。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---", "markdown": "# 马可·波罗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：马可·波罗\n- **外文名**：Marco Polo\n- **时代**：13世纪（欧洲中世纪，蒙古帝国时期）\n- **出生**：约公元1254年，威尼斯共和国（今意大利威尼斯）\n- **去世**：公元1324年，威尼斯共和国（今意大利威尼斯）\n- **享年**：约70岁\n- **主要身份**：旅行家、商人、作家\n- **历史地位**：其著作《马可·波罗行纪》是西方人系统描述中国和东方世界的重要文献，对东西方交流产生了深远影响。\n- **主要成就**：1. 完成了从欧洲到中国的陆上长途旅行；2. 据其自述，曾受忽必烈信任（真实性存疑）；3. 口述完成《马可·波罗行纪》，首次向欧洲详细介绍了中国的地理、物产、城市和文化。\n\n### 生平概述\n马可·波罗出生于威尼斯商人家庭。约1271年，他随父亲尼科洛·波罗和叔父马泰奥·波罗沿陆上丝绸之路东行，历经约四年于1275年抵达元上都，觐见元世祖忽必烈。他在中国游历、仕宦约十七年，到过许多地方。约1292年，他从泉州出发海路西归，于1295年回到威尼斯。1298年，他在热那亚的狱中口述了著名的《马可·波罗行纪》，该书极大地丰富了欧洲人对东方的想象，影响了后来的地理大发现。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从意大利威尼斯出发，经陆上丝绸之路抵达中国，在元朝多地活动后，经海上丝绸之路返回。\n- ⏱️ **时间跨度**：约1271年至1295年，总计约24年。\n- 📍 **地理范围**：覆盖意大利、中东、中亚、中国（新疆、内蒙古、华北、华东、华南等地）。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：威尼斯\n- **时间**：约1254年\n- **停留时间**：约17年\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：出生于一个富裕的威尼斯商人家庭。\n- **意义**：其家族的商业背景和冒险精神为他日后的东方之行奠定了基础。\n\n### 📍 重要地点：威尼斯（出发）\n- **时间**：约1271年\n- **停留时间**：出发前短暂准备\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：随父亲尼科洛·波罗和叔父马泰奥·波罗从威尼斯启程，开始第二次东方之行（首次由父辈完成）。\n- **意义**：踏上了改变其一生、也改变西方对东方认知的旅程起点。\n\n### 📍 重要地点：撒马尔罕\n- **时间**：约1273年（途径）\n- **停留时间**：数月（据其自述）\n- **地点**：撒马尔罕（今乌兹别克斯坦撒马尔罕）\n- **事件**：穿越中亚时在此停留，书中描述其为“一个非常大而高贵的城市”。\n- **意义**：见证了蒙古帝国统治下中亚的繁荣，是丝绸之路上的重要枢纽。\n\n### 📍 重要地点：元上都\n- **时间**：约1275年夏\n- **停留时间**：短暂觐见\n- **地点**：上都（今内蒙古自治区锡林郭勒盟正蓝旗）\n- **事件**：首次觐见元世祖忽必烈，受到欢迎。\n- **意义**：正式进入元朝宫廷视野，开启了在华服务的生涯。\n\n### 📍 重要地点：元大都\n- **时间**：约1275年 - 约1292年（主要居住）\n- **停留时间**：约十七年（期间多次离开）\n- **地点**：大都（今北京市）\n- **事件**：在元朝宫廷担任官职，可能参与过行政或外交事务，据其自述，曾受忽必烈器重（真实性存疑）。\n- **意义**：作为其在华活动的核心基地，深度观察了元朝的政治、经济与社会生活。\n- **名篇名句**：《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”\n\n### 📍 重要地点：杭州（行在）\n- **时间**：在华期间（具体时间不详）\n- **停留时间**：具体时长不详\n- **地点**：杭州，南宋旧都临安（今浙江省杭州市）\n- **事件**：游历并详细描述了这座繁华的城市，称其为“世界上最美丽华贵之天城”。\n- **意义**：其描述让欧洲人对当时中国城市的规模与富庶产生了深刻印象。\n- **名篇名句**：《马可·波罗行纪》：“行在城所供给之快乐，世界诸城无有及之者，人处其中，自信为置身天堂。”\n\n### 📍 重要地点：泉州（刺桐）\n- **时间**：约1292年\n- **停留时间**：出发前短暂集结\n- **地点**：泉州（今福建省泉州市）\n- **事件**：奉忽必烈之命，从泉州港启航，护送蒙古公主阔阔真前往伊儿汗国。\n- **意义**：开启了经由海上丝绸之路的归途，见证了泉州作为东方第一大港的繁荣。\n- **名篇名句**：《马可·波罗行纪》：“刺桐是世界上最大的港口之一，大批商人云集于此，货物堆积如山。”\n\n### 📍 重要地点：威尼斯（归国）\n- **时间**：约1295年\n- **停留时间**：余生（除被俘期间）\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：历经约三年半的海路与陆路跋涉后返回故乡，携带大量东方珍宝。\n- **意义**：结束传奇旅程，其见闻在威尼斯引起轰动。\n\n### 🔴 去世地：威尼斯\n- **时间**：公元1324年\n- **停留时间**：约29年\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：在威尼斯去世，临终前据说有人劝他收回书中“夸张”的描述，他回答：“我还没有说出我所见的一半。”\n- **意义**：其留下的行纪成为连接东西方文明的永恒桥梁。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 约1254年 | 0岁 | 出生于威尼斯。 |\n| 约1271年 | 约17岁 | 随父亲和叔父从威尼斯出发，前往东方。 |\n| 约1275年 | 约21岁 | 抵达元上都，觐见忽必烈大汗。 |\n| 约1275-1292年 | 约21-38岁 | 在元朝境内活动，以大都为中心，游历中国多地。 |\n| 约1292年 | 约38岁 | 从泉州出发，海路西归。 |\n| 约1295年 | 约41岁 | 回到威尼斯。 |\n| 1298年 | 约44岁 | 在热那亚狱中口述《马可·波罗行纪》。 |\n| 约1299年 | 约45岁 | 获释，返回威尼斯（说法不一）。 |\n| 1324年 | 约70岁 | 在威尼斯去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 威尼斯，意大利 | 45.4408 | 12.3155 |\n| 撒马尔罕，乌兹别克斯坦 | 39.6542 | 66.9597 |\n| 内蒙古自治区锡林郭勒盟正蓝旗（元上都遗址），中国 | 42.3522 | 116.1760 |\n| 北京市（元大都遗址），中国 | 39.9042 | 116.4074 |\n| 杭州市，中国浙江省 | 30.2741 | 120.1551 |\n| 泉州市，中国福建省 | 24.8741 | 118.6757 |\n| 热那亚，意大利 | 44.4056 | 8.9463 |"};
+      const data = {"person": {"name": "马可·波罗", "title": "", "description": "马可·波罗出生于威尼斯商人家庭。约1271年，他随父亲尼科洛·波罗和叔父马泰奥·波罗沿陆上丝绸之路东行，历经约四年于1275年抵达元上都，觐见元世祖忽必烈。他在中国游历、仕宦约十七年，到过许多地方。约1292年，他从泉州出发海路西归，于1295年回到威尼斯。1298年，他在热那亚的狱中口述了著名的《马可·波罗行纪》，该书极大地丰富了欧洲人对东方的想象，影响了后来的地理大发现。", "quote": "《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "birthplace": "威尼斯共和国（今意大利威尼斯）", "avatar": "", "birth": {"date": "1254年", "location": "威尼斯共和国（今意大利威尼斯）", "lat": 45.4408, "lng": 12.3155}, "death": {"date": "1324年", "location": "威尼斯共和国（今意大利威尼斯）", "lat": 45.4408, "lng": 12.3155}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "其著作《马可·波罗行纪》是西方人系统描述中国和东方世界的重要文献，对东西方交流产生了深远影响。", "identities": "旅行家、商人、作家", "achievements": "1. 完成了从欧洲到中国的陆上长途旅行；2. 据其自述，曾受忽必烈信任（真实性存疑）；3. 口述完成《马可·波罗行纪》，首次向欧洲详细介绍了中国的地理、物产、城市和文化。", "works": ["马可·波罗行纪"], "reviews": []}}, "locations": [{"name": "威尼斯", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "birth", "event": "出生于一个富裕的威尼斯商人家庭。", "time": "约1254年", "duration": "约17年", "significance": "其家族的商业背景和冒险精神为他日后的东方之行奠定了基础。", "works": [], "quoteLines": []}, {"name": "威尼斯（出发）", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "normal", "event": "随父亲尼科洛·波罗和叔父马泰奥·波罗从威尼斯启程，开始第二次东方之行（首次由父辈完成）。", "time": "约1271年", "duration": "出发前短暂准备", "significance": "踏上了改变其一生、也改变西方对东方认知的旅程起点。", "works": [], "quoteLines": []}, {"name": "撒马尔罕", "ancientName": "撒马尔罕", "modernName": "乌兹别克斯坦撒马尔罕", "lat": 39.6542, "lng": 66.9597, "type": "normal", "event": "穿越中亚时在此停留，书中描述其为“一个非常大而高贵的城市”。", "time": "约1273年（途径）", "duration": "数月（据其自述）", "significance": "见证了蒙古帝国统治下中亚的繁荣，是丝绸之路上的重要枢纽。", "works": [], "quoteLines": []}, {"name": "元上都", "ancientName": "上都", "modernName": "内蒙古自治区锡林郭勒盟正蓝旗", "lat": 42.3522, "lng": 116.176, "type": "normal", "event": "首次觐见元世祖忽必烈，受到欢迎。", "time": "约1275年夏", "duration": "短暂觐见", "significance": "正式进入元朝宫廷视野，开启了在华服务的生涯。", "works": [], "quoteLines": []}, {"name": "元大都", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "在元朝宫廷担任官职，可能参与过行政或外交事务，据其自述，曾受忽必烈器重（真实性存疑）。", "time": "约1275年 - 约1292年（主要居住）", "duration": "约十七年（期间多次离开）", "significance": "作为其在华活动的核心基地，深度观察了元朝的政治、经济与社会生活。", "works": [], "quoteLines": ["《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”"]}, {"name": "杭州（行在）", "ancientName": "杭州，南宋旧都临安", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "游历并详细描述了这座繁华的城市，称其为“世界上最美丽华贵之天城”。", "time": "在华期间（具体时间不详）", "duration": "具体时长不详", "significance": "其描述让欧洲人对当时中国城市的规模与富庶产生了深刻印象。", "works": [], "quoteLines": ["《马可·波罗行纪》：“行在城所供给之快乐，世界诸城无有及之者，人处其中，自信为置身天堂。”"]}, {"name": "泉州（刺桐）", "ancientName": "泉州", "modernName": "福建省泉州市", "lat": 24.8741, "lng": 118.6757, "type": "normal", "event": "奉忽必烈之命，从泉州港启航，护送蒙古公主阔阔真前往伊儿汗国。", "time": "约1292年", "duration": "出发前短暂集结", "significance": "开启了经由海上丝绸之路的归途，见证了泉州作为东方第一大港的繁荣。", "works": [], "quoteLines": ["《马可·波罗行纪》：“刺桐是世界上最大的港口之一，大批商人云集于此，货物堆积如山。”"]}, {"name": "威尼斯（归国）", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "normal", "event": "历经约三年半的海路与陆路跋涉后返回故乡，携带大量东方珍宝。", "time": "约1295年", "duration": "余生（除被俘期间）", "significance": "结束传奇旅程，其见闻在威尼斯引起轰动。", "works": [], "quoteLines": []}, {"name": "威尼斯", "ancientName": "威尼斯共和国", "modernName": "意大利威尼斯", "lat": 45.4408, "lng": 12.3155, "type": "death", "event": "在威尼斯去世，临终前据说有人劝他收回书中“夸张”的描述，他回答：“我还没有说出我所见的一半。”", "time": "公元1324年", "duration": "约29年", "significance": "其留下的行纪成为连接东西方文明的永恒桥梁。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---", "markdown": "# 马可·波罗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：马可·波罗\n- **外文名**：Marco Polo\n- **时代**：13世纪（欧洲中世纪，蒙古帝国时期）\n- **出生**：约公元1254年，威尼斯共和国（今意大利威尼斯）\n- **去世**：公元1324年，威尼斯共和国（今意大利威尼斯）\n- **享年**：约70岁\n- **主要身份**：旅行家、商人、作家\n- **历史地位**：其著作《马可·波罗行纪》是西方人系统描述中国和东方世界的重要文献，对东西方交流产生了深远影响。\n- **主要成就**：1. 完成了从欧洲到中国的陆上长途旅行；2. 据其自述，曾受忽必烈信任（真实性存疑）；3. 口述完成《马可·波罗行纪》，首次向欧洲详细介绍了中国的地理、物产、城市和文化。\n\n### 生平概述\n马可·波罗出生于威尼斯商人家庭。约1271年，他随父亲尼科洛·波罗和叔父马泰奥·波罗沿陆上丝绸之路东行，历经约四年于1275年抵达元上都，觐见元世祖忽必烈。他在中国游历、仕宦约十七年，到过许多地方。约1292年，他从泉州出发海路西归，于1295年回到威尼斯。1298年，他在热那亚的狱中口述了著名的《马可·波罗行纪》，该书极大地丰富了欧洲人对东方的想象，影响了后来的地理大发现。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从意大利威尼斯出发，经陆上丝绸之路抵达中国，在元朝多地活动后，经海上丝绸之路返回。\n- ⏱️ **时间跨度**：约1271年至1295年，总计约24年。\n- 📍 **地理范围**：覆盖意大利、中东、中亚、中国（新疆、内蒙古、华北、华东、华南等地）。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：威尼斯\n- **时间**：约1254年\n- **停留时间**：约17年\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：出生于一个富裕的威尼斯商人家庭。\n- **意义**：其家族的商业背景和冒险精神为他日后的东方之行奠定了基础。\n\n### 📍 重要地点：威尼斯（出发）\n- **时间**：约1271年\n- **停留时间**：出发前短暂准备\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：随父亲尼科洛·波罗和叔父马泰奥·波罗从威尼斯启程，开始第二次东方之行（首次由父辈完成）。\n- **意义**：踏上了改变其一生、也改变西方对东方认知的旅程起点。\n\n### 📍 重要地点：撒马尔罕\n- **时间**：约1273年（途径）\n- **停留时间**：数月（据其自述）\n- **地点**：撒马尔罕（今乌兹别克斯坦撒马尔罕）\n- **事件**：穿越中亚时在此停留，书中描述其为“一个非常大而高贵的城市”。\n- **意义**：见证了蒙古帝国统治下中亚的繁荣，是丝绸之路上的重要枢纽。\n\n### 📍 重要地点：元上都\n- **时间**：约1275年夏\n- **停留时间**：短暂觐见\n- **地点**：上都（今内蒙古自治区锡林郭勒盟正蓝旗）\n- **事件**：首次觐见元世祖忽必烈，受到欢迎。\n- **意义**：正式进入元朝宫廷视野，开启了在华服务的生涯。\n\n### 📍 重要地点：元大都\n- **时间**：约1275年 - 约1292年（主要居住）\n- **停留时间**：约十七年（期间多次离开）\n- **地点**：大都（今北京市）\n- **事件**：在元朝宫廷担任官职，可能参与过行政或外交事务，据其自述，曾受忽必烈器重（真实性存疑）。\n- **意义**：作为其在华活动的核心基地，深度观察了元朝的政治、经济与社会生活。\n- **名篇名句**：《马可·波罗行纪》：“（汗八里）城是如此之大，它周围有二百个左右的城镇。”\n\n### 📍 重要地点：杭州（行在）\n- **时间**：在华期间（具体时间不详）\n- **停留时间**：具体时长不详\n- **地点**：杭州，南宋旧都临安（今浙江省杭州市）\n- **事件**：游历并详细描述了这座繁华的城市，称其为“世界上最美丽华贵之天城”。\n- **意义**：其描述让欧洲人对当时中国城市的规模与富庶产生了深刻印象。\n- **名篇名句**：《马可·波罗行纪》：“行在城所供给之快乐，世界诸城无有及之者，人处其中，自信为置身天堂。”\n\n### 📍 重要地点：泉州（刺桐）\n- **时间**：约1292年\n- **停留时间**：出发前短暂集结\n- **地点**：泉州（今福建省泉州市）\n- **事件**：奉忽必烈之命，从泉州港启航，护送蒙古公主阔阔真前往伊儿汗国。\n- **意义**：开启了经由海上丝绸之路的归途，见证了泉州作为东方第一大港的繁荣。\n- **名篇名句**：《马可·波罗行纪》：“刺桐是世界上最大的港口之一，大批商人云集于此，货物堆积如山。”\n\n### 📍 重要地点：威尼斯（归国）\n- **时间**：约1295年\n- **停留时间**：余生（除被俘期间）\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：历经约三年半的海路与陆路跋涉后返回故乡，携带大量东方珍宝。\n- **意义**：结束传奇旅程，其见闻在威尼斯引起轰动。\n\n### 🔴 去世地：威尼斯\n- **时间**：公元1324年\n- **停留时间**：约29年\n- **地点**：威尼斯共和国（今意大利威尼斯）\n- **事件**：在威尼斯去世，临终前据说有人劝他收回书中“夸张”的描述，他回答：“我还没有说出我所见的一半。”\n- **意义**：其留下的行纪成为连接东西方文明的永恒桥梁。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 约1254年 | 0岁 | 出生于威尼斯。 |\n| 约1271年 | 约17岁 | 随父亲和叔父从威尼斯出发，前往东方。 |\n| 约1275年 | 约21岁 | 抵达元上都，觐见忽必烈大汗。 |\n| 约1275-1292年 | 约21-38岁 | 在元朝境内活动，以大都为中心，游历中国多地。 |\n| 约1292年 | 约38岁 | 从泉州出发，海路西归。 |\n| 约1295年 | 约41岁 | 回到威尼斯。 |\n| 1298年 | 约44岁 | 在热那亚狱中口述《马可·波罗行纪》。 |\n| 约1299年 | 约45岁 | 获释，返回威尼斯（说法不一）。 |\n| 1324年 | 约70岁 | 在威尼斯去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《马可·波罗行纪》**（节选或相关介绍常出现在历史或地理课文，语文教材中多作为背景知识或课外读物提及）。\n- 核心要点：\n    - **重点**：作品以游记形式，**最早、最详尽之一**地向欧洲系统、生动地描述了中国的**城市**、**物产**、**交通**和**风俗**。\n    - 书中对**元大都**、**杭州**、**泉州**等城市的描述，塑造了欧洲人心中**富庶东方**的集体想象。\n    - 其**纪实性**与**传奇性**并存的叙事风格，激发了无数欧洲人对东方的**向往**。\n    - **重点**：该书被视为**地理大发现**时代的重要精神催化剂之一，直接影响了哥伦布等航海家。\n    - 书中关于“**黑色可燃石头**”（煤炭）、“**使用纸币**”等细节，反映了当时中国**技术**与**经济**的先进性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马可·波罗的东行与归途，是**蒙古帝国**时期**陆上丝绸之路**与**海上丝绸之路**畅通的典型案例。\n    - 他在**元世祖忽必烈**时期来到中国，其经历是**元朝**对外开放和**中西交流**活跃的佐证。\n    - **重点**：**《马可·波罗行纪》** 的成书与传播，是**东西方文明交流史**上的标志性事件。\n- 核心要点：\n    - **重点**：他的旅程与记述，证明了在**新航路开辟**前，欧亚大陆之间已存在**长途、直接**的人员与信息往来。\n    - 其记述的**真实性**虽有争议，但无可否认地**刺激了**欧洲对东方的商业兴趣和探险欲望。\n    - **重点**：马可·波罗成为**中世纪欧洲认识中国的象征性人物**，其形象是**旅行家**、**文化使者**与**商业冒险家**的结合。\n    - 他的故事反映了**蒙古帝国**构建的欧亚秩序对**跨区域交流**的促进作用。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 威尼斯，意大利 | 45.4408 | 12.3155 |\n| 撒马尔罕，乌兹别克斯坦 | 39.6542 | 66.9597 |\n| 内蒙古自治区锡林郭勒盟正蓝旗（元上都遗址），中国 | 42.3522 | 116.1760 |\n| 北京市（元大都遗址），中国 | 39.9042 | 116.4074 |\n| 杭州市，中国浙江省 | 30.2741 | 120.1551 |\n| 泉州市，中国福建省 | 24.8741 | 118.6757 |\n| 热那亚，意大利 | 44.4056 | 8.9463 |", "relatedGraph": {"center": {"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "relationLabel": "中心人物", "isCenter": true}, {"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨辉", "name": "杨辉", "file": "杨辉.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱世杰", "name": "朱世杰", "file": "朱世杰.html", "dynasty": "元代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "马可·波罗", "target": "马致远", "label": "同时代人物", "confidence": null}, {"source": "马可·波罗", "target": "郭守敬", "label": "同时代人物", "confidence": null}, {"source": "马可·波罗", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "马可·波罗", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "马可·波罗", "target": "杨辉", "label": "同时代人物", "confidence": null}, {"source": "马可·波罗", "target": "朱世杰", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

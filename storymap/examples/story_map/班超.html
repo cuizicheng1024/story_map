@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "班超", "title": "", "description": "班超字仲升，出身儒学世家，早年为官府抄写文书以养家，后投笔从戎。汉明帝永平十六年（73年），他随窦固出击北匈奴，随后奉命率吏士三十六人出使西域。在西域的三十一年间，他凭借智谋与胆略，以夷制夷，团结亲汉力量，平定了多次叛乱，击败了外部势力的干预，最终使西域五十余国归附汉朝，被任命为西域都护，封定远侯。他的活动确保了丝绸之路的长期稳定，为多民族国家的统一与中外交流做出了卓越贡献。", "quote": "", "dynasty": "东汉", "birthplace": "扶风平陵（今陕西省咸阳市秦都区）", "avatar": "", "birth": {"date": "32年", "location": "扶风平陵（今陕西省咸阳市秦都区）", "lat": 34.3296, "lng": 108.7089}, "death": {"date": "102年", "location": "雒阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454}, "lifespan": "约70-71岁", "highlights": {"honor": "", "status": "东汉名将，经营西域三十一年，重新打通并保障了丝绸之路的畅通。", "identities": "军事家、外交家", "achievements": "1. 出使西域，恢复汉朝对西域诸国的管辖；2. 平定莎车、龟兹、焉耆等地的叛乱；3. 击退贵霜帝国（大月氏）的入侵；4. 重建西域都护府，巩固边防；5. 促进东西方经济文化交流。", "works": [], "reviews": []}}, "locations": [{"name": "扶风平陵", "ancientName": "扶风平陵", "modernName": "陕西省咸阳市秦都区", "lat": 34.3296, "lng": 108.7089, "type": "birth", "event": "出生于儒学世家，其父班彪、兄班固、妹班昭均为著名史学家。早年家贫，常为官府抄写文书。", "time": "约公元32年", "duration": "约三十年", "significance": "奠定了其文化基础与家族背景，为日后“投笔从戎”的抉择提供了反差背景。", "works": [], "quoteLines": []}, {"name": "雒阳", "ancientName": "雒阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "normal", "event": "在官府担任抄写文书的“兰台令史”，后因事免官。曾感叹“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”遂“投笔从戎”。", "time": "约公元62年前后", "duration": "数年", "significance": "人生重大转折点，从文吏转变为志在边疆的勇士。", "works": [], "quoteLines": []}, {"name": "雒阳", "ancientName": "雒阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "death", "event": "年老思乡，上书请求回国，书中言“臣不敢望到酒泉郡，但愿生入玉门关”。其妹班昭亦上书陈情，汉和帝深受感动，征召班超回京。公元102年八月，班超回到洛阳，拜为射声校尉，同年九月病逝。", "time": "公元102年", "duration": "约一个月", "significance": "落叶归根，结束了其波澜壮阔的西域生涯，后世誉为“投笔从戎”、“不入虎穴，焉得虎子”的典范。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---", "markdown": "# 班超\n\n## 人物档案\n\n### 基本信息\n- **姓名**：班超\n- **时代**：东汉\n- **出生**：约公元32年（一说33年），扶风平陵（今陕西省咸阳市秦都区）\n- **去世**：公元102年，雒阳（今河南省洛阳市）\n- **享年**：约70-71岁\n- **主要身份**：军事家、外交家\n- **历史地位**：东汉名将，经营西域三十一年，重新打通并保障了丝绸之路的畅通。\n- **主要成就**：1. 出使西域，恢复汉朝对西域诸国的管辖；2. 平定莎车、龟兹、焉耆等地的叛乱；3. 击退贵霜帝国（大月氏）的入侵；4. 重建西域都护府，巩固边防；5. 促进东西方经济文化交流。\n\n### 生平概述\n班超字仲升，出身儒学世家，早年为官府抄写文书以养家，后投笔从戎。汉明帝永平十六年（73年），他随窦固出击北匈奴，随后奉命率吏士三十六人出使西域。在西域的三十一年间，他凭借智谋与胆略，以夷制夷，团结亲汉力量，平定了多次叛乱，击败了外部势力的干预，最终使西域五十余国归附汉朝，被任命为西域都护，封定远侯。他的活动确保了丝绸之路的长期稳定，为多民族国家的统一与中外交流做出了卓越贡献。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从都城洛阳出发，足迹遍及西域（今新疆及中亚部分地区），最远可能抵达中亚。\n- ⏱️ **时间跨度**：主要活动于公元73年至102年，约30年。\n- 📍 **地理范围**：东起中原（河南），西至西域诸国（新疆全境及中亚费尔干纳盆地）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扶风平陵\n- **时间**：约公元32年\n- **停留时间**：约三十年\n- **地点**：扶风平陵（今陕西省咸阳市秦都区）\n- **事件**：出生于儒学世家，其父班彪、兄班固、妹班昭均为著名史学家。早年家贫，常为官府抄写文书。\n- **意义**：奠定了其文化基础与家族背景，为日后“投笔从戎”的抉择提供了反差背景。\n\n### 📍 重要地点：雒阳\n- **时间**：约公元62年前后\n- **停留时间**：数年\n- **地点**：雒阳（今河南省洛阳市）\n- **事件**：在官府担任抄写文书的“兰台令史”，后因事免官。曾感叹“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”遂“投笔从戎”。\n- **意义**：人生重大转折点，从文吏转变为志在边疆的勇士。\n\n### 📍 重要地点：伊吾（哈密）\n- **时间**：公元73年\n- **停留时间**：短暂\n- **地点**：伊吾（今新疆维吾尔自治区哈密市）\n- **事件**：随奉车都尉窦固出击北匈奴，在伊吾卢（哈密）之战中表现英勇，被窦固赏识，受命与郭恂率吏士三十六人出使西域。\n- **意义**：军事生涯的起点，也是其独立外交事业的开端。\n\n### 📍 重要地点：鄯善（楼兰）\n- **时间**：公元73年\n- **停留时间**：数日\n- **地点**：鄯善（古称楼兰，今新疆维吾尔自治区若羌县）\n- **事件**：初到时受礼遇，后因匈奴使团到来而遭冷遇。班超以“不入虎穴，焉得虎子”激励部下，夜袭匈奴营帐，斩杀匈奴使者，迫使鄯善王归附汉朝。\n- **意义**：初显胆识与决断力，威震西域，成功迈出经营西域的第一步。\n- **名篇名句**：《后汉书·班超传》：“不入虎穴，焉得虎子。”\n\n### 📍 重要地点：于阗\n- **时间**：公元73年\n- **停留时间**：数月\n- **地点**：于阗（今新疆维吾尔自治区和田市）\n- **事件**：于阗王广德因有匈奴监护，对班超冷淡。班超设计斩杀反对汉朝的巫师，迫使广德斩杀匈奴使者归附。\n- **意义**：进一步巩固汉朝在西域南道的威信。\n\n### 📍 重要地点：疏勒\n- **时间**：公元74年-公元102年（主要经营地）\n- **停留时间**：断续经营约三十年\n- **地点**：疏勒（今新疆维吾尔自治区喀什市）\n- **事件**：废除匈奴支持的傀儡国王，扶立亲汉的疏勒人为王，稳定局势。此后长期以此为基地，指挥调度西域各国力量，对抗匈奴、平定叛乱、抵御外敌（如大月氏）。\n- **意义**：班超经营西域的核心基地与大本营，见证了其大部分功业。\n- **名篇名句**：《后汉书·班超传》：“臣不敢望到酒泉郡，但愿生入玉门关。”\n\n### 📍 重要地点：龟兹\n- **时间**：公元78年-公元94年（多次行动）\n- **停留时间**：多次往返\n- **地点**：龟兹（今新疆维吾尔自治区库车市）\n- **事件**：龟兹是匈奴在西域北道的重要盟友。班超联合疏勒、于阗等国，与龟兹及其盟国莎车进行了长期斗争。公元94年，最终攻破龟兹，将其纳入汉朝管辖。\n- **意义**：平定西域北道的关键，标志着汉朝对西域的全面控制得以恢复。\n\n### 📍 重要地点：乌即城（属疏勒）\n- **时间**：公元75年-公元78年\n- **停留时间**：坚守数年\n- **地点**：疏勒国境内（今新疆维吾尔自治区喀什地区）\n- **事件**：汉明帝驾崩，西域诸国叛乱，进攻班超。班超孤立无援，坚守疏勒的乌即城，联合亲汉力量，最终稳住阵脚。\n- **意义**：展现了班超在极端困境下的坚韧与外交手腕。\n\n### 📍 重要地点：它乾城（西域都护府治所）\n- **时间**：公元91年-公元102年\n- **停留时间**：约十一年\n- **地点**：西域都护府治所（今新疆维吾尔自治区阿克苏地区一带）\n- **事件**：公元91年，班超被任命为西域都护，设治所于它乾城。在此期间，他完全平定西域，于公元97年派甘英出使大秦（罗马帝国），抵达波斯湾。\n- **意义**：班超事业的顶峰，代表汉朝西域管辖机构的正式重建与运作。\n- **名篇名句**：《后汉书·班超传》：“定远慷慨，专功西遐。坦步葱、雪，咫尺龙沙。”\n\n### 🔴 去世地：雒阳\n- **时间**：公元102年\n- **停留时间**：约一个月\n- **地点**：雒阳（今河南省洛阳市）\n- **事件**：年老思乡，上书请求回国，书中言“臣不敢望到酒泉郡，但愿生入玉门关”。其妹班昭亦上书陈情，汉和帝深受感动，征召班超回京。公元102年八月，班超回到洛阳，拜为射声校尉，同年九月病逝。\n- **意义**：落叶归根，结束了其波澜壮阔的西域生涯，后世誉为“投笔从戎”、“不入虎穴，焉得虎子”的典范。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约公元32年 | 0岁 | 出生于扶风平陵（今陕西咸阳秦都区）。 |\n| 约公元62年 | 约30岁 | 在洛阳任兰台令史，后免官。“投笔从戎”之志萌生。 |\n| 公元73年 | 约41岁 | 随窦固出击北匈奴于伊吾。率三十六人出使西域，智斩匈奴使团，慑服鄯善。至于阗，设计迫使于阗王归附。 |\n| 公元74年 | 约42岁 | 至疏勒，废匈奴所立王，扶立新王，稳定疏勒。 |\n| 公元75年 | 约43岁 | 汉明帝驾崩，西域叛乱，坚守疏勒乌即城。 |\n| 公元78年 | 约46岁 | 率疏勒、于阗等国兵攻破姑墨，上书请兵平定西域。 |\n| 公元80年 | 约48岁 | 汉章帝派徐干率兵增援。 |\n| 公元84年 | 约52岁 | 平定疏勒叛乱，联合乌孙牵制匈奴。 |\n| 公元87年 | 约55岁 | 率西域诸国兵大败莎车，威震西域。 |\n| 公元90年 | 约58岁 | 击退大月氏（贵霜帝国）副王谢的入侵，迫使其纳贡求和。 |\n| 公元91年 | 约59岁 | 龟兹、姑墨等国归降，被任命为西域都护，驻它乾城。 |\n| 公元94年 | 约62岁 | 攻破焉耆，西域五十余国全部纳质内属，西域平定。 |\n| 公元97年 | 约65岁 | 派甘英出使大秦（罗马帝国），至波斯湾而还。 |\n| 公元100年 | 约68岁 | 上书请求回国。 |\n| 公元102年 | 约71岁 | 八月，回到洛阳。九月，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 陕西省咸阳市秦都区 | 34.3296 | 108.7089 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 新疆哈密市 | 42.8333 | 93.5167 |\n| 新疆若羌县 | 39.0231 | 88.1683 |\n| 新疆和田市 | 37.1118 | 79.9316 |\n| 新疆喀什市 | 39.4677 | 75.9920 |\n| 新疆库车市 | 41.7179 | 82.9620 |"};
+      const data = {"person": {"name": "班超", "title": "", "description": "班超字仲升，出身儒学世家，早年为官府抄写文书以养家，后投笔从戎。汉明帝永平十六年（73年），他随窦固出击北匈奴，随后奉命率吏士三十六人出使西域。在西域的三十一年间，他凭借智谋与胆略，以夷制夷，团结亲汉力量，平定了多次叛乱，击败了外部势力的干预，最终使西域五十余国归附汉朝，被任命为西域都护，封定远侯。他的活动确保了丝绸之路的长期稳定，为多民族国家的统一与中外交流做出了卓越贡献。", "quote": "", "dynasty": "东汉", "birthplace": "扶风平陵（今陕西省咸阳市秦都区）", "avatar": "", "birth": {"date": "32年", "location": "扶风平陵（今陕西省咸阳市秦都区）", "lat": 34.3296, "lng": 108.7089}, "death": {"date": "102年", "location": "雒阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454}, "lifespan": "约70-71岁", "highlights": {"honor": "", "status": "东汉名将，经营西域三十一年，重新打通并保障了丝绸之路的畅通。", "identities": "军事家、外交家", "achievements": "1. 出使西域，恢复汉朝对西域诸国的管辖；2. 平定莎车、龟兹、焉耆等地的叛乱；3. 击退贵霜帝国（大月氏）的入侵；4. 重建西域都护府，巩固边防；5. 促进东西方经济文化交流。", "works": [], "reviews": []}}, "locations": [{"name": "扶风平陵", "ancientName": "扶风平陵", "modernName": "陕西省咸阳市秦都区", "lat": 34.3296, "lng": 108.7089, "type": "birth", "event": "出生于儒学世家，其父班彪、兄班固、妹班昭均为著名史学家。早年家贫，常为官府抄写文书。", "time": "约公元32年", "duration": "约三十年", "significance": "奠定了其文化基础与家族背景，为日后“投笔从戎”的抉择提供了反差背景。", "works": [], "quoteLines": []}, {"name": "雒阳", "ancientName": "雒阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "normal", "event": "在官府担任抄写文书的“兰台令史”，后因事免官。曾感叹“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”遂“投笔从戎”。", "time": "约公元62年前后", "duration": "数年", "significance": "人生重大转折点，从文吏转变为志在边疆的勇士。", "works": [], "quoteLines": []}, {"name": "雒阳", "ancientName": "雒阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "type": "death", "event": "年老思乡，上书请求回国，书中言“臣不敢望到酒泉郡，但愿生入玉门关”。其妹班昭亦上书陈情，汉和帝深受感动，征召班超回京。公元102年八月，班超回到洛阳，拜为射声校尉，同年九月病逝。", "time": "公元102年", "duration": "约一个月", "significance": "落叶归根，结束了其波澜壮阔的西域生涯，后世誉为“投笔从戎”、“不入虎穴，焉得虎子”的典范。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---", "markdown": "# 班超\n\n## 人物档案\n\n### 基本信息\n- **姓名**：班超\n- **时代**：东汉\n- **出生**：约公元32年（一说33年），扶风平陵（今陕西省咸阳市秦都区）\n- **去世**：公元102年，雒阳（今河南省洛阳市）\n- **享年**：约70-71岁\n- **主要身份**：军事家、外交家\n- **历史地位**：东汉名将，经营西域三十一年，重新打通并保障了丝绸之路的畅通。\n- **主要成就**：1. 出使西域，恢复汉朝对西域诸国的管辖；2. 平定莎车、龟兹、焉耆等地的叛乱；3. 击退贵霜帝国（大月氏）的入侵；4. 重建西域都护府，巩固边防；5. 促进东西方经济文化交流。\n\n### 生平概述\n班超字仲升，出身儒学世家，早年为官府抄写文书以养家，后投笔从戎。汉明帝永平十六年（73年），他随窦固出击北匈奴，随后奉命率吏士三十六人出使西域。在西域的三十一年间，他凭借智谋与胆略，以夷制夷，团结亲汉力量，平定了多次叛乱，击败了外部势力的干预，最终使西域五十余国归附汉朝，被任命为西域都护，封定远侯。他的活动确保了丝绸之路的长期稳定，为多民族国家的统一与中外交流做出了卓越贡献。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从都城洛阳出发，足迹遍及西域（今新疆及中亚部分地区），最远可能抵达中亚。\n- ⏱️ **时间跨度**：主要活动于公元73年至102年，约30年。\n- 📍 **地理范围**：东起中原（河南），西至西域诸国（新疆全境及中亚费尔干纳盆地）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扶风平陵\n- **时间**：约公元32年\n- **停留时间**：约三十年\n- **地点**：扶风平陵（今陕西省咸阳市秦都区）\n- **事件**：出生于儒学世家，其父班彪、兄班固、妹班昭均为著名史学家。早年家贫，常为官府抄写文书。\n- **意义**：奠定了其文化基础与家族背景，为日后“投笔从戎”的抉择提供了反差背景。\n\n### 📍 重要地点：雒阳\n- **时间**：约公元62年前后\n- **停留时间**：数年\n- **地点**：雒阳（今河南省洛阳市）\n- **事件**：在官府担任抄写文书的“兰台令史”，后因事免官。曾感叹“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”遂“投笔从戎”。\n- **意义**：人生重大转折点，从文吏转变为志在边疆的勇士。\n\n### 📍 重要地点：伊吾（哈密）\n- **时间**：公元73年\n- **停留时间**：短暂\n- **地点**：伊吾（今新疆维吾尔自治区哈密市）\n- **事件**：随奉车都尉窦固出击北匈奴，在伊吾卢（哈密）之战中表现英勇，被窦固赏识，受命与郭恂率吏士三十六人出使西域。\n- **意义**：军事生涯的起点，也是其独立外交事业的开端。\n\n### 📍 重要地点：鄯善（楼兰）\n- **时间**：公元73年\n- **停留时间**：数日\n- **地点**：鄯善（古称楼兰，今新疆维吾尔自治区若羌县）\n- **事件**：初到时受礼遇，后因匈奴使团到来而遭冷遇。班超以“不入虎穴，焉得虎子”激励部下，夜袭匈奴营帐，斩杀匈奴使者，迫使鄯善王归附汉朝。\n- **意义**：初显胆识与决断力，威震西域，成功迈出经营西域的第一步。\n- **名篇名句**：《后汉书·班超传》：“不入虎穴，焉得虎子。”\n\n### 📍 重要地点：于阗\n- **时间**：公元73年\n- **停留时间**：数月\n- **地点**：于阗（今新疆维吾尔自治区和田市）\n- **事件**：于阗王广德因有匈奴监护，对班超冷淡。班超设计斩杀反对汉朝的巫师，迫使广德斩杀匈奴使者归附。\n- **意义**：进一步巩固汉朝在西域南道的威信。\n\n### 📍 重要地点：疏勒\n- **时间**：公元74年-公元102年（主要经营地）\n- **停留时间**：断续经营约三十年\n- **地点**：疏勒（今新疆维吾尔自治区喀什市）\n- **事件**：废除匈奴支持的傀儡国王，扶立亲汉的疏勒人为王，稳定局势。此后长期以此为基地，指挥调度西域各国力量，对抗匈奴、平定叛乱、抵御外敌（如大月氏）。\n- **意义**：班超经营西域的核心基地与大本营，见证了其大部分功业。\n- **名篇名句**：《后汉书·班超传》：“臣不敢望到酒泉郡，但愿生入玉门关。”\n\n### 📍 重要地点：龟兹\n- **时间**：公元78年-公元94年（多次行动）\n- **停留时间**：多次往返\n- **地点**：龟兹（今新疆维吾尔自治区库车市）\n- **事件**：龟兹是匈奴在西域北道的重要盟友。班超联合疏勒、于阗等国，与龟兹及其盟国莎车进行了长期斗争。公元94年，最终攻破龟兹，将其纳入汉朝管辖。\n- **意义**：平定西域北道的关键，标志着汉朝对西域的全面控制得以恢复。\n\n### 📍 重要地点：乌即城（属疏勒）\n- **时间**：公元75年-公元78年\n- **停留时间**：坚守数年\n- **地点**：疏勒国境内（今新疆维吾尔自治区喀什地区）\n- **事件**：汉明帝驾崩，西域诸国叛乱，进攻班超。班超孤立无援，坚守疏勒的乌即城，联合亲汉力量，最终稳住阵脚。\n- **意义**：展现了班超在极端困境下的坚韧与外交手腕。\n\n### 📍 重要地点：它乾城（西域都护府治所）\n- **时间**：公元91年-公元102年\n- **停留时间**：约十一年\n- **地点**：西域都护府治所（今新疆维吾尔自治区阿克苏地区一带）\n- **事件**：公元91年，班超被任命为西域都护，设治所于它乾城。在此期间，他完全平定西域，于公元97年派甘英出使大秦（罗马帝国），抵达波斯湾。\n- **意义**：班超事业的顶峰，代表汉朝西域管辖机构的正式重建与运作。\n- **名篇名句**：《后汉书·班超传》：“定远慷慨，专功西遐。坦步葱、雪，咫尺龙沙。”\n\n### 🔴 去世地：雒阳\n- **时间**：公元102年\n- **停留时间**：约一个月\n- **地点**：雒阳（今河南省洛阳市）\n- **事件**：年老思乡，上书请求回国，书中言“臣不敢望到酒泉郡，但愿生入玉门关”。其妹班昭亦上书陈情，汉和帝深受感动，征召班超回京。公元102年八月，班超回到洛阳，拜为射声校尉，同年九月病逝。\n- **意义**：落叶归根，结束了其波澜壮阔的西域生涯，后世誉为“投笔从戎”、“不入虎穴，焉得虎子”的典范。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约公元32年 | 0岁 | 出生于扶风平陵（今陕西咸阳秦都区）。 |\n| 约公元62年 | 约30岁 | 在洛阳任兰台令史，后免官。“投笔从戎”之志萌生。 |\n| 公元73年 | 约41岁 | 随窦固出击北匈奴于伊吾。率三十六人出使西域，智斩匈奴使团，慑服鄯善。至于阗，设计迫使于阗王归附。 |\n| 公元74年 | 约42岁 | 至疏勒，废匈奴所立王，扶立新王，稳定疏勒。 |\n| 公元75年 | 约43岁 | 汉明帝驾崩，西域叛乱，坚守疏勒乌即城。 |\n| 公元78年 | 约46岁 | 率疏勒、于阗等国兵攻破姑墨，上书请兵平定西域。 |\n| 公元80年 | 约48岁 | 汉章帝派徐干率兵增援。 |\n| 公元84年 | 约52岁 | 平定疏勒叛乱，联合乌孙牵制匈奴。 |\n| 公元87年 | 约55岁 | 率西域诸国兵大败莎车，威震西域。 |\n| 公元90年 | 约58岁 | 击退大月氏（贵霜帝国）副王谢的入侵，迫使其纳贡求和。 |\n| 公元91年 | 约59岁 | 龟兹、姑墨等国归降，被任命为西域都护，驻它乾城。 |\n| 公元94年 | 约62岁 | 攻破焉耆，西域五十余国全部纳质内属，西域平定。 |\n| 公元97年 | 约65岁 | 派甘英出使大秦（罗马帝国），至波斯湾而还。 |\n| 公元100年 | 约68岁 | 上书请求回国。 |\n| 公元102年 | 约71岁 | 八月，回到洛阳。九月，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《后汉书·班超传》**（节选）、“**投笔从戎**”、“**不入虎穴，焉得虎子**”等典故。\n- 核心要点：\n    - **重点**：**“投笔从戎”** 的典故，体现了班超不甘平庸、立志报国的豪情壮志。\n    - **重点**：**“不入虎穴，焉得虎子”** 的典故，生动展现了班超临危不惧、果断勇敢的英雄气概与非凡胆识。\n    - **重点**：**“但愿生入玉门关”** 的语句，深刻表达了戍边将士年老思归的复杂情感与对故土的深切眷恋。\n    - 人物形象塑造：通过**语言描写**（如“安能久事笔研间乎？”）和**行动描写**（如夜袭匈奴营），刻画了一位有勇有谋、坚韧不拔的外交家与军事家形象。\n    - **叙事手法**：选文情节**跌宕起伏**，善于在**矛盾冲突**（如鄯善态度的转变）中凸显人物性格。\n    - **精神内涵**：歌颂了维护国家统一、开拓进取、不畏艰险的**爱国主义精神**与**英雄主义精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**东汉明帝**时期，班超奉命出使西域，开始了其经营西域的伟业。\n    - **重点**：班超以**西域都护**的身份，代表东汉政府恢复并加强了对**西域**（狭义指今新疆地区）的有效管辖。\n    - 成功运用 **“以夷制夷”** 的策略，主要依靠西域当地国家的兵力进行征战，耗费中原资源较少。\n    - **重点**：在任期间，**击退贵霜帝国（大月氏）** 的入侵，维护了西域的稳定。\n    - 派遣**甘英**出使**大秦（罗马帝国）**，虽未抵达，但加深了对西方世界的了解。\n- 核心要点：\n    - **重点**：班超经营西域的背景是**西汉末年至王莽时期**中原对西域控制的减弱，以及**北匈奴**势力在西域的扩张。\n    - **重点**：其成功的关键在于个人卓越的**外交才能**、**军事胆略**以及对西域各国形势的深刻理解。\n    - **重点**：班超的功业具有重大历史意义：**重新打通并保障了陆上丝绸之路的畅通**，促进了东西方经济文化交流。\n    - 他的活动巩固了**多民族国家**的统一，为后世中原王朝治理边疆提供了重要借鉴。\n    - 历史评价：班超是**中国古代杰出的外交家**和**民族英雄**，其“投笔从戎”的事迹激励了后世无数志士仁人。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 陕西省咸阳市秦都区 | 34.3296 | 108.7089 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 新疆哈密市 | 42.8333 | 93.5167 |\n| 新疆若羌县 | 39.0231 | 88.1683 |\n| 新疆和田市 | 37.1118 | 79.9316 |\n| 新疆喀什市 | 39.4677 | 75.9920 |\n| 新疆库车市 | 41.7179 | 82.9620 |", "relatedGraph": {"center": {"id": "班超", "name": "班超", "file": "班超.html", "dynasty": "东汉", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "班超", "name": "班超", "file": "班超.html", "dynasty": "东汉", "relationLabel": "中心人物", "isCenter": true}, {"id": "张骞", "name": "张骞", "file": "张骞.html", "dynasty": "西汉", "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "蔡伦", "name": "蔡伦", "file": "蔡伦.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "班昭", "name": "班昭", "file": "班昭.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "班固", "name": "班固", "file": "班固.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张衡", "name": "张衡", "file": "张衡.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "班超", "target": "张骞", "label": "君臣", "confidence": null}, {"source": "班超", "target": "蔡伦", "label": "同时代人物", "confidence": null}, {"source": "班超", "target": "班昭", "label": "同时代人物", "confidence": null}, {"source": "班超", "target": "班固", "label": "同时代人物", "confidence": null}, {"source": "班超", "target": "张衡", "label": "同时代人物", "confidence": null}, {"source": "班超", "target": "陈实", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

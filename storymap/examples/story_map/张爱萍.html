@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "张爱萍", "title": "", "description": "张爱萍出生于清末，少年时即投身革命洪流。他历经土地革命战争、长征、抗日战争和解放战争，从一名基层指挥员成长为解放军高级将领。新中国成立后，他长期担任国防科技和国防工业的重要领导职务，在极其困难的条件下，具体组织领导了“两弹一星”等尖端国防工程的研制与试验，为新中国国防现代化奠定了坚实基础。他一生文武兼备，既是战功卓著的将军，也是笔耕不辍的诗人，其人生轨迹贯穿了中国革命与建设的壮阔历程。", "quote": "《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。", "dynasty": "近现代", "birthplace": "四川达县（今四川省达州市）", "avatar": "", "birth": {"date": "1910年", "location": "四川达县（今四川省达州市）", "lat": 31.2091, "lng": 107.4681}, "death": {"date": "2003年", "location": "北京", "lat": 39.9042, "lng": 116.4074}, "lifespan": "93岁", "highlights": {"honor": "", "status": "中国人民解放军开国上将，国防科技事业的卓越领导者之一。", "identities": "军人、政治家、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "达县", "ancientName": "四川达县", "modernName": "四川省达州市", "lat": 31.2091, "lng": 107.4681, "type": "birth", "event": "出生并度过童年与少年时代，接受启蒙教育。", "time": "公元1910年", "duration": "约15年", "significance": "人生起点，巴蜀文化孕育其早期性格。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "type": "normal", "event": "入成都公学读书，开始接触进步思想，参与学生运动。", "time": "约1925-1927年", "duration": "约2年", "significance": "思想启蒙之地，走上革命道路的起点。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海", "lat": 31.2304, "lng": 121.4737, "type": "normal", "event": "赴上海参加中共地下工作，从事秘密斗争。（注：入党时间与地点存在不同说法（一说1928年，一说1929年于上海），存疑。）", "time": "1929年夏", "duration": "数月", "significance": "正式加入中国共产党领导的革命实践，经受白色恐怖考验。", "works": [], "quoteLines": []}, {"name": "皖东北抗日根据地", "ancientName": "皖东北抗日根据地", "modernName": "安徽省宿州市埇桥区、蚌埠市固镇县等地区（皖东北抗日根据地核心区）", "lat": 33.6462, "lng": 116.9641, "type": "normal", "event": "奉命赴皖东北，参与创建和领导抗日根据地，任八路军、新四军要职。", "time": "1939年-1941年", "duration": "约2年", "significance": "独当一面开展敌后抗战，展示了军事指挥和根据地建设才能。", "works": [], "quoteLines": ["《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。"]}, {"name": "华东战场", "ancientName": "华东战场", "modernName": "江苏省徐州市、山东省临沂市等地（存疑：具体活动范围可能因战役阶段而异）", "lat": 34.2044, "lng": 117.2859, "type": "normal", "event": "在解放战争中任华中军区副司令员、华东军区海军司令员兼政委等职，参与指挥多次重要战役，并在渡江战役中负责东路集团指挥。", "time": "1946年-1949年", "duration": "约3年", "significance": "为解放华东地区作出重要贡献，并开始涉足海军建设。", "works": [], "quoteLines": []}, {"name": "浙江沿海", "ancientName": "浙江沿海", "modernName": "浙江省杭州市、宁波市、舟山市等地", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "任浙江军区司令员兼第七兵团司令员，指挥解放舟山群岛等沿海岛屿的作战。", "time": "1949年-1951年", "duration": "约2年", "significance": "完成大陆及重要沿海岛屿的解放，巩固东南海防。", "works": [], "quoteLines": []}, {"name": "北京（国防科委）", "ancientName": "北京（国防科委）", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "历任解放军副总参谋长、国防科委副主任、国务院副总理、国防部部长等职。组织领导“两弹一星”试验（如第一颗原子弹、氢弹、人造卫星），推动洲际导弹、潜地导弹、通信卫星研制。常赴青海等地基地（如原子城）指导工作。", "time": "1955年后长期", "duration": "数十年", "significance": "人生后半程的核心舞台，为新中国铸造核盾牌和航天基业，成就其最重要的历史功绩。", "works": [], "quoteLines": ["《破阵子·我国首次原子弹爆炸成功》：东风起舞，壮志千军鼓。苦斗百年今复主，矢志英雄伏虎。（注：此词作于1964年，内容回顾革命历程。）", "《清平乐·我国第一颗人造卫星上天》：东方红唱，响彻云天上。宇宙遨游星月亮，环球同颂声亮。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "type": "death", "event": "逝世。", "time": "公元2003年", "duration": "晚年长期居住", "significance": "走完波澜壮阔的一生，其骨灰撒在曾经战斗过的大海和西北导弹发射场。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---", "markdown": "# 张爱萍\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张爱萍\n- **时代**：近现代\n- **出生**：公元1910年，四川达县（今四川省达州市）\n- **去世**：公元2003年，北京\n- **享年**：93岁\n- **主要身份**：军人、政治家、诗人\n- **历史地位**：中国人民解放军开国上将，国防科技事业的卓越领导者之一。\n- **主要成就**：\n    - 参与领导创建皖东北抗日根据地。\n    - 在解放战争中参与指挥渡江战役及解放浙江沿海岛屿。\n    - 长期主管国防科技和国防工业，组织领导“两弹一星”大协作、大会战，为“两弹一星”事业作出突出贡献。\n    - 推动中国人民解放军海军现代化建设。\n    - 擅长诗词、书法，被誉为“将军诗人”。\n\n### 生平概述\n张爱萍出生于清末，少年时即投身革命洪流。他历经土地革命战争、长征、抗日战争和解放战争，从一名基层指挥员成长为解放军高级将领。新中国成立后，他长期担任国防科技和国防工业的重要领导职务，在极其困难的条件下，具体组织领导了“两弹一星”等尖端国防工程的研制与试验，为新中国国防现代化奠定了坚实基础。他一生文武兼备，既是战功卓著的将军，也是笔耕不辍的诗人，其人生轨迹贯穿了中国革命与建设的壮阔历程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从巴山蜀水出发，足迹遍及中国东部、中部及首都，历经革命战争与国防建设两大时期。\n- ⏱️ **时间跨度**：约1910年至2003年（从出生至逝世），其中革命活动始于约1925年。\n- 📍 **地理范围**：主要覆盖四川、上海、江西、江苏、安徽、浙江、北京等地。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：达县\n- **时间**：公元1910年\n- **停留时间**：约15年\n- **地点**：四川达县（今四川省达州市）\n- **事件**：出生并度过童年与少年时代，接受启蒙教育。\n- **意义**：人生起点，巴蜀文化孕育其早期性格。\n\n### 📍 重要地点：成都\n- **时间**：约1925-1927年\n- **停留时间**：约2年\n- **地点**：四川成都\n- **事件**：入成都公学读书，开始接触进步思想，参与学生运动。\n- **意义**：思想启蒙之地，走上革命道路的起点。\n\n### 📍 重要地点：上海\n- **时间**：1929年夏\n- **停留时间**：数月\n- **地点**：上海\n- **事件**：赴上海参加中共地下工作，从事秘密斗争。（注：入党时间与地点存在不同说法（一说1928年，一说1929年于上海），存疑。）\n- **意义**：正式加入中国共产党领导的革命实践，经受白色恐怖考验。\n\n### 📍 重要地点：中央苏区（瑞金等地）\n- **时间**：1930年底-1934年\n- **停留时间**：约4年\n- **地点**：江西瑞金（中央苏区首府）\n- **事件**：进入中央苏区，历任共青团相关职务，参加中央苏区历次反“围剿”作战。\n- **意义**：在革命根据地核心区域成长，积累了武装斗争和群众工作经验。\n\n### 📍 重要地点：长征路途\n- **时间**：1934年10月-1935年10月\n- **停留时间**：约1年（行军状态）\n- **地点**：途经江西瑞金、湖南道县、贵州遵义、云南扎西、四川泸定等地（存疑：具体路线可能因史料记载差异而不同）\n- **事件**：随中央红军长征，参与多次战斗。\n- **意义**：经受了极端艰苦环境的考验，坚定了革命意志。\n\n### 📍 重要地点：皖东北抗日根据地\n- **时间**：1939年-1941年\n- **停留时间**：约2年\n- **地点**：安徽省宿州市埇桥区、蚌埠市固镇县等地区（皖东北抗日根据地核心区）\n- **事件**：奉命赴皖东北，参与创建和领导抗日根据地，任八路军、新四军要职。\n- **意义**：独当一面开展敌后抗战，展示了军事指挥和根据地建设才能。\n- **名篇名句**：《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。\n\n### 📍 重要地点：华东战场\n- **时间**：1946年-1949年\n- **停留时间**：约3年\n- **地点**：江苏省徐州市、山东省临沂市等地（存疑：具体活动范围可能因战役阶段而异）\n- **事件**：在解放战争中任华中军区副司令员、华东军区海军司令员兼政委等职，参与指挥多次重要战役，并在渡江战役中负责东路集团指挥。\n- **意义**：为解放华东地区作出重要贡献，并开始涉足海军建设。\n\n### 📍 重要地点：浙江沿海\n- **时间**：1949年-1951年\n- **停留时间**：约2年\n- **地点**：浙江省杭州市、宁波市、舟山市等地\n- **事件**：任浙江军区司令员兼第七兵团司令员，指挥解放舟山群岛等沿海岛屿的作战。\n- **意义**：完成大陆及重要沿海岛屿的解放，巩固东南海防。\n\n### 📍 重要地点：北京（国防科委）\n- **时间**：1955年后长期\n- **停留时间**：数十年\n- **地点**：北京\n- **事件**：历任解放军副总参谋长、国防科委副主任、国务院副总理、国防部部长等职。组织领导“两弹一星”试验（如第一颗原子弹、氢弹、人造卫星），推动洲际导弹、潜地导弹、通信卫星研制。常赴青海等地基地（如原子城）指导工作。\n- **意义**：人生后半程的核心舞台，为新中国铸造核盾牌和航天基业，成就其最重要的历史功绩。\n- **名篇名句**：《破阵子·我国首次原子弹爆炸成功》：东风起舞，壮志千军鼓。苦斗百年今复主，矢志英雄伏虎。（注：此词作于1964年，内容回顾革命历程。）\n- **名篇名句**：《清平乐·我国第一颗人造卫星上天》：东方红唱，响彻云天上。宇宙遨游星月亮，环球同颂声亮。\n\n### 🔴 去世地：北京\n- **时间**：公元2003年\n- **停留时间**：晚年长期居住\n- **地点**：北京\n- **事件**：逝世。\n- **意义**：走完波澜壮阔的一生，其骨灰撒在曾经战斗过的大海和西北导弹发射场。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1910 | 0 | 出生于四川达县。 |\n| 1925 | 15 | 赴成都求学，接触进步思想。 |\n| 约1928（存疑） | 约18 | 加入中国共产党。（注：具体时间和地点存疑，一说在上海。） |\n| 1929 | 19 | 赴上海从事地下工作。 |\n| 1930 | 20 | 进入中央苏区。 |\n| 1930-1934 | 20-24 | 在中央苏区参加反“围剿”斗争。 |\n| 1934-1935 | 24-25 | 参加中央红军长征。 |\n| 1939-1941 | 29-31 | 参与创建皖东北抗日根据地。 |\n| 1946-1949 | 36-39 | 参与解放战争，指挥渡江战役等。 |\n| 1949-1951 | 39-41 | 指挥解放浙江沿海岛屿。 |\n| 1955 | 45 | 被授予上将军衔。 |\n| 1960s-1970s | 50-60s | 具体组织领导“两弹一星”研制与试验。 |\n| 1980-1982 | 70-72 | 任国务院副总理、国防部部长。 |\n| 2003 | 93 | 在北京逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省达州市 | 31.2091 | 107.4681 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 上海市 | 31.2304 | 121.4737 |\n| 江西省瑞金市 | 25.8856 | 116.0271 |\n| 贵州省遵义市 | 27.7254 | 106.9272 |\n| 安徽省宿州市 | 33.6462 | 116.9641 |\n| 江苏省徐州市 | 34.2044 | 117.2859 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 北京市 | 39.9042 | 116.4074 |\n| 青海省海北藏族自治州（原子城） | 36.9595 | 100.9010 |"};
+      const data = {"person": {"name": "张爱萍", "title": "", "description": "张爱萍出生于清末，少年时即投身革命洪流。他历经土地革命战争、长征、抗日战争和解放战争，从一名基层指挥员成长为解放军高级将领。新中国成立后，他长期担任国防科技和国防工业的重要领导职务，在极其困难的条件下，具体组织领导了“两弹一星”等尖端国防工程的研制与试验，为新中国国防现代化奠定了坚实基础。他一生文武兼备，既是战功卓著的将军，也是笔耕不辍的诗人，其人生轨迹贯穿了中国革命与建设的壮阔历程。", "quote": "《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。", "dynasty": "近现代", "birthplace": "四川达县（今四川省达州市）", "avatar": "", "birth": {"date": "1910年", "location": "四川达县（今四川省达州市）", "lat": 31.2091, "lng": 107.4681}, "death": {"date": "2003年", "location": "北京", "lat": 39.9042, "lng": 116.4074}, "lifespan": "93岁", "highlights": {"honor": "", "status": "中国人民解放军开国上将，国防科技事业的卓越领导者之一。", "identities": "军人、政治家、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "达县", "ancientName": "四川达县", "modernName": "四川省达州市", "lat": 31.2091, "lng": 107.4681, "type": "birth", "event": "出生并度过童年与少年时代，接受启蒙教育。", "time": "公元1910年", "duration": "约15年", "significance": "人生起点，巴蜀文化孕育其早期性格。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "type": "normal", "event": "入成都公学读书，开始接触进步思想，参与学生运动。", "time": "约1925-1927年", "duration": "约2年", "significance": "思想启蒙之地，走上革命道路的起点。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海", "lat": 31.2304, "lng": 121.4737, "type": "normal", "event": "赴上海参加中共地下工作，从事秘密斗争。（注：入党时间与地点存在不同说法（一说1928年，一说1929年于上海），存疑。）", "time": "1929年夏", "duration": "数月", "significance": "正式加入中国共产党领导的革命实践，经受白色恐怖考验。", "works": [], "quoteLines": []}, {"name": "皖东北抗日根据地", "ancientName": "皖东北抗日根据地", "modernName": "安徽省宿州市埇桥区、蚌埠市固镇县等地区（皖东北抗日根据地核心区）", "lat": 33.6462, "lng": 116.9641, "type": "normal", "event": "奉命赴皖东北，参与创建和领导抗日根据地，任八路军、新四军要职。", "time": "1939年-1941年", "duration": "约2年", "significance": "独当一面开展敌后抗战，展示了军事指挥和根据地建设才能。", "works": [], "quoteLines": ["《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。"]}, {"name": "华东战场", "ancientName": "华东战场", "modernName": "江苏省徐州市、山东省临沂市等地（存疑：具体活动范围可能因战役阶段而异）", "lat": 34.2044, "lng": 117.2859, "type": "normal", "event": "在解放战争中任华中军区副司令员、华东军区海军司令员兼政委等职，参与指挥多次重要战役，并在渡江战役中负责东路集团指挥。", "time": "1946年-1949年", "duration": "约3年", "significance": "为解放华东地区作出重要贡献，并开始涉足海军建设。", "works": [], "quoteLines": []}, {"name": "浙江沿海", "ancientName": "浙江沿海", "modernName": "浙江省杭州市、宁波市、舟山市等地", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "任浙江军区司令员兼第七兵团司令员，指挥解放舟山群岛等沿海岛屿的作战。", "time": "1949年-1951年", "duration": "约2年", "significance": "完成大陆及重要沿海岛屿的解放，巩固东南海防。", "works": [], "quoteLines": []}, {"name": "北京（国防科委）", "ancientName": "北京（国防科委）", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "历任解放军副总参谋长、国防科委副主任、国务院副总理、国防部部长等职。组织领导“两弹一星”试验（如第一颗原子弹、氢弹、人造卫星），推动洲际导弹、潜地导弹、通信卫星研制。常赴青海等地基地（如原子城）指导工作。", "time": "1955年后长期", "duration": "数十年", "significance": "人生后半程的核心舞台，为新中国铸造核盾牌和航天基业，成就其最重要的历史功绩。", "works": [], "quoteLines": ["《破阵子·我国首次原子弹爆炸成功》：东风起舞，壮志千军鼓。苦斗百年今复主，矢志英雄伏虎。（注：此词作于1964年，内容回顾革命历程。）", "《清平乐·我国第一颗人造卫星上天》：东方红唱，响彻云天上。宇宙遨游星月亮，环球同颂声亮。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "type": "death", "event": "逝世。", "time": "公元2003年", "duration": "晚年长期居住", "significance": "走完波澜壮阔的一生，其骨灰撒在曾经战斗过的大海和西北导弹发射场。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---", "markdown": "# 张爱萍\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张爱萍\n- **时代**：近现代\n- **出生**：公元1910年，四川达县（今四川省达州市）\n- **去世**：公元2003年，北京\n- **享年**：93岁\n- **主要身份**：军人、政治家、诗人\n- **历史地位**：中国人民解放军开国上将，国防科技事业的卓越领导者之一。\n- **主要成就**：\n    - 参与领导创建皖东北抗日根据地。\n    - 在解放战争中参与指挥渡江战役及解放浙江沿海岛屿。\n    - 长期主管国防科技和国防工业，组织领导“两弹一星”大协作、大会战，为“两弹一星”事业作出突出贡献。\n    - 推动中国人民解放军海军现代化建设。\n    - 擅长诗词、书法，被誉为“将军诗人”。\n\n### 生平概述\n张爱萍出生于清末，少年时即投身革命洪流。他历经土地革命战争、长征、抗日战争和解放战争，从一名基层指挥员成长为解放军高级将领。新中国成立后，他长期担任国防科技和国防工业的重要领导职务，在极其困难的条件下，具体组织领导了“两弹一星”等尖端国防工程的研制与试验，为新中国国防现代化奠定了坚实基础。他一生文武兼备，既是战功卓著的将军，也是笔耕不辍的诗人，其人生轨迹贯穿了中国革命与建设的壮阔历程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从巴山蜀水出发，足迹遍及中国东部、中部及首都，历经革命战争与国防建设两大时期。\n- ⏱️ **时间跨度**：约1910年至2003年（从出生至逝世），其中革命活动始于约1925年。\n- 📍 **地理范围**：主要覆盖四川、上海、江西、江苏、安徽、浙江、北京等地。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：达县\n- **时间**：公元1910年\n- **停留时间**：约15年\n- **地点**：四川达县（今四川省达州市）\n- **事件**：出生并度过童年与少年时代，接受启蒙教育。\n- **意义**：人生起点，巴蜀文化孕育其早期性格。\n\n### 📍 重要地点：成都\n- **时间**：约1925-1927年\n- **停留时间**：约2年\n- **地点**：四川成都\n- **事件**：入成都公学读书，开始接触进步思想，参与学生运动。\n- **意义**：思想启蒙之地，走上革命道路的起点。\n\n### 📍 重要地点：上海\n- **时间**：1929年夏\n- **停留时间**：数月\n- **地点**：上海\n- **事件**：赴上海参加中共地下工作，从事秘密斗争。（注：入党时间与地点存在不同说法（一说1928年，一说1929年于上海），存疑。）\n- **意义**：正式加入中国共产党领导的革命实践，经受白色恐怖考验。\n\n### 📍 重要地点：中央苏区（瑞金等地）\n- **时间**：1930年底-1934年\n- **停留时间**：约4年\n- **地点**：江西瑞金（中央苏区首府）\n- **事件**：进入中央苏区，历任共青团相关职务，参加中央苏区历次反“围剿”作战。\n- **意义**：在革命根据地核心区域成长，积累了武装斗争和群众工作经验。\n\n### 📍 重要地点：长征路途\n- **时间**：1934年10月-1935年10月\n- **停留时间**：约1年（行军状态）\n- **地点**：途经江西瑞金、湖南道县、贵州遵义、云南扎西、四川泸定等地（存疑：具体路线可能因史料记载差异而不同）\n- **事件**：随中央红军长征，参与多次战斗。\n- **意义**：经受了极端艰苦环境的考验，坚定了革命意志。\n\n### 📍 重要地点：皖东北抗日根据地\n- **时间**：1939年-1941年\n- **停留时间**：约2年\n- **地点**：安徽省宿州市埇桥区、蚌埠市固镇县等地区（皖东北抗日根据地核心区）\n- **事件**：奉命赴皖东北，参与创建和领导抗日根据地，任八路军、新四军要职。\n- **意义**：独当一面开展敌后抗战，展示了军事指挥和根据地建设才能。\n- **名篇名句**：《清平乐·反扫荡》：战略相持，游击称神勇。夜袭晨昏敌胆恐，地道地雷轰动。\n\n### 📍 重要地点：华东战场\n- **时间**：1946年-1949年\n- **停留时间**：约3年\n- **地点**：江苏省徐州市、山东省临沂市等地（存疑：具体活动范围可能因战役阶段而异）\n- **事件**：在解放战争中任华中军区副司令员、华东军区海军司令员兼政委等职，参与指挥多次重要战役，并在渡江战役中负责东路集团指挥。\n- **意义**：为解放华东地区作出重要贡献，并开始涉足海军建设。\n\n### 📍 重要地点：浙江沿海\n- **时间**：1949年-1951年\n- **停留时间**：约2年\n- **地点**：浙江省杭州市、宁波市、舟山市等地\n- **事件**：任浙江军区司令员兼第七兵团司令员，指挥解放舟山群岛等沿海岛屿的作战。\n- **意义**：完成大陆及重要沿海岛屿的解放，巩固东南海防。\n\n### 📍 重要地点：北京（国防科委）\n- **时间**：1955年后长期\n- **停留时间**：数十年\n- **地点**：北京\n- **事件**：历任解放军副总参谋长、国防科委副主任、国务院副总理、国防部部长等职。组织领导“两弹一星”试验（如第一颗原子弹、氢弹、人造卫星），推动洲际导弹、潜地导弹、通信卫星研制。常赴青海等地基地（如原子城）指导工作。\n- **意义**：人生后半程的核心舞台，为新中国铸造核盾牌和航天基业，成就其最重要的历史功绩。\n- **名篇名句**：《破阵子·我国首次原子弹爆炸成功》：东风起舞，壮志千军鼓。苦斗百年今复主，矢志英雄伏虎。（注：此词作于1964年，内容回顾革命历程。）\n- **名篇名句**：《清平乐·我国第一颗人造卫星上天》：东方红唱，响彻云天上。宇宙遨游星月亮，环球同颂声亮。\n\n### 🔴 去世地：北京\n- **时间**：公元2003年\n- **停留时间**：晚年长期居住\n- **地点**：北京\n- **事件**：逝世。\n- **意义**：走完波澜壮阔的一生，其骨灰撒在曾经战斗过的大海和西北导弹发射场。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1910 | 0 | 出生于四川达县。 |\n| 1925 | 15 | 赴成都求学，接触进步思想。 |\n| 约1928（存疑） | 约18 | 加入中国共产党。（注：具体时间和地点存疑，一说在上海。） |\n| 1929 | 19 | 赴上海从事地下工作。 |\n| 1930 | 20 | 进入中央苏区。 |\n| 1930-1934 | 20-24 | 在中央苏区参加反“围剿”斗争。 |\n| 1934-1935 | 24-25 | 参加中央红军长征。 |\n| 1939-1941 | 29-31 | 参与创建皖东北抗日根据地。 |\n| 1946-1949 | 36-39 | 参与解放战争，指挥渡江战役等。 |\n| 1949-1951 | 39-41 | 指挥解放浙江沿海岛屿。 |\n| 1955 | 45 | 被授予上将军衔。 |\n| 1960s-1970s | 50-60s | 具体组织领导“两弹一星”研制与试验。 |\n| 1980-1982 | 70-72 | 任国务院副总理、国防部部长。 |\n| 2003 | 93 | 在北京逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：张爱萍的诗词在部分教材或读本中作为革命历史题材的补充材料出现，如 **《清平乐·我国首次原子弹爆炸成功》**、**《破阵子》** 等。（具体收录情况需查证）\n- 核心要点：\n    - **主题思想**：作品多抒发革命豪情、歌颂国防科技成就与人民军队，充满 **革命乐观主义** 和 **爱国主义** 精神。\n    - **意象运用**：善用“东风”、“惊雷”、“星月”等 **宏大意象**，象征国家力量与科技进步。\n    - **艺术风格**：风格 **雄浑豪放**，兼具军人气魄与诗人情怀，是 **“将军诗词”** 的代表。\n    - **重点**：其诗词是理解 **革命家情怀** 与 **国防建设史诗** 的重要文学文本。\n    - **重点**：作品常与 **“两弹一星”精神** 相关联，是进行爱国主义和科学精神教育的生动素材。\n    - **重点**：语言 **凝练有力**，善于将重大历史事件融入传统诗词格律，实现 **内容与形式的统一**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **土地革命战争**：参与中央苏区反“围剿”和 **长征**。\n    - **抗日战争**：参与创建 **皖东北抗日根据地**。\n    - **解放战争**：参与指挥 **渡江战役** 和解放沿海岛屿。\n    - **国防建设**：具体组织领导 **“两弹一星”** 研制试验，是 **国防科技事业** 的关键领导人之一。\n- 核心要点：\n    - **重点**：张爱萍是 **中国人民解放军** 从革命战争年代走向现代化建设时期的代表性高级将领之一。\n    - **重点**：他在 **国防科工领域** 的贡献，是新中国打破核垄断、提升国际地位的关键环节，体现了 **自力更生、艰苦奋斗** 的科研精神。\n    - **重点**：其生涯体现了 **“文武兼备”** 的特点，既是战场指挥员，又是科技事业组织者，还是诗人，是 **复合型人才** 的典范。\n    - 作为 **开国上将**，他的军事生涯贯穿了中共领导的革命战争主要阶段。\n    - 在 **改革开放** 初期，担任国防部长，致力于军队现代化、正规化建设。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省达州市 | 31.2091 | 107.4681 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 上海市 | 31.2304 | 121.4737 |\n| 江西省瑞金市 | 25.8856 | 116.0271 |\n| 贵州省遵义市 | 27.7254 | 106.9272 |\n| 安徽省宿州市 | 33.6462 | 116.9641 |\n| 江苏省徐州市 | 34.2044 | 117.2859 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 北京市 | 39.9042 | 116.4074 |\n| 青海省海北藏族自治州（原子城） | 36.9595 | 100.9010 |", "relatedGraph": {"center": {"id": "张爱萍", "name": "张爱萍", "file": "张爱萍.html", "dynasty": "近现代", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张爱萍", "name": "张爱萍", "file": "张爱萍.html", "dynasty": "近现代", "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨振宁", "name": "杨振宁", "file": "杨振宁.html", "dynasty": "", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于敏", "name": "于敏", "file": "于敏.html", "dynasty": "中华人民共和国", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "张爱萍", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "张爱萍", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "张爱萍", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "张爱萍", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "张爱萍", "target": "杨振宁", "label": "同册共现", "confidence": 0.15}, {"source": "张爱萍", "target": "于敏", "label": "同册共现", "confidence": 0.15}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

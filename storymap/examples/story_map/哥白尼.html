@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "尼古拉·哥白尼", "title": "", "description": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。", "quote": "", "dynasty": "文艺复兴时期", "birthplace": "托伦（今波兰托伦）", "avatar": "", "birth": {"date": "1473年", "location": "托伦（今波兰托伦）", "lat": 53.0138, "lng": 18.5984}, "death": {"date": "1543年", "location": "弗龙堡（今波兰弗龙堡）", "lat": 54.352, "lng": 19.683}, "lifespan": "70岁", "highlights": {"honor": "", "status": "现代天文学的奠基人，日心说的创立者，开启了科学革命。", "identities": "天文学家、数学家、医生、教会法博士", "achievements": "提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。", "works": ["天体运行论"], "reviews": []}}, "locations": [{"name": "托伦", "ancientName": "托伦", "modernName": "波兰托伦", "lat": 53.0138, "lng": 18.5984, "type": "birth", "event": "出生于一个富裕的铜商家庭，童年在此度过。", "time": "公元1473年", "duration": "约10年", "significance": "其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。", "works": [], "quoteLines": []}, {"name": "克拉科夫", "ancientName": "克拉科夫", "modernName": "波兰克拉科夫", "lat": 50.0647, "lng": 19.945, "type": "normal", "event": "进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。", "time": "公元1491年 - 公元1495年", "duration": "约4年", "significance": "在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。", "works": [], "quoteLines": []}, {"name": "博洛尼亚", "ancientName": "博洛尼亚", "modernName": "意大利博洛尼亚", "lat": 44.4949, "lng": 11.3426, "type": "normal", "event": "在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。", "time": "公元1496年 - 公元1500年", "duration": "约4年", "significance": "与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。", "works": [], "quoteLines": []}, {"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马", "lat": 41.9028, "lng": 12.4964, "type": "normal", "event": "可能在此进行过天文学演讲或交流。", "time": "约公元1500年", "duration": "短暂访问（具体时长待考）", "significance": "作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。", "works": [], "quoteLines": []}, {"name": "帕多瓦", "ancientName": "帕多瓦", "modernName": "意大利帕多瓦", "lat": 45.4064, "lng": 11.8768, "type": "normal", "event": "在帕多瓦大学攻读医学。", "time": "公元1501年 - 公元1503年", "duration": "约2年", "significance": "获得了医学博士学位，为其日后担任教区医生提供了资质。", "works": [], "quoteLines": []}, {"name": "费拉拉", "ancientName": "费拉拉", "modernName": "意大利费拉拉", "lat": 44.8381, "lng": 11.6198, "type": "normal", "event": "在费拉拉大学获得教会法博士学位。", "time": "公元1503年", "duration": "短暂", "significance": "完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。", "works": [], "quoteLines": []}, {"name": "海尔斯堡（利兹巴克）", "ancientName": "利兹巴克-瓦尔明斯基", "modernName": "波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡", "lat": 54.126, "lng": 20.579, "type": "normal", "event": "返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。", "time": "公元1503年 - 公元1510年", "duration": "约7年", "significance": "在相对安稳的环境中，初步形成了日心说的核心框架。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "type": "normal", "event": "作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。", "time": "公元1510年 - 公元1543年", "duration": "约33年", "significance": "这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。", "works": ["天体运行论"], "quoteLines": []}, {"name": "奥尔什丁", "ancientName": "奥尔什丁", "modernName": "波兰奥尔什丁", "lat": 53.778, "lng": 20.481, "type": "normal", "event": "可能因条顿骑士团与波兰的战争，短期参与管理或避难。", "time": "公元1519年 - 公元1520年（具体时长待考）", "duration": "数月", "significance": "反映了其作为教士需履行的世俗管理职责。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "type": "death", "event": "在病榻上收到《天体运行论》的印刷本，随即逝世。", "time": "公元1543年5月24日", "duration": "终老于此", "significance": "其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。", "works": ["天体运行论"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "markdown": "# 哥白尼\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉·哥白尼\n- **时代**：文艺复兴时期\n- **出生**：公元1473年2月19日，托伦（今波兰托伦）\n- **去世**：公元1543年5月24日，弗龙堡（今波兰弗龙堡）\n- **享年**：70岁\n- **主要身份**：天文学家、数学家、医生、教会法博士\n- **历史地位**：现代天文学的奠基人，日心说的创立者，开启了科学革命。\n- **主要成就**：提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。\n\n### 生平概述\n哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：托伦\n- **时间**：公元1473年\n- **停留时间**：约10年\n- **地点**：托伦（今波兰托伦）\n- **事件**：出生于一个富裕的铜商家庭，童年在此度过。\n- **意义**：其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。\n\n### 📍 重要地点：克拉科夫\n- **时间**：公元1491年 - 公元1495年\n- **停留时间**：约4年\n- **地点**：克拉科夫（今波兰克拉科夫）\n- **事件**：进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。\n- **意义**：在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。\n\n### 📍 重要地点：博洛尼亚\n- **时间**：公元1496年 - 公元1500年\n- **停留时间**：约4年\n- **地点**：博洛尼亚（今意大利博洛尼亚）\n- **事件**：在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。\n- **意义**：与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。\n\n### 📍 重要地点：罗马\n- **时间**：约公元1500年\n- **停留时间**：短暂访问（具体时长待考）\n- **地点**：罗马（今意大利罗马）\n- **事件**：可能在此进行过天文学演讲或交流。\n- **意义**：作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。\n\n### 📍 重要地点：帕多瓦\n- **时间**：公元1501年 - 公元1503年\n- **停留时间**：约2年\n- **地点**：帕多瓦（今意大利帕多瓦）\n- **事件**：在帕多瓦大学攻读医学。\n- **意义**：获得了医学博士学位，为其日后担任教区医生提供了资质。\n\n### 📍 重要地点：费拉拉\n- **时间**：公元1503年\n- **停留时间**：短暂\n- **地点**：费拉拉（今意大利费拉拉）\n- **事件**：在费拉拉大学获得教会法博士学位。\n- **意义**：完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。\n\n### 📍 重要地点：海尔斯堡（利兹巴克）\n- **时间**：公元1503年 - 公元1510年\n- **停留时间**：约7年\n- **地点**：利兹巴克-瓦尔明斯基（今波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡）\n- **事件**：返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。\n- **意义**：在相对安稳的环境中，初步形成了日心说的核心框架。\n\n### 📍 重要地点：弗龙堡\n- **时间**：公元1510年 - 公元1543年\n- **停留时间**：约33年\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。\n- **意义**：这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。\n\n### 📍 重要地点：奥尔什丁\n- **时间**：公元1519年 - 公元1520年（具体时长待考）\n- **停留时间**：数月\n- **地点**：奥尔什丁（今波兰奥尔什丁）\n- **事件**：可能因条顿骑士团与波兰的战争，短期参与管理或避难。\n- **意义**：反映了其作为教士需履行的世俗管理职责。\n\n### 🔴 去世地：弗龙堡\n- **时间**：公元1543年5月24日\n- **停留时间**：终老于此\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：在病榻上收到《天体运行论》的印刷本，随即逝世。\n- **意义**：其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 托伦 | 53.0138 | 18.5984 |\n| 克拉科夫 | 50.0647 | 19.9450 |\n| 博洛尼亚 | 44.4949 | 11.3426 |\n| 罗马 | 41.9028 | 12.4964 |\n| 帕多瓦 | 45.4064 | 11.8768 |\n| 费拉拉 | 44.8381 | 11.6198 |\n| 利兹巴克-瓦尔明斯基 | 54.1260 | 20.5790 |\n| 弗龙堡 | 54.3520 | 19.6830 |\n| 奥尔什丁 | 53.7780 | 20.4810 |"};
+      const data = {"person": {"name": "尼古拉·哥白尼", "title": "", "description": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。", "quote": "", "dynasty": "文艺复兴时期", "birthplace": "托伦（今波兰托伦）", "avatar": "", "birth": {"date": "1473年", "location": "托伦（今波兰托伦）", "lat": 53.0138, "lng": 18.5984}, "death": {"date": "1543年", "location": "弗龙堡（今波兰弗龙堡）", "lat": 54.352, "lng": 19.683}, "lifespan": "70岁", "highlights": {"honor": "", "status": "现代天文学的奠基人，日心说的创立者，开启了科学革命。", "identities": "天文学家、数学家、医生、教会法博士", "achievements": "提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。", "works": ["天体运行论"], "reviews": []}}, "locations": [{"name": "托伦", "ancientName": "托伦", "modernName": "波兰托伦", "lat": 53.0138, "lng": 18.5984, "type": "birth", "event": "出生于一个富裕的铜商家庭，童年在此度过。", "time": "公元1473年", "duration": "约10年", "significance": "其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。", "works": [], "quoteLines": []}, {"name": "克拉科夫", "ancientName": "克拉科夫", "modernName": "波兰克拉科夫", "lat": 50.0647, "lng": 19.945, "type": "normal", "event": "进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。", "time": "公元1491年 - 公元1495年", "duration": "约4年", "significance": "在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。", "works": [], "quoteLines": []}, {"name": "博洛尼亚", "ancientName": "博洛尼亚", "modernName": "意大利博洛尼亚", "lat": 44.4949, "lng": 11.3426, "type": "normal", "event": "在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。", "time": "公元1496年 - 公元1500年", "duration": "约4年", "significance": "与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。", "works": [], "quoteLines": []}, {"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马", "lat": 41.9028, "lng": 12.4964, "type": "normal", "event": "可能在此进行过天文学演讲或交流。", "time": "约公元1500年", "duration": "短暂访问（具体时长待考）", "significance": "作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。", "works": [], "quoteLines": []}, {"name": "帕多瓦", "ancientName": "帕多瓦", "modernName": "意大利帕多瓦", "lat": 45.4064, "lng": 11.8768, "type": "normal", "event": "在帕多瓦大学攻读医学。", "time": "公元1501年 - 公元1503年", "duration": "约2年", "significance": "获得了医学博士学位，为其日后担任教区医生提供了资质。", "works": [], "quoteLines": []}, {"name": "费拉拉", "ancientName": "费拉拉", "modernName": "意大利费拉拉", "lat": 44.8381, "lng": 11.6198, "type": "normal", "event": "在费拉拉大学获得教会法博士学位。", "time": "公元1503年", "duration": "短暂", "significance": "完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。", "works": [], "quoteLines": []}, {"name": "海尔斯堡（利兹巴克）", "ancientName": "利兹巴克-瓦尔明斯基", "modernName": "波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡", "lat": 54.126, "lng": 20.579, "type": "normal", "event": "返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。", "time": "公元1503年 - 公元1510年", "duration": "约7年", "significance": "在相对安稳的环境中，初步形成了日心说的核心框架。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "type": "normal", "event": "作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。", "time": "公元1510年 - 公元1543年", "duration": "约33年", "significance": "这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。", "works": ["天体运行论"], "quoteLines": []}, {"name": "奥尔什丁", "ancientName": "奥尔什丁", "modernName": "波兰奥尔什丁", "lat": 53.778, "lng": 20.481, "type": "normal", "event": "可能因条顿骑士团与波兰的战争，短期参与管理或避难。", "time": "公元1519年 - 公元1520年（具体时长待考）", "duration": "数月", "significance": "反映了其作为教士需履行的世俗管理职责。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "type": "death", "event": "在病榻上收到《天体运行论》的印刷本，随即逝世。", "time": "公元1543年5月24日", "duration": "终老于此", "significance": "其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。", "works": ["天体运行论"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "markdown": "# 哥白尼\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉·哥白尼\n- **时代**：文艺复兴时期\n- **出生**：公元1473年2月19日，托伦（今波兰托伦）\n- **去世**：公元1543年5月24日，弗龙堡（今波兰弗龙堡）\n- **享年**：70岁\n- **主要身份**：天文学家、数学家、医生、教会法博士\n- **历史地位**：现代天文学的奠基人，日心说的创立者，开启了科学革命。\n- **主要成就**：提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。\n\n### 生平概述\n哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：托伦\n- **时间**：公元1473年\n- **停留时间**：约10年\n- **地点**：托伦（今波兰托伦）\n- **事件**：出生于一个富裕的铜商家庭，童年在此度过。\n- **意义**：其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。\n\n### 📍 重要地点：克拉科夫\n- **时间**：公元1491年 - 公元1495年\n- **停留时间**：约4年\n- **地点**：克拉科夫（今波兰克拉科夫）\n- **事件**：进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。\n- **意义**：在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。\n\n### 📍 重要地点：博洛尼亚\n- **时间**：公元1496年 - 公元1500年\n- **停留时间**：约4年\n- **地点**：博洛尼亚（今意大利博洛尼亚）\n- **事件**：在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。\n- **意义**：与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。\n\n### 📍 重要地点：罗马\n- **时间**：约公元1500年\n- **停留时间**：短暂访问（具体时长待考）\n- **地点**：罗马（今意大利罗马）\n- **事件**：可能在此进行过天文学演讲或交流。\n- **意义**：作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。\n\n### 📍 重要地点：帕多瓦\n- **时间**：公元1501年 - 公元1503年\n- **停留时间**：约2年\n- **地点**：帕多瓦（今意大利帕多瓦）\n- **事件**：在帕多瓦大学攻读医学。\n- **意义**：获得了医学博士学位，为其日后担任教区医生提供了资质。\n\n### 📍 重要地点：费拉拉\n- **时间**：公元1503年\n- **停留时间**：短暂\n- **地点**：费拉拉（今意大利费拉拉）\n- **事件**：在费拉拉大学获得教会法博士学位。\n- **意义**：完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。\n\n### 📍 重要地点：海尔斯堡（利兹巴克）\n- **时间**：公元1503年 - 公元1510年\n- **停留时间**：约7年\n- **地点**：利兹巴克-瓦尔明斯基（今波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡）\n- **事件**：返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。\n- **意义**：在相对安稳的环境中，初步形成了日心说的核心框架。\n\n### 📍 重要地点：弗龙堡\n- **时间**：公元1510年 - 公元1543年\n- **停留时间**：约33年\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。\n- **意义**：这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。\n\n### 📍 重要地点：奥尔什丁\n- **时间**：公元1519年 - 公元1520年（具体时长待考）\n- **停留时间**：数月\n- **地点**：奥尔什丁（今波兰奥尔什丁）\n- **事件**：可能因条顿骑士团与波兰的战争，短期参与管理或避难。\n- **意义**：反映了其作为教士需履行的世俗管理职责。\n\n### 🔴 去世地：弗龙堡\n- **时间**：公元1543年5月24日\n- **停留时间**：终老于此\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：在病榻上收到《天体运行论》的印刷本，随即逝世。\n- **意义**：其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 托伦 | 53.0138 | 18.5984 |\n| 克拉科夫 | 50.0647 | 19.9450 |\n| 博洛尼亚 | 44.4949 | 11.3426 |\n| 罗马 | 41.9028 | 12.4964 |\n| 帕多瓦 | 45.4064 | 11.8768 |\n| 费拉拉 | 44.8381 | 11.6198 |\n| 利兹巴克-瓦尔明斯基 | 54.1260 | 20.5790 |\n| 弗龙堡 | 54.3520 | 19.6830 |\n| 奥尔什丁 | 53.7780 | 20.4810 |", "relatedGraph": {"center": {"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "relationLabel": "中心人物", "isCenter": true}, {"id": "达·芬奇", "name": "达·芬奇", "file": "达·芬奇.html", "dynasty": "文艺复兴时期（15-16世纪）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "米开朗琪罗", "name": "米开朗琪罗", "file": "米开朗琪罗.html", "dynasty": "文艺复兴盛期（意大利）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "伽利略", "name": "伽利略", "file": "伽利略.html", "dynasty": "文艺复兴晚期 / 科学革命初期", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦哲伦", "name": "麦哲伦", "file": "麦哲伦.html", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "许晨", "name": "许晨", "file": "许晨.html", "dynasty": "明朝（中期）（示例设定）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "哥白尼", "target": "达·芬奇", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "米开朗琪罗", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "伽利略", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "麦哲伦", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "许晨", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

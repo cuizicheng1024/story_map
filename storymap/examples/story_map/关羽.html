@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "关羽", "title": "忠义", "description": "关羽，字云长，本字长生，河东解人。东汉末年亡命涿郡，与刘备、张飞情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），参与镇压黄巾起义。刘备集团早期颠沛流离，关羽曾短暂被曹操所擒，受厚待却仍执意回归刘备。赤壁之战后，关羽奉命镇守荆州，期间曾北伐襄樊，利用秋雨汉水暴涨之机水淹七军，威震中原。然而因东吴吕蒙偷袭荆州，关羽腹背受敌，最终败走麦城，于临沮被俘遇害。其一生践行忠义，勇冠三军，经《三国演义》等文学作品渲染，成为中华文化中忠勇精神的化身。", "quote": "《三国演义》：“身在曹营心在汉”", "dynasty": "东汉末年", "birthplace": "多为后世推算）", "avatar": "", "birth": {"date": "", "location": "多为后世推算）", "lat": null, "lng": null}, "death": {"date": "219年", "location": "末/初", "lat": null, "lng": null}, "lifespan": "存疑", "highlights": {"honor": "忠义", "status": "中国历史上以“忠义”著称的名将，被后世尊为“武圣”。", "identities": "将领、刘备集团核心成员", "achievements": "1. 东汉末年追随刘备起兵，成为其最核心的军事统帅之一；2. 在官渡之战期间，于白马之战中斩杀袁绍大将颜良；3. 长期镇守荆州，威震华夏；4. 其形象经后世文学与宗教塑造，成为“忠义”的文化符号。", "works": ["三国演义"], "reviews": []}}, "locations": [{"name": "解县", "ancientName": "河东郡解县", "modernName": "山西省运城市盐湖区", "lat": 35.0264, "lng": 111.007, "type": "birth", "event": "早年事迹不详，因故杀人亡命，逃离家乡。", "time": "出生年份存疑", "duration": "青年时期", "significance": "关羽的故乡，其“河东解良”的籍贯为后世所熟知。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.9996, "type": "normal", "event": "亡命途中至涿郡，与刘备、张飞相遇，三人情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），共同起兵参与镇压黄巾起义。", "time": "约公元184年", "duration": "数年", "significance": "人生重大转折点，奠定了其一生追随刘备的政治立场与兄弟情谊的基础。", "works": ["三国演义"], "quoteLines": []}, {"name": "虎牢关（汜水关）", "ancientName": "虎牢关", "modernName": "河南省荥阳市汜水镇", "lat": 34.8416, "lng": 113.3092, "type": "normal", "event": "在“十八路诸侯讨董卓”战役中，关羽因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而一战成名。", "time": "约公元191年", "duration": "战役期间", "significance": "首次在诸侯联军面前展现其超凡武勇，声名鹊起。", "works": ["三国演义"], "quoteLines": []}, {"name": "许都", "ancientName": "许都", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "type": "normal", "event": "刘备战败后，关羽被曹操俘虏，暂归曹营。曹操厚待之，关羽‘土山约三事’（《三国演义》文学演绎）后暂时投降。期间斩颜良解白马之围，被封汉寿亭侯。", "time": "公元200年", "duration": "短暂寄居", "significance": "在忠义与恩情间经受重大考验，最终挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备，成为其“忠义”品格最核心的例证。", "works": ["三国演义"], "quoteLines": ["《三国演义》：“身在曹营心在汉”", "“新恩虽厚，旧义难忘”。"]}, {"name": "古城", "ancientName": "古城", "modernName": "古城（存疑，一说今河南省驻马店市确山县）", "lat": 32.8021, "lng": 114.0264, "type": "normal", "event": "千里寻兄途中，在古城与张飞误会消除，兄弟相会，并斩杀追兵蔡阳（《三国演义》文学演绎）以明心迹。古城遗址具体位置存疑，今确山县为学界一种说法。", "time": "约公元201年", "duration": "短暂", "significance": "刘关张兄弟重聚的关键节点，象征团队核心的重新凝聚。", "works": ["三国演义"], "quoteLines": []}, {"name": "公安", "ancientName": "公安", "modernName": "湖北省荆州市公安县", "lat": 30.0581, "lng": 112.2295, "type": "normal", "event": "赤壁之战后，刘备据有荆州南部四郡，关羽驻守公安，作为荆州重要基地之一。", "time": "公元210-214年", "duration": "数年", "significance": "开始独立镇守一方，为后续总揽荆州军政奠定基础。", "works": [], "quoteLines": []}, {"name": "江陵", "ancientName": "江陵", "modernName": "湖北省荆州市", "lat": 30.3352, "lng": 112.2397, "type": "normal", "event": "刘备入川后，关羽总督荆州事务，坐镇江陵。期间曾与鲁肃‘单刀赴会’（地点有多种说法），并北伐襄樊。", "time": "公元214-219年", "duration": "约5年", "significance": "人生事业的顶峰，独当一面，镇守战略要地荆州。", "works": [], "quoteLines": []}, {"name": "襄樊战场", "ancientName": "襄阳、樊城", "modernName": "湖北省襄阳市", "lat": 32.009, "lng": 112.1224, "type": "normal", "event": "发动襄樊之战，初期利用汉水暴涨之机“水淹七军”，擒于禁、斩庞德，威震华夏，曹操一度议迁都以避其锋。", "time": "公元219年", "duration": "数月", "significance": "军事生涯的辉煌顶点，但也因战线过长、后方空虚埋下败因。", "works": [], "quoteLines": ["《三国演义》：“威震华夏”。"]}, {"name": "麦城", "ancientName": "麦城", "modernName": "麦城（存疑，一说今湖北省宜昌市当阳市）", "lat": 30.8212, "lng": 111.7893, "type": "normal", "event": "因东吴吕蒙“白衣渡江”偷袭荆州，关羽腹背受敌，败退至麦城，突围时士卒离散。麦城遗址具体位置存疑，今当阳市为学界一种说法。", "time": "公元219年末", "duration": "短暂", "significance": "英雄末路的象征，标志着荆州的彻底丧失与个人命运的终结。", "works": [], "quoteLines": []}, {"name": "临沮", "ancientName": "临沮", "modernName": "湖北省宜昌市远安县", "lat": 31.0603, "lng": 111.6403, "type": "death", "event": "从麦城突围后，在临沮小路被东吴伏兵擒获，与子关平一同遇害。", "time": "公元219年末/220年初", "duration": "被俘即遇害", "significance": "生命的终点，其死直接导致刘备发动夷陵之战，深刻影响了三国政治格局。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---", "markdown": "# 关羽\n\n## 人物档案\n\n### 基本信息\n- **姓名**：关羽\n- **时代**：东汉末年\n- **出生**：出生年份存疑（史料未详，多为后世推算），河东郡解县（今山西省运城市盐湖区）\n- **去世**：公元219年末/220年初，临沮（今湖北省宜昌市远安县）\n- **享年**：存疑\n- **主要身份**：将领、刘备集团核心成员\n- **历史地位**：中国历史上以“忠义”著称的名将，被后世尊为“武圣”。\n- **主要成就**：1. 东汉末年追随刘备起兵，成为其最核心的军事统帅之一；2. 在官渡之战期间，于白马之战中斩杀袁绍大将颜良；3. 长期镇守荆州，威震华夏；4. 其形象经后世文学与宗教塑造，成为“忠义”的文化符号。\n\n### 生平概述\n关羽，字云长，本字长生，河东解人。东汉末年亡命涿郡，与刘备、张飞情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），参与镇压黄巾起义。刘备集团早期颠沛流离，关羽曾短暂被曹操所擒，受厚待却仍执意回归刘备。赤壁之战后，关羽奉命镇守荆州，期间曾北伐襄樊，利用秋雨汉水暴涨之机水淹七军，威震中原。然而因东吴吕蒙偷袭荆州，关羽腹背受敌，最终败走麦城，于临沮被俘遇害。其一生践行忠义，勇冠三军，经《三国演义》等文学作品渲染，成为中华文化中忠勇精神的化身。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹北起山西、河北，南至湖北，主要活动于中原与荆州地区。\n- ⏱️ **时间跨度**：约公元184年至219年，共约35年。\n- 📍 **地理范围**：大致覆盖今山西、河北、河南、湖北等省。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：解县\n- **时间**：出生年份存疑\n- **停留时间**：青年时期\n- **地点**：河东郡解县（今山西省运城市盐湖区）\n- **事件**：早年事迹不详，因故杀人亡命，逃离家乡。\n- **意义**：关羽的故乡，其“河东解良”的籍贯为后世所熟知。\n\n### 📍 重要地点：涿郡\n- **时间**：约公元184年\n- **停留时间**：数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：亡命途中至涿郡，与刘备、张飞相遇，三人情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），共同起兵参与镇压黄巾起义。\n- **意义**：人生重大转折点，奠定了其一生追随刘备的政治立场与兄弟情谊的基础。\n\n### 📍 重要地点：虎牢关（汜水关）\n- **时间**：约公元191年\n- **停留时间**：战役期间\n- **地点**：虎牢关（今河南省荥阳市汜水镇）\n- **事件**：在“十八路诸侯讨董卓”战役中，关羽因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而一战成名。\n- **意义**：首次在诸侯联军面前展现其超凡武勇，声名鹊起。\n\n### 📍 重要地点：许都\n- **时间**：公元200年\n- **停留时间**：短暂寄居\n- **地点**：许都（今河南省许昌市）\n- **事件**：刘备战败后，关羽被曹操俘虏，暂归曹营。曹操厚待之，关羽‘土山约三事’（《三国演义》文学演绎）后暂时投降。期间斩颜良解白马之围，被封汉寿亭侯。\n- **意义**：在忠义与恩情间经受重大考验，最终挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备，成为其“忠义”品格最核心的例证。\n- **名篇名句**：《三国演义》：“身在曹营心在汉”；“新恩虽厚，旧义难忘”。\n\n### 📍 重要地点：古城\n- **时间**：约公元201年\n- **停留时间**：短暂\n- **地点**：古城（存疑，一说今河南省驻马店市确山县）\n- **事件**：千里寻兄途中，在古城与张飞误会消除，兄弟相会，并斩杀追兵蔡阳（《三国演义》文学演绎）以明心迹。古城遗址具体位置存疑，今确山县为学界一种说法。\n- **意义**：刘关张兄弟重聚的关键节点，象征团队核心的重新凝聚。\n\n### 📍 重要地点：公安\n- **时间**：公元210-214年\n- **停留时间**：数年\n- **地点**：公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备据有荆州南部四郡，关羽驻守公安，作为荆州重要基地之一。\n- **意义**：开始独立镇守一方，为后续总揽荆州军政奠定基础。\n\n### 📍 重要地点：江陵\n- **时间**：公元214-219年\n- **停留时间**：约5年\n- **地点**：江陵（今湖北省荆州市）\n- **事件**：刘备入川后，关羽总督荆州事务，坐镇江陵。期间曾与鲁肃‘单刀赴会’（地点有多种说法），并北伐襄樊。\n- **意义**：人生事业的顶峰，独当一面，镇守战略要地荆州。\n\n### 📍 重要地点：襄樊战场\n- **时间**：公元219年\n- **停留时间**：数月\n- **地点**：襄阳、樊城（今湖北省襄阳市）\n- **事件**：发动襄樊之战，初期利用汉水暴涨之机“水淹七军”，擒于禁、斩庞德，威震华夏，曹操一度议迁都以避其锋。\n- **意义**：军事生涯的辉煌顶点，但也因战线过长、后方空虚埋下败因。\n- **名篇名句**：《三国演义》：“威震华夏”。\n\n### 📍 重要地点：麦城\n- **时间**：公元219年末\n- **停留时间**：短暂\n- **地点**：麦城（存疑，一说今湖北省宜昌市当阳市）\n- **事件**：因东吴吕蒙“白衣渡江”偷袭荆州，关羽腹背受敌，败退至麦城，突围时士卒离散。麦城遗址具体位置存疑，今当阳市为学界一种说法。\n- **意义**：英雄末路的象征，标志着荆州的彻底丧失与个人命运的终结。\n\n### 🔴 去世地：临沮\n- **时间**：公元219年末/220年初\n- **停留时间**：被俘即遇害\n- **地点**：临沮（今湖北省宜昌市远安县）\n- **事件**：从麦城突围后，在临沮小路被东吴伏兵擒获，与子关平一同遇害。\n- **意义**：生命的终点，其死直接导致刘备发动夷陵之战，深刻影响了三国政治格局。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 出生年份存疑 | 0岁 | 生于河东郡解县。 |\n| 约184年 | 约24岁 | 亡命至涿郡，结识刘备、张飞，参与镇压黄巾起义。 |\n| 191年 | 约31岁 | 于虎牢关前因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而崭露头角。 |\n| 200年 | 约40岁 | 下邳被俘，暂归曹营；斩颜良解白马之围；挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备。 |\n| 201年 | 约41岁 | 古城与刘备、张飞相会。 |\n| 208年 | 约48岁 | 赤壁之战期间，具体参与行动存疑。 |\n| 211年 | 约51岁 | 刘备入川，关羽总督荆州。 |\n| 215年 | 约55岁 | 与东吴争夺长沙、桂阳、零陵三郡，后以湘水划界和解。 |\n| 219年 | 约59岁 | 发动襄樊之战，水淹七军，威震华夏；遭孙权偷袭，失荆州，败走麦城。 |\n| 219年末/220年初 | 约60岁 | 于临沮被俘，遇害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 山西省运城市盐湖区 | 35.0264 | 111.0070 |\n| 河北省涿州市 | 39.4853 | 115.9996 |\n| 河南省荥阳市汜水镇 | 34.8416 | 113.3092 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省驻马店市确山县 | 32.8021 | 114.0264 |\n| 湖北省荆州市公安县 | 30.0581 | 112.2295 |\n| 湖北省荆州市 | 30.3352 | 112.2397 |\n| 湖北省襄阳市 | 32.0090 | 112.1224 |\n| 湖北省宜昌市当阳市 | 30.8212 | 111.7893 |\n| 湖北省宜昌市远安县 | 31.0603 | 111.6403 |"};
+      const data = {"person": {"name": "关羽", "title": "忠义", "description": "关羽，字云长，本字长生，河东解人。东汉末年亡命涿郡，与刘备、张飞情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），参与镇压黄巾起义。刘备集团早期颠沛流离，关羽曾短暂被曹操所擒，受厚待却仍执意回归刘备。赤壁之战后，关羽奉命镇守荆州，期间曾北伐襄樊，利用秋雨汉水暴涨之机水淹七军，威震中原。然而因东吴吕蒙偷袭荆州，关羽腹背受敌，最终败走麦城，于临沮被俘遇害。其一生践行忠义，勇冠三军，经《三国演义》等文学作品渲染，成为中华文化中忠勇精神的化身。", "quote": "《三国演义》：“身在曹营心在汉”", "dynasty": "东汉末年", "birthplace": "多为后世推算）", "avatar": "", "birth": {"date": "", "location": "多为后世推算）", "lat": null, "lng": null}, "death": {"date": "219年", "location": "末/初", "lat": null, "lng": null}, "lifespan": "存疑", "highlights": {"honor": "忠义", "status": "中国历史上以“忠义”著称的名将，被后世尊为“武圣”。", "identities": "将领、刘备集团核心成员", "achievements": "1. 东汉末年追随刘备起兵，成为其最核心的军事统帅之一；2. 在官渡之战期间，于白马之战中斩杀袁绍大将颜良；3. 长期镇守荆州，威震华夏；4. 其形象经后世文学与宗教塑造，成为“忠义”的文化符号。", "works": ["三国演义"], "reviews": []}}, "locations": [{"name": "解县", "ancientName": "河东郡解县", "modernName": "山西省运城市盐湖区", "lat": 35.0264, "lng": 111.007, "type": "birth", "event": "早年事迹不详，因故杀人亡命，逃离家乡。", "time": "出生年份存疑", "duration": "青年时期", "significance": "关羽的故乡，其“河东解良”的籍贯为后世所熟知。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.9996, "type": "normal", "event": "亡命途中至涿郡，与刘备、张飞相遇，三人情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），共同起兵参与镇压黄巾起义。", "time": "约公元184年", "duration": "数年", "significance": "人生重大转折点，奠定了其一生追随刘备的政治立场与兄弟情谊的基础。", "works": ["三国演义"], "quoteLines": []}, {"name": "虎牢关（汜水关）", "ancientName": "虎牢关", "modernName": "河南省荥阳市汜水镇", "lat": 34.8416, "lng": 113.3092, "type": "normal", "event": "在“十八路诸侯讨董卓”战役中，关羽因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而一战成名。", "time": "约公元191年", "duration": "战役期间", "significance": "首次在诸侯联军面前展现其超凡武勇，声名鹊起。", "works": ["三国演义"], "quoteLines": []}, {"name": "许都", "ancientName": "许都", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "type": "normal", "event": "刘备战败后，关羽被曹操俘虏，暂归曹营。曹操厚待之，关羽‘土山约三事’（《三国演义》文学演绎）后暂时投降。期间斩颜良解白马之围，被封汉寿亭侯。", "time": "公元200年", "duration": "短暂寄居", "significance": "在忠义与恩情间经受重大考验，最终挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备，成为其“忠义”品格最核心的例证。", "works": ["三国演义"], "quoteLines": ["《三国演义》：“身在曹营心在汉”", "“新恩虽厚，旧义难忘”。"]}, {"name": "古城", "ancientName": "古城", "modernName": "古城（存疑，一说今河南省驻马店市确山县）", "lat": 32.8021, "lng": 114.0264, "type": "normal", "event": "千里寻兄途中，在古城与张飞误会消除，兄弟相会，并斩杀追兵蔡阳（《三国演义》文学演绎）以明心迹。古城遗址具体位置存疑，今确山县为学界一种说法。", "time": "约公元201年", "duration": "短暂", "significance": "刘关张兄弟重聚的关键节点，象征团队核心的重新凝聚。", "works": ["三国演义"], "quoteLines": []}, {"name": "公安", "ancientName": "公安", "modernName": "湖北省荆州市公安县", "lat": 30.0581, "lng": 112.2295, "type": "normal", "event": "赤壁之战后，刘备据有荆州南部四郡，关羽驻守公安，作为荆州重要基地之一。", "time": "公元210-214年", "duration": "数年", "significance": "开始独立镇守一方，为后续总揽荆州军政奠定基础。", "works": [], "quoteLines": []}, {"name": "江陵", "ancientName": "江陵", "modernName": "湖北省荆州市", "lat": 30.3352, "lng": 112.2397, "type": "normal", "event": "刘备入川后，关羽总督荆州事务，坐镇江陵。期间曾与鲁肃‘单刀赴会’（地点有多种说法），并北伐襄樊。", "time": "公元214-219年", "duration": "约5年", "significance": "人生事业的顶峰，独当一面，镇守战略要地荆州。", "works": [], "quoteLines": []}, {"name": "襄樊战场", "ancientName": "襄阳、樊城", "modernName": "湖北省襄阳市", "lat": 32.009, "lng": 112.1224, "type": "normal", "event": "发动襄樊之战，初期利用汉水暴涨之机“水淹七军”，擒于禁、斩庞德，威震华夏，曹操一度议迁都以避其锋。", "time": "公元219年", "duration": "数月", "significance": "军事生涯的辉煌顶点，但也因战线过长、后方空虚埋下败因。", "works": [], "quoteLines": ["《三国演义》：“威震华夏”。"]}, {"name": "麦城", "ancientName": "麦城", "modernName": "麦城（存疑，一说今湖北省宜昌市当阳市）", "lat": 30.8212, "lng": 111.7893, "type": "normal", "event": "因东吴吕蒙“白衣渡江”偷袭荆州，关羽腹背受敌，败退至麦城，突围时士卒离散。麦城遗址具体位置存疑，今当阳市为学界一种说法。", "time": "公元219年末", "duration": "短暂", "significance": "英雄末路的象征，标志着荆州的彻底丧失与个人命运的终结。", "works": [], "quoteLines": []}, {"name": "临沮", "ancientName": "临沮", "modernName": "湖北省宜昌市远安县", "lat": 31.0603, "lng": 111.6403, "type": "death", "event": "从麦城突围后，在临沮小路被东吴伏兵擒获，与子关平一同遇害。", "time": "公元219年末/220年初", "duration": "被俘即遇害", "significance": "生命的终点，其死直接导致刘备发动夷陵之战，深刻影响了三国政治格局。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---", "markdown": "# 关羽\n\n## 人物档案\n\n### 基本信息\n- **姓名**：关羽\n- **时代**：东汉末年\n- **出生**：出生年份存疑（史料未详，多为后世推算），河东郡解县（今山西省运城市盐湖区）\n- **去世**：公元219年末/220年初，临沮（今湖北省宜昌市远安县）\n- **享年**：存疑\n- **主要身份**：将领、刘备集团核心成员\n- **历史地位**：中国历史上以“忠义”著称的名将，被后世尊为“武圣”。\n- **主要成就**：1. 东汉末年追随刘备起兵，成为其最核心的军事统帅之一；2. 在官渡之战期间，于白马之战中斩杀袁绍大将颜良；3. 长期镇守荆州，威震华夏；4. 其形象经后世文学与宗教塑造，成为“忠义”的文化符号。\n\n### 生平概述\n关羽，字云长，本字长生，河东解人。东汉末年亡命涿郡，与刘备、张飞情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），参与镇压黄巾起义。刘备集团早期颠沛流离，关羽曾短暂被曹操所擒，受厚待却仍执意回归刘备。赤壁之战后，关羽奉命镇守荆州，期间曾北伐襄樊，利用秋雨汉水暴涨之机水淹七军，威震中原。然而因东吴吕蒙偷袭荆州，关羽腹背受敌，最终败走麦城，于临沮被俘遇害。其一生践行忠义，勇冠三军，经《三国演义》等文学作品渲染，成为中华文化中忠勇精神的化身。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹北起山西、河北，南至湖北，主要活动于中原与荆州地区。\n- ⏱️ **时间跨度**：约公元184年至219年，共约35年。\n- 📍 **地理范围**：大致覆盖今山西、河北、河南、湖北等省。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：解县\n- **时间**：出生年份存疑\n- **停留时间**：青年时期\n- **地点**：河东郡解县（今山西省运城市盐湖区）\n- **事件**：早年事迹不详，因故杀人亡命，逃离家乡。\n- **意义**：关羽的故乡，其“河东解良”的籍贯为后世所熟知。\n\n### 📍 重要地点：涿郡\n- **时间**：约公元184年\n- **停留时间**：数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：亡命途中至涿郡，与刘备、张飞相遇，三人情同兄弟（‘桃园结义’为《三国演义》文学演绎，正史无此记载），共同起兵参与镇压黄巾起义。\n- **意义**：人生重大转折点，奠定了其一生追随刘备的政治立场与兄弟情谊的基础。\n\n### 📍 重要地点：虎牢关（汜水关）\n- **时间**：约公元191年\n- **停留时间**：战役期间\n- **地点**：虎牢关（今河南省荥阳市汜水镇）\n- **事件**：在“十八路诸侯讨董卓”战役中，关羽因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而一战成名。\n- **意义**：首次在诸侯联军面前展现其超凡武勇，声名鹊起。\n\n### 📍 重要地点：许都\n- **时间**：公元200年\n- **停留时间**：短暂寄居\n- **地点**：许都（今河南省许昌市）\n- **事件**：刘备战败后，关羽被曹操俘虏，暂归曹营。曹操厚待之，关羽‘土山约三事’（《三国演义》文学演绎）后暂时投降。期间斩颜良解白马之围，被封汉寿亭侯。\n- **意义**：在忠义与恩情间经受重大考验，最终挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备，成为其“忠义”品格最核心的例证。\n- **名篇名句**：《三国演义》：“身在曹营心在汉”；“新恩虽厚，旧义难忘”。\n\n### 📍 重要地点：古城\n- **时间**：约公元201年\n- **停留时间**：短暂\n- **地点**：古城（存疑，一说今河南省驻马店市确山县）\n- **事件**：千里寻兄途中，在古城与张飞误会消除，兄弟相会，并斩杀追兵蔡阳（《三国演义》文学演绎）以明心迹。古城遗址具体位置存疑，今确山县为学界一种说法。\n- **意义**：刘关张兄弟重聚的关键节点，象征团队核心的重新凝聚。\n\n### 📍 重要地点：公安\n- **时间**：公元210-214年\n- **停留时间**：数年\n- **地点**：公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备据有荆州南部四郡，关羽驻守公安，作为荆州重要基地之一。\n- **意义**：开始独立镇守一方，为后续总揽荆州军政奠定基础。\n\n### 📍 重要地点：江陵\n- **时间**：公元214-219年\n- **停留时间**：约5年\n- **地点**：江陵（今湖北省荆州市）\n- **事件**：刘备入川后，关羽总督荆州事务，坐镇江陵。期间曾与鲁肃‘单刀赴会’（地点有多种说法），并北伐襄樊。\n- **意义**：人生事业的顶峰，独当一面，镇守战略要地荆州。\n\n### 📍 重要地点：襄樊战场\n- **时间**：公元219年\n- **停留时间**：数月\n- **地点**：襄阳、樊城（今湖北省襄阳市）\n- **事件**：发动襄樊之战，初期利用汉水暴涨之机“水淹七军”，擒于禁、斩庞德，威震华夏，曹操一度议迁都以避其锋。\n- **意义**：军事生涯的辉煌顶点，但也因战线过长、后方空虚埋下败因。\n- **名篇名句**：《三国演义》：“威震华夏”。\n\n### 📍 重要地点：麦城\n- **时间**：公元219年末\n- **停留时间**：短暂\n- **地点**：麦城（存疑，一说今湖北省宜昌市当阳市）\n- **事件**：因东吴吕蒙“白衣渡江”偷袭荆州，关羽腹背受敌，败退至麦城，突围时士卒离散。麦城遗址具体位置存疑，今当阳市为学界一种说法。\n- **意义**：英雄末路的象征，标志着荆州的彻底丧失与个人命运的终结。\n\n### 🔴 去世地：临沮\n- **时间**：公元219年末/220年初\n- **停留时间**：被俘即遇害\n- **地点**：临沮（今湖北省宜昌市远安县）\n- **事件**：从麦城突围后，在临沮小路被东吴伏兵擒获，与子关平一同遇害。\n- **意义**：生命的终点，其死直接导致刘备发动夷陵之战，深刻影响了三国政治格局。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 出生年份存疑 | 0岁 | 生于河东郡解县。 |\n| 约184年 | 约24岁 | 亡命至涿郡，结识刘备、张飞，参与镇压黄巾起义。 |\n| 191年 | 约31岁 | 于虎牢关前因‘温酒斩华雄’（《三国演义》文学演绎，正史中斩华雄者为孙坚）而崭露头角。 |\n| 200年 | 约40岁 | 下邳被俘，暂归曹营；斩颜良解白马之围；挂印封金，千里走单骑（《三国演义》文学演绎）回归刘备。 |\n| 201年 | 约41岁 | 古城与刘备、张飞相会。 |\n| 208年 | 约48岁 | 赤壁之战期间，具体参与行动存疑。 |\n| 211年 | 约51岁 | 刘备入川，关羽总督荆州。 |\n| 215年 | 约55岁 | 与东吴争夺长沙、桂阳、零陵三郡，后以湘水划界和解。 |\n| 219年 | 约59岁 | 发动襄樊之战，水淹七军，威震华夏；遭孙权偷袭，失荆州，败走麦城。 |\n| 219年末/220年初 | 约60岁 | 于临沮被俘，遇害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：主要形象出自古典小说 **《三国演义》** 相关选段或衍生诗歌，如 **《关羽温酒斩华雄》**、**《过五关斩六将》** 等。\n- 核心要点：\n    - **重点**：**忠义**精神的化身，其“身在曹营心在汉”、“千里走单骑”是表现对刘备绝对忠诚的核心情节。\n    - **重点**：**勇武**绝伦的武将形象，“温酒斩华雄”、“斩颜良诛文丑”、“单刀赴会”、“刮骨疗毒”等情节极具传奇色彩。\n    - **刚愎自用**的性格弱点，导致大意失荆州，是人物悲剧性的重要内因。\n    - **“义”** 的伦理内涵，既包含兄弟之义，也包含对汉室正统的忠义。\n    - 文学作品中常用 **青龙偃月刀**、**赤兔马** 作为其标志性符号。\n    - **重点**：**败走麦城** 是其人生轨迹的重大转折点，从巅峰跌落，充满悲剧色彩。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年亡命涿郡，**追随刘备**，是刘备集团创业期的核心成员。\n    - 官渡之战期间，**斩颜良**，解白马之围，是正史明确记载的战功。\n    - **重点**：**镇守荆州**多年，是刘备集团在荆州地区的最高军政长官。\n    - 公元219年，发动 **襄樊之战**，前期取得 **水淹七军** 的重大胜利。\n    - 遭 **孙权** 背后偷袭，丢失荆州，兵败被杀。\n- 核心要点：\n    - **重点**：历史上的关羽是 **“万人敌”** 的猛将，陈寿评其“称万人之敌，为世虎臣”。\n    - **重点**：其 **“忠义”** 形象在后世被不断强化和神化，从名将升华为 **“武圣”**，与“文圣”孔子并列。\n    - **荆州问题**是理解其生平与三国局势的关键，他的北伐与败亡直接改变了 **三国鼎立** 的战略平衡。\n    - **重点**：性格上 **“刚而自矜”** （刚强且自傲），这是导致其外交失误（与东吴关系破裂）和最终失败的重要个人因素。\n    - 其死亡是 **夷陵之战** 的导火索，对蜀汉国运造成毁灭性打击。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 山西省运城市盐湖区 | 35.0264 | 111.0070 |\n| 河北省涿州市 | 39.4853 | 115.9996 |\n| 河南省荥阳市汜水镇 | 34.8416 | 113.3092 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省驻马店市确山县 | 32.8021 | 114.0264 |\n| 湖北省荆州市公安县 | 30.0581 | 112.2295 |\n| 湖北省荆州市 | 30.3352 | 112.2397 |\n| 湖北省襄阳市 | 32.0090 | 112.1224 |\n| 湖北省宜昌市当阳市 | 30.8212 | 111.7893 |\n| 湖北省宜昌市远安县 | 31.0603 | 111.6403 |", "relatedGraph": {"center": {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "relationLabel": "中心人物", "isCenter": true}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "魏晋南北", "relationLabel": "会面", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "汉", "relationLabel": "会面", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "孙权", "name": "孙权", "file": "孙权.html", "dynasty": "汉", "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汉献帝", "name": "汉献帝", "file": "汉献帝.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "关羽", "target": "张飞", "label": "会面", "confidence": 0.55}, {"source": "关羽", "target": "刘备", "label": "会面", "confidence": 0.55}, {"source": "关羽", "target": "孙权", "label": "对手", "confidence": null}, {"source": "关羽", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "关羽", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "关羽", "target": "汉献帝", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "陆游", "title": "", "description": "陆游生于北宋灭亡之际，成长于南宋偏安之局，一生力主抗金恢复中原，却屡遭主和派排挤打压。他仕途坎坷，曾投身军旅，亦长期闲居故里。其诗歌创作贯穿一生，题材极为广阔，核心主题是深沉的爱国情怀与壮志难酬的悲愤，风格雄浑豪放，对后世影响深远。", "quote": "《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”", "dynasty": "南宋", "birthplace": "淮上（今江苏省淮安市）", "avatar": "", "birth": {"date": "1125年", "location": "淮上（今江苏省淮安市）", "lat": 33.6104, "lng": 119.0153}, "death": {"date": "1210年", "location": "越州山阴（今浙江省绍兴市）", "lat": 30.0024, "lng": 120.585}, "lifespan": "八十五岁（虚岁八十六）", "highlights": {"honor": "", "status": "南宋爱国诗人，存诗九千多首，是中国文学史上存诗最多的诗人之一。", "identities": "诗人、词人、文学家、爱国志士", "achievements": "创作大量爱国诗篇，抒发抗金复国抱负；诗歌诸体兼备，尤擅七律；词风兼具豪放与婉约；著有《剑南诗稿》《渭南文集》《南唐书》《老学庵笔记》等。", "works": ["剑南诗稿", "渭南文集", "南唐书", "老学庵笔记"], "reviews": []}}, "locations": [{"name": "存疑（祖籍越州山阴）", "ancientName": "出生地存疑，一说淮上，一说在其父调任途中，祖籍越州山阴", "modernName": "江苏省淮安市", "lat": 33.6104, "lng": 119.0153, "type": "birth", "event": "出生于书香门第，父亲陆宰为爱国士大夫。出生次年即逢“靖康之变”，随家人南渡。", "time": "公元1125年", "duration": "幼年", "significance": "国破家难的时代背景，自幼在家庭爱国氛围中成长，奠定了其一生的思想基调。", "works": [], "quoteLines": []}, {"name": "临安（今杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "赴锁厅试及礼部试，均名列前茅，因“喜论恢复”被秦桧黜落。秦桧死后，始得入仕。后多次在朝中任职，屡次上疏北伐，直言进谏。", "time": "公元1153年-1154年，及多次短期任职", "duration": "断续数年", "significance": "其政治生涯的主要舞台，也是其爱国主张与朝廷主流和议政策激烈冲突的中心。", "works": [], "quoteLines": ["《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”"]}, {"name": "镇江", "ancientName": "镇江府", "modernName": "江苏省镇江市", "lat": 32.1896, "lng": 119.4253, "type": "normal", "event": "任镇江通判，与友人登临北固山，感怀时事。", "time": "公元1164年左右", "duration": "短期", "significance": "身处抗金前线，凭吊历史遗迹，写下充满战斗激情的词作。", "works": [], "quoteLines": ["《水调歌头·多景楼》：“江左占形胜，最数古徐州。连山如画，佳处缥缈著危楼。”"]}, {"name": "南郑（今汉中）", "ancientName": "南郑", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "type": "normal", "event": "入四川宣抚使王炎幕府，担任干办公事，身着戎装，戍卫要塞，参与谋划北伐。", "time": "公元1172年", "duration": "约八个月", "significance": "一生中最为意气风发的军旅生涯，亲临抗金前线，极大丰富了创作素材与豪情。", "works": [], "quoteLines": ["《书愤》：“早岁那知世事艰，中原北望气如山。楼船夜雪瓜洲渡，铁马秋风大散关。”"]}, {"name": "成都", "ancientName": "成都府", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "type": "normal", "event": "先后任蜀州、嘉州、荣州代理知州等职。王炎被召回后，陆游在蜀中辗转任职，生活相对安定，但壮志难酬。", "time": "公元1173年-1175年", "duration": "约两年", "significance": "蜀中时期是其诗歌创作的高产期，风格日趋成熟，自号“放翁”。", "works": [], "quoteLines": ["《长歌行》：“国仇未报壮士老，匣中宝剑夜有声。”"]}, {"name": "山阴（首次长期闲居）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "因“燕饮颓放”的罪名被罢官，返回故乡闲居。", "time": "公元1176年-1178年", "duration": "约两年", "significance": "首次长期乡居，内心充满愤懑与无奈，创作了大量反映农村生活和抒发报国无门之痛的诗篇。", "works": [], "quoteLines": []}, {"name": "抚州（今江西抚州）", "ancientName": "抚州", "modernName": "江西省抚州市", "lat": 27.949, "lng": 116.3583, "type": "normal", "event": "起复为提举江南西路常平茶盐公事，任上因擅自开仓赈济灾民，被弹劾罢官。", "time": "公元1179年-1180年", "duration": "约一年", "significance": "体现了其关心民瘼、不拘成法的务实作风，也再次遭受政治打击。", "works": [], "quoteLines": ["《小园》：“行遍天涯千万里，却从邻父学春耕。”"]}, {"name": "山阴（第二次长期闲居）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "再次罢官后，在故乡镜湖边过着简朴的田园生活，与农民交往。", "time": "公元1181年-1186年", "duration": "五年余", "significance": "生活贴近底层，诗歌题材更加广泛，田园诗、闲适诗增多，但报国之志从未消减。", "works": [], "quoteLines": []}, {"name": "严州（今浙江建德）", "ancientName": "严州", "modernName": "浙江省杭州市建德市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "起复知严州任上，勤政爱民，整理刊刻《剑南诗稿》。", "time": "公元1186年-1188年", "duration": "约两年", "significance": "将毕生诗作系统整理，是其文学事业的重要里程碑。", "works": ["剑南诗稿"], "quoteLines": []}, {"name": "临安（修史与晚年在朝）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "任军器少监，后升为礼部郎中兼实录院检讨官，参与修撰国史。", "time": "公元1188年-1190年", "duration": "约两年", "significance": "晚年一度在朝担任文职，但因坚持抗金立场，终被谏官弹劾“嘲咏风月”，再次罢归。", "works": [], "quoteLines": []}, {"name": "山阴（最终归隐）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "罢官后直至去世，大部分时间在故乡度过。生活清贫，但创作不辍，写下大量诗篇，临终仍念念不忘收复失地。", "time": "公元1190年-1210年", "duration": "二十年", "significance": "人生最后阶段，爱国情怀至死不渝，诗歌艺术炉火纯青。", "works": [], "quoteLines": ["《十一月四日风雨大作》：“夜阑卧听风吹雨，铁马冰河入梦来。”", "《示儿》：“王师北定中原日，家祭无忘告乃翁。”"]}, {"name": "越州山阴（今浙江省绍兴市）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "death", "event": "病逝于家中。", "time": "公元1210年", "duration": "终老", "significance": "留下绝笔诗《示儿》，其炽热的爱国情怀成为中华民族宝贵的精神遗产。", "works": ["示儿"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---", "markdown": "# 陆游\n\n## 人物档案\n\n### 基本信息\n- **姓名**：陆游\n- **别名**：陆务观、放翁\n- **时代**：南宋\n- **出生**：公元1125年，出生地存疑，一说淮上（今江苏省淮安市），一说在其父调任途中（存疑），祖籍越州山阴（今浙江省绍兴市）\n- **去世**：公元1210年，越州山阴（今浙江省绍兴市）\n- **享年**：八十五岁（虚岁八十六）\n- **主要身份**：诗人、词人、文学家、爱国志士\n- **历史地位**：南宋爱国诗人，存诗九千多首，是中国文学史上存诗最多的诗人之一。\n- **主要成就**：创作大量爱国诗篇，抒发抗金复国抱负；诗歌诸体兼备，尤擅七律；词风兼具豪放与婉约；著有《剑南诗稿》《渭南文集》《南唐书》《老学庵笔记》等。\n\n### 生平概述\n陆游生于北宋灭亡之际，成长于南宋偏安之局，一生力主抗金恢复中原，却屡遭主和派排挤打压。他仕途坎坷，曾投身军旅，亦长期闲居故里。其诗歌创作贯穿一生，题材极为广阔，核心主题是深沉的爱国情怀与壮志难酬的悲愤，风格雄浑豪放，对后世影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹主要覆盖今浙江、江苏、四川、江西等地，晚年归隐故乡。\n- ⏱️ **时间跨度**：公元1125年 - 1210年，共计85年。\n- 📍 **地理范围**：以长江中下游的江南地区为核心，西至川陕。\n- 🌟 **重要节点数量**：核心地点12个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 出生地：存疑（祖籍越州山阴）\n- **时间**：公元1125年\n- **停留时间**：幼年\n- **地点**：出生地存疑，一说淮上（今江苏省淮安市），一说在其父调任途中（存疑），祖籍越州山阴（今浙江省绍兴市）\n- **事件**：出生于书香门第，父亲陆宰为爱国士大夫。出生次年即逢“靖康之变”，随家人南渡。\n- **意义**：国破家难的时代背景，自幼在家庭爱国氛围中成长，奠定了其一生的思想基调。\n\n### 📍 重要地点：临安（今杭州）\n- **时间**：公元1153年-1154年，及多次短期任职\n- **停留时间**：断续数年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：赴锁厅试及礼部试，均名列前茅，因“喜论恢复”被秦桧黜落。秦桧死后，始得入仕。后多次在朝中任职，屡次上疏北伐，直言进谏。\n- **意义**：其政治生涯的主要舞台，也是其爱国主张与朝廷主流和议政策激烈冲突的中心。\n- **名篇名句**：《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”\n\n### 📍 重要地点：镇江\n- **时间**：公元1164年左右\n- **停留时间**：短期\n- **地点**：镇江府（今江苏省镇江市）\n- **事件**：任镇江通判，与友人登临北固山，感怀时事。\n- **意义**：身处抗金前线，凭吊历史遗迹，写下充满战斗激情的词作。\n- **名篇名句**：《水调歌头·多景楼》：“江左占形胜，最数古徐州。连山如画，佳处缥缈著危楼。”\n\n### 📍 重要地点：南郑（今汉中）\n- **时间**：公元1172年\n- **停留时间**：约八个月\n- **地点**：南郑（今陕西省汉中市）\n- **事件**：入四川宣抚使王炎幕府，担任干办公事，身着戎装，戍卫要塞，参与谋划北伐。\n- **意义**：一生中最为意气风发的军旅生涯，亲临抗金前线，极大丰富了创作素材与豪情。\n- **名篇名句**：《书愤》：“早岁那知世事艰，中原北望气如山。楼船夜雪瓜洲渡，铁马秋风大散关。”\n\n### 📍 重要地点：成都\n- **时间**：公元1173年-1175年\n- **停留时间**：约两年\n- **地点**：成都府（今四川省成都市）\n- **事件**：先后任蜀州、嘉州、荣州代理知州等职。王炎被召回后，陆游在蜀中辗转任职，生活相对安定，但壮志难酬。\n- **意义**：蜀中时期是其诗歌创作的高产期，风格日趋成熟，自号“放翁”。\n- **名篇名句**：《长歌行》：“国仇未报壮士老，匣中宝剑夜有声。”\n\n### 📍 重要地点：山阴（首次长期闲居）\n- **时间**：公元1176年-1178年\n- **停留时间**：约两年\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：因“燕饮颓放”的罪名被罢官，返回故乡闲居。\n- **意义**：首次长期乡居，内心充满愤懑与无奈，创作了大量反映农村生活和抒发报国无门之痛的诗篇。\n\n### 📍 重要地点：抚州（今江西抚州）\n- **时间**：公元1179年-1180年\n- **停留时间**：约一年\n- **地点**：抚州（今江西省抚州市）\n- **事件**：起复为提举江南西路常平茶盐公事，任上因擅自开仓赈济灾民，被弹劾罢官。\n- **意义**：体现了其关心民瘼、不拘成法的务实作风，也再次遭受政治打击。\n- **名篇名句**：《小园》：“行遍天涯千万里，却从邻父学春耕。”\n\n### 📍 重要地点：山阴（第二次长期闲居）\n- **时间**：公元1181年-1186年\n- **停留时间**：五年余\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：再次罢官后，在故乡镜湖边过着简朴的田园生活，与农民交往。\n- **意义**：生活贴近底层，诗歌题材更加广泛，田园诗、闲适诗增多，但报国之志从未消减。\n\n### 📍 重要地点：严州（今浙江建德）\n- **时间**：公元1186年-1188年\n- **停留时间**：约两年\n- **地点**：严州（今浙江省杭州市建德市）\n- **事件**：起复知严州任上，勤政爱民，整理刊刻《剑南诗稿》。\n- **意义**：将毕生诗作系统整理，是其文学事业的重要里程碑。\n\n### 📍 重要地点：临安（修史与晚年在朝）\n- **时间**：公元1188年-1190年\n- **停留时间**：约两年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：任军器少监，后升为礼部郎中兼实录院检讨官，参与修撰国史。\n- **意义**：晚年一度在朝担任文职，但因坚持抗金立场，终被谏官弹劾“嘲咏风月”，再次罢归。\n\n### 📍 重要地点：山阴（最终归隐）\n- **时间**：公元1190年-1210年\n- **停留时间**：二十年\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：罢官后直至去世，大部分时间在故乡度过。生活清贫，但创作不辍，写下大量诗篇，临终仍念念不忘收复失地。\n- **意义**：人生最后阶段，爱国情怀至死不渝，诗歌艺术炉火纯青。\n- **名篇名句**：《十一月四日风雨大作》：“夜阑卧听风吹雨，铁马冰河入梦来。”；《示儿》：“王师北定中原日，家祭无忘告乃翁。”\n\n### 📍 去世地：越州山阴（今浙江省绍兴市）\n- **时间**：公元1210年\n- **停留时间**：终老\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：病逝于家中。\n- **意义**：留下绝笔诗《示儿》，其炽热的爱国情怀成为中华民族宝贵的精神遗产。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1125 | 1岁 | 出生于存疑（一说江苏淮安，一说途中），祖籍越州山阴。 |\n| 1126-1127 | 2-3岁 | 随家人经历“靖康之变”，南渡避难。 |\n| 1153-1154 | 29-30岁 | 赴临安应试，因主张抗金被秦桧除名。 |\n| 1158 | 34岁 | 秦桧死，始出仕为福州宁德县主簿。 |\n| 1164 | 40岁 | 任镇江通判，写下抗战名篇。 |\n| 1172 | 48岁 | 入南郑王炎幕府，投身军旅，到达人生理想高点。 |\n| 1173-1175 | 49-51岁 | 在蜀中多地任职，自号“放翁”。 |\n| 1176 | 52岁 | 被罢官，首次长期归隐山阴。 |\n| 1179-1180 | 55-56岁 | 任江西抚州，因赈灾被劾罢官。 |\n| 1181-1186 | 57-62岁 | 再次长期闲居山阴。 |\n| 1186-1188 | 62-64岁 | 起复知严州，整理《剑南诗稿》。 |\n| 1188-1190 | 64-66岁 | 在临安任史官，因“嘲咏风月”罢归。 |\n| 1190-1210 | 66-85岁 | 最终归隐山阴，创作直至生命终点。 |\n| 1210 | 85岁 | 病逝，留下《示儿》绝笔。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 浙江省绍兴市 | 30.0024 | 120.5850 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 江苏省镇江市 | 32.1896 | 119.4253 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 江西省抚州市 | 27.9490 | 116.3583 |\n| 浙江省建德市 | 29.4749 | 119.2813 |\n| 江苏省淮安市（存疑） | 33.6104 | 119.0153 |"};
+      const data = {"person": {"name": "陆游", "title": "", "description": "陆游生于北宋灭亡之际，成长于南宋偏安之局，一生力主抗金恢复中原，却屡遭主和派排挤打压。他仕途坎坷，曾投身军旅，亦长期闲居故里。其诗歌创作贯穿一生，题材极为广阔，核心主题是深沉的爱国情怀与壮志难酬的悲愤，风格雄浑豪放，对后世影响深远。", "quote": "《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”", "dynasty": "南宋", "birthplace": "淮上（今江苏省淮安市）", "avatar": "", "birth": {"date": "1125年", "location": "淮上（今江苏省淮安市）", "lat": 33.6104, "lng": 119.0153}, "death": {"date": "1210年", "location": "越州山阴（今浙江省绍兴市）", "lat": 30.0024, "lng": 120.585}, "lifespan": "八十五岁（虚岁八十六）", "highlights": {"honor": "", "status": "南宋爱国诗人，存诗九千多首，是中国文学史上存诗最多的诗人之一。", "identities": "诗人、词人、文学家、爱国志士", "achievements": "创作大量爱国诗篇，抒发抗金复国抱负；诗歌诸体兼备，尤擅七律；词风兼具豪放与婉约；著有《剑南诗稿》《渭南文集》《南唐书》《老学庵笔记》等。", "works": ["剑南诗稿", "渭南文集", "南唐书", "老学庵笔记"], "reviews": []}}, "locations": [{"name": "存疑（祖籍越州山阴）", "ancientName": "出生地存疑，一说淮上，一说在其父调任途中，祖籍越州山阴", "modernName": "江苏省淮安市", "lat": 33.6104, "lng": 119.0153, "type": "birth", "event": "出生于书香门第，父亲陆宰为爱国士大夫。出生次年即逢“靖康之变”，随家人南渡。", "time": "公元1125年", "duration": "幼年", "significance": "国破家难的时代背景，自幼在家庭爱国氛围中成长，奠定了其一生的思想基调。", "works": [], "quoteLines": []}, {"name": "临安（今杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "赴锁厅试及礼部试，均名列前茅，因“喜论恢复”被秦桧黜落。秦桧死后，始得入仕。后多次在朝中任职，屡次上疏北伐，直言进谏。", "time": "公元1153年-1154年，及多次短期任职", "duration": "断续数年", "significance": "其政治生涯的主要舞台，也是其爱国主张与朝廷主流和议政策激烈冲突的中心。", "works": [], "quoteLines": ["《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”"]}, {"name": "镇江", "ancientName": "镇江府", "modernName": "江苏省镇江市", "lat": 32.1896, "lng": 119.4253, "type": "normal", "event": "任镇江通判，与友人登临北固山，感怀时事。", "time": "公元1164年左右", "duration": "短期", "significance": "身处抗金前线，凭吊历史遗迹，写下充满战斗激情的词作。", "works": [], "quoteLines": ["《水调歌头·多景楼》：“江左占形胜，最数古徐州。连山如画，佳处缥缈著危楼。”"]}, {"name": "南郑（今汉中）", "ancientName": "南郑", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "type": "normal", "event": "入四川宣抚使王炎幕府，担任干办公事，身着戎装，戍卫要塞，参与谋划北伐。", "time": "公元1172年", "duration": "约八个月", "significance": "一生中最为意气风发的军旅生涯，亲临抗金前线，极大丰富了创作素材与豪情。", "works": [], "quoteLines": ["《书愤》：“早岁那知世事艰，中原北望气如山。楼船夜雪瓜洲渡，铁马秋风大散关。”"]}, {"name": "成都", "ancientName": "成都府", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "type": "normal", "event": "先后任蜀州、嘉州、荣州代理知州等职。王炎被召回后，陆游在蜀中辗转任职，生活相对安定，但壮志难酬。", "time": "公元1173年-1175年", "duration": "约两年", "significance": "蜀中时期是其诗歌创作的高产期，风格日趋成熟，自号“放翁”。", "works": [], "quoteLines": ["《长歌行》：“国仇未报壮士老，匣中宝剑夜有声。”"]}, {"name": "山阴（首次长期闲居）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "因“燕饮颓放”的罪名被罢官，返回故乡闲居。", "time": "公元1176年-1178年", "duration": "约两年", "significance": "首次长期乡居，内心充满愤懑与无奈，创作了大量反映农村生活和抒发报国无门之痛的诗篇。", "works": [], "quoteLines": []}, {"name": "抚州（今江西抚州）", "ancientName": "抚州", "modernName": "江西省抚州市", "lat": 27.949, "lng": 116.3583, "type": "normal", "event": "起复为提举江南西路常平茶盐公事，任上因擅自开仓赈济灾民，被弹劾罢官。", "time": "公元1179年-1180年", "duration": "约一年", "significance": "体现了其关心民瘼、不拘成法的务实作风，也再次遭受政治打击。", "works": [], "quoteLines": ["《小园》：“行遍天涯千万里，却从邻父学春耕。”"]}, {"name": "山阴（第二次长期闲居）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "再次罢官后，在故乡镜湖边过着简朴的田园生活，与农民交往。", "time": "公元1181年-1186年", "duration": "五年余", "significance": "生活贴近底层，诗歌题材更加广泛，田园诗、闲适诗增多，但报国之志从未消减。", "works": [], "quoteLines": []}, {"name": "严州（今浙江建德）", "ancientName": "严州", "modernName": "浙江省杭州市建德市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "起复知严州任上，勤政爱民，整理刊刻《剑南诗稿》。", "time": "公元1186年-1188年", "duration": "约两年", "significance": "将毕生诗作系统整理，是其文学事业的重要里程碑。", "works": ["剑南诗稿"], "quoteLines": []}, {"name": "临安（修史与晚年在朝）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "type": "normal", "event": "任军器少监，后升为礼部郎中兼实录院检讨官，参与修撰国史。", "time": "公元1188年-1190年", "duration": "约两年", "significance": "晚年一度在朝担任文职，但因坚持抗金立场，终被谏官弹劾“嘲咏风月”，再次罢归。", "works": [], "quoteLines": []}, {"name": "山阴（最终归隐）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "normal", "event": "罢官后直至去世，大部分时间在故乡度过。生活清贫，但创作不辍，写下大量诗篇，临终仍念念不忘收复失地。", "time": "公元1190年-1210年", "duration": "二十年", "significance": "人生最后阶段，爱国情怀至死不渝，诗歌艺术炉火纯青。", "works": [], "quoteLines": ["《十一月四日风雨大作》：“夜阑卧听风吹雨，铁马冰河入梦来。”", "《示儿》：“王师北定中原日，家祭无忘告乃翁。”"]}, {"name": "越州山阴（今浙江省绍兴市）", "ancientName": "越州山阴", "modernName": "浙江省绍兴市", "lat": 30.0024, "lng": 120.585, "type": "death", "event": "病逝于家中。", "time": "公元1210年", "duration": "终老", "significance": "留下绝笔诗《示儿》，其炽热的爱国情怀成为中华民族宝贵的精神遗产。", "works": ["示儿"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---", "markdown": "# 陆游\n\n## 人物档案\n\n### 基本信息\n- **姓名**：陆游\n- **别名**：陆务观、放翁\n- **时代**：南宋\n- **出生**：公元1125年，出生地存疑，一说淮上（今江苏省淮安市），一说在其父调任途中（存疑），祖籍越州山阴（今浙江省绍兴市）\n- **去世**：公元1210年，越州山阴（今浙江省绍兴市）\n- **享年**：八十五岁（虚岁八十六）\n- **主要身份**：诗人、词人、文学家、爱国志士\n- **历史地位**：南宋爱国诗人，存诗九千多首，是中国文学史上存诗最多的诗人之一。\n- **主要成就**：创作大量爱国诗篇，抒发抗金复国抱负；诗歌诸体兼备，尤擅七律；词风兼具豪放与婉约；著有《剑南诗稿》《渭南文集》《南唐书》《老学庵笔记》等。\n\n### 生平概述\n陆游生于北宋灭亡之际，成长于南宋偏安之局，一生力主抗金恢复中原，却屡遭主和派排挤打压。他仕途坎坷，曾投身军旅，亦长期闲居故里。其诗歌创作贯穿一生，题材极为广阔，核心主题是深沉的爱国情怀与壮志难酬的悲愤，风格雄浑豪放，对后世影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹主要覆盖今浙江、江苏、四川、江西等地，晚年归隐故乡。\n- ⏱️ **时间跨度**：公元1125年 - 1210年，共计85年。\n- 📍 **地理范围**：以长江中下游的江南地区为核心，西至川陕。\n- 🌟 **重要节点数量**：核心地点12个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 出生地：存疑（祖籍越州山阴）\n- **时间**：公元1125年\n- **停留时间**：幼年\n- **地点**：出生地存疑，一说淮上（今江苏省淮安市），一说在其父调任途中（存疑），祖籍越州山阴（今浙江省绍兴市）\n- **事件**：出生于书香门第，父亲陆宰为爱国士大夫。出生次年即逢“靖康之变”，随家人南渡。\n- **意义**：国破家难的时代背景，自幼在家庭爱国氛围中成长，奠定了其一生的思想基调。\n\n### 📍 重要地点：临安（今杭州）\n- **时间**：公元1153年-1154年，及多次短期任职\n- **停留时间**：断续数年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：赴锁厅试及礼部试，均名列前茅，因“喜论恢复”被秦桧黜落。秦桧死后，始得入仕。后多次在朝中任职，屡次上疏北伐，直言进谏。\n- **意义**：其政治生涯的主要舞台，也是其爱国主张与朝廷主流和议政策激烈冲突的中心。\n- **名篇名句**：《临安春雨初霁》：“小楼一夜听春雨，深巷明朝卖杏花。”\n\n### 📍 重要地点：镇江\n- **时间**：公元1164年左右\n- **停留时间**：短期\n- **地点**：镇江府（今江苏省镇江市）\n- **事件**：任镇江通判，与友人登临北固山，感怀时事。\n- **意义**：身处抗金前线，凭吊历史遗迹，写下充满战斗激情的词作。\n- **名篇名句**：《水调歌头·多景楼》：“江左占形胜，最数古徐州。连山如画，佳处缥缈著危楼。”\n\n### 📍 重要地点：南郑（今汉中）\n- **时间**：公元1172年\n- **停留时间**：约八个月\n- **地点**：南郑（今陕西省汉中市）\n- **事件**：入四川宣抚使王炎幕府，担任干办公事，身着戎装，戍卫要塞，参与谋划北伐。\n- **意义**：一生中最为意气风发的军旅生涯，亲临抗金前线，极大丰富了创作素材与豪情。\n- **名篇名句**：《书愤》：“早岁那知世事艰，中原北望气如山。楼船夜雪瓜洲渡，铁马秋风大散关。”\n\n### 📍 重要地点：成都\n- **时间**：公元1173年-1175年\n- **停留时间**：约两年\n- **地点**：成都府（今四川省成都市）\n- **事件**：先后任蜀州、嘉州、荣州代理知州等职。王炎被召回后，陆游在蜀中辗转任职，生活相对安定，但壮志难酬。\n- **意义**：蜀中时期是其诗歌创作的高产期，风格日趋成熟，自号“放翁”。\n- **名篇名句**：《长歌行》：“国仇未报壮士老，匣中宝剑夜有声。”\n\n### 📍 重要地点：山阴（首次长期闲居）\n- **时间**：公元1176年-1178年\n- **停留时间**：约两年\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：因“燕饮颓放”的罪名被罢官，返回故乡闲居。\n- **意义**：首次长期乡居，内心充满愤懑与无奈，创作了大量反映农村生活和抒发报国无门之痛的诗篇。\n\n### 📍 重要地点：抚州（今江西抚州）\n- **时间**：公元1179年-1180年\n- **停留时间**：约一年\n- **地点**：抚州（今江西省抚州市）\n- **事件**：起复为提举江南西路常平茶盐公事，任上因擅自开仓赈济灾民，被弹劾罢官。\n- **意义**：体现了其关心民瘼、不拘成法的务实作风，也再次遭受政治打击。\n- **名篇名句**：《小园》：“行遍天涯千万里，却从邻父学春耕。”\n\n### 📍 重要地点：山阴（第二次长期闲居）\n- **时间**：公元1181年-1186年\n- **停留时间**：五年余\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：再次罢官后，在故乡镜湖边过着简朴的田园生活，与农民交往。\n- **意义**：生活贴近底层，诗歌题材更加广泛，田园诗、闲适诗增多，但报国之志从未消减。\n\n### 📍 重要地点：严州（今浙江建德）\n- **时间**：公元1186年-1188年\n- **停留时间**：约两年\n- **地点**：严州（今浙江省杭州市建德市）\n- **事件**：起复知严州任上，勤政爱民，整理刊刻《剑南诗稿》。\n- **意义**：将毕生诗作系统整理，是其文学事业的重要里程碑。\n\n### 📍 重要地点：临安（修史与晚年在朝）\n- **时间**：公元1188年-1190年\n- **停留时间**：约两年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：任军器少监，后升为礼部郎中兼实录院检讨官，参与修撰国史。\n- **意义**：晚年一度在朝担任文职，但因坚持抗金立场，终被谏官弹劾“嘲咏风月”，再次罢归。\n\n### 📍 重要地点：山阴（最终归隐）\n- **时间**：公元1190年-1210年\n- **停留时间**：二十年\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：罢官后直至去世，大部分时间在故乡度过。生活清贫，但创作不辍，写下大量诗篇，临终仍念念不忘收复失地。\n- **意义**：人生最后阶段，爱国情怀至死不渝，诗歌艺术炉火纯青。\n- **名篇名句**：《十一月四日风雨大作》：“夜阑卧听风吹雨，铁马冰河入梦来。”；《示儿》：“王师北定中原日，家祭无忘告乃翁。”\n\n### 📍 去世地：越州山阴（今浙江省绍兴市）\n- **时间**：公元1210年\n- **停留时间**：终老\n- **地点**：越州山阴（今浙江省绍兴市）\n- **事件**：病逝于家中。\n- **意义**：留下绝笔诗《示儿》，其炽热的爱国情怀成为中华民族宝贵的精神遗产。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1125 | 1岁 | 出生于存疑（一说江苏淮安，一说途中），祖籍越州山阴。 |\n| 1126-1127 | 2-3岁 | 随家人经历“靖康之变”，南渡避难。 |\n| 1153-1154 | 29-30岁 | 赴临安应试，因主张抗金被秦桧除名。 |\n| 1158 | 34岁 | 秦桧死，始出仕为福州宁德县主簿。 |\n| 1164 | 40岁 | 任镇江通判，写下抗战名篇。 |\n| 1172 | 48岁 | 入南郑王炎幕府，投身军旅，到达人生理想高点。 |\n| 1173-1175 | 49-51岁 | 在蜀中多地任职，自号“放翁”。 |\n| 1176 | 52岁 | 被罢官，首次长期归隐山阴。 |\n| 1179-1180 | 55-56岁 | 任江西抚州，因赈灾被劾罢官。 |\n| 1181-1186 | 57-62岁 | 再次长期闲居山阴。 |\n| 1186-1188 | 62-64岁 | 起复知严州，整理《剑南诗稿》。 |\n| 1188-1190 | 64-66岁 | 在临安任史官，因“嘲咏风月”罢归。 |\n| 1190-1210 | 66-85岁 | 最终归隐山阴，创作直至生命终点。 |\n| 1210 | 85岁 | 病逝，留下《示儿》绝笔。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《书愤》**、**《临安春雨初霁》**、**《十一月四日风雨大作》**、**《示儿》**、**《钗头凤·红酥手》**。\n- 核心要点：\n    - **重点**：**爱国主义**是其诗歌最鲜明的主题，如《书愤》中“楼船夜雪瓜洲渡，铁马秋风大散关”的雄浑战场追忆，《示儿》中“但悲不见九州同”的至死牵挂。\n    - **重点**：善用**意象**抒怀，如“铁马冰河”（《十一月四日风雨大作》）象征未酬的壮志，“杏花春雨”（《临安春雨初霁》）反衬客居京华的孤寂与无奈。\n    - **重点**：诗歌风格以**雄浑豪放**为主，兼具清新婉丽，其七律对仗工整，沉郁顿挫，如《书愤》全篇。\n    - 词作兼有豪放与婉约，**《钗头凤》** 是爱情悲剧的千古绝唱，情感真挚动人。\n    - 诗歌题材广泛，除爱国主题外，还有大量描绘**田园生活**、**日常闲趣**的作品，如《游山西村》“山重水复疑无路，柳暗花明又一村”。\n    - 语言精炼自然，平易晓畅，善于在叙事、写景中融入深沉感慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**南宋**与金朝对峙的时代，一生贯穿高宗、孝宗、光宗、宁宗四朝。\n    - **重点**：政治立场坚定主张**抗金北伐**，收复失地，与朝廷主流的**主和派**势力格格不入，导致仕途坎坷。\n    - 曾短暂参与**王炎幕府**，亲临抗金前线**南郑**（汉中），这是其一生最接近实现军事抱负的时期。\n    - 晚年因“**嘲咏风月**”等罪名被罢黜，长期闲居故乡。\n- 核心要点：\n    - **重点**：是南宋**爱国士大夫**的典型代表，其人生际遇反映了主战派在妥协偏安政局下的普遍困境。\n    - **重点**：其诗歌是记录南宋社会矛盾、民族危机与士人心态的“**诗史**”，具有重要的历史文献价值。\n    - **重点**：文学史上，他继承并发展了**江西诗派**的技巧，又突破其藩篱，最终成为**中兴四大诗人**（尤袤、杨万里、范成大、陆游）之一，对后世影响深远。\n    - 其个人情感生活，如与唐婉的爱情悲剧（《钗头凤》），也成为后世文学艺术创作的重要题材。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 浙江省绍兴市 | 30.0024 | 120.5850 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 江苏省镇江市 | 32.1896 | 119.4253 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 江西省抚州市 | 27.9490 | 116.3583 |\n| 浙江省建德市 | 29.4749 | 119.2813 |\n| 江苏省淮安市（存疑） | 33.6104 | 119.0153 |", "relatedGraph": {"center": {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "relationLabel": "中心人物", "isCenter": true}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "陆游", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "陆游", "target": "赵师秀", "label": "同时代人物", "confidence": null}, {"source": "陆游", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "陆游", "target": "杨万里", "label": "同时代人物", "confidence": null}, {"source": "陆游", "target": "龚自珍", "label": "同册共现", "confidence": 0.15}, {"source": "陆游", "target": "王安石", "label": "同册共现", "confidence": 0.15}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

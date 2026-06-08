@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "伊丽莎白·都铎", "title": "黄金时代", "description": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。", "quote": "黄金时代", "dynasty": "都铎王朝（Tudor dynasty）", "birthplace": "英格兰格林威治宫（今英国伦敦格林威治区）", "avatar": "", "birth": {"date": "1533年", "location": "英格兰格林威治宫（今英国伦敦格林威治区）", "lat": null, "lng": null}, "death": {"date": "1603年", "location": "英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）", "lat": null, "lng": null}, "lifespan": "69岁（周岁）", "highlights": {"honor": "黄金时代", "status": "都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。", "identities": "英格兰女王、爱尔兰女王", "achievements": "击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。", "works": [], "reviews": ["**弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”", "**温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”", "**现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---", "examPoints": "### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。", "markdown": "# 伊丽莎白一世 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊丽莎白·都铎（Elizabeth Tudor），伊丽莎白一世（Elizabeth I）\n- **别名**：童贞女王（The Virgin Queen），格洛丽安娜（Gloriana）\n- **外文名**：Elizabeth I of England\n- **时代**：都铎王朝（Tudor dynasty）\n- **出生**：1533年9月7日，英格兰格林威治宫（今英国伦敦格林威治区）\n- **去世**：1603年3月24日，英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **享年**：69岁（周岁）\n- **主要身份**：英格兰女王、爱尔兰女王\n- **领域标签**：英国君主，都铎王朝，16世纪欧洲政治家\n- **历史地位**：都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。\n- **主要成就**：击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。\n\n### 生平概述\n伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动范围集中在英格兰本土，尤其是伦敦及周边王室宫殿。\n- ⏱️ **时间跨度**：1533年至1603年，共70年。\n- 📍 **地理范围**：英格兰、威尔士及爱尔兰（作为女王统治地）。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：格林威治宫\n- **公元纪年**：1533年\n- **停留时间**：出生地，幼年早期生活于此。\n- **位置**：格林威治宫（今英国伦敦格林威治区）\n- **事迹**：在此出生，作为亨利八世与安妮·博林的女儿。\n- **意义**：其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。\n\n### 📍 重要地点：伦敦塔\n- **公元纪年**：1554年\n- **停留时间**：约两个月\n- **位置**：伦敦塔（今英国伦敦泰晤士河北岸）\n- **事迹**：因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。\n- **意义**：人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。\n- **名篇名句**：无直接作品，但此经历塑造了她日后谨慎多疑的性格。\n\n### 📍 重要地点：哈特菲尔德宫\n- **公元纪年**：1558年11月17日\n- **停留时间**：得知继位消息的地点\n- **位置**：哈特菲尔德宫（今英国赫特福德郡哈特菲尔德）\n- **事迹**：在此地得知玛丽一世去世，自己成为英格兰女王的消息。\n- **意义**：政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。\n\n### 📍 重要地点：伦敦（威斯敏斯特教堂）\n- **公元纪年**：1559年1月15日\n- **停留时间**：加冕日\n- **位置**：威斯敏斯特教堂（今英国伦敦市中心威斯敏斯特市）\n- **事迹**：举行加冕典礼，正式成为英格兰女王。\n- **意义**：象征其统治的合法开始，向国内外宣示新王权的确立。\n\n### 📍 重要地点：蒂尔伯里\n- **公元纪年**：1588年8月\n- **停留时间**：数日\n- **位置**：蒂尔伯里（今英国埃塞克斯郡蒂尔伯里）\n- **事迹**：在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。\n- **意义**：展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。\n- **名篇名句**：《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”\n\n### 📍 重要地点：伦敦（宫廷）\n- **公元纪年**：1558年-1603年\n- **停留时间**：统治期间主要居所与办公地\n- **位置**：白厅宫（原址）、里士满宫等（今英国伦敦及周边）\n- **事迹**：在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。\n- **意义**：国家政治与文化中心，其“黄金时代”的核心舞台。\n\n### 🔴 去世地：里士满宫\n- **公元纪年**：1603年3月24日\n- **停留时间**：晚年主要居所，直至去世\n- **位置**：里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。\n- **意义**：生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。\n- **名篇名句**：无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1533 | 0 | 出生于格林威治宫。 |\n| 1536 | 3 | 母亲安妮·博林被处死，伊丽莎白被宣布为私生女。 |\n| 1544 | 11 | 在亨利八世的《王位继承法》中恢复公主地位。 |\n| 1553 | 20 | 玛丽一世即位，伊丽莎白因宗教问题受猜忌。 |\n| 1554 | 21 | 因涉嫌参与怀亚特叛乱被囚于伦敦塔，后获释软禁。 |\n| 1558 | 25 | 玛丽一世去世，伊丽莎白继位为英格兰女王。 |\n| 1559 | 26 | 颁布《至尊法案》与《统一法案》，确立英国国教。 |\n| 1568 | 35 | 苏格兰女王玛丽·斯图亚特逃入英格兰，成为长期政治隐患。 |\n| 1587 | 54 | 批准处决苏格兰女王玛丽·斯图亚特。 |\n| 1588 | 55 | 英国舰队击败西班牙无敌舰队，国威大振。 |\n| 1601 | 68 | 埃塞克斯伯爵叛乱被平定。 |\n| 1603 | 69 | 在里士满宫去世，都铎王朝终结。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊丽莎白一世的统治为英格兰带来了长期的政治稳定与宗教和解，结束了其父兄姐统治时期的动荡。她成功抵御了天主教西班牙的军事威胁，提升了国家地位与民族自信。其重商主义政策与对海外探险的支持，为英国的殖民扩张和商业帝国奠定了基础，开启了国家的强盛之路。\n\n### 对后世的影响\n- **宗教格局**：其确立的英国国教（安立甘宗）成为英国长期的主流宗教，影响了国家的文化与政治认同。\n- **海权奠基**：击败西班牙无敌舰队标志着英国海上力量的崛起，为其后成为“日不落帝国”铺平了道路。\n- **文化繁荣**：“伊丽莎白时代”是英国文艺复兴的顶峰，莎士比亚、斯宾塞等文学巨匠的作品成为世界文化遗产。\n- **政治遗产**：其“嫁予英格兰”的形象与统治艺术，成为后世君主（尤其是女性君主）的典范。\n\n### 历史评价\n1.  **弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”\n2.  **温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”\n3.  **现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。\n\n## 地点坐标（待生成）\n[坐标需基于‘人生历程与重要地点’章节中已修正的现代可检索地名（如‘今英国伦敦格林威治区’）重新进行地理编码。]"};
+      const data = {"person": {"name": "伊丽莎白·都铎", "title": "黄金时代", "description": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。", "quote": "黄金时代", "dynasty": "都铎王朝（Tudor dynasty）", "birthplace": "英格兰格林威治宫（今英国伦敦格林威治区）", "avatar": "", "birth": {"date": "1533年", "location": "英格兰格林威治宫（今英国伦敦格林威治区）", "lat": null, "lng": null}, "death": {"date": "1603年", "location": "英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）", "lat": null, "lng": null}, "lifespan": "69岁（周岁）", "highlights": {"honor": "黄金时代", "status": "都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。", "identities": "英格兰女王、爱尔兰女王", "achievements": "击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。", "works": [], "reviews": ["**弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”", "**温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”", "**现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---", "examPoints": "### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。", "markdown": "# 伊丽莎白一世 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊丽莎白·都铎（Elizabeth Tudor），伊丽莎白一世（Elizabeth I）\n- **别名**：童贞女王（The Virgin Queen），格洛丽安娜（Gloriana）\n- **外文名**：Elizabeth I of England\n- **时代**：都铎王朝（Tudor dynasty）\n- **出生**：1533年9月7日，英格兰格林威治宫（今英国伦敦格林威治区）\n- **去世**：1603年3月24日，英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **享年**：69岁（周岁）\n- **主要身份**：英格兰女王、爱尔兰女王\n- **领域标签**：英国君主，都铎王朝，16世纪欧洲政治家\n- **历史地位**：都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。\n- **主要成就**：击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。\n\n### 生平概述\n伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动范围集中在英格兰本土，尤其是伦敦及周边王室宫殿。\n- ⏱️ **时间跨度**：1533年至1603年，共70年。\n- 📍 **地理范围**：英格兰、威尔士及爱尔兰（作为女王统治地）。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：格林威治宫\n- **公元纪年**：1533年\n- **停留时间**：出生地，幼年早期生活于此。\n- **位置**：格林威治宫（今英国伦敦格林威治区）\n- **事迹**：在此出生，作为亨利八世与安妮·博林的女儿。\n- **意义**：其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。\n\n### 📍 重要地点：伦敦塔\n- **公元纪年**：1554年\n- **停留时间**：约两个月\n- **位置**：伦敦塔（今英国伦敦泰晤士河北岸）\n- **事迹**：因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。\n- **意义**：人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。\n- **名篇名句**：无直接作品，但此经历塑造了她日后谨慎多疑的性格。\n\n### 📍 重要地点：哈特菲尔德宫\n- **公元纪年**：1558年11月17日\n- **停留时间**：得知继位消息的地点\n- **位置**：哈特菲尔德宫（今英国赫特福德郡哈特菲尔德）\n- **事迹**：在此地得知玛丽一世去世，自己成为英格兰女王的消息。\n- **意义**：政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。\n\n### 📍 重要地点：伦敦（威斯敏斯特教堂）\n- **公元纪年**：1559年1月15日\n- **停留时间**：加冕日\n- **位置**：威斯敏斯特教堂（今英国伦敦市中心威斯敏斯特市）\n- **事迹**：举行加冕典礼，正式成为英格兰女王。\n- **意义**：象征其统治的合法开始，向国内外宣示新王权的确立。\n\n### 📍 重要地点：蒂尔伯里\n- **公元纪年**：1588年8月\n- **停留时间**：数日\n- **位置**：蒂尔伯里（今英国埃塞克斯郡蒂尔伯里）\n- **事迹**：在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。\n- **意义**：展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。\n- **名篇名句**：《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”\n\n### 📍 重要地点：伦敦（宫廷）\n- **公元纪年**：1558年-1603年\n- **停留时间**：统治期间主要居所与办公地\n- **位置**：白厅宫（原址）、里士满宫等（今英国伦敦及周边）\n- **事迹**：在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。\n- **意义**：国家政治与文化中心，其“黄金时代”的核心舞台。\n\n### 🔴 去世地：里士满宫\n- **公元纪年**：1603年3月24日\n- **停留时间**：晚年主要居所，直至去世\n- **位置**：里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。\n- **意义**：生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。\n- **名篇名句**：无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1533 | 0 | 出生于格林威治宫。 |\n| 1536 | 3 | 母亲安妮·博林被处死，伊丽莎白被宣布为私生女。 |\n| 1544 | 11 | 在亨利八世的《王位继承法》中恢复公主地位。 |\n| 1553 | 20 | 玛丽一世即位，伊丽莎白因宗教问题受猜忌。 |\n| 1554 | 21 | 因涉嫌参与怀亚特叛乱被囚于伦敦塔，后获释软禁。 |\n| 1558 | 25 | 玛丽一世去世，伊丽莎白继位为英格兰女王。 |\n| 1559 | 26 | 颁布《至尊法案》与《统一法案》，确立英国国教。 |\n| 1568 | 35 | 苏格兰女王玛丽·斯图亚特逃入英格兰，成为长期政治隐患。 |\n| 1587 | 54 | 批准处决苏格兰女王玛丽·斯图亚特。 |\n| 1588 | 55 | 英国舰队击败西班牙无敌舰队，国威大振。 |\n| 1601 | 68 | 埃塞克斯伯爵叛乱被平定。 |\n| 1603 | 69 | 在里士满宫去世，都铎王朝终结。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊丽莎白一世的统治为英格兰带来了长期的政治稳定与宗教和解，结束了其父兄姐统治时期的动荡。她成功抵御了天主教西班牙的军事威胁，提升了国家地位与民族自信。其重商主义政策与对海外探险的支持，为英国的殖民扩张和商业帝国奠定了基础，开启了国家的强盛之路。\n\n### 对后世的影响\n- **宗教格局**：其确立的英国国教（安立甘宗）成为英国长期的主流宗教，影响了国家的文化与政治认同。\n- **海权奠基**：击败西班牙无敌舰队标志着英国海上力量的崛起，为其后成为“日不落帝国”铺平了道路。\n- **文化繁荣**：“伊丽莎白时代”是英国文艺复兴的顶峰，莎士比亚、斯宾塞等文学巨匠的作品成为世界文化遗产。\n- **政治遗产**：其“嫁予英格兰”的形象与统治艺术，成为后世君主（尤其是女性君主）的典范。\n\n### 历史评价\n1.  **弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”\n2.  **温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”\n3.  **现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。\n\n## 地点坐标（待生成）\n[坐标需基于‘人生历程与重要地点’章节中已修正的现代可检索地名（如‘今英国伦敦格林威治区’）重新进行地理编码。]", "relatedGraph": {"center": {"id": "伊丽莎白一世 生平传记与足迹", "name": "伊丽莎白一世 生平传记与足迹", "file": "伊丽莎白一世 生平传记与足迹.html", "dynasty": "都铎王朝（Tudor dynasty）", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "伊丽莎白一世 生平传记与足迹", "name": "伊丽莎白一世 生平传记与足迹", "file": "伊丽莎白一世 生平传记与足迹.html", "dynasty": "都铎王朝（Tudor dynasty）", "relationLabel": "中心人物", "isCenter": true}, {"id": "伊丽莎白一世", "name": "伊丽莎白一世", "file": "伊丽莎白一世.html", "dynasty": "都铎王朝（Tudor dynasty）", "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "培根", "name": "培根", "file": "培根.html", "dynasty": "英国都铎王朝晚期至斯图亚特王朝早期（文艺复兴末期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "米开朗琪罗", "name": "米开朗琪罗", "file": "米开朗琪罗.html", "dynasty": "文艺复兴盛期（意大利）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "伊丽莎白一世 生平传记与足迹", "target": "伊丽莎白一世", "label": "君臣", "confidence": null}, {"source": "伊丽莎白一世 生平传记与足迹", "target": "培根", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世 生平传记与足迹", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世 生平传记与足迹", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世 生平传记与足迹", "target": "费马", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世 生平传记与足迹", "target": "米开朗琪罗", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

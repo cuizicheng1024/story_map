@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "荀况", "title": "", "description": "荀子名况，字卿，战国末期赵国人。他生于诸侯兼并、百家争鸣的时代，曾游学于齐国稷下学宫，三为祭酒，最为老师。后因谗言离齐适楚，被春申君黄歇任命为兰陵令。春申君死后，荀子被废，遂定居兰陵，著书立说，直至终老。他批判性地总结了先秦诸子思想，将儒家“礼”论与现实政治结合，提出“隆礼重法”，其思想兼具儒家理想与法家务实精神，是连接先秦与秦汉思想的关键桥梁。", "quote": "", "dynasty": "战国末期", "birthplace": "赵国", "avatar": "", "birth": {"date": "公元前313年", "location": "赵国", "lat": null, "lng": null}, "death": {"date": "公元前238年", "location": "兰陵（今山东省临沂市兰陵县兰陵镇）", "lat": 34.85, "lng": 117.98}, "lifespan": "约75岁（据生卒年推算）", "highlights": {"honor": "", "status": "先秦儒家思想的集大成者，百家争鸣的总结者，法家思想的重要启蒙者。", "identities": "思想家、教育家、儒家代表人物、文学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "齐国·稷下学宫", "ancientName": "临淄稷下", "modernName": "山东省淄博市临淄区", "lat": 36.82, "lng": 118.3, "type": "normal", "event": "游学于稷下学宫，广泛学习各家学说，崭露头角。", "time": "约公元前285年至前275年（首次）", "duration": "首次游学约十年", "significance": "这是其学术思想形成的关键时期，得以接触并批判性吸收道、法、名、墨等诸子百家思想。", "works": [], "quoteLines": []}, {"name": "秦国", "ancientName": "咸阳", "modernName": "陕西省咸阳市东北", "lat": 34.35, "lng": 108.7, "type": "normal", "event": "入秦考察政治，与秦昭王、范雎等论政，赞赏其法治严明，但认为其短于儒术。", "time": "约公元前266年（存疑）", "duration": "短期考察", "significance": "实地考察使其“礼法并施”的政治构想更具现实针对性，也预示了儒家与法家在未来的冲突与融合。", "works": [], "quoteLines": []}, {"name": "赵国", "ancientName": "邯郸", "modernName": "河北省邯郸市", "lat": 36.62, "lng": 114.54, "type": "normal", "event": "与临武君议兵于赵孝成王前，阐述以“仁义”为本的军事思想。", "time": "约公元前260年（存疑）", "duration": "短期", "significance": "将其儒家政治伦理扩展至军事领域，体现了其思想的系统性。", "works": [], "quoteLines": []}, {"name": "齐国·稷下学宫（再任）", "ancientName": "临淄稷下", "modernName": "山东省淄博市临淄区", "lat": 36.82, "lng": 118.3, "type": "normal", "event": "重返稷下学宫，因学问最为渊博，被尊为“最为老师”，并“三为祭酒”（学宫领袖）。", "time": "约公元前265年至前260年（再任，时间存疑）", "duration": "约数年", "significance": "达到其学术生涯的顶峰，成为天下学者的宗师，系统讲学并完善其思想体系。", "works": [], "quoteLines": []}, {"name": "楚国·兰陵（任职与终老）", "ancientName": "兰陵", "modernName": "山东省临沂市兰陵县兰陵镇", "lat": 34.85, "lng": 117.98, "type": "normal", "event": "初被春申君黄歇任命为兰陵令。春申君死，荀子被废除兰陵令一职，但选择定居于此，专心著书立说，直至去世。", "time": "约公元前255年至约公元前238年", "duration": "晚年定居，直至去世", "significance": "这是其思想最终成熟、定型和传承的时期，完成了《荀子》大部分篇章的撰写与整理，并葬于此。", "works": ["荀子"], "quoteLines": []}, {"name": "楚国·兰陵", "ancientName": "兰陵", "modernName": "山东省临沂市兰陵县兰陵镇", "lat": 34.85, "lng": 117.98, "type": "death", "event": "在兰陵去世，葬于兰陵。", "time": "约公元前238年", "duration": "终老之地", "significance": "其思想遗产通过著作和弟子（如韩非、李斯）流传后世，兰陵成为其学术生命的终点和精神象征地。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---", "markdown": "# 荀子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：荀况（后人尊称荀子）\n- **时代**：战国末期\n- **出生**：约公元前313年，赵国（存疑，今山西省南部或河北省南部，具体地点待考）\n- **去世**：约公元前238年，兰陵（今山东省临沂市兰陵县兰陵镇）\n- **享年**：约75岁（据生卒年推算）\n- **主要身份**：思想家、教育家、儒家代表人物、文学家\n- **历史地位**：先秦儒家思想的集大成者，百家争鸣的总结者，法家思想的重要启蒙者。\n- **主要成就**：\n    1. 提出“性恶论”，与孟子“性善论”相对，深化了儒家对人性的探讨。\n    2. 发展儒家“礼”学，强调“礼法并施”，为后世制度建设提供理论基础。\n    3. 提出“天行有常，制天命而用之”的唯物主义自然观。\n    4. 培养了韩非、李斯等杰出弟子（据《史记》等记载），深刻影响了法家思想与秦朝政治。\n    5. 著有《荀子》一书，体系完整，文风浑厚，是先秦诸子散文的典范。\n\n### 生平概述\n荀子名况，字卿，战国末期赵国人。他生于诸侯兼并、百家争鸣的时代，曾游学于齐国稷下学宫，三为祭酒，最为老师。后因谗言离齐适楚，被春申君黄歇任命为兰陵令。春申君死后，荀子被废，遂定居兰陵，著书立说，直至终老。他批判性地总结了先秦诸子思想，将儒家“礼”论与现实政治结合，提出“隆礼重法”，其思想兼具儒家理想与法家务实精神，是连接先秦与秦汉思想的关键桥梁。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于赵、齐、楚、秦等国，核心轨迹在齐国稷下与楚国兰陵之间。\n- ⏱️ **时间跨度**：约公元前313年至公元前238年，跨度约75年。\n- 📍 **地理范围**：大致覆盖今山西、山东、河北、陕西等省。\n- 🌟 **重要节点数量**：核心地点7个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：赵国\n- **时间**：约公元前313年\n- **停留时间**：时间不详\n- **地点**：赵国（存疑，今山西省南部或河北省南部，具体地点待考）\n- **事件**：出生于赵国，接受早期教育，奠定学问基础。\n- **意义**：作为其思想的起点，赵国的文化环境（尚武、重法）可能对其后来强调“礼法”结合有所影响。\n\n### 📍 重要地点：齐国·稷下学宫\n- **时间**：约公元前285年至前275年（首次）\n- **停留时间**：首次游学约十年\n- **地点**：临淄稷下（今山东省淄博市临淄区）\n- **事件**：游学于稷下学宫，广泛学习各家学说，崭露头角。\n- **意义**：这是其学术思想形成的关键时期，得以接触并批判性吸收道、法、名、墨等诸子百家思想。\n\n### 📍 重要地点：秦国\n- **时间**：约公元前266年（存疑）\n- **停留时间**：短期考察\n- **地点**：咸阳（今陕西省咸阳市东北）\n- **事件**：入秦考察政治，与秦昭王、范雎等论政，赞赏其法治严明，但认为其短于儒术。\n- **意义**：实地考察使其“礼法并施”的政治构想更具现实针对性，也预示了儒家与法家在未来的冲突与融合。\n\n### 📍 重要地点：赵国\n- **时间**：约公元前260年（存疑）\n- **停留时间**：短期\n- **地点**：邯郸（今河北省邯郸市）\n- **事件**：与临武君议兵于赵孝成王前，阐述以“仁义”为本的军事思想。\n- **意义**：将其儒家政治伦理扩展至军事领域，体现了其思想的系统性。\n\n### 📍 重要地点：齐国·稷下学宫（再任）\n- **时间**：约公元前265年至前260年（再任，时间存疑）\n- **停留时间**：约数年\n- **地点**：临淄稷下（今山东省淄博市临淄区）\n- **事件**：重返稷下学宫，因学问最为渊博，被尊为“最为老师”，并“三为祭酒”（学宫领袖）。\n- **意义**：达到其学术生涯的顶峰，成为天下学者的宗师，系统讲学并完善其思想体系。\n\n### 📍 重要地点：楚国·兰陵（任职与终老）\n- **时间**：约公元前255年至约公元前238年\n- **停留时间**：晚年定居，直至去世\n- **地点**：兰陵（今山东省临沂市兰陵县兰陵镇）\n- **事件**：初被春申君黄歇任命为兰陵令。春申君死，荀子被废除兰陵令一职，但选择定居于此，专心著书立说，直至去世。\n- **意义**：这是其思想最终成熟、定型和传承的时期，完成了《荀子》大部分篇章的撰写与整理，并葬于此。\n- **名篇名句**：\n    - 《劝学》：青，取之于蓝，而青于蓝\n    - 《天论》：天行有常，不为尧存，不为桀亡。\n\n### 🔴 去世地：楚国·兰陵\n- **时间**：约公元前238年\n- **停留时间**：终老之地\n- **地点**：兰陵（今山东省临沂市兰陵县兰陵镇）\n- **事件**：在兰陵去世，葬于兰陵。\n- **意义**：其思想遗产通过著作和弟子（如韩非、李斯）流传后世，兰陵成为其学术生命的终点和精神象征地。\n\n---\n\n## 生平时间线\n| 年份（约） | 年龄（约） | 关键事件 |\n| --- | --- | --- |\n| 公元前313年 | 0岁 | 生于赵国。 |\n| 公元前285年 | 约28岁 | 首次游学齐国稷下学宫。 |\n| 公元前266年 | 约47岁 | 西行入秦，考察政治，会见秦昭王。 |\n| 公元前265年-前260年（再任，时间存疑） | 约48-53岁 | 重返齐国稷下学宫，三为祭酒。 |\n| 公元前260年 | 约53岁 | 在赵国邯郸与临武君议兵。 |\n| 公元前255年 | 约58岁 | 离齐至楚，被春申君任命为兰陵令。 |\n| 公元前238年 | 约75岁 | 春申君死，被废兰陵令，遂定居兰陵著书，直至去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省临沂市兰陵县兰陵镇 | 34.8500 | 117.9800 |\n| 山东省淄博市临淄区（稷下学宫遗址） | 36.8200 | 118.3000 |\n| 陕西省咸阳市（秦咸阳城遗址） | 34.3500 | 108.7000 |\n| 河北省邯郸市 | 36.6200 | 114.5400 |"};
+      const data = {"person": {"name": "荀况", "title": "", "description": "荀子名况，字卿，战国末期赵国人。他生于诸侯兼并、百家争鸣的时代，曾游学于齐国稷下学宫，三为祭酒，最为老师。后因谗言离齐适楚，被春申君黄歇任命为兰陵令。春申君死后，荀子被废，遂定居兰陵，著书立说，直至终老。他批判性地总结了先秦诸子思想，将儒家“礼”论与现实政治结合，提出“隆礼重法”，其思想兼具儒家理想与法家务实精神，是连接先秦与秦汉思想的关键桥梁。", "quote": "", "dynasty": "战国末期", "birthplace": "赵国", "avatar": "", "birth": {"date": "公元前313年", "location": "赵国", "lat": null, "lng": null}, "death": {"date": "公元前238年", "location": "兰陵（今山东省临沂市兰陵县兰陵镇）", "lat": 34.85, "lng": 117.98}, "lifespan": "约75岁（据生卒年推算）", "highlights": {"honor": "", "status": "先秦儒家思想的集大成者，百家争鸣的总结者，法家思想的重要启蒙者。", "identities": "思想家、教育家、儒家代表人物、文学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "齐国·稷下学宫", "ancientName": "临淄稷下", "modernName": "山东省淄博市临淄区", "lat": 36.82, "lng": 118.3, "type": "normal", "event": "游学于稷下学宫，广泛学习各家学说，崭露头角。", "time": "约公元前285年至前275年（首次）", "duration": "首次游学约十年", "significance": "这是其学术思想形成的关键时期，得以接触并批判性吸收道、法、名、墨等诸子百家思想。", "works": [], "quoteLines": []}, {"name": "秦国", "ancientName": "咸阳", "modernName": "陕西省咸阳市东北", "lat": 34.35, "lng": 108.7, "type": "normal", "event": "入秦考察政治，与秦昭王、范雎等论政，赞赏其法治严明，但认为其短于儒术。", "time": "约公元前266年（存疑）", "duration": "短期考察", "significance": "实地考察使其“礼法并施”的政治构想更具现实针对性，也预示了儒家与法家在未来的冲突与融合。", "works": [], "quoteLines": []}, {"name": "赵国", "ancientName": "邯郸", "modernName": "河北省邯郸市", "lat": 36.62, "lng": 114.54, "type": "normal", "event": "与临武君议兵于赵孝成王前，阐述以“仁义”为本的军事思想。", "time": "约公元前260年（存疑）", "duration": "短期", "significance": "将其儒家政治伦理扩展至军事领域，体现了其思想的系统性。", "works": [], "quoteLines": []}, {"name": "齐国·稷下学宫（再任）", "ancientName": "临淄稷下", "modernName": "山东省淄博市临淄区", "lat": 36.82, "lng": 118.3, "type": "normal", "event": "重返稷下学宫，因学问最为渊博，被尊为“最为老师”，并“三为祭酒”（学宫领袖）。", "time": "约公元前265年至前260年（再任，时间存疑）", "duration": "约数年", "significance": "达到其学术生涯的顶峰，成为天下学者的宗师，系统讲学并完善其思想体系。", "works": [], "quoteLines": []}, {"name": "楚国·兰陵（任职与终老）", "ancientName": "兰陵", "modernName": "山东省临沂市兰陵县兰陵镇", "lat": 34.85, "lng": 117.98, "type": "normal", "event": "初被春申君黄歇任命为兰陵令。春申君死，荀子被废除兰陵令一职，但选择定居于此，专心著书立说，直至去世。", "time": "约公元前255年至约公元前238年", "duration": "晚年定居，直至去世", "significance": "这是其思想最终成熟、定型和传承的时期，完成了《荀子》大部分篇章的撰写与整理，并葬于此。", "works": ["荀子"], "quoteLines": []}, {"name": "楚国·兰陵", "ancientName": "兰陵", "modernName": "山东省临沂市兰陵县兰陵镇", "lat": 34.85, "lng": 117.98, "type": "death", "event": "在兰陵去世，葬于兰陵。", "time": "约公元前238年", "duration": "终老之地", "significance": "其思想遗产通过著作和弟子（如韩非、李斯）流传后世，兰陵成为其学术生命的终点和精神象征地。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---", "markdown": "# 荀子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：荀况（后人尊称荀子）\n- **时代**：战国末期\n- **出生**：约公元前313年，赵国（存疑，今山西省南部或河北省南部，具体地点待考）\n- **去世**：约公元前238年，兰陵（今山东省临沂市兰陵县兰陵镇）\n- **享年**：约75岁（据生卒年推算）\n- **主要身份**：思想家、教育家、儒家代表人物、文学家\n- **历史地位**：先秦儒家思想的集大成者，百家争鸣的总结者，法家思想的重要启蒙者。\n- **主要成就**：\n    1. 提出“性恶论”，与孟子“性善论”相对，深化了儒家对人性的探讨。\n    2. 发展儒家“礼”学，强调“礼法并施”，为后世制度建设提供理论基础。\n    3. 提出“天行有常，制天命而用之”的唯物主义自然观。\n    4. 培养了韩非、李斯等杰出弟子（据《史记》等记载），深刻影响了法家思想与秦朝政治。\n    5. 著有《荀子》一书，体系完整，文风浑厚，是先秦诸子散文的典范。\n\n### 生平概述\n荀子名况，字卿，战国末期赵国人。他生于诸侯兼并、百家争鸣的时代，曾游学于齐国稷下学宫，三为祭酒，最为老师。后因谗言离齐适楚，被春申君黄歇任命为兰陵令。春申君死后，荀子被废，遂定居兰陵，著书立说，直至终老。他批判性地总结了先秦诸子思想，将儒家“礼”论与现实政治结合，提出“隆礼重法”，其思想兼具儒家理想与法家务实精神，是连接先秦与秦汉思想的关键桥梁。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于赵、齐、楚、秦等国，核心轨迹在齐国稷下与楚国兰陵之间。\n- ⏱️ **时间跨度**：约公元前313年至公元前238年，跨度约75年。\n- 📍 **地理范围**：大致覆盖今山西、山东、河北、陕西等省。\n- 🌟 **重要节点数量**：核心地点7个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：赵国\n- **时间**：约公元前313年\n- **停留时间**：时间不详\n- **地点**：赵国（存疑，今山西省南部或河北省南部，具体地点待考）\n- **事件**：出生于赵国，接受早期教育，奠定学问基础。\n- **意义**：作为其思想的起点，赵国的文化环境（尚武、重法）可能对其后来强调“礼法”结合有所影响。\n\n### 📍 重要地点：齐国·稷下学宫\n- **时间**：约公元前285年至前275年（首次）\n- **停留时间**：首次游学约十年\n- **地点**：临淄稷下（今山东省淄博市临淄区）\n- **事件**：游学于稷下学宫，广泛学习各家学说，崭露头角。\n- **意义**：这是其学术思想形成的关键时期，得以接触并批判性吸收道、法、名、墨等诸子百家思想。\n\n### 📍 重要地点：秦国\n- **时间**：约公元前266年（存疑）\n- **停留时间**：短期考察\n- **地点**：咸阳（今陕西省咸阳市东北）\n- **事件**：入秦考察政治，与秦昭王、范雎等论政，赞赏其法治严明，但认为其短于儒术。\n- **意义**：实地考察使其“礼法并施”的政治构想更具现实针对性，也预示了儒家与法家在未来的冲突与融合。\n\n### 📍 重要地点：赵国\n- **时间**：约公元前260年（存疑）\n- **停留时间**：短期\n- **地点**：邯郸（今河北省邯郸市）\n- **事件**：与临武君议兵于赵孝成王前，阐述以“仁义”为本的军事思想。\n- **意义**：将其儒家政治伦理扩展至军事领域，体现了其思想的系统性。\n\n### 📍 重要地点：齐国·稷下学宫（再任）\n- **时间**：约公元前265年至前260年（再任，时间存疑）\n- **停留时间**：约数年\n- **地点**：临淄稷下（今山东省淄博市临淄区）\n- **事件**：重返稷下学宫，因学问最为渊博，被尊为“最为老师”，并“三为祭酒”（学宫领袖）。\n- **意义**：达到其学术生涯的顶峰，成为天下学者的宗师，系统讲学并完善其思想体系。\n\n### 📍 重要地点：楚国·兰陵（任职与终老）\n- **时间**：约公元前255年至约公元前238年\n- **停留时间**：晚年定居，直至去世\n- **地点**：兰陵（今山东省临沂市兰陵县兰陵镇）\n- **事件**：初被春申君黄歇任命为兰陵令。春申君死，荀子被废除兰陵令一职，但选择定居于此，专心著书立说，直至去世。\n- **意义**：这是其思想最终成熟、定型和传承的时期，完成了《荀子》大部分篇章的撰写与整理，并葬于此。\n- **名篇名句**：\n    - 《劝学》：青，取之于蓝，而青于蓝\n    - 《天论》：天行有常，不为尧存，不为桀亡。\n\n### 🔴 去世地：楚国·兰陵\n- **时间**：约公元前238年\n- **停留时间**：终老之地\n- **地点**：兰陵（今山东省临沂市兰陵县兰陵镇）\n- **事件**：在兰陵去世，葬于兰陵。\n- **意义**：其思想遗产通过著作和弟子（如韩非、李斯）流传后世，兰陵成为其学术生命的终点和精神象征地。\n\n---\n\n## 生平时间线\n| 年份（约） | 年龄（约） | 关键事件 |\n| --- | --- | --- |\n| 公元前313年 | 0岁 | 生于赵国。 |\n| 公元前285年 | 约28岁 | 首次游学齐国稷下学宫。 |\n| 公元前266年 | 约47岁 | 西行入秦，考察政治，会见秦昭王。 |\n| 公元前265年-前260年（再任，时间存疑） | 约48-53岁 | 重返齐国稷下学宫，三为祭酒。 |\n| 公元前260年 | 约53岁 | 在赵国邯郸与临武君议兵。 |\n| 公元前255年 | 约58岁 | 离齐至楚，被春申君任命为兰陵令。 |\n| 公元前238年 | 约75岁 | 春申君死，被废兰陵令，遂定居兰陵著书，直至去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《劝学》**（节选）\n- 核心要点：\n    - **重点**：文章以“青出于蓝”“锲而不舍”等大量生动比喻，系统阐述了**学习**的重要性、态度与方法。\n    - **重点**：核心论点“学不可以已”，强调**积累**（积土成山）、**坚持**（锲而不舍）、**专一**（用心一也）的学习品质。\n    - 运用**排比**与**对偶**句式，形成磅礴气势与严密逻辑，是先秦**论说文**的典范。\n    - 文中“**君子生非异也，善假于物也**”体现了荀子重视后天学习和借助外物的思想。\n    - **重点**：通过“蟹六跪而二螯”的反例，论证**用心躁**的危害，对比鲜明，说理透彻。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**稷下学宫**是战国时期齐国的学术中心，荀子曾在此长期游学并担任领袖（祭酒），是**百家争鸣**的重要舞台。\n    - 荀子是**儒家八派**之一“孙氏之儒”的代表人物。\n    - 其弟子**韩非**、**李斯**成为**法家**代表人物，影响了秦朝的统一与制度建设。\n    - **重点**：提出“**性恶论**”，认为人的本性是恶的，善是后天人为（“伪”）的结果，因此需要“**化性起伪**”，用礼义法度来教化约束。\n- 核心要点：\n    - **重点**：荀子思想处于从先秦**孔孟儒家**到汉代**董仲舒儒学**的过渡阶段，其“**隆礼重法**”思想为汉代“儒表法里”的统治术奠定了基础。\n    - **重点**：在天人关系上，提出“**天人相分**”与“**制天命而用之**”，具有唯物主义倾向，强调人的主观能动性。\n    - 其政治主张的核心是“**礼治**”，认为“礼”是区分等级、调节欲望、实现社会秩序的根本。\n    - **重点**：在历史观上主张“**法后王**”，即效法近世可行之制，与孟子“法先王”形成对比，更具现实主义色彩。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省临沂市兰陵县兰陵镇 | 34.8500 | 117.9800 |\n| 山东省淄博市临淄区（稷下学宫遗址） | 36.8200 | 118.3000 |\n| 陕西省咸阳市（秦咸阳城遗址） | 34.3500 | 108.7000 |\n| 河北省邯郸市 | 36.6200 | 114.5400 |", "relatedGraph": {"center": {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "relationLabel": "中心人物", "isCenter": true}, {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "春秋战国", "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "列子", "name": "列子", "file": "列子.html", "dynasty": "战国前期（约公元前4世纪）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "春秋战国", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "春秋战国", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "春秋战国", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "荀子", "target": "李斯", "label": "师生", "confidence": null}, {"source": "荀子", "target": "列子", "label": "同时代人物", "confidence": null}, {"source": "荀子", "target": "韩非子", "label": "同时代人物", "confidence": null}, {"source": "荀子", "target": "秦始皇", "label": "同时代人物", "confidence": null}, {"source": "荀子", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "荀子", "target": "庄子", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

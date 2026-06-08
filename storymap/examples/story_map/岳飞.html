@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "岳飞", "title": "", "description": "岳飞，字鹏举，生于北宋末年，亲历靖康之变，目睹山河破碎。他自二十岁起四次从军，毕生致力于抗金复国。他组建并统帅纪律严明、战功卓著的“岳家军”，在收复建康、襄阳六郡以及郾城、颍昌大捷中重创金军，成为南宋抗金的支柱。然而，其北伐事业因宋高宗赵构与宰相秦桧主和派的政治干预而中断，本人亦遭诬陷入狱，最终以“莫须有”的罪名被冤杀，成为千古悲剧。", "quote": "《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”", "dynasty": "南宋", "birthplace": "（另有说", "avatar": "", "birth": {"date": "1103年", "location": "（另有说", "lat": null, "lng": null}, "death": {"date": "1142年", "location": "两浙西路临安府（今浙江省杭州市）", "lat": 30.25, "lng": 120.17}, "lifespan": "39岁（按1103年计）", "highlights": {"honor": "", "status": "南宋中兴四将之首，中国历史上著名的军事家、民族英雄。", "identities": "军事家、战略家、民族英雄、书法家、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "汤阴县", "ancientName": "河北西路相州汤阴县", "modernName": "河南省安阳市汤阴县", "lat": 35.92, "lng": 114.35, "type": "birth", "event": "出生、成长、少年习武、读书。", "time": "公元1103年", "duration": "约20年", "significance": "岳飞忠勇品格与文化素养的奠基之地。", "works": [], "quoteLines": []}, {"name": "平定军", "ancientName": "河东路平定军", "modernName": "山西省阳泉市平定县", "lat": 37.8, "lng": 113.62, "type": "normal", "event": "首次从军，参与对辽及后来对金的作战。", "time": "约公元1122年-1126年", "duration": "约4年", "significance": "军旅生涯的起点，积累了早期实战经验。", "works": [], "quoteLines": []}, {"name": "相州", "ancientName": "河北西路相州", "modernName": "河南省安阳市", "lat": 36.1, "lng": 114.35, "type": "normal", "event": "应募充敢战士，平定相州剧贼。", "time": "公元1126年冬", "duration": "短暂", "significance": "第二次从军，开始崭露头角。", "works": [], "quoteLines": []}, {"name": "开封府（东京汴梁）", "ancientName": "京畿路开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.31, "type": "normal", "event": "随军勤王，护卫京城，亲历靖康之变。", "time": "公元1126年-1127年", "duration": "数月", "significance": "目睹北宋灭亡，坚定了抗金复国的信念。", "works": [], "quoteLines": []}, {"name": "河北西路真定府（投奔张所）", "ancientName": "河北西路真定府", "modernName": "河北省正定县", "lat": 38.15, "lng": 114.57, "type": "normal", "event": "上书反对南迁，被夺官归家。后投奔河北招抚使张所，开始在太行山一带抗金。", "time": "公元1127年", "duration": "短暂", "significance": "在南宋初立的混乱局势中，坚持抗金立场并找到新的抗金依托。", "works": [], "quoteLines": []}, {"name": "建康府", "ancientName": "江南东路建康府", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "type": "normal", "event": "收复建康，在靖安、牛头山等地大败金军。", "time": "公元1129年-1130年", "duration": "约1年", "significance": "岳飞独立成军后取得的重大胜利，稳定了南宋长江防线。", "works": [], "quoteLines": ["《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”"]}, {"name": "鄂州", "ancientName": "荆湖北路鄂州", "modernName": "湖北省武汉市武昌区", "lat": 30.56, "lng": 114.35, "type": "normal", "event": "收复襄阳六郡后，长期驻守，以此为北伐基地，训练岳家军。", "time": "公元1134年-1140年（主要驻扎地）", "duration": "约6年", "significance": "岳飞军事事业的大本营，岳家军核心力量的形成地。", "works": [], "quoteLines": ["《满江红·登黄鹤楼有感》：“何日请缨提锐旅，一鞭直渡清河洛。”"]}, {"name": "颍昌府", "ancientName": "京西北路颍昌府", "modernName": "河南省许昌市", "lat": 34.03, "lng": 113.85, "type": "normal", "event": "郾城大捷后，岳云率军在此与金军主力决战，取得大捷。", "time": "公元1140年", "duration": "短暂", "significance": "岳家军北伐的巅峰战绩之一，重创金军主力。", "works": [], "quoteLines": ["《满江红·怒发冲冠》：“壮志饥餐胡虏肉，笑谈渴饮匈奴血。”（创作地点与时间有争议，但精神与北伐时期高度契合）"]}, {"name": "朱仙镇", "ancientName": "东京开封府朱仙镇", "modernName": "河南省开封市祥符区朱仙镇", "lat": 34.72, "lng": 114.27, "type": "normal", "event": "取得郾城、颍昌大捷后，进军至此，距旧都开封仅四十五里。", "time": "公元1140年秋", "duration": "极短暂", "significance": "北伐事业的顶点，也是“十年之功，废于一旦”的转折前夕。", "works": [], "quoteLines": []}, {"name": "临安府（行在）", "ancientName": "两浙西路临安府", "modernName": "浙江省杭州市", "lat": 30.25, "lng": 120.17, "type": "normal", "event": "被解除兵权，授予枢密副使虚职，后遭秦桧党羽诬陷入狱。", "time": "公元1141年", "duration": "约1年", "significance": "政治生涯的终点，悲剧命运的上演地。", "works": [], "quoteLines": []}, {"name": "临安府大理寺", "ancientName": "两浙西路临安府大理寺狱", "modernName": "浙江省杭州市", "lat": 30.25, "lng": 120.17, "type": "death", "event": "以“莫须有”罪名被冤杀，长子岳云、部将张宪同遇害。", "time": "公元1142年1月27日", "duration": "狱中约两月", "significance": "千古冤案，成为忠臣遭忌、英雄末路的历史象征。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---", "markdown": "# 岳飞\n\n## 人物档案\n\n### 基本信息\n- **姓名**：岳飞\n- **时代**：南宋\n- **出生**：公元1103年（另有1107年说，存疑），河北西路相州汤阴县（今河南省安阳市汤阴县）\n- **去世**：公元1142年1月27日，两浙西路临安府（今浙江省杭州市）\n- **享年**：39岁（按1103年计）\n- **主要身份**：军事家、战略家、民族英雄、书法家、诗人\n- **历史地位**：南宋中兴四将之首，中国历史上著名的军事家、民族英雄。\n- **主要成就**：\n    - 率领岳家军抗击金军，收复大片失地。\n    - 提出“连结河朔”战略，联合民间义军共同抗金。\n    - 在郾城、颍昌等地大破金军主力。\n    - 其治军理念“冻死不拆屋，饿死不掳掠”成为后世楷模。\n\n### 生平概述\n岳飞，字鹏举，生于北宋末年，亲历靖康之变，目睹山河破碎。他自二十岁起四次从军，毕生致力于抗金复国。他组建并统帅纪律严明、战功卓著的“岳家军”，在收复建康、襄阳六郡以及郾城、颍昌大捷中重创金军，成为南宋抗金的支柱。然而，其北伐事业因宋高宗赵构与宰相秦桧主和派的政治干预而中断，本人亦遭诬陷入狱，最终以“莫须有”的罪名被冤杀，成为千古悲剧。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从北方故乡转战至长江中下游及中原地区，最终冤死于南宋都城临安。\n- ⏱️ **时间跨度**：约公元1122年至1142年，总计约20年军旅生涯。\n- 📍 **地理范围**：主要覆盖今河南、湖北、安徽、江苏、浙江等省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：汤阴县\n- **时间**：公元1103年\n- **停留时间**：约20年\n- **地点**：河北西路相州汤阴县（今河南省安阳市汤阴县）\n- **事件**：出生、成长、少年习武、读书。\n- **意义**：岳飞忠勇品格与文化素养的奠基之地。\n\n### 📍 重要地点：平定军\n- **时间**：约公元1122年-1126年\n- **停留时间**：约4年\n- **地点**：河东路平定军（今山西省阳泉市平定县）\n- **事件**：首次从军，参与对辽及后来对金的作战。\n- **意义**：军旅生涯的起点，积累了早期实战经验。\n\n### 📍 重要地点：相州\n- **时间**：公元1126年冬\n- **停留时间**：短暂\n- **地点**：河北西路相州（今河南省安阳市）\n- **事件**：应募充敢战士，平定相州剧贼。\n- **意义**：第二次从军，开始崭露头角。\n\n### 📍 重要地点：开封府（东京汴梁）\n- **时间**：公元1126年-1127年\n- **停留时间**：数月\n- **地点**：京畿路开封府（今河南省开封市）\n- **事件**：随军勤王，护卫京城，亲历靖康之变。\n- **意义**：目睹北宋灭亡，坚定了抗金复国的信念。\n\n### 📍 重要地点：河北西路真定府（投奔张所）\n- **时间**：公元1127年\n- **停留时间**：短暂\n- **地点**：河北西路真定府（今河北省正定县）\n- **事件**：上书反对南迁，被夺官归家。后投奔河北招抚使张所，开始在太行山一带抗金。\n- **意义**：在南宋初立的混乱局势中，坚持抗金立场并找到新的抗金依托。\n\n### 📍 重要地点：建康府\n- **时间**：公元1129年-1130年\n- **停留时间**：约1年\n- **地点**：江南东路建康府（今江苏省南京市）\n- **事件**：收复建康，在靖安、牛头山等地大败金军。\n- **意义**：岳飞独立成军后取得的重大胜利，稳定了南宋长江防线。\n- **名篇名句**：《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”\n\n### 📍 重要地点：鄂州\n- **时间**：公元1134年-1140年（主要驻扎地）\n- **停留时间**：约6年\n- **地点**：荆湖北路鄂州（今湖北省武汉市武昌区）\n- **事件**：收复襄阳六郡后，长期驻守，以此为北伐基地，训练岳家军。\n- **意义**：岳飞军事事业的大本营，岳家军核心力量的形成地。\n- **名篇名句**：《满江红·登黄鹤楼有感》：“何日请缨提锐旅，一鞭直渡清河洛。”\n\n### 📍 重要地点：颍昌府\n- **时间**：公元1140年\n- **停留时间**：短暂\n- **地点**：京西北路颍昌府（今河南省许昌市）\n- **事件**：郾城大捷后，岳云率军在此与金军主力决战，取得大捷。\n- **意义**：岳家军北伐的巅峰战绩之一，重创金军主力。\n- **名篇名句**：《满江红·怒发冲冠》：“壮志饥餐胡虏肉，笑谈渴饮匈奴血。”（创作地点与时间有争议，但精神与北伐时期高度契合）\n\n### 📍 重要地点：朱仙镇\n- **时间**：公元1140年秋\n- **停留时间**：极短暂\n- **地点**：东京开封府朱仙镇（今河南省开封市祥符区朱仙镇）\n- **事件**：取得郾城、颍昌大捷后，进军至此，距旧都开封仅四十五里。\n- **意义**：北伐事业的顶点，也是“十年之功，废于一旦”的转折前夕。\n\n### 📍 重要地点：临安府（行在）\n- **时间**：公元1141年\n- **停留时间**：约1年\n- **地点**：两浙西路临安府（今浙江省杭州市）\n- **事件**：被解除兵权，授予枢密副使虚职，后遭秦桧党羽诬陷入狱。\n- **意义**：政治生涯的终点，悲剧命运的上演地。\n\n### 🔴 去世地：临安府大理寺\n- **时间**：公元1142年1月27日\n- **停留时间**：狱中约两月\n- **地点**：两浙西路临安府大理寺狱（今浙江省杭州市）\n- **事件**：以“莫须有”罪名被冤杀，长子岳云、部将张宪同遇害。\n- **意义**：千古冤案，成为忠臣遭忌、英雄末路的历史象征。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1103年 | 0岁 | 生于河北西路相州汤阴县。 |\n| 约1122年 | 约19岁 | 首次从军于河东路平定军。 |\n| 1126年 | 23岁 | 应募敢战士于相州，后投身抗金。 |\n| 1127年 | 24岁 | 上书反对南迁，被夺官归家。后投奔河北招抚使张所。 |\n| 1129年 | 26岁 | 率军转战江南，收复建康。 |\n| 1133年 | 30岁 | 因功受到宋高宗嘉奖，赐“精忠岳飞”旗。 |\n| 1134年 | 31岁 | 第一次北伐，收复襄阳六郡。 |\n| 1136年 | 33岁 | 第二次北伐，克复商州、虢州等地。 |\n| 1140年 | 37岁 | 第四次北伐，取得郾城、颍昌大捷，进军至朱仙镇。 |\n| 1141年 | 38岁 | 被召回临安，解除兵权，任枢密副使。后下狱。 |\n| 1142年1月 | 39岁 | 于临安大理寺狱中遇害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省安阳市汤阴县 | 35.92 | 114.35 |\n| 山西省阳泉市平定县 | 37.80 | 113.62 |\n| 河南省安阳市 | 36.10 | 114.35 |\n| 河南省开封市 | 34.80 | 114.31 |\n| 河北省正定县 | 38.15 | 114.57 |\n| 江苏省南京市 | 32.06 | 118.80 |\n| 湖北省武汉市武昌区 | 30.56 | 114.35 |\n| 河南省许昌市 | 34.03 | 113.85 |\n| 河南省开封市祥符区朱仙镇 | 34.72 | 114.27 |\n| 浙江省杭州市 | 30.25 | 120.17 |"};
+      const data = {"person": {"name": "岳飞", "title": "", "description": "岳飞，字鹏举，生于北宋末年，亲历靖康之变，目睹山河破碎。他自二十岁起四次从军，毕生致力于抗金复国。他组建并统帅纪律严明、战功卓著的“岳家军”，在收复建康、襄阳六郡以及郾城、颍昌大捷中重创金军，成为南宋抗金的支柱。然而，其北伐事业因宋高宗赵构与宰相秦桧主和派的政治干预而中断，本人亦遭诬陷入狱，最终以“莫须有”的罪名被冤杀，成为千古悲剧。", "quote": "《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”", "dynasty": "南宋", "birthplace": "（另有说", "avatar": "", "birth": {"date": "1103年", "location": "（另有说", "lat": null, "lng": null}, "death": {"date": "1142年", "location": "两浙西路临安府（今浙江省杭州市）", "lat": 30.25, "lng": 120.17}, "lifespan": "39岁（按1103年计）", "highlights": {"honor": "", "status": "南宋中兴四将之首，中国历史上著名的军事家、民族英雄。", "identities": "军事家、战略家、民族英雄、书法家、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "汤阴县", "ancientName": "河北西路相州汤阴县", "modernName": "河南省安阳市汤阴县", "lat": 35.92, "lng": 114.35, "type": "birth", "event": "出生、成长、少年习武、读书。", "time": "公元1103年", "duration": "约20年", "significance": "岳飞忠勇品格与文化素养的奠基之地。", "works": [], "quoteLines": []}, {"name": "平定军", "ancientName": "河东路平定军", "modernName": "山西省阳泉市平定县", "lat": 37.8, "lng": 113.62, "type": "normal", "event": "首次从军，参与对辽及后来对金的作战。", "time": "约公元1122年-1126年", "duration": "约4年", "significance": "军旅生涯的起点，积累了早期实战经验。", "works": [], "quoteLines": []}, {"name": "相州", "ancientName": "河北西路相州", "modernName": "河南省安阳市", "lat": 36.1, "lng": 114.35, "type": "normal", "event": "应募充敢战士，平定相州剧贼。", "time": "公元1126年冬", "duration": "短暂", "significance": "第二次从军，开始崭露头角。", "works": [], "quoteLines": []}, {"name": "开封府（东京汴梁）", "ancientName": "京畿路开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.31, "type": "normal", "event": "随军勤王，护卫京城，亲历靖康之变。", "time": "公元1126年-1127年", "duration": "数月", "significance": "目睹北宋灭亡，坚定了抗金复国的信念。", "works": [], "quoteLines": []}, {"name": "河北西路真定府（投奔张所）", "ancientName": "河北西路真定府", "modernName": "河北省正定县", "lat": 38.15, "lng": 114.57, "type": "normal", "event": "上书反对南迁，被夺官归家。后投奔河北招抚使张所，开始在太行山一带抗金。", "time": "公元1127年", "duration": "短暂", "significance": "在南宋初立的混乱局势中，坚持抗金立场并找到新的抗金依托。", "works": [], "quoteLines": []}, {"name": "建康府", "ancientName": "江南东路建康府", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "type": "normal", "event": "收复建康，在靖安、牛头山等地大败金军。", "time": "公元1129年-1130年", "duration": "约1年", "significance": "岳飞独立成军后取得的重大胜利，稳定了南宋长江防线。", "works": [], "quoteLines": ["《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”"]}, {"name": "鄂州", "ancientName": "荆湖北路鄂州", "modernName": "湖北省武汉市武昌区", "lat": 30.56, "lng": 114.35, "type": "normal", "event": "收复襄阳六郡后，长期驻守，以此为北伐基地，训练岳家军。", "time": "公元1134年-1140年（主要驻扎地）", "duration": "约6年", "significance": "岳飞军事事业的大本营，岳家军核心力量的形成地。", "works": [], "quoteLines": ["《满江红·登黄鹤楼有感》：“何日请缨提锐旅，一鞭直渡清河洛。”"]}, {"name": "颍昌府", "ancientName": "京西北路颍昌府", "modernName": "河南省许昌市", "lat": 34.03, "lng": 113.85, "type": "normal", "event": "郾城大捷后，岳云率军在此与金军主力决战，取得大捷。", "time": "公元1140年", "duration": "短暂", "significance": "岳家军北伐的巅峰战绩之一，重创金军主力。", "works": [], "quoteLines": ["《满江红·怒发冲冠》：“壮志饥餐胡虏肉，笑谈渴饮匈奴血。”（创作地点与时间有争议，但精神与北伐时期高度契合）"]}, {"name": "朱仙镇", "ancientName": "东京开封府朱仙镇", "modernName": "河南省开封市祥符区朱仙镇", "lat": 34.72, "lng": 114.27, "type": "normal", "event": "取得郾城、颍昌大捷后，进军至此，距旧都开封仅四十五里。", "time": "公元1140年秋", "duration": "极短暂", "significance": "北伐事业的顶点，也是“十年之功，废于一旦”的转折前夕。", "works": [], "quoteLines": []}, {"name": "临安府（行在）", "ancientName": "两浙西路临安府", "modernName": "浙江省杭州市", "lat": 30.25, "lng": 120.17, "type": "normal", "event": "被解除兵权，授予枢密副使虚职，后遭秦桧党羽诬陷入狱。", "time": "公元1141年", "duration": "约1年", "significance": "政治生涯的终点，悲剧命运的上演地。", "works": [], "quoteLines": []}, {"name": "临安府大理寺", "ancientName": "两浙西路临安府大理寺狱", "modernName": "浙江省杭州市", "lat": 30.25, "lng": 120.17, "type": "death", "event": "以“莫须有”罪名被冤杀，长子岳云、部将张宪同遇害。", "time": "公元1142年1月27日", "duration": "狱中约两月", "significance": "千古冤案，成为忠臣遭忌、英雄末路的历史象征。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---", "markdown": "# 岳飞\n\n## 人物档案\n\n### 基本信息\n- **姓名**：岳飞\n- **时代**：南宋\n- **出生**：公元1103年（另有1107年说，存疑），河北西路相州汤阴县（今河南省安阳市汤阴县）\n- **去世**：公元1142年1月27日，两浙西路临安府（今浙江省杭州市）\n- **享年**：39岁（按1103年计）\n- **主要身份**：军事家、战略家、民族英雄、书法家、诗人\n- **历史地位**：南宋中兴四将之首，中国历史上著名的军事家、民族英雄。\n- **主要成就**：\n    - 率领岳家军抗击金军，收复大片失地。\n    - 提出“连结河朔”战略，联合民间义军共同抗金。\n    - 在郾城、颍昌等地大破金军主力。\n    - 其治军理念“冻死不拆屋，饿死不掳掠”成为后世楷模。\n\n### 生平概述\n岳飞，字鹏举，生于北宋末年，亲历靖康之变，目睹山河破碎。他自二十岁起四次从军，毕生致力于抗金复国。他组建并统帅纪律严明、战功卓著的“岳家军”，在收复建康、襄阳六郡以及郾城、颍昌大捷中重创金军，成为南宋抗金的支柱。然而，其北伐事业因宋高宗赵构与宰相秦桧主和派的政治干预而中断，本人亦遭诬陷入狱，最终以“莫须有”的罪名被冤杀，成为千古悲剧。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从北方故乡转战至长江中下游及中原地区，最终冤死于南宋都城临安。\n- ⏱️ **时间跨度**：约公元1122年至1142年，总计约20年军旅生涯。\n- 📍 **地理范围**：主要覆盖今河南、湖北、安徽、江苏、浙江等省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：汤阴县\n- **时间**：公元1103年\n- **停留时间**：约20年\n- **地点**：河北西路相州汤阴县（今河南省安阳市汤阴县）\n- **事件**：出生、成长、少年习武、读书。\n- **意义**：岳飞忠勇品格与文化素养的奠基之地。\n\n### 📍 重要地点：平定军\n- **时间**：约公元1122年-1126年\n- **停留时间**：约4年\n- **地点**：河东路平定军（今山西省阳泉市平定县）\n- **事件**：首次从军，参与对辽及后来对金的作战。\n- **意义**：军旅生涯的起点，积累了早期实战经验。\n\n### 📍 重要地点：相州\n- **时间**：公元1126年冬\n- **停留时间**：短暂\n- **地点**：河北西路相州（今河南省安阳市）\n- **事件**：应募充敢战士，平定相州剧贼。\n- **意义**：第二次从军，开始崭露头角。\n\n### 📍 重要地点：开封府（东京汴梁）\n- **时间**：公元1126年-1127年\n- **停留时间**：数月\n- **地点**：京畿路开封府（今河南省开封市）\n- **事件**：随军勤王，护卫京城，亲历靖康之变。\n- **意义**：目睹北宋灭亡，坚定了抗金复国的信念。\n\n### 📍 重要地点：河北西路真定府（投奔张所）\n- **时间**：公元1127年\n- **停留时间**：短暂\n- **地点**：河北西路真定府（今河北省正定县）\n- **事件**：上书反对南迁，被夺官归家。后投奔河北招抚使张所，开始在太行山一带抗金。\n- **意义**：在南宋初立的混乱局势中，坚持抗金立场并找到新的抗金依托。\n\n### 📍 重要地点：建康府\n- **时间**：公元1129年-1130年\n- **停留时间**：约1年\n- **地点**：江南东路建康府（今江苏省南京市）\n- **事件**：收复建康，在靖安、牛头山等地大败金军。\n- **意义**：岳飞独立成军后取得的重大胜利，稳定了南宋长江防线。\n- **名篇名句**：《五岳祠盟记》：“嗣当激励士卒，功期再战，北逾沙漠，蹀血虏廷，尽屠夷种。”\n\n### 📍 重要地点：鄂州\n- **时间**：公元1134年-1140年（主要驻扎地）\n- **停留时间**：约6年\n- **地点**：荆湖北路鄂州（今湖北省武汉市武昌区）\n- **事件**：收复襄阳六郡后，长期驻守，以此为北伐基地，训练岳家军。\n- **意义**：岳飞军事事业的大本营，岳家军核心力量的形成地。\n- **名篇名句**：《满江红·登黄鹤楼有感》：“何日请缨提锐旅，一鞭直渡清河洛。”\n\n### 📍 重要地点：颍昌府\n- **时间**：公元1140年\n- **停留时间**：短暂\n- **地点**：京西北路颍昌府（今河南省许昌市）\n- **事件**：郾城大捷后，岳云率军在此与金军主力决战，取得大捷。\n- **意义**：岳家军北伐的巅峰战绩之一，重创金军主力。\n- **名篇名句**：《满江红·怒发冲冠》：“壮志饥餐胡虏肉，笑谈渴饮匈奴血。”（创作地点与时间有争议，但精神与北伐时期高度契合）\n\n### 📍 重要地点：朱仙镇\n- **时间**：公元1140年秋\n- **停留时间**：极短暂\n- **地点**：东京开封府朱仙镇（今河南省开封市祥符区朱仙镇）\n- **事件**：取得郾城、颍昌大捷后，进军至此，距旧都开封仅四十五里。\n- **意义**：北伐事业的顶点，也是“十年之功，废于一旦”的转折前夕。\n\n### 📍 重要地点：临安府（行在）\n- **时间**：公元1141年\n- **停留时间**：约1年\n- **地点**：两浙西路临安府（今浙江省杭州市）\n- **事件**：被解除兵权，授予枢密副使虚职，后遭秦桧党羽诬陷入狱。\n- **意义**：政治生涯的终点，悲剧命运的上演地。\n\n### 🔴 去世地：临安府大理寺\n- **时间**：公元1142年1月27日\n- **停留时间**：狱中约两月\n- **地点**：两浙西路临安府大理寺狱（今浙江省杭州市）\n- **事件**：以“莫须有”罪名被冤杀，长子岳云、部将张宪同遇害。\n- **意义**：千古冤案，成为忠臣遭忌、英雄末路的历史象征。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1103年 | 0岁 | 生于河北西路相州汤阴县。 |\n| 约1122年 | 约19岁 | 首次从军于河东路平定军。 |\n| 1126年 | 23岁 | 应募敢战士于相州，后投身抗金。 |\n| 1127年 | 24岁 | 上书反对南迁，被夺官归家。后投奔河北招抚使张所。 |\n| 1129年 | 26岁 | 率军转战江南，收复建康。 |\n| 1133年 | 30岁 | 因功受到宋高宗嘉奖，赐“精忠岳飞”旗。 |\n| 1134年 | 31岁 | 第一次北伐，收复襄阳六郡。 |\n| 1136年 | 33岁 | 第二次北伐，克复商州、虢州等地。 |\n| 1140年 | 37岁 | 第四次北伐，取得郾城、颍昌大捷，进军至朱仙镇。 |\n| 1141年 | 38岁 | 被召回临安，解除兵权，任枢密副使。后下狱。 |\n| 1142年1月 | 39岁 | 于临安大理寺狱中遇害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《满江红·怒发冲冠》**、《小重山·昨夜寒蛩不住鸣》\n- 核心要点：\n    - **重点**：**《满江红》** 以直抒胸臆的笔法，抒发了“靖康耻，犹未雪”的**国耻家恨**和“待从头、收拾旧山河”的**复国壮志**，情感慷慨激昂。\n    - **重点**：**《小重山》** 则运用**含蓄蕴藉**的笔调，通过“欲将心事付瑶琴。知音少，弦断有谁听”等句，表达了**壮志难酬**的孤愤与**知音难觅**的苦闷。\n    - 两首词作形成了鲜明的**风格对比**，展现了岳飞性格中**豪迈激昂**与**沉郁悲凉**的双重面向。\n    - **意象**运用上，《满江红》中的“贺兰山缺”、“胡虏肉”、“匈奴血”等极具**战斗色彩**与**象征意义**。\n    - **典故**“靖康耻”直接关联**北宋灭亡**的历史事件，是理解词作背景的关键。\n    - **重点**：岳飞的文学作品是其**忠义精神**与**爱国情怀**最直接、最感人的载体，超越了单纯的文学价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **靖康之变**后，投身抗金斗争，成为**南宋中兴四将**之一。\n    - 组建纪律严明的“**岳家军**”，在**郾城之战**、**颍昌之战**中大破金军主力。\n    - **重点**：北伐事业在**朱仙镇**达到顶峰时，被宋高宗以**十二道金牌**强行召回。\n    - **重点**：与权相**秦桧**政见不合，最终以“**莫须有**”的罪名被冤杀于**临安**。\n- 核心要点：\n    - **重点**：岳飞所处的时代背景是**南宋初年**，面临**金国**南侵的巨大压力，朝廷内部**主战**与**主和**派斗争激烈。\n    - 其“**直捣黄龙**”、“迎回二圣”的政治口号与宋高宗**偏安江南**、维护自身皇位的根本利益存在**深刻矛盾**。\n    - **重点**：岳飞之死是**皇权**与**将权**、**主和派**与**主战派**矛盾激化的**悲剧性结果**。\n    - **重点**：后世对岳飞的评价高度一致，尊其为**民族英雄**，其**精忠报国**的精神成为中华民族重要的**文化符号**。\n    - 其悲剧命运深刻反映了**封建官僚体系**的弊端与**忠臣良将**在专制皇权下的脆弱性。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省安阳市汤阴县 | 35.92 | 114.35 |\n| 山西省阳泉市平定县 | 37.80 | 113.62 |\n| 河南省安阳市 | 36.10 | 114.35 |\n| 河南省开封市 | 34.80 | 114.31 |\n| 河北省正定县 | 38.15 | 114.57 |\n| 江苏省南京市 | 32.06 | 118.80 |\n| 湖北省武汉市武昌区 | 30.56 | 114.35 |\n| 河南省许昌市 | 34.03 | 113.85 |\n| 河南省开封市祥符区朱仙镇 | 34.72 | 114.27 |\n| 浙江省杭州市 | 30.25 | 120.17 |", "relatedGraph": {"center": {"id": "岳飞", "name": "岳飞", "file": "岳飞.html", "dynasty": "南宋", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "岳飞", "name": "岳飞", "file": "岳飞.html", "dynasty": "南宋", "relationLabel": "中心人物", "isCenter": true}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "文天祥", "name": "文天祥", "file": "文天祥.html", "dynasty": "南宋末期", "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "岳飞", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "岳飞", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "岳飞", "target": "杨万里", "label": "同时代人物", "confidence": null}, {"source": "岳飞", "target": "李清照", "label": "同时代人物", "confidence": null}, {"source": "岳飞", "target": "文天祥", "label": "同朝共现", "confidence": 0.25}, {"source": "岳飞", "target": "王安石", "label": "同册共现", "confidence": 0.15}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

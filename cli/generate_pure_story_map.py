@@ -12,7 +12,7 @@
   python3 cli/generate_pure_story_map.py --md storymap/examples/story/苏轼.md
   python3 cli/generate_pure_story_map.py --person 苏轼
 
-输出：默认写入 storymap/examples/story_map/ 目录。
+输出：默认写入 artifacts/story_map/ 目录。
 """
 
 from __future__ import annotations
@@ -33,6 +33,15 @@ BAD_PERSON_NAMES = {"人物", "母亲", "刘某", "人物 生平传记与足迹"
 
 def _repo_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def _story_artifacts_dir() -> str:
+    configured = (os.getenv("MAP_STORY_OUTPUT_DIR") or "").strip()
+    if configured:
+        if not os.path.isabs(configured):
+            configured = os.path.join(_repo_root(), configured)
+        return os.path.abspath(configured)
+    return os.path.join(_repo_root(), "artifacts", "story_map")
 
 
 def _add_import_paths() -> None:
@@ -108,7 +117,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
     t2 = time.perf_counter()
 
     if not out_path:
-        out_dir = os.path.join(_repo_root(), "storymap", "examples", "story_map")
+        out_dir = _story_artifacts_dir()
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = os.path.join(out_dir, f"{person_name}__pure__{ts}.html")
 
@@ -242,7 +251,7 @@ def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str
 def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> int:
     root = Path(_repo_root()).resolve()
     md_dir = root / "storymap" / "examples" / "story"
-    html_dir = root / "storymap" / "examples" / "story_map"
+    html_dir = Path(_story_artifacts_dir()).resolve()
     md_people = _scan_people_from_story_md(md_dir)
     html_people = _scan_people_from_story_map_html(html_dir)
     missing = sorted([p for p in (md_people - html_people) if p not in BAD_PERSON_NAMES])
@@ -257,7 +266,7 @@ def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> in
 def render_all_people_html(*, mode: str = "nogeocode") -> int:
     root = Path(_repo_root()).resolve()
     md_dir = root / "storymap" / "examples" / "story"
-    html_dir = root / "storymap" / "examples" / "story_map"
+    html_dir = Path(_story_artifacts_dir()).resolve()
 
     md_people = sorted([p for p in _scan_people_from_story_md(md_dir) if p not in BAD_PERSON_NAMES])
     print(f"md={len(md_people)} mode={mode}")
@@ -267,7 +276,7 @@ def render_all_people_html(*, mode: str = "nogeocode") -> int:
 def render_changed_people_html(*, mode: str = "nogeocode", max_people: int = 0) -> int:
     root = Path(_repo_root()).resolve()
     md_dir = root / "storymap" / "examples" / "story"
-    html_dir = root / "storymap" / "examples" / "story_map"
+    html_dir = Path(_story_artifacts_dir()).resolve()
     changed = _changed_people(md_dir, html_dir)
     reason_counts: dict[str, int] = {}
     for _, reason in changed:
@@ -288,8 +297,8 @@ def main() -> None:
     parser.add_argument("--md", type=str, help="直接指定人物 Markdown 路径")
     parser.add_argument("-p", "--person", type=str, help="人物名（用于定位 examples/story/<person>.md）")
     parser.add_argument("--out", type=str, help="输出 HTML 路径（可选）")
-    parser.add_argument("--render-missing", action="store_true", help="批量渲染：为缺失 HTML 的人物补齐 examples/story_map/<person>.html（不调用模型）")
-    parser.add_argument("--render-all", action="store_true", help="批量渲染：重渲染所有人物 HTML 到 examples/story_map/<person>.html")
+    parser.add_argument("--render-missing", action="store_true", help="批量渲染：为缺失 HTML 的人物补齐 artifacts/story_map/<person>.html（不调用模型）")
+    parser.add_argument("--render-all", action="store_true", help="批量渲染：重渲染所有人物 HTML 到 artifacts/story_map/<person>.html")
     parser.add_argument("--render-changed", action="store_true", help="批量渲染：只重建 Markdown 更新或模板失效的人物 HTML")
     parser.add_argument("--missing-limit", type=int, default=0, help="批量渲染时，最多处理多少人（0 表示不限制）")
     parser.add_argument("--missing-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="nogeocode=不做地理编码（最快）；pure=正常渲染（可能触发地理编码）；cache=复用 Markdown 并做地理编码+渲染（最慢）")

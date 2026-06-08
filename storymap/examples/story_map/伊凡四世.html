@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "伊凡四世·瓦西里耶维奇", "title": "", "description": "伊凡四世是莫斯科大公瓦西里三世之子，三岁继位，童年在大贵族的倾轧与阴影中度过，形成了多疑、残酷的性格。1547年，他打破传统，加冕为全罗斯第一任“沙皇”，象征着俄罗斯从大公国向帝国的转变。亲政初期，他推行改革，颁布新法典，强化中央权力。随后，他发动了对喀山汗国的战争并取得胜利，将俄罗斯势力推进至伏尔加河流域。为削弱世袭贵族（波雅尔）的权力，他于1565年建立“特辖制”，实行恐怖统治，导致大量贵族和平民被处决。晚年，他陷入立窝尼亚战争的泥潭，并在暴怒中失手杀死了自己的儿子伊凡，据记载其精神状态趋于不稳，最终在疑虑与孤独中去世。", "quote": "", "dynasty": "沙皇俄国（莫斯科大公国时期）", "birthplace": "莫斯科克里姆林宫", "avatar": "", "birth": {"date": "1530年", "location": "莫斯科克里姆林宫", "lat": null, "lng": null}, "death": {"date": "1584年", "location": "莫斯科克里姆林宫", "lat": null, "lng": null}, "lifespan": "54岁", "highlights": {"honor": "", "status": "俄罗斯中央集权国家的奠基人，其统治深刻塑造了俄罗斯的政治传统与民族性格。", "identities": "莫斯科大公、全罗斯第一任沙皇、军事统帅、中央集权制度推行者", "achievements": "正式加冕为“沙皇”；征服喀山汗国与阿斯特拉罕汗国，开启向东扩张；推行司法、行政与军事改革；建立特辖制以打击大贵族势力。", "works": [], "reviews": ["**俄国史学家瓦·奥·克柳切夫斯基**：认为伊凡四世是“一个有才华但性格扭曲的人”，他的改革有进步意义，但特辖制是“一场针对自己人民的战争”。", "**卡尔·马克思**：称伊凡四世是“一个有雄才大略但手段残酷的君主”，他的政策旨在“打破贵族的反抗，建立一个专制国家”。", "**后世普遍评价**：被视为俄罗斯历史上最具争议的统治者之一。一方面，他是俄罗斯民族国家的缔造者和扩张者；另一方面，他的暴政给人民带来了深重灾难，其晚年杀子的行为更成为人性悲剧的典型。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：16世纪，**莫斯科公国**逐渐强大，摆脱蒙古金帐汗国统治后，开始统一俄罗斯各公国并对外扩张。\n- **关键事件**：**1547年**，伊凡四世加冕为**沙皇**，标志着莫斯科公国改称**沙皇俄国**。\n- **关键事件**：**1552年**，伊凡四世率军灭亡**喀山汗国**，后又征服**阿斯特拉罕汗国**，将俄国势力推进到**伏尔加河流域**。\n- **代表政策**：为加强**中央集权**，削弱大贵族势力，实行**特辖制**（或译“特辖区制”）。\n- **历史地位**：是俄国历史上著名的**暴君**，因其残酷统治被称为“**伊凡雷帝**”。\n- **易混点**：注意区分“莫斯科大公”与“沙皇”称号的变化时间点（1547年）。\n\n### 高中阶段\n- **时代背景**：处于俄国由等级代表君主制向**绝对君主制**（专制主义）过渡的关键时期。\n- **关键贡献**：正式确立**沙皇专制制度**，通过**缙绅会议**和**地方自治改革**尝试整合社会力量，但最终依赖特辖制这种极端手段。\n- **关键事件**：发动**立窝尼亚战争**（1558-1583），旨在争夺**波罗的海出海口**，但最终失败，消耗了国力。\n- **代表思想/政策**：其统治体现了**“第三罗马”** 理论下的扩张使命感与**拜占庭式专制**思想的结合。\n- **历史评价辩证**：教材通常强调其**双重性**——既是俄罗斯**中央集权国家**的奠基者和**领土扩张**的推动者，也是**恐怖统治**的实施者，其政策对俄国政治文化产生了深远而复杂的影响。\n- **对比点**：可与同时期西欧的**君主专制**（如法国路易十四）进行对比，分析俄国专制制度的特殊性（如依赖特辖制、贵族势力更强大等）。\n- **易混点**：特辖制（1565-1572）是其统治中最具标志性的恐怖政策，需明确其时间、目的和后果。\n\n---", "examPoints": "### 初中阶段考点\n1.  **伊凡四世**的称号及其意义（**沙皇**，俄国第一位沙皇）。\n2.  **1547年**加冕为沙皇的事件。\n3.  征服**喀山汗国**和**阿斯特拉罕汗国**，向**伏尔加河流域**扩张。\n4.  为加强**中央集权**而实行的**特辖制**。\n5.  “**伊凡雷帝**”这一绰号的由来（因其残酷统治）。\n6.  （存疑）其去世的大致时间（16世纪80年代）。\n\n### 高中阶段考点\n1.  伊凡四世统治时期俄国政治制度的演变（从等级代表君主制到**绝对君主制**的尝试）。\n2.  **特辖制**的具体内容、实施目的（打击大贵族）及其历史影响（加强皇权，但也造成社会破坏）。\n3.  **立窝尼亚战争**的起因（争夺波罗的海出海口）、过程与结果（失败）。\n4.  对伊凡四世的**历史评价**（双重性：集权奠基者与暴君）。\n5.  其统治对俄罗斯**民族国家形成**和**专制传统**的深远影响。\n6.  （说法不一）关于其死因的几种推测（中风、中毒等）。", "markdown": "# 伊凡四世\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊凡四世·瓦西里耶维奇（Иван IV Васильевич），通称伊凡雷帝（Иван Грозный）\n- **时代**：沙皇俄国（莫斯科大公国时期）\n- **出生**：1530年8月25日，莫斯科克里姆林宫\n- **去世**：1584年3月18日，莫斯科克里姆林宫\n- **享年**：54岁\n- **主要身份**：莫斯科大公、全罗斯第一任沙皇、军事统帅、中央集权制度推行者\n- **历史地位**：俄罗斯中央集权国家的奠基人，其统治深刻塑造了俄罗斯的政治传统与民族性格。\n- **主要成就**：正式加冕为“沙皇”；征服喀山汗国与阿斯特拉罕汗国，开启向东扩张；推行司法、行政与军事改革；建立特辖制以打击大贵族势力。\n\n### 生平概述\n伊凡四世是莫斯科大公瓦西里三世之子，三岁继位，童年在大贵族的倾轧与阴影中度过，形成了多疑、残酷的性格。1547年，他打破传统，加冕为全罗斯第一任“沙皇”，象征着俄罗斯从大公国向帝国的转变。亲政初期，他推行改革，颁布新法典，强化中央权力。随后，他发动了对喀山汗国的战争并取得胜利，将俄罗斯势力推进至伏尔加河流域。为削弱世袭贵族（波雅尔）的权力，他于1565年建立“特辖制”，实行恐怖统治，导致大量贵族和平民被处决。晚年，他陷入立窝尼亚战争的泥潭，并在暴怒中失手杀死了自己的儿子伊凡，据记载其精神状态趋于不稳，最终在疑虑与孤独中去世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：其活动范围主要集中在俄罗斯欧洲部分，核心区域为莫斯科及其周边，并向东、向西进行了军事远征。\n- ⏱️ **时间跨度**：1530年—1584年，共计54年。\n- 📍 **地理范围**：以莫斯科为中心，东至伏尔加河中游（喀山），西至波罗的海沿岸（立窝尼亚地区），西北至诺夫哥罗德。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：莫斯科克里姆林宫\n- **公元纪年**：1530年\n- **停留时间**：出生地，童年与大部分统治时期的核心居所。\n- **位置**：莫斯科克里姆林宫（今俄罗斯莫斯科市）\n- **事迹**：在此出生、加冕为沙皇、推行改革、实施特辖制、去世。\n- **意义**：权力的象征与中心，其一生荣耀与恐怖的起点与终点。\n\n### 📍 重要地点：亚历山德罗夫自由村\n- **公元纪年**：1564年—1581年（主要使用时期）\n- **停留时间**：特辖制时期的主要居住地和行政中心。\n- **位置**：亚历山德罗夫自由村（今俄罗斯弗拉基米尔州亚历山德罗夫）\n- **事迹**：1564年，伊凡四世突然离开莫斯科，迁居于此，以此为基地组建“特辖军”，并以此要挟贵族会议，最终确立了特辖制。这里是特辖制恐怖统治的指挥中心。\n- **意义**：特辖制的象征地，体现了伊凡四世与旧贵族决裂、建立绝对个人权力的决心。\n\n### 📍 重要地点：喀山\n- **公元纪年**：1552年\n- **停留时间**：军事征服期间。\n- **位置**：喀山汗国都城喀山（今俄罗斯鞑靼斯坦共和国首府喀山）\n- **事迹**：1552年，伊凡四世亲率大军围攻并最终攻克喀山，灭亡了喀山汗国。\n- **意义**：标志着俄罗斯对伏尔加河中游和乌拉尔山脉以西地区的永久性控制，是其扩张政策的里程碑，极大地增强了沙皇的威望。\n\n### 📍 重要地点：波洛茨克\n- **公元纪年**：1563年\n- **停留时间**：军事行动期间。\n- **位置**：波洛茨克公国都城波洛茨克（今白俄罗斯维捷布斯克州波洛茨克）\n- **事迹**：1563年，伊凡四世在立窝尼亚战争中亲征，成功攻占这座重要城市，这是其军事生涯的巅峰之一。\n- **意义**：立窝尼亚战争初期的重大胜利，暂时巩固了俄罗斯在西线的战果。\n\n### 📍 重要地点：普斯科夫\n- **公元纪年**：1570年\n- **停留时间**：短期停留。\n- **位置**：普斯科夫共和国都城普斯科夫（今俄罗斯普斯科夫州首府普斯科夫）\n- **事迹**：1570年，伊凡四世怀疑普斯科夫城与诺夫哥罗德叛乱有牵连，率特辖军前往。据记载，在市民和圣僧的劝诫下，他中止了对该城的屠杀计划。\n- **意义**：展现了伊凡四世性格中复杂的一面，以及宗教对其行为的一定约束力。\n\n### 📍 重要地点：诺夫哥罗德\n- **公元纪年**：1570年\n- **停留时间**：短期停留（屠杀期间）。\n- **位置**：诺夫哥罗德共和国都城诺夫哥罗德（今俄罗斯诺夫哥罗德州首府大诺夫哥罗德）\n- **事迹**：1570年，伊凡四世以“叛国”罪名率特辖军血洗诺夫哥罗德，进行了长达六周的大屠杀，数万市民遇难。\n- **意义**：特辖制恐怖统治的顶峰事件，彻底摧毁了这座古老商业共和国的独立传统，彰显了沙皇的绝对权威与残酷。\n\n### 🔴 去世地：莫斯科克里姆林宫\n- **公元纪年**：1584年\n- **停留时间**：生命最后阶段。\n- **位置**：莫斯科克里姆林宫（今俄罗斯莫斯科市）\n- **经过**：1584年3月18日，伊凡四世在与人下棋时突然去世。死因存疑，有中风、中毒（被政敌或继承人鲍里斯·戈东诺夫毒杀）等多种说法。\n- **意义**：一个充满矛盾与暴力的统治时代的终结。他的去世引发了短暂的权力动荡，并为其王朝的覆灭（“混乱时期”）埋下了伏笔。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1530 | 0 | 出生于莫斯科克里姆林宫。 |\n| 1533 | 3 | 父亲瓦西里三世去世，继位为莫斯科大公，由贵族集团摄政。 |\n| 1547 | 17 | 加冕为“全罗斯的沙皇”，成为俄罗斯第一位沙皇。 |\n| 1549 | 19 | 召开“重臣会议”，开始推行改革（司法、行政、军事）。 |\n| 1552 | 22 | 率军征服喀山汗国。 |\n| 1556 | 26 | 征服阿斯特拉罕汗国，控制整个伏尔加河流域。 |\n| 1558 | 28 | 发动立窝尼亚战争，争夺波罗的海出海口。 |\n| 1560 | 30 | 第一任妻子阿纳斯塔西娅去世，性格变得更加多疑和暴戾。 |\n| 1564 | 34 | 突然离开莫斯科，迁往亚历山德罗夫自由村，为建立特辖制做准备。 |\n| 1565 | 35 | 正式建立“特辖制”，将国家分为特辖区和普通区，组建特辖军。 |\n| 1570 | 40 | 血洗诺夫哥罗德；前往普斯科夫但中止屠杀。 |\n| 1571 | 41 | 克里米亚汗国军队入侵并焚毁莫斯科郊区，暴露了特辖制的军事弊端。 |\n| 1572 | 42 | 在莫洛季战役中击败克里米亚大军；废除特辖制（但恐怖统治的影响持续）。 |\n| 1581 | 51 | 在暴怒中失手用权杖击中儿子伊凡王子，致其重伤身亡。 |\n| 1582 | 52 | 与波兰-立陶宛联邦签订停战协定，暂时退出立窝尼亚战争。 |\n| 1584 | 54 | 在莫斯科克里姆林宫去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊凡四世的统治极大地加强了俄罗斯的中央集权，通过特辖制沉重打击了世袭大贵族的势力，为沙皇专制奠定了基础。他成功向东扩张，征服了喀山和阿斯特拉罕，为俄罗斯成为多民族帝国开辟了道路。然而，其恐怖统治也造成了巨大的社会创伤和人才损失，长期的立窝尼亚战争消耗了国力，未能实现获得波罗的海出海口的战略目标，反而使国家陷入困境。\n\n### 对后世的影响\n- **国家形态**：确立了“沙皇”专制制度，其集权模式被后世统治者继承和发展。\n- **领土基础**：向东的征服使俄罗斯成为一个横跨欧亚的帝国，奠定了现代俄罗斯疆域的东部基础。\n- **政治传统**：其高压统治手段（如特辖制）为后世俄国强化国家控制、压制反对力量提供了历史先例。\n- **民族心理**：“伊凡雷帝”的形象成为俄罗斯历史中强权、恐怖与变革的复杂象征，影响了后世对专制权力的认知。\n\n### 历史评价\n1. **俄国史学家瓦·奥·克柳切夫斯基**：认为伊凡四世是“一个有才华但性格扭曲的人”，他的改革有进步意义，但特辖制是“一场针对自己人民的战争”。\n2. **卡尔·马克思**：称伊凡四世是“一个有雄才大略但手段残酷的君主”，他的政策旨在“打破贵族的反抗，建立一个专制国家”。\n3. **后世普遍评价**：被视为俄罗斯历史上最具争议的统治者之一。一方面，他是俄罗斯民族国家的缔造者和扩张者；另一方面，他的暴政给人民带来了深重灾难，其晚年杀子的行为更成为人性悲剧的典型。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：16世纪，**莫斯科公国**逐渐强大，摆脱蒙古金帐汗国统治后，开始统一俄罗斯各公国并对外扩张。\n- **关键事件**：**1547年**，伊凡四世加冕为**沙皇**，标志着莫斯科公国改称**沙皇俄国**。\n- **关键事件**：**1552年**，伊凡四世率军灭亡**喀山汗国**，后又征服**阿斯特拉罕汗国**，将俄国势力推进到**伏尔加河流域**。\n- **代表政策**：为加强**中央集权**，削弱大贵族势力，实行**特辖制**（或译“特辖区制”）。\n- **历史地位**：是俄国历史上著名的**暴君**，因其残酷统治被称为“**伊凡雷帝**”。\n- **易混点**：注意区分“莫斯科大公”与“沙皇”称号的变化时间点（1547年）。\n\n### 高中阶段\n- **时代背景**：处于俄国由等级代表君主制向**绝对君主制**（专制主义）过渡的关键时期。\n- **关键贡献**：正式确立**沙皇专制制度**，通过**缙绅会议**和**地方自治改革**尝试整合社会力量，但最终依赖特辖制这种极端手段。\n- **关键事件**：发动**立窝尼亚战争**（1558-1583），旨在争夺**波罗的海出海口**，但最终失败，消耗了国力。\n- **代表思想/政策**：其统治体现了**“第三罗马”** 理论下的扩张使命感与**拜占庭式专制**思想的结合。\n- **历史评价辩证**：教材通常强调其**双重性**——既是俄罗斯**中央集权国家**的奠基者和**领土扩张**的推动者，也是**恐怖统治**的实施者，其政策对俄国政治文化产生了深远而复杂的影响。\n- **对比点**：可与同时期西欧的**君主专制**（如法国路易十四）进行对比，分析俄国专制制度的特殊性（如依赖特辖制、贵族势力更强大等）。\n- **易混点**：特辖制（1565-1572）是其统治中最具标志性的恐怖政策，需明确其时间、目的和后果。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **伊凡四世**的称号及其意义（**沙皇**，俄国第一位沙皇）。\n2.  **1547年**加冕为沙皇的事件。\n3.  征服**喀山汗国**和**阿斯特拉罕汗国**，向**伏尔加河流域**扩张。\n4.  为加强**中央集权**而实行的**特辖制**。\n5.  “**伊凡雷帝**”这一绰号的由来（因其残酷统治）。\n6.  （存疑）其去世的大致时间（16世纪80年代）。\n\n### 高中阶段考点\n1.  伊凡四世统治时期俄国政治制度的演变（从等级代表君主制到**绝对君主制**的尝试）。\n2.  **特辖制**的具体内容、实施目的（打击大贵族）及其历史影响（加强皇权，但也造成社会破坏）。\n3.  **立窝尼亚战争**的起因（争夺波罗的海出海口）、过程与结果（失败）。\n4.  对伊凡四世的**历史评价**（双重性：集权奠基者与暴君）。\n5.  其统治对俄罗斯**民族国家形成**和**专制传统**的深远影响。\n6.  （说法不一）关于其死因的几种推测（中风、中毒等）。\n\n## 地点坐标（自动地理编码）\n*注：原坐标表数据严重错误，已删除。正确坐标需根据‘人生历程与重要地点’章节中的现代地名进行人工地理编码。*"};
+      const data = {"person": {"name": "伊凡四世·瓦西里耶维奇", "title": "", "description": "伊凡四世是莫斯科大公瓦西里三世之子，三岁继位，童年在大贵族的倾轧与阴影中度过，形成了多疑、残酷的性格。1547年，他打破传统，加冕为全罗斯第一任“沙皇”，象征着俄罗斯从大公国向帝国的转变。亲政初期，他推行改革，颁布新法典，强化中央权力。随后，他发动了对喀山汗国的战争并取得胜利，将俄罗斯势力推进至伏尔加河流域。为削弱世袭贵族（波雅尔）的权力，他于1565年建立“特辖制”，实行恐怖统治，导致大量贵族和平民被处决。晚年，他陷入立窝尼亚战争的泥潭，并在暴怒中失手杀死了自己的儿子伊凡，据记载其精神状态趋于不稳，最终在疑虑与孤独中去世。", "quote": "", "dynasty": "沙皇俄国（莫斯科大公国时期）", "birthplace": "莫斯科克里姆林宫", "avatar": "", "birth": {"date": "1530年", "location": "莫斯科克里姆林宫", "lat": null, "lng": null}, "death": {"date": "1584年", "location": "莫斯科克里姆林宫", "lat": null, "lng": null}, "lifespan": "54岁", "highlights": {"honor": "", "status": "俄罗斯中央集权国家的奠基人，其统治深刻塑造了俄罗斯的政治传统与民族性格。", "identities": "莫斯科大公、全罗斯第一任沙皇、军事统帅、中央集权制度推行者", "achievements": "正式加冕为“沙皇”；征服喀山汗国与阿斯特拉罕汗国，开启向东扩张；推行司法、行政与军事改革；建立特辖制以打击大贵族势力。", "works": [], "reviews": ["**俄国史学家瓦·奥·克柳切夫斯基**：认为伊凡四世是“一个有才华但性格扭曲的人”，他的改革有进步意义，但特辖制是“一场针对自己人民的战争”。", "**卡尔·马克思**：称伊凡四世是“一个有雄才大略但手段残酷的君主”，他的政策旨在“打破贵族的反抗，建立一个专制国家”。", "**后世普遍评价**：被视为俄罗斯历史上最具争议的统治者之一。一方面，他是俄罗斯民族国家的缔造者和扩张者；另一方面，他的暴政给人民带来了深重灾难，其晚年杀子的行为更成为人性悲剧的典型。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：16世纪，**莫斯科公国**逐渐强大，摆脱蒙古金帐汗国统治后，开始统一俄罗斯各公国并对外扩张。\n- **关键事件**：**1547年**，伊凡四世加冕为**沙皇**，标志着莫斯科公国改称**沙皇俄国**。\n- **关键事件**：**1552年**，伊凡四世率军灭亡**喀山汗国**，后又征服**阿斯特拉罕汗国**，将俄国势力推进到**伏尔加河流域**。\n- **代表政策**：为加强**中央集权**，削弱大贵族势力，实行**特辖制**（或译“特辖区制”）。\n- **历史地位**：是俄国历史上著名的**暴君**，因其残酷统治被称为“**伊凡雷帝**”。\n- **易混点**：注意区分“莫斯科大公”与“沙皇”称号的变化时间点（1547年）。\n\n### 高中阶段\n- **时代背景**：处于俄国由等级代表君主制向**绝对君主制**（专制主义）过渡的关键时期。\n- **关键贡献**：正式确立**沙皇专制制度**，通过**缙绅会议**和**地方自治改革**尝试整合社会力量，但最终依赖特辖制这种极端手段。\n- **关键事件**：发动**立窝尼亚战争**（1558-1583），旨在争夺**波罗的海出海口**，但最终失败，消耗了国力。\n- **代表思想/政策**：其统治体现了**“第三罗马”** 理论下的扩张使命感与**拜占庭式专制**思想的结合。\n- **历史评价辩证**：教材通常强调其**双重性**——既是俄罗斯**中央集权国家**的奠基者和**领土扩张**的推动者，也是**恐怖统治**的实施者，其政策对俄国政治文化产生了深远而复杂的影响。\n- **对比点**：可与同时期西欧的**君主专制**（如法国路易十四）进行对比，分析俄国专制制度的特殊性（如依赖特辖制、贵族势力更强大等）。\n- **易混点**：特辖制（1565-1572）是其统治中最具标志性的恐怖政策，需明确其时间、目的和后果。\n\n---", "examPoints": "### 初中阶段考点\n1.  **伊凡四世**的称号及其意义（**沙皇**，俄国第一位沙皇）。\n2.  **1547年**加冕为沙皇的事件。\n3.  征服**喀山汗国**和**阿斯特拉罕汗国**，向**伏尔加河流域**扩张。\n4.  为加强**中央集权**而实行的**特辖制**。\n5.  “**伊凡雷帝**”这一绰号的由来（因其残酷统治）。\n6.  （存疑）其去世的大致时间（16世纪80年代）。\n\n### 高中阶段考点\n1.  伊凡四世统治时期俄国政治制度的演变（从等级代表君主制到**绝对君主制**的尝试）。\n2.  **特辖制**的具体内容、实施目的（打击大贵族）及其历史影响（加强皇权，但也造成社会破坏）。\n3.  **立窝尼亚战争**的起因（争夺波罗的海出海口）、过程与结果（失败）。\n4.  对伊凡四世的**历史评价**（双重性：集权奠基者与暴君）。\n5.  其统治对俄罗斯**民族国家形成**和**专制传统**的深远影响。\n6.  （说法不一）关于其死因的几种推测（中风、中毒等）。", "markdown": "# 伊凡四世\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊凡四世·瓦西里耶维奇（Иван IV Васильевич），通称伊凡雷帝（Иван Грозный）\n- **时代**：沙皇俄国（莫斯科大公国时期）\n- **出生**：1530年8月25日，莫斯科克里姆林宫\n- **去世**：1584年3月18日，莫斯科克里姆林宫\n- **享年**：54岁\n- **主要身份**：莫斯科大公、全罗斯第一任沙皇、军事统帅、中央集权制度推行者\n- **历史地位**：俄罗斯中央集权国家的奠基人，其统治深刻塑造了俄罗斯的政治传统与民族性格。\n- **主要成就**：正式加冕为“沙皇”；征服喀山汗国与阿斯特拉罕汗国，开启向东扩张；推行司法、行政与军事改革；建立特辖制以打击大贵族势力。\n\n### 生平概述\n伊凡四世是莫斯科大公瓦西里三世之子，三岁继位，童年在大贵族的倾轧与阴影中度过，形成了多疑、残酷的性格。1547年，他打破传统，加冕为全罗斯第一任“沙皇”，象征着俄罗斯从大公国向帝国的转变。亲政初期，他推行改革，颁布新法典，强化中央权力。随后，他发动了对喀山汗国的战争并取得胜利，将俄罗斯势力推进至伏尔加河流域。为削弱世袭贵族（波雅尔）的权力，他于1565年建立“特辖制”，实行恐怖统治，导致大量贵族和平民被处决。晚年，他陷入立窝尼亚战争的泥潭，并在暴怒中失手杀死了自己的儿子伊凡，据记载其精神状态趋于不稳，最终在疑虑与孤独中去世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：其活动范围主要集中在俄罗斯欧洲部分，核心区域为莫斯科及其周边，并向东、向西进行了军事远征。\n- ⏱️ **时间跨度**：1530年—1584年，共计54年。\n- 📍 **地理范围**：以莫斯科为中心，东至伏尔加河中游（喀山），西至波罗的海沿岸（立窝尼亚地区），西北至诺夫哥罗德。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：莫斯科克里姆林宫\n- **公元纪年**：1530年\n- **停留时间**：出生地，童年与大部分统治时期的核心居所。\n- **位置**：莫斯科克里姆林宫（今俄罗斯莫斯科市）\n- **事迹**：在此出生、加冕为沙皇、推行改革、实施特辖制、去世。\n- **意义**：权力的象征与中心，其一生荣耀与恐怖的起点与终点。\n\n### 📍 重要地点：亚历山德罗夫自由村\n- **公元纪年**：1564年—1581年（主要使用时期）\n- **停留时间**：特辖制时期的主要居住地和行政中心。\n- **位置**：亚历山德罗夫自由村（今俄罗斯弗拉基米尔州亚历山德罗夫）\n- **事迹**：1564年，伊凡四世突然离开莫斯科，迁居于此，以此为基地组建“特辖军”，并以此要挟贵族会议，最终确立了特辖制。这里是特辖制恐怖统治的指挥中心。\n- **意义**：特辖制的象征地，体现了伊凡四世与旧贵族决裂、建立绝对个人权力的决心。\n\n### 📍 重要地点：喀山\n- **公元纪年**：1552年\n- **停留时间**：军事征服期间。\n- **位置**：喀山汗国都城喀山（今俄罗斯鞑靼斯坦共和国首府喀山）\n- **事迹**：1552年，伊凡四世亲率大军围攻并最终攻克喀山，灭亡了喀山汗国。\n- **意义**：标志着俄罗斯对伏尔加河中游和乌拉尔山脉以西地区的永久性控制，是其扩张政策的里程碑，极大地增强了沙皇的威望。\n\n### 📍 重要地点：波洛茨克\n- **公元纪年**：1563年\n- **停留时间**：军事行动期间。\n- **位置**：波洛茨克公国都城波洛茨克（今白俄罗斯维捷布斯克州波洛茨克）\n- **事迹**：1563年，伊凡四世在立窝尼亚战争中亲征，成功攻占这座重要城市，这是其军事生涯的巅峰之一。\n- **意义**：立窝尼亚战争初期的重大胜利，暂时巩固了俄罗斯在西线的战果。\n\n### 📍 重要地点：普斯科夫\n- **公元纪年**：1570年\n- **停留时间**：短期停留。\n- **位置**：普斯科夫共和国都城普斯科夫（今俄罗斯普斯科夫州首府普斯科夫）\n- **事迹**：1570年，伊凡四世怀疑普斯科夫城与诺夫哥罗德叛乱有牵连，率特辖军前往。据记载，在市民和圣僧的劝诫下，他中止了对该城的屠杀计划。\n- **意义**：展现了伊凡四世性格中复杂的一面，以及宗教对其行为的一定约束力。\n\n### 📍 重要地点：诺夫哥罗德\n- **公元纪年**：1570年\n- **停留时间**：短期停留（屠杀期间）。\n- **位置**：诺夫哥罗德共和国都城诺夫哥罗德（今俄罗斯诺夫哥罗德州首府大诺夫哥罗德）\n- **事迹**：1570年，伊凡四世以“叛国”罪名率特辖军血洗诺夫哥罗德，进行了长达六周的大屠杀，数万市民遇难。\n- **意义**：特辖制恐怖统治的顶峰事件，彻底摧毁了这座古老商业共和国的独立传统，彰显了沙皇的绝对权威与残酷。\n\n### 🔴 去世地：莫斯科克里姆林宫\n- **公元纪年**：1584年\n- **停留时间**：生命最后阶段。\n- **位置**：莫斯科克里姆林宫（今俄罗斯莫斯科市）\n- **经过**：1584年3月18日，伊凡四世在与人下棋时突然去世。死因存疑，有中风、中毒（被政敌或继承人鲍里斯·戈东诺夫毒杀）等多种说法。\n- **意义**：一个充满矛盾与暴力的统治时代的终结。他的去世引发了短暂的权力动荡，并为其王朝的覆灭（“混乱时期”）埋下了伏笔。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1530 | 0 | 出生于莫斯科克里姆林宫。 |\n| 1533 | 3 | 父亲瓦西里三世去世，继位为莫斯科大公，由贵族集团摄政。 |\n| 1547 | 17 | 加冕为“全罗斯的沙皇”，成为俄罗斯第一位沙皇。 |\n| 1549 | 19 | 召开“重臣会议”，开始推行改革（司法、行政、军事）。 |\n| 1552 | 22 | 率军征服喀山汗国。 |\n| 1556 | 26 | 征服阿斯特拉罕汗国，控制整个伏尔加河流域。 |\n| 1558 | 28 | 发动立窝尼亚战争，争夺波罗的海出海口。 |\n| 1560 | 30 | 第一任妻子阿纳斯塔西娅去世，性格变得更加多疑和暴戾。 |\n| 1564 | 34 | 突然离开莫斯科，迁往亚历山德罗夫自由村，为建立特辖制做准备。 |\n| 1565 | 35 | 正式建立“特辖制”，将国家分为特辖区和普通区，组建特辖军。 |\n| 1570 | 40 | 血洗诺夫哥罗德；前往普斯科夫但中止屠杀。 |\n| 1571 | 41 | 克里米亚汗国军队入侵并焚毁莫斯科郊区，暴露了特辖制的军事弊端。 |\n| 1572 | 42 | 在莫洛季战役中击败克里米亚大军；废除特辖制（但恐怖统治的影响持续）。 |\n| 1581 | 51 | 在暴怒中失手用权杖击中儿子伊凡王子，致其重伤身亡。 |\n| 1582 | 52 | 与波兰-立陶宛联邦签订停战协定，暂时退出立窝尼亚战争。 |\n| 1584 | 54 | 在莫斯科克里姆林宫去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊凡四世的统治极大地加强了俄罗斯的中央集权，通过特辖制沉重打击了世袭大贵族的势力，为沙皇专制奠定了基础。他成功向东扩张，征服了喀山和阿斯特拉罕，为俄罗斯成为多民族帝国开辟了道路。然而，其恐怖统治也造成了巨大的社会创伤和人才损失，长期的立窝尼亚战争消耗了国力，未能实现获得波罗的海出海口的战略目标，反而使国家陷入困境。\n\n### 对后世的影响\n- **国家形态**：确立了“沙皇”专制制度，其集权模式被后世统治者继承和发展。\n- **领土基础**：向东的征服使俄罗斯成为一个横跨欧亚的帝国，奠定了现代俄罗斯疆域的东部基础。\n- **政治传统**：其高压统治手段（如特辖制）为后世俄国强化国家控制、压制反对力量提供了历史先例。\n- **民族心理**：“伊凡雷帝”的形象成为俄罗斯历史中强权、恐怖与变革的复杂象征，影响了后世对专制权力的认知。\n\n### 历史评价\n1. **俄国史学家瓦·奥·克柳切夫斯基**：认为伊凡四世是“一个有才华但性格扭曲的人”，他的改革有进步意义，但特辖制是“一场针对自己人民的战争”。\n2. **卡尔·马克思**：称伊凡四世是“一个有雄才大略但手段残酷的君主”，他的政策旨在“打破贵族的反抗，建立一个专制国家”。\n3. **后世普遍评价**：被视为俄罗斯历史上最具争议的统治者之一。一方面，他是俄罗斯民族国家的缔造者和扩张者；另一方面，他的暴政给人民带来了深重灾难，其晚年杀子的行为更成为人性悲剧的典型。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：16世纪，**莫斯科公国**逐渐强大，摆脱蒙古金帐汗国统治后，开始统一俄罗斯各公国并对外扩张。\n- **关键事件**：**1547年**，伊凡四世加冕为**沙皇**，标志着莫斯科公国改称**沙皇俄国**。\n- **关键事件**：**1552年**，伊凡四世率军灭亡**喀山汗国**，后又征服**阿斯特拉罕汗国**，将俄国势力推进到**伏尔加河流域**。\n- **代表政策**：为加强**中央集权**，削弱大贵族势力，实行**特辖制**（或译“特辖区制”）。\n- **历史地位**：是俄国历史上著名的**暴君**，因其残酷统治被称为“**伊凡雷帝**”。\n- **易混点**：注意区分“莫斯科大公”与“沙皇”称号的变化时间点（1547年）。\n\n### 高中阶段\n- **时代背景**：处于俄国由等级代表君主制向**绝对君主制**（专制主义）过渡的关键时期。\n- **关键贡献**：正式确立**沙皇专制制度**，通过**缙绅会议**和**地方自治改革**尝试整合社会力量，但最终依赖特辖制这种极端手段。\n- **关键事件**：发动**立窝尼亚战争**（1558-1583），旨在争夺**波罗的海出海口**，但最终失败，消耗了国力。\n- **代表思想/政策**：其统治体现了**“第三罗马”** 理论下的扩张使命感与**拜占庭式专制**思想的结合。\n- **历史评价辩证**：教材通常强调其**双重性**——既是俄罗斯**中央集权国家**的奠基者和**领土扩张**的推动者，也是**恐怖统治**的实施者，其政策对俄国政治文化产生了深远而复杂的影响。\n- **对比点**：可与同时期西欧的**君主专制**（如法国路易十四）进行对比，分析俄国专制制度的特殊性（如依赖特辖制、贵族势力更强大等）。\n- **易混点**：特辖制（1565-1572）是其统治中最具标志性的恐怖政策，需明确其时间、目的和后果。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **伊凡四世**的称号及其意义（**沙皇**，俄国第一位沙皇）。\n2.  **1547年**加冕为沙皇的事件。\n3.  征服**喀山汗国**和**阿斯特拉罕汗国**，向**伏尔加河流域**扩张。\n4.  为加强**中央集权**而实行的**特辖制**。\n5.  “**伊凡雷帝**”这一绰号的由来（因其残酷统治）。\n6.  （存疑）其去世的大致时间（16世纪80年代）。\n\n### 高中阶段考点\n1.  伊凡四世统治时期俄国政治制度的演变（从等级代表君主制到**绝对君主制**的尝试）。\n2.  **特辖制**的具体内容、实施目的（打击大贵族）及其历史影响（加强皇权，但也造成社会破坏）。\n3.  **立窝尼亚战争**的起因（争夺波罗的海出海口）、过程与结果（失败）。\n4.  对伊凡四世的**历史评价**（双重性：集权奠基者与暴君）。\n5.  其统治对俄罗斯**民族国家形成**和**专制传统**的深远影响。\n6.  （说法不一）关于其死因的几种推测（中风、中毒等）。\n\n## 地点坐标（自动地理编码）\n*注：原坐标表数据严重错误，已删除。正确坐标需根据‘人生历程与重要地点’章节中的现代地名进行人工地理编码。*", "relatedGraph": {"center": {"id": "伊凡四世", "name": "伊凡四世", "file": "伊凡四世.html", "dynasty": "沙皇俄国（莫斯科大公国时期）", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "伊凡四世", "name": "伊凡四世", "file": "伊凡四世.html", "dynasty": "沙皇俄国（莫斯科大公国时期）", "relationLabel": "中心人物", "isCenter": true}, {"id": "叶卡捷琳娜二世", "name": "叶卡捷琳娜二世", "file": "叶卡捷琳娜二世.html", "dynasty": "18世纪中后期（俄罗斯帝国）", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "亚历山大二世", "name": "亚历山大二世", "file": "亚历山大二世.html", "dynasty": "俄罗斯帝国（19世纪）", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "赫留金", "name": "赫留金", "file": "赫留金.html", "dynasty": "19世纪末沙皇俄国（亚历山大三世统治时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "奥楚蔑洛夫", "name": "奥楚蔑洛夫", "file": "奥楚蔑洛夫.html", "dynasty": "19世纪末沙皇俄国（约亚历山大三世统治时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "米开朗琪罗", "name": "米开朗琪罗", "file": "米开朗琪罗.html", "dynasty": "文艺复兴盛期（意大利）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "伊凡四世", "target": "叶卡捷琳娜二世", "label": "同册共现", "confidence": 0.15}, {"source": "伊凡四世", "target": "亚历山大二世", "label": "同册共现", "confidence": 0.15}, {"source": "伊凡四世", "target": "赫留金", "label": "同时代人物", "confidence": null}, {"source": "伊凡四世", "target": "奥楚蔑洛夫", "label": "同时代人物", "confidence": null}, {"source": "伊凡四世", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "伊凡四世", "target": "米开朗琪罗", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

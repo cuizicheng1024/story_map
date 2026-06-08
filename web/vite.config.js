@@ -7,7 +7,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/generate": "http://localhost:8765",
-      "/task": "http://localhost:8765"
+      "/task": "http://localhost:8765",
+      "/health": "http://localhost:8765",
+      "/amap-config.js": "http://localhost:8765"
     }
   }
 });

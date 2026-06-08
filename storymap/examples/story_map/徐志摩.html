@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "徐志摩", "title": "", "description": "徐志摩，原名章垿，字槱森，留学美国时改名志摩。他出生于富商之家，早年接受传统教育，后入北京大学、上海沪江大学学习。1918年赴美留学，1920年获哥伦比亚大学硕士学位后转赴英国，在剑桥大学深受西方浪漫主义诗歌熏陶，确立了文学志向。1922年回国后，他成为**新月社**的发起人之一，并在北京、上海等地多所大学任教，主编《晨报副镌·诗镌》《新月》月刊，倡导新诗格律化。其诗歌情感浓烈，意象新颖，语言华美。1931年11月19日，因搭乘邮政飞机遭遇空难而不幸逝世。", "quote": "《再别康桥》：“轻轻的我走了，正如我轻轻的来", "dynasty": "清末民国", "birthplace": "浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）", "avatar": "", "birth": {"date": "1897年", "location": "浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）", "lat": 30.527, "lng": 120.685}, "death": {"date": "1931年", "location": "山东济南长清县开山（今山东省济南市长清区崮云湖街道）", "lat": 36.553, "lng": 116.927}, "lifespan": "34岁", "highlights": {"honor": "", "status": "中国现代著名诗人，新月派代表人物，其诗歌与散文对中国新文学发展有重要影响。", "identities": "诗人、散文家、翻译家、教授", "achievements": "", "works": ["晨报副镌·诗镌", "新月"], "reviews": []}}, "locations": [{"name": "浙江海宁硖石", "ancientName": "浙江海宁硖石", "modernName": "浙江省嘉兴市海宁市硖石街道", "lat": 30.527, "lng": 120.685, "type": "birth", "event": "出生于当地富商家庭，幼年接受传统私塾教育，后入杭州府中学堂（今杭州高级中学前身）学习。", "time": "1897年", "duration": "约16年（至1913年左右）", "significance": "江南水乡的文化氛围与优渥家境为其奠定了传统文化基础与开阔眼界。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "京师", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "入读北京大学法科（后未完成），广泛接触新思想与新文化运动人物。", "time": "1915年-1918年", "duration": "约3年", "significance": "初步接触新文化思潮，为其日后转向文学与出国留学埋下伏笔。", "works": [], "quoteLines": []}, {"name": "美国（克拉克大学、哥伦比亚大学）", "ancientName": "美国马萨诸塞州伍斯特市、纽约市", "modernName": "美国马萨诸塞州伍斯特市、纽约州纽约市", "lat": 42.263, "lng": -71.802, "type": "normal", "event": "先在克拉克大学学习银行学，后入哥伦比亚大学攻读政治学硕士。", "time": "1918年-1920年", "duration": "约2年", "significance": "系统接受西方社会科学教育，但兴趣逐渐转向文学。", "works": [], "quoteLines": []}, {"name": "英国剑桥", "ancientName": "剑桥", "modernName": "英国剑桥郡剑桥市", "lat": 52.205, "lng": 0.122, "type": "normal", "event": "以特别生身份入剑桥大学国王学院，深受英国浪漫主义诗歌影响，开始大量创作新诗。", "time": "1920年-1922年", "duration": "约2年", "significance": "**人生与文学的转折点**。康桥的自然与人文环境激发其诗情，奠定了其浪漫主义诗风。名篇《再别康桥》即源于此段经历（创作时间存疑）。", "works": ["再别康桥"], "quoteLines": ["《再别康桥》：“轻轻的我走了，正如我轻轻的来", "我轻轻的招手，作别西天的云彩。”"]}, {"name": "上海", "ancientName": "松江府上海县", "modernName": "上海市", "lat": 31.231, "lng": 121.477, "type": "normal", "event": "回国后在上海、南京等地从事文化活动，与胡适、闻一多等人交往密切，筹备**新月社**。", "time": "1922年-1924年（初期主要活动时间）", "duration": "断续居住数年", "significance": "成为国内文坛活跃人物，开始其编辑、创作与社交的黄金时期。", "works": [], "quoteLines": []}, {"name": "北京（新月社时期）", "ancientName": "京兆地方", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "在北京大学等校任教；与胡适、闻一多、梁实秋等人正式创办**新月社**；印度诗人泰戈尔访华，任翻译；主编《晨报副镌·诗镌》，倡导新诗格律化。", "time": "1924年-1927年", "duration": "约3年", "significance": "成为**新月派**核心，其文学活动与诗歌理论对当时诗坛产生重大影响。", "works": ["晨报副镌·诗镌"], "quoteLines": ["《偶然》：“我是天空里的一片云，偶尔投影在你的波心。”"]}, {"name": "上海（主编《新月》时期）", "ancientName": "淞沪特别市", "modernName": "上海市", "lat": 31.231, "lng": 121.477, "type": "normal", "event": "在上海光华大学、南京中央大学任教；与友人创办新月书店，主编《新月》月刊。", "time": "1927年-1930年", "duration": "约3年", "significance": "将新月派的文学阵地南移上海，继续引领文学风潮，同时个人创作与翻译成果丰硕。", "works": ["新月"], "quoteLines": []}, {"name": "南京", "ancientName": "江宁", "modernName": "江苏省南京市", "lat": 32.054, "lng": 118.783, "type": "normal", "event": "在国立中央大学（今南京大学前身）兼任教授。", "time": "1928年-1930年（间断）", "duration": "断续授课", "significance": "扩大了其在南方学界的影响，教学与创作并行。", "works": [], "quoteLines": []}, {"name": "北京（重返北大）", "ancientName": "北平", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "辞去上海教职，重返北京大学英文系任教，并兼任女子大学教授。", "time": "1931年", "duration": "约半年", "significance": "人生最后阶段回归学术中心，但不久即遭遇空难。", "works": [], "quoteLines": []}, {"name": "山东济南长清县开山", "ancientName": "山东济南长清县开山", "modernName": "山东省济南市长清区崮云湖街道", "lat": 36.553, "lng": 116.927, "type": "death", "event": "搭乘中国航空公司“济南号”邮政飞机由南京飞往北平，因大雾触山坠毁，机上人员全部遇难。", "time": "1931年11月19日", "duration": "罹难处", "significance": "**意外早逝**，是中国文坛的重大损失，其浪漫传奇的一生戛然而止。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---", "markdown": "# 徐志摩\n\n## 人物档案\n\n### 基本信息\n- **姓名**：徐志摩\n- **时代**：清末民国\n- **出生**：公元1897年1月15日，浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）\n- **去世**：公元1931年11月19日，山东济南长清县开山（今山东省济南市长清区崮云湖街道）\n- **享年**：34岁\n- **主要身份**：诗人、散文家、翻译家、教授\n- **历史地位**：中国现代著名诗人，新月派代表人物，其诗歌与散文对中国新文学发展有重要影响。\n- **主要成就**：\n    1. 创作了《再别康桥》《偶然》等脍炙人口的新诗，推动了中国新诗的格律化探索。\n    2. 作为**新月社**及后期**新月派**的核心人物，组织文学活动，主编《新月》月刊。\n    3. 散文创作独具一格，情感真挚，文笔华丽。\n    4. 翻译了大量西方文学作品，促进了中西文化交流。\n\n### 生平概述\n徐志摩，原名章垿，字槱森，留学美国时改名志摩。他出生于富商之家，早年接受传统教育，后入北京大学、上海沪江大学学习。1918年赴美留学，1920年获哥伦比亚大学硕士学位后转赴英国，在剑桥大学深受西方浪漫主义诗歌熏陶，确立了文学志向。1922年回国后，他成为**新月社**的发起人之一，并在北京、上海等地多所大学任教，主编《晨报副镌·诗镌》《新月》月刊，倡导新诗格律化。其诗歌情感浓烈，意象新颖，语言华美。1931年11月19日，因搭乘邮政飞机遭遇空难而不幸逝世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国浙江、北京、上海、南京及英国、美国等地，以文学活动与教育生涯为主线。\n- ⏱️ **时间跨度**：公元1897年至1931年，共34年。\n- 📍 **地理范围**：主要覆盖中国华东、华北地区，以及英国剑桥、美国纽约等地。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江海宁硖石\n- **时间**：1897年\n- **停留时间**：约16年（至1913年左右）\n- **地点**：浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）\n- **事件**：出生于当地富商家庭，幼年接受传统私塾教育，后入杭州府中学堂（今杭州高级中学前身）学习。\n- **意义**：江南水乡的文化氛围与优渥家境为其奠定了传统文化基础与开阔眼界。\n\n### 📍 重要地点：北京\n- **时间**：1915年-1918年\n- **停留时间**：约3年\n- **地点**：京师（今北京市）\n- **事件**：入读北京大学法科（后未完成），广泛接触新思想与新文化运动人物。\n- **意义**：初步接触新文化思潮，为其日后转向文学与出国留学埋下伏笔。\n\n### 📍 重要地点：美国（克拉克大学、哥伦比亚大学）\n- **时间**：1918年-1920年\n- **停留时间**：约2年\n- **地点**：美国马萨诸塞州伍斯特市、纽约市（今美国马萨诸塞州伍斯特市、纽约州纽约市）\n- **事件**：先在克拉克大学学习银行学，后入哥伦比亚大学攻读政治学硕士。\n- **意义**：系统接受西方社会科学教育，但兴趣逐渐转向文学。\n\n### 📍 重要地点：英国剑桥\n- **时间**：1920年-1922年\n- **停留时间**：约2年\n- **地点**：剑桥（今英国剑桥郡剑桥市）\n- **事件**：以特别生身份入剑桥大学国王学院，深受英国浪漫主义诗歌影响，开始大量创作新诗。\n- **意义**：**人生与文学的转折点**。康桥的自然与人文环境激发其诗情，奠定了其浪漫主义诗风。名篇《再别康桥》即源于此段经历（创作时间存疑）。\n- **名篇名句**：《再别康桥》：“轻轻的我走了，正如我轻轻的来；我轻轻的招手，作别西天的云彩。”\n\n### 📍 重要地点：上海\n- **时间**：1922年-1924年（初期主要活动时间）\n- **停留时间**：断续居住数年\n- **地点**：松江府上海县（今上海市）\n- **事件**：回国后在上海、南京等地从事文化活动，与胡适、闻一多等人交往密切，筹备**新月社**。\n- **意义**：成为国内文坛活跃人物，开始其编辑、创作与社交的黄金时期。\n\n### 📍 重要地点：北京（新月社时期）\n- **时间**：1924年-1927年\n- **停留时间**：约3年\n- **地点**：京兆地方（今北京市）\n- **事件**：在北京大学等校任教；与胡适、闻一多、梁实秋等人正式创办**新月社**；印度诗人泰戈尔访华，任翻译；主编《晨报副镌·诗镌》，倡导新诗格律化。\n- **意义**：成为**新月派**核心，其文学活动与诗歌理论对当时诗坛产生重大影响。\n- **名篇名句**：《偶然》：“我是天空里的一片云，偶尔投影在你的波心。”\n\n### 📍 重要地点：上海（主编《新月》时期）\n- **时间**：1927年-1930年\n- **停留时间**：约3年\n- **地点**：淞沪特别市（今上海市）\n- **事件**：在上海光华大学、南京中央大学任教；与友人创办新月书店，主编《新月》月刊。\n- **意义**：将新月派的文学阵地南移上海，继续引领文学风潮，同时个人创作与翻译成果丰硕。\n\n### 📍 重要地点：南京\n- **时间**：1928年-1930年（间断）\n- **停留时间**：断续授课\n- **地点**：江宁（今江苏省南京市）\n- **事件**：在国立中央大学（今南京大学前身）兼任教授。\n- **意义**：扩大了其在南方学界的影响，教学与创作并行。\n\n### 📍 重要地点：北京（重返北大）\n- **时间**：1931年\n- **停留时间**：约半年\n- **地点**：北平（今北京市）\n- **事件**：辞去上海教职，重返北京大学英文系任教，并兼任女子大学教授。\n- **意义**：人生最后阶段回归学术中心，但不久即遭遇空难。\n\n### 🔴 去世地：山东济南长清县开山\n- **时间**：1931年11月19日\n- **停留时间**：罹难处\n- **地点**：山东济南长清县开山（今山东省济南市长清区崮云湖街道）\n- **事件**：搭乘中国航空公司“济南号”邮政飞机由南京飞往北平，因大雾触山坠毁，机上人员全部遇难。\n- **意义**：**意外早逝**，是中国文坛的重大损失，其浪漫传奇的一生戛然而止。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1897 | 0 | 出生于浙江海宁硖石。 |\n| 1915 | 18 | 入北京大学学习。 |\n| 1918 | 21 | 赴美国留学，入克拉克大学。 |\n| 1920 | 23 | 获哥伦比亚大学硕士，转赴英国剑桥大学。 |\n| 1922 | 25 | 结束留学回国，开始新诗创作与文学活动。 |\n| 1924 | 27 | 与友人在北京创办**新月社**；印度诗人泰戈尔访华，任翻译。 |\n| 1925 | 28 | 主编《晨报副镌·诗镌》。 |\n| 1926 | 29 | 与陆小曼结婚。 |\n| 1927 | 30 | 南下上海，筹备新月书店，主编《新月》月刊。 |\n| 1928 | 31 | 可能重访剑桥（存疑）。《再别康桥》等诗作的创作时间存在不同说法（存疑）。 |\n| 1931 | 34 | 重返北京大学任教；11月19日，因飞机失事遇难。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 浙江省嘉兴市海宁市硖石街道 | 30.527 | 120.685 |\n| 北京市东城区（原北京大学旧址附近） | 39.928 | 116.403 |\n| 美国马萨诸塞州伍斯特市 | 42.263 | -71.802 |\n| 美国纽约州纽约市 | 40.713 | -74.006 |\n| 英国剑桥郡剑桥市 | 52.205 | 0.122 |\n| 上海市黄浦区（原上海县旧址附近） | 31.231 | 121.477 |\n| 北京市西城区（原新月社活动区域） | 39.925 | 116.384 |\n| 上海市徐汇区（原光华大学旧址附近） | 31.193 | 121.437 |\n| 江苏省南京市鼓楼区（原中央大学旧址） | 32.054 | 118.783 |\n| 山东省济南市长清区崮云湖街道 | 36.553 | 116.927 |"};
+      const data = {"person": {"name": "徐志摩", "title": "", "description": "徐志摩，原名章垿，字槱森，留学美国时改名志摩。他出生于富商之家，早年接受传统教育，后入北京大学、上海沪江大学学习。1918年赴美留学，1920年获哥伦比亚大学硕士学位后转赴英国，在剑桥大学深受西方浪漫主义诗歌熏陶，确立了文学志向。1922年回国后，他成为**新月社**的发起人之一，并在北京、上海等地多所大学任教，主编《晨报副镌·诗镌》《新月》月刊，倡导新诗格律化。其诗歌情感浓烈，意象新颖，语言华美。1931年11月19日，因搭乘邮政飞机遭遇空难而不幸逝世。", "quote": "《再别康桥》：“轻轻的我走了，正如我轻轻的来", "dynasty": "清末民国", "birthplace": "浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）", "avatar": "", "birth": {"date": "1897年", "location": "浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）", "lat": 30.527, "lng": 120.685}, "death": {"date": "1931年", "location": "山东济南长清县开山（今山东省济南市长清区崮云湖街道）", "lat": 36.553, "lng": 116.927}, "lifespan": "34岁", "highlights": {"honor": "", "status": "中国现代著名诗人，新月派代表人物，其诗歌与散文对中国新文学发展有重要影响。", "identities": "诗人、散文家、翻译家、教授", "achievements": "", "works": ["晨报副镌·诗镌", "新月"], "reviews": []}}, "locations": [{"name": "浙江海宁硖石", "ancientName": "浙江海宁硖石", "modernName": "浙江省嘉兴市海宁市硖石街道", "lat": 30.527, "lng": 120.685, "type": "birth", "event": "出生于当地富商家庭，幼年接受传统私塾教育，后入杭州府中学堂（今杭州高级中学前身）学习。", "time": "1897年", "duration": "约16年（至1913年左右）", "significance": "江南水乡的文化氛围与优渥家境为其奠定了传统文化基础与开阔眼界。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "京师", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "入读北京大学法科（后未完成），广泛接触新思想与新文化运动人物。", "time": "1915年-1918年", "duration": "约3年", "significance": "初步接触新文化思潮，为其日后转向文学与出国留学埋下伏笔。", "works": [], "quoteLines": []}, {"name": "美国（克拉克大学、哥伦比亚大学）", "ancientName": "美国马萨诸塞州伍斯特市、纽约市", "modernName": "美国马萨诸塞州伍斯特市、纽约州纽约市", "lat": 42.263, "lng": -71.802, "type": "normal", "event": "先在克拉克大学学习银行学，后入哥伦比亚大学攻读政治学硕士。", "time": "1918年-1920年", "duration": "约2年", "significance": "系统接受西方社会科学教育，但兴趣逐渐转向文学。", "works": [], "quoteLines": []}, {"name": "英国剑桥", "ancientName": "剑桥", "modernName": "英国剑桥郡剑桥市", "lat": 52.205, "lng": 0.122, "type": "normal", "event": "以特别生身份入剑桥大学国王学院，深受英国浪漫主义诗歌影响，开始大量创作新诗。", "time": "1920年-1922年", "duration": "约2年", "significance": "**人生与文学的转折点**。康桥的自然与人文环境激发其诗情，奠定了其浪漫主义诗风。名篇《再别康桥》即源于此段经历（创作时间存疑）。", "works": ["再别康桥"], "quoteLines": ["《再别康桥》：“轻轻的我走了，正如我轻轻的来", "我轻轻的招手，作别西天的云彩。”"]}, {"name": "上海", "ancientName": "松江府上海县", "modernName": "上海市", "lat": 31.231, "lng": 121.477, "type": "normal", "event": "回国后在上海、南京等地从事文化活动，与胡适、闻一多等人交往密切，筹备**新月社**。", "time": "1922年-1924年（初期主要活动时间）", "duration": "断续居住数年", "significance": "成为国内文坛活跃人物，开始其编辑、创作与社交的黄金时期。", "works": [], "quoteLines": []}, {"name": "北京（新月社时期）", "ancientName": "京兆地方", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "在北京大学等校任教；与胡适、闻一多、梁实秋等人正式创办**新月社**；印度诗人泰戈尔访华，任翻译；主编《晨报副镌·诗镌》，倡导新诗格律化。", "time": "1924年-1927年", "duration": "约3年", "significance": "成为**新月派**核心，其文学活动与诗歌理论对当时诗坛产生重大影响。", "works": ["晨报副镌·诗镌"], "quoteLines": ["《偶然》：“我是天空里的一片云，偶尔投影在你的波心。”"]}, {"name": "上海（主编《新月》时期）", "ancientName": "淞沪特别市", "modernName": "上海市", "lat": 31.231, "lng": 121.477, "type": "normal", "event": "在上海光华大学、南京中央大学任教；与友人创办新月书店，主编《新月》月刊。", "time": "1927年-1930年", "duration": "约3年", "significance": "将新月派的文学阵地南移上海，继续引领文学风潮，同时个人创作与翻译成果丰硕。", "works": ["新月"], "quoteLines": []}, {"name": "南京", "ancientName": "江宁", "modernName": "江苏省南京市", "lat": 32.054, "lng": 118.783, "type": "normal", "event": "在国立中央大学（今南京大学前身）兼任教授。", "time": "1928年-1930年（间断）", "duration": "断续授课", "significance": "扩大了其在南方学界的影响，教学与创作并行。", "works": [], "quoteLines": []}, {"name": "北京（重返北大）", "ancientName": "北平", "modernName": "北京市", "lat": 39.928, "lng": 116.403, "type": "normal", "event": "辞去上海教职，重返北京大学英文系任教，并兼任女子大学教授。", "time": "1931年", "duration": "约半年", "significance": "人生最后阶段回归学术中心，但不久即遭遇空难。", "works": [], "quoteLines": []}, {"name": "山东济南长清县开山", "ancientName": "山东济南长清县开山", "modernName": "山东省济南市长清区崮云湖街道", "lat": 36.553, "lng": 116.927, "type": "death", "event": "搭乘中国航空公司“济南号”邮政飞机由南京飞往北平，因大雾触山坠毁，机上人员全部遇难。", "time": "1931年11月19日", "duration": "罹难处", "significance": "**意外早逝**，是中国文坛的重大损失，其浪漫传奇的一生戛然而止。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---", "markdown": "# 徐志摩\n\n## 人物档案\n\n### 基本信息\n- **姓名**：徐志摩\n- **时代**：清末民国\n- **出生**：公元1897年1月15日，浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）\n- **去世**：公元1931年11月19日，山东济南长清县开山（今山东省济南市长清区崮云湖街道）\n- **享年**：34岁\n- **主要身份**：诗人、散文家、翻译家、教授\n- **历史地位**：中国现代著名诗人，新月派代表人物，其诗歌与散文对中国新文学发展有重要影响。\n- **主要成就**：\n    1. 创作了《再别康桥》《偶然》等脍炙人口的新诗，推动了中国新诗的格律化探索。\n    2. 作为**新月社**及后期**新月派**的核心人物，组织文学活动，主编《新月》月刊。\n    3. 散文创作独具一格，情感真挚，文笔华丽。\n    4. 翻译了大量西方文学作品，促进了中西文化交流。\n\n### 生平概述\n徐志摩，原名章垿，字槱森，留学美国时改名志摩。他出生于富商之家，早年接受传统教育，后入北京大学、上海沪江大学学习。1918年赴美留学，1920年获哥伦比亚大学硕士学位后转赴英国，在剑桥大学深受西方浪漫主义诗歌熏陶，确立了文学志向。1922年回国后，他成为**新月社**的发起人之一，并在北京、上海等地多所大学任教，主编《晨报副镌·诗镌》《新月》月刊，倡导新诗格律化。其诗歌情感浓烈，意象新颖，语言华美。1931年11月19日，因搭乘邮政飞机遭遇空难而不幸逝世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国浙江、北京、上海、南京及英国、美国等地，以文学活动与教育生涯为主线。\n- ⏱️ **时间跨度**：公元1897年至1931年，共34年。\n- 📍 **地理范围**：主要覆盖中国华东、华北地区，以及英国剑桥、美国纽约等地。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江海宁硖石\n- **时间**：1897年\n- **停留时间**：约16年（至1913年左右）\n- **地点**：浙江海宁硖石（今浙江省嘉兴市海宁市硖石街道）\n- **事件**：出生于当地富商家庭，幼年接受传统私塾教育，后入杭州府中学堂（今杭州高级中学前身）学习。\n- **意义**：江南水乡的文化氛围与优渥家境为其奠定了传统文化基础与开阔眼界。\n\n### 📍 重要地点：北京\n- **时间**：1915年-1918年\n- **停留时间**：约3年\n- **地点**：京师（今北京市）\n- **事件**：入读北京大学法科（后未完成），广泛接触新思想与新文化运动人物。\n- **意义**：初步接触新文化思潮，为其日后转向文学与出国留学埋下伏笔。\n\n### 📍 重要地点：美国（克拉克大学、哥伦比亚大学）\n- **时间**：1918年-1920年\n- **停留时间**：约2年\n- **地点**：美国马萨诸塞州伍斯特市、纽约市（今美国马萨诸塞州伍斯特市、纽约州纽约市）\n- **事件**：先在克拉克大学学习银行学，后入哥伦比亚大学攻读政治学硕士。\n- **意义**：系统接受西方社会科学教育，但兴趣逐渐转向文学。\n\n### 📍 重要地点：英国剑桥\n- **时间**：1920年-1922年\n- **停留时间**：约2年\n- **地点**：剑桥（今英国剑桥郡剑桥市）\n- **事件**：以特别生身份入剑桥大学国王学院，深受英国浪漫主义诗歌影响，开始大量创作新诗。\n- **意义**：**人生与文学的转折点**。康桥的自然与人文环境激发其诗情，奠定了其浪漫主义诗风。名篇《再别康桥》即源于此段经历（创作时间存疑）。\n- **名篇名句**：《再别康桥》：“轻轻的我走了，正如我轻轻的来；我轻轻的招手，作别西天的云彩。”\n\n### 📍 重要地点：上海\n- **时间**：1922年-1924年（初期主要活动时间）\n- **停留时间**：断续居住数年\n- **地点**：松江府上海县（今上海市）\n- **事件**：回国后在上海、南京等地从事文化活动，与胡适、闻一多等人交往密切，筹备**新月社**。\n- **意义**：成为国内文坛活跃人物，开始其编辑、创作与社交的黄金时期。\n\n### 📍 重要地点：北京（新月社时期）\n- **时间**：1924年-1927年\n- **停留时间**：约3年\n- **地点**：京兆地方（今北京市）\n- **事件**：在北京大学等校任教；与胡适、闻一多、梁实秋等人正式创办**新月社**；印度诗人泰戈尔访华，任翻译；主编《晨报副镌·诗镌》，倡导新诗格律化。\n- **意义**：成为**新月派**核心，其文学活动与诗歌理论对当时诗坛产生重大影响。\n- **名篇名句**：《偶然》：“我是天空里的一片云，偶尔投影在你的波心。”\n\n### 📍 重要地点：上海（主编《新月》时期）\n- **时间**：1927年-1930年\n- **停留时间**：约3年\n- **地点**：淞沪特别市（今上海市）\n- **事件**：在上海光华大学、南京中央大学任教；与友人创办新月书店，主编《新月》月刊。\n- **意义**：将新月派的文学阵地南移上海，继续引领文学风潮，同时个人创作与翻译成果丰硕。\n\n### 📍 重要地点：南京\n- **时间**：1928年-1930年（间断）\n- **停留时间**：断续授课\n- **地点**：江宁（今江苏省南京市）\n- **事件**：在国立中央大学（今南京大学前身）兼任教授。\n- **意义**：扩大了其在南方学界的影响，教学与创作并行。\n\n### 📍 重要地点：北京（重返北大）\n- **时间**：1931年\n- **停留时间**：约半年\n- **地点**：北平（今北京市）\n- **事件**：辞去上海教职，重返北京大学英文系任教，并兼任女子大学教授。\n- **意义**：人生最后阶段回归学术中心，但不久即遭遇空难。\n\n### 🔴 去世地：山东济南长清县开山\n- **时间**：1931年11月19日\n- **停留时间**：罹难处\n- **地点**：山东济南长清县开山（今山东省济南市长清区崮云湖街道）\n- **事件**：搭乘中国航空公司“济南号”邮政飞机由南京飞往北平，因大雾触山坠毁，机上人员全部遇难。\n- **意义**：**意外早逝**，是中国文坛的重大损失，其浪漫传奇的一生戛然而止。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1897 | 0 | 出生于浙江海宁硖石。 |\n| 1915 | 18 | 入北京大学学习。 |\n| 1918 | 21 | 赴美国留学，入克拉克大学。 |\n| 1920 | 23 | 获哥伦比亚大学硕士，转赴英国剑桥大学。 |\n| 1922 | 25 | 结束留学回国，开始新诗创作与文学活动。 |\n| 1924 | 27 | 与友人在北京创办**新月社**；印度诗人泰戈尔访华，任翻译。 |\n| 1925 | 28 | 主编《晨报副镌·诗镌》。 |\n| 1926 | 29 | 与陆小曼结婚。 |\n| 1927 | 30 | 南下上海，筹备新月书店，主编《新月》月刊。 |\n| 1928 | 31 | 可能重访剑桥（存疑）。《再别康桥》等诗作的创作时间存在不同说法（存疑）。 |\n| 1931 | 34 | 重返北京大学任教；11月19日，因飞机失事遇难。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《再别康桥》**、**《偶然》**、《沙扬娜拉》（其一）。\n- 核心要点：\n    - **重点**：**《再别康桥》** 以“云彩”、“金柳”、“柔波”、“青荇”等**意象**，构建了一个宁静、柔美的意境，表达了对康桥的无限眷恋与离别时的淡淡哀愁。\n    - **重点**：诗歌体现了**新月派**“三美”（**音乐美**、**绘画美**、**建筑美**）主张，**《再别康桥》** 在音节、韵律和诗行排列上堪称典范。\n    - **重点**：**《偶然》** 运用“云”与“波心”的**比喻**，表达了对人生际遇中短暂而美丽相遇的哲思，情感含蓄而深刻。\n    - 诗人善于将主观情感融入客观景物，达到“情景交融”的艺术效果。\n    - 语言**华美**、**轻柔**，富有流动感，形成了独特的“志摩式”浪漫诗风。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**新月社**（1924年）及后期**新月派**的核心组织者与代表诗人，该流派是**中国新诗发展史**上的重要一环。\n    - 曾留学**英美**，深受西方浪漫主义及**剑桥**文化影响，是当时知识分子“西学东渐”的典型代表之一。\n    - 主编《晨报副镌·诗镌》、《新月》月刊，是**自由主义文人**群体的重要舆论阵地。\n- 核心要点：\n    - **重点**：其人生与创作处于**五四新文化运动**之后，中国社会与文学剧烈转型的**民国时期**。\n    - **重点**：作为**资产阶级知识分子**，其文学主张与政治立场倾向于**自由主义**与**精英文化**，与左翼文学存在一定分歧。\n    - 其早逝（**空难**）被赋予了传奇色彩，成为现代文学史上一个令人扼腕的符号。\n    - **重点**：在文学史上，他被定位为**新月派**的**代表诗人**，其作品与活动集中体现了该流派的艺术追求与历史贡献。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 浙江省嘉兴市海宁市硖石街道 | 30.527 | 120.685 |\n| 北京市东城区（原北京大学旧址附近） | 39.928 | 116.403 |\n| 美国马萨诸塞州伍斯特市 | 42.263 | -71.802 |\n| 美国纽约州纽约市 | 40.713 | -74.006 |\n| 英国剑桥郡剑桥市 | 52.205 | 0.122 |\n| 上海市黄浦区（原上海县旧址附近） | 31.231 | 121.477 |\n| 北京市西城区（原新月社活动区域） | 39.925 | 116.384 |\n| 上海市徐汇区（原光华大学旧址附近） | 31.193 | 121.437 |\n| 江苏省南京市鼓楼区（原中央大学旧址） | 32.054 | 118.783 |\n| 山东省济南市长清区崮云湖街道 | 36.553 | 116.927 |", "relatedGraph": {"center": {"id": "徐志摩", "name": "徐志摩", "file": "徐志摩.html", "dynasty": "清末民国", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "徐志摩", "name": "徐志摩", "file": "徐志摩.html", "dynasty": "清末民国", "relationLabel": "中心人物", "isCenter": true}, {"id": "泰戈尔", "name": "泰戈尔", "file": "泰戈尔.html", "dynasty": "英属印度时期（19世纪末至20世纪上半叶）", "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "花鞋杜四", "name": "花鞋杜四", "file": "花鞋杜四.html", "dynasty": "民国时期（小说《红高粱家族》设定）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "吉老秤", "name": "吉老秤", "file": "吉老秤.html", "dynasty": "清末民初（小说背景设定）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "徐志摩", "target": "泰戈尔", "label": "好友", "confidence": null}, {"source": "徐志摩", "target": "花鞋杜四", "label": "同时代人物", "confidence": null}, {"source": "徐志摩", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "徐志摩", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "徐志摩", "target": "吉老秤", "label": "同时代人物", "confidence": null}, {"source": "徐志摩", "target": "牛顿", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "孙坚", "title": "", "description": "孙坚，字文台，吴郡富春人，据史书记载是春秋时期军事家孙武的后裔。他少年英勇，十七岁时曾智退海贼，自此踏入仕途。在东汉末年天下大乱之际，他先后参与镇压黄巾起义和区星叛乱，积累了军事声望与实力。董卓专权后，孙坚积极响应关东联军，率军北上，成为讨伐董卓最坚决、战功最卓著的诸侯之一，曾大破董卓军并收复洛阳。后在率军进攻荆州刘表时，于岘山中伏身亡。其子孙策、孙权继承其志，最终开创了三国之一的吴国。", "quote": "", "dynasty": "东汉末年", "birthplace": "吴郡富春（今浙江省杭州市富阳区）", "avatar": "", "birth": {"date": "155年", "location": "吴郡富春（今浙江省杭州市富阳区）", "lat": 29.98, "lng": 119.95}, "death": {"date": "191年", "location": "荆州襄阳岘山（今湖北省襄阳市襄城区）", "lat": 32.01, "lng": 112.13}, "lifespan": "享年不详（若生年约155年，则约37岁，此推算存疑）", "highlights": {"honor": "", "status": "东汉末年著名将领，为孙吴政权的建立奠定了最初的军事和政治基础。", "identities": "军事将领、地方诸侯、孙吴政权奠基者", "achievements": "参与平定黄巾起义；作为联军先锋讨伐董卓；收复被董卓占据的洛阳；官至破虏将军、豫州刺史。", "works": [], "reviews": []}}, "locations": [{"name": "吴郡富春", "ancientName": "吴郡富春", "modernName": "浙江省杭州市富阳区", "lat": 29.98, "lng": 119.95, "type": "birth", "event": "出生于此地，据传为孙武后裔。少年时即以勇武闻名，十七岁智退海贼，崭露头角。", "time": "约公元155年", "duration": "少年时期", "significance": "孙氏家族的根基所在，其早期声望在此积累，为日后在江东起事奠定了基础。", "works": [], "quoteLines": []}, {"name": "钱塘", "ancientName": "吴郡钱塘", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "type": "normal", "event": "青年时期在此地活动，因智勇双全被郡府征召，参与平定地方叛乱（具体事件存疑）。", "time": "约公元172年（此时间据生年推算，生年存疑则此时间亦存疑）", "duration": "约1-2年", "significance": "正式踏入军旅生涯的起点，开始在地方军事行动中建立功勋。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳国", "modernName": "江苏省徐州市睢宁县古邳镇", "lat": 34.08, "lng": 117.88, "type": "normal", "event": "黄巾起义爆发后，孙坚招募精勇，追随中郎将朱儁在此地镇压黄巾军，担任佐军司马。", "time": "公元184年", "duration": "数月", "significance": "参与了东汉朝廷平定大规模民变的关键战役，军事才能得到中央将领的认可。", "works": [], "quoteLines": []}, {"name": "宛城", "ancientName": "南阳郡宛城", "modernName": "河南省南阳市", "lat": 32.99, "lng": 112.53, "type": "normal", "event": "随朱儁转战至宛城，身先士卒，率先登城，大破黄巾军，收复此战略要地。", "time": "公元184年", "duration": "数月", "significance": "因战功被朝廷任命为别部司马，开始拥有独立统兵的资格，地位提升。", "works": [], "quoteLines": []}, {"name": "鲁阳", "ancientName": "鲁阳县", "modernName": "河南省平顶山市鲁山县", "lat": 33.74, "lng": 112.91, "type": "normal", "event": "关东联军讨伐董卓时，孙坚北上至此，被袁术表荐为破虏将军、豫州刺史，成为联军在南方的重要力量。", "time": "公元190年", "duration": "数月", "significance": "正式以一路诸侯的身份参与讨董战争，获得了政治名分和军事据点。", "works": [], "quoteLines": []}, {"name": "阳人", "ancientName": "阳人聚", "modernName": "河南省平顶山市汝州市", "lat": 34.16, "lng": 112.84, "type": "normal", "event": "在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "time": "公元191年", "duration": "短暂交战", "significance": "取得了讨董联军对董卓主力的一次决定性胜利，极大振奋了联军士气，威震天下。", "works": ["三国志", "三国演义"], "quoteLines": []}, {"name": "洛阳", "ancientName": "司隶河南尹洛阳", "modernName": "河南省洛阳市孟津县，汉魏洛阳故城遗址", "lat": 34.74, "lng": 112.61, "type": "normal", "event": "在董卓西迁长安后，孙坚率军率先进入已成废墟的洛阳城，修缮汉室宗庙，安抚百姓。据部分史料（如《吴书》）记载曾获得传国玉玺，此说存疑，为孙吴政权合法性构建的传说之一。", "time": "公元191年", "duration": "短暂驻留", "significance": "象征性地收复了帝国都城，完成了讨董的军事目标；获得玉玺的传说为其家族增添了政治资本与神秘色彩。", "works": ["吴书"], "quoteLines": []}, {"name": "岘山", "ancientName": "荆州襄阳岘山", "modernName": "湖北省襄阳市襄城区", "lat": 32.01, "lng": 112.13, "type": "death", "event": "奉袁术之命进攻荆州刘表，追击刘表部将黄祖时，在岘山中伏，被乱箭射杀。", "time": "公元191年（初平二年）", "duration": "阵亡于此", "significance": "一代将星陨落，其开创的基业由子孙策、孙权继承，最终发展为三国之一的吴国。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---", "markdown": "# 孙坚\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孙坚\n- **时代**：东汉末年\n- **出生**：生年不详（约公元155年为后世推算，存疑），吴郡富春（今浙江省杭州市富阳区）\n- **去世**：公元191年，荆州襄阳岘山（今湖北省襄阳市襄城区）\n- **享年**：享年不详（若生年约155年，则约37岁，此推算存疑）\n- **主要身份**：军事将领、地方诸侯、孙吴政权奠基者\n- **历史地位**：东汉末年著名将领，为孙吴政权的建立奠定了最初的军事和政治基础。\n- **主要成就**：参与平定黄巾起义；作为联军先锋讨伐董卓；收复被董卓占据的洛阳；官至破虏将军、豫州刺史。\n\n### 生平概述\n孙坚，字文台，吴郡富春人，据史书记载是春秋时期军事家孙武的后裔。他少年英勇，十七岁时曾智退海贼，自此踏入仕途。在东汉末年天下大乱之际，他先后参与镇压黄巾起义和区星叛乱，积累了军事声望与实力。董卓专权后，孙坚积极响应关东联军，率军北上，成为讨伐董卓最坚决、战功最卓著的诸侯之一，曾大破董卓军并收复洛阳。后在率军进攻荆州刘表时，于岘山中伏身亡。其子孙策、孙权继承其志，最终开创了三国之一的吴国。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹北起中原（洛阳），南至江东（吴郡），西抵荆襄（襄阳），主要活动于长江中下游与黄河中游地区。\n- ⏱️ **时间跨度**：约公元155年 - 公元191年，共约37年。\n- 📍 **地理范围**：覆盖今浙江、江苏、安徽、河南、湖北等省。\n- 🌟 **重要节点数量**：核心地点8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：吴郡富春\n- **时间**：约公元155年\n- **停留时间**：少年时期\n- **地点**：吴郡富春（今浙江省杭州市富阳区）\n- **事件**：出生于此地，据传为孙武后裔。少年时即以勇武闻名，十七岁智退海贼，崭露头角。\n- **意义**：孙氏家族的根基所在，其早期声望在此积累，为日后在江东起事奠定了基础。\n\n### 📍 重要地点：钱塘\n- **时间**：约公元172年（此时间据生年推算，生年存疑则此时间亦存疑）\n- **停留时间**：约1-2年\n- **地点**：吴郡钱塘（今浙江省杭州市）\n- **事件**：青年时期在此地活动，因智勇双全被郡府征召，参与平定地方叛乱（具体事件存疑）。\n- **意义**：正式踏入军旅生涯的起点，开始在地方军事行动中建立功勋。\n\n### 📍 重要地点：下邳\n- **时间**：公元184年\n- **停留时间**：数月\n- **地点**：下邳国（今江苏省徐州市睢宁县古邳镇）\n- **事件**：黄巾起义爆发后，孙坚招募精勇，追随中郎将朱儁在此地镇压黄巾军，担任佐军司马。\n- **意义**：参与了东汉朝廷平定大规模民变的关键战役，军事才能得到中央将领的认可。\n\n### 📍 重要地点：宛城\n- **时间**：公元184年\n- **停留时间**：数月\n- **地点**：南阳郡宛城（今河南省南阳市）\n- **事件**：随朱儁转战至宛城，身先士卒，率先登城，大破黄巾军，收复此战略要地。\n- **意义**：因战功被朝廷任命为别部司马，开始拥有独立统兵的资格，地位提升。\n\n### 📍 重要地点：鲁阳\n- **时间**：公元190年\n- **停留时间**：数月\n- **地点**：鲁阳县（今河南省平顶山市鲁山县）\n- **事件**：关东联军讨伐董卓时，孙坚北上至此，被袁术表荐为破虏将军、豫州刺史，成为联军在南方的重要力量。\n- **意义**：正式以一路诸侯的身份参与讨董战争，获得了政治名分和军事据点。\n\n### 📍 重要地点：阳人\n- **时间**：公元191年\n- **停留时间**：短暂交战\n- **地点**：阳人聚（今河南省平顶山市汝州市）\n- **事件**：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。\n- **意义**：取得了讨董联军对董卓主力的一次决定性胜利，极大振奋了联军士气，威震天下。\n\n### 📍 重要地点：洛阳\n- **时间**：公元191年\n- **停留时间**：短暂驻留\n- **地点**：司隶河南尹洛阳（今河南省洛阳市孟津县，汉魏洛阳故城遗址）\n- **事件**：在董卓西迁长安后，孙坚率军率先进入已成废墟的洛阳城，修缮汉室宗庙，安抚百姓。据部分史料（如《吴书》）记载曾获得传国玉玺，此说存疑，为孙吴政权合法性构建的传说之一。\n- **意义**：象征性地收复了帝国都城，完成了讨董的军事目标；获得玉玺的传说为其家族增添了政治资本与神秘色彩。\n\n### 🔴 去世地：岘山\n- **时间**：公元191年（初平二年）\n- **停留时间**：阵亡于此\n- **地点**：荆州襄阳岘山（今湖北省襄阳市襄城区）\n- **事件**：奉袁术之命进攻荆州刘表，追击刘表部将黄祖时，在岘山中伏，被乱箭射杀。\n- **意义**：一代将星陨落，其开创的基业由子孙策、孙权继承，最终发展为三国之一的吴国。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元155年 | 1岁 | 出生于吴郡富春（生年存疑，此为推算）。|\n| 约172年 | 约18岁 | 于钱塘崭露头角，被郡府征召任职（具体事件存疑，一说智斩海贼；此时间据生年推算）。|\n| 公元184年 | 30岁 | 随朱儁镇压黄巾起义，战于下邳、宛城，以军功迁任别部司马。|\n| 公元187年 | 33岁 | 任长沙太守，平定区星等叛乱，封乌程侯。|\n| 公元190年 | 36岁 | 起兵响应关东联军讨伐董卓，被袁术表为破虏将军、豫州刺史。|\n| 公元191年 | 37岁 | 于阳人大破董卓军，斩杀华雄（据正史记载）；进军洛阳，据部分史料记载得传国玉玺（存疑）；后南下进攻刘表，战死于岘山。|\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 浙江省杭州市富阳区 | 29.98 | 119.95 |\n| 浙江省杭州市 | 30.27 | 120.15 |\n| 江苏省徐州市睢宁县古邳镇 | 34.08 | 117.88 |\n| 河南省南阳市 | 32.99 | 112.53 |\n| 河南省平顶山市鲁山县 | 33.74 | 112.91 |\n| 河南省平顶山市汝州市 | 34.16 | 112.84 |\n| 河南省洛阳市孟津县 | 34.74 | 112.61 |\n| 湖北省襄阳市襄城区 | 32.01 | 112.13 |"};
+      const data = {"person": {"name": "孙坚", "title": "", "description": "孙坚，字文台，吴郡富春人，据史书记载是春秋时期军事家孙武的后裔。他少年英勇，十七岁时曾智退海贼，自此踏入仕途。在东汉末年天下大乱之际，他先后参与镇压黄巾起义和区星叛乱，积累了军事声望与实力。董卓专权后，孙坚积极响应关东联军，率军北上，成为讨伐董卓最坚决、战功最卓著的诸侯之一，曾大破董卓军并收复洛阳。后在率军进攻荆州刘表时，于岘山中伏身亡。其子孙策、孙权继承其志，最终开创了三国之一的吴国。", "quote": "", "dynasty": "东汉末年", "birthplace": "吴郡富春（今浙江省杭州市富阳区）", "avatar": "", "birth": {"date": "155年", "location": "吴郡富春（今浙江省杭州市富阳区）", "lat": 29.98, "lng": 119.95}, "death": {"date": "191年", "location": "荆州襄阳岘山（今湖北省襄阳市襄城区）", "lat": 32.01, "lng": 112.13}, "lifespan": "享年不详（若生年约155年，则约37岁，此推算存疑）", "highlights": {"honor": "", "status": "东汉末年著名将领，为孙吴政权的建立奠定了最初的军事和政治基础。", "identities": "军事将领、地方诸侯、孙吴政权奠基者", "achievements": "参与平定黄巾起义；作为联军先锋讨伐董卓；收复被董卓占据的洛阳；官至破虏将军、豫州刺史。", "works": [], "reviews": []}}, "locations": [{"name": "吴郡富春", "ancientName": "吴郡富春", "modernName": "浙江省杭州市富阳区", "lat": 29.98, "lng": 119.95, "type": "birth", "event": "出生于此地，据传为孙武后裔。少年时即以勇武闻名，十七岁智退海贼，崭露头角。", "time": "约公元155年", "duration": "少年时期", "significance": "孙氏家族的根基所在，其早期声望在此积累，为日后在江东起事奠定了基础。", "works": [], "quoteLines": []}, {"name": "钱塘", "ancientName": "吴郡钱塘", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "type": "normal", "event": "青年时期在此地活动，因智勇双全被郡府征召，参与平定地方叛乱（具体事件存疑）。", "time": "约公元172年（此时间据生年推算，生年存疑则此时间亦存疑）", "duration": "约1-2年", "significance": "正式踏入军旅生涯的起点，开始在地方军事行动中建立功勋。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳国", "modernName": "江苏省徐州市睢宁县古邳镇", "lat": 34.08, "lng": 117.88, "type": "normal", "event": "黄巾起义爆发后，孙坚招募精勇，追随中郎将朱儁在此地镇压黄巾军，担任佐军司马。", "time": "公元184年", "duration": "数月", "significance": "参与了东汉朝廷平定大规模民变的关键战役，军事才能得到中央将领的认可。", "works": [], "quoteLines": []}, {"name": "宛城", "ancientName": "南阳郡宛城", "modernName": "河南省南阳市", "lat": 32.99, "lng": 112.53, "type": "normal", "event": "随朱儁转战至宛城，身先士卒，率先登城，大破黄巾军，收复此战略要地。", "time": "公元184年", "duration": "数月", "significance": "因战功被朝廷任命为别部司马，开始拥有独立统兵的资格，地位提升。", "works": [], "quoteLines": []}, {"name": "鲁阳", "ancientName": "鲁阳县", "modernName": "河南省平顶山市鲁山县", "lat": 33.74, "lng": 112.91, "type": "normal", "event": "关东联军讨伐董卓时，孙坚北上至此，被袁术表荐为破虏将军、豫州刺史，成为联军在南方的重要力量。", "time": "公元190年", "duration": "数月", "significance": "正式以一路诸侯的身份参与讨董战争，获得了政治名分和军事据点。", "works": [], "quoteLines": []}, {"name": "阳人", "ancientName": "阳人聚", "modernName": "河南省平顶山市汝州市", "lat": 34.16, "lng": 112.84, "type": "normal", "event": "在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "time": "公元191年", "duration": "短暂交战", "significance": "取得了讨董联军对董卓主力的一次决定性胜利，极大振奋了联军士气，威震天下。", "works": ["三国志", "三国演义"], "quoteLines": []}, {"name": "洛阳", "ancientName": "司隶河南尹洛阳", "modernName": "河南省洛阳市孟津县，汉魏洛阳故城遗址", "lat": 34.74, "lng": 112.61, "type": "normal", "event": "在董卓西迁长安后，孙坚率军率先进入已成废墟的洛阳城，修缮汉室宗庙，安抚百姓。据部分史料（如《吴书》）记载曾获得传国玉玺，此说存疑，为孙吴政权合法性构建的传说之一。", "time": "公元191年", "duration": "短暂驻留", "significance": "象征性地收复了帝国都城，完成了讨董的军事目标；获得玉玺的传说为其家族增添了政治资本与神秘色彩。", "works": ["吴书"], "quoteLines": []}, {"name": "岘山", "ancientName": "荆州襄阳岘山", "modernName": "湖北省襄阳市襄城区", "lat": 32.01, "lng": 112.13, "type": "death", "event": "奉袁术之命进攻荆州刘表，追击刘表部将黄祖时，在岘山中伏，被乱箭射杀。", "time": "公元191年（初平二年）", "duration": "阵亡于此", "significance": "一代将星陨落，其开创的基业由子孙策、孙权继承，最终发展为三国之一的吴国。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---", "markdown": "# 孙坚\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孙坚\n- **时代**：东汉末年\n- **出生**：生年不详（约公元155年为后世推算，存疑），吴郡富春（今浙江省杭州市富阳区）\n- **去世**：公元191年，荆州襄阳岘山（今湖北省襄阳市襄城区）\n- **享年**：享年不详（若生年约155年，则约37岁，此推算存疑）\n- **主要身份**：军事将领、地方诸侯、孙吴政权奠基者\n- **历史地位**：东汉末年著名将领，为孙吴政权的建立奠定了最初的军事和政治基础。\n- **主要成就**：参与平定黄巾起义；作为联军先锋讨伐董卓；收复被董卓占据的洛阳；官至破虏将军、豫州刺史。\n\n### 生平概述\n孙坚，字文台，吴郡富春人，据史书记载是春秋时期军事家孙武的后裔。他少年英勇，十七岁时曾智退海贼，自此踏入仕途。在东汉末年天下大乱之际，他先后参与镇压黄巾起义和区星叛乱，积累了军事声望与实力。董卓专权后，孙坚积极响应关东联军，率军北上，成为讨伐董卓最坚决、战功最卓著的诸侯之一，曾大破董卓军并收复洛阳。后在率军进攻荆州刘表时，于岘山中伏身亡。其子孙策、孙权继承其志，最终开创了三国之一的吴国。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹北起中原（洛阳），南至江东（吴郡），西抵荆襄（襄阳），主要活动于长江中下游与黄河中游地区。\n- ⏱️ **时间跨度**：约公元155年 - 公元191年，共约37年。\n- 📍 **地理范围**：覆盖今浙江、江苏、安徽、河南、湖北等省。\n- 🌟 **重要节点数量**：核心地点8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：吴郡富春\n- **时间**：约公元155年\n- **停留时间**：少年时期\n- **地点**：吴郡富春（今浙江省杭州市富阳区）\n- **事件**：出生于此地，据传为孙武后裔。少年时即以勇武闻名，十七岁智退海贼，崭露头角。\n- **意义**：孙氏家族的根基所在，其早期声望在此积累，为日后在江东起事奠定了基础。\n\n### 📍 重要地点：钱塘\n- **时间**：约公元172年（此时间据生年推算，生年存疑则此时间亦存疑）\n- **停留时间**：约1-2年\n- **地点**：吴郡钱塘（今浙江省杭州市）\n- **事件**：青年时期在此地活动，因智勇双全被郡府征召，参与平定地方叛乱（具体事件存疑）。\n- **意义**：正式踏入军旅生涯的起点，开始在地方军事行动中建立功勋。\n\n### 📍 重要地点：下邳\n- **时间**：公元184年\n- **停留时间**：数月\n- **地点**：下邳国（今江苏省徐州市睢宁县古邳镇）\n- **事件**：黄巾起义爆发后，孙坚招募精勇，追随中郎将朱儁在此地镇压黄巾军，担任佐军司马。\n- **意义**：参与了东汉朝廷平定大规模民变的关键战役，军事才能得到中央将领的认可。\n\n### 📍 重要地点：宛城\n- **时间**：公元184年\n- **停留时间**：数月\n- **地点**：南阳郡宛城（今河南省南阳市）\n- **事件**：随朱儁转战至宛城，身先士卒，率先登城，大破黄巾军，收复此战略要地。\n- **意义**：因战功被朝廷任命为别部司马，开始拥有独立统兵的资格，地位提升。\n\n### 📍 重要地点：鲁阳\n- **时间**：公元190年\n- **停留时间**：数月\n- **地点**：鲁阳县（今河南省平顶山市鲁山县）\n- **事件**：关东联军讨伐董卓时，孙坚北上至此，被袁术表荐为破虏将军、豫州刺史，成为联军在南方的重要力量。\n- **意义**：正式以一路诸侯的身份参与讨董战争，获得了政治名分和军事据点。\n\n### 📍 重要地点：阳人\n- **时间**：公元191年\n- **停留时间**：短暂交战\n- **地点**：阳人聚（今河南省平顶山市汝州市）\n- **事件**：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。\n- **意义**：取得了讨董联军对董卓主力的一次决定性胜利，极大振奋了联军士气，威震天下。\n\n### 📍 重要地点：洛阳\n- **时间**：公元191年\n- **停留时间**：短暂驻留\n- **地点**：司隶河南尹洛阳（今河南省洛阳市孟津县，汉魏洛阳故城遗址）\n- **事件**：在董卓西迁长安后，孙坚率军率先进入已成废墟的洛阳城，修缮汉室宗庙，安抚百姓。据部分史料（如《吴书》）记载曾获得传国玉玺，此说存疑，为孙吴政权合法性构建的传说之一。\n- **意义**：象征性地收复了帝国都城，完成了讨董的军事目标；获得玉玺的传说为其家族增添了政治资本与神秘色彩。\n\n### 🔴 去世地：岘山\n- **时间**：公元191年（初平二年）\n- **停留时间**：阵亡于此\n- **地点**：荆州襄阳岘山（今湖北省襄阳市襄城区）\n- **事件**：奉袁术之命进攻荆州刘表，追击刘表部将黄祖时，在岘山中伏，被乱箭射杀。\n- **意义**：一代将星陨落，其开创的基业由子孙策、孙权继承，最终发展为三国之一的吴国。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元155年 | 1岁 | 出生于吴郡富春（生年存疑，此为推算）。|\n| 约172年 | 约18岁 | 于钱塘崭露头角，被郡府征召任职（具体事件存疑，一说智斩海贼；此时间据生年推算）。|\n| 公元184年 | 30岁 | 随朱儁镇压黄巾起义，战于下邳、宛城，以军功迁任别部司马。|\n| 公元187年 | 33岁 | 任长沙太守，平定区星等叛乱，封乌程侯。|\n| 公元190年 | 36岁 | 起兵响应关东联军讨伐董卓，被袁术表为破虏将军、豫州刺史。|\n| 公元191年 | 37岁 | 于阳人大破董卓军，斩杀华雄（据正史记载）；进军洛阳，据部分史料记载得传国玉玺（存疑）；后南下进攻刘表，战死于岘山。|\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《三国演义》** 相关回目（如第七回“袁绍磐河战公孙 孙坚跨江击刘表”）中对孙坚英勇形象的文学塑造。\n- 核心要点：\n    - **重点**：**《三国演义》** 中“**温酒斩华雄**”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的**移花接木**。\n    - **重点**：小说中孙坚被塑造为“**江东猛虎**”的形象，其性格**勇烈刚毅**，是孙策、孙权英雄气概的源头。\n    - **重点**：**传国玉玺**的得失是小说中关于孙坚的重要**情节线索**，为其命运增添了**宿命论**色彩。\n    - 小说通过孙坚之死，展现了东汉末年**军阀混战**的残酷性与偶然性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孙坚是**讨伐董卓**战争中实际战绩最卓著的诸侯之一，其**阳人之战**的胜利是联军少有的大捷。\n    - **重点**：他是**孙吴政权**的**实际奠基者**，其军事集团和政治遗产直接由孙策继承。\n    - 以**长沙太守**身份起兵，凭借军功封**乌程侯**，是汉末由地方武职崛起为一方诸侯的典型。\n- 核心要点：\n    - **重点**：孙坚的崛起体现了东汉末年**中央权威崩溃**、**地方武力集团**兴起的时代特征。\n    - **重点**：其一生主要功业在**中原**与**荆襄**地区完成，但其家族根基与最终政治遗产归于**江东**。\n    - 历史上对其评价集中于**骁勇善战**、**果敢刚毅**，但亦有**轻佻急躁**（如孤军追击黄祖致死）的性格缺陷记载。\n    - **重点**：从历史脉络看，孙坚、孙策、孙权三代人的奋斗，完成了从**军事将领**到**割据诸侯**再到**建国称帝**的政权构建过程。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 浙江省杭州市富阳区 | 29.98 | 119.95 |\n| 浙江省杭州市 | 30.27 | 120.15 |\n| 江苏省徐州市睢宁县古邳镇 | 34.08 | 117.88 |\n| 河南省南阳市 | 32.99 | 112.53 |\n| 河南省平顶山市鲁山县 | 33.74 | 112.91 |\n| 河南省平顶山市汝州市 | 34.16 | 112.84 |\n| 河南省洛阳市孟津县 | 34.74 | 112.61 |\n| 湖北省襄阳市襄城区 | 32.01 | 112.13 |", "relatedGraph": {"center": {"id": "孙坚", "name": "孙坚", "file": "孙坚.html", "dynasty": "东汉末年", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "孙坚", "name": "孙坚", "file": "孙坚.html", "dynasty": "东汉末年", "relationLabel": "中心人物", "isCenter": true}, {"id": "董卓", "name": "董卓", "file": "董卓.html", "dynasty": "东汉末年", "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀彧", "name": "荀彧", "file": "荀彧.html", "dynasty": "东汉末年", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "孙坚", "target": "董卓", "label": "对手", "confidence": null}, {"source": "孙坚", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "孙坚", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "孙坚", "target": "郭嘉", "label": "同时代人物", "confidence": null}, {"source": "孙坚", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "孙坚", "target": "荀彧", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

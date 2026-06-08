@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "阿道夫·希特勒", "title": "", "description": "阿道夫·希特勒出生于奥匈帝国边境小镇，早年于维也纳流浪的经历塑造了其极端民族主义思想。第一次世界大战中作为德国士兵的经历使其对《凡尔赛条约》充满仇恨。战后，他加入并改造了纳粹党，利用《凡尔赛条约》带来的民族屈辱感、经济危机和政治动荡，通过煽动性演说和政治阴谋于1933年攫取德国最高权力。执政后，他迅速消灭异己，建立一党专政，推行反犹政策，并系统性地扩军备战。1939年入侵波兰，引发第二次世界大战。战争初期德军横扫欧洲，但1941年入侵苏联及对美宣战导致战局逆转。1945年，盟军攻入柏林，希特勒在总理府地下室自杀身亡。其统治给欧洲和世界带来了空前浩劫。", "quote": "1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”", "dynasty": "20世纪上半叶（魏玛共和国、纳粹德国时期）", "birthplace": "布劳瑙（今奥地利上奥地利州布劳瑙）", "avatar": "", "birth": {"date": "1889年", "location": "布劳瑙（今奥地利上奥地利州布劳瑙）", "lat": 48.2556, "lng": 13.0411}, "death": {"date": "1945年", "location": "柏林（今德国柏林）", "lat": 52.52, "lng": 13.405}, "lifespan": "56岁", "highlights": {"honor": "", "status": "纳粹德国的独裁统治者，第二次世界大战的发动者，对犹太人等群体实施种族灭绝的主要责任人。", "identities": "政治家、演说家、纳粹德国元首、第二次世界大战发动者", "achievements": "", "works": ["凡尔赛条约"], "reviews": []}}, "locations": [{"name": "布劳瑙", "ancientName": "布劳瑙", "modernName": "奥地利上奥地利州布劳瑙", "lat": 48.2556, "lng": 13.0411, "type": "birth", "event": "出生于一个奥地利海关职员家庭。", "time": "1889年4月20日", "duration": "幼年（约3年）", "significance": "生命的起点，其奥地利出身后来成为其政治身份中一个复杂因素。", "works": [], "quoteLines": []}, {"name": "林茨与莱昂丁", "ancientName": "林茨、莱昂丁", "modernName": "奥地利上奥地利州", "lat": 48.3069, "lng": 14.2858, "type": "normal", "event": "在林茨上学，成绩不佳，对艺术产生浓厚兴趣。后随家人迁至莱昂丁。", "time": "1898年-1905年", "duration": "约7年", "significance": "形成对德意志民族主义的初步认同，学业失败促使其立志成为艺术家。", "works": [], "quoteLines": []}, {"name": "维也纳", "ancientName": "维也纳", "modernName": "奥地利维也纳", "lat": 48.2082, "lng": 16.3738, "type": "normal", "event": "报考维也纳艺术学院两次被拒。父母双亡后，一度流浪，寄居收容所，靠卖画明信片为生。广泛阅读并吸收了当时维也纳的极端民族主义和反犹主义思想。", "time": "1907年-1913年", "duration": "约6年", "significance": "人生低谷与思想成型的关键时期，奠定了其种族主义、反犹主义和对哈布斯堡王朝的斯拉夫化的憎恶。", "works": [], "quoteLines": []}, {"name": "慕尼黑", "ancientName": "慕尼黑", "modernName": "德国巴伐利亚州慕尼黑", "lat": 48.1351, "lng": 11.582, "type": "normal", "event": "为逃避奥匈帝国兵役迁居慕尼黑，继续以卖画为生。", "time": "1913年-1914年（战前）", "duration": "约1年", "significance": "移居德国，为其后来在德国的政治生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "第一次世界大战西线战场", "ancientName": "第一次世界大战西线战场", "modernName": "西线战场（如比利时伊普尔、法国索姆河等地）", "lat": 50.8503, "lng": 2.8833, "type": "normal", "event": "主动加入巴伐利亚预备步兵团，作为传令兵参战，曾参加伊普尔战役、索姆河战役等，两次负伤，获一级铁十字勋章。", "time": "1914年-1918年", "duration": "约4年", "significance": "战争经历强化了其对军国主义的信仰，并为其提供了“前线战士”的政治资本。战败的消息令他深感震惊和屈辱。", "works": [], "quoteLines": []}, {"name": "慕尼黑（政治发迹地）", "ancientName": "慕尼黑", "modernName": "德国巴伐利亚州慕尼黑", "lat": 48.1351, "lng": 11.582, "type": "normal", "event": "加入德国工人党（后改组为纳粹党），成为其领袖。发表激烈演说，组织冲锋队。1923年发动“啤酒馆暴动”失败被捕。", "time": "1919年-1923年", "duration": "约4年", "significance": "正式踏入政坛，确立其煽动型领袖地位。在狱中口述《我的奋斗》，系统阐述其思想。", "works": ["我的奋斗"], "quoteLines": []}, {"name": "柏林（掌权与统治）", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "type": "normal", "event": "1933年1月被任命为总理。通过“国会纵火案”等事件巩固权力，成为“元首”。在柏林策划并发动第二次世界大战。战争后期坐镇柏林总理府地堡指挥。", "time": "1933年-1945年", "duration": "约12年", "significance": "纳粹德国的权力心脏，其独裁统治、战争决策和种族灭绝政策的指挥中心。", "works": [], "quoteLines": ["1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”"]}, {"name": "贝希特斯加登（贝格霍夫）", "ancientName": "贝希特斯加登", "modernName": "德国巴伐利亚州贝希特斯加登", "lat": 47.6308, "lng": 13.0011, "type": "normal", "event": "在此地的别墅“贝格霍夫”度过大量时间，接见国内外政要，策划重大政治军事决策。", "time": "1928年起频繁居住", "duration": "累计数年", "significance": "元首的私人隐居地和第二政治中心，许多侵略计划在此酝酿。", "works": [], "quoteLines": []}, {"name": "狼穴（东普鲁士大本营）", "ancientName": "拉斯滕堡附近", "modernName": "波兰瓦尔米亚-马祖里省肯琴附近", "lat": 54.0833, "lng": 21.5, "type": "normal", "event": "作为东线战场的主要指挥所，在此指挥对苏作战。1944年7月20日在此遭遇刺杀未遂。", "time": "1941年-1944年", "duration": "约800多天", "significance": "第二次世界大战期间使用时间最长的元首大本营，见证了苏德战争的转折。", "works": [], "quoteLines": ["（刺杀事件后广播讲话）“一小撮野心勃勃、不负责任的同时又是愚蠢的军官……”"]}, {"name": "纽伦堡", "ancientName": "纽伦堡", "modernName": "德国巴伐利亚州纽伦堡", "lat": 49.4521, "lng": 11.0767, "type": "normal", "event": "纳粹党在此举行大规模党代会，是宣传纳粹意识形态和展示组织力量的核心场合。", "time": "1927年起定期举行", "duration": "累计数周", "significance": "纳粹主义的重要象征地，1935年在此通过了剥夺犹太人公民权的《纽伦堡法案》。", "works": ["纽伦堡法案"], "quoteLines": []}, {"name": "鹰巢", "ancientName": "贝希特斯加登附近", "modernName": "德国巴伐利亚州贝希特斯加登", "lat": 47.6133, "lng": 13.0414, "type": "normal", "event": "作为元首的避难所和接待贵宾的场所，建于山顶，视野开阔。", "time": "1939年后", "duration": "不定期", "significance": "纳粹高层社交和进行非正式决策的场所之一。", "works": [], "quoteLines": []}, {"name": "柏林（元首地堡）", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "type": "death", "event": "在苏联红军攻入柏林市中心之际，于总理府地下掩体内与爱娃·布劳恩结婚，随后双双自杀。", "time": "1945年4月30日", "duration": "约105天（最后阶段）", "significance": "生命的终点，标志着纳粹德国和其个人野心的彻底覆灭。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---", "markdown": "# 阿道夫·希特勒\n\n## 人物档案\n\n### 基本信息\n- **姓名**：阿道夫·希特勒\n- **时代**：20世纪上半叶（魏玛共和国、纳粹德国时期）\n- **出生**：1889年4月20日，布劳瑙（今奥地利上奥地利州布劳瑙）\n- **去世**：1945年4月30日，柏林（今德国柏林）\n- **享年**：56岁\n- **主要身份**：政治家、演说家、纳粹德国元首、第二次世界大战发动者\n- **历史地位**：纳粹德国的独裁统治者，第二次世界大战的发动者，对犹太人等群体实施种族灭绝的主要责任人。\n- **关键政治节点**：（注：以下指其政治生涯中的关键节点与行动，非正面评价）\n    1. 通过政治运作成为德国国家社会主义工人党（纳粹党）领袖。\n    2. 1933年被任命为德国总理，随后建立纳粹独裁政权。\n    3. 推行大规模重整军备计划，打破《凡尔赛条约》束缚。\n    4. 发动第二次世界大战，初期在欧洲取得重大军事胜利。\n    5. 建立并维持了以种族主义为核心的极权统治体系。\n\n### 生平概述\n阿道夫·希特勒出生于奥匈帝国边境小镇，早年于维也纳流浪的经历塑造了其极端民族主义思想。第一次世界大战中作为德国士兵的经历使其对《凡尔赛条约》充满仇恨。战后，他加入并改造了纳粹党，利用《凡尔赛条约》带来的民族屈辱感、经济危机和政治动荡，通过煽动性演说和政治阴谋于1933年攫取德国最高权力。执政后，他迅速消灭异己，建立一党专政，推行反犹政策，并系统性地扩军备战。1939年入侵波兰，引发第二次世界大战。战争初期德军横扫欧洲，但1941年入侵苏联及对美宣战导致战局逆转。1945年，盟军攻入柏林，希特勒在总理府地下室自杀身亡。其统治给欧洲和世界带来了空前浩劫。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从奥地利边境小镇，经慕尼黑、维也纳、一战西线战场，到德国政治中心柏林，并延伸至被占领的欧洲多地。\n- ⏱️ **时间跨度**：1889年-1945年，共56年。\n- 📍 **地理范围**：主要覆盖今奥地利、德国、比利时、法国、波兰及前苏联部分地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：布劳瑙\n- **时间**：1889年4月20日\n- **停留时间**：幼年（约3年）\n- **地点**：布劳瑙（今奥地利上奥地利州布劳瑙）\n- **事件**：出生于一个奥地利海关职员家庭。\n- **意义**：生命的起点，其奥地利出身后来成为其政治身份中一个复杂因素。\n\n### 📍 重要地点：林茨与莱昂丁\n- **时间**：1898年-1905年\n- **停留时间**：约7年\n- **地点**：林茨、莱昂丁（今奥地利上奥地利州）\n- **事件**：在林茨上学，成绩不佳，对艺术产生浓厚兴趣。后随家人迁至莱昂丁。\n- **意义**：形成对德意志民族主义的初步认同，学业失败促使其立志成为艺术家。\n\n### 📍 重要地点：维也纳\n- **时间**：1907年-1913年\n- **停留时间**：约6年\n- **地点**：维也纳（今奥地利维也纳）\n- **事件**：报考维也纳艺术学院两次被拒。父母双亡后，一度流浪，寄居收容所，靠卖画明信片为生。广泛阅读并吸收了当时维也纳的极端民族主义和反犹主义思想。\n- **意义**：人生低谷与思想成型的关键时期，奠定了其种族主义、反犹主义和对哈布斯堡王朝的斯拉夫化的憎恶。\n\n### 📍 重要地点：慕尼黑\n- **时间**：1913年-1914年（战前）\n- **停留时间**：约1年\n- **地点**：慕尼黑（今德国巴伐利亚州慕尼黑）\n- **事件**：为逃避奥匈帝国兵役迁居慕尼黑，继续以卖画为生。\n- **意义**：移居德国，为其后来在德国的政治生涯埋下伏笔。\n\n### 📍 重要地点：第一次世界大战西线战场\n- **时间**：1914年-1918年\n- **停留时间**：约4年\n- **地点**：西线战场（如比利时伊普尔、法国索姆河等地）\n- **事件**：主动加入巴伐利亚预备步兵团，作为传令兵参战，曾参加伊普尔战役、索姆河战役等，两次负伤，获一级铁十字勋章。\n- **意义**：战争经历强化了其对军国主义的信仰，并为其提供了“前线战士”的政治资本。战败的消息令他深感震惊和屈辱。\n\n### 📍 重要地点：慕尼黑（政治发迹地）\n- **时间**：1919年-1923年\n- **停留时间**：约4年\n- **地点**：慕尼黑（今德国巴伐利亚州慕尼黑）\n- **事件**：加入德国工人党（后改组为纳粹党），成为其领袖。发表激烈演说，组织冲锋队。1923年发动“啤酒馆暴动”失败被捕。\n- **意义**：正式踏入政坛，确立其煽动型领袖地位。在狱中口述《我的奋斗》，系统阐述其思想。\n\n### 📍 重要地点：柏林（掌权与统治）\n- **时间**：1933年-1945年\n- **停留时间**：约12年\n- **地点**：柏林（今德国柏林）\n- **事件**：1933年1月被任命为总理。通过“国会纵火案”等事件巩固权力，成为“元首”。在柏林策划并发动第二次世界大战。战争后期坐镇柏林总理府地堡指挥。\n- **意义**：纳粹德国的权力心脏，其独裁统治、战争决策和种族灭绝政策的指挥中心。\n- **名篇名句**：1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”\n\n### 📍 重要地点：贝希特斯加登（贝格霍夫）\n- **时间**：1928年起频繁居住\n- **停留时间**：累计数年\n- **地点**：贝希特斯加登（今德国巴伐利亚州贝希特斯加登）\n- **事件**：在此地的别墅“贝格霍夫”度过大量时间，接见国内外政要，策划重大政治军事决策。\n- **意义**：元首的私人隐居地和第二政治中心，许多侵略计划在此酝酿。\n\n### 📍 重要地点：狼穴（东普鲁士大本营）\n- **时间**：1941年-1944年\n- **停留时间**：约800多天\n- **地点**：拉斯滕堡附近（今波兰瓦尔米亚-马祖里省肯琴附近）\n- **事件**：作为东线战场的主要指挥所，在此指挥对苏作战。1944年7月20日在此遭遇刺杀未遂。\n- **意义**：第二次世界大战期间使用时间最长的元首大本营，见证了苏德战争的转折。\n- **名篇名句**：（刺杀事件后广播讲话）“一小撮野心勃勃、不负责任的同时又是愚蠢的军官……”\n\n### 📍 重要地点：纽伦堡\n- **时间**：1927年起定期举行\n- **停留时间**：累计数周\n- **地点**：纽伦堡（今德国巴伐利亚州纽伦堡）\n- **事件**：纳粹党在此举行大规模党代会，是宣传纳粹意识形态和展示组织力量的核心场合。\n- **意义**：纳粹主义的重要象征地，1935年在此通过了剥夺犹太人公民权的《纽伦堡法案》。\n\n### 📍 重要地点：鹰巢\n- **时间**：1939年后\n- **停留时间**：不定期\n- **地点**：贝希特斯加登附近（今德国巴伐利亚州贝希特斯加登）\n- **事件**：作为元首的避难所和接待贵宾的场所，建于山顶，视野开阔。\n- **意义**：纳粹高层社交和进行非正式决策的场所之一。\n\n### 🔴 去世地：柏林（元首地堡）\n- **时间**：1945年4月30日\n- **停留时间**：约105天（最后阶段）\n- **地点**：柏林（今德国柏林）\n- **事件**：在苏联红军攻入柏林市中心之际，于总理府地下掩体内与爱娃·布劳恩结婚，随后双双自杀。\n- **意义**：生命的终点，标志着纳粹德国和其个人野心的彻底覆灭。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1889 | 0 | 出生于奥地利布劳瑙。 |\n| 1907 | 18 | 报考维也纳艺术学院失败，母亲去世（父亲已于1903年去世）。 |\n| 1913 | 24 | 移居德国慕尼黑。 |\n| 1914 | 25 | 第一次世界大战爆发，加入德军参战。 |\n| 1919 | 30 | 加入德国工人党（纳粹党前身）。 |\n| 1923 | 34 | 发动啤酒馆暴动失败，被捕入狱，狱中口述《我的奋斗》。 |\n| 1933 | 44 | 被任命为德国总理。 |\n| 1934 | 45 | 成为德国“元首”，集总统与总理权力于一身。 |\n| 1939 | 50 | 入侵波兰，第二次世界大战爆发。 |\n| 1941 | 52 | 发动巴巴罗萨计划，入侵苏联。 |\n| 1945 | 56 | 在柏林地堡自杀。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 布劳瑙（奥地利） | 48.2556 | 13.0411 |\n| 林茨（奥地利） | 48.3069 | 14.2858 |\n| 维也纳（奥地利） | 48.2082 | 16.3738 |\n| 慕尼黑（德国） | 48.1351 | 11.5820 |\n| 伊普尔（比利时） | 50.8503 | 2.8833 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 贝希特斯加登（德国） | 47.6308 | 13.0011 |\n| 狼穴（波兰肯琴附近） | 54.0833 | 21.5000 |\n| 纽伦堡（德国） | 49.4521 | 11.0767 |\n| 鹰巢（德国） | 47.6133 | 13.0414 |"};
+      const data = {"person": {"name": "阿道夫·希特勒", "title": "", "description": "阿道夫·希特勒出生于奥匈帝国边境小镇，早年于维也纳流浪的经历塑造了其极端民族主义思想。第一次世界大战中作为德国士兵的经历使其对《凡尔赛条约》充满仇恨。战后，他加入并改造了纳粹党，利用《凡尔赛条约》带来的民族屈辱感、经济危机和政治动荡，通过煽动性演说和政治阴谋于1933年攫取德国最高权力。执政后，他迅速消灭异己，建立一党专政，推行反犹政策，并系统性地扩军备战。1939年入侵波兰，引发第二次世界大战。战争初期德军横扫欧洲，但1941年入侵苏联及对美宣战导致战局逆转。1945年，盟军攻入柏林，希特勒在总理府地下室自杀身亡。其统治给欧洲和世界带来了空前浩劫。", "quote": "1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”", "dynasty": "20世纪上半叶（魏玛共和国、纳粹德国时期）", "birthplace": "布劳瑙（今奥地利上奥地利州布劳瑙）", "avatar": "", "birth": {"date": "1889年", "location": "布劳瑙（今奥地利上奥地利州布劳瑙）", "lat": 48.2556, "lng": 13.0411}, "death": {"date": "1945年", "location": "柏林（今德国柏林）", "lat": 52.52, "lng": 13.405}, "lifespan": "56岁", "highlights": {"honor": "", "status": "纳粹德国的独裁统治者，第二次世界大战的发动者，对犹太人等群体实施种族灭绝的主要责任人。", "identities": "政治家、演说家、纳粹德国元首、第二次世界大战发动者", "achievements": "", "works": ["凡尔赛条约"], "reviews": []}}, "locations": [{"name": "布劳瑙", "ancientName": "布劳瑙", "modernName": "奥地利上奥地利州布劳瑙", "lat": 48.2556, "lng": 13.0411, "type": "birth", "event": "出生于一个奥地利海关职员家庭。", "time": "1889年4月20日", "duration": "幼年（约3年）", "significance": "生命的起点，其奥地利出身后来成为其政治身份中一个复杂因素。", "works": [], "quoteLines": []}, {"name": "林茨与莱昂丁", "ancientName": "林茨、莱昂丁", "modernName": "奥地利上奥地利州", "lat": 48.3069, "lng": 14.2858, "type": "normal", "event": "在林茨上学，成绩不佳，对艺术产生浓厚兴趣。后随家人迁至莱昂丁。", "time": "1898年-1905年", "duration": "约7年", "significance": "形成对德意志民族主义的初步认同，学业失败促使其立志成为艺术家。", "works": [], "quoteLines": []}, {"name": "维也纳", "ancientName": "维也纳", "modernName": "奥地利维也纳", "lat": 48.2082, "lng": 16.3738, "type": "normal", "event": "报考维也纳艺术学院两次被拒。父母双亡后，一度流浪，寄居收容所，靠卖画明信片为生。广泛阅读并吸收了当时维也纳的极端民族主义和反犹主义思想。", "time": "1907年-1913年", "duration": "约6年", "significance": "人生低谷与思想成型的关键时期，奠定了其种族主义、反犹主义和对哈布斯堡王朝的斯拉夫化的憎恶。", "works": [], "quoteLines": []}, {"name": "慕尼黑", "ancientName": "慕尼黑", "modernName": "德国巴伐利亚州慕尼黑", "lat": 48.1351, "lng": 11.582, "type": "normal", "event": "为逃避奥匈帝国兵役迁居慕尼黑，继续以卖画为生。", "time": "1913年-1914年（战前）", "duration": "约1年", "significance": "移居德国，为其后来在德国的政治生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "第一次世界大战西线战场", "ancientName": "第一次世界大战西线战场", "modernName": "西线战场（如比利时伊普尔、法国索姆河等地）", "lat": 50.8503, "lng": 2.8833, "type": "normal", "event": "主动加入巴伐利亚预备步兵团，作为传令兵参战，曾参加伊普尔战役、索姆河战役等，两次负伤，获一级铁十字勋章。", "time": "1914年-1918年", "duration": "约4年", "significance": "战争经历强化了其对军国主义的信仰，并为其提供了“前线战士”的政治资本。战败的消息令他深感震惊和屈辱。", "works": [], "quoteLines": []}, {"name": "慕尼黑（政治发迹地）", "ancientName": "慕尼黑", "modernName": "德国巴伐利亚州慕尼黑", "lat": 48.1351, "lng": 11.582, "type": "normal", "event": "加入德国工人党（后改组为纳粹党），成为其领袖。发表激烈演说，组织冲锋队。1923年发动“啤酒馆暴动”失败被捕。", "time": "1919年-1923年", "duration": "约4年", "significance": "正式踏入政坛，确立其煽动型领袖地位。在狱中口述《我的奋斗》，系统阐述其思想。", "works": ["我的奋斗"], "quoteLines": []}, {"name": "柏林（掌权与统治）", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "type": "normal", "event": "1933年1月被任命为总理。通过“国会纵火案”等事件巩固权力，成为“元首”。在柏林策划并发动第二次世界大战。战争后期坐镇柏林总理府地堡指挥。", "time": "1933年-1945年", "duration": "约12年", "significance": "纳粹德国的权力心脏，其独裁统治、战争决策和种族灭绝政策的指挥中心。", "works": [], "quoteLines": ["1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”"]}, {"name": "贝希特斯加登（贝格霍夫）", "ancientName": "贝希特斯加登", "modernName": "德国巴伐利亚州贝希特斯加登", "lat": 47.6308, "lng": 13.0011, "type": "normal", "event": "在此地的别墅“贝格霍夫”度过大量时间，接见国内外政要，策划重大政治军事决策。", "time": "1928年起频繁居住", "duration": "累计数年", "significance": "元首的私人隐居地和第二政治中心，许多侵略计划在此酝酿。", "works": [], "quoteLines": []}, {"name": "狼穴（东普鲁士大本营）", "ancientName": "拉斯滕堡附近", "modernName": "波兰瓦尔米亚-马祖里省肯琴附近", "lat": 54.0833, "lng": 21.5, "type": "normal", "event": "作为东线战场的主要指挥所，在此指挥对苏作战。1944年7月20日在此遭遇刺杀未遂。", "time": "1941年-1944年", "duration": "约800多天", "significance": "第二次世界大战期间使用时间最长的元首大本营，见证了苏德战争的转折。", "works": [], "quoteLines": ["（刺杀事件后广播讲话）“一小撮野心勃勃、不负责任的同时又是愚蠢的军官……”"]}, {"name": "纽伦堡", "ancientName": "纽伦堡", "modernName": "德国巴伐利亚州纽伦堡", "lat": 49.4521, "lng": 11.0767, "type": "normal", "event": "纳粹党在此举行大规模党代会，是宣传纳粹意识形态和展示组织力量的核心场合。", "time": "1927年起定期举行", "duration": "累计数周", "significance": "纳粹主义的重要象征地，1935年在此通过了剥夺犹太人公民权的《纽伦堡法案》。", "works": ["纽伦堡法案"], "quoteLines": []}, {"name": "鹰巢", "ancientName": "贝希特斯加登附近", "modernName": "德国巴伐利亚州贝希特斯加登", "lat": 47.6133, "lng": 13.0414, "type": "normal", "event": "作为元首的避难所和接待贵宾的场所，建于山顶，视野开阔。", "time": "1939年后", "duration": "不定期", "significance": "纳粹高层社交和进行非正式决策的场所之一。", "works": [], "quoteLines": []}, {"name": "柏林（元首地堡）", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "type": "death", "event": "在苏联红军攻入柏林市中心之际，于总理府地下掩体内与爱娃·布劳恩结婚，随后双双自杀。", "time": "1945年4月30日", "duration": "约105天（最后阶段）", "significance": "生命的终点，标志着纳粹德国和其个人野心的彻底覆灭。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---", "markdown": "# 阿道夫·希特勒\n\n## 人物档案\n\n### 基本信息\n- **姓名**：阿道夫·希特勒\n- **时代**：20世纪上半叶（魏玛共和国、纳粹德国时期）\n- **出生**：1889年4月20日，布劳瑙（今奥地利上奥地利州布劳瑙）\n- **去世**：1945年4月30日，柏林（今德国柏林）\n- **享年**：56岁\n- **主要身份**：政治家、演说家、纳粹德国元首、第二次世界大战发动者\n- **历史地位**：纳粹德国的独裁统治者，第二次世界大战的发动者，对犹太人等群体实施种族灭绝的主要责任人。\n- **关键政治节点**：（注：以下指其政治生涯中的关键节点与行动，非正面评价）\n    1. 通过政治运作成为德国国家社会主义工人党（纳粹党）领袖。\n    2. 1933年被任命为德国总理，随后建立纳粹独裁政权。\n    3. 推行大规模重整军备计划，打破《凡尔赛条约》束缚。\n    4. 发动第二次世界大战，初期在欧洲取得重大军事胜利。\n    5. 建立并维持了以种族主义为核心的极权统治体系。\n\n### 生平概述\n阿道夫·希特勒出生于奥匈帝国边境小镇，早年于维也纳流浪的经历塑造了其极端民族主义思想。第一次世界大战中作为德国士兵的经历使其对《凡尔赛条约》充满仇恨。战后，他加入并改造了纳粹党，利用《凡尔赛条约》带来的民族屈辱感、经济危机和政治动荡，通过煽动性演说和政治阴谋于1933年攫取德国最高权力。执政后，他迅速消灭异己，建立一党专政，推行反犹政策，并系统性地扩军备战。1939年入侵波兰，引发第二次世界大战。战争初期德军横扫欧洲，但1941年入侵苏联及对美宣战导致战局逆转。1945年，盟军攻入柏林，希特勒在总理府地下室自杀身亡。其统治给欧洲和世界带来了空前浩劫。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从奥地利边境小镇，经慕尼黑、维也纳、一战西线战场，到德国政治中心柏林，并延伸至被占领的欧洲多地。\n- ⏱️ **时间跨度**：1889年-1945年，共56年。\n- 📍 **地理范围**：主要覆盖今奥地利、德国、比利时、法国、波兰及前苏联部分地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：布劳瑙\n- **时间**：1889年4月20日\n- **停留时间**：幼年（约3年）\n- **地点**：布劳瑙（今奥地利上奥地利州布劳瑙）\n- **事件**：出生于一个奥地利海关职员家庭。\n- **意义**：生命的起点，其奥地利出身后来成为其政治身份中一个复杂因素。\n\n### 📍 重要地点：林茨与莱昂丁\n- **时间**：1898年-1905年\n- **停留时间**：约7年\n- **地点**：林茨、莱昂丁（今奥地利上奥地利州）\n- **事件**：在林茨上学，成绩不佳，对艺术产生浓厚兴趣。后随家人迁至莱昂丁。\n- **意义**：形成对德意志民族主义的初步认同，学业失败促使其立志成为艺术家。\n\n### 📍 重要地点：维也纳\n- **时间**：1907年-1913年\n- **停留时间**：约6年\n- **地点**：维也纳（今奥地利维也纳）\n- **事件**：报考维也纳艺术学院两次被拒。父母双亡后，一度流浪，寄居收容所，靠卖画明信片为生。广泛阅读并吸收了当时维也纳的极端民族主义和反犹主义思想。\n- **意义**：人生低谷与思想成型的关键时期，奠定了其种族主义、反犹主义和对哈布斯堡王朝的斯拉夫化的憎恶。\n\n### 📍 重要地点：慕尼黑\n- **时间**：1913年-1914年（战前）\n- **停留时间**：约1年\n- **地点**：慕尼黑（今德国巴伐利亚州慕尼黑）\n- **事件**：为逃避奥匈帝国兵役迁居慕尼黑，继续以卖画为生。\n- **意义**：移居德国，为其后来在德国的政治生涯埋下伏笔。\n\n### 📍 重要地点：第一次世界大战西线战场\n- **时间**：1914年-1918年\n- **停留时间**：约4年\n- **地点**：西线战场（如比利时伊普尔、法国索姆河等地）\n- **事件**：主动加入巴伐利亚预备步兵团，作为传令兵参战，曾参加伊普尔战役、索姆河战役等，两次负伤，获一级铁十字勋章。\n- **意义**：战争经历强化了其对军国主义的信仰，并为其提供了“前线战士”的政治资本。战败的消息令他深感震惊和屈辱。\n\n### 📍 重要地点：慕尼黑（政治发迹地）\n- **时间**：1919年-1923年\n- **停留时间**：约4年\n- **地点**：慕尼黑（今德国巴伐利亚州慕尼黑）\n- **事件**：加入德国工人党（后改组为纳粹党），成为其领袖。发表激烈演说，组织冲锋队。1923年发动“啤酒馆暴动”失败被捕。\n- **意义**：正式踏入政坛，确立其煽动型领袖地位。在狱中口述《我的奋斗》，系统阐述其思想。\n\n### 📍 重要地点：柏林（掌权与统治）\n- **时间**：1933年-1945年\n- **停留时间**：约12年\n- **地点**：柏林（今德国柏林）\n- **事件**：1933年1月被任命为总理。通过“国会纵火案”等事件巩固权力，成为“元首”。在柏林策划并发动第二次世界大战。战争后期坐镇柏林总理府地堡指挥。\n- **意义**：纳粹德国的权力心脏，其独裁统治、战争决策和种族灭绝政策的指挥中心。\n- **名篇名句**：1939年国会演讲：“无论何时，我只看见一个目标：无情地消灭那些应对这场战争负责的人。”\n\n### 📍 重要地点：贝希特斯加登（贝格霍夫）\n- **时间**：1928年起频繁居住\n- **停留时间**：累计数年\n- **地点**：贝希特斯加登（今德国巴伐利亚州贝希特斯加登）\n- **事件**：在此地的别墅“贝格霍夫”度过大量时间，接见国内外政要，策划重大政治军事决策。\n- **意义**：元首的私人隐居地和第二政治中心，许多侵略计划在此酝酿。\n\n### 📍 重要地点：狼穴（东普鲁士大本营）\n- **时间**：1941年-1944年\n- **停留时间**：约800多天\n- **地点**：拉斯滕堡附近（今波兰瓦尔米亚-马祖里省肯琴附近）\n- **事件**：作为东线战场的主要指挥所，在此指挥对苏作战。1944年7月20日在此遭遇刺杀未遂。\n- **意义**：第二次世界大战期间使用时间最长的元首大本营，见证了苏德战争的转折。\n- **名篇名句**：（刺杀事件后广播讲话）“一小撮野心勃勃、不负责任的同时又是愚蠢的军官……”\n\n### 📍 重要地点：纽伦堡\n- **时间**：1927年起定期举行\n- **停留时间**：累计数周\n- **地点**：纽伦堡（今德国巴伐利亚州纽伦堡）\n- **事件**：纳粹党在此举行大规模党代会，是宣传纳粹意识形态和展示组织力量的核心场合。\n- **意义**：纳粹主义的重要象征地，1935年在此通过了剥夺犹太人公民权的《纽伦堡法案》。\n\n### 📍 重要地点：鹰巢\n- **时间**：1939年后\n- **停留时间**：不定期\n- **地点**：贝希特斯加登附近（今德国巴伐利亚州贝希特斯加登）\n- **事件**：作为元首的避难所和接待贵宾的场所，建于山顶，视野开阔。\n- **意义**：纳粹高层社交和进行非正式决策的场所之一。\n\n### 🔴 去世地：柏林（元首地堡）\n- **时间**：1945年4月30日\n- **停留时间**：约105天（最后阶段）\n- **地点**：柏林（今德国柏林）\n- **事件**：在苏联红军攻入柏林市中心之际，于总理府地下掩体内与爱娃·布劳恩结婚，随后双双自杀。\n- **意义**：生命的终点，标志着纳粹德国和其个人野心的彻底覆灭。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1889 | 0 | 出生于奥地利布劳瑙。 |\n| 1907 | 18 | 报考维也纳艺术学院失败，母亲去世（父亲已于1903年去世）。 |\n| 1913 | 24 | 移居德国慕尼黑。 |\n| 1914 | 25 | 第一次世界大战爆发，加入德军参战。 |\n| 1919 | 30 | 加入德国工人党（纳粹党前身）。 |\n| 1923 | 34 | 发动啤酒馆暴动失败，被捕入狱，狱中口述《我的奋斗》。 |\n| 1933 | 44 | 被任命为德国总理。 |\n| 1934 | 45 | 成为德国“元首”，集总统与总理权力于一身。 |\n| 1939 | 50 | 入侵波兰，第二次世界大战爆发。 |\n| 1941 | 52 | 发动巴巴罗萨计划，入侵苏联。 |\n| 1945 | 56 | 在柏林地堡自杀。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中国大陆通用的人教版语文教材中，未收录希特勒的任何作品或演说词作为课文。\n- 核心要点：无。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1933年，希特勒出任德国总理，标志着**纳粹党**开始掌握国家政权，德国走上对内独裁、对外扩张的道路。\n    - 1935年，德国公开撕毁《凡尔赛条约》，宣布实行**普遍义务兵役制**，大规模扩军。\n    - 1938年，吞并**奥地利**和**苏台德区**，推行**绥靖政策**的英法未能有效制止。\n    - **重点**：1939年9月1日，德国闪击**波兰**，**第二次世界大战**全面爆发。\n    - 1941年6月，德国发动**巴巴罗萨计划**，突袭苏联；12月，因日本偷袭珍珠港，德国对美宣战，战争规模扩大。\n    - **重点**：纳粹德国在占领区实施**种族灭绝**政策，特别是对约600万犹太人进行系统性屠杀，史称**犹太人大屠杀**。\n- 核心要点：\n    - **重点**：希特勒的崛起是**凡尔赛-华盛顿体系**内在矛盾、1929年**经济大危机**冲击以及德国国内**民族复仇主义**情绪共同作用的结果。\n    - 其思想核心是**种族主义**（雅利安人优越论）、**生存空间论**和极端的**反共产主义**。\n    - **重点**：纳粹德国的统治是典型的**法西斯主义**政权，特征为一党专政、领袖独裁、恐怖特务统治（**盖世太保**）、国民经济军事化与对外侵略扩张。\n    - **重点**：希特勒发动的**第二次世界大战**是人类历史上规模最大的战争，造成了巨大的人员伤亡和物质破坏，彻底改变了世界政治格局。\n    - 对希特勒及纳粹主义的批判与反思，是战后**世界人权意识**觉醒和**联合国**成立的重要动因之一。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 布劳瑙（奥地利） | 48.2556 | 13.0411 |\n| 林茨（奥地利） | 48.3069 | 14.2858 |\n| 维也纳（奥地利） | 48.2082 | 16.3738 |\n| 慕尼黑（德国） | 48.1351 | 11.5820 |\n| 伊普尔（比利时） | 50.8503 | 2.8833 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 贝希特斯加登（德国） | 47.6308 | 13.0011 |\n| 狼穴（波兰肯琴附近） | 54.0833 | 21.5000 |\n| 纽伦堡（德国） | 49.4521 | 11.0767 |\n| 鹰巢（德国） | 47.6133 | 13.0414 |", "relatedGraph": {"center": {"id": "阿道夫·希特勒", "name": "阿道夫·希特勒", "file": "阿道夫·希特勒.html", "dynasty": "20世纪上半叶（魏玛共和国、纳粹德国时期）", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阿道夫·希特勒", "name": "阿道夫·希特勒", "file": "阿道夫·希特勒.html", "dynasty": "20世纪上半叶（魏玛共和国、纳粹德国时期）", "relationLabel": "中心人物", "isCenter": true}, {"id": "马文·佩里", "name": "马文·佩里", "file": "马文·佩里.html", "dynasty": "20世纪下半叶", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德·金", "name": "马丁·路德·金", "file": "马丁·路德·金.html", "dynasty": "20世纪美国", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿西莫夫", "name": "阿西莫夫", "file": "阿西莫夫.html", "dynasty": "20世纪", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿萨·勃里格斯", "name": "阿萨·勃里格斯", "file": "阿萨·勃里格斯.html", "dynasty": "20世纪", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "茨威格", "name": "茨威格", "file": "茨威格.html", "dynasty": "19世纪末至20世纪上半叶（奥匈帝国末期至两次世界大战期间）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "艾伦·图灵", "name": "艾伦·图灵", "file": "艾伦·图灵.html", "dynasty": "20世纪（现代）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阿道夫·希特勒", "target": "马文·佩里", "label": "同时代人物", "confidence": null}, {"source": "阿道夫·希特勒", "target": "马丁·路德·金", "label": "同时代人物", "confidence": null}, {"source": "阿道夫·希特勒", "target": "阿西莫夫", "label": "同时代人物", "confidence": null}, {"source": "阿道夫·希特勒", "target": "阿萨·勃里格斯", "label": "同时代人物", "confidence": null}, {"source": "阿道夫·希特勒", "target": "茨威格", "label": "同时代人物", "confidence": null}, {"source": "阿道夫·希特勒", "target": "艾伦·图灵", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

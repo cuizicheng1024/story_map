@@ -1,4 +1,4 @@
-<h1 align="center">StoryMap</h1>
+<h1 align="center">🗺️ 故事地图_StoryMap</h1>
 
 <p align="center">
   <strong>从时空视角重构历史人物的生命轨迹</strong>
@@ -11,7 +11,9 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/cuizicheng1024/sotry_map?style=flat-square" alt="GitHub stars" />
   <img src="https://img.shields.io/github/last-commit/cuizicheng1024/sotry_map?style=flat-square" alt="Last commit" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+" />
+  <img src="https://img.shields.io/badge/Node.js-22%2B-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js 22+" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-F4C430?style=flat-square" alt="License Apache 2.0" />
   <img src="https://img.shields.io/badge/Map-AMap-0ea5e9?style=flat-square" alt="AMap" />
   <img src="https://img.shields.io/badge/LLM-MiniMax-7c3aed?style=flat-square" alt="MiniMax" />
 </p>
@@ -89,7 +91,8 @@
 
 
 ## 🧩 环境要求
-- **Python 版本**：建议 `Python 3.10+`
+- **Python 版本**：建议 `Python 3.11+`
+- **Node.js 版本**：建议 `Node.js 22+`（用于 `web/` 前端开发）
 - **依赖安装**：先安装项目依赖；如果你本地还没有装，可优先尝试 `pip install -r requirements.txt`
 - **是否需要 `.env`**：需要。人物对话、实时生成人物页、以及高德地图底图都依赖环境变量配置
 - **高德 Key 是否必填**：必填。当前人物页和主页都统一使用高德底图，没有高德 Key 页面地图无法正常加载
@@ -134,8 +137,8 @@ python3 tools/build_all.py --concurrency 8
 
 - `data/people_master.json`
 - `data/people_master_pep.json`
-- `storymap/examples/story_map/stellar_home_data.json`
-- `storymap/examples/story_map/index.html`
+- `artifacts/story_map/stellar_home_data.json`
+- `artifacts/story_map/index.html`
 
 如果你只想重渲染全部人物页 HTML：
 
@@ -179,11 +182,12 @@ LLM_MODEL_ID=MiniMax-M3
 ## 🗂️ 项目结构
 
 ```text
+artifacts/
+├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
 storymap/
 ├── script/                 # 主服务、人物页渲染、地图与对话代理逻辑
 ├── examples/
-│   ├── story/              # 人物 Markdown 原始资料
-│   └── story_map/          # 首页数据、首页产物、已生成的人物 HTML 页面
+│   └── story/              # 人物 Markdown 原始资料（单一数据源）
 ├── docs/assets/            # README 展示图片
 cli/                        # 批量生成、重渲染、辅助脚本
 tools/                      # 数据主索引、首页数据、统一构建脚本

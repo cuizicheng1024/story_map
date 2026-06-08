@@ -1,13 +1,68 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { extractHistoricalFigures, generateHistoricalMarkdown } from './utils/ai';
-import { parseMarkdown } from './utils/markdownParser';
-import { geocodeCity } from './utils/geocoder';
-import StoryMap from './components/StoryMap';
-import HomeGraph from './components/HomeGraph';
-import peopleNames from './data/pep_people_merged.json';
+import StoryMap from "./components/StoryMap";
+import HomeGraph from "./components/HomeGraph";
+import peopleNames from "./data/pep_people_merged.json";
+import { fetchTaskStatus, submitGenerateTask } from "./utils/backend";
 
 const MAX_INPUT_LEN = 200;
+const POLL_INTERVAL_MS = 1200;
+const TASK_TIMEOUT_MS = 5 * 60 * 1000;
 const historyItems = ["曹操", "李白", "苏轼", "康熙", "唐三藏"];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function buildMapMessageFromTask(taskSnapshot) {
+  const summary = taskSnapshot?.result;
+  const resultItems = Array.isArray(summary?.results) ? summary.results : [];
+  const firstSuccess = resultItems.find((item) => item?.ok && item?._profile);
+  const profile = firstSuccess?._profile;
+
+  if (!profile) {
+    throw new Error(summary?.conclusion || "服务端未返回可展示的人物结果。");
+  }
+
+  const person = profile?.person?.name || firstSuccess?.person || "人物";
+  const intro = profile?.person?.description || "";
+  const locations = Array.isArray(profile?.locations)
+    ? profile.locations
+        .map((loc) => ({
+          name: loc?.name || loc?.modernName || loc?.ancientName || "未命名地点",
+          lat: loc?.lat,
+          lng: loc?.lng,
+          type: loc?.type || "normal",
+          time: loc?.time || "",
+          desc: [loc?.event, loc?.significance].filter(Boolean).join("；"),
+          quotes: Array.isArray(loc?.quoteLines) ? loc.quoteLines : []
+        }))
+        .filter((loc) => Number.isFinite(loc.lat) && Number.isFinite(loc.lng))
+    : [];
+
+  if (!locations.length) {
+    throw new Error(`服务端已生成「${person}」，但未返回可用坐标。`);
+  }
+
+  return { person, intro, locations };
+}
+
+function buildProgressText(taskSnapshot) {
+  const queue = taskSnapshot?.queue || {};
+  const progress = Array.isArray(taskSnapshot?.progress) ? taskSnapshot.progress : [];
+  const latest = progress.length ? progress[progress.length - 1] : null;
+
+  if (taskSnapshot?.status === "queued") {
+    const position = queue?.position || 1;
+    const limit = queue?.limit || 1;
+    return `任务已提交，正在排队（前方 ${position - 1} 个，最大并发 ${limit}）...`;
+  }
+
+  if (latest?.detail) {
+    return `${latest.label}：${latest.detail}`;
+  }
+  if (latest?.label) {
+    return `${latest.label}...`;
+  }
+  return "服务端正在处理，请稍候...";
+}
 
 export default function App() {
   const [messages, setMessages] = useState([
@@ -21,6 +76,7 @@ export default function App() {
   const [inputValue, setInputValue] = useState("");
   const [homeSearch, setHomeSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("服务端正在处理，请稍候...");
   const chatEndRef = useRef(null);
 
   const quickResults = useMemo(() => {
@@ -42,84 +98,50 @@ export default function App() {
   const handleGenerate = async (text) => {
     if (!text.trim()) return;
     if (isLoading) return;
-    
+
     setIsLoading(true);
+    setLoadingText("任务提交中...");
     appendMessage({ type: "text", role: "user", text });
-    
+
     try {
-      // 1. Extract Name
-      const figures = await extractHistoricalFigures(text);
-      if (figures.length === 0) {
-        appendMessage({ type: "text", role: "assistant", text: "未能识别出具体的历史人物，请重试。" });
-        setIsLoading(false);
-        return;
+      const submitResult = await submitGenerateTask(text.trim());
+      const taskId = submitResult?.task_id;
+      if (!taskId) {
+        throw new Error("服务端没有返回任务 ID。");
       }
-      
-      const person = figures[0];
-      appendMessage({ type: "text", role: "assistant", text: `正在生成「${person}」的生平足迹...` });
-      
-      // 2. Generate Markdown
-      const markdown = await generateHistoricalMarkdown(person);
-      if (!markdown) {
-        appendMessage({ type: "text", role: "assistant", text: "生成内容失败，请稍后重试。" });
-        setIsLoading(false);
-        return;
-      }
-      
-      // 3. Parse Markdown
-      const data = parseMarkdown(markdown);
-      if (!data.locations || data.locations.length === 0) {
-        appendMessage({ type: "text", role: "assistant", text: "未能提取到足够的地点信息。" });
-        setIsLoading(false);
-        return;
-      }
-      
-      // 4. Geocode Locations
-      const geocodedLocations = [];
-      // Show progress?
-      // appendMessage({ type: "text", role: "assistant", text: `正在定位 ${data.locations.length} 个地点...` });
-      
-      for (const loc of data.locations) {
-        const queryName = loc.locationDesc || loc.name;
-        // Clean up name for geocoding (remove parenthesis, ancient names etc)
-        // Simple heuristic: take text before parenthesis, or if "古称", take part after "今"
-        let geoName = queryName;
-        if (geoName.includes("今")) {
-           const match = geoName.match(/今([^）)]+)/);
-           if (match) geoName = match[1];
+
+      const startAt = Date.now();
+      let snapshot = null;
+
+      while (Date.now() - startAt < TASK_TIMEOUT_MS) {
+        snapshot = await fetchTaskStatus(taskId);
+        setLoadingText(buildProgressText(snapshot));
+
+        if (snapshot?.status === "completed") {
+          const mapPayload = buildMapMessageFromTask(snapshot);
+          appendMessage({
+            type: "map",
+            role: "assistant",
+            person: mapPayload.person,
+            locations: mapPayload.locations,
+            intro: mapPayload.intro
+          });
+          return;
         }
-        geoName = geoName.replace(/[（(].*?[）)]/g, "").trim();
-        if (!geoName) geoName = loc.name;
 
-        const coords = await geocodeCity(geoName);
-        if (coords) {
-          geocodedLocations.push({ ...loc, ...coords });
-        } else {
-          // Fallback: try just the name
-          if (geoName !== loc.name) {
-             const coords2 = await geocodeCity(loc.name);
-             if (coords2) geocodedLocations.push({ ...loc, ...coords2 });
-          }
+        if (snapshot?.status === "failed") {
+          throw new Error(snapshot?.error || "服务端生成失败。");
         }
-      }
 
-      if (geocodedLocations.length === 0) {
-        appendMessage({ type: "text", role: "assistant", text: "无法获取地点的地理坐标，无法生成地图。" });
-      } else {
-        appendMessage({ 
-          type: "map", 
-          role: "assistant", 
-          person: person,
-          locations: geocodedLocations,
-          intro: data.intro
-        });
+        await sleep(POLL_INTERVAL_MS);
       }
-
+      throw new Error("等待服务端结果超时，请稍后重试。");
     } catch (e) {
       console.error(e);
       appendMessage({ type: "text", role: "assistant", text: `发生错误: ${e.message}` });
     } finally {
       setIsLoading(false);
+      setLoadingText("服务端正在处理，请稍候...");
     }
   };
 
@@ -209,6 +231,7 @@ export default function App() {
           {isLoading && (
              <div className="flex justify-start">
                <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm p-4 shadow-sm">
+                 <p className="mb-3 text-sm text-gray-600">{loadingText}</p>
                  <div className="flex space-x-2">
                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -260,7 +283,7 @@ export default function App() {
             </button>
           </div>
           <div className="text-center text-xs text-gray-400">
-            StoryMap V1.0 • Web Powered by Qveris & OpenStreetMap
+            StoryMap V1.0 • Web Powered by Python Backend
           </div>
         </div>
       </footer>

@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "路德维希·凡·贝多芬", "title": "乐圣", "description": "贝多芬出生于德国波恩一个音乐世家，早年在父亲严厉指导下显露音乐天赋。1792年赴维也纳深造并定居，以卓越的钢琴演奏和即兴创作能力赢得声誉。约1798年起听力逐渐衰退，至1802年陷入严重危机（留下《海利根施塔特遗书》），但最终战胜绝望，进入充满创造力的“英雄时期”。他一生坎坷，终身未婚，饱受疾病与孤独困扰，却将个人苦难升华为全人类的精神财富。晚年完全失聪，深居简出，专注于深邃复杂的晚期创作，直至在维也纳病逝。他的音乐跨越了古典主义的严谨形式，注入了强烈的个人情感与革命精神，成为连接两个时代的桥梁。", "quote": "乐圣", "dynasty": "古典主义时期向浪漫主义时期过渡", "birthplace": "（受洗日", "avatar": "", "birth": {"date": "1770年", "location": "（受洗日", "lat": null, "lng": null}, "death": {"date": "1827年", "location": "奥地利帝国维也纳（今奥地利维也纳）", "lat": null, "lng": null}, "lifespan": "56岁", "highlights": {"honor": "乐圣", "status": "集古典主义之大成，开浪漫主义之先河的“乐圣”，音乐史上最伟大的作曲家之一。", "identities": "作曲家、钢琴家、音乐教育家", "achievements": "创作九部交响曲（尤其第三“英雄”、第五“命运”、第六“田园”、第九“合唱”）、32首钢琴奏鸣曲（如“月光”、“悲怆”、“热情”）、16首弦乐四重奏、《庄严弥撒》等不朽杰作；在耳聋困境中坚持创作，极大地拓展了音乐的表现力与思想深度。", "works": ["海利根施塔特遗书", "庄严弥撒"], "reviews": ["**罗曼·罗兰（法国作家）**：“一个不幸的人，贫穷，残废，孤独，由痛苦造成的人，世界不给他欢乐，他却创造了欢乐来给予世界！”", "**瓦格纳（德国作曲家）**：“贝多芬的艺术，是人类精神的胜利，是意志战胜表象，理想战胜现实的崇高证明。”", "**普遍评价**：他是音乐史上的巨人，连接古典与浪漫的桥梁，用苦难铸就欢乐的乐圣。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：生活在**18世纪末至19世纪初**的欧洲，正值**法国大革命**和**启蒙运动**思想广泛传播的时期。\n- **关键事件/贡献**：**双耳失聪**后仍坚持创作，被誉为“**乐圣**”。其作品充满了**反抗封建束缚、追求自由民主**的精神。\n- **代表作品/思想**：代表作包括《**英雄交响曲**》（原献给拿破仑）、《**命运交响曲**》（开头动机“命运在敲门”）、《**欢乐颂**》（《第九交响曲》合唱部分）。\n- **常见易混点/对比点**：与**莫扎特**同为古典主义代表，但贝多芬的音乐更具**戏剧性和斗争性**，开创了**浪漫主义**先河。\n\n### 高中阶段\n- **时代背景**：处于**欧洲社会大变革时代**，深受**启蒙思想**和**法国大革命**理想影响，个人生活则面临**耳聋**的残酷打击。\n- **关键事件/贡献**：**1802年“海利根施塔特遗书”**是其精神转折点，标志其从绝望走向“**扼住命运的咽喉**”的抗争。其创作分为**波恩时期、维也纳早期（学习期）、成熟期（英雄时期）、晚期**。\n- **代表作品/思想**：**九部交响曲**是其创作核心，其中第三（英雄）、第五（命运）、第六（田园）、第九（合唱）最具代表性。**32首钢琴奏鸣曲**被称为“《新约全书》”。晚期作品（如最后五首钢琴奏鸣曲、《迪亚贝利变奏曲》）**结构复杂、思想深邃**，预示了浪漫主义甚至现代音乐的某些方向。\n- **常见易混点/对比点**：**古典主义与浪漫主义的桥梁**。其作品结构严谨（古典主义特征），但**个人情感表达强烈、力度对比夸张、主题发展具有交响性**（浪漫主义先声）。与**巴赫、亨德尔**（巴洛克）在复调运用上有传承，但更注重**主题的戏剧性发展**。\n\n---", "examPoints": "### 初中阶段考点\n- 贝多芬的国籍：**德国**（波恩当时属神圣罗马帝国）。\n- 代表作与别称：《**英雄交响曲**》《**命运交响曲**》《**田园交响曲**》《**欢乐颂**》；“**乐圣**”。\n- 核心精神：**与命运抗争**（耳聋后坚持创作）。\n- 艺术风格：**古典主义音乐**的代表人物之一，作品富有**英雄性、斗争性**。\n- 历史地位：连接**古典主义**与**浪漫主义**音乐的桥梁。\n\n### 高中阶段考点\n- 创作分期：**波恩时期、维也纳早期、成熟期（英雄时期）、晚期**。\n- 《**英雄交响曲**》的创作背景与思想内涵：原献给**拿破仑**，因其称帝而撕毁题词，体现了对**共和理想**的追求。\n- 《**第九交响曲**》的里程碑意义：首次在交响曲中加入**人声合唱**（席勒《欢乐颂》），宣扬**全人类团结、友爱**的理想。\n- 艺术成就总结：**扩展了交响曲与奏鸣曲的形式与内涵**，强化了**乐队的表现力**和**主题的戏剧性发展**，将**个人情感与哲学思考**大规模引入器乐音乐。\n- 历史评价：**“集古典主义之大成，开浪漫主义之先河”**。其生平与创作是**艺术家个人英雄主义**的典范。", "markdown": "# 路德维希·凡·贝多芬\n\n## 人物档案\n\n### 基本信息\n- **姓名**：路德维希·凡·贝多芬（Ludwig van Beethoven）\n- **时代**：古典主义时期向浪漫主义时期过渡\n- **出生**：1770年12月16日（受洗日，实际出生日期不详），神圣罗马帝国科隆选侯国波恩（今德国波恩）\n- **去世**：1827年3月26日，奥地利帝国维也纳（今奥地利维也纳）\n- **享年**：56岁\n- **主要身份**：作曲家、钢琴家、音乐教育家\n- **历史地位**：集古典主义之大成，开浪漫主义之先河的“乐圣”，音乐史上最伟大的作曲家之一。\n- **主要成就**：创作九部交响曲（尤其第三“英雄”、第五“命运”、第六“田园”、第九“合唱”）、32首钢琴奏鸣曲（如“月光”、“悲怆”、“热情”）、16首弦乐四重奏、《庄严弥撒》等不朽杰作；在耳聋困境中坚持创作，极大地拓展了音乐的表现力与思想深度。\n\n### 生平概述\n贝多芬出生于德国波恩一个音乐世家，早年在父亲严厉指导下显露音乐天赋。1792年赴维也纳深造并定居，以卓越的钢琴演奏和即兴创作能力赢得声誉。约1798年起听力逐渐衰退，至1802年陷入严重危机（留下《海利根施塔特遗书》），但最终战胜绝望，进入充满创造力的“英雄时期”。他一生坎坷，终身未婚，饱受疾病与孤独困扰，却将个人苦难升华为全人类的精神财富。晚年完全失聪，深居简出，专注于深邃复杂的晚期创作，直至在维也纳病逝。他的音乐跨越了古典主义的严谨形式，注入了强烈的个人情感与革命精神，成为连接两个时代的桥梁。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于德意志地区（波恩）与奥地利（维也纳及周边）。\n- ⏱️ **时间跨度**：1770年 - 1827年，共约56年。\n- 📍 **地理范围**：以维也纳为核心，辐射波恩及中欧多地。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：波恩\n- **公元纪年**：1770年 - 1792年\n- **停留时间**：约22年\n- **位置**：科隆选侯国波恩（今德国波恩）\n- **事迹**：出生并成长于此；在父亲约翰的指导下学习音乐，师从宫廷管风琴师克里斯蒂安·戈特洛布·内费；1782年首次发表作品；1784年成为宫廷助理管风琴师；1787年短暂访问维也纳，有说法称可能师从莫扎特（待考）。\n- **意义**：音乐启蒙与职业生涯的起点，奠定了其古典音乐基础。\n\n### 📍 重要地点：维也纳（首次定居）\n- **公元纪年**：1792年 - 1802年\n- **停留时间**：约10年\n- **位置**：哈布斯堡君主国维也纳（今奥地利维也纳）\n- **事迹**：师从海顿、萨利埃里等；以钢琴家身份活跃于贵族沙龙，确立演奏声誉；创作早期钢琴奏鸣曲、室内乐等。\n- **意义**：在音乐之都站稳脚跟，开启辉煌的创作生涯。\n- **名篇名句**：《悲怆奏鸣曲》：Op. 13；《月光奏鸣曲》：Op. 27, No. 2。\n\n### 📍 重要地点：海利根施塔特\n- **公元纪年**：1802年\n- **停留时间**：数月（夏季）\n- **位置**：维也纳近郊海利根施塔特（今奥地利维也纳市内）\n- **事迹**：因耳聋加剧陷入绝望，写下《海利根施塔特遗书》，表达对命运的抗争与对艺术的坚持。\n- **意义**：人生与创作的转折点，标志着他从精神危机中重生，决心“扼住命运的咽喉”。\n- **名篇名句**：《海利根施塔特遗书》：“是艺术，只是艺术留住了我。”\n\n### 📍 重要地点：维也纳（“英雄”时期）\n- **公元纪年**：1803年 - 1812年\n- **停留时间**：约10年\n- **位置**：奥地利帝国维也纳（今奥地利维也纳）\n- **事迹**：进入创作鼎盛的“英雄时期”；完成第三交响曲《英雄》、第五交响曲《命运》、第六交响曲《田园》、《拉祖莫夫斯基弦乐四重奏》、《第五钢琴协奏曲“皇帝”》等。\n- **意义**：创作力勃发，作品规模宏大、思想深刻，确立了其作为时代音乐巨匠的地位。\n- **名篇名句**：《英雄交响曲》：Op. 55；《命运交响曲》：Op. 67；《致爱丽丝》：WoO 59。\n\n### 📍 重要地点：巴登、默德灵等维也纳周边\n- **公元纪年**：1813年 - 1820年（夏季常居）\n- **停留时间**：每年夏季数月\n- **位置**：奥地利巴登（今奥地利下奥地利州巴登）、默德灵（今奥地利下奥地利州默德灵）等地\n- **事迹**：在乡间避暑、散步、创作；完成第七、第八交响曲等作品。\n- **意义**：自然风光是其重要灵感来源，也是逃避维也纳城市喧嚣与健康困扰的休养地。\n- **名篇名句**：《第七交响曲》：Op. 92。\n\n### 📍 重要地点：维也纳（晚期创作）\n- **公元纪年**：1818年 - 1827年\n- **停留时间**：约9年\n- **位置**：奥地利帝国维也纳（今奥地利维也纳）\n- **事迹**：完全失聪，使用“对话册”与人交流；创作晚期钢琴奏鸣曲（如Op. 109, 110, 111）、《迪亚贝利变奏曲》、《庄严弥撒》、第九交响曲《合唱》等深邃复杂的作品。\n- **意义**：在与世隔绝的状态下，将音乐推向哲学与精神的巅峰。\n- **名篇名句**：《第九交响曲“合唱”》：Op. 125；《欢乐颂》：“欢乐女神，圣洁美丽，灿烂光芒照大地！”\n\n### 🔴 去世地：维也纳（“黑西班牙人”公寓）\n- **公元纪年**：1827年3月26日\n- **停留时间**：生命最后数月\n- **位置**：奥地利帝国维也纳“黑西班牙人”公寓（今维也纳Probusgasse 6号）\n- **经过**：因肝硬化等疾病长期卧床，1827年3月26日在一场暴风雨中逝世。\n- **意义**：一代乐圣的陨落之地，其葬礼引发维也纳全城哀悼。\n- **名篇名句**：临终遗言（据传，存疑）：“喜剧终了……Plaudite, amici, comedia finita est.”（鼓掌吧，朋友们，喜剧结束了。）\n\n---\n\n## 生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1770 | 0 | 出生于德国波恩。 |\n| 1778 | 8 | 首次公开登台演出。 |\n| 1782 | 12 | 代理宫廷管风琴师，发表处女作。 |\n| 1787 | 17 | 短暂访问维也纳，有说法称可能师从莫扎特（待考）；母亲病逝。 |\n| 1792 | 22 | 永久移居维也纳，师从海顿。 |\n| 1795 | 25 | 首次在维也纳公开演出，开始出版作品。 |\n| 1800 | 30 | 举办首次个人作品音乐会，听力明显恶化。 |\n| 1802 | 32 | 在海利根施塔特写下遗书，经历精神危机。 |\n| 1804 | 34 | 完成《第三交响曲“英雄”》，标志“英雄时期”开始。 |\n| 1808 | 38 | 完成第五、第六交响曲。 |\n| 1812 | 42 | 完成第七、第八交响曲；写下“永恒的爱人”书信。 |\n| 1815 | 45 | 因耳聋基本停止公开演奏。 |\n| 1818 | 48 | 开始使用“对话册”，进入晚期创作。 |\n| 1824 | 54 | 《第九交响曲》首演，获得巨大成功。 |\n| 1827 | 56 | 在维也纳病逝。 |\n\n---\n\n## 历史影响\n\n### 对当时的影响\n贝多芬在世时，其音乐已因其前所未有的力量、激情和创新性而备受尊崇。他打破了古典主义音乐的许多形式束缚，极大地扩展了交响曲、奏鸣曲等体裁的规模和表现范围，将个人情感与社会理想（如共和主义）注入其中，深刻影响了同时代的作曲家（如舒伯特、韦伯），并为浪漫主义音乐运动开辟了道路。\n\n### 对后世的影响\n- **音乐形式的革命**：极大地拓展了交响乐队的编制和表现力，将交响曲提升为表达哲学思想的宏大载体。\n- **浪漫主义的先声**：其强调个人情感、英雄主义与抗争精神的作品，成为整个浪漫主义时代的精神源泉。\n- **艺术家的典范**：其与命运抗争、坚守艺术理想的生平，塑造了后世“艺术家作为英雄”的崇高形象。\n- **文化遗产**：作品成为古典音乐的核心曲目，持续影响着全球的音乐创作、演奏与审美。\n\n### 历史评价\n1.  **罗曼·罗兰（法国作家）**：“一个不幸的人，贫穷，残废，孤独，由痛苦造成的人，世界不给他欢乐，他却创造了欢乐来给予世界！”\n2.  **瓦格纳（德国作曲家）**：“贝多芬的艺术，是人类精神的胜利，是意志战胜表象，理想战胜现实的崇高证明。”\n3.  **普遍评价**：他是音乐史上的巨人，连接古典与浪漫的桥梁，用苦难铸就欢乐的乐圣。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：生活在**18世纪末至19世纪初**的欧洲，正值**法国大革命**和**启蒙运动**思想广泛传播的时期。\n- **关键事件/贡献**：**双耳失聪**后仍坚持创作，被誉为“**乐圣**”。其作品充满了**反抗封建束缚、追求自由民主**的精神。\n- **代表作品/思想**：代表作包括《**英雄交响曲**》（原献给拿破仑）、《**命运交响曲**》（开头动机“命运在敲门”）、《**欢乐颂**》（《第九交响曲》合唱部分）。\n- **常见易混点/对比点**：与**莫扎特**同为古典主义代表，但贝多芬的音乐更具**戏剧性和斗争性**，开创了**浪漫主义**先河。\n\n### 高中阶段\n- **时代背景**：处于**欧洲社会大变革时代**，深受**启蒙思想**和**法国大革命**理想影响，个人生活则面临**耳聋**的残酷打击。\n- **关键事件/贡献**：**1802年“海利根施塔特遗书”**是其精神转折点，标志其从绝望走向“**扼住命运的咽喉**”的抗争。其创作分为**波恩时期、维也纳早期（学习期）、成熟期（英雄时期）、晚期**。\n- **代表作品/思想**：**九部交响曲**是其创作核心，其中第三（英雄）、第五（命运）、第六（田园）、第九（合唱）最具代表性。**32首钢琴奏鸣曲**被称为“《新约全书》”。晚期作品（如最后五首钢琴奏鸣曲、《迪亚贝利变奏曲》）**结构复杂、思想深邃**，预示了浪漫主义甚至现代音乐的某些方向。\n- **常见易混点/对比点**：**古典主义与浪漫主义的桥梁**。其作品结构严谨（古典主义特征），但**个人情感表达强烈、力度对比夸张、主题发展具有交响性**（浪漫主义先声）。与**巴赫、亨德尔**（巴洛克）在复调运用上有传承，但更注重**主题的戏剧性发展**。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 贝多芬的国籍：**德国**（波恩当时属神圣罗马帝国）。\n- 代表作与别称：《**英雄交响曲**》《**命运交响曲**》《**田园交响曲**》《**欢乐颂**》；“**乐圣**”。\n- 核心精神：**与命运抗争**（耳聋后坚持创作）。\n- 艺术风格：**古典主义音乐**的代表人物之一，作品富有**英雄性、斗争性**。\n- 历史地位：连接**古典主义**与**浪漫主义**音乐的桥梁。\n\n### 高中阶段考点\n- 创作分期：**波恩时期、维也纳早期、成熟期（英雄时期）、晚期**。\n- 《**英雄交响曲**》的创作背景与思想内涵：原献给**拿破仑**，因其称帝而撕毁题词，体现了对**共和理想**的追求。\n- 《**第九交响曲**》的里程碑意义：首次在交响曲中加入**人声合唱**（席勒《欢乐颂》），宣扬**全人类团结、友爱**的理想。\n- 艺术成就总结：**扩展了交响曲与奏鸣曲的形式与内涵**，强化了**乐队的表现力**和**主题的戏剧性发展**，将**个人情感与哲学思考**大规模引入器乐音乐。\n- 历史评价：**“集古典主义之大成，开浪漫主义之先河”**。其生平与创作是**艺术家个人英雄主义**的典范。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |"};
+      const data = {"person": {"name": "路德维希·凡·贝多芬", "title": "乐圣", "description": "贝多芬出生于德国波恩一个音乐世家，早年在父亲严厉指导下显露音乐天赋。1792年赴维也纳深造并定居，以卓越的钢琴演奏和即兴创作能力赢得声誉。约1798年起听力逐渐衰退，至1802年陷入严重危机（留下《海利根施塔特遗书》），但最终战胜绝望，进入充满创造力的“英雄时期”。他一生坎坷，终身未婚，饱受疾病与孤独困扰，却将个人苦难升华为全人类的精神财富。晚年完全失聪，深居简出，专注于深邃复杂的晚期创作，直至在维也纳病逝。他的音乐跨越了古典主义的严谨形式，注入了强烈的个人情感与革命精神，成为连接两个时代的桥梁。", "quote": "乐圣", "dynasty": "古典主义时期向浪漫主义时期过渡", "birthplace": "（受洗日", "avatar": "", "birth": {"date": "1770年", "location": "（受洗日", "lat": null, "lng": null}, "death": {"date": "1827年", "location": "奥地利帝国维也纳（今奥地利维也纳）", "lat": null, "lng": null}, "lifespan": "56岁", "highlights": {"honor": "乐圣", "status": "集古典主义之大成，开浪漫主义之先河的“乐圣”，音乐史上最伟大的作曲家之一。", "identities": "作曲家、钢琴家、音乐教育家", "achievements": "创作九部交响曲（尤其第三“英雄”、第五“命运”、第六“田园”、第九“合唱”）、32首钢琴奏鸣曲（如“月光”、“悲怆”、“热情”）、16首弦乐四重奏、《庄严弥撒》等不朽杰作；在耳聋困境中坚持创作，极大地拓展了音乐的表现力与思想深度。", "works": ["海利根施塔特遗书", "庄严弥撒"], "reviews": ["**罗曼·罗兰（法国作家）**：“一个不幸的人，贫穷，残废，孤独，由痛苦造成的人，世界不给他欢乐，他却创造了欢乐来给予世界！”", "**瓦格纳（德国作曲家）**：“贝多芬的艺术，是人类精神的胜利，是意志战胜表象，理想战胜现实的崇高证明。”", "**普遍评价**：他是音乐史上的巨人，连接古典与浪漫的桥梁，用苦难铸就欢乐的乐圣。"]}}, "locations": [], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：生活在**18世纪末至19世纪初**的欧洲，正值**法国大革命**和**启蒙运动**思想广泛传播的时期。\n- **关键事件/贡献**：**双耳失聪**后仍坚持创作，被誉为“**乐圣**”。其作品充满了**反抗封建束缚、追求自由民主**的精神。\n- **代表作品/思想**：代表作包括《**英雄交响曲**》（原献给拿破仑）、《**命运交响曲**》（开头动机“命运在敲门”）、《**欢乐颂**》（《第九交响曲》合唱部分）。\n- **常见易混点/对比点**：与**莫扎特**同为古典主义代表，但贝多芬的音乐更具**戏剧性和斗争性**，开创了**浪漫主义**先河。\n\n### 高中阶段\n- **时代背景**：处于**欧洲社会大变革时代**，深受**启蒙思想**和**法国大革命**理想影响，个人生活则面临**耳聋**的残酷打击。\n- **关键事件/贡献**：**1802年“海利根施塔特遗书”**是其精神转折点，标志其从绝望走向“**扼住命运的咽喉**”的抗争。其创作分为**波恩时期、维也纳早期（学习期）、成熟期（英雄时期）、晚期**。\n- **代表作品/思想**：**九部交响曲**是其创作核心，其中第三（英雄）、第五（命运）、第六（田园）、第九（合唱）最具代表性。**32首钢琴奏鸣曲**被称为“《新约全书》”。晚期作品（如最后五首钢琴奏鸣曲、《迪亚贝利变奏曲》）**结构复杂、思想深邃**，预示了浪漫主义甚至现代音乐的某些方向。\n- **常见易混点/对比点**：**古典主义与浪漫主义的桥梁**。其作品结构严谨（古典主义特征），但**个人情感表达强烈、力度对比夸张、主题发展具有交响性**（浪漫主义先声）。与**巴赫、亨德尔**（巴洛克）在复调运用上有传承，但更注重**主题的戏剧性发展**。\n\n---", "examPoints": "### 初中阶段考点\n- 贝多芬的国籍：**德国**（波恩当时属神圣罗马帝国）。\n- 代表作与别称：《**英雄交响曲**》《**命运交响曲**》《**田园交响曲**》《**欢乐颂**》；“**乐圣**”。\n- 核心精神：**与命运抗争**（耳聋后坚持创作）。\n- 艺术风格：**古典主义音乐**的代表人物之一，作品富有**英雄性、斗争性**。\n- 历史地位：连接**古典主义**与**浪漫主义**音乐的桥梁。\n\n### 高中阶段考点\n- 创作分期：**波恩时期、维也纳早期、成熟期（英雄时期）、晚期**。\n- 《**英雄交响曲**》的创作背景与思想内涵：原献给**拿破仑**，因其称帝而撕毁题词，体现了对**共和理想**的追求。\n- 《**第九交响曲**》的里程碑意义：首次在交响曲中加入**人声合唱**（席勒《欢乐颂》），宣扬**全人类团结、友爱**的理想。\n- 艺术成就总结：**扩展了交响曲与奏鸣曲的形式与内涵**，强化了**乐队的表现力**和**主题的戏剧性发展**，将**个人情感与哲学思考**大规模引入器乐音乐。\n- 历史评价：**“集古典主义之大成，开浪漫主义之先河”**。其生平与创作是**艺术家个人英雄主义**的典范。", "markdown": "# 路德维希·凡·贝多芬\n\n## 人物档案\n\n### 基本信息\n- **姓名**：路德维希·凡·贝多芬（Ludwig van Beethoven）\n- **时代**：古典主义时期向浪漫主义时期过渡\n- **出生**：1770年12月16日（受洗日，实际出生日期不详），神圣罗马帝国科隆选侯国波恩（今德国波恩）\n- **去世**：1827年3月26日，奥地利帝国维也纳（今奥地利维也纳）\n- **享年**：56岁\n- **主要身份**：作曲家、钢琴家、音乐教育家\n- **历史地位**：集古典主义之大成，开浪漫主义之先河的“乐圣”，音乐史上最伟大的作曲家之一。\n- **主要成就**：创作九部交响曲（尤其第三“英雄”、第五“命运”、第六“田园”、第九“合唱”）、32首钢琴奏鸣曲（如“月光”、“悲怆”、“热情”）、16首弦乐四重奏、《庄严弥撒》等不朽杰作；在耳聋困境中坚持创作，极大地拓展了音乐的表现力与思想深度。\n\n### 生平概述\n贝多芬出生于德国波恩一个音乐世家，早年在父亲严厉指导下显露音乐天赋。1792年赴维也纳深造并定居，以卓越的钢琴演奏和即兴创作能力赢得声誉。约1798年起听力逐渐衰退，至1802年陷入严重危机（留下《海利根施塔特遗书》），但最终战胜绝望，进入充满创造力的“英雄时期”。他一生坎坷，终身未婚，饱受疾病与孤独困扰，却将个人苦难升华为全人类的精神财富。晚年完全失聪，深居简出，专注于深邃复杂的晚期创作，直至在维也纳病逝。他的音乐跨越了古典主义的严谨形式，注入了强烈的个人情感与革命精神，成为连接两个时代的桥梁。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于德意志地区（波恩）与奥地利（维也纳及周边）。\n- ⏱️ **时间跨度**：1770年 - 1827年，共约56年。\n- 📍 **地理范围**：以维也纳为核心，辐射波恩及中欧多地。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：波恩\n- **公元纪年**：1770年 - 1792年\n- **停留时间**：约22年\n- **位置**：科隆选侯国波恩（今德国波恩）\n- **事迹**：出生并成长于此；在父亲约翰的指导下学习音乐，师从宫廷管风琴师克里斯蒂安·戈特洛布·内费；1782年首次发表作品；1784年成为宫廷助理管风琴师；1787年短暂访问维也纳，有说法称可能师从莫扎特（待考）。\n- **意义**：音乐启蒙与职业生涯的起点，奠定了其古典音乐基础。\n\n### 📍 重要地点：维也纳（首次定居）\n- **公元纪年**：1792年 - 1802年\n- **停留时间**：约10年\n- **位置**：哈布斯堡君主国维也纳（今奥地利维也纳）\n- **事迹**：师从海顿、萨利埃里等；以钢琴家身份活跃于贵族沙龙，确立演奏声誉；创作早期钢琴奏鸣曲、室内乐等。\n- **意义**：在音乐之都站稳脚跟，开启辉煌的创作生涯。\n- **名篇名句**：《悲怆奏鸣曲》：Op. 13；《月光奏鸣曲》：Op. 27, No. 2。\n\n### 📍 重要地点：海利根施塔特\n- **公元纪年**：1802年\n- **停留时间**：数月（夏季）\n- **位置**：维也纳近郊海利根施塔特（今奥地利维也纳市内）\n- **事迹**：因耳聋加剧陷入绝望，写下《海利根施塔特遗书》，表达对命运的抗争与对艺术的坚持。\n- **意义**：人生与创作的转折点，标志着他从精神危机中重生，决心“扼住命运的咽喉”。\n- **名篇名句**：《海利根施塔特遗书》：“是艺术，只是艺术留住了我。”\n\n### 📍 重要地点：维也纳（“英雄”时期）\n- **公元纪年**：1803年 - 1812年\n- **停留时间**：约10年\n- **位置**：奥地利帝国维也纳（今奥地利维也纳）\n- **事迹**：进入创作鼎盛的“英雄时期”；完成第三交响曲《英雄》、第五交响曲《命运》、第六交响曲《田园》、《拉祖莫夫斯基弦乐四重奏》、《第五钢琴协奏曲“皇帝”》等。\n- **意义**：创作力勃发，作品规模宏大、思想深刻，确立了其作为时代音乐巨匠的地位。\n- **名篇名句**：《英雄交响曲》：Op. 55；《命运交响曲》：Op. 67；《致爱丽丝》：WoO 59。\n\n### 📍 重要地点：巴登、默德灵等维也纳周边\n- **公元纪年**：1813年 - 1820年（夏季常居）\n- **停留时间**：每年夏季数月\n- **位置**：奥地利巴登（今奥地利下奥地利州巴登）、默德灵（今奥地利下奥地利州默德灵）等地\n- **事迹**：在乡间避暑、散步、创作；完成第七、第八交响曲等作品。\n- **意义**：自然风光是其重要灵感来源，也是逃避维也纳城市喧嚣与健康困扰的休养地。\n- **名篇名句**：《第七交响曲》：Op. 92。\n\n### 📍 重要地点：维也纳（晚期创作）\n- **公元纪年**：1818年 - 1827年\n- **停留时间**：约9年\n- **位置**：奥地利帝国维也纳（今奥地利维也纳）\n- **事迹**：完全失聪，使用“对话册”与人交流；创作晚期钢琴奏鸣曲（如Op. 109, 110, 111）、《迪亚贝利变奏曲》、《庄严弥撒》、第九交响曲《合唱》等深邃复杂的作品。\n- **意义**：在与世隔绝的状态下，将音乐推向哲学与精神的巅峰。\n- **名篇名句**：《第九交响曲“合唱”》：Op. 125；《欢乐颂》：“欢乐女神，圣洁美丽，灿烂光芒照大地！”\n\n### 🔴 去世地：维也纳（“黑西班牙人”公寓）\n- **公元纪年**：1827年3月26日\n- **停留时间**：生命最后数月\n- **位置**：奥地利帝国维也纳“黑西班牙人”公寓（今维也纳Probusgasse 6号）\n- **经过**：因肝硬化等疾病长期卧床，1827年3月26日在一场暴风雨中逝世。\n- **意义**：一代乐圣的陨落之地，其葬礼引发维也纳全城哀悼。\n- **名篇名句**：临终遗言（据传，存疑）：“喜剧终了……Plaudite, amici, comedia finita est.”（鼓掌吧，朋友们，喜剧结束了。）\n\n---\n\n## 生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1770 | 0 | 出生于德国波恩。 |\n| 1778 | 8 | 首次公开登台演出。 |\n| 1782 | 12 | 代理宫廷管风琴师，发表处女作。 |\n| 1787 | 17 | 短暂访问维也纳，有说法称可能师从莫扎特（待考）；母亲病逝。 |\n| 1792 | 22 | 永久移居维也纳，师从海顿。 |\n| 1795 | 25 | 首次在维也纳公开演出，开始出版作品。 |\n| 1800 | 30 | 举办首次个人作品音乐会，听力明显恶化。 |\n| 1802 | 32 | 在海利根施塔特写下遗书，经历精神危机。 |\n| 1804 | 34 | 完成《第三交响曲“英雄”》，标志“英雄时期”开始。 |\n| 1808 | 38 | 完成第五、第六交响曲。 |\n| 1812 | 42 | 完成第七、第八交响曲；写下“永恒的爱人”书信。 |\n| 1815 | 45 | 因耳聋基本停止公开演奏。 |\n| 1818 | 48 | 开始使用“对话册”，进入晚期创作。 |\n| 1824 | 54 | 《第九交响曲》首演，获得巨大成功。 |\n| 1827 | 56 | 在维也纳病逝。 |\n\n---\n\n## 历史影响\n\n### 对当时的影响\n贝多芬在世时，其音乐已因其前所未有的力量、激情和创新性而备受尊崇。他打破了古典主义音乐的许多形式束缚，极大地扩展了交响曲、奏鸣曲等体裁的规模和表现范围，将个人情感与社会理想（如共和主义）注入其中，深刻影响了同时代的作曲家（如舒伯特、韦伯），并为浪漫主义音乐运动开辟了道路。\n\n### 对后世的影响\n- **音乐形式的革命**：极大地拓展了交响乐队的编制和表现力，将交响曲提升为表达哲学思想的宏大载体。\n- **浪漫主义的先声**：其强调个人情感、英雄主义与抗争精神的作品，成为整个浪漫主义时代的精神源泉。\n- **艺术家的典范**：其与命运抗争、坚守艺术理想的生平，塑造了后世“艺术家作为英雄”的崇高形象。\n- **文化遗产**：作品成为古典音乐的核心曲目，持续影响着全球的音乐创作、演奏与审美。\n\n### 历史评价\n1.  **罗曼·罗兰（法国作家）**：“一个不幸的人，贫穷，残废，孤独，由痛苦造成的人，世界不给他欢乐，他却创造了欢乐来给予世界！”\n2.  **瓦格纳（德国作曲家）**：“贝多芬的艺术，是人类精神的胜利，是意志战胜表象，理想战胜现实的崇高证明。”\n3.  **普遍评价**：他是音乐史上的巨人，连接古典与浪漫的桥梁，用苦难铸就欢乐的乐圣。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：生活在**18世纪末至19世纪初**的欧洲，正值**法国大革命**和**启蒙运动**思想广泛传播的时期。\n- **关键事件/贡献**：**双耳失聪**后仍坚持创作，被誉为“**乐圣**”。其作品充满了**反抗封建束缚、追求自由民主**的精神。\n- **代表作品/思想**：代表作包括《**英雄交响曲**》（原献给拿破仑）、《**命运交响曲**》（开头动机“命运在敲门”）、《**欢乐颂**》（《第九交响曲》合唱部分）。\n- **常见易混点/对比点**：与**莫扎特**同为古典主义代表，但贝多芬的音乐更具**戏剧性和斗争性**，开创了**浪漫主义**先河。\n\n### 高中阶段\n- **时代背景**：处于**欧洲社会大变革时代**，深受**启蒙思想**和**法国大革命**理想影响，个人生活则面临**耳聋**的残酷打击。\n- **关键事件/贡献**：**1802年“海利根施塔特遗书”**是其精神转折点，标志其从绝望走向“**扼住命运的咽喉**”的抗争。其创作分为**波恩时期、维也纳早期（学习期）、成熟期（英雄时期）、晚期**。\n- **代表作品/思想**：**九部交响曲**是其创作核心，其中第三（英雄）、第五（命运）、第六（田园）、第九（合唱）最具代表性。**32首钢琴奏鸣曲**被称为“《新约全书》”。晚期作品（如最后五首钢琴奏鸣曲、《迪亚贝利变奏曲》）**结构复杂、思想深邃**，预示了浪漫主义甚至现代音乐的某些方向。\n- **常见易混点/对比点**：**古典主义与浪漫主义的桥梁**。其作品结构严谨（古典主义特征），但**个人情感表达强烈、力度对比夸张、主题发展具有交响性**（浪漫主义先声）。与**巴赫、亨德尔**（巴洛克）在复调运用上有传承，但更注重**主题的戏剧性发展**。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 贝多芬的国籍：**德国**（波恩当时属神圣罗马帝国）。\n- 代表作与别称：《**英雄交响曲**》《**命运交响曲**》《**田园交响曲**》《**欢乐颂**》；“**乐圣**”。\n- 核心精神：**与命运抗争**（耳聋后坚持创作）。\n- 艺术风格：**古典主义音乐**的代表人物之一，作品富有**英雄性、斗争性**。\n- 历史地位：连接**古典主义**与**浪漫主义**音乐的桥梁。\n\n### 高中阶段考点\n- 创作分期：**波恩时期、维也纳早期、成熟期（英雄时期）、晚期**。\n- 《**英雄交响曲**》的创作背景与思想内涵：原献给**拿破仑**，因其称帝而撕毁题词，体现了对**共和理想**的追求。\n- 《**第九交响曲**》的里程碑意义：首次在交响曲中加入**人声合唱**（席勒《欢乐颂》），宣扬**全人类团结、友爱**的理想。\n- 艺术成就总结：**扩展了交响曲与奏鸣曲的形式与内涵**，强化了**乐队的表现力**和**主题的戏剧性发展**，将**个人情感与哲学思考**大规模引入器乐音乐。\n- 历史评价：**“集古典主义之大成，开浪漫主义之先河”**。其生平与创作是**艺术家个人英雄主义**的典范。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "路德维希·凡·贝多芬", "name": "路德维希·凡·贝多芬", "file": "路德维希·凡·贝多芬.html", "dynasty": "古典主义时期向浪漫主义时期过渡", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "路德维希·凡·贝多芬", "name": "路德维希·凡·贝多芬", "file": "路德维希·凡·贝多芬.html", "dynasty": "古典主义时期向浪漫主义时期过渡", "relationLabel": "中心人物", "isCenter": true}, {"id": "贝多芬", "name": "贝多芬", "file": "贝多芬.html", "dynasty": "古典主义时期向浪漫主义时期过渡", "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马尔萨斯", "name": "马尔萨斯", "file": "马尔萨斯.html", "dynasty": "英国工业革命时期（乔治王朝至维多利亚时代初期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马克思", "name": "马克思", "file": "马克思.html", "dynasty": "19世纪", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "路德维希·凡·贝多芬", "target": "贝多芬", "label": "宗亲", "confidence": null}, {"source": "路德维希·凡·贝多芬", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "路德维希·凡·贝多芬", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "路德维希·凡·贝多芬", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "路德维希·凡·贝多芬", "target": "马尔萨斯", "label": "同时代人物", "confidence": null}, {"source": "路德维希·凡·贝多芬", "target": "马克思", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

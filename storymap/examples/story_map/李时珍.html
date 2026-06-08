@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李时珍", "title": "药圣", "description": "李时珍，字东璧，号濒湖，湖北蕲州人。他出身于世医之家，自幼热爱医药学，但曾遵从父愿参加科举，中秀才后屡试不中，遂决心弃儒从医。他医术精湛，曾被聘为楚王府奉祠正，并一度在太医院任职。为修正古代本草的错漏，他“远穷僻壤，遍询农渔”，足迹遍及大江南北，亲尝百草，结合实地考察与文献研究，历时近三十年，于晚年著成《本草纲目》。这部巨著系统总结了中国十六世纪以前的药物学成就，对后世影响深远，并传播至海外。", "quote": "药圣", "dynasty": "明代", "birthplace": "蕲州（今湖北省黄冈市蕲春县）", "avatar": "", "birth": {"date": "1518年", "location": "蕲州（今湖北省黄冈市蕲春县）", "lat": 30.226, "lng": 115.436}, "death": {"date": "1593年", "location": "蕲州（今湖北省黄冈市蕲春县）", "lat": 30.226, "lng": 115.436}, "lifespan": "75岁（按实岁计算）", "highlights": {"honor": "药圣", "status": "中国古代伟大的医药学家，被后世尊为“药圣”。", "identities": "医药学家、博物学家", "achievements": "历时27年编撰完成药物学巨著《本草纲目》；纠正了古代本草中的许多错误；创立了“脑为元神之府”的学说；在药物分类、方剂学、生物进化思想等方面有重要贡献。", "works": ["本草纲目"], "reviews": []}}, "locations": [{"name": "蕲州", "ancientName": "蕲州", "modernName": "湖北省黄冈市蕲春县", "lat": 30.226, "lng": 115.436, "type": "birth", "event": "出生于医学世家，从小耳濡目染，对医药产生浓厚兴趣。", "time": "公元1518年", "duration": "青少年时期", "significance": "奠定了其一生的志向与知识基础。", "works": [], "quoteLines": []}, {"name": "黄州府", "ancientName": "黄州府", "modernName": "湖北省黄冈市", "lat": 30.453, "lng": 114.872, "type": "normal", "event": "考中秀才，后三次赴武昌乡试均未中第。", "time": "约公元1531-1534年", "duration": "数年", "significance": "科举之路的挫折，促使其最终决心弃儒从医。", "works": [], "quoteLines": []}, {"name": "武当山", "ancientName": "武当山", "modernName": "湖北省十堰市丹江口市境内", "lat": 32.4, "lng": 111.004, "type": "normal", "event": "深入山区采集药物标本，考察珍稀药材如曼陀罗花、榔梅等。", "time": "多次考察，时间不详", "duration": "累计数月", "significance": "获取了大量第一手药物资料，验证了前人记载的真伪。", "works": [], "quoteLines": []}, {"name": "庐山", "ancientName": "庐山", "modernName": "江西省九江市庐山市", "lat": 29.554, "lng": 116.012, "type": "normal", "event": "考察药用植物与矿物，收集民间药方。", "time": "多次考察，时间不详", "duration": "累计数月", "significance": "丰富了《本草纲目》中关于南方药物的记载。", "works": ["本草纲目"], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "type": "normal", "event": "为《本草纲目》的出版寻求机会，与书商、文人交流。", "time": "约公元1570年代后期", "duration": "数年", "significance": "虽未能在南京立即刊刻，但扩大了著作的影响，为后续出版铺垫。", "works": ["本草纲目"], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "type": "normal", "event": "被推荐入太医院任职，得以阅读大量皇家珍藏的医书和各地进献的药材标本。", "time": "约公元1556-1559年（存疑）", "duration": "约三年（存疑）", "significance": "极大地开阔了眼界，积累了珍贵的文献与实物资料，为其著书打下关键基础。", "works": [], "quoteLines": []}, {"name": "太仓州", "ancientName": "太仓州", "modernName": "江苏省苏州市太仓市", "lat": 31.459, "lng": 121.109, "type": "normal", "event": "拜访当时文坛领袖王世贞，为其《本草纲目》作序。", "time": "约公元1580年", "duration": "短暂停留", "significance": "王世贞的序言高度评价了该书，提升了其学术地位与影响力。", "works": ["本草纲目"], "quoteLines": []}, {"name": "金陵（刻书地）", "ancientName": "金陵", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "type": "normal", "event": "《本草纲目》在胡承龙支持下首次刊刻出版（金陵版）。", "time": "公元1596年（李时珍去世后）", "duration": "不适用", "significance": "标志着这部巨著正式面世，流传后世。", "works": ["本草纲目"], "quoteLines": []}, {"name": "蕲州", "ancientName": "蕲州", "modernName": "湖北省黄冈市蕲春县", "lat": 30.226, "lng": 115.436, "type": "death", "event": "在家中逝世，未及亲见《本草纲目》出版。", "time": "公元1593年", "duration": "晚年", "significance": "毕生心血凝结的著作在其身后大放光芒。", "works": ["本草纲目"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---", "markdown": "# 李时珍\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李时珍\n- **字**：东璧\n- **号**：濒湖\n- **时代**：明代\n- **出生**：公元1518年（具体日期存疑），蕲州（今湖北省黄冈市蕲春县）\n- **去世**：公元1593年，蕲州（今湖北省黄冈市蕲春县）\n- **享年**：75岁（按实岁计算）\n- **主要身份**：医药学家、博物学家\n- **历史地位**：中国古代伟大的医药学家，被后世尊为“药圣”。\n- **主要成就**：历时27年编撰完成药物学巨著《本草纲目》；纠正了古代本草中的许多错误；创立了“脑为元神之府”的学说；在药物分类、方剂学、生物进化思想等方面有重要贡献。\n\n### 生平概述\n李时珍，字东璧，号濒湖，湖北蕲州人。他出身于世医之家，自幼热爱医药学，但曾遵从父愿参加科举，中秀才后屡试不中，遂决心弃儒从医。他医术精湛，曾被聘为楚王府奉祠正，并一度在太医院任职。为修正古代本草的错漏，他“远穷僻壤，遍询农渔”，足迹遍及大江南北，亲尝百草，结合实地考察与文献研究，历时近三十年，于晚年著成《本草纲目》。这部巨著系统总结了中国十六世纪以前的药物学成就，对后世影响深远，并传播至海外。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以故乡蕲州为中心，足迹遍及湖北、湖南、安徽、江西、江苏、河北等地，进行药物考察与行医。\n- ⏱️ **时间跨度**：约公元1530年代至1593年，总年数约50余年。\n- 📍 **地理范围**：主要覆盖长江中下游流域及华北部分地区。\n- 🌟 **重要节点数量**：核心地点数量9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蕲州\n- **时间**：公元1518年\n- **停留时间**：青少年时期\n- **地点**：蕲州（今湖北省黄冈市蕲春县）\n- **事件**：出生于医学世家，从小耳濡目染，对医药产生浓厚兴趣。\n- **意义**：奠定了其一生的志向与知识基础。\n\n### 📍 重要地点：黄州府\n- **时间**：约公元1531-1534年\n- **停留时间**：数年\n- **地点**：黄州府（今湖北省黄冈市）\n- **事件**：考中秀才，后三次赴武昌乡试均未中第。\n- **意义**：科举之路的挫折，促使其最终决心弃儒从医。\n\n### 📍 重要地点：武当山\n- **时间**：多次考察，时间不详\n- **停留时间**：累计数月\n- **地点**：武当山（今湖北省十堰市丹江口市境内）\n- **事件**：深入山区采集药物标本，考察珍稀药材如曼陀罗花、榔梅等。\n- **意义**：获取了大量第一手药物资料，验证了前人记载的真伪。\n\n### 📍 重要地点：庐山\n- **时间**：多次考察，时间不详\n- **停留时间**：累计数月\n- **地点**：庐山（今江西省九江市庐山市）\n- **事件**：考察药用植物与矿物，收集民间药方。\n- **意义**：丰富了《本草纲目》中关于南方药物的记载。\n\n### 📍 重要地点：南京\n- **时间**：约公元1570年代后期\n- **停留时间**：数年\n- **地点**：南京（今江苏省南京市）\n- **事件**：为《本草纲目》的出版寻求机会，与书商、文人交流。\n- **意义**：虽未能在南京立即刊刻，但扩大了著作的影响，为后续出版铺垫。\n\n### 📍 重要地点：北京\n- **时间**：约公元1556-1559年（存疑）\n- **停留时间**：约三年（存疑）\n- **地点**：北京（今北京市）\n- **事件**：被推荐入太医院任职，得以阅读大量皇家珍藏的医书和各地进献的药材标本。\n- **意义**：极大地开阔了眼界，积累了珍贵的文献与实物资料，为其著书打下关键基础。\n\n### 📍 重要地点：安徽、江西等省山区\n- **时间**：编撰《本草纲目》期间\n- **停留时间**：累计数年\n- **地点**：安徽、江西等省山区（具体州县待考）\n- **事件**：进行广泛的实地药物调查与采集，“访采四方”。\n- **意义**：实践了“知之深则愈明”的科学考察方法，纠正了诸多文献谬误。\n\n### 📍 重要地点：太仓州\n- **时间**：约公元1580年\n- **停留时间**：短暂停留\n- **地点**：太仓州（今江苏省苏州市太仓市）\n- **事件**：拜访当时文坛领袖王世贞，为其《本草纲目》作序。\n- **意义**：王世贞的序言高度评价了该书，提升了其学术地位与影响力。\n\n### 📍 重要地点：金陵（刻书地）\n- **时间**：公元1596年（李时珍去世后）\n- **停留时间**：不适用\n- **地点**：金陵（今江苏省南京市）\n- **事件**：《本草纲目》在胡承龙支持下首次刊刻出版（金陵版）。\n- **意义**：标志着这部巨著正式面世，流传后世。\n\n### 🔴 去世地：蕲州\n- **时间**：公元1593年\n- **停留时间**：晚年\n- **地点**：蕲州（今湖北省黄冈市蕲春县）\n- **事件**：在家中逝世，未及亲见《本草纲目》出版。\n- **意义**：毕生心血凝结的著作在其身后大放光芒。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元1518年 | 0岁 | 出生于蕲州（今湖北蕲春）。 |\n| 约公元1531年 | 约13岁 | 考中秀才。 |\n| 约公元1534年 | 约16岁 | 乡试落第，决心弃儒从医。 |\n| 约公元1540年代 | 20余岁 | 开始独立行医，医术渐精。 |\n| 约公元1556年 | 约38岁 | （存疑）被荐入京，进入太医院。 |\n| 约公元1559年 | 约41岁 | （存疑）托病辞职，离开太医院，回乡行医并开始筹划《本草纲目》。 |\n| 公元1560年代-1570年代 | 40-60岁 | 长期进行实地考察与文献研究，撰写《本草纲目》。 |\n| 约公元1578年 | 约60岁 | 《本草纲目》初稿完成。 |\n| 约公元1580年 | 约62岁 | 拜访王世贞，获其作序推荐。 |\n| 公元1593年 | 75岁 | 在蕲州逝世。 |\n| 公元1596年 | 去世后3年 | 《本草纲目》（金陵版）首次出版。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖北省黄冈市蕲春县 | 30.226 | 115.436 |\n| 湖北省黄冈市 | 30.453 | 114.872 |\n| 湖北省十堰市丹江口市 | 32.400 | 111.004 |\n| 江西省九江市庐山市 | 29.554 | 116.012 |\n| 江苏省南京市 | 32.060 | 118.797 |\n| 北京市 | 39.904 | 116.407 |\n| 江苏省苏州市太仓市 | 31.459 | 121.109 |"};
+      const data = {"person": {"name": "李时珍", "title": "药圣", "description": "李时珍，字东璧，号濒湖，湖北蕲州人。他出身于世医之家，自幼热爱医药学，但曾遵从父愿参加科举，中秀才后屡试不中，遂决心弃儒从医。他医术精湛，曾被聘为楚王府奉祠正，并一度在太医院任职。为修正古代本草的错漏，他“远穷僻壤，遍询农渔”，足迹遍及大江南北，亲尝百草，结合实地考察与文献研究，历时近三十年，于晚年著成《本草纲目》。这部巨著系统总结了中国十六世纪以前的药物学成就，对后世影响深远，并传播至海外。", "quote": "药圣", "dynasty": "明代", "birthplace": "蕲州（今湖北省黄冈市蕲春县）", "avatar": "", "birth": {"date": "1518年", "location": "蕲州（今湖北省黄冈市蕲春县）", "lat": 30.226, "lng": 115.436}, "death": {"date": "1593年", "location": "蕲州（今湖北省黄冈市蕲春县）", "lat": 30.226, "lng": 115.436}, "lifespan": "75岁（按实岁计算）", "highlights": {"honor": "药圣", "status": "中国古代伟大的医药学家，被后世尊为“药圣”。", "identities": "医药学家、博物学家", "achievements": "历时27年编撰完成药物学巨著《本草纲目》；纠正了古代本草中的许多错误；创立了“脑为元神之府”的学说；在药物分类、方剂学、生物进化思想等方面有重要贡献。", "works": ["本草纲目"], "reviews": []}}, "locations": [{"name": "蕲州", "ancientName": "蕲州", "modernName": "湖北省黄冈市蕲春县", "lat": 30.226, "lng": 115.436, "type": "birth", "event": "出生于医学世家，从小耳濡目染，对医药产生浓厚兴趣。", "time": "公元1518年", "duration": "青少年时期", "significance": "奠定了其一生的志向与知识基础。", "works": [], "quoteLines": []}, {"name": "黄州府", "ancientName": "黄州府", "modernName": "湖北省黄冈市", "lat": 30.453, "lng": 114.872, "type": "normal", "event": "考中秀才，后三次赴武昌乡试均未中第。", "time": "约公元1531-1534年", "duration": "数年", "significance": "科举之路的挫折，促使其最终决心弃儒从医。", "works": [], "quoteLines": []}, {"name": "武当山", "ancientName": "武当山", "modernName": "湖北省十堰市丹江口市境内", "lat": 32.4, "lng": 111.004, "type": "normal", "event": "深入山区采集药物标本，考察珍稀药材如曼陀罗花、榔梅等。", "time": "多次考察，时间不详", "duration": "累计数月", "significance": "获取了大量第一手药物资料，验证了前人记载的真伪。", "works": [], "quoteLines": []}, {"name": "庐山", "ancientName": "庐山", "modernName": "江西省九江市庐山市", "lat": 29.554, "lng": 116.012, "type": "normal", "event": "考察药用植物与矿物，收集民间药方。", "time": "多次考察，时间不详", "duration": "累计数月", "significance": "丰富了《本草纲目》中关于南方药物的记载。", "works": ["本草纲目"], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "type": "normal", "event": "为《本草纲目》的出版寻求机会，与书商、文人交流。", "time": "约公元1570年代后期", "duration": "数年", "significance": "虽未能在南京立即刊刻，但扩大了著作的影响，为后续出版铺垫。", "works": ["本草纲目"], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "type": "normal", "event": "被推荐入太医院任职，得以阅读大量皇家珍藏的医书和各地进献的药材标本。", "time": "约公元1556-1559年（存疑）", "duration": "约三年（存疑）", "significance": "极大地开阔了眼界，积累了珍贵的文献与实物资料，为其著书打下关键基础。", "works": [], "quoteLines": []}, {"name": "太仓州", "ancientName": "太仓州", "modernName": "江苏省苏州市太仓市", "lat": 31.459, "lng": 121.109, "type": "normal", "event": "拜访当时文坛领袖王世贞，为其《本草纲目》作序。", "time": "约公元1580年", "duration": "短暂停留", "significance": "王世贞的序言高度评价了该书，提升了其学术地位与影响力。", "works": ["本草纲目"], "quoteLines": []}, {"name": "金陵（刻书地）", "ancientName": "金陵", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "type": "normal", "event": "《本草纲目》在胡承龙支持下首次刊刻出版（金陵版）。", "time": "公元1596年（李时珍去世后）", "duration": "不适用", "significance": "标志着这部巨著正式面世，流传后世。", "works": ["本草纲目"], "quoteLines": []}, {"name": "蕲州", "ancientName": "蕲州", "modernName": "湖北省黄冈市蕲春县", "lat": 30.226, "lng": 115.436, "type": "death", "event": "在家中逝世，未及亲见《本草纲目》出版。", "time": "公元1593年", "duration": "晚年", "significance": "毕生心血凝结的著作在其身后大放光芒。", "works": ["本草纲目"], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---", "markdown": "# 李时珍\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李时珍\n- **字**：东璧\n- **号**：濒湖\n- **时代**：明代\n- **出生**：公元1518年（具体日期存疑），蕲州（今湖北省黄冈市蕲春县）\n- **去世**：公元1593年，蕲州（今湖北省黄冈市蕲春县）\n- **享年**：75岁（按实岁计算）\n- **主要身份**：医药学家、博物学家\n- **历史地位**：中国古代伟大的医药学家，被后世尊为“药圣”。\n- **主要成就**：历时27年编撰完成药物学巨著《本草纲目》；纠正了古代本草中的许多错误；创立了“脑为元神之府”的学说；在药物分类、方剂学、生物进化思想等方面有重要贡献。\n\n### 生平概述\n李时珍，字东璧，号濒湖，湖北蕲州人。他出身于世医之家，自幼热爱医药学，但曾遵从父愿参加科举，中秀才后屡试不中，遂决心弃儒从医。他医术精湛，曾被聘为楚王府奉祠正，并一度在太医院任职。为修正古代本草的错漏，他“远穷僻壤，遍询农渔”，足迹遍及大江南北，亲尝百草，结合实地考察与文献研究，历时近三十年，于晚年著成《本草纲目》。这部巨著系统总结了中国十六世纪以前的药物学成就，对后世影响深远，并传播至海外。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以故乡蕲州为中心，足迹遍及湖北、湖南、安徽、江西、江苏、河北等地，进行药物考察与行医。\n- ⏱️ **时间跨度**：约公元1530年代至1593年，总年数约50余年。\n- 📍 **地理范围**：主要覆盖长江中下游流域及华北部分地区。\n- 🌟 **重要节点数量**：核心地点数量9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蕲州\n- **时间**：公元1518年\n- **停留时间**：青少年时期\n- **地点**：蕲州（今湖北省黄冈市蕲春县）\n- **事件**：出生于医学世家，从小耳濡目染，对医药产生浓厚兴趣。\n- **意义**：奠定了其一生的志向与知识基础。\n\n### 📍 重要地点：黄州府\n- **时间**：约公元1531-1534年\n- **停留时间**：数年\n- **地点**：黄州府（今湖北省黄冈市）\n- **事件**：考中秀才，后三次赴武昌乡试均未中第。\n- **意义**：科举之路的挫折，促使其最终决心弃儒从医。\n\n### 📍 重要地点：武当山\n- **时间**：多次考察，时间不详\n- **停留时间**：累计数月\n- **地点**：武当山（今湖北省十堰市丹江口市境内）\n- **事件**：深入山区采集药物标本，考察珍稀药材如曼陀罗花、榔梅等。\n- **意义**：获取了大量第一手药物资料，验证了前人记载的真伪。\n\n### 📍 重要地点：庐山\n- **时间**：多次考察，时间不详\n- **停留时间**：累计数月\n- **地点**：庐山（今江西省九江市庐山市）\n- **事件**：考察药用植物与矿物，收集民间药方。\n- **意义**：丰富了《本草纲目》中关于南方药物的记载。\n\n### 📍 重要地点：南京\n- **时间**：约公元1570年代后期\n- **停留时间**：数年\n- **地点**：南京（今江苏省南京市）\n- **事件**：为《本草纲目》的出版寻求机会，与书商、文人交流。\n- **意义**：虽未能在南京立即刊刻，但扩大了著作的影响，为后续出版铺垫。\n\n### 📍 重要地点：北京\n- **时间**：约公元1556-1559年（存疑）\n- **停留时间**：约三年（存疑）\n- **地点**：北京（今北京市）\n- **事件**：被推荐入太医院任职，得以阅读大量皇家珍藏的医书和各地进献的药材标本。\n- **意义**：极大地开阔了眼界，积累了珍贵的文献与实物资料，为其著书打下关键基础。\n\n### 📍 重要地点：安徽、江西等省山区\n- **时间**：编撰《本草纲目》期间\n- **停留时间**：累计数年\n- **地点**：安徽、江西等省山区（具体州县待考）\n- **事件**：进行广泛的实地药物调查与采集，“访采四方”。\n- **意义**：实践了“知之深则愈明”的科学考察方法，纠正了诸多文献谬误。\n\n### 📍 重要地点：太仓州\n- **时间**：约公元1580年\n- **停留时间**：短暂停留\n- **地点**：太仓州（今江苏省苏州市太仓市）\n- **事件**：拜访当时文坛领袖王世贞，为其《本草纲目》作序。\n- **意义**：王世贞的序言高度评价了该书，提升了其学术地位与影响力。\n\n### 📍 重要地点：金陵（刻书地）\n- **时间**：公元1596年（李时珍去世后）\n- **停留时间**：不适用\n- **地点**：金陵（今江苏省南京市）\n- **事件**：《本草纲目》在胡承龙支持下首次刊刻出版（金陵版）。\n- **意义**：标志着这部巨著正式面世，流传后世。\n\n### 🔴 去世地：蕲州\n- **时间**：公元1593年\n- **停留时间**：晚年\n- **地点**：蕲州（今湖北省黄冈市蕲春县）\n- **事件**：在家中逝世，未及亲见《本草纲目》出版。\n- **意义**：毕生心血凝结的著作在其身后大放光芒。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元1518年 | 0岁 | 出生于蕲州（今湖北蕲春）。 |\n| 约公元1531年 | 约13岁 | 考中秀才。 |\n| 约公元1534年 | 约16岁 | 乡试落第，决心弃儒从医。 |\n| 约公元1540年代 | 20余岁 | 开始独立行医，医术渐精。 |\n| 约公元1556年 | 约38岁 | （存疑）被荐入京，进入太医院。 |\n| 约公元1559年 | 约41岁 | （存疑）托病辞职，离开太医院，回乡行医并开始筹划《本草纲目》。 |\n| 公元1560年代-1570年代 | 40-60岁 | 长期进行实地考察与文献研究，撰写《本草纲目》。 |\n| 约公元1578年 | 约60岁 | 《本草纲目》初稿完成。 |\n| 约公元1580年 | 约62岁 | 拜访王世贞，获其作序推荐。 |\n| 公元1593年 | 75岁 | 在蕲州逝世。 |\n| 公元1596年 | 去世后3年 | 《本草纲目》（金陵版）首次出版。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：《本草纲目》选段（如介绍曼陀罗、三七等条目）\n- 核心要点：\n    - **重点**：体现了**实证精神**与**科学考察**方法，如“一一采视，颇得其真”。\n    - 文风**严谨详实**，兼具**文学性**，对药物形态、产地的描述生动准确。\n    - **重点**：蕴含了**格物致知**的儒家思想在自然科学中的实践。\n    - 通过具体案例（如纠正“穿山甲食蚁”错误）展现**怀疑精神**与**创新意识**。\n    - **重点**：其著作结构（释名、集解、正误、修治、气味、主治、发明、附方）体现了**系统化**的科学思维。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明代**医药学**发展的集大成者，代表了当时世界药物学的最高水平。\n    - 其个人经历反映了明代**科举制度**对知识分子的影响与部分士人“**不为良相，便为良医**”的价值取向。\n    - 《本草纲目》的成书过程体现了**私人修史著书**的传统与毅力。\n- 核心要点：\n    - **重点**：李时珍是**中国古代科学精神**的杰出代表，其方法论（实地考察、文献考辨、实验验证）具有近代科学萌芽特征。\n    - **重点**：《本草纲目》不仅是一部药典，更是一部**博物学**巨著，对中国乃至世界（如达尔文曾引用）的生物学、化学、矿物学发展都有贡献。\n    - 其成就的取得，离不开**家庭传承**（世医之家）、**个人志趣**与**时代背景**（明代商品经济发展，书籍出版便利）的结合。\n    - **重点**：后世尊其为“**药圣**”，与“医圣”张仲景齐名，是中国传统医学的标志性人物。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖北省黄冈市蕲春县 | 30.226 | 115.436 |\n| 湖北省黄冈市 | 30.453 | 114.872 |\n| 湖北省十堰市丹江口市 | 32.400 | 111.004 |\n| 江西省九江市庐山市 | 29.554 | 116.012 |\n| 江苏省南京市 | 32.060 | 118.797 |\n| 北京市 | 39.904 | 116.407 |\n| 江苏省苏州市太仓市 | 31.459 | 121.109 |", "relatedGraph": {"center": {"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "relationLabel": "中心人物", "isCenter": true}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐滨", "name": "徐滨", "file": "徐滨.html", "dynasty": "明代（具体时期存疑）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张岱", "name": "张岱", "file": "张岱.html", "dynasty": "明", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李时珍", "target": "王阳明", "label": "同时代人物", "confidence": null}, {"source": "李时珍", "target": "汤显祖", "label": "同时代人物", "confidence": null}, {"source": "李时珍", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "李时珍", "target": "徐滨", "label": "同时代人物", "confidence": null}, {"source": "李时珍", "target": "笛卡尔", "label": "同时代人物", "confidence": null}, {"source": "李时珍", "target": "张岱", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

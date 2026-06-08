@@ -1,6 +1,9 @@
 import json
 import os
-from typing import Dict, List
+import re
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 def _first_env(*names: str) -> str:
@@ -98,13 +101,426 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
     return inline + loader
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+STELLAR_HOME_DATA_JSON = REPO_ROOT / "storymap" / "examples" / "story_map" / "stellar_home_data.json"
+
+
+def _to_int(value: Any) -> Optional[int]:
+    try:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return int(value)
+        if isinstance(value, float):
+            return int(value)
+        text = str(value).strip()
+        if not text:
+            return None
+        m = re.search(r"(公元前|前)?\s*(-?\d{1,4})\s*年?", text)
+        if m:
+            num = int(m.group(2))
+            if m.group(1):
+                return -abs(num)
+            return num
+        m2 = re.search(r"-?\d{1,4}", text)
+        if m2:
+            return int(m2.group(0))
+    except Exception:
+        return None
+    return None
+
+
+def _normalize_dynasty(value: Any) -> str:
+    s = str(value or "").strip()
+    if not s:
+        return ""
+    for sep in ("（", "("):
+        if sep in s:
+            s = s.split(sep, 1)[0].strip()
+    for suffix in ("时期", "时代", "王朝"):
+        s = s.replace(suffix, "")
+    return s.strip()
+
+
+def _same_dynasty(a: Any, b: Any) -> bool:
+    sa = _normalize_dynasty(a)
+    sb = _normalize_dynasty(b)
+    if not sa or not sb:
+        return False
+    if sa == sb:
+        return True
+    if sa in sb or sb in sa:
+        return True
+    return len(sa) >= 2 and len(sb) >= 2 and sa[:2] == sb[:2]
+
+
+def _pick_year_range(person: Dict[str, Any], node: Optional[Dict[str, Any]] = None) -> tuple[Optional[int], Optional[int]]:
+    node = node or {}
+    birth = _to_int(((person.get("birth") or {}) if isinstance(person.get("birth"), dict) else {}).get("date"))
+    death = _to_int(((person.get("death") or {}) if isinstance(person.get("death"), dict) else {}).get("date"))
+    if birth is None:
+        birth = _to_int(node.get("birth_year"))
+    if death is None:
+        death = _to_int(node.get("death_year"))
+    if birth is None:
+        birth = _to_int(node.get("time_year"))
+    if death is None and birth is not None:
+        life_raw = str(person.get("lifespan") or "").strip()
+        life_years = _to_int(life_raw)
+        if life_years and 0 < life_years < 130:
+            death = birth + life_years
+    return birth, death
+
+
+@lru_cache(maxsize=1)
+def _load_stellar_home_data() -> Dict[str, Any]:
+    try:
+        if STELLAR_HOME_DATA_JSON.exists():
+            return json.loads(STELLAR_HOME_DATA_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {}
+
+
+def _extract_markdown_title(markdown: str) -> str:
+    text = str(markdown or "")
+    m = re.search(r"^\s*#\s+([^\n#]+)", text, flags=re.MULTILINE)
+    return str(m.group(1) or "").strip() if m else ""
+
+
+def _normalize_person_token(value: Any) -> str:
+    s = str(value or "").strip()
+    if not s:
+        return ""
+    s = re.sub(r"[（(].*?[）)]", "", s).strip()
+    s = re.sub(r"[《》【】\[\]<>\"“”‘’·•\s]+", "", s)
+    return s.strip()
+
+
+def _collect_node_aliases(node: Dict[str, Any]) -> List[str]:
+    out: List[str] = []
+    seen = set()
+    alias_noise = re.compile(r"存疑|待考|说法不一|史料|一说|本名|原名|今译|误作|未详")
+
+    def push(value: Any, *, primary: bool = False) -> None:
+        raw = str(value or "").strip()
+        if not raw:
+            return
+        norm = _normalize_person_token(raw)
+        if len(norm) < 2 or norm in seen:
+            return
+        if alias_noise.search(norm):
+            return
+        if not primary and len(norm) < 3:
+            return
+        seen.add(norm)
+        out.append(norm)
+
+    push(node.get("person"), primary=True)
+    for item in node.get("aliases") or []:
+        push(item)
+    return out
+
+
+def _guess_relation_label(context: str) -> str:
+    text = str(context or "")
+    if re.search(r"禅位|禅让|受禅|代汉", text):
+        return "禅让"
+    if re.search(r"父亲|母亲|兄长|弟弟|姐姐|妹妹|儿子|女儿|宗亲|皇叔|叔父|叔侄|兄弟|姐妹", text):
+        return "宗亲"
+    if re.search(r"师从|师事|老师|导师|弟子|门生|从学", text):
+        return "师生"
+    if re.search(r"好友|友人|朋友|结交|交游|唱和|酬答|相会", text):
+        return "好友"
+    if re.search(r"并称|齐名", text):
+        return "并称"
+    if re.search(r"拥立|废.*立|立.*为帝|挟天子|奉天子|迎.*至|迎.*都|控制|挟持|辅佐|主公|君臣|幕僚|部下|麾下|丞相", text):
+        return "君臣"
+    if re.search(r"政敌|对手|征讨|讨伐|反对|攻打|兵败|作乱", text):
+        return "对手"
+    return "人物关联"
+
+
+def _extract_markdown_relation_candidates(
+    markdown: str,
+    alias_to_idx: Dict[str, int],
+    nodes: List[Dict[str, Any]],
+    current_aliases: List[str],
+) -> List[tuple[float, str, Dict[str, Any], Optional[float]]]:
+    text = str(markdown or "")
+    if not text:
+        return []
+
+    current_set = {_normalize_person_token(x) for x in current_aliases if _normalize_person_token(x)}
+    hits: Dict[int, Dict[str, Any]] = {}
+    alias_items = sorted(alias_to_idx.items(), key=lambda item: len(item[0]), reverse=True)
+    for alias, idx in alias_items:
+        norm_alias = _normalize_person_token(alias)
+        if not norm_alias or norm_alias in current_set:
+            continue
+        start = 0
+        while True:
+            pos = text.find(alias, start)
+            if pos < 0:
+                break
+            start = pos + len(alias)
+            prefix = text[max(0, pos - 8):pos]
+            suffix = text[pos + len(alias):min(len(text), pos + len(alias) + 12)]
+            lo = max(0, pos - 10)
+            hi = min(len(text), pos + len(alias) + 10)
+            context = text[lo:hi]
+            item = hits.get(idx)
+            label = "人物关联"
+            suppress_sentence = False
+            if re.search(r"禅位于|禅让给|受禅于", prefix) or re.search(r"^(受禅|代汉|继位)", suffix):
+                label = "禅让"
+            elif "去世后" in suffix and "禅位" in suffix:
+                suppress_sentence = True
+            elif re.search(r"迎|挟持|控制|辅佐|拥立|废|立|奉天子|挟天子", prefix + suffix):
+                label = "君臣"
+            else:
+                label = _guess_relation_label(context)
+            used_sentence = False
+            if label == "人物关联" and not suppress_sentence:
+                left = max(text.rfind("。", 0, pos), text.rfind("\n", 0, pos), text.rfind("！", 0, pos), text.rfind("？", 0, pos))
+                right_candidates = [x for x in [text.find("。", pos), text.find("\n", pos), text.find("！", pos), text.find("？", pos)] if x >= 0]
+                right = min(right_candidates) if right_candidates else len(text)
+                sentence = text[(left + 1) if left >= 0 else 0:right]
+                label = _guess_relation_label(sentence)
+                used_sentence = label != "人物关联"
+            if label == "人物关联":
+                continue
+            score = 88.0
+            if label == "禅让":
+                score = 99.0
+            elif label == "君臣":
+                score = 97.0
+            elif label == "宗亲":
+                score = 96.0
+            elif label == "师生":
+                score = 95.0
+            elif label == "好友":
+                score = 94.0
+            elif label == "并称":
+                score = 93.0
+            elif label == "对手":
+                score = 92.0
+            if used_sentence:
+                score = min(score, 91.0)
+            if item is None or score > float(item.get("score") or 0):
+                hits[idx] = {"score": score, "label": label}
+    out: List[tuple[float, str, Dict[str, Any], Optional[float]]] = []
+    for idx, meta in hits.items():
+        if 0 <= idx < len(nodes):
+            out.append((float(meta["score"]), str(meta["label"]), nodes[idx], None))
+    out.sort(key=lambda item: (item[0], str(item[2].get("person") or "")), reverse=True)
+    return out
+
+
+def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[str, Any]:
+    person = data.get("person") if isinstance(data.get("person"), dict) else {}
+    person_name = str(person.get("name") or "").strip()
+    if not person_name:
+        return {"center": {}, "nodes": [], "links": []}
+
+    payload = _load_stellar_home_data()
+    raw_nodes = payload.get("nodes") if isinstance(payload.get("nodes"), list) else []
+    raw_edges = payload.get("edges") if isinstance(payload.get("edges"), list) else []
+
+    markdown = str(data.get("markdown") or "")
+    display_name = _extract_markdown_title(markdown) or person_name
+    current_aliases = [x for x in [person_name, display_name] if str(x or "").strip()]
+
+    nodes: List[Dict[str, Any]] = []
+    person_to_idx: Dict[str, int] = {}
+    alias_to_idx: Dict[str, int] = {}
+    for idx, raw in enumerate(raw_nodes):
+        if not isinstance(raw, dict):
+            continue
+        item = dict(raw)
+        item["_idx"] = idx
+        name = str(item.get("person") or "").strip()
+        if name:
+            person_to_idx[name] = idx
+        for alias in _collect_node_aliases(item):
+            alias_to_idx.setdefault(alias, idx)
+        nodes.append(item)
+
+    adjacency: Dict[int, List[tuple[int, Dict[str, Any]]]] = {}
+    for raw in raw_edges:
+        if not isinstance(raw, dict):
+            continue
+        try:
+            a = int(raw.get("a"))
+            b = int(raw.get("b"))
+        except Exception:
+            continue
+        if a < 0 or b < 0 or a == b or a >= len(nodes) or b >= len(nodes):
+            continue
+        adjacency.setdefault(a, []).append((b, raw))
+        adjacency.setdefault(b, []).append((a, raw))
+
+    current_idx = None
+    for alias in current_aliases:
+        current_idx = alias_to_idx.get(_normalize_person_token(alias))
+        if current_idx is not None:
+            break
+    if current_idx is None:
+        current_idx = person_to_idx.get(person_name)
+    current_node = nodes[current_idx] if current_idx is not None else {}
+    current_dynasty = str(person.get("dynasty") or current_node.get("dynasty") or "").strip()
+    current_birth, current_death = _pick_year_range(person, current_node)
+    current_tags = {
+        str(x).strip()
+        for x in (current_node.get("domain_tags") if isinstance(current_node.get("domain_tags"), list) else [])
+        if str(x).strip()
+    }
+
+    selected: List[Dict[str, Any]] = []
+    seen_names = {person_name, display_name, str(current_node.get("person") or "").strip()}
+
+    def add_candidate(node: Dict[str, Any], relation_label: str, score: float, source_type: str, confidence: Optional[float] = None) -> None:
+        name = str(node.get("person") or "").strip()
+        if not name or name in seen_names:
+            return
+        file_name = str(node.get("file") or f"{name}.html").strip()
+        selected.append(
+            {
+                "id": name,
+                "name": name,
+                "file": file_name,
+                "dynasty": str(node.get("dynasty") or "").strip(),
+                "relationLabel": str(relation_label or "相关人物").strip() or "相关人物",
+                "sourceType": source_type,
+                "confidence": round(float(confidence), 2) if confidence is not None else None,
+                "_score": float(score),
+            }
+        )
+        seen_names.add(name)
+
+    if current_idx is not None:
+        explicit_edges = sorted(
+            adjacency.get(current_idx, []),
+            key=lambda item: (
+                float(item[1].get("confidence") or 0),
+                float(item[1].get("weight") or 0),
+                str(nodes[item[0]].get("person") or ""),
+            ),
+            reverse=True,
+        )
+        for other_idx, edge in explicit_edges:
+            other = nodes[other_idx]
+            label = str(edge.get("label") or "相关人物").strip() or "相关人物"
+            edge_type = str(edge.get("type") or "graph").strip()
+            try:
+                confidence = float(edge.get("confidence"))
+            except Exception:
+                confidence = None
+            base_score = 100.0
+            if edge_type == "manual":
+                base_score = 104.0
+            elif edge_type == "same_book":
+                base_score = 78.0
+            score = base_score + (confidence or 0.0) * 10.0
+            try:
+                score += float(edge.get("weight") or 0)
+            except Exception:
+                pass
+            add_candidate(other, label, score, edge_type, confidence)
+            if len(selected) >= limit:
+                break
+
+    if len(selected) < limit:
+        for score, label, node, confidence in _extract_markdown_relation_candidates(markdown, alias_to_idx, nodes, current_aliases):
+            add_candidate(node, label, score, "markdown", confidence)
+            if len(selected) >= limit:
+                break
+
+    if len(selected) < limit:
+        fallback: List[tuple[float, str, Dict[str, Any], Optional[float]]] = []
+        for node in nodes:
+            name = str(node.get("person") or "").strip()
+            if not name or name in seen_names:
+                continue
+            score = 0.0
+            same_dynasty = _same_dynasty(current_dynasty, node.get("dynasty"))
+            cand_tags = {
+                str(x).strip()
+                for x in (node.get("domain_tags") if isinstance(node.get("domain_tags"), list) else [])
+                if str(x).strip()
+            }
+            shared_tags = current_tags & cand_tags
+            cand_birth = _to_int(node.get("birth_year")) or _to_int(node.get("time_year"))
+            cand_death = _to_int(node.get("death_year"))
+            overlap = False
+            if current_birth is not None and current_death is not None and cand_birth is not None and cand_death is not None:
+                overlap = max(current_birth, cand_birth) <= min(current_death, cand_death)
+            if same_dynasty:
+                score += 60.0
+            if overlap:
+                score += 24.0
+            elif current_birth is not None and cand_birth is not None:
+                diff = abs(current_birth - cand_birth)
+                if diff <= 30:
+                    score += 18.0
+                elif diff <= 80:
+                    score += 10.0
+                elif diff <= 160:
+                    score += 4.0
+            if shared_tags:
+                score += 10.0 + min(12.0, 4.0 * len(shared_tags))
+            if score <= 0:
+                continue
+            if same_dynasty and shared_tags:
+                label = "同朝同领域"
+            elif same_dynasty:
+                label = "同时代人物"
+            elif shared_tags:
+                label = "同领域人物"
+            elif overlap:
+                label = "同时代人物"
+            else:
+                label = "相关人物"
+            fallback.append((score, label, node, None))
+        fallback.sort(key=lambda item: (item[0], str(item[2].get("person") or "")), reverse=True)
+        for score, label, node, confidence in fallback:
+            add_candidate(node, label, score, "fallback", confidence)
+            if len(selected) >= limit:
+                break
+
+    selected = sorted(selected, key=lambda item: item.get("_score", 0), reverse=True)[:limit]
+    for item in selected:
+        item.pop("_score", None)
+
+    center_file = str(current_node.get("file") or f"{display_name}.html").strip()
+    center = {
+        "id": display_name,
+        "name": display_name,
+        "file": center_file,
+        "dynasty": current_dynasty,
+        "relationLabel": "中心人物",
+        "isCenter": True,
+    }
+    links = [
+        {
+            "source": display_name,
+            "target": item["name"],
+            "label": item.get("relationLabel") or "相关人物",
+            "confidence": item.get("confidence"),
+        }
+        for item in selected
+    ]
+    nodes_out = [center] + [{**item, "isCenter": False} for item in selected]
+    return {"center": center, "nodes": nodes_out, "links": links}
 
 
 def build_info_panel_html(_title: str, fields: Dict[str, str]) -> str:
+
     """
     构建基础地图页左上角的信息面板。
     """
-    wrap = ['<div class="bio-panel"><h3>人物简介</h3><div class="bio-body">']
     order = ["朝代", "身份", "生卒年", "主要事件", "主要作品", "历史地位", "一生行程"]
     for k in order:
         val = fields.get(k, "")
@@ -127,8 +543,11 @@ def render_profile_html(data: Dict[str, object]) -> str:
     """
     渲染完整人物页（头像 + 统计卡片 + 足迹时间轴 + 地图）。
     """
-    payload = json.dumps(data, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    name = (data.get("person", {}) or {}).get("name", "")
+    payload_dict = dict(data)
+    if not payload_dict.get("relatedGraph"):
+        payload_dict["relatedGraph"] = _build_related_people_graph(payload_dict)
+    payload = json.dumps(payload_dict, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+    name = (payload_dict.get("person", {}) or {}).get("name", "")
     title = f"{name}的人生足迹地图" if name else "人生足迹地图"
     amap_bootstrap = _amap_bootstrap_html()
     html = """<!DOCTYPE html>
@@ -206,7 +625,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -390,6 +809,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -462,13 +962,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\\n\\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\\s*)?(教材知识点与考点|教材知识点|考点)\\s*$/gm, '')
-  .replace(/^(#{0,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\\n'));
+  }
+  return deduped.join('\\n\\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\\s*)?(教材知识点与考点|教材知识点|考点)\\s*$/gm, '')
+      .replace(/^(#{0,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -590,6 +1140,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -735,7 +1292,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\\s*/)[0].length;
     const t = rawLine.trim();
@@ -871,7 +1441,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -1037,6 +1607,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1320,7 +1946,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1584,56 +2210,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1643,9 +2300,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1805,7 +2472,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1866,30 +2534,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

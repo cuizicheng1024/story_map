@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "宋应星", "title": "中国17世纪的工艺百科全书", "description": "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。", "quote": "《天工开物·序》：“此书于功名进取毫不相关也。”", "dynasty": "明朝", "birthplace": "古称江西奉新（今江西省宜春市奉新县）", "avatar": "", "birth": {"date": "1587年", "location": "古称江西奉新（今江西省宜春市奉新县）", "lat": 28.6833, "lng": 115.3833}, "death": {"date": "1661年", "location": "说法不一", "lat": null, "lng": null}, "lifespan": "说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）", "highlights": {"honor": "中国17世纪的工艺百科全书", "status": "百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "identities": "科学家、官员、诗人", "achievements": "", "works": ["天工开物"], "reviews": []}}, "locations": [{"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "type": "birth", "event": "出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。", "time": "公元1587年", "duration": "青少年时期", "significance": "人生起点，奠定了最初的学识基础。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "type": "normal", "event": "进入南昌府学或白鹿洞书院一类的学府深造，准备科举。", "time": "约万历年间", "duration": "数年", "significance": "系统学习儒家经典，结交友人，开阔眼界。", "works": [], "quoteLines": []}, {"name": "南昌（乡试）", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "type": "normal", "event": "与兄长宋应昇同科考中举人，名列第三。", "time": "公元1615年", "duration": "短期", "significance": "科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。", "works": [], "quoteLines": []}, {"name": "九江", "ancientName": "江西九江", "modernName": "江西省九江市", "lat": 29.705, "lng": 116.001, "type": "normal", "event": "多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。", "time": "约1616-1630年间（多次往返）", "duration": "短期", "significance": "沿途见闻为其积累了丰富的社会与自然观察素材。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。", "time": "约1616年、1619年、1623年、1626年、1629年等（多次）", "duration": "每次数月", "significance": "科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。", "works": [], "quoteLines": []}, {"name": "分宜", "ancientName": "江西袁州府分宜县", "modernName": "江西省新余市分宜县", "lat": 27.811, "lng": 114.683, "type": "normal", "event": "出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。", "time": "公元1634年 - 1638年", "duration": "4年", "significance": "**《天工开物》的主要撰写与完成地**。", "works": ["天工开物"], "quoteLines": ["《天工开物·序》：“此书于功名进取毫不相关也。”"]}, {"name": "汀州", "ancientName": "福建汀州府", "modernName": "福建省龙岩市长汀县", "lat": 25.833, "lng": 116.36, "type": "normal", "event": "升任汀州府推官（掌管刑狱的官员）。", "time": "公元1638年 - 1640年", "duration": "约2年", "significance": "任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。", "works": [], "quoteLines": []}, {"name": "亳州", "ancientName": "南直隶凤阳府亳州", "modernName": "安徽省亳州市", "lat": 33.869, "lng": 115.782, "type": "normal", "event": "出任亳州知州。此时明朝统治已岌岌可危，任期短暂。", "time": "约公元1641年 - 约公元1643年", "duration": "约2年", "significance": "其仕途的最高点，但不久即因时局动荡而弃官归里。", "works": [], "quoteLines": []}, {"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "type": "death", "event": "明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。", "time": "说法不一，约在公元1661年至1666年间（存疑）", "duration": "晚年约20年", "significance": "人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "markdown": "# 宋应星\n\n## 人物档案\n\n### 基本信息\n- **姓名**：宋应星\n- **别名**：宋长庚（一说）\n- **时代**：明朝\n- **出生**：公元1587年，古称江西奉新（今江西省宜春市奉新县）\n- **去世**：说法不一，约在公元1661年至1666年间（存疑），古称江西奉新（今江西省宜春市奉新县）\n- **享年**：说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）\n- **主要身份**：科学家、官员、诗人\n- **历史地位**：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。\n- **主要成就**：\n    - 撰写了中国古代科技集大成之作《天工开物》。\n    - 系统总结了明代农业和手工业的生产技术。\n    - 批判了当时理学空谈心性的学风，提倡“实学”与经世致用。\n    - 在物理学（如声学）等领域亦有观察与记录。\n\n### 生平概述\n宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要集中在江西本省，并延伸至福建、安徽、浙江、北京等地，进行科举、为官与游历考察。\n- ⏱️ **时间跨度**：约1587年 - 约1666年，总跨度约79年。\n- 📍 **地理范围**：主要覆盖今江西省、福建省、安徽省、浙江省及北京市。\n- 🌟 **重要节点数量**：11个核心地点（含存疑地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：奉新\n- **时间**：公元1587年\n- **停留时间**：青少年时期\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。\n- **意义**：人生起点，奠定了最初的学识基础。\n\n### 📍 重要地点：南昌\n- **时间**：约万历年间\n- **停留时间**：数年\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：进入南昌府学或白鹿洞书院一类的学府深造，准备科举。\n- **意义**：系统学习儒家经典，结交友人，开阔眼界。\n\n### 📍 重要地点：南昌（乡试）\n- **时间**：公元1615年\n- **停留时间**：短期\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：与兄长宋应昇同科考中举人，名列第三。\n- **意义**：科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。\n\n### 📍 重要地点：九江\n- **时间**：约1616-1630年间（多次往返）\n- **停留时间**：短期\n- **地点**：古称江西九江（今江西省九江市）\n- **事件**：多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。\n- **意义**：沿途见闻为其积累了丰富的社会与自然观察素材。\n\n### 📍 重要地点：北京\n- **时间**：约1616年、1619年、1623年、1626年、1629年等（多次）\n- **停留时间**：每次数月\n- **地点**：古称北京（今北京市）\n- **事件**：五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。\n- **意义**：科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。\n\n### 📍 重要地点：分宜\n- **时间**：公元1634年 - 1638年\n- **停留时间**：4年\n- **地点**：古称江西袁州府分宜县（今江西省新余市分宜县）\n- **事件**：出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。\n- **意义**：**《天工开物》的主要撰写与完成地**。\n- **名篇名句**：《天工开物·序》：“此书于功名进取毫不相关也。”\n\n### 📍 重要地点：汀州\n- **时间**：公元1638年 - 1640年\n- **停留时间**：约2年\n- **地点**：古称福建汀州府（今福建省龙岩市长汀县）\n- **事件**：升任汀州府推官（掌管刑狱的官员）。\n- **意义**：任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。\n\n### 📍 重要地点：亳州\n- **时间**：约公元1641年 - 约公元1643年\n- **停留时间**：约2年\n- **地点**：古称南直隶凤阳府亳州（今安徽省亳州市）\n- **事件**：出任亳州知州。此时明朝统治已岌岌可危，任期短暂。\n- **意义**：其仕途的最高点，但不久即因时局动荡而弃官归里。\n\n### 📍 重要地点：杭州（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说浙江杭州（今浙江省杭州市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 📍 重要地点：南京（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说南直隶应天府（今江苏省南京市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 🔴 去世地：奉新\n- **时间**：说法不一，约在公元1661年至1666年间（存疑）\n- **停留时间**：晚年约20年\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。\n- **意义**：人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1587 | 1岁 | 出生于江西奉新 |\n| 1615 | 29岁 | 考中举人 |\n| 1616-1629 | 30-43岁 | 五次赴京会试，均落第 |\n| 1634 | 48岁 | 出任分宜县教谕 |\n| 1637 | 51岁 | **《天工开物》初刻本刊行** |\n| 1638 | 52岁 | 升任汀州府推官 |\n| 约1641 | 约55岁 | 出任亳州知州（约） |\n| 约1643 | 约57岁 | 弃官归乡，隐居奉新（约） |\n| 约1661-1666 | 约74-79岁 | 在奉新去世（说法不一） |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 江西省宜春市奉新县 | 28.6833 | 115.3833 |\n| 江西省南昌市 | 28.6830 | 115.8580 |\n| 江西省九江市 | 29.7050 | 116.0010 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江西省新余市分宜县 | 27.8110 | 114.6830 |\n| 福建省龙岩市长汀县 | 25.8330 | 116.3600 |\n| 安徽省亳州市 | 33.8690 | 115.7820 |"};
+      const data = {"person": {"name": "宋应星", "title": "中国17世纪的工艺百科全书", "description": "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。", "quote": "《天工开物·序》：“此书于功名进取毫不相关也。”", "dynasty": "明朝", "birthplace": "古称江西奉新（今江西省宜春市奉新县）", "avatar": "", "birth": {"date": "1587年", "location": "古称江西奉新（今江西省宜春市奉新县）", "lat": 28.6833, "lng": 115.3833}, "death": {"date": "1661年", "location": "说法不一", "lat": null, "lng": null}, "lifespan": "说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）", "highlights": {"honor": "中国17世纪的工艺百科全书", "status": "百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "identities": "科学家、官员、诗人", "achievements": "", "works": ["天工开物"], "reviews": []}}, "locations": [{"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "type": "birth", "event": "出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。", "time": "公元1587年", "duration": "青少年时期", "significance": "人生起点，奠定了最初的学识基础。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "type": "normal", "event": "进入南昌府学或白鹿洞书院一类的学府深造，准备科举。", "time": "约万历年间", "duration": "数年", "significance": "系统学习儒家经典，结交友人，开阔眼界。", "works": [], "quoteLines": []}, {"name": "南昌（乡试）", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "type": "normal", "event": "与兄长宋应昇同科考中举人，名列第三。", "time": "公元1615年", "duration": "短期", "significance": "科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。", "works": [], "quoteLines": []}, {"name": "九江", "ancientName": "江西九江", "modernName": "江西省九江市", "lat": 29.705, "lng": 116.001, "type": "normal", "event": "多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。", "time": "约1616-1630年间（多次往返）", "duration": "短期", "significance": "沿途见闻为其积累了丰富的社会与自然观察素材。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "type": "normal", "event": "五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。", "time": "约1616年、1619年、1623年、1626年、1629年等（多次）", "duration": "每次数月", "significance": "科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。", "works": [], "quoteLines": []}, {"name": "分宜", "ancientName": "江西袁州府分宜县", "modernName": "江西省新余市分宜县", "lat": 27.811, "lng": 114.683, "type": "normal", "event": "出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。", "time": "公元1634年 - 1638年", "duration": "4年", "significance": "**《天工开物》的主要撰写与完成地**。", "works": ["天工开物"], "quoteLines": ["《天工开物·序》：“此书于功名进取毫不相关也。”"]}, {"name": "汀州", "ancientName": "福建汀州府", "modernName": "福建省龙岩市长汀县", "lat": 25.833, "lng": 116.36, "type": "normal", "event": "升任汀州府推官（掌管刑狱的官员）。", "time": "公元1638年 - 1640年", "duration": "约2年", "significance": "任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。", "works": [], "quoteLines": []}, {"name": "亳州", "ancientName": "南直隶凤阳府亳州", "modernName": "安徽省亳州市", "lat": 33.869, "lng": 115.782, "type": "normal", "event": "出任亳州知州。此时明朝统治已岌岌可危，任期短暂。", "time": "约公元1641年 - 约公元1643年", "duration": "约2年", "significance": "其仕途的最高点，但不久即因时局动荡而弃官归里。", "works": [], "quoteLines": []}, {"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "type": "death", "event": "明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。", "time": "说法不一，约在公元1661年至1666年间（存疑）", "duration": "晚年约20年", "significance": "人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "markdown": "# 宋应星\n\n## 人物档案\n\n### 基本信息\n- **姓名**：宋应星\n- **别名**：宋长庚（一说）\n- **时代**：明朝\n- **出生**：公元1587年，古称江西奉新（今江西省宜春市奉新县）\n- **去世**：说法不一，约在公元1661年至1666年间（存疑），古称江西奉新（今江西省宜春市奉新县）\n- **享年**：说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）\n- **主要身份**：科学家、官员、诗人\n- **历史地位**：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。\n- **主要成就**：\n    - 撰写了中国古代科技集大成之作《天工开物》。\n    - 系统总结了明代农业和手工业的生产技术。\n    - 批判了当时理学空谈心性的学风，提倡“实学”与经世致用。\n    - 在物理学（如声学）等领域亦有观察与记录。\n\n### 生平概述\n宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要集中在江西本省，并延伸至福建、安徽、浙江、北京等地，进行科举、为官与游历考察。\n- ⏱️ **时间跨度**：约1587年 - 约1666年，总跨度约79年。\n- 📍 **地理范围**：主要覆盖今江西省、福建省、安徽省、浙江省及北京市。\n- 🌟 **重要节点数量**：11个核心地点（含存疑地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：奉新\n- **时间**：公元1587年\n- **停留时间**：青少年时期\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。\n- **意义**：人生起点，奠定了最初的学识基础。\n\n### 📍 重要地点：南昌\n- **时间**：约万历年间\n- **停留时间**：数年\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：进入南昌府学或白鹿洞书院一类的学府深造，准备科举。\n- **意义**：系统学习儒家经典，结交友人，开阔眼界。\n\n### 📍 重要地点：南昌（乡试）\n- **时间**：公元1615年\n- **停留时间**：短期\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：与兄长宋应昇同科考中举人，名列第三。\n- **意义**：科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。\n\n### 📍 重要地点：九江\n- **时间**：约1616-1630年间（多次往返）\n- **停留时间**：短期\n- **地点**：古称江西九江（今江西省九江市）\n- **事件**：多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。\n- **意义**：沿途见闻为其积累了丰富的社会与自然观察素材。\n\n### 📍 重要地点：北京\n- **时间**：约1616年、1619年、1623年、1626年、1629年等（多次）\n- **停留时间**：每次数月\n- **地点**：古称北京（今北京市）\n- **事件**：五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。\n- **意义**：科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。\n\n### 📍 重要地点：分宜\n- **时间**：公元1634年 - 1638年\n- **停留时间**：4年\n- **地点**：古称江西袁州府分宜县（今江西省新余市分宜县）\n- **事件**：出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。\n- **意义**：**《天工开物》的主要撰写与完成地**。\n- **名篇名句**：《天工开物·序》：“此书于功名进取毫不相关也。”\n\n### 📍 重要地点：汀州\n- **时间**：公元1638年 - 1640年\n- **停留时间**：约2年\n- **地点**：古称福建汀州府（今福建省龙岩市长汀县）\n- **事件**：升任汀州府推官（掌管刑狱的官员）。\n- **意义**：任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。\n\n### 📍 重要地点：亳州\n- **时间**：约公元1641年 - 约公元1643年\n- **停留时间**：约2年\n- **地点**：古称南直隶凤阳府亳州（今安徽省亳州市）\n- **事件**：出任亳州知州。此时明朝统治已岌岌可危，任期短暂。\n- **意义**：其仕途的最高点，但不久即因时局动荡而弃官归里。\n\n### 📍 重要地点：杭州（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说浙江杭州（今浙江省杭州市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 📍 重要地点：南京（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说南直隶应天府（今江苏省南京市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 🔴 去世地：奉新\n- **时间**：说法不一，约在公元1661年至1666年间（存疑）\n- **停留时间**：晚年约20年\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。\n- **意义**：人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1587 | 1岁 | 出生于江西奉新 |\n| 1615 | 29岁 | 考中举人 |\n| 1616-1629 | 30-43岁 | 五次赴京会试，均落第 |\n| 1634 | 48岁 | 出任分宜县教谕 |\n| 1637 | 51岁 | **《天工开物》初刻本刊行** |\n| 1638 | 52岁 | 升任汀州府推官 |\n| 约1641 | 约55岁 | 出任亳州知州（约） |\n| 约1643 | 约57岁 | 弃官归乡，隐居奉新（约） |\n| 约1661-1666 | 约74-79岁 | 在奉新去世（说法不一） |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 江西省宜春市奉新县 | 28.6833 | 115.3833 |\n| 江西省南昌市 | 28.6830 | 115.8580 |\n| 江西省九江市 | 29.7050 | 116.0010 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江西省新余市分宜县 | 27.8110 | 114.6830 |\n| 福建省龙岩市长汀县 | 25.8330 | 116.3600 |\n| 安徽省亳州市 | 33.8690 | 115.7820 |", "relatedGraph": {"center": {"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "relationLabel": "中心人物", "isCenter": true}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王坤", "name": "王坤", "file": "王坤.html", "dynasty": "明朝（嘉靖、万历年间）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "戚继光", "name": "戚继光", "file": "戚继光.html", "dynasty": "明朝", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐光启", "name": "徐光启", "file": "徐光启.html", "dynasty": "明朝", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "宋应星", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "郑成功", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "笛卡尔", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "王坤", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "戚继光", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "徐光启", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

@@ -140,7 +140,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -324,6 +324,87 @@ body {
   white-space: nowrap;
   font-family: 'Noto Serif SC', serif;
 }
+.related-graph-stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
+}
+.related-graph-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 180, 150, 0.35);
+  pointer-events: none;
+}
+.related-graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  text-align: center;
+}
+.related-graph-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.related-graph-link:hover .related-graph-dot {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+}
+.related-graph-dot {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  border: 2px solid rgba(192, 57, 43, 0.28);
+  color: #7c2d12;
+  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.related-graph-dot.center {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
+  color: #fff;
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+}
+.related-graph-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.related-graph-label.center {
+  color: #7c2d12;
+  font-size: 16px;
+}
+.related-graph-meta {
+  font-size: 12px;
+  color: #9a3412;
+  line-height: 1.2;
+}
+.related-graph-edge-tag {
+  fill: rgba(255, 250, 240, 0.98);
+  stroke: rgba(200, 180, 150, 0.7);
+  stroke-width: 0.18;
+}
+.related-graph-edge-text {
+  fill: #9a3412;
+  font-size: 1.45px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -386,7 +467,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "费尔南多·德·麦哲伦", "title": "地圆说", "description": "麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险。因在本国不受重视，后转投西班牙。1519年，在西班牙国王支持下，率领船队从西班牙（塞维利亚地区）出发，寻找通往东方的西航路线。历经艰险穿越美洲南端海峡（后命名为麦哲伦海峡），横渡太平洋，于1521年抵达菲律宾群岛。在介入当地部落冲突时，于麦克坦岛战死。其船队中“维多利亚号”最终于1522年返回西班牙，完成了人类首次环球航行，深刻改变了世界地理认知。", "quote": "地圆说", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "birthplace": "葡萄牙王国波尔图（今葡萄牙波尔图）", "avatar": "", "birth": {"date": "1480年", "location": "葡萄牙王国波尔图（今葡萄牙波尔图）", "lat": 41.1579, "lng": -8.6291}, "death": {"date": "1521年", "location": "麦克坦岛（今菲律宾宿务省麦克坦岛）", "lat": 10.3, "lng": 123.95}, "lifespan": "约41岁（因出生年份不确切，此为估算值）", "highlights": {"honor": "地圆说", "status": "首次环球航行的组织者和领导者（其本人于途中去世，船队最终完成了环球航行），其航行以实践证明了地球大部分水域相连，推动了“地圆说”的确立。", "identities": "航海家、探险家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "波尔图", "ancientName": "葡萄牙王国波尔图", "modernName": "葡萄牙波尔图", "lat": 41.1579, "lng": -8.6291, "type": "birth", "event": "出生并成长于一个下层贵族家庭。", "time": "约1480年", "duration": "童年及少年时期（约1480年-约1505年）", "significance": "其葡萄牙国籍与早年环境，为他日后投身航海事业奠定了基础。", "works": [], "quoteLines": []}, {"name": "里斯本", "ancientName": "葡萄牙王国里斯本", "modernName": "葡萄牙里斯本", "lat": 38.7223, "lng": -9.1393, "type": "normal", "event": "作为士兵随葡萄牙舰队前往印度，参与殖民战争和贸易。在战斗中负伤并落下跛足。", "time": "约1505年-1512年", "duration": "数年", "significance": "积累了早期远洋航行和在东方作战的经验，熟悉了通往东方的航线。", "works": [], "quoteLines": []}, {"name": "马六甲", "ancientName": "马六甲苏丹国马六甲", "modernName": "马来西亚马六甲", "lat": 2.1896, "lng": 102.2501, "type": "normal", "event": "随葡萄牙舰队征服马六甲，并在此服役。", "time": "约1511年-1512年", "duration": "数月", "significance": "深入东南亚香料贸易核心区，获得了关于“香料群岛”以东广阔海域的宝贵知识，萌生了西行到达东方的想法。", "works": [], "quoteLines": []}, {"name": "塞维利亚", "ancientName": "卡斯蒂利亚王国塞维利亚", "modernName": "西班牙塞维利亚", "lat": 37.3891, "lng": -5.9845, "type": "normal", "event": "因在葡萄牙不得志，前往西班牙寻求支持。向西班牙国王查理一世（即神圣罗马帝国皇帝查理五世）提出了西行到达香料群岛的计划，并获得批准和资助。", "time": "1517年-1519年", "duration": "约2年", "significance": "人生转折点，获得了实现环球航行计划的政治与经济支持。", "works": [], "quoteLines": []}, {"name": "圣卢卡尔-德巴拉梅达", "ancientName": "卡斯蒂利亚王国圣卢卡尔-德巴拉梅达", "modernName": "西班牙圣卢卡尔-德巴拉梅达", "lat": 36.7726, "lng": -6.3536, "type": "normal", "event": "率领由5艘船和约270人组成的船队，从这里启航，开始环球航行。", "time": "1519年9月20日", "duration": "出发港", "significance": "人类首次环球航行的正式起点。", "works": [], "quoteLines": []}, {"name": "圣胡利安港", "ancientName": "巴塔哥尼亚地区圣胡利安港", "modernName": "阿根廷圣胡利安港", "lat": -49.3056, "lng": -67.7136, "type": "normal", "event": "船队在此越冬，期间发生了部分船长的叛乱。麦哲伦果断镇压，处决了叛乱首领，巩固了指挥权。", "time": "1520年4月-8月", "duration": "约5个月", "significance": "度过了航行中最严重的内部危机，确保了探险队的存续和继续西行。", "works": [], "quoteLines": []}, {"name": "麦哲伦海峡", "ancientName": "南美洲大陆南端海峡", "modernName": "智利与火地岛之间的麦哲伦海峡", "lat": -53.0, "lng": -71.0, "type": "normal", "event": "发现了这条曲折、风暴频繁但最终连通大西洋与太平洋的海峡，并成功穿越。", "time": "1520年10月-1520年11月", "duration": "38天", "significance": "发现了通往太平洋的关键通道，是地理上的重大发现，也是航行技术上的巨大胜利。", "works": [], "quoteLines": []}, {"name": "关岛", "ancientName": "关岛", "modernName": "美国关岛", "lat": 13.4443, "lng": 144.7937, "type": "normal", "event": "船队横渡太平洋后首次登陆，补充给养。", "time": "1521年3月", "duration": "短暂经停", "significance": "标志着船队成功穿越太平洋，抵达了有人居住的岛屿。", "works": [], "quoteLines": []}, {"name": "麦克坦岛", "ancientName": "菲律宾群岛麦克坦岛", "modernName": "菲律宾宿务省麦克坦岛", "lat": 10.3, "lng": 123.95, "type": "death", "event": "为帮助盟友征服敌对部落，率武装人员登陆麦克坦岛，与当地土著首领拉普拉普的部众作战，最终战死。", "time": "1521年4月27日", "duration": "战斗中阵亡", "significance": "环球航行的领导者未能亲自完成旅程，但其船队继承了他的遗志继续前行。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---", "markdown": "# 麦哲伦\n\n## 人物档案\n\n### 基本信息\n- **姓名**：费尔南多·德·麦哲伦\n- **时代**：地理大发现时代（15世纪末-16世纪初）\n- **出生**：约1480年（年份存疑），葡萄牙王国波尔图（今葡萄牙波尔图）\n- **去世**：1521年4月27日，麦克坦岛（今菲律宾宿务省麦克坦岛）\n- **享年**：约41岁（因出生年份不确切，此为估算值）\n- **主要身份**：航海家、探险家\n- **历史地位**：首次环球航行的组织者和领导者（其本人于途中去世，船队最终完成了环球航行），其航行以实践证明了地球大部分水域相连，推动了“地圆说”的确立。\n- **主要成就**：\n    - 组织并领导了首次环球航行的船队。\n    - 发现并穿越了连接大西洋和太平洋的麦哲伦海峡。\n    - 航行中横渡了太平洋，其规模和航程在当时史无前例。\n    - 航行证实了地球大部分水域是相连的，推动了“地圆说”的确立。\n\n### 生平概述\n麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险。因在本国不受重视，后转投西班牙。1519年，在西班牙国王支持下，率领船队从西班牙（塞维利亚地区）出发，寻找通往东方的西航路线。历经艰险穿越美洲南端海峡（后命名为麦哲伦海峡），横渡太平洋，于1521年抵达菲律宾群岛。在介入当地部落冲突时，于麦克坦岛战死。其船队中“维多利亚号”最终于1522年返回西班牙，完成了人类首次环球航行，深刻改变了世界地理认知。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从欧洲西南部出发，向西穿越大西洋，沿南美洲东岸南下，穿过海峡横渡太平洋，最终抵达亚洲东南部的群岛。\n- ⏱️ **时间跨度**：1505年-1521年（主要航海生涯），环球航行自1519年至1522年（船队完成）。\n- 📍 **地理范围**：覆盖欧洲伊比利亚半岛、西非、南美洲东南海岸、太平洋、东南亚菲律宾群岛。\n- 🌟 **重要节点数量**：8个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：波尔图\n- **时间**：约1480年\n- **停留时间**：童年及少年时期（约1480年-约1505年）\n- **地点**：葡萄牙王国波尔图（今葡萄牙波尔图）\n- **事件**：出生并成长于一个下层贵族家庭。\n- **意义**：其葡萄牙国籍与早年环境，为他日后投身航海事业奠定了基础。\n\n### 📍 重要地点：里斯本\n- **时间**：约1505年-1512年\n- **停留时间**：数年\n- **地点**：葡萄牙王国里斯本（今葡萄牙里斯本）\n- **事件**：作为士兵随葡萄牙舰队前往印度，参与殖民战争和贸易。在战斗中负伤并落下跛足。\n- **意义**：积累了早期远洋航行和在东方作战的经验，熟悉了通往东方的航线。\n\n### 📍 重要地点：马六甲\n- **时间**：约1511年-1512年\n- **停留时间**：数月\n- **地点**：马六甲苏丹国马六甲（今马来西亚马六甲）\n- **事件**：随葡萄牙舰队征服马六甲，并在此服役。\n- **意义**：深入东南亚香料贸易核心区，获得了关于“香料群岛”以东广阔海域的宝贵知识，萌生了西行到达东方的想法。\n\n### 📍 重要地点：塞维利亚\n- **时间**：1517年-1519年\n- **停留时间**：约2年\n- **地点**：卡斯蒂利亚王国塞维利亚（今西班牙塞维利亚）\n- **事件**：因在葡萄牙不得志，前往西班牙寻求支持。向西班牙国王查理一世（即神圣罗马帝国皇帝查理五世）提出了西行到达香料群岛的计划，并获得批准和资助。\n- **意义**：人生转折点，获得了实现环球航行计划的政治与经济支持。\n\n### 📍 重要地点：圣卢卡尔-德巴拉梅达\n- **时间**：1519年9月20日\n- **停留时间**：出发港\n- **地点**：卡斯蒂利亚王国圣卢卡尔-德巴拉梅达（今西班牙圣卢卡尔-德巴拉梅达）\n- **事件**：率领由5艘船和约270人组成的船队，从这里启航，开始环球航行。\n- **意义**：人类首次环球航行的正式起点。\n\n### 📍 重要地点：圣胡利安港\n- **时间**：1520年4月-8月\n- **停留时间**：约5个月\n- **地点**：巴塔哥尼亚地区圣胡利安港（今阿根廷圣胡利安港）\n- **事件**：船队在此越冬，期间发生了部分船长的叛乱。麦哲伦果断镇压，处决了叛乱首领，巩固了指挥权。\n- **意义**：度过了航行中最严重的内部危机，确保了探险队的存续和继续西行。\n\n### 📍 重要地点：麦哲伦海峡\n- **时间**：1520年10月-1520年11月\n- **停留时间**：38天\n- **地点**：南美洲大陆南端海峡（今智利与火地岛之间的麦哲伦海峡）\n- **事件**：发现了这条曲折、风暴频繁但最终连通大西洋与太平洋的海峡，并成功穿越。\n- **意义**：发现了通往太平洋的关键通道，是地理上的重大发现，也是航行技术上的巨大胜利。\n\n### 📍 重要地点：关岛\n- **时间**：1521年3月\n- **停留时间**：短暂经停\n- **地点**：关岛（今美国关岛）\n- **事件**：船队横渡太平洋后首次登陆，补充给养。\n- **意义**：标志着船队成功穿越太平洋，抵达了有人居住的岛屿。\n\n### 🔴 去世地：麦克坦岛\n- **时间**：1521年4月27日\n- **停留时间**：战斗中阵亡\n- **地点**：菲律宾群岛麦克坦岛（今菲律宾宿务省麦克坦岛）\n- **事件**：为帮助盟友征服敌对部落，率武装人员登陆麦克坦岛，与当地土著首领拉普拉普的部众作战，最终战死。\n- **意义**：环球航行的领导者未能亲自完成旅程，但其船队继承了他的遗志继续前行。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1480年 | - | 出生于葡萄牙波尔图（年份存疑）。 |\n| 约1505年 | 约25岁 | 前往印度，开始东方殖民生涯。 |\n| 约1511年 | 约31岁 | 参与征服马六甲，抵达东南亚。 |\n| 1517年 | 约37岁 | 离开葡萄牙，前往西班牙寻求支持。 |\n| 1518年 | 约38岁 | 与西班牙国王签订航行协议，获准组织西行探险。 |\n| 1519年9月 | 约39岁 | 率船队从西班牙圣卢卡尔启航。 |\n| 1520年4月-8月 | 约40岁 | 在圣胡利安港镇压叛乱，越冬。 |\n| 1520年10月-11月 | 约40岁 | 发现并穿越麦哲伦海峡，进入太平洋。 |\n| 1521年3月 | 约41岁 | 抵达关岛，随后进入菲律宾群岛。 |\n| 1521年4月27日 | 约41岁 | 在麦克坦岛冲突中战死。 |\n| 1522年9月 | - | 其船队仅存的“维多利亚号”返回西班牙，完成环球航行。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 波尔图，葡萄牙 | 41.1579 | -8.6291 |\n| 里斯本，葡萄牙 | 38.7223 | -9.1393 |\n| 马六甲，马来西亚 | 2.1896 | 102.2501 |\n| 塞维利亚，西班牙 | 37.3891 | -5.9845 |\n| 圣卢卡尔-德巴拉梅达，西班牙 | 36.7726 | -6.3536 |\n| 圣胡利安港，阿根廷 | -49.3056 | -67.7136 |\n| 麦哲伦海峡（南美洲南端） | -53.0000 | -71.0000 |\n| 关岛，美国 | 13.4443 | 144.7937 |\n| 麦克坦岛，菲律宾 | 10.3000 | 123.9500 |"};
+      const data = {"person": {"name": "费尔南多·德·麦哲伦", "title": "地圆说", "description": "麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险。因在本国不受重视，后转投西班牙。1519年，在西班牙国王支持下，率领船队从西班牙（塞维利亚地区）出发，寻找通往东方的西航路线。历经艰险穿越美洲南端海峡（后命名为麦哲伦海峡），横渡太平洋，于1521年抵达菲律宾群岛。在介入当地部落冲突时，于麦克坦岛战死。其船队中“维多利亚号”最终于1522年返回西班牙，完成了人类首次环球航行，深刻改变了世界地理认知。", "quote": "地圆说", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "birthplace": "葡萄牙王国波尔图（今葡萄牙波尔图）", "avatar": "", "birth": {"date": "1480年", "location": "葡萄牙王国波尔图（今葡萄牙波尔图）", "lat": 41.1579, "lng": -8.6291}, "death": {"date": "1521年", "location": "麦克坦岛（今菲律宾宿务省麦克坦岛）", "lat": 10.3, "lng": 123.95}, "lifespan": "约41岁（因出生年份不确切，此为估算值）", "highlights": {"honor": "地圆说", "status": "首次环球航行的组织者和领导者（其本人于途中去世，船队最终完成了环球航行），其航行以实践证明了地球大部分水域相连，推动了“地圆说”的确立。", "identities": "航海家、探险家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "波尔图", "ancientName": "葡萄牙王国波尔图", "modernName": "葡萄牙波尔图", "lat": 41.1579, "lng": -8.6291, "type": "birth", "event": "出生并成长于一个下层贵族家庭。", "time": "约1480年", "duration": "童年及少年时期（约1480年-约1505年）", "significance": "其葡萄牙国籍与早年环境，为他日后投身航海事业奠定了基础。", "works": [], "quoteLines": []}, {"name": "里斯本", "ancientName": "葡萄牙王国里斯本", "modernName": "葡萄牙里斯本", "lat": 38.7223, "lng": -9.1393, "type": "normal", "event": "作为士兵随葡萄牙舰队前往印度，参与殖民战争和贸易。在战斗中负伤并落下跛足。", "time": "约1505年-1512年", "duration": "数年", "significance": "积累了早期远洋航行和在东方作战的经验，熟悉了通往东方的航线。", "works": [], "quoteLines": []}, {"name": "马六甲", "ancientName": "马六甲苏丹国马六甲", "modernName": "马来西亚马六甲", "lat": 2.1896, "lng": 102.2501, "type": "normal", "event": "随葡萄牙舰队征服马六甲，并在此服役。", "time": "约1511年-1512年", "duration": "数月", "significance": "深入东南亚香料贸易核心区，获得了关于“香料群岛”以东广阔海域的宝贵知识，萌生了西行到达东方的想法。", "works": [], "quoteLines": []}, {"name": "塞维利亚", "ancientName": "卡斯蒂利亚王国塞维利亚", "modernName": "西班牙塞维利亚", "lat": 37.3891, "lng": -5.9845, "type": "normal", "event": "因在葡萄牙不得志，前往西班牙寻求支持。向西班牙国王查理一世（即神圣罗马帝国皇帝查理五世）提出了西行到达香料群岛的计划，并获得批准和资助。", "time": "1517年-1519年", "duration": "约2年", "significance": "人生转折点，获得了实现环球航行计划的政治与经济支持。", "works": [], "quoteLines": []}, {"name": "圣卢卡尔-德巴拉梅达", "ancientName": "卡斯蒂利亚王国圣卢卡尔-德巴拉梅达", "modernName": "西班牙圣卢卡尔-德巴拉梅达", "lat": 36.7726, "lng": -6.3536, "type": "normal", "event": "率领由5艘船和约270人组成的船队，从这里启航，开始环球航行。", "time": "1519年9月20日", "duration": "出发港", "significance": "人类首次环球航行的正式起点。", "works": [], "quoteLines": []}, {"name": "圣胡利安港", "ancientName": "巴塔哥尼亚地区圣胡利安港", "modernName": "阿根廷圣胡利安港", "lat": -49.3056, "lng": -67.7136, "type": "normal", "event": "船队在此越冬，期间发生了部分船长的叛乱。麦哲伦果断镇压，处决了叛乱首领，巩固了指挥权。", "time": "1520年4月-8月", "duration": "约5个月", "significance": "度过了航行中最严重的内部危机，确保了探险队的存续和继续西行。", "works": [], "quoteLines": []}, {"name": "麦哲伦海峡", "ancientName": "南美洲大陆南端海峡", "modernName": "智利与火地岛之间的麦哲伦海峡", "lat": -53.0, "lng": -71.0, "type": "normal", "event": "发现了这条曲折、风暴频繁但最终连通大西洋与太平洋的海峡，并成功穿越。", "time": "1520年10月-1520年11月", "duration": "38天", "significance": "发现了通往太平洋的关键通道，是地理上的重大发现，也是航行技术上的巨大胜利。", "works": [], "quoteLines": []}, {"name": "关岛", "ancientName": "关岛", "modernName": "美国关岛", "lat": 13.4443, "lng": 144.7937, "type": "normal", "event": "船队横渡太平洋后首次登陆，补充给养。", "time": "1521年3月", "duration": "短暂经停", "significance": "标志着船队成功穿越太平洋，抵达了有人居住的岛屿。", "works": [], "quoteLines": []}, {"name": "麦克坦岛", "ancientName": "菲律宾群岛麦克坦岛", "modernName": "菲律宾宿务省麦克坦岛", "lat": 10.3, "lng": 123.95, "type": "death", "event": "为帮助盟友征服敌对部落，率武装人员登陆麦克坦岛，与当地土著首领拉普拉普的部众作战，最终战死。", "time": "1521年4月27日", "duration": "战斗中阵亡", "significance": "环球航行的领导者未能亲自完成旅程，但其船队继承了他的遗志继续前行。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---", "markdown": "# 麦哲伦\n\n## 人物档案\n\n### 基本信息\n- **姓名**：费尔南多·德·麦哲伦\n- **时代**：地理大发现时代（15世纪末-16世纪初）\n- **出生**：约1480年（年份存疑），葡萄牙王国波尔图（今葡萄牙波尔图）\n- **去世**：1521年4月27日，麦克坦岛（今菲律宾宿务省麦克坦岛）\n- **享年**：约41岁（因出生年份不确切，此为估算值）\n- **主要身份**：航海家、探险家\n- **历史地位**：首次环球航行的组织者和领导者（其本人于途中去世，船队最终完成了环球航行），其航行以实践证明了地球大部分水域相连，推动了“地圆说”的确立。\n- **主要成就**：\n    - 组织并领导了首次环球航行的船队。\n    - 发现并穿越了连接大西洋和太平洋的麦哲伦海峡。\n    - 航行中横渡了太平洋，其规模和航程在当时史无前例。\n    - 航行证实了地球大部分水域是相连的，推动了“地圆说”的确立。\n\n### 生平概述\n麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险。因在本国不受重视，后转投西班牙。1519年，在西班牙国王支持下，率领船队从西班牙（塞维利亚地区）出发，寻找通往东方的西航路线。历经艰险穿越美洲南端海峡（后命名为麦哲伦海峡），横渡太平洋，于1521年抵达菲律宾群岛。在介入当地部落冲突时，于麦克坦岛战死。其船队中“维多利亚号”最终于1522年返回西班牙，完成了人类首次环球航行，深刻改变了世界地理认知。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从欧洲西南部出发，向西穿越大西洋，沿南美洲东岸南下，穿过海峡横渡太平洋，最终抵达亚洲东南部的群岛。\n- ⏱️ **时间跨度**：1505年-1521年（主要航海生涯），环球航行自1519年至1522年（船队完成）。\n- 📍 **地理范围**：覆盖欧洲伊比利亚半岛、西非、南美洲东南海岸、太平洋、东南亚菲律宾群岛。\n- 🌟 **重要节点数量**：8个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：波尔图\n- **时间**：约1480年\n- **停留时间**：童年及少年时期（约1480年-约1505年）\n- **地点**：葡萄牙王国波尔图（今葡萄牙波尔图）\n- **事件**：出生并成长于一个下层贵族家庭。\n- **意义**：其葡萄牙国籍与早年环境，为他日后投身航海事业奠定了基础。\n\n### 📍 重要地点：里斯本\n- **时间**：约1505年-1512年\n- **停留时间**：数年\n- **地点**：葡萄牙王国里斯本（今葡萄牙里斯本）\n- **事件**：作为士兵随葡萄牙舰队前往印度，参与殖民战争和贸易。在战斗中负伤并落下跛足。\n- **意义**：积累了早期远洋航行和在东方作战的经验，熟悉了通往东方的航线。\n\n### 📍 重要地点：马六甲\n- **时间**：约1511年-1512年\n- **停留时间**：数月\n- **地点**：马六甲苏丹国马六甲（今马来西亚马六甲）\n- **事件**：随葡萄牙舰队征服马六甲，并在此服役。\n- **意义**：深入东南亚香料贸易核心区，获得了关于“香料群岛”以东广阔海域的宝贵知识，萌生了西行到达东方的想法。\n\n### 📍 重要地点：塞维利亚\n- **时间**：1517年-1519年\n- **停留时间**：约2年\n- **地点**：卡斯蒂利亚王国塞维利亚（今西班牙塞维利亚）\n- **事件**：因在葡萄牙不得志，前往西班牙寻求支持。向西班牙国王查理一世（即神圣罗马帝国皇帝查理五世）提出了西行到达香料群岛的计划，并获得批准和资助。\n- **意义**：人生转折点，获得了实现环球航行计划的政治与经济支持。\n\n### 📍 重要地点：圣卢卡尔-德巴拉梅达\n- **时间**：1519年9月20日\n- **停留时间**：出发港\n- **地点**：卡斯蒂利亚王国圣卢卡尔-德巴拉梅达（今西班牙圣卢卡尔-德巴拉梅达）\n- **事件**：率领由5艘船和约270人组成的船队，从这里启航，开始环球航行。\n- **意义**：人类首次环球航行的正式起点。\n\n### 📍 重要地点：圣胡利安港\n- **时间**：1520年4月-8月\n- **停留时间**：约5个月\n- **地点**：巴塔哥尼亚地区圣胡利安港（今阿根廷圣胡利安港）\n- **事件**：船队在此越冬，期间发生了部分船长的叛乱。麦哲伦果断镇压，处决了叛乱首领，巩固了指挥权。\n- **意义**：度过了航行中最严重的内部危机，确保了探险队的存续和继续西行。\n\n### 📍 重要地点：麦哲伦海峡\n- **时间**：1520年10月-1520年11月\n- **停留时间**：38天\n- **地点**：南美洲大陆南端海峡（今智利与火地岛之间的麦哲伦海峡）\n- **事件**：发现了这条曲折、风暴频繁但最终连通大西洋与太平洋的海峡，并成功穿越。\n- **意义**：发现了通往太平洋的关键通道，是地理上的重大发现，也是航行技术上的巨大胜利。\n\n### 📍 重要地点：关岛\n- **时间**：1521年3月\n- **停留时间**：短暂经停\n- **地点**：关岛（今美国关岛）\n- **事件**：船队横渡太平洋后首次登陆，补充给养。\n- **意义**：标志着船队成功穿越太平洋，抵达了有人居住的岛屿。\n\n### 🔴 去世地：麦克坦岛\n- **时间**：1521年4月27日\n- **停留时间**：战斗中阵亡\n- **地点**：菲律宾群岛麦克坦岛（今菲律宾宿务省麦克坦岛）\n- **事件**：为帮助盟友征服敌对部落，率武装人员登陆麦克坦岛，与当地土著首领拉普拉普的部众作战，最终战死。\n- **意义**：环球航行的领导者未能亲自完成旅程，但其船队继承了他的遗志继续前行。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1480年 | - | 出生于葡萄牙波尔图（年份存疑）。 |\n| 约1505年 | 约25岁 | 前往印度，开始东方殖民生涯。 |\n| 约1511年 | 约31岁 | 参与征服马六甲，抵达东南亚。 |\n| 1517年 | 约37岁 | 离开葡萄牙，前往西班牙寻求支持。 |\n| 1518年 | 约38岁 | 与西班牙国王签订航行协议，获准组织西行探险。 |\n| 1519年9月 | 约39岁 | 率船队从西班牙圣卢卡尔启航。 |\n| 1520年4月-8月 | 约40岁 | 在圣胡利安港镇压叛乱，越冬。 |\n| 1520年10月-11月 | 约40岁 | 发现并穿越麦哲伦海峡，进入太平洋。 |\n| 1521年3月 | 约41岁 | 抵达关岛，随后进入菲律宾群岛。 |\n| 1521年4月27日 | 约41岁 | 在麦克坦岛冲突中战死。 |\n| 1522年9月 | - | 其船队仅存的“维多利亚号”返回西班牙，完成环球航行。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：麦哲伦本人无文学作品传世，其事迹多见于历史叙述。\n- 核心要点：\n    - **重点**：其航行是 **地理大发现** 时代最具标志性的事件之一，常作为 **人类探索精神** 的象征被提及。\n    - 航行过程体现了 **坚韧不拔**、**勇于开拓** 的意志品质。\n    - 其故事常与 **“地圆说”** 的证实相联系，是科学战胜愚昧的经典案例。\n    - 航行中的 **叛乱**、**疾病**、**饥饿** 等细节，展现了探险的极端艰险。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1519-1522年，麦哲伦船队完成了人类历史上 **首次环球航行**。\n    - 航行中发现了 **麦哲伦海峡**，开辟了美洲南端通往太平洋的新航路。\n    - 航行横渡了 **太平洋**，其规模和航程在当时前所未有。\n    - 麦哲伦本人在 **菲律宾群岛** 介入当地冲突而身亡。\n- 核心要点：\n    - **重点**：环球航行以无可辩驳的实践证明了 **地球是圆的** 和 **世界海洋连为一体** 的地理观念。\n    - **重点**：航行是 **西班牙** 王国资助的，旨在打破 **葡萄牙** 对东方香料贸易的垄断，寻找西行路线。\n    - 麦哲伦的航行是 **地理大发现** 的高潮，极大地扩展了欧洲人的世界观。\n    - **重点**：航行伴随着 **殖民扩张** 和 **传教活动**，在抵达的地区（如菲律宾）产生了深远影响。\n    - 其成功是 **航海技术**（如卡拉维尔帆船改进）、**地理知识** 和 **王室支持** 共同作用的结果。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 波尔图，葡萄牙 | 41.1579 | -8.6291 |\n| 里斯本，葡萄牙 | 38.7223 | -9.1393 |\n| 马六甲，马来西亚 | 2.1896 | 102.2501 |\n| 塞维利亚，西班牙 | 37.3891 | -5.9845 |\n| 圣卢卡尔-德巴拉梅达，西班牙 | 36.7726 | -6.3536 |\n| 圣胡利安港，阿根廷 | -49.3056 | -67.7136 |\n| 麦哲伦海峡（南美洲南端） | -53.0000 | -71.0000 |\n| 关岛，美国 | 13.4443 | 144.7937 |\n| 麦克坦岛，菲律宾 | 10.3000 | 123.9500 |", "relatedGraph": {"center": {"id": "麦哲伦", "name": "麦哲伦", "file": "麦哲伦.html", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "麦哲伦", "name": "麦哲伦", "file": "麦哲伦.html", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "relationLabel": "中心人物", "isCenter": true}, {"id": "马文·佩里", "name": "马文·佩里", "file": "马文·佩里.html", "dynasty": "20世纪下半叶", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "郑和", "name": "郑和", "file": "郑和.html", "dynasty": "明朝", "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "达·芬奇", "name": "达·芬奇", "file": "达·芬奇.html", "dynasty": "文艺复兴时期（15-16世纪）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "许晨", "name": "许晨", "file": "许晨.html", "dynasty": "明朝（中期）（示例设定）", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "麦哲伦", "target": "马文·佩里", "label": "同册共现", "confidence": 0.15}, {"source": "麦哲伦", "target": "郑和", "label": "同册共现", "confidence": 0.15}, {"source": "麦哲伦", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "麦哲伦", "target": "达·芬奇", "label": "同时代人物", "confidence": null}, {"source": "麦哲伦", "target": "许晨", "label": "同时代人物", "confidence": null}, {"source": "麦哲伦", "target": "胡居仁", "label": "同时代人物", "confidence": null}]}};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -396,13 +477,63 @@ const locations = data.locations || [];
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
 const mapStyle = data.mapStyle || {};
+const relatedGraph = data.relatedGraph || {};
+const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
+const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\n\n');
-const mergedTeachingPointsNormalized = mergedTeachingPoints
-  .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
-  .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
-  .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
-  .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-  .replace(/^\s*$/gm, (m) => m);
+const dedupeTeachingMarkdown = (raw) => {
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}+n`, 'g');
+  const lines = String(raw || '').split(splitRe);
+  const chunks = [];
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  };
+  for (const rawLine of lines) {
+    const t = String(rawLine || '').trim();
+    if (/^###\s+/.test(t)) {
+      flush();
+      current = [rawLine];
+      continue;
+    }
+    if (!current.length && !t) continue;
+    current.push(rawLine);
+  }
+  flush();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const chunk of chunks) {
+    const meaningful = chunk.map((x) => String(x || '').trim()).filter(Boolean);
+    if (!meaningful.length) continue;
+    if (/^###\s*考点\s*$/.test(meaningful[0])) continue;
+    const key = meaningful
+      .map((x) => x.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim())
+      .join('\n');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chunk.join('\n'));
+  }
+  return deduped.join('\n\n').trim();
+};
+const mergedTeachingPointsNormalized = (() => {
+  try {
+    const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
+      .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
+      .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
+      .replace(/^\s*$/gm, (m) => m));
+    return normalized;
+  } catch (err) {
+    throw err;
+  }
+})();
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -524,6 +655,13 @@ const renderMdBlock = (text) => {
   }
   flushList();
   return <div className="space-y-1">{out}</div>;
+};
+
+const getRelatedPersonHref = (node) => {
+  const file = String(node?.file || '').trim();
+  if (file) return encodeURI(file);
+  const name = String(node?.name || '').trim();
+  return name ? encodeURI(`${name}.html`) : '#';
 };
 
 const safeTruncateMdBold = (text, maxLen) => {
@@ -669,7 +807,20 @@ const renderTextbookPoints = (raw, options) => {
     }
   }
 
-  return kept.map((line, idx) => {
+  const prunedKept = kept.filter((line, idx) => {
+    const t = String(line || '').trim();
+    const isHeading = t.startsWith('### ') || t.startsWith('#### ');
+    if (!isHeading) return true;
+    for (let j = idx + 1; j < kept.length; j += 1) {
+      const next = String(kept[j] || '').trim();
+      if (!next || /^-{3,}$/.test(next)) continue;
+      if (next.startsWith('### ') || next.startsWith('#### ')) return false;
+      return true;
+    }
+    return false;
+  });
+
+  return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
     const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
@@ -805,7 +956,7 @@ const App = () => {
   const [chatError, setChatError] = useState('');
   const [splitPct, setSplitPct] = useState(30);
   const [mapStyleId, setMapStyleId] = useState('macaron');
-  const [mapLayerType, setMapLayerType] = useState('satellite');
+  const [mapLayerType, setMapLayerType] = useState('standard');
   const amapMapRef = useRef(null);
   const mapLayerRef = useRef([]);
   const mapRef = useRef(null);
@@ -971,6 +1122,62 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const relatedCenterNode = useMemo(() => {
+    const center = relatedGraphNodes.find((node) => node && node.isCenter);
+    return center || {
+      name: String(data.person?.name || '').trim(),
+      dynasty: String(data.person?.dynasty || '').trim(),
+      isCenter: true
+    };
+  }, [relatedGraphNodes, data.person?.name, data.person?.dynasty]);
+  const relatedNeighborNodes = useMemo(
+    () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
+    [relatedGraphNodes]
+  );
+  const relatedLinkMap = useMemo(() => {
+    const out = {};
+    for (const link of relatedGraphLinks) {
+      if (!link || !link.target) continue;
+      out[String(link.target)] = link;
+    }
+    return out;
+  }, [relatedGraphLinks]);
+  const relatedGraphLayout = useMemo(() => {
+    const count = relatedNeighborNodes.length;
+    if (!count) return [];
+    const leftX = 18;
+    const rightX = 82;
+    const centerY = 50;
+    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const leftNodes = [];
+    const rightNodes = [];
+    relatedNeighborNodes.forEach((node, idx) => {
+      if (idx % 2 === 0) rightNodes.push(node);
+      else leftNodes.push(node);
+    });
+    const placeColumn = (items, x) => {
+      if (!items.length) return [];
+      return items.map((node, idx) => {
+        const denominator = items.length === 1 ? 1 : (items.length - 1);
+        const offset = items.length === 1 ? 0 : ((idx / denominator) - 0.5) * 2 * spread;
+        return { node, x, y: centerY + offset };
+      });
+    };
+    const positioned = [
+      ...placeColumn(leftNodes, leftX),
+      ...placeColumn(rightNodes, rightX),
+    ].sort((a, b) => a.y - b.y);
+    return relatedNeighborNodes.map((node, idx) => {
+      const placed = positioned.find((item) => item.node === node) || { x: idx % 2 ? leftX : rightX, y: centerY };
+      const link = relatedLinkMap[String(node.name || '')] || {};
+      return {
+        ...node,
+        x: placed.x,
+        y: placed.y,
+        linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
+      };
+    });
+  }, [relatedNeighborNodes, relatedLinkMap]);
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -1254,7 +1461,7 @@ const App = () => {
         const marker = new AMap.Marker({
           position: [loc.lng, loc.lat],
           content: el,
-          offset: new AMap.Pixel(-36, -52),
+          offset: new AMap.Pixel(-36, -41),
           zIndex: idx === activeIndex ? 200 : 100 + idx,
           bubble: true,
           raiseOnEnable: true
@@ -1518,56 +1725,87 @@ const App = () => {
   };
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6">
-      <header className="glass-panel p-6 rounded-xl shadow-sm border-l-8 border-[#c0392b] flex flex-col md:flex-row gap-6 items-center">
-        <div className="w-32 h-32 bg-[#fdf6e3] rounded-full flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
-          <span className="text-[#7c2d12] text-5xl font-black tracking-wide">{surname}</span>
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold">{data.person.name}</h1>
-          {introTags.length ? (
-            <div className="mt-2 mb-3 flex flex-wrap gap-2 justify-center md:justify-start">
-              {introTags.map((tag, idx) => (
-                <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
-                  {renderInline(tag)}
-                </span>
-              ))}
+      <header className="glass-panel rounded-2xl shadow-sm border-l-8 border-[#c0392b] p-5 md:p-6">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+          <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#fdf6e3] to-[#f7ecd2] border border-[#e5d3ad] shadow-inner flex items-center justify-center overflow-hidden">
+              <span className="text-[#7c2d12] text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
             </div>
-          ) : null}
-          {headerSubtitle ? (
-            <p className="text-sm text-gray-500 italic mb-3">{renderInline(headerSubtitle)}</p>
-          ) : null}
-          <div className="mb-4 rounded-2xl border border-[#c8b496]/50 bg-amber-50/70 px-4 py-4 text-left">
-            {relatedHonor && relatedHonor !== headerSubtitle ? (
-              <p className="text-sm text-[#7c2d12] font-semibold mb-2">{renderInline(relatedHonor)}</p>
-            ) : null}
-            {renderDescription()}
-            {introFactLines.length ? (
-              <div className="space-y-1 mt-3">
-                {introFactLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-gray-700 leading-relaxed">
-                    {renderInline(line)}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-            {introMetaItems.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {introMetaItems.map((item, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs text-gray-700 border border-[#c8b496]/40">
-                    <span className="font-bold text-[#7c2d12]">{item.label}</span>
-                    <span>{renderInline(item.value)}</span>
+            <div className="md:hidden min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
                   </span>
-                ))}
+                ) : null}
               </div>
-            ) : null}
-            {birthplaceMeta.candidates.length ? (
-              <div className="mt-2 text-xs text-amber-800">
-                <span className="font-bold">籍贯存疑：</span>
-                {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
-                  <span key={i}>{i ? '、' : ''}{t}</span>
-                ))}
+              {introTags.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="hidden md:block">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1 className="text-4xl font-bold leading-tight text-slate-800">{data.person.name}</h1>
+                {relatedHonor && relatedHonor !== headerSubtitle ? (
+                  <span className="inline-flex items-center rounded-full bg-[#7c2d12]/8 px-3 py-1 text-xs font-semibold text-[#7c2d12] border border-[#c8b496]/50">
+                    {renderInline(relatedHonor)}
+                  </span>
+                ) : null}
               </div>
+              {introTags.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {introTags.map((tag, idx) => (
+                    <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/60 text-[#7c2d12] font-semibold">
+                      {renderInline(tag)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {headerSubtitle ? (
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 italic border-l-2 border-[#e5d3ad] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
+            <div className="mt-4 rounded-2xl border border-[#c8b496]/45 bg-gradient-to-br from-amber-50/90 to-white/85 px-4 md:px-5 py-4 text-left shadow-sm">
+              <div className="space-y-3">
+                {renderDescription()}
+                {introFactLines.length ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-2 pt-1">
+                    {introFactLines.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                        {renderInline(line)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {introMetaItems.length ? (
+                  <div className="pt-1 flex flex-wrap gap-2.5">
+                    {introMetaItems.map((item, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs text-gray-700 border border-[#c8b496]/40 shadow-sm">
+                        <span className="font-bold text-[#7c2d12]">{item.label}</span>
+                        <span>{renderInline(item.value)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {birthplaceMeta.candidates.length ? (
+                  <div className="rounded-xl bg-amber-100/45 border border-[#e5d3ad] px-3 py-2 text-xs text-amber-900">
+                    <span className="font-bold">籍贯存疑：</span>
+                    {birthplaceMeta.candidates.slice(0, 4).map((t, i) => (
+                      <span key={i}>{i ? '、' : ''}{t}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -1577,9 +1815,19 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between">
-              <span>足迹时间轴</span>
-              <div className="flex items-center gap-2 text-xs">
+            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span>足迹时间轴</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <span className="text-sm leading-none">🗺️</span>
+                  <span className="whitespace-nowrap">
+                    总行程
+                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
+                    <span className="ml-0.5 text-white/70">km</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs shrink-0">
                 <button
                   onClick={() => changeEvent(activeIndex - 1)}
                   disabled={activeIndex === 0}
@@ -1739,7 +1987,8 @@ const App = () => {
                   if (nextLayer) setMapLayerType(nextLayer);
                 }}
                 options={[
-                  { id: 'macaron|satellite', label: '马卡龙 · 卫星影像' }
+                  { id: 'macaron|standard', label: '常规地图' },
+                  { id: 'normal|satellite', label: '卫星影像' }
                 ]}
               />
             </div>
@@ -1800,30 +2049,89 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🗺️</p>
-            <p className="text-xl font-bold">{stats.distance} <span className="text-xs font-normal">km</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">总行程估算</p>
+        <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#7c2d12]">相关人物知识图谱</h2>
+              <p className="text-[11px] text-gray-500 mt-1">以当前人物为中心，优先展示师生、君臣、好友、宗亲等真实关联人物；仅在关系不足时才补充同时代人物。</p>
+            </div>
+            <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-[#c8b496]/50 text-[#7c2d12]">
+              点击节点可跳转
+            </div>
           </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">⏱️</p>
-            <p className="text-xl font-bold">
-              {stats.yearsLabel}{stats.yearsValue === null ? null : <span className="text-xs font-normal">年</span>}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase">生命跨度</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">📍</p>
-            <p className="text-xl font-bold">{stats.regions} <span className="text-xs font-normal">个</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">覆盖地区</p>
-          </div>
-          <div className="glass-panel p-4 rounded-xl text-center">
-            <p className="text-2xl mb-1">🌟</p>
-            <p className="text-xl font-bold">{stats.events} <span className="text-xs font-normal">件</span></p>
-            <p className="text-[10px] text-gray-400 uppercase">重要事迹</p>
-          </div>
-        </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage border border-[#c8b496]/35">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    (() => {
+                      const label = String(node.linkLabel || '').trim();
+                      const midX = 50 + (node.x - 50) * 0.52;
+                      const midY = 50 + (node.y - 50) * 0.52;
+                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
+                      return (
+                        <g key={`edge-${idx}`}>
+                          <line
+                            x1="50"
+                            y1="50"
+                            x2={node.x}
+                            y2={node.y}
+                            stroke="rgba(124,45,18,0.28)"
+                            strokeWidth="0.32"
+                            strokeDasharray="0"
+                          />
+                          {label ? (
+                            <>
+                              <rect
+                                className="related-graph-edge-tag"
+                                x={midX - tagWidth / 2}
+                                y={midY - 2.25}
+                                rx="1.7"
+                                ry="1.7"
+                                width={tagWidth}
+                                height="4.5"
+                              />
+                              <text
+                                className="related-graph-edge-text"
+                                x={midX}
+                                y={midY + 0.55}
+                                textAnchor="middle"
+                              >
+                                {label}
+                              </text>
+                            </>
+                          ) : null}
+                        </g>
+                      );
+                    })()
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-dot center">
+                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    </div>
+                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-dot">
+                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-label">{node.name}</div>
+                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">

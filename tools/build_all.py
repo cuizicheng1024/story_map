@@ -4,9 +4,9 @@
 职责：
   1. 重新生成 data/people_master.json（教材总索引）
   2. 重新生成 data/people_master_pep.json（PEP 教材人物）
-  3. 增量重渲染 storymap/examples/story_map/*.html（人物页）
+  3. 增量重渲染 artifacts/story_map/*.html（人物页）
   4. 重新生成 data/people_birth_coords_wgs84.json（出生地经纬度）
-  5. 重新生成 storymap/examples/story_map/stellar_home_data.json + index.html
+  5. 重新生成 artifacts/story_map/stellar_home_data.json + index.html
 
 数据源：单一来源 = storymap/examples/story/*.md
 幂等：默认不会触发 LLM 补缺、不会重新 geocode。带 --refresh-geocode 时重新跑一次地理编码。
@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import time
@@ -24,7 +25,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STORY_DIR = REPO_ROOT / "storymap" / "examples" / "story"
-STORY_MAP_DIR = REPO_ROOT / "storymap" / "examples" / "story_map"
+STORY_MAP_DIR = Path(os.getenv("MAP_STORY_OUTPUT_DIR", REPO_ROOT / "artifacts" / "story_map"))
+if not STORY_MAP_DIR.is_absolute():
+    STORY_MAP_DIR = (REPO_ROOT / STORY_MAP_DIR).resolve()
 DATA_DIR = REPO_ROOT / "data"
 HOME_DATA = STORY_MAP_DIR / "stellar_home_data.json"
 MANIFEST_JSON = DATA_DIR / "build_manifest.json"
@@ -442,7 +445,7 @@ def main() -> int:
 
     # ── 3. 增量重渲染人物页 ───────────────────────────────────────
     if not args.skip_html:
-        _print_section("3/5 render changed story_map/*.html")
+        _print_section("3/5 render changed artifacts/story_map/*.html")
         rc = _run([
             sys.executable, "cli/generate_pure_story_map.py",
             "--render-changed",

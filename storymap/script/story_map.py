@@ -15,14 +15,21 @@ import re
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.parse import quote, unquote
 from urllib.request import Request, urlopen
 
-from env_utils import load_project_env
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request as FastAPIRequest, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+
+try:
+    from .env_utils import load_project_env
+except ImportError:
+    from env_utils import load_project_env
 from map_client import (
     append_coords_section,
     compute_total_distance_km,
@@ -45,6 +52,31 @@ from story_agents import (
 
 def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+
+def _story_md_dir() -> str:
+    return os.path.join(_project_root(), "storymap", "examples", "story")
+
+
+def _legacy_story_map_dir() -> str:
+    return os.path.join(_project_root(), "storymap", "examples", "story_map")
+
+
+def _story_artifacts_dir() -> str:
+    configured = (os.getenv("MAP_STORY_OUTPUT_DIR") or "").strip()
+    if configured:
+        if not os.path.isabs(configured):
+            configured = os.path.join(_project_root(), configured)
+        return os.path.abspath(configured)
+    return os.path.join(_project_root(), "artifacts", "story_map")
+
+
+def _active_story_map_dir() -> str:
+    artifact_dir = _story_artifacts_dir()
+    legacy_dir = _legacy_story_map_dir()
+    if os.path.isdir(artifact_dir) or (not os.path.isdir(legacy_dir)):
+        return artifact_dir
+    return legacy_dir
 
 
 load_project_env(from_file=__file__, override=True)
@@ -435,14 +467,12 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
     header: List[str] = []
     rows: List[List[str]] = []
     table_started = False
-    header_seen = False
     for line in lines:
         if line.strip().startswith("## "):
             title = line.strip().lstrip("#").strip()
             # 仅解析“年份”章节下第一张表
             in_sec = title.startswith("年份")
             table_started = False
-            header_seen = False
             header = []
             continue
         if not in_sec:
@@ -454,7 +484,6 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
         if table_started:
             stripped = line.strip()
             if _is_table_separator(stripped):
-                header_seen = True
                 continue
             if stripped.startswith("|"):
                 # 即使缺少分隔线，只要仍在表格块内就继续解析数据行
@@ -467,7 +496,6 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
     header = []
     rows = []
     table_started = False
-    header_seen = False
     for line in lines:
         if line.strip().startswith("|") and not table_started:
             header = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -476,7 +504,6 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
         if table_started:
             stripped = line.strip()
             if _is_table_separator(stripped):
-                header_seen = True
                 continue
             if stripped.startswith("|"):
                 rows.append([c.strip() for c in stripped.strip("|").split("|")])
@@ -488,7 +515,6 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
                 header = []
                 rows = []
                 table_started = False
-                header_seen = False
     if header and rows and any(
         any(k in c for k in ("现称", "事件", "年号", "公元")) for c in header
     ):
@@ -1351,7 +1377,6 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
     lines = md.splitlines()
     in_section = False
     table_started = False
-    header_seen = False
     idx_name = None
     idx_lat = None
     idx_lon = None
@@ -1396,7 +1421,6 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
             title = line.strip().lstrip("#").strip()
             in_section = "地点坐标" in title
             table_started = False
-            header_seen = False
             idx_name = None
             idx_lat = None
             idx_lon = None
@@ -1420,7 +1444,6 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
         if table_started:
             stripped = line.strip()
             if _is_table_separator(stripped):
-                header_seen = True
                 continue
             if stripped.startswith("|"):
                 row = [c.strip() for c in stripped.strip("|").split("|")]
@@ -1458,7 +1481,6 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
     lines = md.splitlines()
     in_section = False
     table_started = False
-    header_seen = False
     idx_name = None
     idx_search = None
     search_map: Dict[str, str] = {}
@@ -1467,7 +1489,6 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
             title = line.strip().lstrip("#").strip()
             in_section = "地点坐标" in title
             table_started = False
-            header_seen = False
             idx_name = None
             idx_search = None
             continue
@@ -1485,7 +1506,6 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
         if table_started:
             stripped = line.strip()
             if _is_table_separator(stripped):
-                header_seen = True
                 continue
             if stripped.startswith("|"):
                 row = [c.strip() for c in stripped.strip("|").split("|")]
@@ -2178,10 +2198,9 @@ def render_html(title: str, points: List[Dict[str, object]], md: str = "") -> st
 
 def save_html(person: str, content: str) -> str:
     """
-    保存 HTML 到 examples/story_map/ 目录，若存在则覆盖。
+    保存 HTML 到独立构建产物目录，若存在则覆盖。
     """
-    root = _project_root()
-    base = os.path.join(root, "storymap", "examples", "story_map")
+    base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
     filename = f"{person}.html"
     path = os.path.join(base, filename)
@@ -2193,10 +2212,9 @@ def save_html(person: str, content: str) -> str:
 
 def save_geojson(person: str, geojson: Dict) -> str:
     """
-    保存 GeoJSON 到 examples/story_map/ 目录。
+    保存 GeoJSON 到独立构建产物目录。
     """
-    root = _project_root()
-    base = os.path.join(root, "storymap", "examples", "story_map")
+    base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
     filename = f"{person}.geojson"
     path = os.path.join(base, filename)
@@ -2208,10 +2226,9 @@ def save_geojson(person: str, geojson: Dict) -> str:
 
 def save_csv(person: str, csv_text: str) -> str:
     """
-    保存 CSV 到 examples/story_map/ 目录。
+    保存 CSV 到独立构建产物目录。
     """
-    root = _project_root()
-    base = os.path.join(root, "storymap", "examples", "story_map")
+    base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
     filename = f"{person}.csv"
     path = os.path.join(base, filename)
@@ -2227,10 +2244,9 @@ def _safe_name(text: str) -> str:
 
 
 def _story_paths(person: str) -> Tuple[str, str]:
-    root = _project_root()
     safe = _safe_name(person)
-    md_path = os.path.join(root, "storymap", "examples", "story", f"{safe}.md")
-    html_path = os.path.join(root, "storymap", "examples", "story_map", f"{safe}.html")
+    md_path = os.path.join(_story_md_dir(), f"{safe}.md")
+    html_path = os.path.join(_story_artifacts_dir(), f"{safe}.html")
     return md_path, html_path
 
 
@@ -2694,10 +2710,10 @@ def _write_text(path: str, content: str) -> None:
 
 
 def _ensure_profile_exports(profile: Dict[str, object], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    root = _project_root()
     safe = _safe_name(base_name)
-    geo_path = os.path.join(root, "storymap", "examples", "story_map", f"{safe}.geojson")
-    csv_path = os.path.join(root, "storymap", "examples", "story_map", f"{safe}.csv")
+    output_dir = _story_artifacts_dir()
+    geo_path = os.path.join(output_dir, f"{safe}.geojson")
+    csv_path = os.path.join(output_dir, f"{safe}.csv")
     if not (allow_cache and os.path.exists(geo_path)):
         geo = _build_geojson_for_profile(profile)
         _write_text(geo_path, json.dumps(geo, ensure_ascii=False, indent=2))
@@ -2708,10 +2724,10 @@ def _ensure_profile_exports(profile: Dict[str, object], base_name: str, allow_ca
 
 
 def _ensure_multi_exports(people: List[Dict[str, object]], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    root = _project_root()
     safe = _safe_name(base_name)
-    geo_path = os.path.join(root, "storymap", "examples", "story_map", f"{safe}.geojson")
-    csv_path = os.path.join(root, "storymap", "examples", "story_map", f"{safe}.csv")
+    output_dir = _story_artifacts_dir()
+    geo_path = os.path.join(output_dir, f"{safe}.geojson")
+    csv_path = os.path.join(output_dir, f"{safe}.csv")
     if not (allow_cache and os.path.exists(geo_path)):
         geo = _build_geojson_for_multi(people)
         _write_text(geo_path, json.dumps(geo, ensure_ascii=False, indent=2))
@@ -3002,384 +3018,287 @@ def _submit_task(text: str) -> Dict[str, object]:
     return {"ok": True, "task_id": task_id, "queue": {"position": position, "limit": _MAX_CONCURRENCY}}
 
 
-class StoryMapServerHandler(BaseHTTPRequestHandler):
-    def _set_headers(self, status: int, length: int, origin: Optional[str]) -> None:
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        if origin:
-            self.send_header("Access-Control-Allow-Origin", origin)
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Content-Length", str(length))
-        self.end_headers()
+def _guess_content_type(path: str) -> str:
+    p = str(path or "").lower()
+    if p.endswith(".html"):
+        return "text/html; charset=utf-8"
+    if p.endswith(".json"):
+        return "application/json; charset=utf-8"
+    if p.endswith(".css"):
+        return "text/css; charset=utf-8"
+    if p.endswith(".js"):
+        return "application/javascript; charset=utf-8"
+    if p.endswith(".png"):
+        return "image/png"
+    if p.endswith(".jpg") or p.endswith(".jpeg"):
+        return "image/jpeg"
+    if p.endswith(".svg"):
+        return "image/svg+xml"
+    return "application/octet-stream"
 
-    def _set_headers_raw(self, status: int, content_type: str, length: int, origin: Optional[str]) -> None:
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        if origin:
-            self.send_header("Access-Control-Allow-Origin", origin)
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Content-Length", str(length))
-        self.end_headers()
 
-    def _static_dir(self) -> str:
-        return os.path.abspath(os.path.join(_project_root(), "storymap", "examples", "story_map"))
+def _static_target_path(parsed_path: str) -> Optional[Path]:
+    rel = unquote((parsed_path or "").lstrip("/"))
+    if rel.startswith("artifacts/story_map/"):
+        rel = rel.split("artifacts/story_map/", 1)[-1]
+    if rel.startswith("storymap/examples/story_map/"):
+        rel = rel.split("storymap/examples/story_map/", 1)[-1]
+    if parsed_path == "/" or rel == "":
+        rel = "index.html"
 
-    def _guess_content_type(self, path: str) -> str:
-        p = str(path or "").lower()
-        if p.endswith(".html"):
-            return "text/html; charset=utf-8"
-        if p.endswith(".json"):
-            return "application/json; charset=utf-8"
-        if p.endswith(".css"):
-            return "text/css; charset=utf-8"
-        if p.endswith(".js"):
-            return "application/javascript; charset=utf-8"
-        if p.endswith(".png"):
-            return "image/png"
-        if p.endswith(".jpg") or p.endswith(".jpeg"):
-            return "image/jpeg"
-        if p.endswith(".svg"):
-            return "image/svg+xml"
-        return "application/octet-stream"
+    if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
+        return None
 
-    def _try_serve_static(self, parsed_path: str, origin: Optional[str], head_only: bool = False) -> bool:
-        rel = unquote((parsed_path or "").lstrip("/"))
-        if rel.startswith("storymap/examples/story_map/"):
-            rel = rel.split("storymap/examples/story_map/", 1)[-1]
-        if parsed_path == "/" or rel == "":
-            rel = "index.html"
+    static_root = Path(_active_story_map_dir()).resolve()
+    target = (static_root / rel).resolve()
+    try:
+        target.relative_to(static_root)
+    except Exception:
+        return None
+    if not target.exists() or not target.is_file():
+        return None
+    return target
 
-        if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
-            return False
 
-        static_root = Path(self._static_dir()).resolve()
-        target = (static_root / rel).resolve()
+def _vendor_response(name: str) -> Response:
+    safe_name = unquote(str(name or "")).strip().lstrip("/")
+    if not re.fullmatch(r"[a-zA-Z0-9_.@-]+\.(js|css)", safe_name):
+        raise HTTPException(status_code=404, detail="not found")
+    with _VENDOR_LOCK:
+        cached = _VENDOR_CACHE.get(safe_name)
+    if cached:
+        ct, body = cached
+        return Response(content=body, media_type=ct)
+    try:
+        ct, body = _fetch_vendor_bytes(safe_name)
+    except Exception:
+        return JSONResponse(status_code=502, content={"ok": False, "error": "vendor fetch failed", "name": safe_name})
+    with _VENDOR_LOCK:
+        _VENDOR_CACHE[safe_name] = (ct, body)
+    return Response(content=body, media_type=ct)
+
+
+def _static_response(parsed_path: str) -> Response:
+    target = _static_target_path(parsed_path)
+    if target is None:
+        raise HTTPException(status_code=404, detail="not found")
+    return FileResponse(path=target, media_type=_guess_content_type(target.name))
+
+
+def _debug_static_payload() -> Dict[str, object]:
+    static_dir = _active_story_map_dir()
+    index_path = os.path.join(static_dir, "index.html")
+    return {
+        "ok": True,
+        "static_dir": static_dir,
+        "static_exists": os.path.exists(static_dir),
+        "index_exists": os.path.exists(index_path),
+        "cwd": os.getcwd(),
+        "project_root": _project_root(),
+    }
+
+
+def _submit_generate_text(text: str) -> JSONResponse:
+    result = _submit_task(text)
+    status = 200 if result.get("ok") else 400
+    return JSONResponse(status_code=status, content=result)
+
+
+def _coords_bulk_update(data: object) -> JSONResponse:
+    items = data.get("items") if isinstance(data, dict) else None
+    if not isinstance(items, dict) or not items:
+        return JSONResponse(status_code=400, content={"ok": False, "error": "items required"})
+    home_path = os.path.join(_story_artifacts_dir(), "stellar_home_data.json")
+    updated = 0
+    total = 0
+    with _HOME_COORDS_LOCK:
         try:
-            target.relative_to(static_root)
+            with open(home_path, "r", encoding="utf-8") as f:
+                home = json.load(f)
         except Exception:
-            return False
-        if not target.exists() or not target.is_file():
-            return False
-
-        body = target.read_bytes()
-        ct = self._guess_content_type(target.name)
-        self._set_headers_raw(200, ct, len(body), origin)
-        if not head_only:
-            self.wfile.write(body)
-        return True
-
-    def _try_serve_vendor(self, parsed_path: str, origin: Optional[str], head_only: bool = False) -> bool:
-        if not (parsed_path or "").startswith("/vendor/"):
-            return False
-        name = unquote((parsed_path or "").split("/vendor/", 1)[-1]).strip().lstrip("/")
-        if not re.fullmatch(r"[a-zA-Z0-9_.@-]+\.(js|css)", name):
-            return False
-        with _VENDOR_LOCK:
-            cached = _VENDOR_CACHE.get(name)
-        if cached:
-            ct, body = cached
-            self._set_headers_raw(200, ct, len(body), origin)
-            if not head_only:
-                self.wfile.write(body)
-            return True
+            home = {}
+        if not isinstance(home, dict):
+            home = {}
+        nodes = home.get("nodes") if isinstance(home.get("nodes"), list) else []
+        if not isinstance(nodes, list):
+            nodes = []
+        for n in nodes:
+            if not isinstance(n, dict):
+                continue
+            person = str(n.get("person") or "").strip()
+            if not person:
+                continue
+            v = items.get(person)
+            if not (isinstance(v, list) and len(v) >= 2):
+                continue
+            try:
+                lat = float(v[0])
+                lng = float(v[1])
+            except Exception:
+                continue
+            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+                continue
+            before_ok = isinstance(n.get("birth_lat"), (int, float)) and isinstance(
+                n.get("birth_lng"), (int, float)
+            )
+            n["birth_lat"] = lat
+            n["birth_lng"] = lng
+            if not before_ok:
+                updated += 1
+        total = len([n for n in nodes if isinstance(n, dict)])
+        home["nodes"] = nodes
         try:
-            ct, body = _fetch_vendor_bytes(name)
+            with open(home_path, "w", encoding="utf-8") as f:
+                json.dump(home, f, ensure_ascii=False)
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
+    return JSONResponse(status_code=200, content={"ok": True, "updated": updated, "total": total})
+
+
+def _proxy_llm(data: object) -> JSONResponse:
+    if not isinstance(data, dict):
+        return JSONResponse(status_code=400, content={"ok": False, "error": "body required"})
+    messages = data.get("messages", [])
+    temperature = data.get("temperature", 0.1)
+
+    content = ""
+    used_fallback = False
+    try:
+        client = _get_llm_client()
+        fut = _PROXY_EXECUTOR.submit(client.think, messages, temperature=temperature)
+        timeout_s = int(os.getenv("STORY_MAP_PROXY_LLM_TIMEOUT", "25") or "25")
+        content = fut.result(timeout=timeout_s)
+    except Exception as e:
+        _LOGGER.warning("llm_proxy_primary_failed error=%s", e)
+        content = _local_history_reply(messages)
+        used_fallback = True
+    if not content:
+        _LOGGER.warning("llm_proxy_empty_response use_fallback=true")
+        content = _local_history_reply(messages)
+        used_fallback = True
+    if content:
+        content = content.encode("utf-8", "replace").decode("utf-8", "replace")
+    return JSONResponse(
+        status_code=200,
+        content={"choices": [{"message": {"content": content or ""}}], "meta": {"used_fallback": used_fallback}},
+    )
+
+
+def _enforce_origin(request: FastAPIRequest) -> None:
+    origin = request.headers.get("origin", "")
+    if origin and not _resolve_cors_origin(origin):
+        raise HTTPException(status_code=403, detail="origin not allowed")
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(title="StoryMap API")
+
+    allow_all = "*" in _ALLOWED_ORIGINS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] if allow_all else _ALLOWED_ORIGINS,
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.get("/health")
+    async def health(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request)
+        return JSONResponse(content={"ok": True, "service": "story_map", "version": "1"})
+
+    @app.get("/debug_static")
+    async def debug_static(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request)
+        return JSONResponse(content=_debug_static_payload())
+
+    @app.get("/amap-config.js", include_in_schema=False)
+    async def amap_config(request: FastAPIRequest) -> Response:
+        _enforce_origin(request)
+        return Response(content=_amap_config_js(), media_type="application/javascript; charset=utf-8")
+
+    @app.get("/vendor/{name:path}", include_in_schema=False)
+    async def vendor_asset(name: str, request: FastAPIRequest) -> Response:
+        _enforce_origin(request)
+        return _vendor_response(name)
+
+    @app.get("/task")
+    async def get_task(id: str = "", request: FastAPIRequest = None) -> JSONResponse:
+        if request is not None:
+            _enforce_origin(request)
+        task_id = str(id or "").strip()
+        if not task_id:
+            return JSONResponse(status_code=400, content={"ok": False, "error": "id required"})
+        snapshot = _snapshot_task(task_id)
+        status = 200 if snapshot.get("ok") else 404
+        return JSONResponse(status_code=status, content=snapshot)
+
+    @app.get("/generate")
+    async def generate_get(
+        request: FastAPIRequest,
+        person: str = "",
+        text: str = "",
+    ) -> JSONResponse:
+        _enforce_origin(request)
+        value = str(person or text or "").strip()
+        if not value:
+            return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
+        return _submit_generate_text(value)
+
+    @app.post("/generate")
+    async def generate_post(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request)
+        try:
+            data = await request.json()
         except Exception:
-            payload = json.dumps({"ok": False, "error": "vendor fetch failed", "name": name}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(502, len(payload), origin)
-            if not head_only:
-                self.wfile.write(payload)
-            return True
-        with _VENDOR_LOCK:
-            _VENDOR_CACHE[name] = (ct, body)
-        self._set_headers_raw(200, ct, len(body), origin)
-        if not head_only:
-            self.wfile.write(body)
-        return True
+            data = {}
+        value = ""
+        if isinstance(data, dict):
+            value = str(data.get("person") or data.get("text") or "").strip()
+        if not value:
+            return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
+        return _submit_generate_text(value)
 
-    def do_OPTIONS(self):
-        origin = self.headers.get("Origin", "")
-        allowed = _resolve_cors_origin(origin)
-        if origin and not allowed:
-            self.send_response(403)
-            self.end_headers()
-            return
-        self.send_response(204)
-        if allowed:
-            self.send_header("Access-Control-Allow-Origin", allowed)
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
+    @app.post("/coords/bulk")
+    async def coords_bulk(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request)
+        try:
+            data = await request.json()
+        except Exception:
+            data = None
+        return _coords_bulk_update(data)
 
-    def do_HEAD(self):
-        origin = self.headers.get("Origin", "")
-        allowed = _resolve_cors_origin(origin)
-        if origin and not allowed:
-            self.send_response(403)
-            self.end_headers()
-            return
-        parsed = urlparse(self.path)
-        if parsed.path == "/amap-config.js":
-            body = _amap_config_js()
-            self._set_headers_raw(200, "application/javascript; charset=utf-8", len(body), allowed)
-            return
-        if self._try_serve_vendor(parsed.path, allowed, head_only=True):
-            return
-        if self._try_serve_static(parsed.path, allowed, head_only=True):
-            return
-        if parsed.path == "/health":
-            payload = json.dumps({"ok": True, "service": "story_map", "version": "1"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(200, len(payload), allowed)
-            return
-        if parsed.path == "/task":
-            payload = json.dumps({"ok": False, "error": "id required"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(400, len(payload), allowed)
-            return
-        if parsed.path == "/generate":
-            payload = json.dumps({"ok": False, "error": "person required"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(400, len(payload), allowed)
-            return
-        payload = json.dumps({"ok": False, "error": "not found"}, ensure_ascii=False).encode("utf-8")
-        self._set_headers(404, len(payload), allowed)
-        return
+    @app.post("/api/ai/proxy")
+    async def ai_proxy(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request)
+        try:
+            data = await request.json()
+        except Exception:
+            data = None
+        if data is None:
+            return JSONResponse(status_code=400, content={"ok": False, "error": "body required"})
+        return _proxy_llm(data)
 
-    def do_GET(self):
-        origin = self.headers.get("Origin", "")
-        allowed = _resolve_cors_origin(origin)
-        if origin and not allowed:
-            payload = json.dumps({"ok": False, "error": "origin not allowed"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(403, len(payload), None)
-            self.wfile.write(payload)
-            return
-        parsed = urlparse(self.path)
-        if parsed.path == "/amap-config.js":
-            # Make AMap key available to homepage + person pages. The HTML reads
-            # window.AMAP_KEY / window.AMAP_SECURITY from this script.
-            body = _amap_config_js()
-            self._set_headers_raw(200, "application/javascript; charset=utf-8", len(body), allowed)
-            self.wfile.write(body)
-            return
-        if parsed.path == "/debug_static":
-            static_dir = self._static_dir()
-            index_path = os.path.join(static_dir, "index.html")
-            payload = json.dumps(
-                {
-                    "ok": True,
-                    "static_dir": static_dir,
-                    "static_exists": os.path.exists(static_dir),
-                    "index_exists": os.path.exists(index_path),
-                    "cwd": os.getcwd(),
-                    "project_root": _project_root(),
-                    "allowed_origin": allowed,
-                },
-                ensure_ascii=False,
-            ).encode("utf-8")
-            self._set_headers(200, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        if self._try_serve_vendor(parsed.path, allowed):
-            return
-        if self._try_serve_static(parsed.path, allowed):
-            return
-        if parsed.path == "/health":
-            payload = json.dumps({"ok": True, "service": "story_map", "version": "1"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(200, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        if parsed.path == "/task":
-            params = parse_qs(parsed.query)
-            task_id = (params.get("id") or [""])[0].strip()
-            if not task_id:
-                payload = json.dumps({"ok": False, "error": "id required"}, ensure_ascii=False).encode("utf-8")
-                self._set_headers(400, len(payload), allowed)
-                self.wfile.write(payload)
-                return
-            snapshot = _snapshot_task(task_id)
-            payload = json.dumps(snapshot, ensure_ascii=True).encode("utf-8", "replace")
-            status = 200 if snapshot.get("ok") else 404
-            self._set_headers(status, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        if parsed.path != "/generate":
-            payload = json.dumps({"ok": False, "error": "not found"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(404, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        params = parse_qs(parsed.query)
-        text = (params.get("person") or params.get("text") or [""])[0].strip()
-        if not text:
-            payload = json.dumps({"ok": False, "error": "person required"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(400, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        result = _submit_task(text)
-        payload = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        status = 200 if result.get("ok") else 400
-        self._set_headers(status, len(payload), allowed)
-        self.wfile.write(payload)
+    @app.get("/", include_in_schema=False)
+    async def root_static(request: FastAPIRequest) -> Response:
+        _enforce_origin(request)
+        return _static_response("/")
 
-    def do_POST(self):
-        origin = self.headers.get("Origin", "")
-        allowed = _resolve_cors_origin(origin)
-        if origin and not allowed:
-            payload = json.dumps({"ok": False, "error": "origin not allowed"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(403, len(payload), None)
-            self.wfile.write(payload)
-            return
-            
-        if self.path == "/coords/bulk":
-            length = int(self.headers.get("Content-Length", "0") or "0")
-            body = self.rfile.read(length).decode("utf-8", errors="ignore") if length else ""
-            if not body:
-                payload = json.dumps({"ok": False, "error": "body required"}, ensure_ascii=False).encode("utf-8")
-                self._set_headers(400, len(payload), allowed)
-                self.wfile.write(payload)
-                return
-            try:
-                data = json.loads(body)
-            except Exception:
-                data = None
-            items = data.get("items") if isinstance(data, dict) else None
-            if not isinstance(items, dict) or not items:
-                payload = json.dumps({"ok": False, "error": "items required"}, ensure_ascii=False).encode("utf-8")
-                self._set_headers(400, len(payload), allowed)
-                self.wfile.write(payload)
-                return
-            home_path = os.path.join(_project_root(), "storymap", "examples", "story_map", "stellar_home_data.json")
-            updated = 0
-            total = 0
-            with _HOME_COORDS_LOCK:
-                try:
-                    with open(home_path, "r", encoding="utf-8") as f:
-                        home = json.load(f)
-                except Exception:
-                    home = {}
-                if not isinstance(home, dict):
-                    home = {}
-                nodes = home.get("nodes") if isinstance(home.get("nodes"), list) else []
-                if not isinstance(nodes, list):
-                    nodes = []
-                for n in nodes:
-                    if not isinstance(n, dict):
-                        continue
-                    person = str(n.get("person") or "").strip()
-                    if not person:
-                        continue
-                    v = items.get(person)
-                    if not (isinstance(v, list) and len(v) >= 2):
-                        continue
-                    try:
-                        lat = float(v[0])
-                        lng = float(v[1])
-                    except Exception:
-                        continue
-                    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
-                        continue
-                    before_ok = isinstance(n.get("birth_lat"), (int, float)) and isinstance(n.get("birth_lng"), (int, float))
-                    n["birth_lat"] = lat
-                    n["birth_lng"] = lng
-                    after_ok = True
-                    if (not before_ok) and after_ok:
-                        updated += 1
-                total = len([n for n in nodes if isinstance(n, dict)])
-                home["nodes"] = nodes
-                try:
-                    with open(home_path, "w", encoding="utf-8") as f:
-                        json.dump(home, f, ensure_ascii=False)
-                except Exception as e:
-                    payload = json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False).encode("utf-8")
-                    self._set_headers(500, len(payload), allowed)
-                    self.wfile.write(payload)
-                    return
-            payload = json.dumps({"ok": True, "updated": updated, "total": total}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(200, len(payload), allowed)
-            self.wfile.write(payload)
-            return
+    @app.get("/{requested_path:path}", include_in_schema=False)
+    async def static_assets(requested_path: str, request: FastAPIRequest) -> Response:
+        _enforce_origin(request)
+        return _static_response("/" + str(requested_path or ""))
 
-        # Add proxy for LLM calls from frontend
-        if self.path == "/api/ai/proxy":
-            # Browser -> server proxy for LLM calls. This keeps API keys on the
-            # server side and avoids CORS issues.
-            length = int(self.headers.get("Content-Length", "0") or "0")
-            body = self.rfile.read(length).decode("utf-8", errors="ignore") if length else ""
-            if not body:
-                payload = json.dumps({"ok": False, "error": "body required"}, ensure_ascii=False).encode("utf-8")
-                self._set_headers(400, len(payload), allowed)
-                self.wfile.write(payload)
-                return
-            
-            try:
-                data = json.loads(body)
-                messages = data.get("messages", [])
-                temperature = data.get("temperature", 0.1)
+    return app
 
-                content = ""
-                used_fallback = False
-                try:
-                    client = _get_llm_client()
-                    fut = _PROXY_EXECUTOR.submit(client.think, messages, temperature=temperature)
-                    timeout_s = int(os.getenv("STORY_MAP_PROXY_LLM_TIMEOUT", "25") or "25")
-                    content = fut.result(timeout=timeout_s)
-                except Exception as e:
-                    _LOGGER.warning("llm_proxy_primary_failed error=%s", e)
-                    content = _local_history_reply(messages)
-                    used_fallback = True
-                if not content:
-                    _LOGGER.warning("llm_proxy_empty_response use_fallback=true")
-                    content = _local_history_reply(messages)
-                    used_fallback = True
-                
-                # Ensure content is valid string and clean surrogate pairs if any
-                if content:
-                    # First try standard replacement
-                    content = content.encode("utf-8", "replace").decode("utf-8", "replace")
-                
-                resp_data = {"choices": [{"message": {"content": content or ""}}], "meta": {"used_fallback": used_fallback}}
-                # Use ensure_ascii=True to avoid "illegal UTF-16 sequence" errors with surrogates
-                payload = json.dumps(resp_data, ensure_ascii=True).encode("utf-8")
-                self._set_headers(200, len(payload), allowed)
-                self.wfile.write(payload)
-            except Exception as e:
-                _LOGGER.error("llm_proxy_failed error=%s", e)
-                payload = json.dumps({"error": str(e)}, ensure_ascii=True).encode("utf-8")
-                self._set_headers(500, len(payload), allowed)
-                self.wfile.write(payload)
-            return
 
-        if self.path != "/generate":
-            payload = json.dumps({"ok": False, "error": "not found"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(404, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        length = int(self.headers.get("Content-Length", "0") or "0")
-        body = self.rfile.read(length).decode("utf-8", errors="ignore") if length else ""
-        text = ""
-        if body:
-            try:
-                data = json.loads(body)
-                if isinstance(data, dict):
-                    text = str(data.get("person") or data.get("text") or "").strip()
-            except Exception:
-                text = ""
-        if not text:
-            payload = json.dumps({"ok": False, "error": "person required"}, ensure_ascii=False).encode("utf-8")
-            self._set_headers(400, len(payload), allowed)
-            self.wfile.write(payload)
-            return
-        result = _submit_task(text)
-        payload = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        status = 200 if result.get("ok") else 400
-        self._set_headers(status, len(payload), allowed)
-        self.wfile.write(payload)
+APP = create_app()
 
 
 def _run_server(port: int) -> None:
-    server = ThreadingHTTPServer(("0.0.0.0", port), StoryMapServerHandler)
     _LOGGER.info("server_start port=%s", port)
     print(f"故事地图服务已启动：http://localhost:{port}")
-    server.serve_forever()
+    uvicorn.run(APP, host="0.0.0.0", port=port, log_level="info")
 
 
 def main():

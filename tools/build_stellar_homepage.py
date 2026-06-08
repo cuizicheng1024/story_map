@@ -35,7 +35,9 @@ if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
     load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
 STORY_MD_DIR = REPO_ROOT / "storymap" / "examples" / "story"
-STORY_MAP_DIR = REPO_ROOT / "storymap" / "examples" / "story_map"
+STORY_MAP_DIR = Path(os.getenv("MAP_STORY_OUTPUT_DIR", REPO_ROOT / "artifacts" / "story_map"))
+if not STORY_MAP_DIR.is_absolute():
+    STORY_MAP_DIR = (REPO_ROOT / STORY_MAP_DIR).resolve()
 SPOTLIGHT_JSON = REPO_ROOT / "data" / "pep_people_spotlight.json"
 KNOWLEDGE_GRAPH_JSON = REPO_ROOT / "data" / "people_knowledge_graph.json"
 BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
