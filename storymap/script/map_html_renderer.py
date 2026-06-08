@@ -7,16 +7,20 @@ from typing import Any, Dict, List, Optional
 
 try:
     from .env_utils import apply_story_map_env_aliases, env_flag
-    from .project_paths import story_artifacts_dir_path
+    from .project_paths import project_root_path, story_artifacts_dir_path
 except ImportError:
     from env_utils import apply_story_map_env_aliases, env_flag
-    from project_paths import story_artifacts_dir_path
+    from project_paths import project_root_path, story_artifacts_dir_path
 
 
 apply_story_map_env_aliases()
 
 
 _TEMPLATE_DIR = Path(__file__).resolve().with_name("templates")
+_REPO_ROOT = project_root_path()
+_DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
+_PEOPLE_MASTER_JSON = _REPO_ROOT / "data" / "people_master.json"
+_KNOWLEDGE_GRAPH_JSON = _REPO_ROOT / "data" / "people_knowledge_graph.json"
 
 
 @lru_cache(maxsize=None)
@@ -32,6 +36,7 @@ def _render_html_template(
     runtime_config: str,
     site_mode_notice: str,
     amap_bootstrap: str,
+    analytics_head: str,
 ) -> str:
     return (
         template.replace("__TITLE__", title)
@@ -39,6 +44,7 @@ def _render_html_template(
         .replace("__RUNTIME_CONFIG__", runtime_config)
         .replace("__SITE_MODE_NOTICE__", site_mode_notice)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
+        .replace("__ANALYTICS_HEAD__", analytics_head)
     )
 
 
@@ -48,6 +54,22 @@ def _first_env(*names: str) -> str:
         if value is not None and str(value).strip():
             return str(value).strip()
     return ""
+
+
+def _analytics_head_html() -> str:
+    measurement_id = _first_env("MAP_STORY_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID") or _DEFAULT_GA_MEASUREMENT_ID
+    if not measurement_id:
+        return ""
+    quoted_id = json.dumps(measurement_id, ensure_ascii=False)
+    return (
+        f'<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>'
+        "<script>"
+        "window.dataLayer=window.dataLayer||[];"
+        "function gtag(){dataLayer.push(arguments);}"
+        "gtag('js', new Date());"
+        f"gtag('config', {quoted_id});"
+        "</script>"
+    )
 
 
 def _runtime_page_config_html() -> str:
@@ -237,10 +259,87 @@ def _pick_year_range(person: Dict[str, Any], node: Optional[Dict[str, Any]] = No
 def _load_stellar_home_data() -> Dict[str, Any]:
     try:
         if STELLAR_HOME_DATA_JSON.exists():
-            return json.loads(STELLAR_HOME_DATA_JSON.read_text(encoding="utf-8"))
+            payload = json.loads(STELLAR_HOME_DATA_JSON.read_text(encoding="utf-8"))
+            if isinstance(payload, dict) and isinstance(payload.get("nodes"), list) and isinstance(payload.get("edges"), list):
+                return payload
     except Exception:
         pass
-    return {}
+    return _build_stellar_home_fallback()
+
+
+def _read_json_file(path: Path) -> Dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except Exception:
+        return {}
+
+
+@lru_cache(maxsize=1)
+def _build_stellar_home_fallback() -> Dict[str, Any]:
+    master = _read_json_file(_PEOPLE_MASTER_JSON)
+    people = master.get("people") if isinstance(master.get("people"), list) else []
+    nodes: List[Dict[str, Any]] = []
+    person_to_idx: Dict[str, int] = {}
+    for item in people:
+        if not isinstance(item, dict):
+            continue
+        if not bool(item.get("has_story")):
+            continue
+        name = str(item.get("person") or "").strip()
+        if not name or name in person_to_idx:
+            continue
+        person_to_idx[name] = len(nodes)
+        nodes.append(
+            {
+                "person": name,
+                "file": f"{name}.html",
+                "dynasty": str(item.get("dynasty") or "").strip(),
+                "birth_year": item.get("birth_year"),
+                "death_year": item.get("death_year"),
+                "aliases": [],
+                "domain_tags": [],
+            }
+        )
+
+    raw_graph = _read_json_file(_KNOWLEDGE_GRAPH_JSON)
+    raw_edges = raw_graph.get("edges") if isinstance(raw_graph.get("edges"), list) else []
+    edges: List[Dict[str, Any]] = []
+    for item in raw_edges:
+        if not isinstance(item, dict):
+            continue
+        source = str(item.get("source") or "").strip()
+        target = str(item.get("target") or "").strip()
+        if not source or not target or source == target:
+            continue
+        a = person_to_idx.get(source)
+        b = person_to_idx.get(target)
+        if a is None or b is None:
+            continue
+        edge_type = str(item.get("type") or "").strip().lower()
+        try:
+            weight = int(item.get("weight") or 0)
+        except Exception:
+            weight = 0
+        if edge_type not in {"manual", "same_book"} or weight < 2:
+            continue
+        if edge_type == "manual":
+            label = "人工关系"
+            confidence = 0.9
+        else:
+            label = "同册共现"
+            confidence = max(0.15, min(0.60, 0.15 + 0.07 * max(0, weight - 2)))
+        edges.append(
+            {
+                "a": a,
+                "b": b,
+                "type": edge_type,
+                "label": label,
+                "confidence": confidence,
+                "weight": weight,
+            }
+        )
+    return {"nodes": nodes, "edges": edges}
 
 
 def _extract_markdown_title(markdown: str) -> str:
@@ -616,6 +715,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     runtime_config = _runtime_page_config_html()
     site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html()
+    analytics_head = _analytics_head_html()
     return _render_html_template(
         _load_html_template("profile_page.html"),
         title=title,
@@ -623,6 +723,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
         runtime_config=runtime_config,
         site_mode_notice=site_mode_notice,
         amap_bootstrap=amap_bootstrap,
+        analytics_head=analytics_head,
     )
 
 
@@ -632,6 +733,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
     runtime_config = _runtime_page_config_html()
     site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html()
+    analytics_head = _analytics_head_html()
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -641,6 +743,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
 <script src="./vendor/tailwindcss.js"></script>
 __RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
+__ANALYTICS_HEAD__
 <style>
 body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
 #map{height:80vh;width:100%;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.12);}
@@ -731,6 +834,7 @@ initMap().catch((err) => {
         .replace("__RUNTIME_CONFIG__", runtime_config)
         .replace("__SITE_MODE_NOTICE__", site_mode_notice)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
+        .replace("__ANALYTICS_HEAD__", analytics_head)
     )
 
 
@@ -746,6 +850,7 @@ def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_htm
     pts_json = json.dumps(points, ensure_ascii=False)
     runtime_config = _runtime_page_config_html()
     amap_bootstrap = _amap_bootstrap_html()
+    analytics_head = _analytics_head_html()
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -754,6 +859,7 @@ def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_htm
 <title>{title} - 生平地图</title>
 {runtime_config}
 {amap_bootstrap}
+{analytics_head}
 <style>html,body,#map{{height:100%;margin:0;padding:0}}</style>
 </head>
 <body>

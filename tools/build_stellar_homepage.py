@@ -51,9 +51,30 @@ KNOWLEDGE_GRAPH_JSON = REPO_ROOT / "data" / "people_knowledge_graph.json"
 BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
 MIN_YEAR = -800
 MAX_YEAR = 2000
+DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _analytics_head_html() -> str:
+    measurement_id = (
+        str(os.getenv("MAP_STORY_GA_MEASUREMENT_ID", "")).strip()
+        or str(os.getenv("GA_MEASUREMENT_ID", "")).strip()
+        or DEFAULT_GA_MEASUREMENT_ID
+    )
+    if not measurement_id:
+        return ""
+    quoted_id = json.dumps(measurement_id, ensure_ascii=False)
+    return (
+        f'<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>'
+        "<script>"
+        "window.dataLayer=window.dataLayer||[];"
+        "function gtag(){dataLayer.push(arguments);}"
+        "gtag('js', new Date());"
+        f"gtag('config', {quoted_id});"
+        "</script>"
+    )
 
 
 def _is_inside_china(lat: float, lng: float) -> bool:
@@ -804,6 +825,7 @@ def _render_index_html(title: str, data_file: str) -> str:
     if api_base:
         runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
     runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
+    analytics_head = _analytics_head_html()
     demo_banner = ""
     if static_site:
         mode_text = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；实时生成与人物对话需要额外部署 FastAPI 后端。"
@@ -825,6 +847,7 @@ def _render_index_html(title: str, data_file: str) -> str:
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{safe_title}</title>
+    {analytics_head}
     {amap_inline}
     {runtime_inline}
     <script src="./vendor/tailwindcss.js"></script>
