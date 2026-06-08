@@ -26,6 +26,16 @@ class StaticService:
         self._vendor_cache = vendor_cache
         self._vendor_lock = vendor_lock
 
+    def _local_vendor_target(self, safe_name: str) -> Optional[Path]:
+        target = (Path(self._project_root()) / "vendor" / safe_name).resolve()
+        try:
+            target.relative_to((Path(self._project_root()) / "vendor").resolve())
+        except Exception:
+            return None
+        if not target.exists() or not target.is_file():
+            return None
+        return target
+
     def guess_content_type(self, path: str) -> str:
         lower = str(path or "").lower()
         if lower.endswith(".html"):
@@ -58,13 +68,14 @@ class StaticService:
         rel = unquote((parsed_path or "").lstrip("/"))
         if rel.startswith("artifacts/story_map/"):
             rel = rel.split("artifacts/story_map/", 1)[-1]
-        if rel.startswith("storymap/examples/story_map/"):
-            rel = rel.split("storymap/examples/story_map/", 1)[-1]
         if parsed_path == "/" or rel == "":
             rel = "index.html"
         if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
             return None
-        for root in self._public_story_map_dirs():
+        roots = list(self._public_story_map_dirs())
+        if rel != "index.html" and len(roots) > 1:
+            roots = roots[1:] + roots[:1]
+        for root in roots:
             target = self._resolve_target_in_root(Path(root).resolve(), rel)
             if target is not None:
                 return target
@@ -74,6 +85,9 @@ class StaticService:
         safe_name = unquote(str(name or "")).strip().lstrip("/")
         if not re.fullmatch(r"[a-zA-Z0-9_.@-]+\.(js|css)", safe_name):
             raise HTTPException(status_code=404, detail="not found")
+        local_target = self._local_vendor_target(safe_name)
+        if local_target is not None:
+            return FileResponse(path=local_target, media_type=self.guess_content_type(local_target.name))
         with self._vendor_lock:
             cached = self._vendor_cache.get(safe_name)
         if cached:

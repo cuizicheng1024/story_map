@@ -16,6 +16,10 @@ def first_env(*names: str) -> str:
     return ""
 
 
+def env_flag(*names: str) -> bool:
+    return first_env(*names).strip().lower() in {"1", "true", "yes", "on", "y"}
+
+
 def apply_minimax_env_aliases() -> None:
     key = first_env(
         "LLM_API_KEY",
@@ -58,6 +62,89 @@ def apply_minimax_env_aliases() -> None:
         os.environ.setdefault("MIMO_MODEL", model)
     if key and base and not os.getenv("LLM_PROVIDER") and "minimax" in base.lower():
         os.environ["LLM_PROVIDER"] = "minimax"
+
+
+def collect_startup_issues(project_root: str) -> Dict[str, List[str]]:
+    errors: List[str] = []
+    warnings: List[str] = []
+    notes: List[str] = []
+
+    root = os.path.abspath(project_root)
+    story_dir = os.path.join(root, "storymap", "examples", "story")
+    artifact_dir = os.path.join(root, "artifacts", "story_map")
+    runtime_dir = os.path.join(root, "artifacts", "runtime")
+
+    if not os.path.isdir(story_dir):
+        errors.append(f"缺少人物故事目录：{story_dir}")
+    else:
+        notes.append(f"人物故事目录可用：{story_dir}")
+
+    for directory, label in ((artifact_dir, "产物目录"), (runtime_dir, "运行时目录")):
+        try:
+            os.makedirs(directory, exist_ok=True)
+            notes.append(f"{label}可写：{directory}")
+        except Exception as exc:
+            errors.append(f"{label}不可写：{directory}（{exc}）")
+
+    llm_key = first_env("LLM_API_KEY", "MINIMAX_API_KEY", "MIMO_API_KEY", "API_KEY")
+    llm_base = first_env("LLM_BASE_URL", "MINIMAX_BASE_URL", "MIMO_BASE_URL", "BASE_URL")
+    llm_model = first_env("LLM_MODEL_ID", "MINIMAX_MODEL", "MIMO_MODEL", "MODEL")
+    missing_llm = []
+    if not llm_key:
+        missing_llm.append("LLM_API_KEY")
+    if not llm_base:
+        missing_llm.append("LLM_BASE_URL")
+    if not llm_model:
+        missing_llm.append("LLM_MODEL_ID")
+    if missing_llm:
+        warnings.append(
+            "缺少大模型配置：{names}；人物自动生成与在线识别可能失败。".format(
+                names=", ".join(missing_llm)
+            )
+        )
+    else:
+        notes.append("大模型配置完整")
+
+    amap_js_key = first_env("AMAP_KEY")
+    amap_security = first_env("AMAP_SECURITY")
+    if not amap_js_key:
+        warnings.append("缺少 AMAP_KEY；地图页面在浏览器端可能无法直接加载底图。")
+    elif not amap_security:
+        warnings.append("缺少 AMAP_SECURITY；部分环境下高德 JS SDK 可能加载失败。")
+    else:
+        notes.append("高德前端地图配置完整")
+
+    geocode_key = first_env(
+        "location_api",
+        "locaion_api",
+        "LOCATION_API",
+        "MAPSCO_API_KEY",
+        "AMAP_WEBSERVICE_KEY",
+        "AMAP_WEB_SERVICE_KEY",
+        "AMAP_REST_KEY",
+    )
+    if not geocode_key:
+        warnings.append("缺少地理编码密钥；新地点可能无法在线解析坐标。")
+    else:
+        notes.append("地理编码配置可用")
+
+    return {"errors": errors, "warnings": warnings, "notes": notes}
+
+
+def validate_startup_or_raise(logger: object, project_root: str, *, strict: bool = False) -> Dict[str, List[str]]:
+    issues = collect_startup_issues(project_root)
+    for message in issues["notes"]:
+        logger.info("startup_check ok=%s", message)
+    for message in issues["warnings"]:
+        logger.warning("startup_check warning=%s", message)
+    for message in issues["errors"]:
+        logger.error("startup_check error=%s", message)
+
+    if issues["errors"]:
+        raise RuntimeError("启动校验失败：" + "；".join(issues["errors"]))
+    if strict and issues["warnings"]:
+        raise RuntimeError("严格启动校验失败：" + "；".join(issues["warnings"]))
+    return issues
 
 
 class SharedLLMClientFactory:

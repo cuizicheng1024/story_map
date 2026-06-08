@@ -13,7 +13,7 @@
 
 输出：
 - Markdown: storymap/examples/story/<name>.md
-- HTML:     storymap/examples/story_map/<name>__pure__<timestamp>.html
+- HTML:     artifacts/story_map/<name>.html
 """
 
 from __future__ import annotations
@@ -23,9 +23,11 @@ import os
 import re
 import webbrowser
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import requests
+
+from storymap.script.project_paths import project_root_path, story_artifacts_dir_path
 
 
 # -----------------------------------------------------------------------------
@@ -281,7 +283,7 @@ def _strip_md_fence(text: str) -> str:
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return project_root_path()
 
 
 def _default_story_md_path(name: str) -> Path:
@@ -421,7 +423,7 @@ def main() -> None:
     # Reuse existing pure-html generator.
     from generate_pure_story_map import generate_pure_html
 
-    out_html = _repo_root() / "storymap" / "examples" / "story_map" / f"{name}.html"
+    out_html = story_artifacts_dir_path() / f"{name}.html"
     result = generate_pure_html(md_path=str(md_path), out_path=str(out_html), no_geocode=True)
     print(f"✅ Markdown: {md_path}")
     print(f"✅ HTML: {result['html_path']}")

@@ -4,55 +4,42 @@ import re
 import threading
 from typing import Callable, Dict, List, Optional, Tuple
 
+try:
+    from .project_paths import (
+        project_root_path,
+        story_artifacts_dir_path,
+        story_md_dir_path,
+    )
+except ImportError:
+    from project_paths import (
+        project_root_path,
+        story_artifacts_dir_path,
+        story_md_dir_path,
+    )
+
 
 def _project_root() -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    return str(project_root_path())
 
 
 def _story_md_dir() -> str:
-    return os.path.join(_project_root(), "storymap", "examples", "story")
-
-
-def _legacy_story_map_dir() -> str:
-    return os.path.join(_project_root(), "storymap", "examples", "story_map")
+    return str(story_md_dir_path())
 
 
 def _story_artifacts_dir() -> str:
-    configured = (os.getenv("MAP_STORY_OUTPUT_DIR") or "").strip()
-    if configured:
-        if not os.path.isabs(configured):
-            configured = os.path.join(_project_root(), configured)
-        return os.path.abspath(configured)
-    return os.path.join(_project_root(), "artifacts", "story_map")
+    return str(story_artifacts_dir_path())
 
 
 def _story_map_index_path(directory: str) -> str:
     return os.path.join(directory, "index.html")
 
 
-def _has_story_map_index(directory: str) -> bool:
-    return os.path.isfile(_story_map_index_path(directory))
-
-
 def _homepage_story_map_dir() -> str:
-    artifact_dir = _story_artifacts_dir()
-    legacy_dir = _legacy_story_map_dir()
-    if _has_story_map_index(artifact_dir):
-        return artifact_dir
-    if _has_story_map_index(legacy_dir):
-        return legacy_dir
-    if os.path.isdir(artifact_dir) or (not os.path.isdir(legacy_dir)):
-        return artifact_dir
-    return legacy_dir
+    return _story_artifacts_dir()
 
 
 def _public_story_map_dirs() -> List[str]:
-    dirs: List[str] = []
-    for directory in (_homepage_story_map_dir(), _story_artifacts_dir(), _legacy_story_map_dir()):
-        normalized = os.path.abspath(directory)
-        if normalized not in dirs:
-            dirs.append(normalized)
-    return dirs
+    return [os.path.abspath(_story_artifacts_dir())]
 
 
 def _active_story_map_dir() -> str:

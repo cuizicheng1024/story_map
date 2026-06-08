@@ -14,7 +14,7 @@ from task import TaskService
 
 def _make_story_dir(tmp_path: Path, *names: str) -> Path:
     story_dir = tmp_path / "storymap" / "examples" / "story"
-    story_dir.mkdir(parents=True)
+    story_dir.mkdir(parents=True, exist_ok=True)
     for name in names:
         (story_dir / f"{name}.md").write_text(f"# {name}\n", encoding="utf-8")
     return story_dir
@@ -119,3 +119,42 @@ def test_task_service_builds_multi_person_summary(tmp_path):
         assert len(result["files"]) == 2
     finally:
         service.shutdown()
+
+
+def test_task_service_recovers_completed_task_from_disk(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+        assert snapshot["status"] == "completed"
+    finally:
+        service.shutdown()
+
+    restored = _build_service(tmp_path)
+    try:
+        recovered = restored.snapshot_task(submit["task_id"])
+        assert recovered["ok"] is True
+        assert recovered["status"] == "completed"
+        assert recovered["result"]["people"] == ["霍去病"]
+    finally:
+        restored.shutdown()
+
+
+def test_task_service_marks_inflight_tasks_failed_after_restart(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        task_id = service._create_task("霍去病")
+        service._update_task(task_id, status="running")
+    finally:
+        service.shutdown()
+
+    restored = _build_service(tmp_path)
+    try:
+        snapshot = restored.snapshot_task(task_id)
+        assert snapshot["ok"] is True
+        assert snapshot["status"] == "failed"
+        assert "服务重启导致任务中断" in snapshot["error"]
+        labels = [event["label"] for event in snapshot["progress"]]
+        assert labels[-1] == "中断"
+    finally:
+        restored.shutdown()

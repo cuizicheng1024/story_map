@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="./vendor/tailwindcss.js"></script>
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./vendor/babel.min.js"></script>
 __RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
 <style>
@@ -58,12 +58,80 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   white-space: nowrap;
 }
+.map-point-label-shell {
+  background: transparent;
+  border: none;
+}
+.map-point-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  font-family: 'Noto Serif SC', serif;
+  --label-color: #166534;
+  --label-soft: rgba(22, 101, 52, 0.16);
+  --label-soft-strong: rgba(22, 101, 52, 0.28);
+}
+.map-point-label-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--label-color);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease, border-color 180ms ease, opacity 180ms ease;
+}
+.map-point-label-name {
+  max-width: 140px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #475569;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+.map-point-label.is-passed .map-point-label-badge,
+.map-point-label.is-passed .map-point-label-name {
+  opacity: 0.76;
+}
+.map-point-label.is-active .map-point-label-badge {
+  background: var(--label-color);
+  color: #fff;
+  border-color: var(--label-color);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--label-soft-strong);
+}
+.map-point-label.is-active .map-point-label-name {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px var(--label-soft);
+}
+.map-point-label.is-start .map-point-label-badge {
+  color: #065f46;
+  background: rgba(236, 253, 245, 0.96);
+  border-color: rgba(16, 185, 129, 0.32);
+}
+.map-point-label.is-end .map-point-label-badge {
+  color: #374151;
+  background: rgba(243, 244, 246, 0.98);
+  border-color: rgba(75, 85, 99, 0.28);
+}
 .story-marker {
   position: relative;
   width: 72px;
   height: 62px;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
   cursor: pointer;
   font-family: 'Noto Serif SC', serif;
@@ -74,7 +142,7 @@ body {
 .story-marker-ring {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 7px;
   width: 34px;
   height: 34px;
   transform: translateX(-50%);
@@ -90,6 +158,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 3px;
+  padding-bottom: 1px;
 }
 .story-marker-badge {
   min-width: 38px;
@@ -110,7 +179,7 @@ body {
   width: 2px;
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.82), rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, rgba(155, 229, 100, 0.95), rgba(255, 255, 255, 0));
   opacity: 0.72;
 }
 .story-marker.is-active .story-marker-ring {
@@ -166,7 +235,7 @@ body {
   100% { transform: scale(3.1); opacity: 0; }
 }
 .life-rail {
-  background: linear-gradient(180deg, #06b6d4 0%, #6366f1 42%, #8b5cf6 78%, #0f172a 100%);
+  background: linear-gradient(180deg, #9be564 0%, #166534 56%, #1f2937 100%);
 }
 .life-rail-base {
   background: linear-gradient(180deg, rgba(203, 213, 225, 0.78), rgba(226, 232, 240, 0.46));
@@ -174,13 +243,13 @@ body {
 .timeline-connector {
   position: absolute;
   left: 14px;
-  width: 3px;
+  width: 2px;
   border-radius: 999px;
   z-index: 0;
 }
 .timeline-connector.is-passed {
-  background: linear-gradient(180deg, #06b6d4 0%, #6366f1 42%, #8b5cf6 78%, #0f172a 100%);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.20), 0 0 10px rgba(99, 102, 241, 0.10);
+  background: linear-gradient(180deg, #9be564 0%, #166534 56%, #1f2937 100%);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.12);
 }
 .timeline-connector.is-future {
   background: linear-gradient(180deg, rgba(203,213,225,0.72), rgba(226,232,240,0.42));
@@ -235,6 +304,26 @@ body {
   background: rgba(99, 102, 241, 0.08);
   border-color: rgba(99, 102, 241, 0.20);
 }
+.timeline-ritual-badge.work {
+  color: #166534;
+  background: rgba(184, 220, 174, 0.18);
+  border-color: rgba(132, 182, 116, 0.34);
+}
+.timeline-ritual-badge.war {
+  color: #9a3412;
+  background: rgba(251, 191, 143, 0.18);
+  border-color: rgba(234, 88, 12, 0.26);
+}
+.timeline-ritual-badge.politics {
+  color: #7c2d12;
+  background: rgba(216, 180, 152, 0.18);
+  border-color: rgba(180, 117, 72, 0.26);
+}
+.timeline-ritual-badge.travel {
+  color: #075985;
+  background: rgba(186, 230, 253, 0.22);
+  border-color: rgba(56, 189, 248, 0.28);
+}
 .timeline-card {
   position: relative;
   overflow: hidden;
@@ -260,11 +349,11 @@ body {
 }
 .related-graph-stage {
   position: relative;
-  min-height: 340px;
-  border-radius: 20px;
+  min-height: 420px;
+  border-radius: 24px;
   overflow: hidden;
   background:
-    radial-gradient(circle at center, rgba(192, 57, 43, 0.05) 0, rgba(192, 57, 43, 0.05) 20%, transparent 21%),
+    radial-gradient(circle at center, rgba(192, 57, 43, 0.06) 0, rgba(192, 57, 43, 0.06) 18%, transparent 19%),
     linear-gradient(180deg, rgba(253, 246, 227, 0.94), rgba(255, 255, 255, 0.92));
 }
 .related-graph-stage::before {
@@ -278,66 +367,117 @@ body {
 .related-graph-node {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 118px;
+  width: 168px;
   text-align: center;
 }
 .related-graph-link {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   text-decoration: none;
 }
-.related-graph-link:hover .related-graph-dot {
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 12px 20px rgba(124, 45, 18, 0.16);
+.related-graph-link:hover .related-graph-card,
+.related-graph-link:hover .related-graph-card.center {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(124, 45, 18, 0.14);
 }
-.related-graph-dot {
-  width: 54px;
-  height: 54px;
+.related-graph-card {
+  min-width: 138px;
+  max-width: 168px;
+  padding: 10px 12px 11px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 252, 246, 0.98);
+  border: 1px solid rgba(192, 57, 43, 0.16);
+  box-shadow: 0 10px 22px rgba(124, 45, 18, 0.08);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.related-graph-card.center {
+  min-width: 188px;
+  max-width: 212px;
+  padding: 18px 16px 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,250,243,0.98), rgba(252,242,232,0.96));
+  border-color: rgba(192, 57, 43, 0.22);
+  box-shadow: 0 22px 48px rgba(124, 45, 18, 0.14);
+}
+.related-graph-avatar {
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fffaf0;
-  border: 2px solid rgba(192, 57, 43, 0.28);
-  color: #7c2d12;
-  box-shadow: 0 8px 16px rgba(124, 45, 18, 0.10);
-  transition: transform .18s ease, box-shadow .18s ease;
+  background: linear-gradient(135deg, #fdf2e9, #fffaf2);
+  border: 1px solid rgba(192, 57, 43, 0.18);
+  color: #9a3412;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 18px rgba(124, 45, 18, 0.08);
 }
-.related-graph-dot.center {
-  width: 76px;
-  height: 76px;
+.related-graph-card.center .related-graph-avatar {
+  width: 72px;
+  height: 72px;
   background: linear-gradient(135deg, rgba(192,57,43,.96), rgba(146,64,14,.92));
   color: #fff;
-  border-color: rgba(255,255,255,0.45);
-  box-shadow: 0 14px 28px rgba(124, 45, 18, 0.20);
+  border-color: rgba(255,255,255,0.42);
+  box-shadow: 0 16px 30px rgba(124, 45, 18, 0.18);
+}
+.related-graph-relation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 247, 237, 0.95);
+  border: 1px solid rgba(217, 119, 6, 0.18);
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 100%;
+  text-align: center;
 }
 .related-graph-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: #4b5563;
-  line-height: 1.2;
+  color: #4b2d1d;
+  line-height: 1.25;
   word-break: break-word;
 }
 .related-graph-label.center {
   color: #7c2d12;
-  font-size: 16px;
+  font-size: 20px;
 }
 .related-graph-meta {
   font-size: 12px;
-  color: #9a3412;
+  color: #8b5e3c;
   line-height: 1.2;
 }
-.related-graph-edge-tag {
-  fill: rgba(255, 250, 240, 0.98);
-  stroke: rgba(200, 180, 150, 0.7);
-  stroke-width: 0.18;
+.related-graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.related-graph-edge-text {
-  fill: #9a3412;
-  font-size: 1.45px;
-  font-weight: 600;
+.related-graph-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #7c2d12;
+  background: rgba(255, 250, 240, 0.85);
+  border: 1px solid rgba(200, 180, 150, 0.4);
+}
+.related-graph-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #c2410c;
 }
 </style>
 </head>
@@ -392,9 +532,9 @@ body {
           const babelAuto = !!(window.Babel && typeof window.Babel.transformScriptTags === "function");
           const babelTags = document.querySelectorAll('script[type="text/babel"]').length;
           parts.push(`Globals: React=${!!window.React} ReactDOM=${!!window.ReactDOM} createRoot=${hasCreateRoot} Babel=${!!window.Babel} babelAuto=${babelAuto} babelTags=${babelTags} AMap=${!!window.AMap}`);
-          parts.push(await head("https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"));
-          parts.push(await head("https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"));
-          parts.push(await head("https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"));
+          parts.push(await head(new URL("./vendor/react.production.min.js", window.location.href).toString()));
+          parts.push(await head(new URL("./vendor/react-dom.production.min.js", window.location.href).toString()));
+          parts.push(await head(new URL("./vendor/babel.min.js", window.location.href).toString()));
           if (firstErr) diag(firstErr);
           append(parts.join("\\n"));
         }, 1800);
@@ -459,11 +599,11 @@ const dedupeTeachingMarkdown = (raw) => {
 const mergedTeachingPointsNormalized = (() => {
   try {
     const normalized = dedupeTeachingMarkdown(mergedTeachingPoints
-      .replace(/^(#{0,4}\\s*)?(教材知识点与考点|教材知识点|考点)\\s*$/gm, '')
-      .replace(/^(#{0,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(教材知识点与考点|教材知识点|考点)\s*$/gm, '')
+      .replace(/^(#{0,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/gm, '')
       .replace(new RegExp('语文（课文/词作）', 'g'), '相关作品')
       .replace(new RegExp('历史（史实/人物定位）', 'g'), '历史')
-      .replace(/^\\s*$/gm, (m) => m));
+      .replace(/^\s*$/gm, (m) => m));
     return normalized;
   } catch (err) {
     throw err;
@@ -478,22 +618,22 @@ const extractTeachingHighlights = (raw, maxItems) => {
   const out = [];
   const seen = new Set();
   const push = (text) => {
-    const t = String(text || '').replace(/^[-•]\\s*/, '').trim();
+    const t = String(text || '').replace(/^[-•]\s*/, '').trim();
     if (!t || seen.has(t)) return;
     seen.add(t);
     out.push(t);
   };
   for (const line of lines) {
-    if (/^(#{1,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(line)) continue;
-    if (/^###\\s+/.test(line) || /^####\\s+/.test(line)) continue;
-    if (!/^[-•]\\s+/.test(line) && !/^\\d+\\.\\s+/.test(line)) continue;
-    if (/\\*\\*重点\\*\\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
+    if (/\*\*重点\*\*|重点|核心要点|关键史实|历史评价|民族大义|时代背景/.test(line)) push(line);
     if (out.length >= (maxItems || 5)) return out.slice(0, maxItems || 5);
   }
   for (const line of lines) {
-    if (/^(#{1,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(line)) continue;
-    if (/^###\\s+/.test(line) || /^####\\s+/.test(line)) continue;
-    if (!/^[-•]\\s+/.test(line) && !/^\\d+\\.\\s+/.test(line)) continue;
+    if (/^(#{1,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(line)) continue;
+    if (/^###\s+/.test(line) || /^####\s+/.test(line)) continue;
+    if (!/^[-•]\s+/.test(line) && !/^\d+\.\s+/.test(line)) continue;
     push(line);
     if (out.length >= (maxItems || 5)) break;
   }
@@ -525,7 +665,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 const extractYear = (text) => {
   if (!text) return null;
   const raw = String(text);
-  const match = raw.match(/(\\d{1,4})\\s*年/);
+  const match = raw.match(/(\d{1,4})\s*年/);
   if (!match) return null;
   const y = parseInt(match[1], 10);
   if (!Number.isFinite(y)) return null;
@@ -536,9 +676,9 @@ const extractYear = (text) => {
 const renderInline = (text) => {
   const raw = String(text || '');
   // 支持 Markdown 的 **加粗**。如果上游文本被截断导致 ** 不成对，兜底移除残留的 **，避免页面出现星号。
-  const parts = raw.split(/(\\*\\*.*?\\*\\*)/g).filter(Boolean);
+  const parts = raw.split(/(\*\*.*?\*\*)/g).filter(Boolean);
   return parts.map((p, idx) => {
-    const m = p.match(/^\\*\\*(.+?)\\*\\*$/);
+    const m = p.match(/^\*\*(.+?)\*\*$/);
     if (m) {
       return <strong key={idx} className="font-extrabold text-gray-900">{m[1]}</strong>;
     }
@@ -546,8 +686,16 @@ const renderInline = (text) => {
   });
 };
 
+const normalizeDisplayText = (text) => {
+  return String(text || '')
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '  ')
+    .trim();
+};
+
 const renderMdBlock = (text) => {
-  const s = String(text || '').trim();
+  const s = normalizeDisplayText(text);
   if (!s) return null;
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -574,13 +722,13 @@ const renderMdBlock = (text) => {
       out.push(<div key={`sp-${i}`} className="h-2" />);
       continue;
     }
-    const h1 = t.match(/^#{1,2}\\s+(.*)$/);
+    const h1 = t.match(/^#{1,2}\s+(.*)$/);
     if (h1) {
       flushList();
       out.push(<div key={`h-${i}`} className="text-sm font-semibold">{renderInline(h1[1])}</div>);
       continue;
     }
-    const li = t.match(/^(?:[-•]\\s+)(.*)$/);
+    const li = t.match(/^(?:[-•]\s+)(.*)$/);
     if (li) {
       listBuf.push(li[1]);
       continue;
@@ -639,12 +787,12 @@ const renderTextbookPoints = (raw, options) => {
   const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS_RE}+n`, 'g');
 
   const lines = String(raw || '').split(splitRe);
-  const isStageHeading = (t) => /^(#{3,4}\\s*)?(初中阶段|高中阶段)(考点)?\\s*$/.test(String(t || '').trim());
+  const isStageHeading = (t) => /^(#{3,4}\s*)?(初中阶段|高中阶段)(考点)?\s*$/.test(String(t || '').trim());
   const expanded = Boolean(options && options.expanded);
   if (expanded) {
     return lines.map((line, idx) => {
       const rawLine = String(line || '');
-      const leadingSpaces = rawLine.match(/^\\s*/)[0].length;
+      const leadingSpaces = rawLine.match(/^\s*/)[0].length;
       const t = rawLine.trim();
       if (!t) return <div key={idx} className="h-2" />;
       if (isStageHeading(t)) return null;
@@ -654,7 +802,7 @@ const renderTextbookPoints = (raw, options) => {
       const indentClass = level === 1 ? 'ml-0' : (level === 2 ? 'ml-4' : 'ml-8');
 
       if (t.startsWith('### ')) {
-        const heading = t.replace(/^###\\s*/, '');
+        const heading = t.replace(/^###\s*/, '');
         return (
           <h3 key={idx} className="mt-2 text-base font-bold text-[#7c2d12]">
             {renderInline(heading)}
@@ -663,7 +811,7 @@ const renderTextbookPoints = (raw, options) => {
       }
 
       if (t.startsWith('#### ')) {
-        const heading = t.replace(/^####\\s*/, '');
+        const heading = t.replace(/^####\s*/, '');
         return (
           <h4 key={idx} className="mt-2 text-sm font-semibold text-gray-700">
             {renderInline(heading)}
@@ -682,7 +830,7 @@ const renderTextbookPoints = (raw, options) => {
         );
       }
 
-      const ordered = t.match(/^(\\d+)\\.\\s+(.*)$/);
+      const ordered = t.match(/^(\d+)\.\s+(.*)$/);
       if (ordered) {
         return (
           <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
@@ -725,19 +873,19 @@ const renderTextbookPoints = (raw, options) => {
       kept.push(rawLine);
       continue;
     }
-    const isBullet = t.startsWith('- ') || /^\\d+\\.\\s+/.test(t);
+    const isBullet = t.startsWith('- ') || /^\d+\.\s+/.test(t);
     if (isBullet) {
       totalBulletCount += 1;
       sectionBulletCount += 1;
       if (totalBulletCount > maxTotalBullets || sectionBulletCount > maxBulletsPerSection) {
         continue;
       }
-      const normalized = safeTruncateMdBold(rawLine.replace(/\\s+$/g, '').trim(), maxLineLen);
+      const normalized = safeTruncateMdBold(rawLine.replace(/\s+$/g, '').trim(), maxLineLen);
       kept.push(normalized);
       continue;
     }
     if (totalBulletCount < maxTotalBullets) {
-      const normalized = safeTruncateMdBold(rawLine.replace(/\\s+$/g, '').trim(), maxLineLen);
+      const normalized = safeTruncateMdBold(rawLine.replace(/\s+$/g, '').trim(), maxLineLen);
       kept.push(normalized);
     }
   }
@@ -757,7 +905,7 @@ const renderTextbookPoints = (raw, options) => {
 
   return prunedKept.map((line, idx) => {
     const rawLine = String(line || '');
-    const leadingSpaces = rawLine.match(/^\\s*/)[0].length;
+    const leadingSpaces = rawLine.match(/^\s*/)[0].length;
     const t = rawLine.trim();
     if (!t) return <div key={idx} className="h-2" />;
     if (/^-{3,}$/.test(t)) return <hr key={idx} className="my-3 border-[#c8b496]/50" />;
@@ -767,7 +915,7 @@ const renderTextbookPoints = (raw, options) => {
     const indentClass = level === 1 ? 'ml-0' : (level === 2 ? 'ml-4' : 'ml-8');
 
     if (t.startsWith('### ')) {
-      const heading = t.replace(/^###\\s*/, '');
+      const heading = t.replace(/^###\s*/, '');
       return (
         <h3 key={idx} className="mt-2 text-base font-bold text-[#7c2d12]">
           {renderInline(heading)}
@@ -776,7 +924,7 @@ const renderTextbookPoints = (raw, options) => {
     }
 
     if (t.startsWith('#### ')) {
-      const heading = t.replace(/^####\\s*/, '');
+      const heading = t.replace(/^####\s*/, '');
       return (
         <h4 key={idx} className="mt-2 text-sm font-semibold text-gray-700">
           {renderInline(heading)}
@@ -795,7 +943,7 @@ const renderTextbookPoints = (raw, options) => {
       );
     }
 
-    const ordered = t.match(/^(\\d+)\\.\\s+(.*)$/);
+    const ordered = t.match(/^(\d+)\.\s+(.*)$/);
     if (ordered) {
       return (
         <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
@@ -928,10 +1076,10 @@ const App = () => {
         locations[i+1].lat, locations[i+1].lng
       );
     }
-    const regions = new Set(locations.map(l => (l.modernName || l.name || '').split(/[\\s/]/)[0]).filter(Boolean));
+    const regions = new Set(locations.map(l => (l.modernName || l.name || '').split(/[\s/]/)[0]).filter(Boolean));
     const lifespanRaw = String(data.person?.lifespan || '');
-    const mAge = lifespanRaw.match(/(\\d{1,3})\\s*岁/);
-    const mYear = lifespanRaw.match(/(\\d{1,3})\\s*年/);
+    const mAge = lifespanRaw.match(/(\d{1,3})\s*岁/);
+    const mYear = lifespanRaw.match(/(\d{1,3})\s*年/);
     const lifespanDigits = mAge ? parseInt(mAge[1], 10) : (mYear ? parseInt(mYear[1], 10) : NaN);
     const b = extractYear(data.person?.birth?.date || '');
     const d = extractYear(data.person?.death?.date || '');
@@ -959,12 +1107,12 @@ const App = () => {
     if (!raw) return { ancient: '', modern: '' };
     let ancient = raw;
     let modern = '';
-    const m1 = raw.match(/^(.*?)[（(]([^）)]+)[）)]\\s*$/);
+    const m1 = raw.match(/^(.*?)[（(]([^）)]+)[）)]\s*$/);
     if (m1) {
       ancient = String(m1[1] || '').trim();
       modern = String(m1[2] || '').trim();
     }
-    modern = modern.replace(/^今\\s*/g, '').trim();
+    modern = modern.replace(/^今\s*/g, '').trim();
     return { ancient, modern };
   }, [data.person?.birthplace]);
   const birthplaceMeta = useMemo(() => {
@@ -986,7 +1134,7 @@ const App = () => {
     if (!raw || !doubtful) return { doubtful: false, candidates: [] };
     const out = [];
     const seen = new Set();
-    const re = /(?:一说|或说|又说|另说)\s*(?:生于|生在|在)?\s*([^，。；;）)\\n]+)\s*/g;
+    const re = /(?:一说|或说|又说|另说)\s*(?:生于|生在|在)?\s*([^，。；;）)\n]+)\s*/g;
     let m = null;
     while ((m = re.exec(raw))) {
       const t0 = String(m[1] || '').replace(/存疑/g, '').trim();
@@ -1083,7 +1231,7 @@ const App = () => {
     const leftX = 18;
     const rightX = 82;
     const centerY = 50;
-    const spread = count <= 2 ? 16 : (count <= 4 ? 24 : 30);
+    const spread = count <= 2 ? 14 : (count <= 4 ? 22 : 28);
     const leftNodes = [];
     const rightNodes = [];
     relatedNeighborNodes.forEach((node, idx) => {
@@ -1109,6 +1257,7 @@ const App = () => {
         ...node,
         x: placed.x,
         y: placed.y,
+        isLeft: placed.x < 50,
         linkLabel: String(link.label || node.relationLabel || '相关人物').trim(),
       };
     });
@@ -1140,6 +1289,9 @@ const App = () => {
     const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
     return `#${toHex(r1 + (r2 - r1) * ta)}${toHex(g1 + (g2 - g1) * ta)}${toHex(b1 + (b2 - b1) * ta)}`;
   };
+  const LIFE_GRADIENT_START = '#9be564';
+  const LIFE_GRADIENT_MID = '#166534';
+  const LIFE_GRADIENT_END = '#1f2937';
   const getAgeValue = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return null;
@@ -1179,9 +1331,92 @@ const App = () => {
   };
   const getLifeColor = (loc, idx) => {
     const p = getLifeProgress(loc, idx);
-    if (p <= 0.34) return mixHex('#06b6d4', '#6366f1', p / 0.34);
-    if (p <= 0.72) return mixHex('#6366f1', '#8b5cf6', (p - 0.34) / 0.38);
-    return mixHex('#8b5cf6', '#0f172a', (p - 0.72) / 0.28);
+    if (p <= 0.58) {
+      return mixHex(LIFE_GRADIENT_START, LIFE_GRADIENT_MID, p / 0.58);
+    }
+    return mixHex(LIFE_GRADIENT_MID, LIFE_GRADIENT_END, (p - 0.58) / 0.42);
+  };
+  const toProjectedXY = (lng, lat, refLat) => {
+    const refRad = (refLat || 0) * Math.PI / 180;
+    const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
+    const scaleY = 110540;
+    return {
+      x: lng * scaleX,
+      y: lat * scaleY
+    };
+  };
+  const fromProjectedXY = (x, y, refLat) => {
+    const refRad = (refLat || 0) * Math.PI / 180;
+    const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
+    const scaleY = 110540;
+    return [x / scaleX, y / scaleY];
+  };
+  const getCurveDirection = (from, to, idx) => {
+    const dx = to[0] - from[0];
+    const dy = to[1] - from[1];
+    if (Math.abs(dx) > Math.abs(dy)) return dx >= 0 ? 1 : -1;
+    if (Math.abs(dy) > 0.01) return dy >= 0 ? -1 : 1;
+    return idx % 2 === 0 ? 1 : -1;
+  };
+  const buildCurvedSegmentPath = (from, to, idx) => {
+    if (!Array.isArray(from) || !Array.isArray(to)) return [from, to].filter(Boolean);
+    const fromLng = Number(from[0]);
+    const fromLat = Number(from[1]);
+    const toLng = Number(to[0]);
+    const toLat = Number(to[1]);
+    if (![fromLng, fromLat, toLng, toLat].every(Number.isFinite)) return [from, to];
+    const distanceKm = calculateDistance(fromLat, fromLng, toLat, toLng);
+    const avgLat = (fromLat + toLat) / 2;
+    const p1 = toProjectedXY(fromLng, fromLat, avgLat);
+    const p2 = toProjectedXY(toLng, toLat, avgLat);
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dist = Math.hypot(dx, dy);
+    if (!Number.isFinite(dist) || dist <= 1) return [[fromLng, fromLat], [toLng, toLat]];
+    const curveRatio = clampValue(
+      0.08 + Math.min(distanceKm, 2600) / 2600 * 0.18 + (distanceKm > 1200 ? 0.04 : 0),
+      0.08,
+      0.3
+    );
+    const controlOffset = dist * curveRatio * getCurveDirection([fromLng, fromLat], [toLng, toLat], idx);
+    const nx = -dy / dist;
+    const ny = dx / dist;
+    const cx = (p1.x + p2.x) / 2 + nx * controlOffset;
+    const cy = (p1.y + p2.y) / 2 + ny * controlOffset;
+    const steps = Math.max(16, Math.min(28, Math.round(distanceKm / 110) + 14));
+    const path = [];
+    for (let step = 0; step <= steps; step += 1) {
+      const t = step / steps;
+      const oneMinusT = 1 - t;
+      const px = oneMinusT * oneMinusT * p1.x + 2 * oneMinusT * t * cx + t * t * p2.x;
+      const py = oneMinusT * oneMinusT * p1.y + 2 * oneMinusT * t * cy + t * t * p2.y;
+      path.push(fromProjectedXY(px, py, avgLat));
+    }
+    return path;
+  };
+  const getEventBadges = (loc, idx) => {
+    const out = [];
+    const push = (kind, label) => {
+      if (!kind || !label) return;
+      if (out.some((item) => item.kind === kind && item.label === label)) return;
+      out.push({ kind, label });
+    };
+    if (loc.type === 'birth' || idx === 0) push('birth', '出生');
+    if (loc.type === 'death' || idx === totalEvents - 1) push('death', '死亡');
+    const pool = [
+      String(loc.event || ''),
+      String(loc.significance || ''),
+      Array.isArray(loc.works) ? loc.works.join(' ') : '',
+      Array.isArray(loc.quoteLines) ? loc.quoteLines.join(' ') : '',
+      String(loc.name || ''),
+      String(loc.modernName || '')
+    ].join(' ');
+    if (Array.isArray(loc.works) && loc.works.length) push('work', '作品');
+    if (/(诗|词|赋|文章|著|著作|写作|创作|作品|名句|文集|碑|书|序)/.test(pool)) push('work', '文学');
+    if (/(战|伐|兵|军|攻|守|起义|征讨|抗战|会战|战役|交锋)/.test(pool)) push('war', '战争');
+    if (/(任|官|相|帝|王|后|宰相|执政|改革|变法|称帝|即位|登基|拜相)/.test(pool)) push('politics', '仕途');
+    if (/(游|行|巡|迁|至|出使|远行|流放|谪|入朝|赴|抵达|定居)/.test(pool)) push('travel', '行旅');
+    return out.slice(0, 3);
   };
   const renderDescription = () => {
     if (!description) return null;
@@ -1242,40 +1477,20 @@ const App = () => {
       const latlngs = locations.map((l) => [l.lng, l.lat]);
       const total = locations.length;
       if (latlngs.length > 1) {
-        const baseLine = new AMap.Polyline({
-          path: latlngs,
-          strokeColor: 'rgba(148,163,184,0.18)',
-          strokeWeight: 14,
-          strokeOpacity: 0.85,
-          lineJoin: 'round',
-          lineCap: 'round'
-        });
-        map.add(baseLine);
-        overlays.push(baseLine);
         for (let i = 0; i < latlngs.length - 1; i++) {
-          const segmentPath = [latlngs[i], latlngs[i + 1]];
+          const segmentPath = buildCurvedSegmentPath(latlngs[i], latlngs[i + 1], i);
           const fromColor = getLifeColor(locations[i], i);
           const toColor = getLifeColor(locations[i + 1], i + 1);
           const segmentColor = mixHex(fromColor, toColor, 0.5);
-          const segmentShadow = new AMap.Polyline({
-            path: segmentPath,
-            strokeColor: hexToRgba(segmentColor, 0.14),
-            strokeWeight: 10,
-            strokeOpacity: 0.75,
-            lineJoin: 'round',
-            lineCap: 'round'
-          });
           const segmentLine = new AMap.Polyline({
             path: segmentPath,
             strokeColor: segmentColor,
-            strokeWeight: 4.5,
+            strokeWeight: 2.2,
             strokeOpacity: 0.96,
             lineJoin: 'round',
             lineCap: 'round'
           });
-          map.add(segmentShadow);
           map.add(segmentLine);
-          overlays.push(segmentShadow);
           overlays.push(segmentLine);
         }
       }
@@ -1326,60 +1541,111 @@ const App = () => {
         };
         pulseRaf = requestAnimationFrame(tick);
       };
-      const buildMarkerHtml = (loc, idx, isActive, isPassed) => {
-        const ageText = getMarkerBadgeText(loc, idx);
+      const getPointVisualState = (idx, activeIdx) => {
+        const isActive = idx === activeIdx;
+        const isPassed = idx < activeIdx;
+        return {
+          isActive,
+          isPassed,
+          radius: isActive ? 9 : (idx === 0 || idx === total - 1 ? 7.5 : 6.5),
+          strokeWeight: isActive ? 4 : 3,
+          fillOpacity: isPassed ? 0.84 : 0.98,
+          strokeOpacity: isPassed ? 0.92 : 0.98
+        };
+      };
+      const buildLabelHtml = (loc, idx, activeIdx) => {
         const markerColor = getLifeColor(loc, idx);
+        const ageText = getMarkerBadgeText(loc, idx);
+        const isActive = idx === activeIdx;
+        const isPassed = idx < activeIdx;
         const div = document.createElement('div');
-        const classes = ['story-marker'];
+        const classes = ['map-point-label'];
         if (idx === 0) classes.push('is-start');
         if (idx === total - 1 && total > 1) classes.push('is-end');
         if (isPassed) classes.push('is-passed');
         if (isActive) classes.push('is-active');
         div.className = classes.join(' ');
-        div.style.setProperty('--marker-color', markerColor);
-        div.style.setProperty('--marker-soft', hexToRgba(markerColor, 0.20));
-        div.style.setProperty('--marker-soft-strong', hexToRgba(markerColor, 0.34));
-        const ring = document.createElement('div');
-        ring.className = 'story-marker-ring';
-        const core = document.createElement('div');
-        core.className = 'story-marker-core';
+        div.style.setProperty('--label-color', markerColor);
+        div.style.setProperty('--label-soft', hexToRgba(markerColor, 0.18));
+        div.style.setProperty('--label-soft-strong', hexToRgba(markerColor, 0.30));
         const badge = document.createElement('div');
-        badge.className = 'story-marker-badge';
+        badge.className = 'map-point-label-badge';
         badge.textContent = ageText;
-        const tail = document.createElement('div');
-        tail.className = 'story-marker-tail';
-        const dot = document.createElement('div');
-        dot.className = 'story-marker-dot';
-        core.appendChild(badge);
-        core.appendChild(tail);
-        core.appendChild(dot);
-        div.appendChild(ring);
-        div.appendChild(core);
+        const name = document.createElement('div');
+        name.className = 'map-point-label-name';
+        name.textContent = String(loc.name || loc.modernName || loc.ancientName || `第${idx + 1}站`);
+        div.appendChild(badge);
+        div.appendChild(name);
         return div;
+      };
+      const createPointOverlay = (loc, idx, activeIdx) => {
+        const markerColor = getLifeColor(loc, idx);
+        const visual = getPointVisualState(idx, activeIdx);
+        if (typeof AMap.CircleMarker === 'function') {
+          return new AMap.CircleMarker({
+            center: [loc.lng, loc.lat],
+            radius: visual.radius,
+            strokeColor: '#ffffff',
+            strokeWeight: visual.strokeWeight,
+            strokeOpacity: visual.strokeOpacity,
+            fillColor: markerColor,
+            fillOpacity: visual.fillOpacity,
+            zIndex: visual.isActive ? 240 : 180 + idx,
+            bubble: true,
+            cursor: 'pointer'
+          });
+        }
+        return new AMap.Circle({
+          center: [loc.lng, loc.lat],
+          radius: visual.isActive ? 180 : 140,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+          strokeOpacity: 0.96,
+          fillColor: markerColor,
+          fillOpacity: visual.isPassed ? 0.22 : 0.3,
+          zIndex: visual.isActive ? 240 : 180 + idx,
+          bubble: true
+        });
+      };
+      const updatePointOverlay = (layer, loc, idx, activeIdx) => {
+        if (!layer || typeof layer.setOptions !== 'function') return;
+        const markerColor = getLifeColor(loc, idx);
+        const visual = getPointVisualState(idx, activeIdx);
+        const nextOptions = (typeof AMap.CircleMarker === 'function' && layer instanceof AMap.CircleMarker)
+          ? {
+              radius: visual.radius,
+              strokeColor: '#ffffff',
+              strokeWeight: visual.strokeWeight,
+              strokeOpacity: visual.strokeOpacity,
+              fillColor: markerColor,
+              fillOpacity: visual.fillOpacity,
+              zIndex: visual.isActive ? 240 : 180 + idx
+            }
+          : {
+              radius: visual.isActive ? 180 : 140,
+              strokeColor: '#ffffff',
+              strokeWeight: 2,
+              strokeOpacity: 0.96,
+              fillColor: markerColor,
+              fillOpacity: visual.isPassed ? 0.22 : 0.3,
+              zIndex: visual.isActive ? 240 : 180 + idx
+            };
+        try { layer.setOptions(nextOptions); } catch (_) {}
       };
       const setActive = (activeIdx) => {
         for (const p of pointLayers) {
-          const isActive = p.idx === activeIdx;
-          const isPassed = p.idx < activeIdx;
-          if (p.el) {
-            const classes = ['story-marker'];
+          updatePointOverlay(p.pointLayer, p.loc, p.idx, activeIdx);
+          if (p.labelEl) {
+            const classes = ['map-point-label'];
             if (p.idx === 0) classes.push('is-start');
             if (p.idx === total - 1 && total > 1) classes.push('is-end');
-            if (isPassed) classes.push('is-passed');
-            if (isActive) classes.push('is-active');
-            p.el.className = classes.join(' ');
-            try {
-              const ring = p.el.querySelector('.story-marker-ring');
-              if (ring && isActive) {
-                ring.style.animation = 'none';
-                ring.offsetHeight;
-                ring.style.animation = '';
-              }
-            } catch (_) {}
+            if (p.idx < activeIdx) classes.push('is-passed');
+            if (p.idx === activeIdx) classes.push('is-active');
+            p.labelEl.className = classes.join(' ');
           }
-          if (p.layer && typeof p.layer.setzIndex === 'function') {
+          if (p.labelLayer && typeof p.labelLayer.setzIndex === 'function') {
             try {
-              p.layer.setzIndex(isActive ? 300 : (100 + p.idx));
+              p.labelLayer.setzIndex(p.idx === activeIdx ? 320 : 260 + p.idx);
             } catch (_) {}
           }
         }
@@ -1392,24 +1658,28 @@ const App = () => {
       };
 
       locations.forEach((loc, idx) => {
-        const el = buildMarkerHtml(loc, idx, idx === activeIndex, idx < activeIndex);
-        const marker = new AMap.Marker({
+        const pointLayer = createPointOverlay(loc, idx, activeIndex);
+        const labelEl = buildLabelHtml(loc, idx, activeIndex);
+        const labelMarker = new AMap.Marker({
           position: [loc.lng, loc.lat],
-          content: el,
-          offset: new AMap.Pixel(-36, -41),
-          zIndex: idx === activeIndex ? 200 : 100 + idx,
+          content: labelEl,
+          offset: new AMap.Pixel(0, -18),
+          zIndex: idx === activeIndex ? 320 : 260 + idx,
           bubble: true,
-          raiseOnEnable: true
+          anchor: 'bottom-center'
         });
-        marker.on('click', () => {
+        const focusPoint = () => {
           setSelectedLoc(loc);
           setActiveIndex(idx);
           map.setZoomAndCenter(focusZoom, [loc.lng, loc.lat]);
           pulseByIndex(idx);
-        });
-        map.add(marker);
-        overlays.push(marker);
-        pointLayers.push({ idx, layer: marker, el });
+        };
+        pointLayer.on('click', focusPoint);
+        labelMarker.on('click', focusPoint);
+        map.add(pointLayer);
+        map.add(labelMarker);
+        overlays.push(pointLayer);
+        pointLayers.push({ idx, loc, pointLayer, labelLayer: labelMarker, labelEl });
       });
 
       if (overlays.length > 0 && !initialLocFromHash) {
@@ -1426,7 +1696,11 @@ const App = () => {
           const zoom = Number.isFinite(z) ? z : focusZoom;
           if (typeof lat === 'number' && typeof lng === 'number') {
             map.setZoomAndCenter(zoom, [lng, lat]);
-            if (pulse) runPulse(lng, lat, '#ef4444');
+            if (pulse) {
+              const matchedIdx = locations.findIndex((item) => item && item.lat === lat && item.lng === lng);
+              const pulseColor = matchedIdx >= 0 ? getLifeColor(locations[matchedIdx], matchedIdx) : getLifeColor(locations[activeIndex] || {}, activeIndex);
+              runPulse(lng, lat, pulseColor);
+            }
           }
         },
         setActive,
@@ -1605,15 +1879,15 @@ const App = () => {
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
-      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
-      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\\/+$/, '') + '/api/ai/proxy');
+      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (!staticSite && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
-        pushUrl(toUrl(window.location.origin).replace(/\\/+$/, '') + '/api/ai/proxy');
+        pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
     if (!staticSite) {
@@ -1754,33 +2028,33 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white">
-              <div className="font-semibold">足迹时间轴</div>
+            <div className="p-4 border-b border-[#d7ddcf] bg-[linear-gradient(135deg,rgba(236,241,232,0.96),rgba(227,236,220,0.94))] text-[#5d4a36]">
+              <div className="font-semibold text-[#6b5842]">足迹时间轴</div>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-[#d3dacb] px-2.5 py-1 text-[11px] font-normal text-[#6a5a45] shadow-sm">
                   <span className="text-sm leading-none">🗺️</span>
                   <span className="whitespace-nowrap">
                     总行程
-                    <span className="ml-1 font-bold text-white">{stats.distance}</span>
-                    <span className="ml-0.5 text-white/70">km</span>
+                    <span className="ml-1 font-bold text-[#5e7256]">{stats.distance}</span>
+                    <span className="ml-0.5 text-[#8d8478]">km</span>
                   </span>
                 </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-2 text-xs shrink-0 text-[#7a6d5d]">
                   <button
                     onClick={() => changeEvent(activeIndex - 1)}
                     disabled={activeIndex === 0}
-                    className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-lg bg-white/72 border border-[#d3dacb] text-[#6a5a45] hover:bg-white disabled:opacity-40"
                   >上一事件</button>
-                  <span className="opacity-80">
+                  <span className="text-[#756956]">
                     {selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : ''}
                     {totalEvents ? activeIndex + 1 : 0} / {totalEvents}
                   </span>
                   <button
                     onClick={() => changeEvent(activeIndex + 1)}
                     disabled={activeIndex + 1 >= totalEvents}
-                    className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-lg bg-white/72 border border-[#d3dacb] text-[#6a5a45] hover:bg-white disabled:opacity-40"
                   >下一事件</button>
                 </div>
               </div>
@@ -1797,6 +2071,7 @@ const App = () => {
                       const glowColor = hexToRgba(lifeColor, idx === activeIndex ? 0.22 : 0.12);
                       const isStartNode = loc.type === 'birth' || idx === 0;
                       const isEndNode = loc.type === 'death' || idx === totalEvents - 1;
+                      const eventBadges = getEventBadges(loc, idx);
                       const topPassed = idx <= activeIndex;
                       const bottomPassed = idx < activeIndex;
                       return (
@@ -1863,11 +2138,11 @@ const App = () => {
                                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40">
                                       {stageText}
                                     </span>
-                                    {loc.type === 'birth' ? (
-                                      <span className="timeline-ritual-badge birth">起点</span>
-                                    ) : loc.type === 'death' ? (
-                                      <span className="timeline-ritual-badge death">终章</span>
-                                    ) : null}
+                                    {eventBadges.map((badge, badgeIdx) => (
+                                      <span key={badgeIdx} className={`timeline-ritual-badge ${badge.kind}`}>
+                                        {badge.label}
+                                      </span>
+                                    ))}
                                   </div>
                                   <div className="text-[10px] text-gray-400 truncate">{loc.ancientName} → {loc.modernName}</div>
                                 </div>
@@ -1889,7 +2164,7 @@ const App = () => {
                                     className="h-full rounded-full"
                                     style={{
                                       width: `${Math.max(6, lifeProgress)}%`,
-                                      background: `linear-gradient(90deg, #06b6d4 0%, #6366f1 45%, ${lifeColor} 100%)`
+                                      background: `linear-gradient(90deg, ${LIFE_GRADIENT_START} 0%, ${lifeColor} 55%, ${LIFE_GRADIENT_END} 100%)`
                                     }}
                                   ></div>
                                 </div>
@@ -2002,68 +2277,49 @@ const App = () => {
           </div>
           {relatedGraphLayout.length ? (
             <div className="space-y-4">
+              <div className="related-graph-legend">
+                <div className="related-graph-legend-item"><span className="related-graph-legend-dot"></span>中心人物在中间，相关人物按左右列展开</div>
+                <div className="related-graph-legend-item"><span className="related-graph-legend-dot"></span>关系标签直接贴在人物卡片上，点击可跳转</div>
+              </div>
               <div className="related-graph-stage border border-[#c8b496]/35">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                   {relatedGraphLayout.map((node, idx) => (
-                    (() => {
-                      const label = String(node.linkLabel || '').trim();
-                      const midX = 50 + (node.x - 50) * 0.52;
-                      const midY = 50 + (node.y - 50) * 0.52;
-                      const tagWidth = Math.min(16, Math.max(7.8, label.length * 1.9 + 2.2));
-                      return (
-                        <g key={`edge-${idx}`}>
-                          <line
-                            x1="50"
-                            y1="50"
-                            x2={node.x}
-                            y2={node.y}
-                            stroke="rgba(124,45,18,0.28)"
-                            strokeWidth="0.32"
-                            strokeDasharray="0"
-                          />
-                          {label ? (
-                            <>
-                              <rect
-                                className="related-graph-edge-tag"
-                                x={midX - tagWidth / 2}
-                                y={midY - 2.25}
-                                rx="1.7"
-                                ry="1.7"
-                                width={tagWidth}
-                                height="4.5"
-                              />
-                              <text
-                                className="related-graph-edge-text"
-                                x={midX}
-                                y={midY + 0.55}
-                                textAnchor="middle"
-                              >
-                                {label}
-                              </text>
-                            </>
-                          ) : null}
-                        </g>
-                      );
-                    })()
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(124,45,18,0.18)"
+                        strokeWidth="0.26"
+                        strokeDasharray="0"
+                      />
+                    </g>
                   ))}
                 </svg>
                 <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
                   <div className="related-graph-link">
-                    <div className="related-graph-dot center">
-                      <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                    <div className="related-graph-card center">
+                      <div className="related-graph-avatar">
+                        <span className="text-2xl font-black tracking-wide">{String(relatedCenterNode.name || '').slice(0, 2)}</span>
+                      </div>
+                      <div className="related-graph-relation">中心人物</div>
+                      <div className="related-graph-label center">{relatedCenterNode.name}</div>
+                      <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
                     </div>
-                    <div className="related-graph-label center">{relatedCenterNode.name}</div>
-                    <div className="related-graph-meta">{relatedCenterNode.dynasty || '当前人物'}</div>
                   </div>
                 </div>
                 {relatedGraphLayout.map((node, idx) => (
                   <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
                     <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-dot">
-                        <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                      <div className="related-graph-card">
+                        <div className="related-graph-relation">{node.linkLabel || '相关人物'}</div>
+                        <div className="related-graph-avatar">
+                          <span className="text-lg font-black tracking-wide">{String(node.name || '').slice(0, 2)}</span>
+                        </div>
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
                       </div>
-                      <div className="related-graph-label">{node.name}</div>
-                      <div className="related-graph-meta">{node.dynasty || '相关人物'}</div>
                     </a>
                   </div>
                 ))}
@@ -2099,10 +2355,10 @@ const App = () => {
                       ? 'bg-[#c0392b] text-white ml-auto'
                       : 'bg-white text-gray-800 mr-auto';
                     const wrapClass = isUser ? 'justify-end' : 'justify-start';
-                    const rawText = String(m.content || '').trim();
+                    const rawText = normalizeDisplayText(m.content);
                     return (
                       <div key={idx} className={`flex ${wrapClass}`}>
-                        <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[#c8b496]/30 ${bubbleClass}`}>
+                        <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[#c8b496]/30 whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
                           {renderMdBlock(rawText) || renderInline(rawText)}
                         </div>
                       </div>
@@ -2200,7 +2456,6 @@ const App = () => {
                 >
                   {showTeachingFull ? '收起' : '展开'}
                 </button>
-                <span className="text-[10px] text-gray-500">面向教学</span>
               </div>
             </div>
             <div className="space-y-1">

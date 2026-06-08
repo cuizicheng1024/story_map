@@ -16,18 +16,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-STORY_DIR = REPO_ROOT / "storymap" / "examples" / "story"
-STORY_MAP_DIR = Path(os.getenv("MAP_STORY_OUTPUT_DIR", REPO_ROOT / "artifacts" / "story_map"))
-if not STORY_MAP_DIR.is_absolute():
-    STORY_MAP_DIR = (REPO_ROOT / STORY_MAP_DIR).resolve()
+from storymap.script.project_paths import BAD_PERSON_NAMES, project_root_path, story_artifacts_dir_path, story_md_dir_path
+
+REPO_ROOT = project_root_path()
+STORY_DIR = story_md_dir_path()
+STORY_MAP_DIR = story_artifacts_dir_path()
 DATA_DIR = REPO_ROOT / "data"
 HOME_DATA = STORY_MAP_DIR / "stellar_home_data.json"
 MANIFEST_JSON = DATA_DIR / "build_manifest.json"
@@ -35,7 +34,6 @@ VALIDATION_JSON = DATA_DIR / "build_validation_report.json"
 MARKDOWN_SMOKE_JSON = DATA_DIR / "markdown_smoke_report.json"
 LOW_COVERAGE_JSON = DATA_DIR / "low_coverage_story_report.json"
 LOW_COVERAGE_MD = DATA_DIR / "low_coverage_story_report.md"
-BAD_PERSON_NAMES = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
 
 
 def _print_section(title: str) -> None:

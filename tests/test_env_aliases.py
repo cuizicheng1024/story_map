@@ -9,6 +9,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from env_utils import apply_story_map_env_aliases
+from runtime_support import collect_startup_issues
 
 
 def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
@@ -24,3 +25,45 @@ def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
     assert os.getenv("AMAP_KEY") == "legacy-key"
     assert os.getenv("AMAP_SECURITY") == "legacy-sec"
     assert os.getenv("MAP_STORY_API_BASE") == "http://legacy.example"
+
+
+def test_collect_startup_issues_reports_missing_optional_keys(tmp_path, monkeypatch):
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_dir.mkdir(parents=True)
+    for key in [
+        "LLM_API_KEY",
+        "LLM_BASE_URL",
+        "LLM_MODEL_ID",
+        "MINIMAX_API_KEY",
+        "MINIMAX_BASE_URL",
+        "MINIMAX_MODEL",
+        "MIMO_API_KEY",
+        "MIMO_BASE_URL",
+        "MIMO_MODEL",
+        "API_KEY",
+        "BASE_URL",
+        "MODEL",
+        "AMAP_KEY",
+        "AMAP_SECURITY",
+        "location_api",
+        "locaion_api",
+        "LOCATION_API",
+        "MAPSCO_API_KEY",
+        "AMAP_WEBSERVICE_KEY",
+        "AMAP_WEB_SERVICE_KEY",
+        "AMAP_REST_KEY",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    issues = collect_startup_issues(str(tmp_path))
+
+    assert issues["errors"] == []
+    assert any("缺少大模型配置" in item for item in issues["warnings"])
+    assert any("缺少 AMAP_KEY" in item for item in issues["warnings"])
+    assert any("缺少地理编码密钥" in item for item in issues["warnings"])
+
+
+def test_collect_startup_issues_reports_missing_story_dir(tmp_path):
+    issues = collect_startup_issues(str(tmp_path))
+
+    assert any("缺少人物故事目录" in item for item in issues["errors"])

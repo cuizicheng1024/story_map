@@ -50,6 +50,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from storymap.script.project_paths import story_artifacts_dir_path, story_md_dir_path
+
 import requests
 from dotenv import load_dotenv
 
@@ -596,7 +598,7 @@ def run_pipeline_only(
         write_text(Path(html_preview_path), html)
         has_bio = not bool(ensure_checks.get("empty"))
         if has_bio:
-            out_story_map_dir = REPO_ROOT / "storymap" / "examples" / "story_map"
+            out_story_map_dir = story_artifacts_dir_path()
             html_path = str(out_story_map_dir / f"{_safe_filename(person)}__pure__{ts}.html")
             write_text(Path(html_path), html)
 
@@ -1131,7 +1133,7 @@ def main() -> int:
     parser.add_argument(
         "--missing-html",
         action="store_true",
-        help="自动扫描 storymap/examples/story/*.md 与 storymap/examples/story_map/*.html，只跑缺失人物页的那批人",
+        help="自动扫描 storymap/examples/story/*.md 与 artifacts/story_map/*.html，只跑缺失人物页的那批人",
     )
     parser.add_argument(
         "--missing-limit",
@@ -1166,7 +1168,7 @@ def main() -> int:
         return stem.strip()
 
     def _html_people() -> List[str]:
-        html_dir = REPO_ROOT / "storymap" / "examples" / "story_map"
+        html_dir = story_artifacts_dir_path()
         html_files = [p for p in html_dir.glob("*.html") if p.is_file() and p.name != "index.html"]
         people = sorted({_person_from_filename(p.name) for p in html_files if _person_from_filename(p.name)})
         lim = int(args.fact_repair_limit or 0)
@@ -1175,8 +1177,8 @@ def main() -> int:
         return people
 
     def _missing_people() -> List[str]:
-        md_dir = REPO_ROOT / "storymap" / "examples" / "story"
-        html_dir = REPO_ROOT / "storymap" / "examples" / "story_map"
+        md_dir = story_md_dir_path()
+        html_dir = story_artifacts_dir_path()
         md = {p.stem.strip() for p in md_dir.glob("*.md") if p.is_file() and p.stem.strip()}
         html_files = [p for p in html_dir.glob("*.html") if p.is_file() and p.name != "index.html"]
         html_people = {_person_from_filename(p.name) for p in html_files if _person_from_filename(p.name)}

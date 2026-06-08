@@ -28,20 +28,21 @@ from pathlib import Path
 from typing import Optional, Set
 from urllib.parse import quote
 
-BAD_PERSON_NAMES = {"人物", "母亲", "刘某", "人物 生平传记与足迹"}
+from storymap.script.project_paths import (
+    BAD_PERSON_NAMES,
+    person_name_from_filename,
+    project_root_path,
+    story_artifacts_dir_path,
+    story_md_dir_path,
+)
 
 
 def _repo_root() -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return str(project_root_path())
 
 
 def _story_artifacts_dir() -> str:
-    configured = (os.getenv("MAP_STORY_OUTPUT_DIR") or "").strip()
-    if configured:
-        if not os.path.isabs(configured):
-            configured = os.path.join(_repo_root(), configured)
-        return os.path.abspath(configured)
-    return os.path.join(_repo_root(), "artifacts", "story_map")
+    return str(story_artifacts_dir_path())
 
 
 def _add_import_paths() -> None:
@@ -54,8 +55,7 @@ def _add_import_paths() -> None:
 
 
 def _default_md_path(person: str) -> str:
-    root = _repo_root()
-    return os.path.join(root, "storymap", "examples", "story", f"{person}.md")
+    return str(story_md_dir_path() / f"{person}.md")
 
 
 def _read_text(path: str) -> str:
@@ -139,10 +139,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
 
 
 def _person_from_filename(name: str) -> str:
-    stem = Path(name).stem
-    if "__pure__" in stem:
-        return stem.split("__pure__", 1)[0]
-    return stem
+    return person_name_from_filename(name)
 
 
 def _scan_people_from_story_md(story_md_dir: Path) -> Set[str]:
@@ -173,6 +170,7 @@ def _render_workers() -> int:
 def _template_dependency_paths(root: Path) -> list[Path]:
     return [
         root / "storymap" / "script" / "map_html_renderer.py",
+        root / "storymap" / "script" / "templates" / "profile_page.html",
         root / "storymap" / "script" / "story_map.py",
         root / "cli" / "generate_pure_story_map.py",
     ]
@@ -249,8 +247,7 @@ def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str
 
 
 def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> int:
-    root = Path(_repo_root()).resolve()
-    md_dir = root / "storymap" / "examples" / "story"
+    md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
     md_people = _scan_people_from_story_md(md_dir)
     html_people = _scan_people_from_story_map_html(html_dir)
@@ -264,8 +261,7 @@ def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> in
 
 
 def render_all_people_html(*, mode: str = "nogeocode") -> int:
-    root = Path(_repo_root()).resolve()
-    md_dir = root / "storymap" / "examples" / "story"
+    md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
 
     md_people = sorted([p for p in _scan_people_from_story_md(md_dir) if p not in BAD_PERSON_NAMES])
@@ -274,8 +270,7 @@ def render_all_people_html(*, mode: str = "nogeocode") -> int:
 
  
 def render_changed_people_html(*, mode: str = "nogeocode", max_people: int = 0) -> int:
-    root = Path(_repo_root()).resolve()
-    md_dir = root / "storymap" / "examples" / "story"
+    md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
     changed = _changed_people(md_dir, html_dir)
     reason_counts: dict[str, int] = {}

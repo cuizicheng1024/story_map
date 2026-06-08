@@ -19,8 +19,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as url_quote
 from urllib.request import Request, urlopen
 
+from storymap.script.project_paths import BAD_PERSON_NAMES, project_root_path, story_artifacts_dir_path, story_md_dir_path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+REPO_ROOT = project_root_path()
 try:
     from dotenv import load_dotenv  # type: ignore
 except Exception:
@@ -41,23 +43,13 @@ if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
 if apply_story_map_env_aliases:
     apply_story_map_env_aliases()
-STORY_MD_DIR = REPO_ROOT / "storymap" / "examples" / "story"
-STORY_MAP_DIR = Path(os.getenv("MAP_STORY_OUTPUT_DIR", REPO_ROOT / "artifacts" / "story_map"))
-if not STORY_MAP_DIR.is_absolute():
-    STORY_MAP_DIR = (REPO_ROOT / STORY_MAP_DIR).resolve()
+STORY_MD_DIR = story_md_dir_path()
+STORY_MAP_DIR = story_artifacts_dir_path()
 SPOTLIGHT_JSON = REPO_ROOT / "data" / "pep_people_spotlight.json"
 KNOWLEDGE_GRAPH_JSON = REPO_ROOT / "data" / "people_knowledge_graph.json"
 BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
 MIN_YEAR = -800
 MAX_YEAR = 2000
-
-BAD_PERSON_NAMES = {
-    "人物",
-    "母亲",
-    "刘某",
-    "人物 生平传记与足迹",
-}
-
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -295,19 +287,6 @@ def _scan_people_from_story_md(story_md_dir: Path) -> List[str]:
         return []
     items = [p.stem for p in story_md_dir.glob("*.md") if p.is_file()]
     return sorted({x.strip() for x in items if _is_valid_person_name(x)})
-
-
-def _scan_people_from_story_map_html(story_map_dir: Path) -> List[str]:
-    if not story_map_dir.exists():
-        return []
-    names: List[str] = []
-    for p in story_map_dir.glob("*.html"):
-        if not p.is_file():
-            continue
-        person = _person_from_filename(p.name).strip()
-        if _is_valid_person_name(person):
-            names.append(person)
-    return sorted(set(names))
 
 
 def _extract_years_from_md(md_text: str) -> Tuple[Optional[int], Optional[int]]:
@@ -804,7 +783,7 @@ def _pick_quote(spot: Dict[str, Any]) -> str:
     return ""
 
 
-def _render_index_html(title: str, data_file: str, quality_line: str = "") -> str:
+def _render_index_html(title: str, data_file: str) -> str:
     safe_title = title.strip() or "故事地图"
     # Always render a fresh index.html instead of patching an existing template.
     # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
@@ -847,7 +826,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
     <title>{safe_title}</title>
     {amap_inline}
     {runtime_inline}
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./vendor/tailwindcss.js"></script>
     <style>
       body {{
         background:
@@ -950,7 +929,7 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
         {qhtml}
       </div>
 
-      <div class="glass card px-6 py-5">
+      <div class="glass card px-6 py-5 relative z-30 overflow-visible">
         <div class="text-sm font-bold text-slate-800 mb-2">检索人物</div>
         <div class="relative">
           <div class="flex items-center gap-3">
@@ -958,12 +937,12 @@ def _render_index_html(title: str, data_file: str, quality_line: str = "") -> st
             <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">查看</button>
           </div>
           <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名检索</div>
-          <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-xl overflow-hidden"></div>
+          <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs text-slate-600"></div>
       </div>
 
-      <div class="card graph overflow-hidden relative">
+      <div class="card graph overflow-hidden relative z-10">
         <div class="px-6 py-4 text-sm font-bold text-white/90 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div>人类群星闪耀时</div>
@@ -3983,7 +3962,6 @@ def main() -> int:
         spotlight_items = {}
 
     strict_audit_dir = (REPO_ROOT / "data" / "validation_reports" / "strict_audit").resolve()
-    quality_line = ""
 
     nodes: List[Dict[str, Any]] = []
     min_year: Optional[int] = None
@@ -4417,7 +4395,7 @@ def main() -> int:
     except Exception:
         pass
     out_data.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    out_index.write_text(_render_index_html(args.title, out_data.name, quality_line=quality_line), encoding="utf-8")
+    out_index.write_text(_render_index_html(args.title, out_data.name), encoding="utf-8")
     print(json.dumps({"ok": True, "index": str(out_index), "data": str(out_data), "count": len(nodes)}, ensure_ascii=False))
     return 0
 

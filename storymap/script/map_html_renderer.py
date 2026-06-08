@@ -7,8 +7,10 @@ from typing import Any, Dict, List, Optional
 
 try:
     from .env_utils import apply_story_map_env_aliases, env_flag
+    from .project_paths import story_artifacts_dir_path
 except ImportError:
     from env_utils import apply_story_map_env_aliases, env_flag
+    from project_paths import story_artifacts_dir_path
 
 
 apply_story_map_env_aliases()
@@ -159,7 +161,7 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-STELLAR_HOME_DATA_JSON = REPO_ROOT / "storymap" / "examples" / "story_map" / "stellar_home_data.json"
+STELLAR_HOME_DATA_JSON = story_artifacts_dir_path() / "stellar_home_data.json"
 
 
 def _to_int(value: Any) -> Optional[int]:
@@ -421,11 +423,16 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
 
     current_idx = None
     for alias in current_aliases:
-        current_idx = alias_to_idx.get(_normalize_person_token(alias))
+        normalized = _normalize_person_token(alias)
+        current_idx = alias_to_idx.get(normalized)
+        if current_idx is None:
+            current_idx = person_to_idx.get(str(alias).strip())
         if current_idx is not None:
             break
     if current_idx is None:
         current_idx = person_to_idx.get(person_name)
+    if current_idx is None and display_name:
+        current_idx = person_to_idx.get(display_name)
     current_node = nodes[current_idx] if current_idx is not None else {}
     current_dynasty = str(person.get("dynasty") or current_node.get("dynasty") or "").strip()
     current_birth, current_death = _pick_year_range(person, current_node)
@@ -631,7 +638,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<script src="./vendor/tailwindcss.js"></script>
 __RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
 <style>

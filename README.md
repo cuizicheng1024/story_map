@@ -1,4 +1,4 @@
-<h1 align="center">🗺️ 故事地图_StoryMap</h1>
+<h1 align="center">🗺️ 故事地图StoryMap</h1>
 
 <p align="center">
   <strong>从时空视角重构历史人物的生命轨迹</strong>
@@ -9,10 +9,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/cuizicheng1024/sotry_map?style=flat-square" alt="GitHub stars" />
-  <img src="https://img.shields.io/github/last-commit/cuizicheng1024/sotry_map?style=flat-square" alt="Last commit" />
+  <img src="https://img.shields.io/github/stars/cuizicheng1024/storymap?style=flat-square" alt="GitHub stars" />
+  <img src="https://img.shields.io/github/last-commit/cuizicheng1024/storymap?style=flat-square" alt="Last commit" />
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+" />
-  <img src="https://img.shields.io/badge/Node.js-22%2B-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js 22+" />
   <img src="https://img.shields.io/badge/License-Apache%202.0-F4C430?style=flat-square" alt="License Apache 2.0" />
   <img src="https://img.shields.io/badge/Map-AMap-0ea5e9?style=flat-square" alt="AMap" />
   <img src="https://img.shields.io/badge/LLM-MiniMax-7c3aed?style=flat-square" alt="MiniMax" />
@@ -39,12 +38,12 @@
 ## 项目概况
 **故事地图（StoryMap）** 面向文史爱好者，遵循 **“人物—时空—事件”** 的叙事主线，提供了地图可视化工具：输入一个名字，就生成可交互的足迹地图课件，知人论世，让历史人物的作品有了时空的分量。
 
-🧭 **项目目标：**借助地图，我们可以把文学与历史研究中偏感性、经验性的“人物分析”，转成可回放、可检索的**时空轨迹**，关注行走与迁徙的线性轨迹，而不仅仅某个时间切片的个人经历。
+🧭 **项目目标：**借助地图，我们可以把文学与历史研究中偏感性、经验性的“人物分析”，转成可回放、可检索的**时空轨迹**，关注行走与迁徙的轨迹，而不仅仅某个时间切片的个人经历。
 **从时空视角重构历史人物生命轨迹，解决文史学习中“文本碎片化、时空理解弱、检索成本高”的痛点。**
 
 🛠️ **技术方案：**
 - **1. 输入姓名，生成故事**：通过 LLM 检索与整理资料生成结构化内容，重点抽取 **时间 - 地点 - 事件 / 作品 - 意义**。
-- **2. 地理定位，完成落图**：集成 **高德地图 API** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
+- **2. 地理定位，完成落图**：集成 **高德地图 ** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
 - **3. 交互式地图课件呈现**：基于人物足迹、时间轴和事件节点生成联动页面，支持课堂展示、人物浏览与互动讲解。
 
 
@@ -84,35 +83,35 @@
 
 人物页默认展示：
 - 人物简介
-- 空间轨迹
-- 现代化足迹时间轴（年龄标签、生命进度、起点/终章样式）
+- 足迹地图
 - 对话窗口
 - 考点信息
 
 
 ## 🧩 环境要求
 - **Python 版本**：建议 `Python 3.11+`
-- **Node.js 版本**：建议 `Node.js 22+`（用于 `web/` 前端开发）
+- **Node.js 版本**：当前主流程非必需；仅在查看已归档的 `archive/web-prototype/` 前端原型时才需要 `Node.js 22+`
 - **依赖安装**：先安装项目依赖；如果你本地还没有装，可优先尝试 `pip install -r requirements.txt`
 - **是否需要 `.env`**：需要。人物对话、实时生成人物页、以及高德地图底图都依赖环境变量配置
-- **高德 Key 是否必填**：必填。当前人物页和主页都统一使用高德底图，没有高德 Key 页面地图无法正常加载
+- **高德 Key 是否必填**：主页和人物页底图至少需要 `AMAP_KEY`；若要在线补地理坐标，建议再配置 geocode key
+
 
 ## 🚀 快速开始
 
 ### 本地一键体验
 1) 启动新服务（`FastAPI`，提供主页、人物页生成、对话接口和 `/docs`）：
 ```bash
-python3 storymap/script/story_map.py --serve --port 8766
+python3 storymap/script/story_map.py --serve --port 8765
 ```
 
 2) 浏览器打开主页：
-- `http://localhost:8766/`
+- `http://localhost:8765/`
 
 3) 查看接口文档：
-- `http://localhost:8766/docs`
+- `http://localhost:8765/docs`
 
 4) 打开任意人物页后，可直接分享带地点状态的链接：
-- 例如：`http://localhost:8766/苏轼.html#loc=3`
+- 例如：`http://localhost:8765/苏轼.html#loc=3`
 - 其中 `#loc=N` 表示人物页左侧时间轴中第 `N` 个地点节点（从 `0` 开始）
 
 ### 未收录人物
@@ -172,6 +171,12 @@ MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-a
 - `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
 - `build_all.py` 默认会先对当前 git 变更中的 Markdown 跑一次冒烟校验；若结构性错误会直接中止，避免把坏数据继续发布。
 - `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
+- 若你已经配置 geocode key，想尽量补全地点坐标，可执行：
+
+```bash
+MAP_STORY_RENDER_CONCURRENCY=2 python3 cli/generate_pure_story_map.py --render-all --all-mode pure
+```
+
 - 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
 - 每次 `build_all.py` 完成后，还会刷新：
   - `data/markdown_smoke_report.json`
@@ -184,7 +189,8 @@ MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-a
 ```env
 AMAP_KEY=你的高德 JS Key
 AMAP_SECURITY=你的高德安全密钥
-MAP_STORY_API_BASE=http://127.0.0.1:8766
+MAP_STORY_API_BASE=http://127.0.0.1:8765
+AMAP_WEBSERVICE_KEY=你的高德 WebService Key
 
 LLM_PROVIDER=minimax
 LLM_API_KEY=你的大模型 Key
@@ -195,12 +201,12 @@ LLM_MODEL_ID=MiniMax-M3
 说明：
 - `AMAP_KEY`：用于主页和人物页加载高德地图 JS
 - `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
-- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8766`
+- `AMAP_WEBSERVICE_KEY`：用于在线地理编码补点
+- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8765`
 - `LLM_PROVIDER`：当前推荐使用 `minimax`
 - `LLM_API_KEY`：用于人物对话与新人物实时生成
 - `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
 - `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
-- 兼容说明：历史别名如 `Amap_API_Key`、`Amap_API_Secret`、`STORY_MAP_API_BASE` 仍可读取，但新配置请统一使用上面的标准名
 
 ## GitHub Pages 部署
 仓库内已提供 GitHub Pages 工作流：
@@ -332,9 +338,10 @@ storymap/
 cli/                        # 批量生成、重渲染、辅助脚本
 tools/                      # 数据主索引、首页数据、统一构建脚本
 data/                       # 人物主索引、坐标缓存、教材人物聚合结果
+archive/
+└── web-prototype/         # 已归档的 React/Vite 前端原型，不属于当前主流程
 .env                        # 地图与 LLM 的本地配置
 README.md                   # 项目说明
-skill.md                    # Agent 技能说明文件
 ```
 
 

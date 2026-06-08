@@ -4,12 +4,10 @@
 - 调用 geocode_city 获取 WGS84 坐标（若来源为高德 GCJ-02 则会自动转换）
 - 生成可交互 HTML 地图：支持高德多种底图，连线展示顺序，Markdown 弹窗显示大事
 """
-import argparse
 import atexit
 import logging
 import os
 import threading
-import time
 from typing import Dict, List, Optional, Tuple
 
 try:
@@ -47,6 +45,7 @@ try:
     from . import parsers as parser_utils
     from . import profile_builder as profile_builder_utils
     from . import runtime_support as runtime_support_utils
+    from . import story_cli as story_cli_utils
     from .story_agents import (
         StoryAgentLLM,
         extract_historical_figures,
@@ -88,6 +87,7 @@ except ImportError:
     import parsers as parser_utils
     import profile_builder as profile_builder_utils
     import runtime_support as runtime_support_utils
+    import story_cli as story_cli_utils
     from story_agents import (
         StoryAgentLLM,
         extract_historical_figures,
@@ -104,6 +104,12 @@ _LOGGER = logging.getLogger("story_map")
 if not _LOGGER.handlers:
     logging.basicConfig(level=logging.INFO)
 
+_STARTUP_ISSUES = runtime_support_utils.validate_startup_or_raise(
+    _LOGGER,
+    _project_root(),
+    strict=runtime_support_utils.env_flag("STORY_MAP_STRICT_STARTUP", "MAP_STORY_STRICT_STARTUP"),
+)
+
 
 def _lookup_coords_from_historical_index(*names: str) -> Optional[Tuple[float, float]]:
     return geocode_service_utils.lookup_coords_from_historical_index(*names)
@@ -111,9 +117,6 @@ def _lookup_coords_from_historical_index(*names: str) -> Optional[Tuple[float, f
 
 def resolve_place_coord(place: str, year: Optional[int] = None, *aliases: str) -> Optional[Tuple[float, float]]:
     return geocode_service_utils.resolve_place_coord(place, year, *aliases)
-
-
-_resolve_place_coord = resolve_place_coord
 
 
 _CLIENT_FACTORY = runtime_support_utils.SharedLLMClientFactory(StoryAgentLLM)
@@ -246,9 +249,6 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
     return profile_builder_utils.extract_intro_fields(md)
 
 
-_extract_intro_fields = extract_intro_fields
-
-
 def render_html(title: str, points: List[Dict[str, object]], md: str = "") -> str:
     return generation_service_utils.render_html(
         title,
@@ -281,79 +281,36 @@ def load_profile_from_md(
     )
 
 
-_load_profile_from_md = load_profile_from_md
+def _resolve_targets_from_text(client: StoryAgentLLM, text: str, fallback_to_input: bool) -> List[str]:
+    return story_cli_utils.resolve_targets_from_text(
+        client=client,
+        text=text,
+        extract_historical_figures=extract_historical_figures,
+        fallback_to_input=fallback_to_input,
+    )
 
 
 def run_interactive() -> None:
-    """
-    交互模式：
-    - 输入人物或一句包含人物的句子
-    - 生成并输出地图文件路径
-    """
-    client = StoryAgentLLM()
-    while True:
-        try:
-            text = input("请输入人物或一句包含人物的句子（q 退出）：").strip()
-        except EOFError:
-            break
-        if not text:
-            continue
-        err = _validate_input_text(text)
-        if err:
-            print(err)
-            continue
-        if text.lower() in {"q", "quit", "exit"}:
-            print("已退出。")
-            break
-        targets = extract_historical_figures(client, text)
-        if not targets:
-            print("未识别到历史人物")
-            continue
-        print(f"识别到人物数量：{len(targets)}")
-        stats = {"markdown": 0, "html": 0, "failed": 0}
-        for person in targets:
-            print(f"正在生成 {person} 生平文档，可能需要一些时间...")
-            t0 = time.perf_counter()
-            t_step = time.perf_counter()
-            md = generate_historical_markdown(client, person)
-            t_md = time.perf_counter() - t_step
-            if not md:
-                print(f"未取得：{person}")
-                stats["failed"] += 1
-                continue
-            md = parser_utils._normalize_markdown_tables(md)
-            km = compute_total_distance_km(md)
-            if isinstance(km, float):
-                md = insert_distance_intro(md, km)
-            print("正在进行地点地理编码，可能需要一些时间...")
-            t_step = time.perf_counter()
-            md = append_coords_section(md)
-            t_geo = time.perf_counter() - t_step
-            _print_quality_report(md)
-            saved = save_markdown(person, md)
-            print(f"已生成：{saved}")
-            t_step = time.perf_counter()
-            try:
-                places = parse_places(md)
-                events = parse_events(md)
-                pts = build_points(places, events)
-                html = render_html(person, pts, md=md)
-            except Exception as exc:
-                _LOGGER.warning("render_failed person=%s error=%s", person, exc)
-                html = render_amap_html(person, [], "")
-            t_render = time.perf_counter() - t_step
-            out = save_html(person, html)
-            print(out)
-            total = time.perf_counter() - t0
-            print(
-                f"耗时：生平生成 {_format_seconds(t_md)}，地理编码 {_format_seconds(t_geo)}，"
-                f"地图渲染 {_format_seconds(t_render)}，总计 {_format_seconds(total)}"
-            )
-            stats["markdown"] += 1
-            stats["html"] += 1
-        print(
-            f"本次完成：人物 {len(targets)}，文档 {stats['markdown']}，地图 {stats['html']}，失败 {stats['failed']}"
-        )
+    story_cli_utils.run_interactive(
+        create_client=StoryAgentLLM,
+        validate_input_text=_validate_input_text,
+        resolve_targets=_resolve_targets_from_text,
+        generate_historical_markdown=generate_historical_markdown,
+        normalize_markdown_tables=parser_utils._normalize_markdown_tables,
+        compute_total_distance_km=compute_total_distance_km,
+        insert_distance_intro=insert_distance_intro,
+        append_coords_section=append_coords_section,
+        print_quality_report=_print_quality_report,
+        save_markdown=save_markdown,
+        parse_places=parse_places,
+        parse_events=parse_events,
+        build_points=build_points,
+        render_html=render_html,
+        render_amap_html=render_amap_html,
+        save_html=save_html,
+        format_seconds=_format_seconds,
+        logger=_LOGGER,
+    )
 
 
 def generate_for_person(
@@ -392,9 +349,6 @@ def generate_for_person(
         generate_historical_markdown=generate_historical_markdown,
         logger=_LOGGER,
     )
-
-
-_generate_for_person = generate_for_person
 
 
 _ARTIFACT_EXPORTS = ArtifactExportService(
@@ -477,57 +431,18 @@ def _run_server(port: int) -> None:
 
 
 def main():
-    """
-    命令行入口：
-    - 可指定人物与底图
-    - 未指定人物时进入交互模式
-    """
-    parser = argparse.ArgumentParser(
-        description="生成人物生平 Markdown，并导出可交互地图 HTML"
-    )
-    parser.add_argument("-p", "--person", help="历史人物姓名或一句包含人物的句子", required=False)
-    parser.add_argument("--serve", action="store_true", help="启动 HTTP 服务")
-    parser.add_argument("--port", type=int, default=8765, help="HTTP 服务端口")
+    parser = story_cli_utils.build_arg_parser()
     args = parser.parse_args()
     if args.serve:
         return _run_server(args.port)
     if not args.person:
         return run_interactive()
-    err = _validate_input_text(args.person)
-    if err:
-        print(err)
-        return
-    client = StoryAgentLLM()
-    targets = extract_historical_figures(client, args.person)
-    if not targets:
-        fallback = str(args.person or "").strip()
-        if not fallback:
-            print("未识别到人物")
-            return
-        targets = [fallback]
-    stats = {"markdown": 0, "html": 0, "failed": 0}
-    for person in targets:
-        print(f"正在生成 {person} 生平文档，可能需要一些时间...")
-        result = generate_for_person(client, person)
-        if not result.get("ok"):
-            print(f"未取得：{person}")
-            stats["failed"] += 1
-            continue
-        print(f"已生成：{result.get('markdown_path')}")
-        print(result.get("html_path"))
-        duration = result.get("duration") or {}
-        print(
-            "耗时：生平生成 {markdown}，地理编码 {geocode}，地图渲染 {render}，总计 {total}".format(
-                markdown=duration.get("markdown", ""),
-                geocode=duration.get("geocode", ""),
-                render=duration.get("render", ""),
-                total=duration.get("total", ""),
-            )
-        )
-        stats["markdown"] += 1
-        stats["html"] += 1
-    print(
-        f"运行完成：人物 {len(targets)}，文档 {stats['markdown']}，地图 {stats['html']}，失败 {stats['failed']}"
+    return story_cli_utils.run_person_generation(
+        person_text=args.person,
+        create_client=StoryAgentLLM,
+        validate_input_text=_validate_input_text,
+        resolve_targets=_resolve_targets_from_text,
+        generate_for_person=generate_for_person,
     )
 
 

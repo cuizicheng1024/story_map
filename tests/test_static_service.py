@@ -37,6 +37,20 @@ def test_static_service_prefers_homepage_index_but_can_find_generated_artifact(t
     assert service.static_target_path("/artifacts/story_map/霍去病.html") == artifact_dir / "霍去病.html"
 
 
+def test_static_service_prefers_artifact_pages_over_legacy_duplicates(tmp_path):
+    homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
+    artifact_dir = tmp_path / "artifacts" / "story_map"
+    homepage_dir.mkdir(parents=True)
+    artifact_dir.mkdir(parents=True)
+    (homepage_dir / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (homepage_dir / "霍去病.html").write_text("<html>legacy</html>", encoding="utf-8")
+    (artifact_dir / "霍去病.html").write_text("<html>artifact</html>", encoding="utf-8")
+
+    service = _build_service(homepage_dir, artifact_dir)
+
+    assert service.static_target_path("/霍去病.html") == artifact_dir / "霍去病.html"
+
+
 def test_static_service_rejects_unsafe_paths(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"

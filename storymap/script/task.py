@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import threading
@@ -55,9 +56,61 @@ class TaskService:
         self._active = 0
         self._task_lock = threading.Lock()
         self._tasks: Dict[str, Dict[str, object]] = {}
+        self._state_path = os.path.join(self._project_root(), "artifacts", "runtime", "task_state.json")
+        self._load_tasks_from_disk()
 
     def shutdown(self) -> None:
         self._executor.shutdown(wait=False)
+
+    def _load_tasks_from_disk(self) -> None:
+        try:
+            with open(self._state_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except FileNotFoundError:
+            return
+        except Exception as exc:
+            self._logger.warning("task_state_load_failed path=%s error=%s", self._state_path, exc)
+            return
+        tasks = payload.get("tasks") if isinstance(payload, dict) else None
+        if not isinstance(tasks, list):
+            return
+        recovered: Dict[str, Dict[str, object]] = {}
+        now = time.time()
+        for item in tasks:
+            if not isinstance(item, dict):
+                continue
+            task_id = str(item.get("id") or "").strip()
+            if not task_id:
+                continue
+            task = dict(item)
+            if task.get("status") in {"queued", "running"}:
+                progress = list(task.get("progress") or [])
+                progress.append(
+                    {
+                        "label": "中断",
+                        "time": time.strftime("%H:%M:%S", time.localtime(now)),
+                        "detail": "服务重启导致任务中断，请重新提交。",
+                    }
+                )
+                task["progress"] = progress
+                task["status"] = "failed"
+                task["error"] = "服务重启导致任务中断，请重新提交。"
+                task["updated_at"] = now
+            recovered[task_id] = task
+        with self._task_lock:
+            self._tasks = recovered
+            self._trim_tasks_locked()
+            self._persist_tasks_locked()
+
+    def _persist_tasks_locked(self) -> None:
+        parent = os.path.dirname(self._state_path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        payload = {"tasks": list(self._tasks.values())}
+        tmp_path = f"{self._state_path}.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, self._state_path)
 
     def snapshot_task(self, task_id: str) -> Dict[str, object]:
         self._cleanup_tasks()
@@ -133,6 +186,7 @@ class TaskService:
         with self._task_lock:
             self._tasks[task_id] = task
             self._trim_tasks_locked()
+            self._persist_tasks_locked()
         return task_id
 
     def _cleanup_tasks(self) -> None:
@@ -147,6 +201,7 @@ class TaskService:
             for task_id in expired_ids:
                 self._tasks.pop(task_id, None)
             self._trim_tasks_locked()
+            self._persist_tasks_locked()
 
     def _trim_tasks_locked(self) -> None:
         overflow = len(self._tasks) - self._max_tasks
@@ -176,6 +231,7 @@ class TaskService:
             task.update(fields)
             task["updated_at"] = time.time()
             self._trim_tasks_locked()
+            self._persist_tasks_locked()
 
     def _append_progress(self, task_id: str, label: str, detail: str = "") -> None:
         event = {"label": label, "time": time.strftime("%H:%M:%S", time.localtime())}
@@ -190,6 +246,7 @@ class TaskService:
                 return
             task["progress"].append(event)
             task["updated_at"] = time.time()
+            self._persist_tasks_locked()
 
     def _run_task(self, task_id: str, text: str, allow_cache: bool = True) -> None:
         started_at = time.perf_counter()
