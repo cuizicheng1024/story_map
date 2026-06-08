@@ -2300,10 +2300,11 @@ const App = () => {
             className="glass-panel rounded-xl overflow-hidden flex flex-col h-[620px]"
             style={{ flexBasis: `${splitPct}%`, flexGrow: 0 }}
           >
-            <div className="p-4 bg-slate-900 text-white font-semibold flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <span>足迹时间轴</span>
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
+            <div className="p-4 bg-slate-900 text-white">
+              <div className="font-semibold">足迹时间轴</div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] font-normal text-white/90">
                   <span className="text-sm leading-none">🗺️</span>
                   <span className="whitespace-nowrap">
                     总行程
@@ -2311,22 +2312,23 @@ const App = () => {
                     <span className="ml-0.5 text-white/70">km</span>
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <button
-                  onClick={() => changeEvent(activeIndex - 1)}
-                  disabled={activeIndex === 0}
-                  className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
-                >上一事件</button>
-                <span className="opacity-80">
-                  {selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : ''}
-                  {totalEvents ? activeIndex + 1 : 0} / {totalEvents}
-                </span>
-                <button
-                  onClick={() => changeEvent(activeIndex + 1)}
-                  disabled={activeIndex + 1 >= totalEvents}
-                  className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
-                >下一事件</button>
+                </div>
+                <div className="flex items-center gap-2 text-xs shrink-0">
+                  <button
+                    onClick={() => changeEvent(activeIndex - 1)}
+                    disabled={activeIndex === 0}
+                    className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
+                  >上一事件</button>
+                  <span className="opacity-80">
+                    {selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : ''}
+                    {totalEvents ? activeIndex + 1 : 0} / {totalEvents}
+                  </span>
+                  <button
+                    onClick={() => changeEvent(activeIndex + 1)}
+                    disabled={activeIndex + 1 >= totalEvents}
+                    className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-40"
+                  >下一事件</button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4">

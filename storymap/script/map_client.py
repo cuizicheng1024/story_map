@@ -19,7 +19,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from env_utils import load_project_env
+try:
+    from .env_utils import load_project_env
+except ImportError:
+    from env_utils import load_project_env
 
 
 _DEFAULT_USER_AGENT = "map-story/1.0"
@@ -659,7 +662,6 @@ def extract_places_in_order(md: str) -> List[str]:
     lines = md.splitlines()
     in_loc = False
     table_started = False
-    header_seen = False
     display_idx = None
     search_idx = None
     places: List[str] = []
@@ -669,7 +671,6 @@ def extract_places_in_order(md: str) -> List[str]:
             if title.startswith("年份") or "生平时间线" in title:
                 in_loc = True
                 table_started = False
-                header_seen = False
                 display_idx = None
                 search_idx = None
                 continue
@@ -691,7 +692,6 @@ def extract_places_in_order(md: str) -> List[str]:
         if table_started:
             stripped = line.strip()
             if _TABLE_SEPARATOR_RE.match(stripped):
-                header_seen = True
                 continue
             if stripped.startswith("|"):
                 cells = [c.strip() for c in stripped.strip("|").split("|")]

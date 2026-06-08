@@ -9,7 +9,10 @@ import requests
 import urllib3
 from typing import Dict, List, Optional, Tuple
 
-from env_utils import load_project_env
+try:
+    from .env_utils import load_project_env
+except ImportError:
+    from env_utils import load_project_env
 
 # 禁用 urllib3 的不安全请求警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

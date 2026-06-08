@@ -14,69 +14,83 @@ import os
 import re
 import threading
 import time
-import uuid
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import quote, unquote
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-import uvicorn
-from fastapi import FastAPI, HTTPException, Request as FastAPIRequest, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-
 try:
+    from .api import create_app as _create_api_app, run_server as _run_api_server
+    from .artifacts import (
+        ArtifactExportService,
+        _active_story_map_dir,
+        _extract_export_data_from_html,
+        _project_root,
+        _read_text,
+        _relative_path,
+        _story_paths,
+        _update_home_coords,
+        _write_text,
+        save_html,
+    )
     from .env_utils import load_project_env
+    from .map_client import (
+        append_coords_section,
+        compute_total_distance_km,
+        geocode_city,
+        insert_distance_intro,
+    )
+    from .map_html_renderer import (
+        build_info_panel_html,
+        render_amap_html,
+        render_multi_html,
+        render_profile_html,
+    )
+    from .proxy import ProxyService
+    from .static import StaticService
+    from .story_agents import (
+        StoryAgentLLM,
+        extract_historical_figures,
+        generate_historical_markdown,
+        save_markdown,
+    )
+    from .task import TaskService
 except ImportError:
+    from api import create_app as _create_api_app, run_server as _run_api_server
+    from artifacts import (
+        ArtifactExportService,
+        _active_story_map_dir,
+        _extract_export_data_from_html,
+        _project_root,
+        _read_text,
+        _relative_path,
+        _story_paths,
+        _update_home_coords,
+        _write_text,
+        save_html,
+    )
     from env_utils import load_project_env
-from map_client import (
-    append_coords_section,
-    compute_total_distance_km,
-    geocode_city,
-    insert_distance_intro,
-)
-from map_html_renderer import (
-    build_info_panel_html,
-    render_amap_html,
-    render_multi_html,
-    render_profile_html,
-)
-from story_agents import (
-    StoryAgentLLM,
-    extract_historical_figures,
-    generate_historical_markdown,
-    save_markdown,
-)
-
-
-def _project_root() -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-
-def _story_md_dir() -> str:
-    return os.path.join(_project_root(), "storymap", "examples", "story")
-
-
-def _legacy_story_map_dir() -> str:
-    return os.path.join(_project_root(), "storymap", "examples", "story_map")
-
-
-def _story_artifacts_dir() -> str:
-    configured = (os.getenv("MAP_STORY_OUTPUT_DIR") or "").strip()
-    if configured:
-        if not os.path.isabs(configured):
-            configured = os.path.join(_project_root(), configured)
-        return os.path.abspath(configured)
-    return os.path.join(_project_root(), "artifacts", "story_map")
-
-
-def _active_story_map_dir() -> str:
-    artifact_dir = _story_artifacts_dir()
-    legacy_dir = _legacy_story_map_dir()
-    if os.path.isdir(artifact_dir) or (not os.path.isdir(legacy_dir)):
-        return artifact_dir
-    return legacy_dir
+    from map_client import (
+        append_coords_section,
+        compute_total_distance_km,
+        geocode_city,
+        insert_distance_intro,
+    )
+    from map_html_renderer import (
+        build_info_panel_html,
+        render_amap_html,
+        render_multi_html,
+        render_profile_html,
+    )
+    from proxy import ProxyService
+    from static import StaticService
+    from story_agents import (
+        StoryAgentLLM,
+        extract_historical_figures,
+        generate_historical_markdown,
+        save_markdown,
+    )
+    from task import TaskService
 
 
 load_project_env(from_file=__file__, override=True)
@@ -2196,98 +2210,6 @@ def render_html(title: str, points: List[Dict[str, object]], md: str = "") -> st
     return render_amap_html(title, points, "")
 
 
-def save_html(person: str, content: str) -> str:
-    """
-    保存 HTML 到独立构建产物目录，若存在则覆盖。
-    """
-    base = _story_artifacts_dir()
-    os.makedirs(base, exist_ok=True)
-    filename = f"{person}.html"
-    path = os.path.join(base, filename)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"✅ 交互式地图已保存: {path}")
-    return path
-
-
-def save_geojson(person: str, geojson: Dict) -> str:
-    """
-    保存 GeoJSON 到独立构建产物目录。
-    """
-    base = _story_artifacts_dir()
-    os.makedirs(base, exist_ok=True)
-    filename = f"{person}.geojson"
-    path = os.path.join(base, filename)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(geojson, f, ensure_ascii=False, indent=2)
-    print(f"✅ GeoJSON 已保存: {path}")
-    return path
-
-
-def save_csv(person: str, csv_text: str) -> str:
-    """
-    保存 CSV 到独立构建产物目录。
-    """
-    base = _story_artifacts_dir()
-    os.makedirs(base, exist_ok=True)
-    filename = f"{person}.csv"
-    path = os.path.join(base, filename)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(csv_text)
-    print(f"✅ CSV 已保存: {path}")
-    return path
-
-
-def _safe_name(text: str) -> str:
-    safe = re.sub(r'[\\\\/:*?"<>|]', "_", text).strip()
-    return safe or "map"
-
-
-def _story_paths(person: str) -> Tuple[str, str]:
-    safe = _safe_name(person)
-    md_path = os.path.join(_story_md_dir(), f"{safe}.md")
-    html_path = os.path.join(_story_artifacts_dir(), f"{safe}.html")
-    return md_path, html_path
-
-
-def _read_text(path: str) -> str:
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-    except Exception:
-        return ""
-
-
-def _extract_export_data_from_html(html_text: str) -> Optional[Dict[str, object]]:
-    if not isinstance(html_text, str) or not html_text.strip():
-        return None
-    idx = html_text.find("window.__EXPORT_DATA__")
-    if idx < 0:
-        return None
-    prefix = html_text.rfind("const data", 0, idx)
-    if prefix < 0:
-        return None
-    eq = html_text.find("=", prefix, idx)
-    if eq < 0:
-        return None
-    brace = html_text.find("{", eq, idx)
-    if brace < 0:
-        return None
-    semi = html_text.rfind(";", brace, idx)
-    if semi < 0:
-        return None
-    raw = html_text[brace:semi].strip()
-    if not raw.startswith("{") or not raw.endswith("}"):
-        return None
-    try:
-        data = json.loads(raw)
-    except Exception:
-        return None
-    if not isinstance(data, dict):
-        return None
-    return data
-
-
 def _load_profile_from_md(
     md: str,
     event_callback: Optional[callable] = None,
@@ -2701,50 +2623,20 @@ def _is_valid_coord(lat: object, lng: object) -> bool:
     return True
 
 
-def _write_text(path: str, content: str) -> None:
-    parent = os.path.dirname(path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
+_ARTIFACT_EXPORTS = ArtifactExportService(
+    build_geojson_for_profile=_build_geojson_for_profile,
+    build_csv_for_profile=_build_csv_for_profile,
+    build_geojson_for_multi=_build_geojson_for_multi,
+    build_csv_for_multi=_build_csv_for_multi,
+)
 
 
 def _ensure_profile_exports(profile: Dict[str, object], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    safe = _safe_name(base_name)
-    output_dir = _story_artifacts_dir()
-    geo_path = os.path.join(output_dir, f"{safe}.geojson")
-    csv_path = os.path.join(output_dir, f"{safe}.csv")
-    if not (allow_cache and os.path.exists(geo_path)):
-        geo = _build_geojson_for_profile(profile)
-        _write_text(geo_path, json.dumps(geo, ensure_ascii=False, indent=2))
-    if not (allow_cache and os.path.exists(csv_path)):
-        csv_text = _build_csv_for_profile(profile)
-        _write_text(csv_path, csv_text)
-    return {"geojson": geo_path, "csv": csv_path}
+    return _ARTIFACT_EXPORTS.ensure_profile_exports(profile, base_name, allow_cache=allow_cache)
 
 
 def _ensure_multi_exports(people: List[Dict[str, object]], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    safe = _safe_name(base_name)
-    output_dir = _story_artifacts_dir()
-    geo_path = os.path.join(output_dir, f"{safe}.geojson")
-    csv_path = os.path.join(output_dir, f"{safe}.csv")
-    if not (allow_cache and os.path.exists(geo_path)):
-        geo = _build_geojson_for_multi(people)
-        _write_text(geo_path, json.dumps(geo, ensure_ascii=False, indent=2))
-    if not (allow_cache and os.path.exists(csv_path)):
-        csv_text = _build_csv_for_multi(people)
-        _write_text(csv_path, csv_text)
-    return {"geojson": geo_path, "csv": csv_path}
-
-
-def _relative_path(path: str) -> str:
-    root = _project_root()
-    if not path:
-        return ""
-    try:
-        return os.path.relpath(path, root)
-    except Exception:
-        return path
+    return _ARTIFACT_EXPORTS.ensure_multi_exports(people, base_name, allow_cache=allow_cache)
 
 
 def _compute_overlaps(people: List[Dict[str, object]]) -> List[Dict[str, object]]:
@@ -2775,530 +2667,71 @@ def _build_conclusion(results: List[Dict[str, object]], multi: bool) -> str:
 
 _MAX_CONCURRENCY = 5
 _COLOR_PALETTE = ("#1e40af", "#c2410c", "#15803d", "#7c3aed", "#0f766e", "#b91c1c")
-_EXECUTOR = ThreadPoolExecutor(max_workers=_MAX_CONCURRENCY)
-_PROXY_EXECUTOR = ThreadPoolExecutor(max_workers=2)
-_QUEUE_LOCK = threading.Lock()
-_PENDING = 0
-_ACTIVE = 0
-_TASK_LOCK = threading.Lock()
-_TASKS: Dict[str, Dict[str, object]] = {}
 _HOME_COORDS_LOCK = threading.Lock()
 
+_PROXY_SERVICE = ProxyService(
+    get_llm_client=_get_llm_client,
+    local_history_reply=_local_history_reply,
+    logger=_LOGGER,
+)
 
-def _shutdown_executor() -> None:
-    _EXECUTOR.shutdown(wait=False)
-    _PROXY_EXECUTOR.shutdown(wait=False)
+_STATIC_SERVICE = StaticService(
+    active_story_map_dir=_active_story_map_dir,
+    project_root=_project_root,
+    fetch_vendor_bytes=_fetch_vendor_bytes,
+    vendor_cache=_VENDOR_CACHE,
+    vendor_lock=_VENDOR_LOCK,
+)
 
-
-atexit.register(_shutdown_executor)
-
-
-def _create_task(text: str) -> str:
-    task_id = uuid.uuid4().hex
-    now = time.time()
-    task = {
-        "id": task_id,
-        "text": text,
-        "status": "queued",
-        "created_at": now,
-        "updated_at": now,
-        "progress": [],
-        "result": None,
-        "error": "",
-        "queue": {},
-    }
-    with _TASK_LOCK:
-        _TASKS[task_id] = task
-    return task_id
-
-
-def _update_task(task_id: str, **fields: object) -> None:
-    with _TASK_LOCK:
-        task = _TASKS.get(task_id)
-        if not task:
-            return
-        task.update(fields)
-        task["updated_at"] = time.time()
+_TASK_SERVICE = TaskService(
+    logger=_LOGGER,
+    max_concurrency=_MAX_CONCURRENCY,
+    color_palette=_COLOR_PALETTE,
+    project_root=_project_root,
+    format_seconds=_format_seconds,
+    validate_input_text=_validate_input_text,
+    get_llm_client=_get_llm_client,
+    extract_historical_figures=extract_historical_figures,
+    generate_for_person=_generate_for_person,
+    ensure_profile_exports=_ensure_profile_exports,
+    ensure_multi_exports=_ensure_multi_exports,
+    compute_overlaps=_compute_overlaps,
+    build_conclusion=_build_conclusion,
+    render_multi_html=render_multi_html,
+    save_html=save_html,
+    relative_path=_relative_path,
+)
 
 
-def _append_progress(task_id: str, label: str, detail: str = "") -> None:
-    # 进度写入必须持锁，避免并发写导致顺序错乱
-    event = {"label": label, "time": time.strftime("%H:%M:%S", time.localtime())}
-    if detail:
-        safe = str(detail)
-        safe = safe.encode("utf-8", "replace").decode("utf-8", "replace")
-        safe = re.sub(r"[\x00-\x1F]", " ", safe)
-        event["detail"] = safe
-    with _TASK_LOCK:
-        task = _TASKS.get(task_id)
-        if not task:
-            return
-        task["progress"].append(event)
-        task["updated_at"] = time.time()
+def _shutdown_services() -> None:
+    _TASK_SERVICE.shutdown()
+    _PROXY_SERVICE.shutdown()
 
 
-def _snapshot_task(task_id: str) -> Dict[str, object]:
-    with _TASK_LOCK:
-        task = _TASKS.get(task_id)
-        if not task:
-            return {"ok": False, "error": "task not found"}
-        # 返回快照避免外部直接修改全局任务状态
-        return {"ok": True, **task}
+atexit.register(_shutdown_services)
 
 
-def _run_task(task_id: str, text: str, allow_cache: bool = True) -> None:
-    t0 = time.perf_counter()
-    _LOGGER.info("task_start id=%s text=%s", task_id, text)
-    _update_task(task_id, status="running")
-    # 识别人物属于全流程第一步
-    _append_progress(task_id, "人物识别")
-    def _llm_event(message: str) -> None:
-        _append_progress(task_id, "模型日志", message)
-    text_clean = str(text or "").strip()
-    story_dir = os.path.join(_project_root(), "storymap", "examples", "story")
-    known_people = set()
-    try:
-        for p in os.listdir(story_dir):
-            if p.endswith(".md"):
-                stem = os.path.splitext(p)[0].strip()
-                if stem:
-                    known_people.add(stem)
-    except Exception:
-        known_people = set()
-
-    targets: List[str] = []
-    if text_clean and text_clean in known_people:
-        targets = [text_clean]
-        _append_progress(task_id, "人物识别", f"命中本地人物：{text_clean}")
-    else:
-        parts = [p.strip() for p in re.split(r"[、，,\\s]+", text_clean) if p.strip()]
-        if parts and all(p in known_people for p in parts) and len(parts) >= 2:
-            targets = parts[:10]
-            _append_progress(task_id, "人物识别", f"命中本地人物：{'、'.join(targets)}")
-
-    client: Optional[StoryAgentLLM] = None
-    if not targets:
-        client = _get_llm_client(event_callback=_llm_event)
-        targets = extract_historical_figures(client, text)
-    if not targets:
-        fallback = str(text or "").strip()
-        if fallback:
-            targets = [fallback]
-            _append_progress(task_id, "人物识别", f"未检出列表，已按输入人物处理：{fallback}")
-        else:
-            error = "未识别到人物"
-            _update_task(task_id, status="failed", error=error)
-            _append_progress(task_id, "失败", error)
-            _append_progress(task_id, "完成", "失败")
-            _LOGGER.warning("task_failed id=%s error=%s", task_id, error)
-            return
-    results = []
-    people_payload = []
-    for idx, person in enumerate(targets):
-        def _progress(msg: str) -> None:
-            _append_progress(task_id, msg)
-        result = _generate_for_person(
-            client,
-            person,
-            progress=_progress,
-            allow_cache=allow_cache,
-            event_callback=_llm_event,
-        )
-        results.append(result)
-        if result.get("ok") and result.get("_profile"):
-            profile = result.get("_profile") or {}
-            people_payload.append(
-                {
-                    "person": profile.get("person", {}),
-                    "locations": profile.get("locations", []),
-                    "mapStyle": profile.get("mapStyle", {}),
-                    "color": _COLOR_PALETTE[idx % len(_COLOR_PALETTE)],
-                }
-            )
-            exports = _ensure_profile_exports(profile, person, allow_cache=allow_cache)
-            result["exports"] = exports
-    overlaps = _compute_overlaps(people_payload) if len(people_payload) > 1 else []
-    multi_html_path = ""
-    multi_exports: Dict[str, str] = {}
-    if len(people_payload) > 1:
-        _append_progress(task_id, "合并视图渲染")
-        title = "多人物合并视图"
-        multi_data = {"title": title, "people": people_payload, "overlaps": overlaps}
-        multi_html = render_multi_html(multi_data)
-        multi_name = f"{title}_{task_id[:8]}"
-        multi_html_path = save_html(multi_name, multi_html)
-        multi_exports = _ensure_multi_exports(people_payload, multi_name, allow_cache=allow_cache)
-    duration = _format_seconds(time.perf_counter() - t0)
-    conclusion = _build_conclusion(results, len(people_payload) > 1)
-    summary = {
-        "ok": any(r.get("ok") for r in results),
-        "people": targets,
-        "results": results,
-        "multi_html_path": multi_html_path,
-        "multi_exports": multi_exports,
-        "overlaps": overlaps,
-        "duration": duration,
-        "conclusion": conclusion,
-    }
-    summary["files"] = []
-    for r in results:
-        if not r.get("ok"):
-            continue
-        files = {
-            "markdown": _relative_path(r.get("markdown_path", "")),
-            "html": _relative_path(r.get("html_path", "")),
-        }
-        exports = r.get("exports") or {}
-        if exports.get("geojson"):
-            files["geojson"] = _relative_path(exports.get("geojson", ""))
-        if exports.get("csv"):
-            files["csv"] = _relative_path(exports.get("csv", ""))
-        summary["files"].append(files)
-    if multi_html_path:
-        summary["multi"] = {
-            "html": _relative_path(multi_html_path),
-            "geojson": _relative_path(multi_exports.get("geojson", "")) if multi_exports else "",
-            "csv": _relative_path(multi_exports.get("csv", "")) if multi_exports else "",
-        }
-    _append_progress(task_id, "完成")
-    _update_task(task_id, status="completed", result=summary)
-    _LOGGER.info("task_completed id=%s duration=%s", task_id, duration)
+def _coords_bulk_update(data: object) -> Tuple[int, Dict[str, object]]:
+    return _update_home_coords(data, _HOME_COORDS_LOCK)
 
 
-def _submit_task(text: str) -> Dict[str, object]:
-    error = _validate_input_text(text)
-    if error:
-        return {"ok": False, "error": error}
-    queued_at = time.perf_counter()
-    with _QUEUE_LOCK:
-        global _PENDING
-        _PENDING += 1
-        position = _PENDING
-        active_now = _ACTIVE
-    task_id = _create_task(text)
-    # 任务创建即返回，避免阻塞前端请求
-    _update_task(task_id, queue={"position": position, "limit": _MAX_CONCURRENCY, "active": active_now})
-
-    def _run() -> None:
-        started_at = time.perf_counter()
-        with _QUEUE_LOCK:
-            global _PENDING, _ACTIVE
-            _PENDING -= 1
-            _ACTIVE += 1
-            active_at_start = _ACTIVE
-        _update_task(
-            task_id,
-            queue={
-                "position": position,
-                "limit": _MAX_CONCURRENCY,
-                "active_at_start": active_at_start,
-                "wait": _format_seconds(started_at - queued_at),
-            },
-        )
-        try:
-            # 任务真正执行发生在后台线程
-            _run_task(task_id, text, allow_cache=True)
-        except Exception as e:
-            error = str(e).strip() or "任务执行失败"
-            if "模型ID、API密钥和服务地址必须被提供或在.env文件中定义" in error:
-                error = (
-                    "缺少大模型配置：请在项目根目录创建 .env 并填写 "
-                    "LLM_API_KEY、LLM_BASE_URL、LLM_MODEL_ID（或 MINIMAX_API_KEY/MINIMAX_BASE_URL/MINIMAX_MODEL），"
-                    "然后重启服务。"
-                )
-            _update_task(task_id, status="failed", error=error)
-            _append_progress(task_id, "失败", error)
-            _append_progress(task_id, "完成", "失败")
-            _LOGGER.exception("task_crash id=%s", task_id)
-        finally:
-            with _QUEUE_LOCK:
-                _ACTIVE -= 1
-
-    _EXECUTOR.submit(_run)
-    return {"ok": True, "task_id": task_id, "queue": {"position": position, "limit": _MAX_CONCURRENCY}}
-
-
-def _guess_content_type(path: str) -> str:
-    p = str(path or "").lower()
-    if p.endswith(".html"):
-        return "text/html; charset=utf-8"
-    if p.endswith(".json"):
-        return "application/json; charset=utf-8"
-    if p.endswith(".css"):
-        return "text/css; charset=utf-8"
-    if p.endswith(".js"):
-        return "application/javascript; charset=utf-8"
-    if p.endswith(".png"):
-        return "image/png"
-    if p.endswith(".jpg") or p.endswith(".jpeg"):
-        return "image/jpeg"
-    if p.endswith(".svg"):
-        return "image/svg+xml"
-    return "application/octet-stream"
-
-
-def _static_target_path(parsed_path: str) -> Optional[Path]:
-    rel = unquote((parsed_path or "").lstrip("/"))
-    if rel.startswith("artifacts/story_map/"):
-        rel = rel.split("artifacts/story_map/", 1)[-1]
-    if rel.startswith("storymap/examples/story_map/"):
-        rel = rel.split("storymap/examples/story_map/", 1)[-1]
-    if parsed_path == "/" or rel == "":
-        rel = "index.html"
-
-    if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
-        return None
-
-    static_root = Path(_active_story_map_dir()).resolve()
-    target = (static_root / rel).resolve()
-    try:
-        target.relative_to(static_root)
-    except Exception:
-        return None
-    if not target.exists() or not target.is_file():
-        return None
-    return target
-
-
-def _vendor_response(name: str) -> Response:
-    safe_name = unquote(str(name or "")).strip().lstrip("/")
-    if not re.fullmatch(r"[a-zA-Z0-9_.@-]+\.(js|css)", safe_name):
-        raise HTTPException(status_code=404, detail="not found")
-    with _VENDOR_LOCK:
-        cached = _VENDOR_CACHE.get(safe_name)
-    if cached:
-        ct, body = cached
-        return Response(content=body, media_type=ct)
-    try:
-        ct, body = _fetch_vendor_bytes(safe_name)
-    except Exception:
-        return JSONResponse(status_code=502, content={"ok": False, "error": "vendor fetch failed", "name": safe_name})
-    with _VENDOR_LOCK:
-        _VENDOR_CACHE[safe_name] = (ct, body)
-    return Response(content=body, media_type=ct)
-
-
-def _static_response(parsed_path: str) -> Response:
-    target = _static_target_path(parsed_path)
-    if target is None:
-        raise HTTPException(status_code=404, detail="not found")
-    return FileResponse(path=target, media_type=_guess_content_type(target.name))
-
-
-def _debug_static_payload() -> Dict[str, object]:
-    static_dir = _active_story_map_dir()
-    index_path = os.path.join(static_dir, "index.html")
-    return {
-        "ok": True,
-        "static_dir": static_dir,
-        "static_exists": os.path.exists(static_dir),
-        "index_exists": os.path.exists(index_path),
-        "cwd": os.getcwd(),
-        "project_root": _project_root(),
-    }
-
-
-def _submit_generate_text(text: str) -> JSONResponse:
-    result = _submit_task(text)
-    status = 200 if result.get("ok") else 400
-    return JSONResponse(status_code=status, content=result)
-
-
-def _coords_bulk_update(data: object) -> JSONResponse:
-    items = data.get("items") if isinstance(data, dict) else None
-    if not isinstance(items, dict) or not items:
-        return JSONResponse(status_code=400, content={"ok": False, "error": "items required"})
-    home_path = os.path.join(_story_artifacts_dir(), "stellar_home_data.json")
-    updated = 0
-    total = 0
-    with _HOME_COORDS_LOCK:
-        try:
-            with open(home_path, "r", encoding="utf-8") as f:
-                home = json.load(f)
-        except Exception:
-            home = {}
-        if not isinstance(home, dict):
-            home = {}
-        nodes = home.get("nodes") if isinstance(home.get("nodes"), list) else []
-        if not isinstance(nodes, list):
-            nodes = []
-        for n in nodes:
-            if not isinstance(n, dict):
-                continue
-            person = str(n.get("person") or "").strip()
-            if not person:
-                continue
-            v = items.get(person)
-            if not (isinstance(v, list) and len(v) >= 2):
-                continue
-            try:
-                lat = float(v[0])
-                lng = float(v[1])
-            except Exception:
-                continue
-            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
-                continue
-            before_ok = isinstance(n.get("birth_lat"), (int, float)) and isinstance(
-                n.get("birth_lng"), (int, float)
-            )
-            n["birth_lat"] = lat
-            n["birth_lng"] = lng
-            if not before_ok:
-                updated += 1
-        total = len([n for n in nodes if isinstance(n, dict)])
-        home["nodes"] = nodes
-        try:
-            with open(home_path, "w", encoding="utf-8") as f:
-                json.dump(home, f, ensure_ascii=False)
-        except Exception as e:
-            return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
-    return JSONResponse(status_code=200, content={"ok": True, "updated": updated, "total": total})
-
-
-def _proxy_llm(data: object) -> JSONResponse:
-    if not isinstance(data, dict):
-        return JSONResponse(status_code=400, content={"ok": False, "error": "body required"})
-    messages = data.get("messages", [])
-    temperature = data.get("temperature", 0.1)
-
-    content = ""
-    used_fallback = False
-    try:
-        client = _get_llm_client()
-        fut = _PROXY_EXECUTOR.submit(client.think, messages, temperature=temperature)
-        timeout_s = int(os.getenv("STORY_MAP_PROXY_LLM_TIMEOUT", "25") or "25")
-        content = fut.result(timeout=timeout_s)
-    except Exception as e:
-        _LOGGER.warning("llm_proxy_primary_failed error=%s", e)
-        content = _local_history_reply(messages)
-        used_fallback = True
-    if not content:
-        _LOGGER.warning("llm_proxy_empty_response use_fallback=true")
-        content = _local_history_reply(messages)
-        used_fallback = True
-    if content:
-        content = content.encode("utf-8", "replace").decode("utf-8", "replace")
-    return JSONResponse(
-        status_code=200,
-        content={"choices": [{"message": {"content": content or ""}}], "meta": {"used_fallback": used_fallback}},
+def create_app():
+    return _create_api_app(
+        allowed_origins=_ALLOWED_ORIGINS,
+        resolve_cors_origin=_resolve_cors_origin,
+        static_service=_STATIC_SERVICE,
+        task_service=_TASK_SERVICE,
+        proxy_service=_PROXY_SERVICE,
+        amap_config_js=_amap_config_js,
+        coords_bulk_update=_coords_bulk_update,
     )
-
-
-def _enforce_origin(request: FastAPIRequest) -> None:
-    origin = request.headers.get("origin", "")
-    if origin and not _resolve_cors_origin(origin):
-        raise HTTPException(status_code=403, detail="origin not allowed")
-
-
-def create_app() -> FastAPI:
-    app = FastAPI(title="StoryMap API")
-
-    allow_all = "*" in _ALLOWED_ORIGINS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"] if allow_all else _ALLOWED_ORIGINS,
-        allow_credentials=False,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    @app.get("/health")
-    async def health(request: FastAPIRequest) -> JSONResponse:
-        _enforce_origin(request)
-        return JSONResponse(content={"ok": True, "service": "story_map", "version": "1"})
-
-    @app.get("/debug_static")
-    async def debug_static(request: FastAPIRequest) -> JSONResponse:
-        _enforce_origin(request)
-        return JSONResponse(content=_debug_static_payload())
-
-    @app.get("/amap-config.js", include_in_schema=False)
-    async def amap_config(request: FastAPIRequest) -> Response:
-        _enforce_origin(request)
-        return Response(content=_amap_config_js(), media_type="application/javascript; charset=utf-8")
-
-    @app.get("/vendor/{name:path}", include_in_schema=False)
-    async def vendor_asset(name: str, request: FastAPIRequest) -> Response:
-        _enforce_origin(request)
-        return _vendor_response(name)
-
-    @app.get("/task")
-    async def get_task(id: str = "", request: FastAPIRequest = None) -> JSONResponse:
-        if request is not None:
-            _enforce_origin(request)
-        task_id = str(id or "").strip()
-        if not task_id:
-            return JSONResponse(status_code=400, content={"ok": False, "error": "id required"})
-        snapshot = _snapshot_task(task_id)
-        status = 200 if snapshot.get("ok") else 404
-        return JSONResponse(status_code=status, content=snapshot)
-
-    @app.get("/generate")
-    async def generate_get(
-        request: FastAPIRequest,
-        person: str = "",
-        text: str = "",
-    ) -> JSONResponse:
-        _enforce_origin(request)
-        value = str(person or text or "").strip()
-        if not value:
-            return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
-        return _submit_generate_text(value)
-
-    @app.post("/generate")
-    async def generate_post(request: FastAPIRequest) -> JSONResponse:
-        _enforce_origin(request)
-        try:
-            data = await request.json()
-        except Exception:
-            data = {}
-        value = ""
-        if isinstance(data, dict):
-            value = str(data.get("person") or data.get("text") or "").strip()
-        if not value:
-            return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
-        return _submit_generate_text(value)
-
-    @app.post("/coords/bulk")
-    async def coords_bulk(request: FastAPIRequest) -> JSONResponse:
-        _enforce_origin(request)
-        try:
-            data = await request.json()
-        except Exception:
-            data = None
-        return _coords_bulk_update(data)
-
-    @app.post("/api/ai/proxy")
-    async def ai_proxy(request: FastAPIRequest) -> JSONResponse:
-        _enforce_origin(request)
-        try:
-            data = await request.json()
-        except Exception:
-            data = None
-        if data is None:
-            return JSONResponse(status_code=400, content={"ok": False, "error": "body required"})
-        return _proxy_llm(data)
-
-    @app.get("/", include_in_schema=False)
-    async def root_static(request: FastAPIRequest) -> Response:
-        _enforce_origin(request)
-        return _static_response("/")
-
-    @app.get("/{requested_path:path}", include_in_schema=False)
-    async def static_assets(requested_path: str, request: FastAPIRequest) -> Response:
-        _enforce_origin(request)
-        return _static_response("/" + str(requested_path or ""))
-
-    return app
 
 
 APP = create_app()
 
 
 def _run_server(port: int) -> None:
-    _LOGGER.info("server_start port=%s", port)
-    print(f"故事地图服务已启动：http://localhost:{port}")
-    uvicorn.run(APP, host="0.0.0.0", port=port, log_level="info")
+    _run_api_server(APP, port, _LOGGER)
 
 
 def main():
