@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
 import threading
 import time
@@ -3387,6 +3388,13 @@ def _render_index_html(title: str, data_file: str) -> str:
 """
 
 
+def _sync_vendor_assets(story_map_dir: Path) -> None:
+    src = REPO_ROOT / "vendor"
+    if not src.is_dir():
+        return
+    shutil.copytree(src, story_map_dir / "vendor", dirs_exist_ok=True)
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--story-map-dir", default=str(STORY_MAP_DIR))
@@ -4396,6 +4404,7 @@ def main() -> int:
         pass
     out_data.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     out_index.write_text(_render_index_html(args.title, out_data.name), encoding="utf-8")
+    _sync_vendor_assets(story_map_dir)
     print(json.dumps({"ok": True, "index": str(out_index), "data": str(out_data), "count": len(nodes)}, ensure_ascii=False))
     return 0
 

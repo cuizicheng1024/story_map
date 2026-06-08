@@ -34,3 +34,19 @@ def test_build_stellar_homepage_supports_relative_output_override(monkeypatch):
     module = _reload("tools.build_stellar_homepage")
 
     assert module.STORY_MAP_DIR == REPO_ROOT / "tmp" / "home-output"
+
+
+def test_build_stellar_homepage_sync_vendor_assets(tmp_path, monkeypatch):
+    module = _reload("tools.build_stellar_homepage")
+    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
+
+    src_vendor = tmp_path / "vendor"
+    src_vendor.mkdir()
+    (src_vendor / "tailwindcss.js").write_text("console.log('ok');", encoding="utf-8")
+
+    out_dir = tmp_path / "artifacts" / "story_map"
+    out_dir.mkdir(parents=True)
+
+    module._sync_vendor_assets(out_dir)
+
+    assert (out_dir / "vendor" / "tailwindcss.js").read_text(encoding="utf-8") == "console.log('ok');"
