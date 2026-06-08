@@ -1337,9 +1337,15 @@ def _parse_date_location(text: str, keys: List[str]) -> tuple[str, str]:
     loc_raw = re.sub(r"^\s*(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
     parts = [p.strip("。；; ") for p in re.split(r"[，,；;]", loc_raw) if p.strip("。；; ")]
     bad = re.compile(r"(存疑|不详|未详|未知|无法确认|生年不详|卒年不详)")
+    date_hint = re.compile(
+        r"((公元前|公元|前)?\s*\d{1,4}\s*年|\d{1,2}\s*月|\d{1,2}\s*(?:日|号)|[元正冬腊一二三四五六七八九十百千]+\s*年|[正冬腊一二三四五六七八九十]+\s*月|[初廿卅一二三四五六七八九十]+\s*(?:日|号))"
+    )
+    place_hint = re.compile(r"(省|市|县|区|州|郡|府|路|镇|乡|村|京|关|岛|山|江|河|湖|海|城|陵|台|庐|寺)")
     loc = ""
     for p in parts:
         if not p or bad.search(p):
+            continue
+        if date_hint.search(p) and not place_hint.search(p):
             continue
         cand = p.strip("。；; ")
         if not cand:
@@ -1738,6 +1744,11 @@ def _build_profile_data(
     birth_coord = _fuzzy_coord_lookup(coords_cache, [birth_geo, birth_modern, birth_loc])
     death_coord = _fuzzy_coord_lookup(coords_cache, [death_geo, death_modern, death_loc])
 
+    if not birth_coord:
+        birth_coord = _lookup_coords_from_historical_index(birth_geo, birth_modern, birth_loc)
+    if not death_coord:
+        death_coord = _lookup_coords_from_historical_index(death_geo, death_modern, death_loc)
+
     if allow_geocode and (not birth_coord) and birth_geo:
         birth_coord = _resolve_place_coord(birth_geo, None, birth_loc, birth_modern)
 
@@ -1802,6 +1813,15 @@ def _build_profile_data(
             if candidate_key and candidate_key in coords_search_map:
                 search_name = coords_search_map[candidate_key]
                 break
+        if not coord:
+            coord = _lookup_coords_from_historical_index(
+                geo_name,
+                search_name,
+                ancient,
+                modern,
+                loc_text,
+                loc.get("name") or "",
+            )
         geocode_candidates = []
         if search_name:
             geocode_candidates.append(search_name)
