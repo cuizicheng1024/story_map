@@ -24,4 +24,16 @@
 - 若仍失败，再根据具体失败阶段做最小修复
 
 ## Status
-- waiting_for: `instrumented CI rerun`
+- waiting_for: `pytest failure detail from GitHub summary`
+
+## Evidence
+- Commit `7fe5df1` added split CI steps and environment probes
+- GitHub run `#12` showed `Run Ruff Check` passed and `Run Pytest Suite` failed
+- Fresh local Python 3.11 venv reproduced the exact pytest command with `27 passed`
+
+## Hypothesis Review
+- H1 rejected: failure is not in `ruff`; it is in `pytest`
+- H2 still plausible: issue appears specific to GitHub Ubuntu runner
+- H3 confirmed: earlier workflow logging was too coarse to identify the failing stage
+- H4 still plausible: resolver logic may not be root cause now that direct `pytest` still fails on CI
+- H5 confirmed: Node 24 warning is unrelated to the Python test failure

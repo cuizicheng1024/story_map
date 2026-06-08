@@ -71,8 +71,11 @@ jobs:
             tools/run_storymap_checks.py
 
       - name: Run Pytest Suite
+        id: pytest
+        continue-on-error: true
         run: |
-          python -m pytest \
+          set -o pipefail
+          python -m pytest -vv -ra --maxfail=1 \
             tests/test_env_aliases.py \
             tests/test_output_paths.py \
             tests/test_artifacts.py \
@@ -83,4 +86,20 @@ jobs:
             tests/test_fastapi_app.py \
             tests/test_task_service.py \
             tests/test_profile_page_template.py \
-            tests/test_validate_story_markdown.py
+            tests/test_validate_story_markdown.py \
+            2>&1 | tee pytest-output.txt
+
+      - name: Summarize Pytest Output
+        if: always()
+        run: |
+          {
+            echo "## Pytest Output"
+            echo
+            echo '```text'
+            tail -n 200 pytest-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail If Pytest Failed
+        if: steps.pytest.outcome != 'success'
+        run: exit 1
