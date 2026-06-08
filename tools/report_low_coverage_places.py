@@ -16,15 +16,16 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_map as sm
+import geocode_service as gs
+import parsers as ps
 
 
 def _resolve_search_name(coords_search_map: Dict[str, str], geo_name: str, modern: str, loc_text: str, raw_name: str) -> str:
     for candidate in [
         geo_name,
-        sm._pick_geocode_name(modern) if modern else "",
-        sm._pick_geocode_name(loc_text) if loc_text else "",
-        sm._pick_geocode_name(raw_name) if raw_name else "",
+        ps._pick_geocode_name(modern) if modern else "",
+        ps._pick_geocode_name(loc_text) if loc_text else "",
+        ps._pick_geocode_name(raw_name) if raw_name else "",
     ]:
         if candidate and candidate in coords_search_map:
             return coords_search_map[candidate]
@@ -32,9 +33,9 @@ def _resolve_search_name(coords_search_map: Dict[str, str], geo_name: str, moder
 
 
 def _resolve_offline_coord(coords_cache: Dict[str, Tuple[float, float]], coords_search_map: Dict[str, str], loc_text: str, raw_name: str = "") -> Optional[Tuple[float, float]]:
-    ancient, modern = sm._split_ancient_modern(loc_text)
-    geo_name = sm._pick_geocode_name(modern or loc_text or raw_name or ancient)
-    coord = sm._fuzzy_coord_lookup(
+    ancient, modern = gs.split_ancient_modern(loc_text)
+    geo_name = ps._pick_geocode_name(modern or loc_text or raw_name or ancient)
+    coord = gs.fuzzy_coord_lookup(
         coords_cache,
         [
             geo_name,
@@ -46,7 +47,7 @@ def _resolve_offline_coord(coords_cache: Dict[str, Tuple[float, float]], coords_
     )
     search_name = _resolve_search_name(coords_search_map, geo_name, modern, loc_text, raw_name)
     if not coord:
-        coord = sm._lookup_coords_from_historical_index(
+        coord = gs.lookup_coords_from_historical_index(
             geo_name,
             search_name,
             ancient,
@@ -58,17 +59,19 @@ def _resolve_offline_coord(coords_cache: Dict[str, Tuple[float, float]], coords_
 
 
 def _collect_candidate_points(md_text: str) -> dict:
-    info = sm._parse_basic_info(md_text) or {}
-    coords_cache = sm._parse_coords_table(md_text)
-    coords_search_map = sm._parse_coords_search_map(md_text)
+    parsed_doc = ps.parse_story_document(md_text)
+    info = parsed_doc.basic_info_map or {}
+    coords_cache = parsed_doc.coords_table
+    coords_search_map = parsed_doc.coords_search_map
     birth_text = str(info.get("出生", "") or "")
     death_text = str(info.get("去世", "") or "")
-    _, birth_loc = sm._parse_date_location(birth_text, ["出生于", "生于"])
-    _, death_loc = sm._parse_date_location(death_text, ["卒于", "去世于", "卒"])
-    sections = sm._parse_location_sections(md_text) or []
+    _, birth_loc = ps._parse_date_location(birth_text, ["出生于", "生于"])
+    _, death_loc = ps._parse_date_location(death_text, ["卒于", "去世于", "卒"])
+    sections = ps._parse_location_sections(md_text) or []
 
     raw_locations: List[str] = []
     unresolved_locations: List[str] = []
+    rendered_location_count = 0
     for loc in sections:
         loc_text = str(loc.get("location") or loc.get("name") or "").strip()
         raw_name = str(loc.get("name") or "").strip()
@@ -77,6 +80,8 @@ def _collect_candidate_points(md_text: str) -> dict:
         raw_locations.append(loc_text)
         if not _resolve_offline_coord(coords_cache, coords_search_map, loc_text, raw_name):
             unresolved_locations.append(loc_text)
+        else:
+            rendered_location_count += 1
 
     birth_has_coord = bool(birth_loc and _resolve_offline_coord(coords_cache, coords_search_map, birth_loc, birth_loc))
     death_has_coord = bool(death_loc and _resolve_offline_coord(coords_cache, coords_search_map, death_loc, death_loc))
@@ -86,6 +91,7 @@ def _collect_candidate_points(md_text: str) -> dict:
         "birth_has_coord": birth_has_coord,
         "death_has_coord": death_has_coord,
         "raw_locations": raw_locations,
+        "rendered_location_count": rendered_location_count,
         "unresolved_locations": unresolved_locations,
     }
 
@@ -96,13 +102,10 @@ def build_report(story_dir: Path, limit: int) -> dict:
     files = sorted(story_dir.glob("*.md"))
     for file_path in files:
         md_text = file_path.read_text(encoding="utf-8")
-        profile = sm._load_profile_from_md(md_text, allow_geocode=False)
-        if not profile:
-            continue
         points = _collect_candidate_points(md_text)
         raw_locations = list(points["raw_locations"])
         unresolved_locations = list(points["unresolved_locations"])
-        rendered_locations = len(list(profile.get("locations") or []))
+        rendered_locations = int(points["rendered_location_count"])
         raw_count = len(raw_locations)
         missing_count = max(raw_count - rendered_locations, 0)
         birth_missing = bool(points["birth_loc"]) and not bool(points["birth_has_coord"])

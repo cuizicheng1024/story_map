@@ -26,12 +26,37 @@ def _story_artifacts_dir() -> str:
     return os.path.join(_project_root(), "artifacts", "story_map")
 
 
-def _active_story_map_dir() -> str:
+def _story_map_index_path(directory: str) -> str:
+    return os.path.join(directory, "index.html")
+
+
+def _has_story_map_index(directory: str) -> bool:
+    return os.path.isfile(_story_map_index_path(directory))
+
+
+def _homepage_story_map_dir() -> str:
     artifact_dir = _story_artifacts_dir()
     legacy_dir = _legacy_story_map_dir()
+    if _has_story_map_index(artifact_dir):
+        return artifact_dir
+    if _has_story_map_index(legacy_dir):
+        return legacy_dir
     if os.path.isdir(artifact_dir) or (not os.path.isdir(legacy_dir)):
         return artifact_dir
     return legacy_dir
+
+
+def _public_story_map_dirs() -> List[str]:
+    dirs: List[str] = []
+    for directory in (_homepage_story_map_dir(), _story_artifacts_dir(), _legacy_story_map_dir()):
+        normalized = os.path.abspath(directory)
+        if normalized not in dirs:
+            dirs.append(normalized)
+    return dirs
+
+
+def _active_story_map_dir() -> str:
+    return _homepage_story_map_dir()
 
 
 def _safe_name(text: str) -> str:

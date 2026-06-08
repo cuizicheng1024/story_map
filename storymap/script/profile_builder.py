@@ -1,0 +1,469 @@
+from __future__ import annotations
+
+import re
+from typing import Callable, Dict, List, Optional, Tuple
+
+try:
+    from . import parsers as parser_utils
+except ImportError:
+    import parsers as parser_utils
+
+
+Coord = Tuple[float, float]
+
+
+def extract_works(text: str) -> List[str]:
+    if not text:
+        return []
+    items = re.findall(r"《([^》]+)》", text)
+    seen = set()
+    works: List[str] = []
+    for item in items:
+        name = item.strip()
+        if name and name not in seen:
+            seen.add(name)
+            works.append(name)
+    return works
+
+
+def split_quote_lines(text: str) -> List[str]:
+    if not text:
+        return []
+    return [p.strip() for p in re.split(r"[；;]\s*", text) if p.strip()]
+
+
+def extract_title_from_text(text: str) -> str:
+    m = re.search(r"“([^”]+)”", text)
+    if m:
+        return m.group(1).strip()
+    return ""
+
+
+def build_points(
+    places: List[Dict[str, str]],
+    events: List[Dict[str, str]],
+    *,
+    allow_geocode: bool = True,
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
+    geocode_city: Callable[[str], Optional[Coord]],
+    event_callback: Optional[callable] = None,
+) -> List[Dict[str, object]]:
+    del event_callback
+    if not isinstance(places, list) or not isinstance(events, list):
+        return []
+    pts: List[Dict[str, object]] = []
+    for p in places:
+        name = p.get("modern") or p.get("ancient") or ""
+        if not name:
+            continue
+        coord = lookup_coords_from_historical_index(p.get("ancient") or "", p.get("modern") or "", name)
+        if allow_geocode and (not coord):
+            coord = geocode_city(name)
+        if not coord:
+            continue
+        lat, lon = coord
+        matched = []
+        for e in events:
+            desc = e.get("desc") or ""
+            if name and name in desc:
+                matched.append(e)
+        lines = [f"**{name}**", ""]
+        items = matched[:6] if matched else events[:3]
+        for e in items:
+            era = e.get("era", "")
+            ad = e.get("ad", "")
+            desc = e.get("desc", "")
+            lines.append(f"- {era} / {ad}：{desc}")
+        pts.append({"name": name, "lat": lat, "lon": lon, "md": "\n".join(lines)})
+    return pts
+
+
+def extract_intro_fields(md: str) -> Dict[str, str]:
+    if not isinstance(md, str):
+        return {"朝代": "", "身份": "", "生卒年": "", "主要事件": "", "主要作品": "", "历史地位": "", "一生行程": ""}
+    lines = md.splitlines()
+    in_intro = False
+    fields = {"朝代": "", "身份": "", "生卒年": "", "主要事件": "", "主要作品": "", "历史地位": "", "一生行程": ""}
+    for line in lines:
+        if line.strip().startswith("## "):
+            title = line.strip().lstrip("#").strip()
+            in_intro = title == "简介"
+            continue
+        if not in_intro:
+            continue
+        if line.strip().startswith("## "):
+            break
+        t = line.strip()
+        if "：" in t:
+            k, v = t.split("：", 1)
+            k = k.strip()
+            v = v.strip()
+            if k in fields:
+                fields[k] = v
+    if any(fields.values()):
+        return fields
+    info = parser_utils._parse_basic_info(md)
+    if info:
+        if not fields["朝代"]:
+            fields["朝代"] = info.get("时代", "") or info.get("朝代", "")
+        if not fields["身份"]:
+            fields["身份"] = info.get("主要身份", "")
+        if not fields["历史地位"]:
+            fields["历史地位"] = info.get("历史地位", "")
+        if not fields["主要事件"]:
+            fields["主要事件"] = info.get("主要成就", "")
+        if not fields["生卒年"]:
+            birth_text = info.get("出生", "")
+            death_text = info.get("去世", "")
+            birth_date, _ = parser_utils._parse_date_location(birth_text, ["出生于", "生于"])
+            death_date, _ = parser_utils._parse_date_location(death_text, ["卒于", "去世于", "卒"])
+            if birth_date or death_date:
+                fields["生卒年"] = f"{birth_date}-{death_date}".strip("-")
+            else:
+                fields["生卒年"] = " / ".join([t for t in [birth_text, death_text] if t])
+    in_section = False
+    for line in lines:
+        if line.strip().startswith("## "):
+            title = line.strip().lstrip("#").strip()
+            if "人生足迹地图说明" in title:
+                in_section = True
+                continue
+            if in_section:
+                break
+        if not in_section or "：" not in line:
+            continue
+        label = ""
+        m = re.search(r"\*\*(.+?)\*\*", line)
+        if m:
+            label = m.group(1).strip()
+        val = line.split("：", 1)[-1].strip()
+        if label == "行程概览":
+            fields["一生行程"] = val
+            break
+        if not fields["一生行程"] and label in {"时间跨度", "地理范围"}:
+            fields["一生行程"] = val
+    return fields
+
+
+def build_profile_data(
+    md: str,
+    *,
+    allow_geocode: bool = True,
+    event_callback: Optional[callable] = None,
+    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
+    batch_split_ancient_modern: Callable[[List[str], Optional[callable]], None],
+    fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
+    resolve_place_coord: Callable[..., Optional[Coord]],
+    build_points_fn: Callable[..., List[Dict[str, object]]],
+) -> Optional[Dict[str, object]]:
+    if not isinstance(md, str) or not md.strip():
+        return None
+    parsed_doc = parser_utils.parse_story_document(md)
+    normalized_md = parsed_doc.normalized_markdown
+    info = dict(parsed_doc.basic_info_map)
+    locations = [item.to_legacy_dict() for item in parsed_doc.location_sections]
+    coords_cache = dict(parsed_doc.coords_table)
+    coords_search_map = dict(parsed_doc.coords_search_map)
+    if not info:
+        fields = extract_intro_fields(normalized_md)
+        name_guess = ""
+        for line in normalized_md.splitlines():
+            t = line.strip()
+            if t.startswith("# "):
+                name_guess = t[2:].strip()
+                break
+        if any(fields.values()):
+            info = {}
+            if name_guess:
+                info["姓名"] = name_guess
+            dynasty = str(fields.get("朝代") or "").strip()
+            if dynasty:
+                info["时代"] = dynasty
+            identity = str(fields.get("身份") or "").strip()
+            if identity:
+                info["主要身份"] = identity
+            hist = str(fields.get("历史地位") or "").strip()
+            if hist:
+                info["历史地位"] = hist
+            events_text = str(fields.get("主要事件") or "").strip()
+            works_text = str(fields.get("主要作品") or "").strip()
+            if events_text:
+                info["主要成就"] = events_text
+            elif works_text:
+                info["主要成就"] = works_text
+        elif name_guess:
+            info = {"姓名": name_guess}
+        if not locations and coords_cache:
+            locations = [
+                {
+                    "name": key,
+                    "location": key,
+                    "type": "move",
+                    "time": "",
+                    "duration": "",
+                    "event": "",
+                    "significance": "",
+                    "quotes": "",
+                }
+                for key in coords_cache.keys()
+                if str(key or "").strip()
+            ]
+        if not info and not locations:
+            return None
+    name_raw = info.get("姓名", "")
+    name = name_raw.split("（", 1)[0].strip() or name_raw.strip()
+    title = extract_title_from_text(info.get("历史地位", "")) or extract_title_from_text(name_raw) or ""
+    description = parsed_doc.overview
+    if not description:
+        description = "；".join([t for t in [info.get("历史地位", ""), info.get("主要成就", "")] if t])
+    description = re.sub(r"-{3,}$", "", description).strip()
+    works = extract_works(" ".join([description, info.get("主要成就", ""), info.get("历史地位", "")]))
+    birth_text = info.get("出生", "")
+    death_text = info.get("去世", "")
+    birth_date, birth_loc = parser_utils._parse_date_location(birth_text, ["出生于", "生于"])
+    death_date, death_loc = parser_utils._parse_date_location(death_text, ["卒于", "去世于", "卒"])
+
+    if not locations:
+        try:
+            pts = build_points_fn(
+                parsed_doc.places,
+                parsed_doc.events,
+                allow_geocode=allow_geocode,
+                event_callback=event_callback,
+            )
+        except Exception:
+            pts = []
+        loc_items: List[Dict[str, object]] = []
+        for p in pts:
+            if not isinstance(p, dict):
+                continue
+            name0 = str(p.get("name") or "").strip()
+            try:
+                lat = float(p.get("lat"))  # type: ignore[arg-type]
+                lng = float(p.get("lon"))  # type: ignore[arg-type]
+            except Exception:
+                continue
+            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+                continue
+            loc_items.append(
+                {
+                    "name": name0,
+                    "location": name0,
+                    "ancient": name0,
+                    "modern": "",
+                    "lat": lat,
+                    "lng": lng,
+                    "type": "move",
+                    "time": "",
+                    "stay": "",
+                    "event": "",
+                    "meaning": "",
+                    "quote": "",
+                    "md": str(p.get("md") or ""),
+                }
+            )
+        if loc_items:
+            locations = loc_items
+
+    loc_texts = [birth_loc, death_loc]
+    loc_texts.extend([loc.get("location") or loc.get("name") or "" for loc in locations])
+    batch_split_ancient_modern(loc_texts, event_callback=event_callback)
+    lifespan = info.get("享年", "")
+    birth_modern = split_ancient_modern(birth_loc, event_callback)[1]
+    death_modern = split_ancient_modern(death_loc, event_callback)[1]
+    birth_geo = parser_utils._pick_geocode_name(birth_modern or birth_loc)
+    death_geo = parser_utils._pick_geocode_name(death_modern or death_loc)
+    birth_coord = fuzzy_coord_lookup(coords_cache, [birth_geo, birth_modern, birth_loc])
+    death_coord = fuzzy_coord_lookup(coords_cache, [death_geo, death_modern, death_loc])
+    if not birth_coord:
+        birth_coord = lookup_coords_from_historical_index(birth_geo, birth_modern, birth_loc)
+    if not death_coord:
+        death_coord = lookup_coords_from_historical_index(death_geo, death_modern, death_loc)
+    if allow_geocode and (not birth_coord) and birth_geo:
+        birth_coord = resolve_place_coord(birth_geo, None, birth_loc, birth_modern)
+    if allow_geocode and (not death_coord) and death_geo:
+        death_coord = resolve_place_coord(death_geo, None, death_loc, death_modern)
+
+    dynasty = (info.get("时代", "") or info.get("朝代", "")).strip()
+    person = {
+        "name": name or "人物",
+        "title": title,
+        "description": description,
+        "quote": title,
+        "dynasty": dynasty,
+        "birthplace": birth_loc,
+        "avatar": "",
+        "birth": {
+            "date": birth_date,
+            "location": birth_loc,
+            "lat": birth_coord[0] if birth_coord else None,
+            "lng": birth_coord[1] if birth_coord else None,
+        },
+        "death": {
+            "date": death_date,
+            "location": death_loc,
+            "lat": death_coord[0] if death_coord else None,
+            "lng": death_coord[1] if death_coord else None,
+        },
+        "lifespan": lifespan,
+        "highlights": {
+            "honor": title,
+            "status": (info.get("历史地位", "") or "").strip(),
+            "identities": (info.get("主要身份", "") or "").strip(),
+            "achievements": (info.get("主要成就", "") or "").strip(),
+            "works": works,
+            "reviews": parsed_doc.historical_reviews,
+        },
+    }
+
+    loc_items: List[Dict[str, object]] = []
+    for loc in locations:
+        loc_text = loc.get("location") or loc.get("name") or ""
+        ancient, modern = split_ancient_modern(loc_text, event_callback)
+        geo_name = parser_utils._pick_geocode_name(modern or loc_text or loc.get("name") or ancient)
+        coord = fuzzy_coord_lookup(coords_cache, [geo_name, modern, loc_text, loc.get("name") or "", ancient])
+        search_name = ""
+        for candidate_key in [
+            geo_name,
+            parser_utils._pick_geocode_name(modern) if modern else "",
+            parser_utils._pick_geocode_name(loc_text) if loc_text else "",
+            parser_utils._pick_geocode_name(loc.get("name") or "") if loc.get("name") else "",
+        ]:
+            if candidate_key and candidate_key in coords_search_map:
+                search_name = coords_search_map[candidate_key]
+                break
+        if not coord:
+            coord = lookup_coords_from_historical_index(
+                geo_name,
+                search_name,
+                ancient,
+                modern,
+                loc_text,
+                loc.get("name") or "",
+            )
+        geocode_candidates = []
+        if search_name:
+            geocode_candidates.append(search_name)
+        if geo_name and geo_name not in geocode_candidates:
+            geocode_candidates.append(geo_name)
+        if allow_geocode and (not coord):
+            for candidate in geocode_candidates:
+                year = None
+                try:
+                    m = re.search(r"(?<!\d)(-?\d{1,4})(?!\d)", str(loc.get("time") or ""))
+                    year = int(m.group(1)) if m else None
+                except Exception:
+                    year = None
+                coord = resolve_place_coord(
+                    candidate,
+                    year,
+                    ancient,
+                    modern,
+                    loc_text,
+                    loc.get("name") or "",
+                )
+                if coord:
+                    break
+        if not coord:
+            continue
+        works = extract_works(" ".join([loc.get("event", ""), loc.get("significance", "")]))
+        quote_lines = split_quote_lines(loc.get("quotes", ""))
+        loc_items.append(
+            {
+                "name": loc.get("name") or geo_name,
+                "ancientName": ancient or loc.get("name") or "",
+                "modernName": modern or loc_text,
+                "lat": coord[0],
+                "lng": coord[1],
+                "type": loc.get("type", "normal"),
+                "event": loc.get("event", ""),
+                "time": loc.get("time", ""),
+                "duration": loc.get("duration", ""),
+                "significance": loc.get("significance", ""),
+                "works": works,
+                "quoteLines": quote_lines,
+            }
+        )
+    if not loc_items:
+        if birth_coord and death_coord:
+            birth_ancient, birth_modern_2 = split_ancient_modern(birth_loc, event_callback)
+            death_ancient, death_modern_2 = split_ancient_modern(death_loc, event_callback)
+            loc_items = [
+                {
+                    "name": birth_modern_2 or birth_modern or birth_loc or "出生地",
+                    "ancientName": birth_ancient or "",
+                    "modernName": birth_modern_2 or birth_modern or birth_loc or "",
+                    "lat": birth_coord[0],
+                    "lng": birth_coord[1],
+                    "type": "birth",
+                    "event": "出生",
+                    "time": birth_date or "",
+                    "duration": "",
+                    "significance": "",
+                    "works": [],
+                    "quoteLines": [],
+                },
+                {
+                    "name": death_modern_2 or death_modern or death_loc or "去世地",
+                    "ancientName": death_ancient or "",
+                    "modernName": death_modern_2 or death_modern or death_loc or "",
+                    "lat": death_coord[0],
+                    "lng": death_coord[1],
+                    "type": "death",
+                    "event": "去世",
+                    "time": death_date or "",
+                    "duration": "",
+                    "significance": "",
+                    "works": [],
+                    "quoteLines": [],
+                },
+            ]
+        else:
+            loc_items = []
+    for loc in loc_items:
+        quote_lines = loc.get("quoteLines") or []
+        if quote_lines:
+            person["quote"] = quote_lines[0]
+            break
+    return {
+        "person": person,
+        "locations": loc_items,
+        "mapStyle": {
+            "pathColor": "#1e40af",
+            "markers": {
+                "normal": {"color": "#3498db"},
+                "birth": {"color": "#2ecc71"},
+                "death": {"color": "#e74c3c"},
+            },
+        },
+        "textbookPoints": parsed_doc.textbook_points,
+        "examPoints": parsed_doc.exam_points,
+    }
+
+
+def load_profile_from_md(
+    md: str,
+    *,
+    allow_geocode: bool = True,
+    event_callback: Optional[callable] = None,
+    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
+    batch_split_ancient_modern: Callable[[List[str], Optional[callable]], None],
+    fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
+    resolve_place_coord: Callable[..., Optional[Coord]],
+    build_points_fn: Callable[..., List[Dict[str, object]]],
+) -> Optional[Dict[str, object]]:
+    if not md:
+        return None
+    return build_profile_data(
+        md,
+        allow_geocode=allow_geocode,
+        event_callback=event_callback,
+        split_ancient_modern=split_ancient_modern,
+        batch_split_ancient_modern=batch_split_ancient_modern,
+        fuzzy_coord_lookup=fuzzy_coord_lookup,
+        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
+        resolve_place_coord=resolve_place_coord,
+        build_points_fn=build_points_fn,
+    )

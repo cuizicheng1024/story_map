@@ -348,7 +348,7 @@ def _write_person_markdown_and_render_html(person: str, md_text: str) -> str:
     import story_map  # type: ignore
 
     ensured = ag.ensure_required_sections(md_text)
-    profile = story_map._load_profile_from_md(ensured, allow_geocode=False)
+    profile = story_map.load_profile_from_md(ensured, allow_geocode=False)
     if profile:
         profile["markdown"] = ensured
         html_out = renderer.render_profile_html(profile)
@@ -356,7 +356,7 @@ def _write_person_markdown_and_render_html(person: str, md_text: str) -> str:
         places = story_map.parse_places(ensured)
         events = story_map.parse_events(ensured)
         points = story_map.build_points(places, events, allow_geocode=False)
-        fields = story_map._extract_intro_fields(ensured)
+        fields = story_map.extract_intro_fields(ensured)
         info_panel_html = renderer.build_info_panel_html(person, fields) if any(fields.values()) else ""
         html_out = story_map.render_osm_html(person, points, info_panel_html)
 

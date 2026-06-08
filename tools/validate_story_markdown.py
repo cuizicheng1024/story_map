@@ -16,20 +16,34 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_map as sm
+import geocode_service as gs
+import parsers as ps
 
 
 REQUIRED_SECTION_PATTERNS = {
-    "人物档案": re.compile(r"^##\s+一、人物档案\s*$", re.M),
+    "人物档案": re.compile(r"^##\s+(?:[一二三四五六七八九十]+、\s*)?人物档案\s*$", re.M),
     "基本信息": re.compile(r"^###\s+基本信息\s*$", re.M),
-    "人生历程": re.compile(r"^##\s+三、人生历程与重要地点（按时间顺序）\s*$", re.M),
-    "生平时间线": re.compile(r"^##\s+四、生平时间线\s*$", re.M),
+    "人生历程": re.compile(r"^##\s+(?:[一二三四五六七八九十]+、\s*)?人生历程与重要地点（按时间顺序）\s*$", re.M),
+    "生平时间线": re.compile(r"^##\s+(?:[一二三四五六七八九十]+、\s*)?生平时间线\s*$", re.M),
 }
 REQUIRED_INFO_KEYS = ("姓名", "出生", "去世")
 OPTIONAL_INFO_KEY_GROUPS = (("时代", "朝代"),)
 TIMELINE_HEADER = re.compile(r"^\|\s*年份\s*\|\s*年龄\s*\|\s*关键事件\s*\|", re.M)
 LOCATION_HEADING = re.compile(r"^###\s+[🟢📍🔴].+$", re.M)
 POSITION_FIELD = re.compile(r"^- \*\*位置\*\*：", re.M)
+PLACEHOLDER_LOCATION_PATTERNS = [
+    re.compile(pattern)
+    for pattern in [
+        r"待考",
+        r"不详",
+        r"未详",
+        r"存疑",
+        r"说法不一",
+        r"虚构地点",
+        r"无法定位",
+        r"争议地区",
+    ]
+]
 
 
 @dataclass
@@ -64,9 +78,52 @@ def _section_slice(markdown: str, heading: str) -> str:
     return markdown[start:end]
 
 
+def _is_placeholder_location(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw or raw in {"-", "—", "——"}:
+        return True
+    return any(pattern.search(raw) for pattern in PLACEHOLDER_LOCATION_PATTERNS)
+
+
+def _resolve_location_offline_candidates(
+    location_text: str,
+    fallback_name: str = "",
+    *,
+    coords_cache: dict | None = None,
+    coords_search_map: dict | None = None,
+) -> tuple[bool, str]:
+    location = str(location_text or "").strip()
+    if not location and fallback_name:
+        location = str(fallback_name).strip()
+    if not location:
+        return False, ""
+    ancient, modern = gs.split_ancient_modern(location)
+    geo = ps._pick_geocode_name(modern or location)
+    search_name = ""
+    for candidate in [
+        geo,
+        ps._pick_geocode_name(modern) if modern else "",
+        ps._pick_geocode_name(location) if location else "",
+        ps._pick_geocode_name(fallback_name) if fallback_name else "",
+    ]:
+        if candidate and candidate in (coords_search_map or {}):
+            search_name = (coords_search_map or {}).get(candidate, "")
+            break
+    coord = gs.fuzzy_coord_lookup(
+        coords_cache or {},
+        [geo, modern, location, fallback_name, ancient],
+    )
+    if not coord:
+        coord = gs.lookup_coords_from_historical_index(geo, search_name, modern, location, fallback_name)
+    return coord is not None, modern or ancient or location
+
+
 def validate_markdown(file_path: Path) -> ValidationResult:
     text = file_path.read_text(encoding="utf-8")
     result = ValidationResult(file_path=file_path)
+    parsed_doc = ps.parse_story_document(text)
+    coords_cache = parsed_doc.coords_table
+    coords_search_map = parsed_doc.coords_search_map
 
     if not re.search(r"^#\s+.+$", text, re.M):
         result.errors.append("缺少一级标题 `# 人物名`")
@@ -84,31 +141,75 @@ def validate_markdown(file_path: Path) -> ValidationResult:
             if not any(re.search(rf"^- \*\*{re.escape(key)}\*\*：", basic_info, re.M) for key in group):
                 result.errors.append(f"`基本信息` 缺少字段组：{' / '.join(group)}")
 
+    location_sections = [item.to_legacy_dict() for item in parsed_doc.location_sections]
     if REQUIRED_SECTION_PATTERNS["人生历程"].search(text):
         if not LOCATION_HEADING.search(text):
             result.errors.append("`人生历程与重要地点` 章节缺少地点小节标题")
         if not POSITION_FIELD.search(text):
             result.errors.append("`人生历程与重要地点` 章节缺少 `位置` 字段")
+        if not location_sections:
+            result.errors.append("`人生历程与重要地点` 章节无法解析出结构化地点小节")
+        unresolved_locations: List[str] = []
+        for idx, item in enumerate(location_sections, start=1):
+            loc_name = str(item.get("name") or "").strip()
+            label = loc_name or f"第{idx}个地点"
+            if not str(item.get("time") or "").strip():
+                result.errors.append(f"`{label}` 缺少时间字段")
+            if not str(item.get("location") or "").strip():
+                result.errors.append(f"`{label}` 缺少位置字段")
+                continue
+            if not str(item.get("event") or "").strip():
+                result.warnings.append(f"`{label}` 缺少事迹/经过字段")
+            if not str(item.get("significance") or "").strip():
+                result.warnings.append(f"`{label}` 缺少意义字段")
+            resolved, resolved_name = _resolve_location_offline_candidates(
+                item.get("location") or "",
+                loc_name,
+                coords_cache=coords_cache,
+                coords_search_map=coords_search_map,
+            )
+            if (not resolved) and (not _is_placeholder_location(item.get("location") or "")):
+                unresolved_locations.append(resolved_name or label)
+        if unresolved_locations:
+            preview = "、".join(unresolved_locations[:5])
+            extra = "" if len(unresolved_locations) <= 5 else f" 等 {len(unresolved_locations)} 个地点"
+            result.warnings.append(f"离线坐标未命中：{preview}{extra}")
 
     if REQUIRED_SECTION_PATTERNS["生平时间线"].search(text) and not TIMELINE_HEADER.search(text):
         result.errors.append("`生平时间线` 章节缺少标准表头 `年份 | 年龄 | 关键事件`")
 
-    profile = sm._load_profile_from_md(text, allow_geocode=False)
-    if not profile:
-        result.errors.append("解析失败：`_load_profile_from_md()` 返回空结果")
-        return result
-
-    locations = list(profile.get("locations") or [])
+    locations = []
+    for item in location_sections:
+        loc_text = str(item.get("location") or item.get("name") or "").strip()
+        if not loc_text:
+            continue
+        resolved, _ = _resolve_location_offline_candidates(
+            loc_text,
+            str(item.get("name") or "").strip(),
+            coords_cache=coords_cache,
+            coords_search_map=coords_search_map,
+        )
+        if resolved:
+            locations.append(item)
     if not locations:
         result.warnings.append("未解析出任何地点，静态人物页可能显示为空时间轴")
     if len(locations) < 3:
         result.warnings.append(f"仅解析出 {len(locations)} 个地点，建议补充地点章节或离线坐标别名")
+    if location_sections:
+        expected = len(location_sections)
+        actual = len(locations)
+        if actual < expected:
+            result.warnings.append(f"地点解析存在落差：结构化地点 {expected} 个，但离线模式仅保留 {actual} 个")
+        if expected >= 5 and actual <= max(1, expected // 3):
+            result.errors.append(f"离线命中率过低：{expected} 个地点仅命中 {actual} 个，请补充地点词典或修正地点字段")
 
-    birth = (profile.get("person") or {}).get("birth") or {}
-    death = (profile.get("person") or {}).get("death") or {}
-    if not birth.get("location"):
+    birth_text = str(parsed_doc.basic_info_map.get("出生", "") or "")
+    death_text = str(parsed_doc.basic_info_map.get("去世", "") or "")
+    _, birth_loc = ps._parse_date_location(birth_text, ["出生于", "生于"])
+    _, death_loc = ps._parse_date_location(death_text, ["卒于", "去世于", "卒"])
+    if not birth_loc:
         result.warnings.append("未解析出出生地")
-    if not death.get("location"):
+    if not death_loc:
         result.warnings.append("未解析出去世地")
 
     return result

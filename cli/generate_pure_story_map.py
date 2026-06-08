@@ -88,7 +88,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
 
     person_name = Path(md_path).stem
     if no_geocode:
-        profile = sm._load_profile_from_md(md, allow_geocode=False)
+        profile = sm.load_profile_from_md(md, allow_geocode=False)
         t1 = time.perf_counter()
         if profile:
             profile["markdown"] = md
@@ -98,11 +98,11 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
             places = sm.parse_places(md)
             events = sm.parse_events(md)
             points = sm.build_points(places, events, allow_geocode=False)
-            fields = sm._extract_intro_fields(md)
+            fields = sm.extract_intro_fields(md)
             info_panel_html = sm.build_info_panel_html(person_name, fields) if any(fields.values()) else ""
             html = sm.render_amap_html(person_name, points, info_panel_html)
     else:
-        profile = sm._load_profile_from_md(md)
+        profile = sm.load_profile_from_md(md)
         t1 = time.perf_counter()
         if profile:
             profile["markdown"] = md
@@ -219,7 +219,7 @@ def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str
         t0 = time.perf_counter()
         try:
             if mode == "cache":
-                sm._generate_for_person(client=None, person=person, progress=None, allow_cache=allow_cache)
+                sm.generate_for_person(client=None, person=person, progress=None, allow_cache=allow_cache)
             else:
                 md_path = str((md_dir / f"{person}.md").resolve())
                 out_path = str((html_dir / f"{person}.html").resolve())

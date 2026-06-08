@@ -572,7 +572,7 @@ def run_pipeline_only(
 
     try:
         t_parse0 = time.perf_counter()
-        profile = story_map._load_profile_from_md(md_after_ensure)
+        profile = story_map.load_profile_from_md(md_after_ensure)
         parse_info["parse_duration_s"] = time.perf_counter() - t_parse0
         parse_info["profile_built"] = bool(profile)
 

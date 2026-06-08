@@ -27,6 +27,8 @@ class TaskService:
         render_multi_html: Callable[[Dict[str, object]], str],
         save_html: Callable[[str, str], str],
         relative_path: Callable[[str], str],
+        task_ttl_seconds: int = 3600,
+        max_tasks: int = 200,
     ) -> None:
         self._logger = logger
         self._max_concurrency = max_concurrency
@@ -44,6 +46,8 @@ class TaskService:
         self._render_multi_html = render_multi_html
         self._save_html = save_html
         self._relative_path = relative_path
+        self._task_ttl_seconds = max(int(task_ttl_seconds), 60)
+        self._max_tasks = max(int(max_tasks), 20)
 
         self._executor = ThreadPoolExecutor(max_workers=max_concurrency)
         self._queue_lock = threading.Lock()
@@ -56,6 +60,7 @@ class TaskService:
         self._executor.shutdown(wait=False)
 
     def snapshot_task(self, task_id: str) -> Dict[str, object]:
+        self._cleanup_tasks()
         with self._task_lock:
             task = self._tasks.get(task_id)
             if not task:
@@ -63,6 +68,7 @@ class TaskService:
             return {"ok": True, **task}
 
     def submit_task(self, text: str) -> Dict[str, object]:
+        self._cleanup_tasks()
         error = self._validate_input_text(text)
         if error:
             return {"ok": False, "error": error}
@@ -126,7 +132,41 @@ class TaskService:
         }
         with self._task_lock:
             self._tasks[task_id] = task
+            self._trim_tasks_locked()
         return task_id
+
+    def _cleanup_tasks(self) -> None:
+        cutoff = time.time() - self._task_ttl_seconds
+        with self._task_lock:
+            expired_ids = [
+                task_id
+                for task_id, task in self._tasks.items()
+                if task.get("status") in {"completed", "failed"}
+                and float(task.get("updated_at") or 0) < cutoff
+            ]
+            for task_id in expired_ids:
+                self._tasks.pop(task_id, None)
+            self._trim_tasks_locked()
+
+    def _trim_tasks_locked(self) -> None:
+        overflow = len(self._tasks) - self._max_tasks
+        if overflow <= 0:
+            return
+        # 优先丢弃已结束且最久未更新的任务，避免运行中的任务被提前清理。
+        ordered = sorted(
+            self._tasks.items(),
+            key=lambda item: (
+                item[1].get("status") not in {"completed", "failed"},
+                float(item[1].get("updated_at") or 0),
+            ),
+        )
+        for task_id, task in ordered:
+            if overflow <= 0:
+                break
+            if task.get("status") in {"queued", "running"}:
+                continue
+            self._tasks.pop(task_id, None)
+            overflow -= 1
 
     def _update_task(self, task_id: str, **fields: object) -> None:
         with self._task_lock:
@@ -135,6 +175,7 @@ class TaskService:
                 return
             task.update(fields)
             task["updated_at"] = time.time()
+            self._trim_tasks_locked()
 
     def _append_progress(self, task_id: str, label: str, detail: str = "") -> None:
         event = {"label": label, "time": time.strftime("%H:%M:%S", time.localtime())}

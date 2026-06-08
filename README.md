@@ -124,6 +124,24 @@ python3 storymap/script/story_map.py --serve --port 8766
 - 李白
 - 辛弃疾
 
+## 开发自检
+
+每次修改 `storymap/script`、`tests` 或 `tools` 后，建议先跑统一自检入口：
+
+```bash
+python3 tools/run_storymap_checks.py
+```
+
+说明：
+
+- 默认会先跑一轮 `ruff check --select F`，只拦截会影响运行的导入/名称类问题
+- 然后执行一组核心回归测试，覆盖环境变量兼容、静态目录选择、任务流、模板和 Markdown 校验
+- 若要跑完整测试集，可执行：
+
+```bash
+python3 tools/run_storymap_checks.py --all-tests
+```
+
 ## 数据重建与重渲染
 
 当前仓库的数据单源为：

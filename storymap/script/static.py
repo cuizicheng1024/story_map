@@ -13,12 +13,14 @@ class StaticService:
         self,
         *,
         active_story_map_dir: Callable[[], str],
+        public_story_map_dirs: Callable[[], list[str]],
         project_root: Callable[[], str],
         fetch_vendor_bytes: Callable[[str], Tuple[str, bytes]],
         vendor_cache: Dict[str, Tuple[str, bytes]],
         vendor_lock: object,
     ) -> None:
         self._active_story_map_dir = active_story_map_dir
+        self._public_story_map_dirs = public_story_map_dirs
         self._project_root = project_root
         self._fetch_vendor_bytes = fetch_vendor_bytes
         self._vendor_cache = vendor_cache
@@ -42,6 +44,16 @@ class StaticService:
             return "image/svg+xml"
         return "application/octet-stream"
 
+    def _resolve_target_in_root(self, static_root: Path, rel: str) -> Optional[Path]:
+        target = (static_root / rel).resolve()
+        try:
+            target.relative_to(static_root)
+        except Exception:
+            return None
+        if not target.exists() or not target.is_file():
+            return None
+        return target
+
     def static_target_path(self, parsed_path: str) -> Optional[Path]:
         rel = unquote((parsed_path or "").lstrip("/"))
         if rel.startswith("artifacts/story_map/"):
@@ -52,15 +64,11 @@ class StaticService:
             rel = "index.html"
         if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
             return None
-        static_root = Path(self._active_story_map_dir()).resolve()
-        target = (static_root / rel).resolve()
-        try:
-            target.relative_to(static_root)
-        except Exception:
-            return None
-        if not target.exists() or not target.is_file():
-            return None
-        return target
+        for root in self._public_story_map_dirs():
+            target = self._resolve_target_in_root(Path(root).resolve(), rel)
+            if target is not None:
+                return target
+        return None
 
     def vendor_response(self, name: str) -> Response:
         safe_name = unquote(str(name or "")).strip().lstrip("/")
@@ -94,6 +102,7 @@ class StaticService:
         return {
             "ok": True,
             "static_dir": static_dir,
+            "static_dirs": self._public_story_map_dirs(),
             "static_exists": os.path.exists(static_dir),
             "index_exists": os.path.exists(index_path),
             "cwd": os.getcwd(),
