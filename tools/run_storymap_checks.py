@@ -44,26 +44,41 @@ def _run(command: list[str]) -> int:
     return completed.returncode
 
 
+def _has_module(python_bin: str, module_name: str) -> bool:
+    completed = subprocess.run(
+        [python_bin, "-c", f"import {module_name}"],
+        cwd=REPO_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return completed.returncode == 0
+
+
 def _python_bin() -> str:
     candidates = [
-        REPO_ROOT / ".venv311" / "bin" / "python",
-        REPO_ROOT / ".venv" / "bin" / "python",
+        sys.executable,
+        str(REPO_ROOT / ".venv311" / "bin" / "python"),
+        str(REPO_ROOT / ".venv" / "bin" / "python"),
     ]
     for candidate in candidates:
-        if candidate.exists():
-            return str(candidate)
+        if Path(candidate).exists() and _has_module(candidate, "pytest"):
+            return candidate
     return sys.executable
 
 
-def _ruff_bin() -> str | None:
-    candidates = [
-        REPO_ROOT / ".venv311" / "bin" / "ruff",
-        REPO_ROOT / ".venv" / "bin" / "ruff",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return str(candidate)
-    return shutil.which("ruff")
+def _ruff_command(python_bin: str) -> list[str] | None:
+    if _has_module(python_bin, "ruff"):
+        return [python_bin, "-m", "ruff"]
+
+    sibling_ruff = Path(python_bin).with_name("ruff")
+    if sibling_ruff.exists():
+        return [str(sibling_ruff)]
+
+    current_env_ruff = shutil.which("ruff")
+    if current_env_ruff:
+        return [current_env_ruff]
+
+    return None
 
 
 def main() -> int:
@@ -72,17 +87,19 @@ def main() -> int:
     parser.add_argument("--all-tests", action="store_true", help="运行整个 tests 目录")
     args = parser.parse_args()
 
+    python_bin = _python_bin()
+
     if not args.skip_ruff:
-        ruff = _ruff_bin()
-        if ruff:
-            rc = _run([ruff, "check", "--select", "F", *DEFAULT_RUFF_TARGETS])
+        ruff_command = _ruff_command(python_bin)
+        if ruff_command:
+            rc = _run([*ruff_command, "check", "--select", "F", *DEFAULT_RUFF_TARGETS])
             if rc != 0:
                 return rc
         else:
             print("! 未找到 ruff，已跳过静态检查")
 
     test_targets = ["tests"] if args.all_tests else DEFAULT_TESTS
-    return _run([_python_bin(), "-m", "pytest", *test_targets])
+    return _run([python_bin, "-m", "pytest", *test_targets])
 
 
 if __name__ == "__main__":
