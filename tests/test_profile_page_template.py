@@ -26,6 +26,7 @@ def test_render_profile_html_uses_external_template():
     assert "__DATA__" not in html
     assert "测试人物的人生足迹地图" in html
     assert "window.__EXPORT_DATA__ = data;" in html
+    assert "personName: String(data?.person?.name || '').trim()" in html
 
 
 def test_render_profile_html_includes_google_analytics_snippet():
@@ -62,3 +63,14 @@ def test_load_profile_prefers_death_quote_for_card():
     profile = story_map.load_profile_from_md(md, allow_geocode=False)
 
     assert "牵黄犬" in str(profile["person"].get("quote") or "")
+
+
+def test_load_profile_extracts_work_texts_for_teaching_links():
+    md = (REPO_ROOT / "storymap" / "examples" / "story" / "柳永.md").read_text(encoding="utf-8")
+
+    profile = story_map.load_profile_from_md(md, allow_geocode=False)
+    work_texts = profile.get("workTexts") or {}
+
+    assert "望海潮·东南形胜" in work_texts
+    assert "东南形胜" in str(work_texts["望海潮·东南形胜"])
+    assert work_texts.get("望海潮") == work_texts.get("望海潮·东南形胜")

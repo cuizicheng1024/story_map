@@ -556,6 +556,7 @@ const mapStyle = data.mapStyle || {};
 const relatedGraph = data.relatedGraph || {};
 const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
 const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
+const rawWorkTexts = data.workTexts && typeof data.workTexts === 'object' ? data.workTexts : {};
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\\n\\n');
 const dedupeTeachingMarkdown = (raw) => {
   const LF = String.fromCharCode(10);
@@ -672,6 +673,75 @@ const extractYear = (text) => {
   if (!Number.isFinite(y)) return null;
   if (raw.includes('公元前') || raw.trim().startsWith('前')) return -y;
   return y;
+};
+
+const normalizeWorkTitle = (title) => String(title || '').replace(/[《》]/g, '').trim();
+const workTextLibrary = (() => {
+  const out = {};
+  for (const [title, text] of Object.entries(rawWorkTexts)) {
+    const cleanTitle = normalizeWorkTitle(title);
+    const cleanText = String(text || '').trim();
+    if (!cleanTitle || !cleanText) continue;
+    if (!out[cleanTitle] || cleanText.length > out[cleanTitle].length) {
+      out[cleanTitle] = cleanText;
+    }
+    const shortTitle = cleanTitle.split('·', 1)[0].trim();
+    if (shortTitle && (!out[shortTitle] || cleanText.length > out[shortTitle].length)) {
+      out[shortTitle] = cleanText;
+    }
+  }
+  return out;
+})();
+const renderTeachingInline = (text) => {
+  const raw = String(text || '');
+  const parts = raw.split(/(\*\*.*?\*\*)/g).filter(Boolean);
+  const renderWorkTokens = (segment, keyPrefix) => {
+    const out = [];
+    const regex = /《([^》]{1,80})》/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(segment)) !== null) {
+      if (match.index > lastIndex) {
+        out.push(<React.Fragment key={`${keyPrefix}-txt-${lastIndex}`}>{segment.slice(lastIndex, match.index)}</React.Fragment>);
+      }
+      const fullTitle = match[0];
+      const title = normalizeWorkTitle(match[1]);
+      const workText = workTextLibrary[title];
+      if (workText) {
+        out.push(
+          <span key={`${keyPrefix}-work-${match.index}`} className="relative inline-flex align-baseline group">
+            <a
+              href={`#work-${encodeURIComponent(title)}`}
+              onClick={(e) => e.preventDefault()}
+              className="text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800"
+            >
+              {fullTitle}
+            </a>
+            <span className="pointer-events-none absolute left-0 top-full z-[80] mt-2 hidden min-w-[260px] max-w-[420px] whitespace-pre-wrap rounded-xl border border-[#c8b496]/60 bg-white/95 px-3 py-2 text-xs leading-6 text-gray-700 shadow-xl group-hover:block group-focus-within:block">
+              <span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>
+              <span>{workText}</span>
+            </span>
+          </span>
+        );
+      } else {
+        out.push(<React.Fragment key={`${keyPrefix}-plain-${match.index}`}>{fullTitle}</React.Fragment>);
+      }
+      lastIndex = match.index + fullTitle.length;
+    }
+    if (lastIndex < segment.length) {
+      out.push(<React.Fragment key={`${keyPrefix}-tail-${lastIndex}`}>{segment.slice(lastIndex)}</React.Fragment>);
+    }
+    return out;
+  };
+  return parts.map((p, idx) => {
+    const m = p.match(/^\*\*(.+?)\*\*$/);
+    const content = m ? m[1] : p.replaceAll('**', '');
+    const tokens = renderWorkTokens(content, `seg-${idx}`);
+    if (m) {
+      return <strong key={idx} className="font-extrabold text-gray-900">{tokens}</strong>;
+    }
+    return <React.Fragment key={idx}>{tokens}</React.Fragment>;
+  });
 };
 
 const renderInline = (text) => {
@@ -826,7 +896,7 @@ const renderTextbookPoints = (raw, options) => {
         return (
           <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
             <span className="mt-[2px] text-[#c0392b]">{bullet}</span>
-            <div>{renderInline(body)}</div>
+            <div>{renderTeachingInline(body)}</div>
           </div>
         );
       }
@@ -836,14 +906,14 @@ const renderTextbookPoints = (raw, options) => {
         return (
           <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
             <span className="mt-[2px] text-gray-500">{ordered[1]}.</span>
-            <div>{renderInline(ordered[2])}</div>
+            <div>{renderTeachingInline(ordered[2])}</div>
           </div>
         );
       }
 
       return (
         <p key={idx} className="text-sm leading-relaxed text-gray-700">
-          {renderInline(t)}
+          {renderTeachingInline(t)}
         </p>
       );
     });
@@ -939,7 +1009,7 @@ const renderTextbookPoints = (raw, options) => {
       return (
         <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
           <span className="mt-[2px] text-[#c0392b]">{bullet}</span>
-          <div>{renderInline(body)}</div>
+          <div>{renderTeachingInline(body)}</div>
         </div>
       );
     }
@@ -949,14 +1019,14 @@ const renderTextbookPoints = (raw, options) => {
       return (
         <div key={idx} className={`flex ${indentClass} gap-2 text-sm leading-relaxed text-gray-700`}>
           <span className="mt-[2px] text-gray-500">{ordered[1]}.</span>
-          <div>{renderInline(ordered[2])}</div>
+          <div>{renderTeachingInline(ordered[2])}</div>
         </div>
       );
     }
 
     return (
       <p key={idx} className="text-sm leading-relaxed text-gray-700">
-        {renderInline(t)}
+        {renderTeachingInline(t)}
       </p>
     );
   });
@@ -1032,7 +1102,9 @@ const App = () => {
   const chatStrict = true;
   const [chatMessages, setChatMessages] = useState(() => {
     const personName = String(data?.person?.name || '').trim();
-    const greeting = personName ? `我在。你想从哪一段经历开始问起？` : `我在。你想聊哪段历史足迹？`;
+    const greeting = personName
+      ? `我是故事地图分析助手。你可以继续追问 ${personName} 的经历、足迹、作品，或让我解释结论依据。`
+      : `我是故事地图分析助手。你可以给我一个人物、问题或比较任务，我会基于人物档案继续分析。`;
     return [{ role: 'assistant', content: greeting }];
   });
   const [chatDraft, setChatDraft] = useState('');
@@ -1206,6 +1278,10 @@ const App = () => {
     }
     return out;
   }, [relatedWorks]);
+  const geocodedLocationCount = useMemo(
+    () => locations.filter((loc) => Number.isFinite(Number(loc?.lat)) && Number.isFinite(Number(loc?.lng))).length,
+    [locations]
+  );
   const relatedCenterNode = useMemo(() => {
     const center = relatedGraphNodes.find((node) => node && node.isCenter);
     return center || {
@@ -1218,6 +1294,71 @@ const App = () => {
     () => relatedGraphNodes.filter((node) => node && !node.isCenter && String(node.name || '').trim()),
     [relatedGraphNodes]
   );
+  const toolRuns = useMemo(() => {
+    const personName = String(data.person?.name || '').trim() || '当前人物';
+    const tools = [
+      {
+        key: 'identify',
+        name: '人物识别',
+        detail: `识别并锁定当前任务对象：${personName}`,
+        status: '已使用',
+        tone: 'done'
+      },
+      {
+        key: 'story',
+        name: '本地档案检索',
+        detail: description
+          ? '已加载人物档案与生平概述，用于生成当前人物页'
+          : `已尝试从本地人物资料中检索 ${personName} 的核心信息`,
+        status: '已使用',
+        tone: 'done'
+      },
+      {
+        key: 'place',
+        name: '地点解析',
+        detail: geocodedLocationCount
+          ? `已完成 ${geocodedLocationCount} 个地点的古今地名与坐标解析`
+          : '当前人物页未解析出可展示的地点坐标',
+        status: geocodedLocationCount ? '已使用' : '数据不足',
+        tone: geocodedLocationCount ? 'done' : 'warn'
+      },
+      {
+        key: 'timeline',
+        name: '时间线构建',
+        detail: totalEvents
+          ? `已整理 ${totalEvents} 个足迹节点并生成可交互时间轴`
+          : '当前人物页暂未生成可交互时间轴',
+        status: totalEvents ? '已使用' : '数据不足',
+        tone: totalEvents ? 'done' : 'warn'
+      },
+      {
+        key: 'map',
+        name: '地图渲染',
+        detail: geocodedLocationCount
+          ? '已将足迹节点投射到地图，支持联动查看'
+          : '等待更多地点数据后可生成地图联动结果',
+        status: geocodedLocationCount ? '已使用' : '待补充',
+        tone: geocodedLocationCount ? 'done' : 'warn'
+      },
+      {
+        key: 'graph',
+        name: '相关人物图谱',
+        detail: relatedNeighborNodes.length
+          ? `已关联 ${relatedNeighborNodes.length} 位相关人物，生成关系图谱`
+          : '当前人物暂无足够关系数据，未展开更多图谱节点',
+        status: relatedNeighborNodes.length ? '已使用' : '数据不足',
+        tone: relatedNeighborNodes.length ? 'done' : 'warn'
+      },
+      {
+        key: 'chat',
+        name: '智能问答',
+        detail: '页面中的分析助手可继续基于人物档案回答追问并解释依据',
+        status: '可继续调用',
+        tone: 'ready'
+      }
+    ];
+    return tools;
+  }, [data.person?.name, description, geocodedLocationCount, totalEvents, relatedNeighborNodes.length]);
   const relatedLinkMap = useMemo(() => {
     const out = {};
     for (const link of relatedGraphLinks) {
@@ -1904,7 +2045,13 @@ const App = () => {
         const resp = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages, temperature: 0.2 })
+          body: JSON.stringify({
+            messages,
+            temperature: 0.2,
+            context: {
+              personName: String(data?.person?.name || '').trim()
+            }
+          })
         });
         const text = await resp.text();
         if (!resp.ok) {
@@ -2023,6 +2170,37 @@ const App = () => {
           </div>
         </div>
       </header>
+      <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-[#7c2d12]">本次使用工具</h2>
+            <p className="text-[11px] text-gray-500 mt-1">把当前人物页拆成可见的工具链，明确展示故事地图已调用与可继续调用的能力。</p>
+          </div>
+          <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50 text-[#7c2d12]">
+            Tool Layer
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {toolRuns.map((tool) => {
+            const badgeClass = tool.tone === 'done'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : tool.tone === 'ready'
+                ? 'bg-sky-50 text-sky-700 border-sky-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200';
+            return (
+              <div key={tool.key} className="rounded-xl border border-[#c8b496]/40 bg-white/85 px-4 py-3 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-bold text-slate-800">{tool.name}</div>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${badgeClass}`}>
+                    {tool.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-gray-600">{tool.detail}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
       <div className="space-y-6">
         <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
           <div
@@ -2334,15 +2512,15 @@ const App = () => {
         <section ref={chatSectionRef} className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
-              <h2 className="text-lg font-bold text-[#7c2d12]">{data.person?.name ? `跟${data.person.name}对话` : '与历史对话'}</h2>
-              <p className="text-[11px] text-gray-500 mt-1">进入足迹内容后，以第一人称与人物对话（依据史实）。</p>
+              <h2 className="text-lg font-bold text-[#7c2d12]">{data.person?.name ? `${data.person.name} 智能分析` : '历史人物智能分析'}</h2>
+              <p className="text-[11px] text-gray-500 mt-1">继续提问、追问依据或解释结论，故事地图会优先基于本地人物档案回答。</p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setChatOpen(v => !v)}
                 className="text-[11px] px-3 py-1 rounded bg-[#c0392b] text-white hover:bg-[#a93226]"
               >
-                {chatOpen ? '收起' : '开始对话'}
+                {chatOpen ? '收起面板' : '打开分析助手'}
               </button>
             </div>
           </div>
@@ -2368,7 +2546,7 @@ const App = () => {
                   {chatLoading ? (
                     <div className="flex justify-start">
                       <div className="max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[#c8b496]/30 bg-white text-gray-700">
-                        正在回应…
+                        正在分析…
                       </div>
                     </div>
                   ) : null}
@@ -2388,7 +2566,7 @@ const App = () => {
                         sendChat(chatDraft);
                       }
                     }}
-                    placeholder="输入一句话，按 Enter 发送"
+                    placeholder="输入一个问题或任务，例如：他为何离开故乡？按 Enter 发送"
                     className="flex-1 px-3 py-2 rounded-xl border border-[#c8b496]/50 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#c0392b]/30"
                     disabled={chatLoading}
                   />
@@ -2397,27 +2575,27 @@ const App = () => {
                     className="px-4 py-2 rounded-xl bg-[#c0392b] text-white text-sm disabled:opacity-50"
                     disabled={chatLoading || !String(chatDraft || '').trim()}
                   >
-                    发送
+                    开始分析
                   </button>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="bg-[#fdf6e3] border border-dashed border-[#c8b496] rounded-xl p-3">
-                  <p className="text-[10px] uppercase font-bold text-[#c0392b] mb-2">对话逻辑</p>
+                  <p className="text-[10px] uppercase font-bold text-[#c0392b] mb-2">分析原则</p>
                   <ul className="text-[11px] text-gray-700 space-y-1 leading-relaxed">
-                    <li>- 先直接回答问题，再用足迹材料作简短旁证。</li>
-                    <li>- 问原理就讲原理，问作品就讲作品；不要反复背行程。</li>
-                    <li>- 不确定信息用“存疑/史料未载”。</li>
+                    <li>- 先给结论，再引用人物档案中的足迹、时间线或概述作依据。</li>
+                    <li>- 问经历就讲经历，问作品就讲作品，尽量避免重复罗列行程。</li>
+                    <li>- 对不确定信息明确标注“存疑”或“史料未载”。</li>
                   </ul>
                 </div>
                 <div className="bg-white/70 border border-[#c8b496]/40 rounded-xl p-3">
-                  <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">建议开场</p>
+                  <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">推荐任务</p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      '你为何离开故乡？',
-                      '你最艰难的一段行程是哪一次？',
-                      '你如何看待当时的时代局势？',
-                      '请从第一件足迹事件讲起。'
+                      '总结他的核心人生转折',
+                      '他为何离开故乡？给我证据',
+                      '哪段迁徙最能体现时代处境？',
+                      '请按时间线讲最重要的三次足迹变化'
                     ].map((q, idx) => (
                       <button
                         key={idx}

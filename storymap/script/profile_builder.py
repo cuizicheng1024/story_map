@@ -26,6 +26,37 @@ def extract_works(text: str) -> List[str]:
     return works
 
 
+def _register_work_text(store: Dict[str, str], title: str, text: str) -> None:
+    clean_title = str(title or "").strip()
+    clean_text = str(text or "").strip()
+    if not clean_title or not clean_text:
+        return
+    clean_text = re.sub(r"\s*\n\s*", "\n", clean_text).strip()
+    aliases = [clean_title]
+    short_title = clean_title.split("·", 1)[0].strip()
+    if short_title and short_title not in aliases:
+        aliases.append(short_title)
+    for alias in aliases:
+        if not alias:
+            continue
+        existing = str(store.get(alias) or "").strip()
+        if not existing or len(clean_text) > len(existing):
+            store[alias] = clean_text
+
+
+def extract_work_texts(md: str) -> Dict[str, str]:
+    if not isinstance(md, str) or not md.strip():
+        return {}
+    work_texts: Dict[str, str] = {}
+    for raw_line in md.splitlines():
+        line = str(raw_line or "").strip().lstrip("-").strip()
+        if "《" not in line:
+            continue
+        for title, quote in re.findall(r"《([^》]{1,80})》\s*[：:]\s*[“\"「](.+?)[”\"」]", line):
+            _register_work_text(work_texts, title, quote)
+    return work_texts
+
+
 def split_quote_lines(text: str) -> List[str]:
     if not text:
         return []
@@ -85,15 +116,14 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
     in_intro = False
     fields = {"朝代": "", "身份": "", "生卒年": "", "主要事件": "", "主要作品": "", "历史地位": "", "一生行程": ""}
     for line in lines:
-        if line.strip().startswith("## "):
-            title = line.strip().lstrip("#").strip()
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            title = stripped.lstrip("#").strip()
             in_intro = title == "简介"
             continue
         if not in_intro:
             continue
-        if line.strip().startswith("## "):
-            break
-        t = line.strip()
+        t = stripped
         if "：" in t:
             k, v = t.split("：", 1)
             k = k.strip()
@@ -219,6 +249,7 @@ def build_profile_data(
         description = "；".join([t for t in [info.get("历史地位", ""), info.get("主要成就", "")] if t])
     description = re.sub(r"-{3,}$", "", description).strip()
     works = extract_works(" ".join([description, info.get("主要成就", ""), info.get("历史地位", "")]))
+    work_texts = extract_work_texts(normalized_md)
     birth_text = info.get("出生", "")
     death_text = info.get("去世", "")
     birth_date, birth_loc = parser_utils._parse_date_location(birth_text, ["出生于", "生于"])
@@ -448,6 +479,7 @@ def build_profile_data(
         },
         "textbookPoints": parsed_doc.textbook_points,
         "examPoints": parsed_doc.exam_points,
+        "workTexts": work_texts,
     }
 
 

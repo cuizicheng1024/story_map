@@ -686,14 +686,14 @@ def extract_places_in_order(md: str) -> List[str]:
                     search_idx = j
                 if display_idx is None and ("现称" in c or "地点" in c):
                     display_idx = j
-            if display_idx is None and search_idx is None:
-                display_idx = len(header_cells) - 1
             continue
         if table_started:
             stripped = line.strip()
             if _TABLE_SEPARATOR_RE.match(stripped):
                 continue
             if stripped.startswith("|"):
+                if search_idx is None and display_idx is None:
+                    continue
                 cells = [c.strip() for c in stripped.strip("|").split("|")]
                 cell = ""
                 if search_idx is not None and search_idx < len(cells):

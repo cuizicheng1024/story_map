@@ -2,6 +2,12 @@
 # -*- coding: utf-8 -*-
 """batch_run_mimo_autogen_v2.py
 
+状态
+----
+- 历史批处理脚本，保留兼容使用
+- 当前不建议继续在这里扩展主流程能力
+- 后续更适合迁移到专门的 batch/legacy 目录
+
 用途
 ----
 在 `map_story_poster` 目录下批量跑 `auto_generate.py` 的核心链路，并生成排障报告。

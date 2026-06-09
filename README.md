@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  面向语文、历史、地理跨学科教学的互动式人物足迹地图项目
+  面向语文、历史、地理跨学科教学的历史人物时空分析助手
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://www.bilibili.com/video/BV1aLoCBnEiN">故事地图视频演示</a> ·
   <a href="#快速开始与项目结构">快速开始与项目结构</a> ·
-  <a href="#环境要求与配置说明">环境要求与配置说明</a> ·
+  <a href="./install.md">安装与本地部署</a> ·
   <a href="#演示与在线静态版">演示与在线静态版</a>
 </p>
 
@@ -28,22 +28,30 @@
 - [项目概况](#项目概况)
 - [适用场景](#适用场景)
 - [演示与在线静态版](#演示与在线静态版)
-- [环境要求与配置说明](#环境要求与配置说明)
+- [安装与本地部署](./install.md)
 - [快速开始与项目结构](#快速开始与项目结构)
 - [作者信息](#作者信息)
 
 ## 项目概况
-**故事地图（StoryMap）** 面向文史爱好者，遵循 **“人物—时空—事件”** 的叙事主线，提供了地图可视化工具：输入一个名字，就生成可交互的足迹地图课件，知人论世，让历史人物的作品有了时空的分量。
+**故事地图（StoryMap）** 面向文史爱好者，遵循 **“人物—时空—事件”** 的叙事主线，提供一个可理解任务、调用工具、输出证据的历史人物时空分析入口。输入一个人物、一个问题，或一个比较任务，就能生成可交互的足迹地图、结构化人物档案与追问式回答。
 
 🧭 **项目目标：**借助地图，我们可以把文学与历史研究中偏感性、经验性的“人物分析”，转成可回放、可检索的**时空轨迹**，关注行走与迁徙的轨迹，而不仅仅某个时间切片的个人经历。
 
 **从时空视角重构历史人物生命轨迹，解决文史学习中“文本碎片化、时空理解弱、检索成本高”的痛点。**
 
 🛠️ **技术方案：**
-- **1. 输入姓名，生成故事**：通过 LLM 检索与整理资料生成结构化内容，重点抽取 **时间 - 地点 - 事件 / 作品 - 意义**。
-- **2. 地理定位，完成落图**：集成 **高德地图** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
-- **3. 交互式地图课件呈现**：基于人物足迹、时间轴和事件节点生成联动页面，支持课堂展示、人物浏览与互动讲解。
+- **1. 理解任务，识别人名**：支持输入姓名、短问题或多人物文本，先识别任务对象，再决定进入生成、检索或问答流程。
+- **2. 组织证据，生成档案**：通过 LLM 检索与整理资料生成结构化内容，重点抽取 **时间 - 地点 - 事件 / 作品 - 意义**。
+- **3. 调用地图工具，完成落图**：集成 **高德地图** 进行古今地名对照与地理编码，实现位置信息的精准可视化。
+- **4. 输出结果，支持追问**：基于人物足迹、时间轴和事件节点生成联动页面，并通过对话窗口继续解释“为什么”“依据是什么”“和谁相似”。
 
+### Agent 化工作流
+- **任务理解**：接收人物名、提问句或多人物比较请求
+- **对象识别**：识别人名并优先命中本地人物档案
+- **证据组织**：生成结构化人物信息与时间线
+- **地点解析**：补全古今地名映射与坐标
+- **时空呈现**：生成可交互地图、时间轴和人物页
+- **追问回答**：优先基于本地档案回答，再结合模型补全表达
 
 
 
@@ -74,16 +82,16 @@
 <img src="storymap/docs/assets/moler_post_05.png" alt="人物页：地点连线与节点信息" width="600" />
 
 主页默认展示：
-- 搜索框：输入人物姓名，即可生成/跳转到人物页
+- 输入框：输入人物姓名、问题或任务，即可发起分析/跳转到人物页
 - 时间轴：「人类群星闪耀时」关系图，查看闪耀的人物群星
 - 地图视角：从空间视角观察中国历史文化名人分布
-- 支持拖动筛选，起止年份可自定义
+- 支持拖动筛选，起止年份可自定义，并查看任务执行进度
 
 人物页默认展示：
-- 人物简介
-- 足迹地图
-- 对话窗口
-- 考点信息
+- 人物简介与证据摘要
+- 足迹地图与时间轴
+- 智能分析对话窗口
+- 考点信息与延伸提问
 
 ### 在线静态版
 
@@ -94,58 +102,17 @@
 - 当前不支持：`FastAPI`、`/generate`、`/task`、`/api/ai/proxy`
 - 人物对话和未收录人物实时生成仍依赖后端 LLM，无法在静态版本体验
 
-## 🧩 环境要求与配置说明
-- **Python 版本**：建议 `Python 3.11+`
-- **Node.js 版本**：当前主流程非必需；仅在查看已归档的 `archive/web-prototype/` 前端原型时才需要 `Node.js 22+`
-- **依赖安装**：先安装项目依赖；如果你本地还没有装，可优先尝试 `pip install -r requirements.txt`
-- **是否需要 `.env`**：需要。人物对话、实时生成人物页、以及高德地图底图都依赖环境变量配置
-- **高德 Key 是否必填**：主页和人物页底图至少需要 `AMAP_KEY`；若要在线补地理坐标，建议再配置 geocode key
-
-至少建议在 `.env` 中配置以下变量：
-
-```env
-AMAP_KEY=你的高德 JS Key
-AMAP_SECURITY=你的高德安全密钥
-MAP_STORY_API_BASE=http://127.0.0.1:8765
-AMAP_WEBSERVICE_KEY=你的高德 WebService Key
-
-LLM_PROVIDER=minimax
-LLM_API_KEY=你的大模型 Key
-LLM_BASE_URL=https://api.minimaxi.com/anthropic
-LLM_MODEL_ID=MiniMax-M3
-```
-
-说明：
-- `AMAP_KEY`：用于主页和人物页加载高德地图 JS
-- `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
-- `AMAP_WEBSERVICE_KEY`：用于在线地理编码补点
-- `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发可写 `http://127.0.0.1:8765`
-- `LLM_PROVIDER`：当前推荐使用 `minimax`
-- `LLM_API_KEY`：用于人物对话与新人物实时生成
-- `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
-- `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
-
 ## 🚀 快速开始与项目结构
 
-### 本地一键体验
-1) 启动新服务（`FastAPI`，提供主页、人物页生成、对话接口和 `/docs`）：
+安装、环境变量配置和本地启动方式已经拆到独立文档：
+
+- [安装与本地部署](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)
+
+如果你只想快速体验本地服务，可直接执行：
+
 ```bash
-python3 storymap/script/story_map.py --serve --port 8765
+scripts/start_storymap.sh
 ```
-
-2) 浏览器打开主页：
-- `http://localhost:8765/`
-
-3) 查看接口文档：
-- `http://localhost:8765/docs`
-
-4) 打开任意人物页后，可直接分享带地点状态的链接：
-- 例如：`http://localhost:8765/苏轼.html#loc=3`
-- 其中 `#loc=N` 表示人物页左侧时间轴中第 `N` 个地点节点（从 `0` 开始）
-
-### 未收录人物
-如果主页搜索框输入的人物不在当前库中，会通过服务端实时生成（需自动配置LLM接口），生成完成后自动跳转到人物页。
-生成过程中会在主页显示“排队/执行进度”，建议保持页面打开并等待完成。
 
 ### 示例人物
 - 苏轼
@@ -158,24 +125,49 @@ python3 storymap/script/story_map.py --serve --port 8765
 artifacts/
 ├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
 storymap/
-├── script/                 # 主服务、人物页渲染、地图与对话代理逻辑
+├── script/                 # 主服务与核心运行时：API、任务队列、渲染、解析、问答代理
 ├── examples/
 │   └── story/              # 人物 Markdown 原始资料（单一数据源）
-├── docs/assets/            # README 展示图片
-cli/                        # 批量生成、重渲染、辅助脚本
-tools/                      # 数据主索引、首页数据、统一构建脚本
+├── docs/                   # 规范文档、素材和维护说明
+│   ├── assets/             # README 展示图片
+│   ├── person_markdown_spec.md
+│   └── maintenance_map.md  # 仓库维护地图
+cli/                        # 面向人物/HTML 生成的命令行入口
+scripts/                    # 本地启动等便捷脚本
+tools/                      # 数据构建、校验、索引生成工具
 data/                       # 人物主索引、坐标缓存、教材人物聚合结果
-archive/
-└── web-prototype/         # 已归档的 React/Vite 前端原型，不属于当前主流程
 .env                        # 地图与 LLM 的本地配置
 ```
+
+### 维护入口
+
+如果你准备长期维护这个仓库，优先记住下面几个入口：
+
+- `scripts/start_storymap.sh`
+  - 本地启动入口，默认使用仓库内已有虚拟环境与 `8765` 端口
+- `storymap/script/story_map.py`
+  - 运行时总入口，负责组装 `FastAPI`、任务服务、静态资源和问答代理
+- `storymap/script/app_factory.py`
+  - 运行时装配层，适合看清服务之间的依赖关系
+- `storymap/script/task.py`
+  - 生成人物页、多人物合并页、任务状态轮询的主流程
+- `storymap/script/profile_builder.py`
+  - Markdown -> 人物页结构化数据的主入口
+- `storymap/script/templates/profile_page.html`
+  - 人物页模板与大部分前端交互逻辑
+- `tools/build_all.py`
+  - 数据与首页构建入口
+- `tools/run_storymap_checks.py`
+  - 本地统一自检入口
+- `scripts/test_storymap.sh`
+  - 默认测试入口，本地修改后优先执行
 
 ## 开发自检
 
 每次修改 `storymap/script`、`tests` 或 `tools` 后，建议先跑统一自检入口：
 
 ```bash
-python3 tools/run_storymap_checks.py
+scripts/test_storymap.sh
 ```
 
 说明：
@@ -185,7 +177,7 @@ python3 tools/run_storymap_checks.py
 - 若要跑完整测试集，可执行：
 
 ```bash
-python3 tools/run_storymap_checks.py --all-tests
+scripts/test_storymap.sh --all-tests
 ```
 
 ## 数据重建与重渲染
@@ -234,6 +226,7 @@ MAP_STORY_RENDER_CONCURRENCY=2 python3 cli/generate_pure_story_map.py --render-a
 推荐每个人物文件都遵循统一规范，完整说明已单独存放在：
 
 - `storymap/docs/person_markdown_spec.md`
+- `storymap/docs/maintenance_map.md`
 
 校验命令：
 

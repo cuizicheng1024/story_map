@@ -20,7 +20,7 @@ def create_app(
     amap_config_js,
     coords_bulk_update,
 ) -> FastAPI:
-    app = FastAPI(title="StoryMap API")
+    app = FastAPI(title="故事地图 API")
 
     allow_all = "*" in allowed_origins
     app.add_middleware(
@@ -123,5 +123,5 @@ def create_app(
 
 def run_server(app: FastAPI, port: int, logger) -> None:
     logger.info("server_start port=%s", port)
-    print(f"故事地图服务已启动：http://localhost:{port}")
+    print(f"故事地图智能分析服务已启动：http://localhost:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

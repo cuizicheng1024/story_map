@@ -39,6 +39,7 @@ def create_story_map_runtime(
     amap_config_js: Callable[[], bytes],
     update_home_coords: Callable[[object, threading.Lock], Tuple[int, Dict[str, object]]],
     get_llm_client: Callable[..., object],
+    local_agent_reply: Callable[[object], object],
     local_history_reply: Callable[[object], str],
     format_seconds: Callable[[float], str],
     validate_input_text: Callable[[str], str | None],
@@ -58,6 +59,7 @@ def create_story_map_runtime(
 
     proxy_service = ProxyService(
         get_llm_client=get_llm_client,
+        local_agent_reply=local_agent_reply,
         local_history_reply=local_history_reply,
         logger=logger,
     )

@@ -56,9 +56,9 @@ def test_offline_profile_uses_local_index_when_geocode_disabled(monkeypatch):
                 return fake_coords[key]
         return None
 
-    monkeypatch.setattr(sm, "_lookup_coords_from_historical_index", fake_lookup)
-    monkeypatch.setattr(
-        sm,
+    monkeypatch.setitem(sm._GEOCODE_API, "lookup_coords_from_historical_index", fake_lookup)
+    monkeypatch.setitem(
+        sm._GEOCODE_API,
         "resolve_place_coord",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not call online geocode")),
     )

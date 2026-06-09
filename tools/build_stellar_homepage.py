@@ -949,18 +949,18 @@ def _render_index_html(title: str, data_file: str) -> str:
       {demo_banner}
       <div class="glass card px-6 py-5">
         <div class="text-xl font-extrabold text-slate-900">故事地图</div>
-        <div class="text-xs text-slate-500 mt-1">以人物→时空→事件为主线，探索历史人物的时空关联</div>
+        <div class="text-xs text-slate-500 mt-1">输入人物、问题或任务，从人物→时空→事件的主线进入历史人物分析</div>
         {qhtml}
       </div>
 
       <div class="glass card px-6 py-5 relative z-30 overflow-visible">
-        <div class="text-sm font-bold text-slate-800 mb-2">检索人物</div>
+        <div class="text-sm font-bold text-slate-800 mb-2">输入人物、问题或任务</div>
         <div class="relative">
           <div class="flex items-center gap-3">
-            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 苏东坡 / Su Shi" />
-            <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">查看</button>
+            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 比较李白和杜甫 / 苏轼为何总在南方活动" />
+            <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">开始分析</button>
           </div>
-          <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名检索</div>
+          <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名与拼音输入，优先命中已有档案</div>
           <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs text-slate-600"></div>
@@ -979,7 +979,7 @@ def _render_index_html(title: str, data_file: str) -> str:
             窗口内：<span id="activeCount">-</span><span class="text-white/30">|</span>坐标点：<span id="coordCount">-</span>
           </div>
         </div>
-        <div class="px-6 pb-2 -mt-2 text-[11px] text-white/60">拖动时间窗筛选人物；悬停查看简介；点击节点进入人物页</div>
+        <div class="px-6 pb-2 -mt-2 text-[11px] text-white/60">拖动时间窗筛选人物；悬停查看简介；点击节点进入人物页或继续分析</div>
         <div class="px-6 pb-2 -mt-1 text-[11px] text-white/55 flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-x-4 gap-y-1 flex-wrap">
             <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#22c55e"></span><span>先秦/公元前</span></div>
@@ -1082,7 +1082,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const requireBackend = (actionText) => {{
         const action = String(actionText || "该功能").trim() || "该功能";
-        return action + " 需要单独部署 FastAPI 后端；静态站当前仅展示已生成内容。";
+        return action + " 需要单独部署 FastAPI 后端；静态站当前仅支持浏览已生成内容。";
       }};
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
@@ -2005,6 +2005,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       const setGeneratingUI = (isGenerating) => {{
         const on = !!isGenerating;
         try {{ $go.disabled = on; }} catch (_) {{}}
+        try {{ $go.textContent = on ? "分析中..." : "开始分析"; }} catch (_) {{}}
         try {{
           if (on) {{
             $go.classList.add("opacity-60");
@@ -2026,7 +2027,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (!q) return;
         const found = nodes.find((n) => n && String(n.person || "").trim() === q) || null;
         if (found && found.has_story === false) {{
-          setGenStatus("「" + q + "」暂未生成人物页，点此尝试 AI 生成");
+          setGenStatus("「" + q + "」暂未收录人物页，正在尝试创建分析任务");
           ensurePersonGenerated(q);
           return;
         }}
@@ -2052,7 +2053,7 @@ def _render_index_html(title: str, data_file: str) -> str:
             snapshot = null;
           }}
           if (!snapshot || snapshot.ok !== true) {{
-            setGenStatus("生成任务查询失败，请稍后重试");
+            setGenStatus("分析任务查询失败，请稍后重试");
             setGeneratingUI(false);
             clearGenTask();
             return;
@@ -2068,20 +2069,20 @@ def _render_index_html(title: str, data_file: str) -> str:
           const lastDetail = last && last.detail ? String(last.detail) : "";
           if (st === "queued") {{
             const qtxt = (pos && limit) ? ("排队中（" + pos + "/" + limit + "）") : "排队中";
-            setGenStatus("未找到本地人物「" + person + "」，正在生成，请稍候… " + qtxt);
+            setGenStatus("未找到本地人物「" + person + "」，正在创建分析任务，请稍候… " + qtxt);
             setGeneratingUI(true);
             return setTimeout(tick, 900);
           }}
           if (st === "running") {{
             const ptxt = lastDetail ? (lastTxt + "：" + lastDetail) : lastTxt;
-            const head = "未找到本地人物「" + person + "」，正在生成，请稍候…";
+            const head = "未找到本地人物「" + person + "」，正在分析并生成结果，请稍候…";
             const tail = ptxt ? ("（" + ptxt + "）") : (active && limit ? ("（执行中 " + active + "/" + limit + "）") : "");
             setGenStatus(head + tail);
             setGeneratingUI(true);
             return setTimeout(tick, 900);
           }}
           if (st === "failed") {{
-            setGenStatus("生成失败：" + String(snapshot.error || "未知错误"));
+            setGenStatus("分析失败：" + String(snapshot.error || "未知错误"));
             setGeneratingUI(false);
             clearGenTask();
             return;
@@ -2090,18 +2091,18 @@ def _render_index_html(title: str, data_file: str) -> str:
             const result = snapshot.result || {{}};
             const ok = result && result.ok === true;
             if (!ok) {{
-              setGenStatus("生成失败：" + String(result.conclusion || snapshot.error || "未生成成功"));
+              setGenStatus("分析失败：" + String(result.conclusion || snapshot.error || "未生成成功"));
               setGeneratingUI(false);
               clearGenTask();
               return;
             }}
             clearGenTask();
-            setGenStatus("生成完成，正在打开人物页…");
+            setGenStatus("分析完成，正在打开人物页…");
             setGeneratingUI(false);
             window.location.href = "./" + encodeURIComponent(person + ".html");
             return;
           }}
-          setGenStatus("生成任务状态异常，请稍后重试");
+          setGenStatus("分析任务状态异常，请稍后重试");
           setGeneratingUI(false);
           clearGenTask();
         }};
@@ -2112,7 +2113,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         const person = String(personName || "").trim();
         if (!person) return;
         if (STATIC_SITE && !API_BASE) {{
-          setGenStatus(requireBackend("实时生成人物"));
+          setGenStatus(requireBackend("实时人物分析"));
           setGeneratingUI(false);
           return;
         }}
@@ -2126,12 +2127,12 @@ def _render_index_html(title: str, data_file: str) -> str:
           }}
         }} catch (_) {{}}
         setGeneratingUI(true);
-        setGenStatus("未找到本地人物「" + person + "」，正在生成，请稍候…");
+        setGenStatus("未找到本地人物「" + person + "」，正在创建分析任务，请稍候…");
         try {{
           const resp = await fetchWithTimeout(apiUrl("generate?person=" + encodeURIComponent(person)), 12000);
           const data = await resp.json();
           if (!data || data.ok !== true || !data.task_id) {{
-            const msg = data && data.error ? String(data.error) : "生成任务创建失败";
+            const msg = data && data.error ? String(data.error) : "分析任务创建失败";
             setGenStatus(msg);
             setGeneratingUI(false);
             return;
@@ -2140,7 +2141,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           try {{ localStorage.setItem("stellar_gen_task_v1", JSON.stringify({{ id: taskId, person }})); }} catch (_) {{}}
           pollTask(taskId, person);
         }} catch (e) {{
-          setGenStatus("生成请求失败，请稍后重试");
+          setGenStatus("分析请求失败，请稍后重试");
           setGeneratingUI(false);
         }}
       }};
@@ -2180,7 +2181,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (!$searchHint) return;
         const parts = ["支持本名", "别名", "外文名"];
         if (searchCapabilities && searchCapabilities.pinyin) parts.push("拼音");
-        $searchHint.textContent = parts.join("、") + "检索";
+        $searchHint.textContent = parts.join("、") + "输入，优先命中已有档案";
       }};
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
@@ -2294,7 +2295,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         camScale = clamp(1.9, 0.6, 2.4);
         camOffX = (W * 0.50) - n.x * camScale;
         camOffY = (H * 0.50) - n.y * camScale;
-        setSpotlight(n, clientX || (window.innerWidth * 0.5), clientY || (window.innerHeight * 0.3));
+        setSelected(n);
         return true;
       }};
 

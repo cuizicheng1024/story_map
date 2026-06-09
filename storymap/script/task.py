@@ -8,6 +8,41 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, List, Optional, Tuple
 
 
+_TASK_LIKE_TOKENS = (
+    "为什么",
+    "为何",
+    "如何",
+    "怎么",
+    "请",
+    "帮我",
+    "比较",
+    "对比",
+    "分析",
+    "总结",
+    "解释",
+    "给我",
+    "什么",
+    "哪里",
+    "哪儿",
+    "谁",
+    "轨迹",
+    "足迹",
+    "证据",
+    "活动",
+)
+
+
+def _looks_like_person_atom(text: str) -> bool:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return False
+    if len(cleaned) > 12:
+        return False
+    if re.search(r"[?？!！。:：；;（）()\[\]{}<>]", cleaned):
+        return False
+    return not any(token in cleaned for token in _TASK_LIKE_TOKENS)
+
+
 class TaskService:
     def __init__(
         self,
@@ -252,10 +287,10 @@ class TaskService:
         started_at = time.perf_counter()
         self._logger.info("task_start id=%s text=%s", task_id, text)
         self._update_task(task_id, status="running")
-        self._append_progress(task_id, "人物识别")
+        self._append_progress(task_id, "理解任务")
 
         def _llm_event(message: str) -> None:
-            self._append_progress(task_id, "模型日志", message)
+            self._append_progress(task_id, "模型调用", message)
 
         text_clean = str(text or "").strip()
         story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
@@ -272,12 +307,12 @@ class TaskService:
         targets: List[str] = []
         if text_clean and text_clean in known_people:
             targets = [text_clean]
-            self._append_progress(task_id, "人物识别", f"命中本地人物：{text_clean}")
+            self._append_progress(task_id, "识别任务对象", f"命中本地人物档案：{text_clean}")
         else:
             parts = [part.strip() for part in re.split(r"[、，,\s]+", text_clean) if part.strip()]
             if parts and all(part in known_people for part in parts) and len(parts) >= 2:
                 targets = parts[:10]
-                self._append_progress(task_id, "人物识别", f"命中本地人物：{'、'.join(targets)}")
+                self._append_progress(task_id, "识别任务对象", f"命中本地人物档案：{'、'.join(targets)}")
 
         client: Optional[object] = None
         if not targets:
@@ -285,11 +320,15 @@ class TaskService:
             targets = self._extract_historical_figures(client, text)
         if not targets:
             fallback = str(text or "").strip()
-            if fallback:
+            fallback_parts = [part.strip() for part in re.split(r"[、，,\s]+", fallback) if part.strip()]
+            if len(fallback_parts) >= 2 and all(_looks_like_person_atom(part) for part in fallback_parts):
+                targets = fallback_parts[:10]
+                self._append_progress(task_id, "识别任务对象", f"未命中档案，已按输入人物列表处理：{'、'.join(targets)}")
+            elif _looks_like_person_atom(fallback):
                 targets = [fallback]
-                self._append_progress(task_id, "人物识别", f"未检出列表，已按输入人物处理：{fallback}")
+                self._append_progress(task_id, "识别任务对象", f"未命中档案，已按输入人物处理：{fallback}")
             else:
-                error_message = "未识别到人物"
+                error_message = "未识别到人物，请输入人物姓名，或先进入人物页再提问。"
                 self._update_task(task_id, status="failed", error=error_message)
                 self._append_progress(task_id, "失败", error_message)
                 self._append_progress(task_id, "完成", "失败")
@@ -326,7 +365,7 @@ class TaskService:
         multi_html_path = ""
         multi_exports: Dict[str, str] = {}
         if len(people_payload) > 1:
-            self._append_progress(task_id, "合并视图渲染")
+            self._append_progress(task_id, "生成合并视图")
             title = "多人物合并视图"
             multi_data = {"title": title, "people": people_payload, "overlaps": overlaps}
             multi_html = self._render_multi_html(multi_data)
@@ -366,6 +405,6 @@ class TaskService:
                 "geojson": self._relative_path(multi_exports.get("geojson", "")) if multi_exports else "",
                 "csv": self._relative_path(multi_exports.get("csv", "")) if multi_exports else "",
             }
-        self._append_progress(task_id, "完成")
+        self._append_progress(task_id, "输出结论")
         self._update_task(task_id, status="completed", result=summary)
         self._logger.info("task_completed id=%s duration=%s", task_id, duration)

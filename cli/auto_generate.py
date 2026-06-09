@@ -4,6 +4,11 @@
 
 一键入口：输入人名 -> （LLM 生成 Markdown）-> 生成整合版交互 HTML StoryMap。
 
+状态：
+- 历史脚本，保留兼容使用
+- 当前不建议继续在这里扩展主流程能力
+- 新的渲染或构建入口优先放到 `generate_pure_story_map.py` 或 `tools/`
+
 用法：
   python3 cli/auto_generate.py --name "辛弃疾"
 

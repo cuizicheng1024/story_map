@@ -134,12 +134,10 @@ def generate_for_person(
     normalize_markdown_tables: Callable[[str], str],
     compute_total_distance_km: Callable[[str], object],
     insert_distance_intro: Callable[[str, float], str],
-    append_coords_section: Callable[[str], str],
-    print_quality_report_fn: Callable[[str], None],
     save_markdown: Callable[[str, str], str],
-    parse_places: Callable[[str], List[Dict[str, str]]],
-    parse_events: Callable[[str], List[Dict[str, str]]],
-    build_points: Callable[..., List[Dict[str, object]]],
+    geocode_markdown_tool: Callable[[str], str],
+    parse_story_markdown_tool: Callable[[str], Dict[str, object]],
+    validate_story_markdown_tool: Callable[[str], Dict[str, object]],
     render_html_fn: Callable[..., str],
     render_amap_html: Callable[[str, List[Dict[str, object]], str], str],
     save_html: Callable[[str, str], str],
@@ -223,17 +221,17 @@ def generate_for_person(
         if progress:
             progress(f"{person} 地理编码")
         t_step = time.perf_counter()
-        md_geo = append_coords_section(md)
+        md_geo = geocode_markdown_tool(md)
         t_geo = time.perf_counter() - t_step
         steps.append({"label": "地理编码", "duration": format_seconds(t_geo)})
+        validation = validate_story_markdown_tool(md_geo)
         if progress:
             progress(f"{person} 地图渲染")
         t_step = time.perf_counter()
         render_error = ""
         try:
-            places = parse_places(md_geo)
-            events = parse_events(md_geo)
-            pts = build_points(places, events)
+            parsed = parse_story_markdown_tool(md_geo)
+            pts = parsed.get("points") or []
             html = render_html_fn(person, pts, md=md_geo)
         except Exception as exc:
             render_error = str(exc).strip() or "地图渲染失败"
@@ -262,6 +260,7 @@ def generate_for_person(
                 "total": format_seconds(total),
             },
             "_profile": profile,
+            "_validation": validation,
             "cached": False,
             "used_existing_markdown": True,
         }
@@ -271,7 +270,7 @@ def generate_for_person(
 
     t0 = time.perf_counter()
     if progress:
-        progress(f"{person} 生平生成")
+        progress(f"{person} 生成人物档案")
     t_step = time.perf_counter()
     if client is None:
         client = get_llm_client(event_callback=event_callback)
@@ -284,20 +283,19 @@ def generate_for_person(
     if isinstance(km, float):
         md = insert_distance_intro(md, km)
     if progress:
-        progress(f"{person} 地理编码")
+        progress(f"{person} 解析地点坐标")
     t_step = time.perf_counter()
-    md = append_coords_section(md)
+    md = geocode_markdown_tool(md)
     t_geo = time.perf_counter() - t_step
-    print_quality_report_fn(md)
+    validation = validate_story_markdown_tool(md)
     saved = save_markdown(person, md)
     if progress:
-        progress(f"{person} 地图渲染")
+        progress(f"{person} 构建时空结果")
     t_step = time.perf_counter()
     render_error = ""
     try:
-        places = parse_places(md)
-        events = parse_events(md)
-        pts = build_points(places, events)
+        parsed = parse_story_markdown_tool(md)
+        pts = parsed.get("points") or []
         html = render_html_fn(person, pts, md=md)
     except Exception as exc:
         render_error = str(exc).strip() or "地图渲染失败"
@@ -305,7 +303,7 @@ def generate_for_person(
         html = render_amap_html(person, [], "")
     t_render = time.perf_counter() - t_step
     if progress:
-        progress(f"{person} 文件写入")
+        progress(f"{person} 保存分析产物")
     t_step = time.perf_counter()
     out = save_html(person, html)
     t_save = time.perf_counter() - t_step
@@ -317,10 +315,10 @@ def generate_for_person(
         "markdown_path": saved,
         "html_path": out,
         "steps": [
-            {"label": "生平生成", "duration": format_seconds(t_md)},
-            {"label": "地理编码", "duration": format_seconds(t_geo)},
-            {"label": "地图渲染", "duration": format_seconds(t_render)},
-            {"label": "文件写入", "duration": format_seconds(t_save)},
+            {"label": "生成人物档案", "duration": format_seconds(t_md)},
+            {"label": "解析地点坐标", "duration": format_seconds(t_geo)},
+            {"label": "构建时空结果", "duration": format_seconds(t_render)},
+            {"label": "保存分析产物", "duration": format_seconds(t_save)},
         ],
         "duration": {
             "markdown": format_seconds(t_md),
@@ -330,6 +328,7 @@ def generate_for_person(
             "total": format_seconds(total),
         },
         "_profile": profile,
+        "_validation": validation,
         "cached": False,
     }
     if render_error:

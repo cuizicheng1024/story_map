@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import subprocess
+import sys
 import threading
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -196,6 +198,36 @@ def _update_home_coords(
         except Exception as exc:
             return 500, {"ok": False, "error": str(exc)}
     return 200, {"ok": True, "updated": updated, "total": total}
+
+
+def refresh_stellar_homepage(person: str = "") -> Dict[str, object]:
+    command = [
+        sys.executable,
+        "tools/build_stellar_homepage.py",
+        "--story-map-dir",
+        _story_artifacts_dir(),
+        "--story-md-dir",
+        _story_md_dir(),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=_project_root(),
+        capture_output=True,
+        text=True,
+    )
+    output = "\n".join(
+        part.strip()
+        for part in (completed.stdout or "", completed.stderr or "")
+        if part and part.strip()
+    ).strip()
+    return {
+        "ok": completed.returncode == 0,
+        "person": person,
+        "index_path": os.path.join(_story_artifacts_dir(), "index.html"),
+        "data_path": os.path.join(_story_artifacts_dir(), "stellar_home_data.json"),
+        "returncode": completed.returncode,
+        "output": output,
+    }
 
 
 class ArtifactExportService:

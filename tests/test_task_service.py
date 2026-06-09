@@ -121,6 +121,30 @@ def test_task_service_builds_multi_person_summary(tmp_path):
         service.shutdown()
 
 
+def test_task_service_accepts_unknown_plain_person_name(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        submit = service.submit_task("辛弃疾")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert snapshot["result"]["people"] == ["辛弃疾"]
+    finally:
+        service.shutdown()
+
+
+def test_task_service_rejects_question_like_input_when_no_person_found(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        submit = service.submit_task("苏轼为何总在南方活动？")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "failed"
+        assert snapshot["error"] == "未识别到人物，请输入人物姓名，或先进入人物页再提问。"
+    finally:
+        service.shutdown()
+
+
 def test_task_service_recovers_completed_task_from_disk(tmp_path):
     service = _build_service(tmp_path)
     try:
