@@ -95,6 +95,24 @@ def print_quality_report(md: str) -> None:
         print("- 未发现明显问题")
 
 
+def enrich_markdown_for_map(
+    md: str,
+    *,
+    normalize_markdown_tables: Callable[[str], str],
+    geocode_markdown: Callable[[str], str],
+    compute_total_distance_km: Callable[[str], object],
+    insert_distance_intro: Callable[[str, float], str],
+) -> str:
+    if not isinstance(md, str):
+        return ""
+    enriched = normalize_markdown_tables(md)
+    enriched = geocode_markdown(enriched)
+    distance_km = compute_total_distance_km(enriched)
+    if isinstance(distance_km, float):
+        enriched = insert_distance_intro(enriched, distance_km)
+    return enriched
+
+
 def render_html(
     title: str,
     points: List[Dict[str, object]],
@@ -116,6 +134,25 @@ def render_html(
             info_panel_html = build_info_panel_html(title, fields)
             return render_amap_html(title, points, info_panel_html)
     return render_amap_html(title, points, "")
+
+
+def _cache_older_than_dependencies(html_path: str, dependency_paths: List[str]) -> bool:
+    if not html_path or not os.path.exists(html_path):
+        return True
+    try:
+        html_mtime = os.path.getmtime(html_path)
+    except Exception:
+        return True
+    for path in dependency_paths:
+        dep = str(path or "").strip()
+        if not dep or not os.path.exists(dep):
+            continue
+        try:
+            if os.path.getmtime(dep) > html_mtime:
+                return True
+        except Exception:
+            continue
+    return False
 
 
 def generate_for_person(
@@ -144,15 +181,25 @@ def generate_for_person(
     format_seconds: Callable[[float], str],
     get_llm_client: Callable[..., object],
     generate_historical_markdown: Callable[[object, str], str],
+    cache_dependency_paths: Optional[List[str]],
     logger: object,
 ) -> Dict[str, object]:
     md_path, html_path = story_paths(person)
     if allow_cache and os.path.exists(html_path):
         cached_html = read_text(html_path)
+        cache_stale_by_code = _cache_older_than_dependencies(html_path, list(cache_dependency_paths or []))
+        cache_stale_by_markdown = False
+        if os.path.exists(md_path):
+            try:
+                cache_stale_by_markdown = os.path.getmtime(md_path) > os.path.getmtime(html_path)
+            except OSError:
+                cache_stale_by_markdown = False
         needs_refresh = (
             ("export-bar" in cached_html)
             or ("leaflet" in cached_html)
             or ("/amap-config.js" not in cached_html)
+            or cache_stale_by_code
+            or cache_stale_by_markdown
         )
         if (not needs_refresh) and ("window.__EXPORT_DATA__" in cached_html):
             export_data = extract_export_data_from_html(cached_html)
@@ -172,7 +219,7 @@ def generate_for_person(
             }
         md = read_text(md_path) if os.path.exists(md_path) else ""
         export_data = extract_export_data_from_html(cached_html)
-        if export_data:
+        if export_data and (not cache_stale_by_code) and (not cache_stale_by_markdown):
             if md:
                 export_data["markdown"] = md
             html = render_profile_html(export_data)
@@ -278,14 +325,16 @@ def generate_for_person(
     t_md = time.perf_counter() - t_step
     if not md:
         return {"ok": False, "person": person, "error": "未取得内容"}
-    md = normalize_markdown_tables(md)
-    km = compute_total_distance_km(md)
-    if isinstance(km, float):
-        md = insert_distance_intro(md, km)
     if progress:
         progress(f"{person} 解析地点坐标")
     t_step = time.perf_counter()
-    md = geocode_markdown_tool(md)
+    md = enrich_markdown_for_map(
+        md,
+        normalize_markdown_tables=normalize_markdown_tables,
+        geocode_markdown=geocode_markdown_tool,
+        compute_total_distance_km=compute_total_distance_km,
+        insert_distance_intro=insert_distance_intro,
+    )
     t_geo = time.perf_counter() - t_step
     validation = validate_story_markdown_tool(md)
     saved = save_markdown(person, md)

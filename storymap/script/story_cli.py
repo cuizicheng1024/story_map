@@ -72,10 +72,7 @@ def run_interactive(
     validate_input_text: Callable[[object], Optional[str]],
     resolve_targets: Callable[[object, str, bool], List[str]],
     generate_historical_markdown: Callable[[object, str], str],
-    normalize_markdown_tables: Callable[[str], str],
-    compute_total_distance_km: Callable[[str], object],
-    insert_distance_intro: Callable[[str, float], str],
-    append_coords_section: Callable[[str], str],
+    enrich_markdown_for_map: Callable[[str], str],
     print_quality_report: Callable[[str], None],
     save_markdown: Callable[[str, str], str],
     parse_places: Callable[[str], List[Dict[str, str]]],
@@ -118,13 +115,9 @@ def run_interactive(
                 print(f"未取得：{person}")
                 stats["failed"] += 1
                 continue
-            md = normalize_markdown_tables(md)
-            km = compute_total_distance_km(md)
-            if isinstance(km, float):
-                md = insert_distance_intro(md, km)
             print("正在进行地点地理编码，可能需要一些时间...")
             t_step = time.perf_counter()
-            md = append_coords_section(md)
+            md = enrich_markdown_for_map(md)
             t_geo = time.perf_counter() - t_step
             print_quality_report(md)
             saved = save_markdown(person, md)

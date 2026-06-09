@@ -406,5 +406,17 @@ class TaskService:
                 "csv": self._relative_path(multi_exports.get("csv", "")) if multi_exports else "",
             }
         self._append_progress(task_id, "输出结论")
+        if not summary["ok"]:
+            errors = []
+            for result in results:
+                message = str(result.get("error") or "").strip()
+                if message and message not in errors:
+                    errors.append(message)
+            error_message = "；".join(errors[:3]) or "未生成成功"
+            self._update_task(task_id, status="failed", error=error_message, result=summary)
+            self._append_progress(task_id, "失败", error_message)
+            self._append_progress(task_id, "完成", "失败")
+            self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
+            return
         self._update_task(task_id, status="completed", result=summary)
         self._logger.info("task_completed id=%s duration=%s", task_id, duration)

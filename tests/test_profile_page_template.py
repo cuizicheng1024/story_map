@@ -74,3 +74,19 @@ def test_load_profile_extracts_work_texts_for_teaching_links():
     assert "望海潮·东南形胜" in work_texts
     assert "东南形胜" in str(work_texts["望海潮·东南形胜"])
     assert work_texts.get("望海潮") == work_texts.get("望海潮·东南形胜")
+
+
+def test_load_profile_extracts_context_fallback_for_work_without_direct_quote():
+    md = (REPO_ROOT / "storymap" / "examples" / "story" / "诸葛亮.md").read_text(encoding="utf-8")
+
+    profile = story_map.load_profile_from_md(md, allow_geocode=False)
+    work_texts = profile.get("workTexts") or {}
+
+    assert "隆中对" in work_texts
+    assert "三分天下" in str(work_texts["隆中对"])
+
+
+def test_render_profile_html_hides_tool_layer_section():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "本次使用工具" not in html

@@ -127,11 +127,11 @@ scripts/test_storymap.sh --all-tests
 重建首页数据：
 
 ```bash
-python3 tools/build_all.py --concurrency 8
+python tools/build_all.py --concurrency 8
 ```
 
 重渲染全部人物页：
 
 ```bash
-MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+MAP_STORY_RENDER_CONCURRENCY=8 python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
 ```

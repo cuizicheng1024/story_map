@@ -26,6 +26,43 @@ def extract_works(text: str) -> List[str]:
     return works
 
 
+def _loose_place_key(text: str) -> str:
+    cleaned = parser_utils._pick_geocode_name(str(text or ""))
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"[（(].*?[）)]", "", cleaned)
+    cleaned = re.sub(r"[，,。.;；:：、】【\[\]{}<>《》\"'“”‘’·•/\\|-]+", "", cleaned)
+    for token in ("风景区", "景区", "古战场", "旧址", "遗址", "故居", "博物馆"):
+        cleaned = cleaned.replace(token, "")
+    cleaned = re.sub(r"[省市区县州郡府镇乡村旗盟]", "", cleaned)
+    return cleaned.strip()
+
+
+def _loose_coord_lookup(coords_cache: Dict[str, Coord], candidates: List[str]) -> Optional[Coord]:
+    if not coords_cache:
+        return None
+    loose_candidates = [_loose_place_key(candidate) for candidate in candidates if str(candidate or "").strip()]
+    loose_candidates = [candidate for candidate in loose_candidates if candidate]
+    if not loose_candidates:
+        return None
+    scored: List[Tuple[int, str]] = []
+    for raw_key in coords_cache.keys():
+        key = str(raw_key or "").strip()
+        if not key:
+            continue
+        loose_key = _loose_place_key(key)
+        if not loose_key:
+            continue
+        for candidate in loose_candidates:
+            if loose_key in candidate or candidate in loose_key:
+                scored.append((len(loose_key), key))
+                break
+    if not scored:
+        return None
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return coords_cache.get(scored[0][1])
+
+
 def _register_work_text(store: Dict[str, str], title: str, text: str) -> None:
     clean_title = str(title or "").strip()
     clean_text = str(text or "").strip()
@@ -44,6 +81,20 @@ def _register_work_text(store: Dict[str, str], title: str, text: str) -> None:
             store[alias] = clean_text
 
 
+def _register_work_context(store: Dict[str, str], title: str, text: str) -> None:
+    clean_title = str(title or "").strip()
+    clean_text = str(text or "").strip()
+    if not clean_title or not clean_text:
+        return
+    aliases = [clean_title]
+    short_title = clean_title.split("·", 1)[0].strip()
+    if short_title and short_title not in aliases:
+        aliases.append(short_title)
+    if any(str(store.get(alias) or "").strip() for alias in aliases):
+        return
+    _register_work_text(store, clean_title, clean_text)
+
+
 def extract_work_texts(md: str) -> Dict[str, str]:
     if not isinstance(md, str) or not md.strip():
         return {}
@@ -54,6 +105,17 @@ def extract_work_texts(md: str) -> Dict[str, str]:
             continue
         for title, quote in re.findall(r"《([^》]{1,80})》\s*[：:]\s*[“\"「](.+?)[”\"」]", line):
             _register_work_text(work_texts, title, quote)
+    for raw_line in md.splitlines():
+        line = str(raw_line or "").strip()
+        if "《" not in line:
+            continue
+        context = re.sub(r"^\s*[-*•]\s*", "", line)
+        context = re.sub(r"\*\*", "", context).strip()
+        context = re.sub(r"\s+", " ", context)
+        if len(context) > 140:
+            context = context[:137].rstrip() + "..."
+        for title in re.findall(r"《([^》]{1,80})》", line):
+            _register_work_context(work_texts, title, context)
     return work_texts
 
 
@@ -353,7 +415,10 @@ def build_profile_data(
         loc_text = loc.get("location") or loc.get("name") or ""
         ancient, modern = split_ancient_modern(loc_text, event_callback)
         geo_name = parser_utils._pick_geocode_name(modern or loc_text or loc.get("name") or ancient)
-        coord = fuzzy_coord_lookup(coords_cache, [geo_name, modern, loc_text, loc.get("name") or "", ancient])
+        coord_candidates = [geo_name, modern, loc_text, loc.get("name") or "", ancient]
+        coord = fuzzy_coord_lookup(coords_cache, coord_candidates)
+        if not coord:
+            coord = _loose_coord_lookup(coords_cache, coord_candidates)
         search_name = ""
         for candidate_key in [
             geo_name,
@@ -364,6 +429,17 @@ def build_profile_data(
             if candidate_key and candidate_key in coords_search_map:
                 search_name = coords_search_map[candidate_key]
                 break
+        if (not search_name) and coords_search_map:
+            for candidate_key in coord_candidates:
+                loose_candidate = _loose_place_key(candidate_key)
+                if not loose_candidate:
+                    continue
+                for raw_key, raw_search in coords_search_map.items():
+                    if loose_candidate in _loose_place_key(raw_key):
+                        search_name = raw_search
+                        break
+                if search_name:
+                    break
         if not coord:
             coord = lookup_coords_from_historical_index(
                 geo_name,

@@ -69,3 +69,37 @@ def test_offline_profile_uses_local_index_when_geocode_disabled(monkeypatch):
     assert len(profile["locations"]) == 3
     assert profile["person"]["birth"]["lat"] is not None
     assert profile["person"]["death"]["lat"] is not None
+
+
+def test_offline_profile_keeps_longzhong_location_when_coords_table_uses_scenic_name():
+    md = """# 诸葛亮
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：诸葛亮
+- **时代**：三国时期
+- **出生**：181年，琅琊郡阳都县（今山东省临沂市沂南县）
+- **去世**：234年，五丈原（今陕西省宝鸡市岐山县）
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 📍 重要地点：襄阳隆中
+- **公元纪年**：约公元195年 - 207年
+- **位置**：荆州南阳郡邓县隆中（今湖北省襄阳市襄城区）
+- **事迹**：隐居躬耕，等待明主。
+- **意义**：完成《隆中对》的战略思考。
+
+## 地点坐标
+| 现称 | 纬度 | 经度 |
+| --- | --- | --- |
+| 湖北省襄阳市隆中风景区 | 32.0136 | 112.0293 |
+| 山东省临沂市沂南县 | 35.5498 | 118.4657 |
+| 陕西省宝鸡市岐山县 | 34.2658 | 107.6186 |
+"""
+
+    profile = sm.load_profile_from_md(md, allow_geocode=False)
+
+    assert profile is not None
+    names = [str(item.get("name") or "") for item in profile["locations"]]
+    assert "襄阳隆中" in names

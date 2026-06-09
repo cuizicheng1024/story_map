@@ -713,6 +713,30 @@ def extract_places_in_order(md: str) -> List[str]:
     return list(dict.fromkeys(places))
 
 
+def _strip_auto_coords_section(md: str) -> str:
+    if not isinstance(md, str):
+        return ""
+    if "地点坐标（自动地理编码）" not in md:
+        return md
+    lines = md.splitlines()
+    out: List[str] = []
+    skipping = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            title = stripped.lstrip("#").strip()
+            if "地点坐标（自动地理编码）" in title:
+                skipping = True
+                continue
+            if skipping:
+                skipping = False
+        if not skipping:
+            out.append(line)
+    while len(out) >= 2 and (not out[-1].strip()) and (not out[-2].strip()):
+        out.pop()
+    return "\n".join(out)
+
+
 def append_coords_section(md: str) -> str:
     """
     依据“年份”表逐个地理编码，并在文末追加“地点坐标（自动地理编码）”表。
@@ -720,11 +744,13 @@ def append_coords_section(md: str) -> str:
     """
     if not isinstance(md, str):
         return ""
-    lines = md.splitlines()
+    base_md = _strip_auto_coords_section(md)
+    changed = base_md != md
+    lines = base_md.splitlines()
     coords: Dict[str, Tuple[float, float]] = {}
-    places = extract_places_in_order(md)
+    places = extract_places_in_order(base_md)
     if not places:
-        return md
+        return base_md if changed else md
     max_workers = min(8, max(1, len(places)))
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_map = {executor.submit(geocode_city, p): p for p in places}
@@ -737,7 +763,7 @@ def append_coords_section(md: str) -> str:
             if coord:
                 coords[place] = coord
     if not coords:
-        return md
+        return base_md if changed else md
     section = []
     section.append("")
     section.append("## 地点坐标（自动地理编码）")
@@ -776,11 +802,15 @@ def compute_total_distance_km(md: str) -> Optional[float]:
             if not line.strip().startswith("|"):
                 break
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
-            if len(cells) < 3:
+            if len(cells) >= 4:
+                lat_idx, lon_idx = 2, 3
+            elif len(cells) >= 3:
+                lat_idx, lon_idx = 1, 2
+            else:
                 continue
             try:
-                lat = float(cells[1])
-                lon = float(cells[2])
+                lat = float(cells[lat_idx])
+                lon = float(cells[lon_idx])
                 coords.append((lat, lon))
             except Exception:
                 continue

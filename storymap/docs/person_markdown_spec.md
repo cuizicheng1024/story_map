@@ -44,13 +44,13 @@
 ## 校验命令
 
 ```bash
-python3 tools/validate_story_markdown.py
+python tools/validate_story_markdown.py
 ```
 
 只校验当前改动文件：
 
 ```bash
-python3 tools/build_all.py --markdown-smoke-check changed
+python tools/build_all.py --markdown-smoke-check changed
 ```
 
 ## 说明

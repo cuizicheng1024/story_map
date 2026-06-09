@@ -58,6 +58,18 @@ BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
 MIN_YEAR = -800
 MAX_YEAR = 2000
 DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
+ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
+    ("military", "军事", ("军事家", "兵家", "将领", "将军", "武将", "统帅", "元帅", "名将", "军人", "起义军领袖")),
+    ("politics", "政治", ("政治家", "改革家", "革命家", "外交家", "领袖", "君主", "帝王", "皇帝", "总统", "丞相", "宰相", "大臣", "官员", "赞普", "首领")),
+    ("literature", "文学", ("文学家", "诗人", "词人", "作家", "文豪", "散文家", "小说家", "剧作家", "文人", "辞赋家", "翻译家")),
+    ("academic", "学术思想", ("哲学家", "教育家", "史学家", "历史学家", "学者", "理学家", "儒学家", "经学家", "古文字学家", "考古学家", "思想史家")),
+    ("thought", "思想", ("思想家", "宗教家", "社会活动家", "启蒙思想家", "理论家", "法家代表人物")),
+    ("science", "科学", ("科学家", "数学家", "物理学家", "化学家", "生物学家", "医学家", "医家", "发明家", "工程师", "农学家", "天文学家", "地理学家", "地质学家")),
+    ("art", "艺术", ("艺术家", "画家", "书法家", "音乐家", "戏剧家", "戏曲家", "建筑师", "雕塑家", "设计师")),
+]
+ROLE_BAND_ORDER: List[str] = [item[0] for item in ROLE_BAND_SPECS] + ["other"]
+ROLE_BAND_LABELS: Dict[str, str] = {key: label for key, label, _ in ROLE_BAND_SPECS}
+ROLE_BAND_LABELS["other"] = "其他"
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -555,28 +567,30 @@ def _extract_relations(md_text: str) -> Tuple[List[str], List[Dict[str, str]]]:
     return names[:8], out_meta[:12]
 
 
-def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
+def _pick_markdown_field(md_text: str, field: str) -> str:
     text = md_text
+
+    m = re.search(rf"\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text)
+    if m:
+        return m.group(1).strip()
+    m = re.search(rf"^-\s*\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text, flags=re.MULTILINE)
+    if m:
+        return m.group(1).strip()
+    return ""
+
+
+def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
     aliases: List[str] = []
     foreign = ""
     domains: List[str] = []
 
-    def pick(field: str) -> str:
-        m = re.search(rf"\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text)
-        if m:
-            return m.group(1).strip()
-        m = re.search(rf"^-\s*\*\*{re.escape(field)}\*\*\s*[:：]\s*([^\n]+)", text, flags=re.MULTILINE)
-        if m:
-            return m.group(1).strip()
-        return ""
-
     alias_raw = [
-        pick("别名"),
-        pick("别名/称号"),
-        pick("别名/字"),
-        pick("又名"),
-        pick("原名"),
-        pick("号"),
+        _pick_markdown_field(md_text, "别名"),
+        _pick_markdown_field(md_text, "别名/称号"),
+        _pick_markdown_field(md_text, "别名/字"),
+        _pick_markdown_field(md_text, "又名"),
+        _pick_markdown_field(md_text, "原名"),
+        _pick_markdown_field(md_text, "号"),
     ]
     for a in [x for x in alias_raw if x]:
         parts = [p.strip() for p in re.split(r"[、,，/｜|；;]", a) if p.strip()]
@@ -585,9 +599,21 @@ def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
             x = re.sub(r"[\[\]（）()“”\"'‘’\s·•]+", "", x).strip()
             if 1 < len(x) <= 16 and x not in aliases:
                 aliases.append(x)
-    foreign = pick("外文名") or pick("英文名") or pick("原文名") or pick("外文名称") or ""
+    foreign = (
+        _pick_markdown_field(md_text, "外文名")
+        or _pick_markdown_field(md_text, "英文名")
+        or _pick_markdown_field(md_text, "原文名")
+        or _pick_markdown_field(md_text, "外文名称")
+        or ""
+    )
     foreign = foreign.strip().strip("“”\"'‘’")
-    d = pick("领域标签") or pick("领域") or pick("学科") or pick("职业标签") or ""
+    d = (
+        _pick_markdown_field(md_text, "领域标签")
+        or _pick_markdown_field(md_text, "领域")
+        or _pick_markdown_field(md_text, "学科")
+        or _pick_markdown_field(md_text, "职业标签")
+        or ""
+    )
     if d:
         parts = [p.strip() for p in re.split(r"[、,，/｜|；;]", d) if p.strip()]
         for p in parts:
@@ -595,6 +621,71 @@ def _extract_disambiguation(md_text: str) -> Tuple[List[str], str, List[str]]:
             if 1 < len(x) <= 18 and x not in domains:
                 domains.append(x)
     return aliases[:6], (foreign or ""), domains[:6]
+
+
+def _split_role_parts(raw: str) -> List[str]:
+    text = str(raw or "").strip()
+    if not text:
+        return []
+    parts: List[str] = []
+    for item in re.split(r"[、,，/｜|；;]", text):
+        cleaned = str(item).strip()
+        cleaned = re.sub(r"^(主要身份|身份|职业|职业标签|身份标签|领域标签|领域|学科)\s*[:：]?", "", cleaned).strip()
+        cleaned = re.sub(r"[（(].*?[)）]", "", cleaned).strip()
+        cleaned = re.sub(r"\s+", "", cleaned)
+        if 1 < len(cleaned) <= 24 and cleaned not in parts:
+            parts.append(cleaned)
+    return parts
+
+
+def _match_role_band(part: str) -> Optional[Tuple[str, str, str]]:
+    value = str(part or "").strip()
+    if not value:
+        return None
+    for band_key, band_label, keywords in ROLE_BAND_SPECS:
+        for keyword in keywords:
+            if keyword in value or value in keyword:
+                return band_key, band_label, keyword
+    return None
+
+
+def _resolve_main_role_band(
+    *,
+    md_text: str,
+    domain_tags: List[str],
+    review: str,
+    quote: str,
+) -> Tuple[str, str]:
+    explicit_parts: List[str] = []
+    for field in ("主要身份", "身份", "职业", "身份标签", "职业标签", "领域标签", "领域", "学科"):
+        explicit_parts.extend(_split_role_parts(_pick_markdown_field(md_text, field)))
+    for item in domain_tags:
+        explicit_parts.extend(_split_role_parts(item))
+    seen: set[str] = set()
+    for part in explicit_parts:
+        if part in seen:
+            continue
+        seen.add(part)
+        matched = _match_role_band(part)
+        if matched:
+            return matched[0], part
+
+    fallback_text = " ".join([str(review or ""), str(quote or ""), str(md_text[:800] or "")]).strip()
+    if fallback_text:
+        best_score = 0
+        best_band = "other"
+        best_label = ROLE_BAND_LABELS["other"]
+        for band_key, band_label, keywords in ROLE_BAND_SPECS:
+            score = 0
+            for keyword in keywords:
+                score += fallback_text.count(keyword)
+            if score > best_score:
+                best_score = score
+                best_band = band_key
+                best_label = band_label
+        if best_score > 0:
+            return best_band, best_label
+    return "other", ROLE_BAND_LABELS["other"]
 
 
 def _dynasty_hint_from_md(md_text: str) -> str:
@@ -915,7 +1006,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         <div class="text-sm font-bold text-slate-800 mb-2">输入人物、问题或任务</div>
         <div class="relative">
           <div class="flex items-center gap-3">
-            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 比较李白和杜甫 / 苏轼为何总在南方活动" />
+            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 李白 / 杜甫" />
             <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">开始分析</button>
           </div>
           <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名与拼音输入，优先命中已有档案</div>
@@ -1919,12 +2010,14 @@ def _render_index_html(title: str, data_file: str) -> str:
         const akaline = aka ? `<div class="text-white/70 text-[11px] mt-1">别名：${{esc(aka)}}</div>` : "";
         const foreign = String(n.foreign_name || "").trim();
         const foreignline = foreign ? `<div class="text-white/70 text-[11px] mt-1">外文：${{esc(foreign)}}</div>` : "";
+        const roleLabel = String(n.main_role_label || "").trim();
+        const roleLine = roleLabel ? `<div class="text-white/70 text-[11px] mt-1">身份：${{esc(roleLabel)}}</div>` : "";
         const tags = Array.isArray(n.domain_tags) ? n.domain_tags.filter((x) => x && String(x).trim()).slice(0, 4).join(" / ") : "";
         const tagline2 = tags ? `<div class="text-white/70 text-[11px] mt-1">领域：${{esc(tags)}}</div>` : "";
         const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
         const bpline = bp ? `<div class="text-white/70 text-[11px] mt-1">籍贯：${{esc(bp)}}</div>` : "";
         const tline = tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tagline)}}”</div>` : "";
-        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(n.person)}}${{n.has_story === false ? ' <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">暂未生成</span>' : ''}}</div><div class="text-white/70 text-[11px] mt-1">生卒：${{esc(years)}}</div>${{dline}}${{akaline}}${{foreignline}}${{tagline2}}${{bpline}}${{tline}}`;
+        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(n.person)}}${{n.has_story === false ? ' <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">暂未生成</span>' : ''}}</div><div class="text-white/70 text-[11px] mt-1">生卒：${{esc(years)}}</div>${{dline}}${{roleLine}}${{akaline}}${{foreignline}}${{tagline2}}${{bpline}}${{tline}}`;
         const rect = $c.getBoundingClientRect();
         let left = clientX - rect.left + 10;
         let top = clientY - rect.top + 10;
@@ -2332,6 +2425,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       let amap = null;
       let amapLoading = false;
       let clusterer = null;
+      let mapCameraTouched = false;
       let onlyActiveMarkers = true;
       let _fitMapTimer = null;
       let _persistTimer = null;
@@ -2573,11 +2667,18 @@ def _render_index_html(title: str, data_file: str) -> str:
         }}, 260);
       }};
 
-      const scheduleMapFit = () => {{
+      const scheduleMapFit = (force = false) => {{
         if (_fitMapTimer) clearTimeout(_fitMapTimer);
         _fitMapTimer = setTimeout(() => {{
           if (currentTab !== "map" || !mapInited || !amap) return;
-          resetMapView();
+          if (mapCameraTouched && !force) return;
+          try {{
+            const markersForFit = markers
+              .map((item) => item && item.mk)
+              .filter((item) => item && typeof item.getPosition === "function");
+            if (!markersForFit.length) return;
+            amap.setFitView(markersForFit, false, [56, 56, 56, 56], 4);
+          }} catch (_) {{}}
         }}, 220);
       }};
 
@@ -2702,9 +2803,14 @@ def _render_index_html(title: str, data_file: str) -> str:
             resizeEnable: true,
           }});
           try {{
-            const bounds = new window.AMap.Bounds([72.0, 17.5], [136.5, 55.5]);
-            if (amap && typeof amap.setLimitBounds === "function") {{
-              amap.setLimitBounds(bounds);
+            if (typeof amap.on === "function") {{
+              const markTouched = () => {{
+                mapCameraTouched = true;
+              }};
+              amap.on("dragstart", markTouched);
+              amap.on("mousewheel", markTouched);
+              amap.on("zoomstart", markTouched);
+              amap.on("touchstart", markTouched);
             }}
           }} catch (_) {{}}
           try {{
@@ -2853,8 +2959,8 @@ def _render_index_html(title: str, data_file: str) -> str:
             }}
           }} catch (_) {{}}
           updateMapMarkers();
-          resetMapView();
-          scheduleMapFit();
+          mapCameraTouched = false;
+          scheduleMapFit(true);
 
           const autoFillCoords = () => {{
             let need = 0;
@@ -3007,6 +3113,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const resetMapView = () => {{
         try {{
+          mapCameraTouched = false;
           if (amap) amap.setZoomAndCenter(4, [105.0, 35.5]);
         }} catch (_) {{}}
       }};
@@ -3219,6 +3326,8 @@ def _render_index_html(title: str, data_file: str) -> str:
       }}
 
       const groupKey = (n) => {{
+        const role = String(n.main_role_band || "").trim();
+        if (role) return role;
         const d = String(n.dynasty || "").trim();
         if (d) return d.slice(0, 6);
         const name = String(n.person || "").trim();
@@ -3255,46 +3364,23 @@ def _render_index_html(title: str, data_file: str) -> str:
         searchCapabilities = Object.assign({{ aliases: true, foreign_name: true, pinyin: false }}, data.search_capabilities || {{}});
         setSearchHint();
         const raw = (data.nodes || []);
-        const groups = new Map();
-        raw.forEach((n) => {{
-          const k = groupKey(n);
-          if (!groups.has(k)) groups.set(k, []);
-          groups.get(k).push(n);
-        }});
-        const keys = Array.from(groups.keys()).sort();
-        const centers = new Map();
-        const cx = W / 2;
-        const cy = H / 2;
-        const picked = [];
-        const minD2 = 160 * 160;
-        keys.forEach((k) => {{
-          const seed = hash(k);
-          let best = null;
-          for (let a = 0; a < 32; a++) {{
-            const x = pad + rand01(seed + a * 17 + 1) * (W - pad * 2);
-            const y = pad + rand01(seed + a * 17 + 2) * (H - pad * 2);
-            let ok = true;
-            for (const p of picked) {{
-              const dx = x - p.x;
-              const dy = y - p.y;
-              if (dx * dx + dy * dy < minD2) {{ ok = false; break; }}
-            }}
-            if (ok) {{ best = {{ x, y }}; break; }}
-          }}
-          if (!best) {{
-            best = {{
-              x: clamp(cx + (rand01(seed + 3) - 0.5) * (W * 0.7), pad, W - pad),
-              y: clamp(cy + (rand01(seed + 4) - 0.5) * (H * 0.7), pad, H - pad),
-            }};
-          }}
-          centers.set(k, best);
-          picked.push(best);
-        }});
-
+        const roleBandOrder = Array.isArray(data.role_band_order) && data.role_band_order.length
+          ? data.role_band_order
+          : ["military", "politics", "literature", "thought", "science", "art", "other"];
+        const roleBandIndex = new Map(roleBandOrder.map((key, idx) => [String(key || "").trim(), idx]));
         const laneFor = (n) => {{
-          const k = groupKey(n);
-          const i = Math.abs(hash(k)) % 7;
-          return (i + 0.5) / 7;
+          const band = String(n.main_role_band || "").trim();
+          const idx = roleBandIndex.has(band) ? roleBandIndex.get(band) : (roleBandOrder.length - 1);
+          return (idx + 0.5) / Math.max(1, roleBandOrder.length);
+        }};
+        const laneJitter = (n) => {{
+          const bandCount = Math.max(1, roleBandOrder.length);
+          const bandHeight = (H - pad * 2) / bandCount;
+          const seed = hash(String(n.person || ""));
+          const dynastySeed = hash(String(n.dynasty || ""));
+          const local = (rand01(seed + 2) - 0.5) * bandHeight * 0.42;
+          const dynastyBias = ((Math.abs(dynastySeed) % 5) - 2) * Math.min(6, bandHeight * 0.08);
+          return local + dynastyBias;
         }};
 
         const cell = 12;
@@ -3331,7 +3417,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           const t = (typeof my === "number" && Number.isFinite(my)) ? clamp(toT(my), 0, 1) : null;
           const x0 = t == null ? (pad + rand01(seed + 1) * (W - pad * 2)) : (pad + t * (W - pad * 2));
           const yLane = laneFor(n);
-          const y0 = pad + yLane * (H - pad * 2) + (rand01(seed + 2) - 0.5) * 26;
+          const y0 = pad + yLane * (H - pad * 2) + laneJitter(n);
 
           let best = null;
           for (const [dx, dy] of offsets) {{
@@ -4161,6 +4247,8 @@ def main() -> int:
         aliases: List[str],
         foreign_name: str,
         domain_tags: List[str],
+        main_role_band: str,
+        main_role_label: str,
         audit_risk_level: str,
         audit_overall_pass: object,
         audit_uncertain: object,
@@ -4186,6 +4274,8 @@ def main() -> int:
             "aliases": aliases,
             "foreign_name": foreign_name,
             "domain_tags": domain_tags,
+            "main_role_band": main_role_band,
+            "main_role_label": main_role_label,
             "risk_level": audit_risk_level,
             "audit_pass": audit_overall_pass,
             "audit_uncertain": audit_uncertain,
@@ -4214,6 +4304,7 @@ def main() -> int:
     for name in names:
         md_path = story_md_dir / f"{name}.md"
         has_story = md_path.exists()
+        md_text = ""
         birth_year = None
         death_year = None
         dynasty = ""
@@ -4244,6 +4335,12 @@ def main() -> int:
 
         html_entry = latest_html.get(name)
         quote, review = _resolve_spotlight_copy(name)
+        main_role_band, main_role_label = _resolve_main_role_band(
+            md_text=md_text,
+            domain_tags=domain_tags,
+            review=review,
+            quote=quote,
+        )
         birth_context = _resolve_birth_context(
             name=name,
             html_entry=html_entry,
@@ -4276,6 +4373,8 @@ def main() -> int:
                 aliases=aliases,
                 foreign_name=foreign_name,
                 domain_tags=domain_tags,
+                main_role_band=main_role_band,
+                main_role_label=main_role_label,
                 audit_risk_level=audit_risk_level,
                 audit_overall_pass=audit_overall_pass,
                 audit_uncertain=audit_uncertain,
@@ -4469,6 +4568,8 @@ def main() -> int:
         "max_year": max_year_v,
         "default_start": int(args.default_start),
         "default_end": int(args.default_end),
+        "role_band_order": ROLE_BAND_ORDER,
+        "role_band_labels": ROLE_BAND_LABELS,
         "search_capabilities": {
             "aliases": True,
             "foreign_name": True,

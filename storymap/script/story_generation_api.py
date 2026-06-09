@@ -63,6 +63,7 @@ def create_generation_api(
     format_seconds: Callable[[float], str],
     get_llm_client: Callable[..., object],
     generate_historical_markdown: Callable[[object, str], str],
+    cache_dependency_paths: List[str],
     refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
     logger: object,
 ) -> Dict[str, object]:
@@ -162,6 +163,7 @@ def create_generation_api(
             format_seconds=format_seconds,
             get_llm_client=get_llm_client,
             generate_historical_markdown=generate_historical_markdown,
+            cache_dependency_paths=cache_dependency_paths,
             logger=logger,
         )
         if refresh_stellar_homepage and should_refresh_stellar_home(result):

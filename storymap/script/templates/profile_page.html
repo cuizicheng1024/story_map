@@ -611,6 +611,23 @@ const mergedTeachingPointsNormalized = (() => {
     throw err;
   }
 })();
+const extractTeachingReviewSubtitle = (raw) => {
+  const lines = String(raw || '').split(/\n+/).map((x) => String(x || '').trim()).filter(Boolean);
+  for (const line of lines) {
+    if (!/杜甫诗|评价|评曰/.test(line)) continue;
+    const plain = line.replace(/^[-•]\s*/, '').replace(/\*\*/g, '').trim();
+    const quoteMatch = plain.match(/杜甫诗[“"「]([^”"」]+)[”"」]/);
+    if (quoteMatch && String(quoteMatch[1] || '').trim()) {
+      return `杜甫诗：${String(quoteMatch[1] || '').trim()}`;
+    }
+    const colonMatch = plain.match(/杜甫诗[:：]\s*(.+)$/);
+    if (colonMatch && String(colonMatch[1] || '').trim()) {
+      return `杜甫诗：${String(colonMatch[1] || '').trim()}`;
+    }
+    return plain;
+  }
+  return '';
+};
 const extractTeachingHighlights = (raw, maxItems) => {
   const LF = String.fromCharCode(10);
   const CR = String.fromCharCode(13);
@@ -1129,7 +1146,11 @@ const App = () => {
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
   const surname = String(data.person?.name || '').slice(0, 1);
-  const headerSubtitle = String(relatedReviews[0] || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
+  const teachingReviewSubtitle = useMemo(
+    () => extractTeachingReviewSubtitle(mergedTeachingPointsNormalized),
+    [mergedTeachingPointsNormalized]
+  );
+  const headerSubtitle = String(relatedReviews[0] || teachingReviewSubtitle || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
     if (!description) return [];
     const parts = description.split(/([。！？])/);
@@ -2170,37 +2191,6 @@ const App = () => {
           </div>
         </div>
       </header>
-      <section className="glass-panel p-6 rounded-xl shadow-sm border border-[#c8b496]/40 bg-white/70">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-[#7c2d12]">本次使用工具</h2>
-            <p className="text-[11px] text-gray-500 mt-1">把当前人物页拆成可见的工具链，明确展示故事地图已调用与可继续调用的能力。</p>
-          </div>
-          <div className="self-start text-[11px] px-2.5 py-1 rounded-full bg-[#fdf6e3] border border-[#c8b496]/50 text-[#7c2d12]">
-            Tool Layer
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {toolRuns.map((tool) => {
-            const badgeClass = tool.tone === 'done'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : tool.tone === 'ready'
-                ? 'bg-sky-50 text-sky-700 border-sky-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200';
-            return (
-              <div key={tool.key} className="rounded-xl border border-[#c8b496]/40 bg-white/85 px-4 py-3 shadow-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-bold text-slate-800">{tool.name}</div>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${badgeClass}`}>
-                    {tool.status}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-gray-600">{tool.detail}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
       <div className="space-y-6">
         <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
           <div
@@ -2459,6 +2449,7 @@ const App = () => {
               <div className="related-graph-legend">
                 <div className="related-graph-legend-item"><span className="related-graph-legend-dot"></span>中心人物在中间，相关人物按左右列展开</div>
                 <div className="related-graph-legend-item"><span className="related-graph-legend-dot"></span>关系标签直接贴在人物卡片上，点击可跳转</div>
+                <div className="related-graph-legend-item"><span className="related-graph-legend-dot"></span>纵向位置仅用于排版避让，不代表年代、亲疏或地理方向</div>
               </div>
               <div className="related-graph-stage border border-[#c8b496]/35">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">

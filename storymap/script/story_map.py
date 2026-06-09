@@ -39,6 +39,7 @@ try:
         render_multi_html,
         render_profile_html,
     )
+    from . import map_html_renderer as map_html_renderer_utils
     from . import geocode_service as geocode_service_utils
     from . import generation_service as generation_service_utils
     from .history_qa_agent import LocalHistoryQAAgent
@@ -90,6 +91,7 @@ except ImportError:
         render_multi_html,
         render_profile_html,
     )
+    import map_html_renderer as map_html_renderer_utils
     import geocode_service as geocode_service_utils
     import generation_service as generation_service_utils
     from history_qa_agent import LocalHistoryQAAgent
@@ -203,6 +205,15 @@ _GENERATION_API = story_generation_api_utils.create_generation_api(
     format_seconds=lambda seconds: _format_seconds(seconds),
     get_llm_client=lambda **kwargs: _get_llm_client(**kwargs),
     generate_historical_markdown=lambda client, person: generate_historical_markdown(client, person),
+    cache_dependency_paths=[
+        getattr(generation_service_utils, "__file__", ""),
+        getattr(profile_builder_utils, "__file__", ""),
+        getattr(map_html_renderer_utils, "__file__", ""),
+        str(getattr(map_html_renderer_utils, "_TEMPLATE_DIR", "") / "profile_page.html")
+        if getattr(map_html_renderer_utils, "_TEMPLATE_DIR", None)
+        else "",
+        getattr(parser_utils, "__file__", ""),
+    ],
     refresh_stellar_homepage=lambda person: refresh_stellar_homepage(person),
     logger=_LOGGER,
 )
@@ -225,10 +236,13 @@ def run_interactive() -> None:
         validate_input_text=_validate_input_text,
         resolve_targets=_resolve_targets_from_text,
         generate_historical_markdown=generate_historical_markdown,
-        normalize_markdown_tables=parser_utils._normalize_markdown_tables,
-        compute_total_distance_km=compute_total_distance_km,
-        insert_distance_intro=insert_distance_intro,
-        append_coords_section=append_coords_section,
+        enrich_markdown_for_map=lambda md: generation_service_utils.enrich_markdown_for_map(
+            md,
+            normalize_markdown_tables=parser_utils._normalize_markdown_tables,
+            geocode_markdown=append_coords_section,
+            compute_total_distance_km=compute_total_distance_km,
+            insert_distance_intro=insert_distance_intro,
+        ),
         print_quality_report=_print_quality_report,
         save_markdown=save_markdown,
         parse_places=parse_places,

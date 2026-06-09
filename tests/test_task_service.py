@@ -104,6 +104,24 @@ def test_task_service_marks_task_failed_when_generation_crashes(tmp_path):
         service.shutdown()
 
 
+def test_task_service_marks_task_failed_when_all_people_return_errors(tmp_path):
+    def _fail(_client, person, **_kwargs):
+        return {"ok": False, "person": person, "error": f"{person} no data"}
+
+    service = _build_service(tmp_path, generate_for_person=_fail)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "failed"
+        assert snapshot["result"]["ok"] is False
+        assert snapshot["error"] == "霍去病 no data"
+        labels = [event["label"] for event in snapshot["progress"]]
+        assert labels[-2:] == ["失败", "完成"]
+    finally:
+        service.shutdown()
+
+
 def test_task_service_builds_multi_person_summary(tmp_path):
     service = _build_service(tmp_path)
     try:
