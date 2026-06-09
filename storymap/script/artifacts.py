@@ -56,7 +56,8 @@ def _safe_name(text: str) -> str:
 def save_html(person: str, content: str) -> str:
     base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
-    path = os.path.join(base, f"{person}.html")
+    safe = _safe_name(person)
+    path = os.path.join(base, f"{safe}.html")
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✅ 交互式地图已保存: {path}")
@@ -66,7 +67,8 @@ def save_html(person: str, content: str) -> str:
 def save_geojson(person: str, geojson: Dict) -> str:
     base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
-    path = os.path.join(base, f"{person}.geojson")
+    safe = _safe_name(person)
+    path = os.path.join(base, f"{safe}.geojson")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(geojson, f, ensure_ascii=False, indent=2)
     print(f"✅ GeoJSON 已保存: {path}")
@@ -76,7 +78,8 @@ def save_geojson(person: str, geojson: Dict) -> str:
 def save_csv(person: str, csv_text: str) -> str:
     base = _story_artifacts_dir()
     os.makedirs(base, exist_ok=True)
-    path = os.path.join(base, f"{person}.csv")
+    safe = _safe_name(person)
+    path = os.path.join(base, f"{safe}.csv")
     with open(path, "w", encoding="utf-8") as f:
         f.write(csv_text)
     print(f"✅ CSV 已保存: {path}")

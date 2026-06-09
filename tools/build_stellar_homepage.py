@@ -1031,10 +1031,10 @@ def _render_index_html(title: str, data_file: str) -> str:
       const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
       const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
       const apiUrl = (path) => {{
-        const rel = String(path || "").replace(/^\\/+/, "");
+        const rel = String(path || "").replace(/^\/+/, "");
         if (!rel) return "./";
         if (API_BASE) {{
-          return API_BASE.replace(/\\/+$/, "") + "/" + rel;
+          return API_BASE.replace(/\/+$/, "") + "/" + rel;
         }}
         return "./" + rel;
       }};
@@ -1560,7 +1560,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       const provinceOf = (n) => {{
         const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
         if (!raw) return "";
-        const s = raw.replace(/^今\\s*/g, "");
+        const s = raw.replace(/^今\s*/g, "");
         const m = s.match(/(北京市|天津市|上海市|重庆市|香港特别行政区|澳门特别行政区|台湾省|内蒙古自治区|广西壮族自治区|宁夏回族自治区|新疆维吾尔自治区|西藏自治区|黑龙江省|吉林省|辽宁省|河北省|山西省|陕西省|山东省|河南省|江苏省|浙江省|安徽省|江西省|福建省|广东省|海南省|四川省|贵州省|云南省|湖北省|湖南省|甘肃省|青海省)/);
         if (m) {{
           const t = String(m[1] || "").trim();
@@ -2595,11 +2595,11 @@ def _render_index_html(title: str, data_file: str) -> str:
         }} catch (_) {{}}
       }};
       const geocodeText = (n) => {{
-        const m = String(n.birthplace_modern || "").trim().replace(/^今\\s*/g, "");
+        const m = String(n.birthplace_modern || "").trim().replace(/^今\s*/g, "");
         if (m) return m;
         const raw = String(n.birthplace_raw || "").trim();
         if (raw) {{
-          const t = raw.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").replace(/^约\\s*/g, "").replace(/^公元前?\\d+年\\s*/g, "").trim();
+          const t = raw.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").replace(/^约\s*/g, "").replace(/^公元前?\d+年\s*/g, "").trim();
           if (t) return t;
         }}
         const bp = String(n.birthplace || "").trim();
@@ -2813,7 +2813,9 @@ def _render_index_html(title: str, data_file: str) -> str:
                 const quote = stripMd(String(n.quote || "").trim());
                 const review = stripMd(String(n.review || "").trim());
                 const tagline = stripOuterQuotes(review || quote);
-                const personJs = String(n.person || "").replace(/'/g, "\\\\'");
+                const personJs = String(n.person || "")
+                  .replace(/\\/g, "\\\\")
+                  .replace(/'/g, "\\'");
                 let html = '';
                 html += '<div style="min-width:220px;max-width:280px">';
                 html += '<div style="font-weight:800;color:#0f172a;font-size:14px">' + esc(n.person) + '</div>';
@@ -2821,7 +2823,7 @@ def _render_index_html(title: str, data_file: str) -> str:
                 if (dynasty) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">时代：' + esc(dynasty) + '</div>';
                 if (bp) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">籍贯：' + esc(bp) + '</div>';
                 if (tagline) html += '<div style="margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4">“' + esc(tagline) + '”</div>';
-                html += '<div style="margin-top:8px"><button onclick="window.__openPerson && window.__openPerson(\\'' + personJs + '\\')" style="background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">打开人物页</button></div>';
+                html += "<div style=\"margin-top:8px\"><button onclick=\"window.__openPerson && window.__openPerson('" + personJs + "')\" style=\"background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer\">打开人物页</button></div>";
                 html += '</div>';
                 if (infoWin) {{
                   infoWin.setContent(html);

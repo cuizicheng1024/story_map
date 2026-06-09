@@ -26,3 +26,18 @@ def test_public_story_map_dirs_only_return_artifact_directory(tmp_path, monkeypa
     monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: str(artifact_dir))
 
     assert artifacts._public_story_map_dirs() == [str(artifact_dir)]
+
+
+def test_save_outputs_sanitize_unsafe_names(tmp_path, monkeypatch):
+    artifact_dir = tmp_path / "artifacts" / "story_map"
+    artifact_dir.mkdir(parents=True)
+
+    monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: str(artifact_dir))
+
+    html_path = artifacts.save_html("苏轼/黄州", "<html></html>")
+    geojson_path = artifacts.save_geojson("苏轼/黄州", {"type": "FeatureCollection", "features": []})
+    csv_path = artifacts.save_csv("苏轼/黄州", "name\n苏轼\n")
+
+    assert Path(html_path).name == "苏轼_黄州.html"
+    assert Path(geojson_path).name == "苏轼_黄州.geojson"
+    assert Path(csv_path).name == "苏轼_黄州.csv"

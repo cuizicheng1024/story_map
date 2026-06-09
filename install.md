@@ -6,7 +6,7 @@
 
 - `Python 3.11+`
 - `Node.js` 当前主流程非必需
-- 建议使用仓库内已有虚拟环境 `.venv311`，没有的话也可自行创建
+- 建议使用虚拟环境，但不强制要求目录名必须是 `.venv`
 
 ## 安装依赖
 
@@ -23,6 +23,12 @@ python3 -m venv .venv311
 source .venv311/bin/activate
 pip install -r requirements.txt
 ```
+
+说明：
+
+- `scripts/start_storymap.sh` 和 `scripts/test_storymap.sh` 会优先使用当前已激活的虚拟环境
+- 如果你没有激活虚拟环境，脚本才会继续尝试仓库内的 `.venv311`、`.venv`，最后回退到系统里的 `python` / `python3`
+- 因此不要求你一定创建名为 `.venv` 的目录，关键是当前解释器里已经安装项目依赖
 
 ## 环境变量配置
 

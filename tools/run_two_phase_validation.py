@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -37,7 +38,7 @@ def main() -> int:
         time.sleep(poll_s)
 
     cmd = [
-        "python3",
+        sys.executable,
         str((Path(__file__).resolve().parent / "validate_people_info.py").resolve()),
         "--input-dir",
         str(Path(args.input_dir).resolve()),
@@ -55,4 +56,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

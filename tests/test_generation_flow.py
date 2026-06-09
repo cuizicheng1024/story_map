@@ -7,6 +7,8 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import map_client
+import story_agents
+import story_cli
 import story_map as sm
 
 
@@ -142,3 +144,33 @@ def test_append_coords_section_skips_event_column_when_timeline_has_no_place_hea
     monkeypatch.setattr(map_client, "geocode_city", lambda _name: (_ for _ in ()).throw(AssertionError("should not geocode event column")))
 
     assert map_client.append_coords_section(md) == md
+
+
+def test_cli_target_resolution_does_not_fallback_to_question_sentence():
+    targets = story_cli.resolve_targets_from_text(
+        client=object(),
+        text="苏轼为何总在南方活动？",
+        extract_historical_figures=lambda _client, _text: [],
+        fallback_to_input=True,
+    )
+
+    assert targets == []
+
+
+def test_cli_target_resolution_can_fallback_to_plain_person_name():
+    targets = story_cli.resolve_targets_from_text(
+        client=object(),
+        text="辛弃疾",
+        extract_historical_figures=lambda _client, _text: [],
+        fallback_to_input=True,
+    )
+
+    assert targets == ["辛弃疾"]
+
+
+def test_story_agents_save_markdown_sanitizes_unsafe_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(story_agents, "_project_root", lambda: str(tmp_path))
+
+    saved = story_agents.save_markdown("苏轼/黄州", "# 苏轼")
+
+    assert Path(saved).name == "苏轼_黄州.md"

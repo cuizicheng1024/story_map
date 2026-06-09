@@ -12,7 +12,7 @@
 
 - `scripts/start_storymap.sh`
   - 本地开发首选入口
-  - 自动选择 `.venv311` / `.venv` / `python3`
+  - 优先使用当前已激活环境，其次尝试 `.venv311` / `.venv`，最后回退到 `python` / `python3`
 - `scripts/test_storymap.sh`
   - 本地回归测试入口
   - 默认执行 Ruff F 类检查 + 核心测试集

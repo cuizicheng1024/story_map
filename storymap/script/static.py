@@ -26,22 +26,41 @@ class StaticService:
         self._vendor_cache = vendor_cache
         self._vendor_lock = vendor_lock
 
+    def _local_vendor_roots(self) -> list[Path]:
+        roots: list[Path] = []
+        seen: set[Path] = set()
+        for base in [*self._public_story_map_dirs(), str(Path(self._project_root()) / "vendor")]:
+            root = Path(base).resolve()
+            if root in seen:
+                continue
+            seen.add(root)
+            roots.append(root)
+        return roots
+
     def _local_vendor_target(self, safe_name: str) -> Optional[Path]:
-        target = (Path(self._project_root()) / "vendor" / safe_name).resolve()
-        try:
-            target.relative_to((Path(self._project_root()) / "vendor").resolve())
-        except Exception:
-            return None
-        if not target.exists() or not target.is_file():
-            return None
-        return target
+        # Generated pages reference "./vendor/*.js", so check each served static root
+        # before falling back to remote fetch. This keeps local/offline pages usable.
+        for root in self._local_vendor_roots():
+            vendor_root = root if root.name == "vendor" else (root / "vendor")
+            target = (vendor_root / safe_name).resolve()
+            try:
+                target.relative_to(vendor_root.resolve())
+            except Exception:
+                continue
+            if target.exists() and target.is_file():
+                return target
+        return None
 
     def guess_content_type(self, path: str) -> str:
         lower = str(path or "").lower()
         if lower.endswith(".html"):
             return "text/html; charset=utf-8"
+        if lower.endswith(".geojson"):
+            return "application/geo+json; charset=utf-8"
         if lower.endswith(".json"):
             return "application/json; charset=utf-8"
+        if lower.endswith(".csv"):
+            return "text/csv; charset=utf-8"
         if lower.endswith(".css"):
             return "text/css; charset=utf-8"
         if lower.endswith(".js"):
@@ -70,10 +89,11 @@ class StaticService:
             rel = rel.split("artifacts/story_map/", 1)[-1]
         if parsed_path == "/" or rel == "":
             rel = "index.html"
-        if not re.search(r"\.(html|json|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
+        if not re.search(r"\.(html|geojson|json|csv|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
             return None
         roots = list(self._public_story_map_dirs())
         if rel != "index.html" and len(roots) > 1:
+            # Generated artifact pages should win over legacy duplicates in older roots.
             roots = roots[1:] + roots[:1]
         for root in roots:
             target = self._resolve_target_in_root(Path(root).resolve(), rel)

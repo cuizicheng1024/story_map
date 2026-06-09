@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -55,12 +56,16 @@ def _has_module(python_bin: str, module_name: str) -> bool:
 
 
 def _python_bin() -> str:
+    active_venv = (os.getenv("VIRTUAL_ENV") or "").strip()
     candidates = [
+        str(Path(active_venv) / "bin" / "python") if active_venv else "",
         sys.executable,
         str(REPO_ROOT / ".venv311" / "bin" / "python"),
         str(REPO_ROOT / ".venv" / "bin" / "python"),
     ]
     for candidate in candidates:
+        if not candidate:
+            continue
         if Path(candidate).exists() and _has_module(candidate, "pytest"):
             return candidate
     return sys.executable

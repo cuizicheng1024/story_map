@@ -1,8 +1,42 @@
 from __future__ import annotations
 
 import argparse
+import re
 import time
 from typing import Callable, Dict, List, Optional
+
+
+_TASK_LIKE_TOKENS = (
+    "为什么",
+    "为何",
+    "如何",
+    "怎么",
+    "请",
+    "帮我",
+    "比较",
+    "对比",
+    "分析",
+    "总结",
+    "解释",
+    "给我",
+    "什么",
+    "哪里",
+    "哪儿",
+    "谁",
+    "轨迹",
+    "足迹",
+    "证据",
+    "活动",
+)
+
+
+def _looks_like_person_name(text: str) -> bool:
+    cleaned = str(text or "").strip()
+    if not cleaned or len(cleaned) > 12:
+        return False
+    if re.search(r"[?？!！。:：；;（）()\[\]{}<>/\\]", cleaned):
+        return False
+    return not any(token in cleaned for token in _TASK_LIKE_TOKENS)
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -27,7 +61,7 @@ def resolve_targets_from_text(
         return targets
     if fallback_to_input:
         fallback = str(text or "").strip()
-        if fallback:
+        if _looks_like_person_name(fallback):
             return [fallback]
     return []
 

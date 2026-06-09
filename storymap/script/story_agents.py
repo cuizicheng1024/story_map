@@ -382,7 +382,8 @@ def save_markdown(person: str, content: str) -> str:
     root = _project_root()
     base = os.path.join(root, "storymap", "examples", "story")
     os.makedirs(base, exist_ok=True)
-    filename = f"{person}.md"
+    safe_person = str(person or "").translate(str.maketrans({c: "_" for c in '\\/:*?"<>|'})).strip() or "map"
+    filename = f"{safe_person}.md"
     path = os.path.join(base, filename)
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
