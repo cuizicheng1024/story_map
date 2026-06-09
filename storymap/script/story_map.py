@@ -26,6 +26,7 @@ try:
     )
     from .env_utils import apply_story_map_env_aliases, load_project_env
     from . import export_builders as export_builder_utils
+    from . import story_artifact_api as story_artifact_api_utils
     from .map_client import (
         append_coords_section,
         compute_total_distance_km,
@@ -76,6 +77,7 @@ except ImportError:
     )
     from env_utils import apply_story_map_env_aliases, load_project_env
     import export_builders as export_builder_utils
+    import story_artifact_api as story_artifact_api_utils
     from map_client import (
         append_coords_section,
         compute_total_distance_km,
@@ -256,20 +258,15 @@ def generate_for_person(
     )
 
 
-_ARTIFACT_EXPORTS = ArtifactExportService(
+_ARTIFACT_API = story_artifact_api_utils.create_artifact_api(
+    artifact_export_service_cls=ArtifactExportService,
     build_geojson_for_profile=export_builder_utils.build_geojson_for_profile,
     build_csv_for_profile=export_builder_utils.build_csv_for_profile,
     build_geojson_for_multi=export_builder_utils.build_geojson_for_multi,
     build_csv_for_multi=export_builder_utils.build_csv_for_multi,
 )
-
-
-def _ensure_profile_exports(profile: Dict[str, object], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    return _ARTIFACT_EXPORTS.ensure_profile_exports(profile, base_name, allow_cache=allow_cache)
-
-
-def _ensure_multi_exports(people: List[Dict[str, object]], base_name: str, allow_cache: bool = True) -> Dict[str, str]:
-    return _ARTIFACT_EXPORTS.ensure_multi_exports(people, base_name, allow_cache=allow_cache)
+_ensure_profile_exports = _ARTIFACT_API["ensure_profile_exports"]
+_ensure_multi_exports = _ARTIFACT_API["ensure_multi_exports"]
 
 
 def _compute_overlaps(people: List[Dict[str, object]]) -> List[Dict[str, object]]:

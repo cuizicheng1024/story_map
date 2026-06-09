@@ -48,6 +48,22 @@ async def test_root_serves_homepage_html(monkeypatch, tmp_path):
     assert "<html" in response.text.lower()
 
 
+async def test_existing_person_story_map_page_loads_normally(monkeypatch, tmp_path):
+    source_html = REPO_ROOT / "artifacts" / "story_map" / "王昭君.html"
+    target_html = tmp_path / "王昭君.html"
+    target_html.write_text(source_html.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(story_map._STATIC_SERVICE, "_active_story_map_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(story_map._STATIC_SERVICE, "_public_story_map_dirs", lambda: [str(tmp_path)])
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/%E7%8E%8B%E6%98%AD%E5%90%9B.html")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers.get("content-type", "")
+    assert "王昭君" in response.text
+    assert "window.__EXPORT_DATA__" in response.text
+
+
 async def test_generate_then_poll_task_flow(monkeypatch):
     def _fake_generate(_client, person, **_kwargs):
         assert person == "霍去病"

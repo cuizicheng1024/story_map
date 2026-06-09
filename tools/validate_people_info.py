@@ -336,18 +336,38 @@ def _write_person_markdown_and_render_html(person: str, md_text: str) -> str:
 
     import sys
 
-    cli_dir = (REPO_ROOT / "cli").resolve()
     script_dir = (REPO_ROOT / "storymap" / "script").resolve()
-    if str(cli_dir) not in sys.path:
-        sys.path.insert(0, str(cli_dir))
     if str(script_dir) not in sys.path:
         sys.path.insert(0, str(script_dir))
 
-    import auto_generate as ag  # type: ignore
     import map_html_renderer as renderer  # type: ignore
     import story_map  # type: ignore
 
-    ensured = ag.ensure_required_sections(md_text)
+    def _ensure_required_sections(md: str) -> str:
+        s = (md or "").strip()
+        if not s:
+            return ""
+        if not re.search(r"^#\s+", s, flags=re.M):
+            s = "# 人物\n\n" + s
+        if "\n## 人教版教材知识点\n" not in "\n" + s + "\n":
+            s += (
+                "\n\n## 人教版教材知识点\n\n"
+                "### 语文（课文/词作）\n"
+                "- 课文/词作：存疑\n"
+                "- 核心要点：存疑\n\n"
+                "### 历史（史实/人物定位）\n"
+                "- 关键史实：存疑\n"
+                "- 核心要点：存疑\n"
+            )
+        if "\n## 地点坐标\n" not in "\n" + s + "\n":
+            s += (
+                "\n\n## 地点坐标\n\n"
+                "| 现称 | 现代搜索地名 | 纬度 | 经度 |\n"
+                "| --- | --- | --- | --- |\n"
+            )
+        return s.strip() + "\n"
+
+    ensured = _ensure_required_sections(md_text)
     profile = story_map.load_profile_from_md(ensured, allow_geocode=False)
     if profile:
         profile["markdown"] = ensured
@@ -358,7 +378,7 @@ def _write_person_markdown_and_render_html(person: str, md_text: str) -> str:
         points = story_map.build_points(places, events, allow_geocode=False)
         fields = story_map.extract_intro_fields(ensured)
         info_panel_html = renderer.build_info_panel_html(person, fields) if any(fields.values()) else ""
-        html_out = story_map.render_osm_html(person, points, info_panel_html)
+        html_out = renderer.render_amap_html(person, points, info_panel_html)
 
     out_path = story_map_dir / f"{person}.html"
     out_path.write_text(html_out, encoding="utf-8")

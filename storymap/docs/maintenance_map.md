@@ -30,6 +30,10 @@
 - `storymap/script/story_entrypoints.py`
   - CLI / serve 入口包装层
   - 负责 `main()` 和启动分发
+- `storymap/script/agent/`
+  - 面向 agent 架构的目录入口
+  - 以 `core / generation / knowledge / runtime` 分组聚合能力
+  - 新增装配层时优先放到这里，再按需要保留旧平铺模块做兼容
 
 ### 运行时装配关系
 
@@ -57,6 +61,9 @@
   - 单人物生成装配层
   - 汇总 generation tools、状态对象和 `generate_for_person` 兼容导出
   - 当前已按 LangGraph 可迁移的 state 形状整理
+- `storymap/script/story_artifact_api.py`
+  - 产物导出装配层
+  - 对外整理 profile / multi 导出包装，继续减轻 `story_map.py` 入口负担
 - `storymap/script/profile_builder.py`
   - 把人物 Markdown 转成前端可消费的数据结构
   - 这里适合做“知识点、作品、时间线、引用”的结构化增强

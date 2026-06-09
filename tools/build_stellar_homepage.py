@@ -20,7 +20,18 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as url_quote
 from urllib.request import Request, urlopen
 
-from storymap.script.project_paths import BAD_PERSON_NAMES, project_root_path, story_artifacts_dir_path, story_md_dir_path
+from storymap.script.project_paths import (
+    is_valid_person_name,
+    person_name_from_filename,
+    project_root_path,
+    story_artifacts_dir_path,
+    story_md_dir_path,
+)
+
+try:
+    from tools.homepage_search import HAS_PINYIN, build_search_fields
+except Exception:
+    from homepage_search import HAS_PINYIN, build_search_fields
 
 
 REPO_ROOT = project_root_path()
@@ -33,11 +44,6 @@ try:
 except Exception:
     apply_story_map_env_aliases = None
     env_flag = None
-try:
-    from pypinyin import lazy_pinyin  # type: ignore
-except Exception:
-    lazy_pinyin = None
-
 if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
     load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
@@ -127,102 +133,6 @@ def _sha1_int(s: str) -> int:
     h = hashlib.sha1(s.encode("utf-8")).hexdigest()
     return int(h[:12], 16)
 
-
-def _person_from_filename(name: str) -> str:
-    stem = Path(name).stem
-    if "__pure__" in stem:
-        return stem.split("__pure__", 1)[0]
-    return stem
-
-
-def _is_valid_person_name(name: str) -> bool:
-    s = str(name or "").strip()
-    if not s:
-        return False
-    if s in BAD_PERSON_NAMES:
-        return False
-    return True
-
-
-def _unique_keep_order(items: List[str]) -> List[str]:
-    out: List[str] = []
-    seen = set()
-    for item in items:
-        s = str(item or "").strip()
-        if not s or s in seen:
-            continue
-        seen.add(s)
-        out.append(s)
-    return out
-
-
-def _normalize_search_text(text: str) -> str:
-    s = str(text or "").strip().lower()
-    if not s:
-        return ""
-    s = s.replace("·", "").replace("・", "").replace("•", "").replace("‧", "")
-    s = re.sub(r"[“”\"'`‘’]+", "", s)
-    s = re.sub(r"[\s\-_./,，、:：;；()（）\[\]{}<>《》]+", "", s)
-    s = re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", s)
-    return s.strip()
-
-
-def _split_search_terms(text: str) -> List[str]:
-    s = str(text or "").strip()
-    if not s:
-        return []
-    parts = [s]
-    parts.extend(re.split(r"[\\/|,，、;；:：\s（）()]+", s))
-    return _unique_keep_order(parts)
-
-
-def _pinyin_variants(text: str) -> List[str]:
-    s = str(text or "").strip()
-    if not s or lazy_pinyin is None:
-        return []
-    if not re.search(r"[\u4e00-\u9fff]", s):
-        return []
-    try:
-        arr = [str(x).strip().lower() for x in lazy_pinyin(s, errors="ignore") if str(x).strip()]
-    except Exception:
-        return []
-    if not arr:
-        return []
-    full = _normalize_search_text("".join(arr))
-    initials = _normalize_search_text("".join([x[0] for x in arr if x]))
-    out: List[str] = []
-    if len(full) >= 2:
-        out.append(full)
-    if len(initials) >= 2 and initials != full:
-        out.append(initials)
-    return _unique_keep_order(out)
-
-
-def _build_search_fields(name: str, aliases: List[str], foreign_name: str) -> Dict[str, Any]:
-    raw_terms: List[str] = []
-    raw_terms.extend(_split_search_terms(name))
-    for alias in aliases or []:
-        raw_terms.extend(_split_search_terms(alias))
-    if foreign_name:
-        raw_terms.extend(_split_search_terms(foreign_name))
-    raw_terms = _unique_keep_order(raw_terms)
-
-    normalized_terms: List[str] = []
-    pinyin_terms: List[str] = []
-    for term in raw_terms:
-        norm = _normalize_search_text(term)
-        if norm:
-            normalized_terms.append(norm)
-        pinyin_terms.extend(_pinyin_variants(term))
-
-    search_tokens = _unique_keep_order(normalized_terms + pinyin_terms)
-    return {
-        "search_keys": raw_terms[:16],
-        "search_tokens": search_tokens[:32],
-        "search_pinyin": _unique_keep_order(pinyin_terms)[:12],
-    }
-
-
 @dataclass
 class HtmlEntry:
     person: str
@@ -249,8 +159,8 @@ def _scan_latest_html(story_map_dir: Path) -> Dict[str, HtmlEntry]:
     for p in story_map_dir.glob("*.html"):
         if not p.is_file():
             continue
-        person = _person_from_filename(p.name).strip()
-        if not _is_valid_person_name(person):
+        person = person_name_from_filename(p.name).strip()
+        if not is_valid_person_name(person):
             continue
         e = HtmlEntry(person=person, file=p.name, mtime=p.stat().st_mtime)
         cur = latest.get(person)
@@ -308,7 +218,7 @@ def _scan_people_from_story_md(story_md_dir: Path) -> List[str]:
     if not story_md_dir.exists():
         return []
     items = [p.stem for p in story_md_dir.glob("*.md") if p.is_file()]
-    return sorted({x.strip() for x in items if _is_valid_person_name(x)})
+    return sorted({x.strip() for x in items if is_valid_person_name(x)})
 
 
 def _extract_years_from_md(md_text: str) -> Tuple[Optional[int], Optional[int]]:
@@ -512,6 +422,54 @@ def _extract_birthplace_from_md(md_text: str) -> Tuple[str, str, str]:
     ancient = re.sub(r"[（）()]+", "", ancient).strip()
     modern = re.sub(r"[（）()]+", "", modern).strip()
     return loc, ancient, modern
+
+
+def _looks_like_date_or_period_text(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if re.search(r"^\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号))?$", value):
+        return True
+    if re.search(r"^(?:约|大约|约于)?\s*(公元前|公元|前)?\s*\d{1,4}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号))?)?$", value):
+        return True
+    if re.search(r"^(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?$", value):
+        return True
+    return False
+
+
+def _strip_parenthetical_place_text(text: str) -> str:
+    return re.sub(r"[（(].*?[）)]", "", str(text or "")).strip()
+
+
+def _strip_common_birthplace_prefixes(text: str) -> str:
+    cleaned = str(text or "").strip()
+    cleaned = re.sub(r"^今\s*", "", cleaned).strip()
+    cleaned = re.sub(r"^(?:出生于|出生在|生于|生在|于|在)\s*", "", cleaned).strip()
+    return cleaned
+
+
+def _birthplace_source_values(birthplace_modern: str, birthplace_ancient: str, birthplace_raw: str) -> List[str]:
+    out: List[str] = []
+    for value in (birthplace_modern, birthplace_ancient, birthplace_raw):
+        text = str(value or "").strip()
+        if text:
+            out.append(text)
+    return out
+
+
+def _birthplace_lookup_terms(birthplace_modern: str, birthplace_ancient: str, birthplace_raw: str) -> List[str]:
+    terms: List[str] = []
+    seen = set()
+    for value in _birthplace_source_values(birthplace_modern, birthplace_ancient, birthplace_raw):
+        cleaned = _strip_common_birthplace_prefixes(value)
+        variants = [cleaned, _strip_parenthetical_place_text(cleaned)]
+        for variant in variants:
+            term = str(variant or "").strip()
+            if not term or term in seen:
+                continue
+            seen.add(term)
+            terms.append(term)
+    return terms
 
 
 def _extract_relations(md_text: str) -> Tuple[List[str], List[Dict[str, str]]]:
@@ -841,7 +799,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       </div>
 """
     qhtml = ""
-    return f"""<!doctype html>
+    return rf"""<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -3556,6 +3514,37 @@ def main() -> int:
                 return coord
         return None
 
+    def _lookup_birth_coord_from_coords_table(
+        coords_table: Dict[str, Tuple[float, float]],
+        birthplace_modern: str,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+    ) -> Optional[Tuple[float, float]]:
+        # Try both the cleaned birthplace text and its parenthetical-stripped variant because
+        # markdown coordinate tables may store either form.
+        for term in _birthplace_lookup_terms(birthplace_modern, birthplace_ancient, birthplace_raw):
+            nk = _norm_place_key(term)
+            if not nk:
+                continue
+            if nk in coords_table:
+                return coords_table[nk]
+            for coord_key, coord_value in coords_table.items():
+                if not coord_key:
+                    continue
+                if (coord_key in nk) or (nk in coord_key):
+                    return coord_value
+        return None
+
+    def _lookup_birth_coord_from_hist_index(
+        birthplace_modern: str,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+    ) -> Optional[Tuple[float, float]]:
+        terms = _birthplace_lookup_terms(birthplace_modern, birthplace_ancient, birthplace_raw)
+        if not terms:
+            return None
+        return _hist_lookup(*terms)
+
     def _parse_coords_table_from_md(md_text: str) -> Dict[str, Tuple[float, float]]:
         if not isinstance(md_text, str) or not md_text.strip():
             return {}
@@ -3759,25 +3748,34 @@ def main() -> int:
             return False
         if re.search(r"(存疑|不详|无法确认|具体地点存疑|未知|待查证|无考|虚构|传说|小说|人物|文学作品|作品|未明确|未记载|记载有限|背景设定)", s):
             return False
-        if re.search(r"^\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*(?:日|号))?$", s):
-            return False
-        if re.search(r"^(?:约|大约|约于)?\\s*(公元前|公元|前)?\\s*\\d{1,4}\\s*年(?:\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*(?:日|号))?)?$", s):
-            return False
-        if re.search(r"^(?:约|大约|约于)?\\s*\\d{1,2}\\s*世纪(?:初|中|末)?$", s):
+        if _looks_like_date_or_period_text(s):
             return False
         return True
 
-    def _make_geocode_query(birthplace_modern: str, birthplace_ancient: str, birthplace_raw: str) -> str:
-        q = (birthplace_modern or birthplace_ancient or birthplace_raw or "").strip()
-        q = re.sub(r"^今\\s*", "", q).strip()
-        q = re.sub(r"^(?:出生于|出生在|生于|生在|于|在)\\s*", "", q).strip()
+    def _finalize_geocode_query(
+        raw_query: str,
+        *,
+        extra_prefix_pattern: str = "",
+        split_markers: str = "",
+    ) -> str:
+        # Normalize birthplace prose into a stable geocode query so the AMap/foreign/local fallback
+        # branches do not quietly diverge over time.
+        q = _strip_common_birthplace_prefixes(raw_query)
+        if extra_prefix_pattern:
+            q = re.sub(extra_prefix_pattern, "", q).strip()
         q = re.sub(r"^(?:出生地|出生地是|出生地点|籍贯|祖籍|故里)[:：\\s]*", "", q).strip()
         q = re.sub(r"^(?:今|现)?属\\s*", "", q).strip()
         q = re.sub(r"^(?:今|现)?为\\s*", "", q).strip()
-        q = re.sub(r"[（(].*?[）)]", "", q).strip()
-        q = re.split(r"(?:当时|现|今|属|位于|位在|坐落于|附近|一带|境内|范围内|大致在)", q, 1)[0].strip()
+        q = _strip_parenthetical_place_text(q)
+        base_split_markers = "当时|现|今|属|位于|位在|坐落于|附近|一带|境内|范围内|大致在"
+        if split_markers:
+            base_split_markers = f"{base_split_markers}|{split_markers}"
+        q = re.split(rf"(?:{base_split_markers})", q, 1)[0].strip()
         q = q.split("，", 1)[0].split(",", 1)[0].split("；", 1)[0].split(";", 1)[0].strip()
         return q
+
+    def _make_geocode_query(birthplace_modern: str, birthplace_ancient: str, birthplace_raw: str) -> str:
+        return _finalize_geocode_query(birthplace_modern or birthplace_ancient or birthplace_raw or "")
 
     def _amap_geocode_batch(addresses: List[str]) -> None:
         if not amap_key:
@@ -3865,11 +3863,7 @@ def main() -> int:
             return False
         if re.search(r"(存疑|不详|无法确认|具体地点存疑|未知)", s):
             return False
-        if re.search(r"^\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*(?:日|号))?$", s):
-            return False
-        if re.search(r"^(?:约|大约|约于)?\\s*(公元前|公元|前)?\\s*\\d{1,4}\\s*年(?:\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*(?:日|号))?)?$", s):
-            return False
-        if re.search(r"^(?:约|大约|约于)?\\s*\\d{1,2}\\s*世纪(?:初|中|末)?$", s):
+        if _looks_like_date_or_period_text(s):
             return False
         return True
 
@@ -3995,55 +3989,24 @@ def main() -> int:
 
     strict_audit_dir = (REPO_ROOT / "data" / "validation_reports" / "strict_audit").resolve()
 
-    nodes: List[Dict[str, Any]] = []
-    min_year: Optional[int] = None
-    max_year: Optional[int] = None
-    pending_amap: Dict[int, str] = {}
-    pending_foreign: Dict[int, str] = {}
-    for name in names:
-        md_path = story_md_dir / f"{name}.md"
-        birth_year = None
-        death_year = None
-        dynasty = ""
-        relations: List[str] = []
-        aliases: List[str] = []
-        foreign_name = ""
-        domain_tags: List[str] = []
-        birthplace_raw = ""
-        birthplace_ancient = ""
-        birthplace_modern = ""
-        coords_table: Dict[str, Tuple[float, float]] = {}
-        audit_risk_level = ""
-        audit_overall_pass = None
-        audit_uncertain = None
-        if md_path.exists():
-            md_text = md_path.read_text(encoding="utf-8")
-            birth_year, death_year = _extract_years_from_md(md_text)
-            dynasty = _dynasty_hint_from_md(md_text)
-            relations, relations_meta = _extract_relations(md_text)
-            aliases, foreign_name, domain_tags = _extract_disambiguation(md_text)
-            birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(md_text)
-            coords_table = _parse_coords_table_from_md(md_text)
+    def _load_person_audit(name: str) -> Tuple[str, object, object]:
         try:
-            rp = strict_audit_dir / f"{name}.json"
-            if rp.exists():
-                payload = json.loads(rp.read_text(encoding="utf-8"))
-                audit = payload.get("audit") if isinstance(payload, dict) else None
-                if isinstance(audit, dict):
-                    audit_risk_level = str(audit.get("risk_level") or "").strip()
-                    audit_overall_pass = audit.get("overall_pass")
-                    ent = audit.get("entity_identity")
-                    if isinstance(ent, dict):
-                        audit_uncertain = ent.get("uncertain")
+            report_path = strict_audit_dir / f"{name}.json"
+            if not report_path.exists():
+                return "", None, None
+            payload = json.loads(report_path.read_text(encoding="utf-8"))
+            audit = payload.get("audit") if isinstance(payload, dict) else None
+            if not isinstance(audit, dict):
+                return "", None, None
+            risk_level = str(audit.get("risk_level") or "").strip()
+            overall_pass = audit.get("overall_pass")
+            entity_identity = audit.get("entity_identity")
+            uncertain = entity_identity.get("uncertain") if isinstance(entity_identity, dict) else None
+            return risk_level, overall_pass, uncertain
         except Exception:
-            pass
-        if birth_year is not None:
-            min_year = birth_year if min_year is None else min(min_year, birth_year)
-            max_year = birth_year if max_year is None else max(max_year, birth_year)
-        if death_year is not None:
-            min_year = death_year if min_year is None else min(min_year, death_year)
-            max_year = death_year if max_year is None else max(max_year, death_year)
+            return "", None, None
 
+    def _resolve_spotlight_copy(name: str) -> Tuple[str, str]:
         spot = spotlight_items.get(name)
         quote = ""
         review = ""
@@ -4052,10 +4015,24 @@ def main() -> int:
             review = str(spot.get("review") or "").strip()
         if name == "武则天" and not review:
             review = "千秋功过，后人评说。"
+        return quote, review
 
-        html_entry = latest_html.get(name)
+    def _resolve_birth_context(
+        *,
+        name: str,
+        html_entry: Optional[HtmlEntry],
+        dynasty: str,
+        birthplace_raw: str,
+        birthplace_ancient: str,
+        birthplace_modern: str,
+        coords_table: Dict[str, Tuple[float, float]],
+    ) -> Dict[str, object]:
+        nonlocal geocode_used
         birth_lat = None
         birth_lng = None
+        pending_amap_query = ""
+        pending_foreign_query = ""
+
         cached_birth = person_birth_coords.get(name)
         if cached_birth and isinstance(cached_birth, tuple) and len(cached_birth) >= 2:
             try:
@@ -4064,71 +4041,58 @@ def main() -> int:
             except Exception:
                 birth_lat = None
                 birth_lng = None
+
+        resolved_dynasty = dynasty
+        resolved_birthplace_raw = birthplace_raw
+        resolved_birthplace_ancient = birthplace_ancient
+        resolved_birthplace_modern = birthplace_modern
+
         if html_entry:
-            lat, lng, bp, dyn2 = _extract_birth_from_story_map_html(story_map_dir / html_entry.file)
+            lat, lng, birthplace_text, dynasty_hint = _extract_birth_from_story_map_html(story_map_dir / html_entry.file)
             if birth_lat is None or birth_lng is None:
                 birth_lat = lat
                 birth_lng = lng
-            if not dynasty and dyn2:
-                dynasty = dyn2
-            if not birthplace_raw and bp:
-                birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(f"**出生**：{bp}")
+            if not resolved_dynasty and dynasty_hint:
+                resolved_dynasty = dynasty_hint
+            if not resolved_birthplace_raw and birthplace_text:
+                resolved_birthplace_raw, resolved_birthplace_ancient, resolved_birthplace_modern = _extract_birthplace_from_md(
+                    f"**出生**：{birthplace_text}"
+                )
+
         if (birth_lat is None or birth_lng is None) and coords_table:
-            cands = [birthplace_modern, birthplace_ancient, birthplace_raw]
-            picked = None
-            for c in cands:
-                s = str(c or "").strip()
-                if not s:
-                    continue
-                s = re.sub(r"^今\\s*", "", s).strip()
-                s = re.sub(r"^(?:出生于|出生在|生于|生在|于|在)\\s*", "", s).strip()
-                s2 = re.sub(r"[（(].*?[）)]", "", s).strip()
-                for k in (s, s2):
-                    nk = _norm_place_key(k)
-                    if nk and nk in coords_table:
-                        picked = coords_table[nk]
-                        break
-                    if nk:
-                        for ck, cv in coords_table.items():
-                            if not ck:
-                                continue
-                            if (ck in nk) or (nk in ck):
-                                picked = cv
-                                break
-                    if picked:
-                        break
-                if picked:
-                    break
+            picked = _lookup_birth_coord_from_coords_table(
+                coords_table,
+                resolved_birthplace_modern,
+                resolved_birthplace_ancient,
+                resolved_birthplace_raw,
+            )
             if picked:
                 birth_lat = float(picked[0])
                 birth_lng = float(picked[1])
+
         if (birth_lat is None or birth_lng is None) and hist_index:
-            c1 = (birthplace_modern or "").strip()
-            c2 = (birthplace_ancient or "").strip()
-            c3 = (birthplace_raw or "").strip()
-            c1 = re.sub(r"^今\\s*", "", c1).strip()
-            c2 = re.sub(r"^今\\s*", "", c2).strip()
-            c3 = re.sub(r"^今\\s*", "", c3).strip()
-            c1b = re.sub(r"[（(].*?[）)]", "", c1).strip()
-            c2b = re.sub(r"[（(].*?[）)]", "", c2).strip()
-            c3b = re.sub(r"[（(].*?[）)]", "", c3).strip()
-            coord0 = _hist_lookup(c1, c2, c3, c1b, c2b, c3b)
+            coord0 = _lookup_birth_coord_from_hist_index(
+                resolved_birthplace_modern,
+                resolved_birthplace_ancient,
+                resolved_birthplace_raw,
+            )
             if coord0:
                 birth_lat = float(coord0[0])
                 birth_lng = float(coord0[1])
+
         if birth_lat is None or birth_lng is None:
-            q = _make_geocode_query(birthplace_modern, birthplace_ancient, birthplace_raw)
+            q = _make_geocode_query(resolved_birthplace_modern, resolved_birthplace_ancient, resolved_birthplace_raw)
             if amap_key and _looks_like_geocode_query(q):
-                pending_amap[len(nodes)] = q
+                pending_amap_query = q
             if _looks_like_foreign_geocode_query(q):
-                pending_foreign[len(nodes)] = q
+                pending_foreign_query = q
+
         if geocode_city and geocode_used < geocode_limit and (birth_lat is None or birth_lng is None):
-            q = (birthplace_modern or birthplace_ancient or birthplace_raw or "").strip()
-            q = re.sub(r"^今\\s*", "", q).strip()
-            q = re.sub(r"^(?:出生于|出生在|生于|生在|于|在)\\s*", "", q).strip()
-            q = re.sub(r"^(?:祖籍|籍贯|故里|家乡|古称|传说中|传说人物)[:：\\s]*", "", q).strip()
-            q = re.split(r"(?:当时|现|今|属|传说|小说|虚构|待查证|无考|不详)", q, 1)[0].strip()
-            q = re.sub(r"[（(].*?[）)]", "", q).strip()
+            q = _finalize_geocode_query(
+                resolved_birthplace_modern or resolved_birthplace_ancient or resolved_birthplace_raw or "",
+                extra_prefix_pattern=r"^(?:祖籍|籍贯|故里|家乡|古称|传说中|传说人物)[:：\\s]*",
+                split_markers=r"传说|小说|虚构|待查证|无考|不详",
+            )
             if q and re.search(r"(世纪|年间|年|月|日|号|时期|当时|属|人物|传说|小说)", q) and not re.search(
                 r"(省|市|县|区|州|郡|国|府|镇|乡|村|旗|盟|自治区|直辖|特区|都|城|岛|港|湾)",
                 q,
@@ -4145,61 +4109,185 @@ def main() -> int:
                     birth_lat = float(coord[0])
                     birth_lng = float(coord[1])
                     geocode_used += 1
+
         if birth_lat is not None and birth_lng is not None:
             _set_person_birth_coord(name, birth_lat, birth_lng)
-        search_fields = _build_search_fields(name, aliases, foreign_name)
-        dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
-        time_year = None
+
+        return {
+            "dynasty": resolved_dynasty,
+            "birthplace_raw": resolved_birthplace_raw,
+            "birthplace_ancient": resolved_birthplace_ancient,
+            "birthplace_modern": resolved_birthplace_modern,
+            "birth_lat": birth_lat,
+            "birth_lng": birth_lng,
+            "pending_amap_query": pending_amap_query,
+            "pending_foreign_query": pending_foreign_query,
+        }
+
+    def _compute_time_year(dynasty: str, birth_year: Optional[int], death_year: Optional[int]) -> Optional[int]:
         by = birth_year if isinstance(birth_year, int) else None
         dy = death_year if isinstance(death_year, int) else None
         if by is not None and dy is not None:
             a0 = min(by, dy)
             b0 = max(by, dy)
-            r = _dynasty_range_from_label(dynasty) or _dynasty_range_from_label(_pick_main_dynasty_by_years(by, dy))
-            if r:
-                a = max(a0, int(r[0]))
-                b = min(b0, int(r[1]))
+            year_range = _dynasty_range_from_label(dynasty) or _dynasty_range_from_label(_pick_main_dynasty_by_years(by, dy))
+            if year_range:
+                a = max(a0, int(year_range[0]))
+                b = min(b0, int(year_range[1]))
                 if a < b:
-                    time_year = int(round((a + b) / 2))
-                else:
-                    time_year = int(round((a0 + b0) / 2))
-            else:
-                time_year = int(round((a0 + b0) / 2))
-        else:
-            time_year = by if by is not None else dy
+                    return int(round((a + b) / 2))
+            return int(round((a0 + b0) / 2))
+        time_year = by if by is not None else dy
         if time_year is None and dynasty:
-            time_year = _dynasty_mid_year(dynasty)
+            return _dynasty_mid_year(dynasty)
+        return time_year
+
+    def _register_pending_birth_queries(node_idx: int, pending_amap_query: str, pending_foreign_query: str) -> None:
+        if pending_amap_query:
+            pending_amap[node_idx] = pending_amap_query
+        if pending_foreign_query:
+            pending_foreign[node_idx] = pending_foreign_query
+
+    def _build_person_node(
+        *,
+        name: str,
+        birth_year: Optional[int],
+        death_year: Optional[int],
+        dynasty: str,
+        quote: str,
+        review: str,
+        aliases: List[str],
+        foreign_name: str,
+        domain_tags: List[str],
+        audit_risk_level: str,
+        audit_overall_pass: object,
+        audit_uncertain: object,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+        birthplace_modern: str,
+        birth_lat: object,
+        birth_lng: object,
+        html_entry: Optional[HtmlEntry],
+        has_story: bool,
+        relations: List[str],
+        relations_meta: List[Dict[str, str]],
+        search_fields: Dict[str, object],
+    ) -> Dict[str, object]:
+        return {
+            "person": name,
+            "birth_year": birth_year,
+            "death_year": death_year,
+            "time_year": _compute_time_year(dynasty, birth_year, death_year),
+            "dynasty": dynasty,
+            "quote": quote,
+            "review": review,
+            "aliases": aliases,
+            "foreign_name": foreign_name,
+            "domain_tags": domain_tags,
+            "risk_level": audit_risk_level,
+            "audit_pass": audit_overall_pass,
+            "audit_uncertain": audit_uncertain,
+            "birthplace": birthplace_ancient,
+            "birthplace_raw": birthplace_raw,
+            "birthplace_modern": birthplace_modern,
+            "birth_lat_wgs84": birth_lat,
+            "birth_lng_wgs84": birth_lng,
+            "birth_lat": birth_lat,
+            "birth_lng": birth_lng,
+            "file": html_entry.file if html_entry else "",
+            "has_story": has_story,
+            "seed": _sha1_int(name),
+            "relations": relations,
+            "relations_meta": relations_meta,
+            "search_keys": search_fields.get("search_keys", []),
+            "search_tokens": search_fields.get("search_tokens", []),
+            "search_pinyin": search_fields.get("search_pinyin", []),
+        }
+
+    nodes: List[Dict[str, Any]] = []
+    min_year: Optional[int] = None
+    max_year: Optional[int] = None
+    pending_amap: Dict[int, str] = {}
+    pending_foreign: Dict[int, str] = {}
+    for name in names:
+        md_path = story_md_dir / f"{name}.md"
+        has_story = md_path.exists()
+        birth_year = None
+        death_year = None
+        dynasty = ""
+        relations: List[str] = []
+        relations_meta: List[Dict[str, str]] = []
+        aliases: List[str] = []
+        foreign_name = ""
+        domain_tags: List[str] = []
+        birthplace_raw = ""
+        birthplace_ancient = ""
+        birthplace_modern = ""
+        coords_table: Dict[str, Tuple[float, float]] = {}
+        if has_story:
+            md_text = md_path.read_text(encoding="utf-8")
+            birth_year, death_year = _extract_years_from_md(md_text)
+            dynasty = _dynasty_hint_from_md(md_text)
+            relations, relations_meta = _extract_relations(md_text)
+            aliases, foreign_name, domain_tags = _extract_disambiguation(md_text)
+            birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(md_text)
+            coords_table = _parse_coords_table_from_md(md_text)
+        audit_risk_level, audit_overall_pass, audit_uncertain = _load_person_audit(name)
+        if birth_year is not None:
+            min_year = birth_year if min_year is None else min(min_year, birth_year)
+            max_year = birth_year if max_year is None else max(max_year, birth_year)
+        if death_year is not None:
+            min_year = death_year if min_year is None else min(min_year, death_year)
+            max_year = death_year if max_year is None else max(max_year, death_year)
+
+        html_entry = latest_html.get(name)
+        quote, review = _resolve_spotlight_copy(name)
+        birth_context = _resolve_birth_context(
+            name=name,
+            html_entry=html_entry,
+            dynasty=dynasty,
+            birthplace_raw=birthplace_raw,
+            birthplace_ancient=birthplace_ancient,
+            birthplace_modern=birthplace_modern,
+            coords_table=coords_table,
+        )
+        dynasty = str(birth_context["dynasty"] or "")
+        birthplace_raw = str(birth_context["birthplace_raw"] or "")
+        birthplace_ancient = str(birth_context["birthplace_ancient"] or "")
+        birthplace_modern = str(birth_context["birthplace_modern"] or "")
+        birth_lat = birth_context.get("birth_lat")
+        birth_lng = birth_context.get("birth_lng")
+        pending_amap_query = str(birth_context.get("pending_amap_query") or "")
+        pending_foreign_query = str(birth_context.get("pending_foreign_query") or "")
+        node_idx = len(nodes)
+        _register_pending_birth_queries(node_idx, pending_amap_query, pending_foreign_query)
+        search_fields = build_search_fields(name, aliases, foreign_name)
+        dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
         nodes.append(
-            {
-                "person": name,
-                "birth_year": birth_year,
-                "death_year": death_year,
-                "time_year": time_year,
-                "dynasty": dynasty,
-                "quote": quote,
-                "review": review,
-                "aliases": aliases,
-                "foreign_name": foreign_name,
-                "domain_tags": domain_tags,
-                "risk_level": audit_risk_level,
-                "audit_pass": audit_overall_pass,
-                "audit_uncertain": audit_uncertain,
-                "birthplace": birthplace_ancient,
-                "birthplace_raw": birthplace_raw,
-                "birthplace_modern": birthplace_modern,
-                "birth_lat_wgs84": birth_lat,
-                "birth_lng_wgs84": birth_lng,
-                "birth_lat": birth_lat,
-                "birth_lng": birth_lng,
-                "file": html_entry.file if html_entry else "",
-                "has_story": md_path.exists(),
-                "seed": _sha1_int(name),
-                "relations": relations,
-                "relations_meta": relations_meta,
-                "search_keys": search_fields.get("search_keys", []),
-                "search_tokens": search_fields.get("search_tokens", []),
-                "search_pinyin": search_fields.get("search_pinyin", []),
-            }
+            _build_person_node(
+                name=name,
+                birth_year=birth_year,
+                death_year=death_year,
+                dynasty=dynasty,
+                quote=quote,
+                review=review,
+                aliases=aliases,
+                foreign_name=foreign_name,
+                domain_tags=domain_tags,
+                audit_risk_level=audit_risk_level,
+                audit_overall_pass=audit_overall_pass,
+                audit_uncertain=audit_uncertain,
+                birthplace_ancient=birthplace_ancient,
+                birthplace_raw=birthplace_raw,
+                birthplace_modern=birthplace_modern,
+                birth_lat=birth_lat,
+                birth_lng=birth_lng,
+                html_entry=html_entry,
+                has_story=has_story,
+                relations=relations,
+                relations_meta=relations_meta,
+                search_fields=search_fields,
+            )
         )
 
     if amap_key and pending_amap:
@@ -4382,7 +4470,7 @@ def main() -> int:
         "search_capabilities": {
             "aliases": True,
             "foreign_name": True,
-            "pinyin": lazy_pinyin is not None,
+            "pinyin": HAS_PINYIN,
         },
         "nodes": nodes,
         "edges": edges,

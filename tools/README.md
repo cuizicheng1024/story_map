@@ -9,6 +9,9 @@
 - `build_all.py`
   - 统一构建入口
   - 负责首页数据、人物索引、人物页增量重渲染
+- `build_stellar_homepage.py`
+  - 首页构建入口
+  - 逐步把搜索、数据构建、HTML 拼装从单文件拆出去
 - `run_storymap_checks.py`
   - 统一本地自检入口
 - `validate_story_markdown.py`
@@ -16,6 +19,8 @@
 
 ### 数据构建工具
 
+- `homepage_search.py`
+  - 首页搜索 token、别名、拼音索引逻辑
 - `build_people_master.py`
 - `build_people_knowledge_graph_pep.py`
 - `build_pep_people_spotlight.py`

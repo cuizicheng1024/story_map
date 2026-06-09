@@ -138,10 +138,6 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
     }
 
 
-def _person_from_filename(name: str) -> str:
-    return person_name_from_filename(name)
-
-
 def _scan_people_from_story_md(story_md_dir: Path) -> Set[str]:
     if not story_md_dir.exists():
         return set()
@@ -157,7 +153,7 @@ def _scan_people_from_story_map_html(story_map_dir: Path) -> Set[str]:
             continue
         if p.name == "index.html":
             continue
-        person = _person_from_filename(p.name).strip()
+        person = person_name_from_filename(p.name).strip()
         if person:
             out.add(person)
     return out
