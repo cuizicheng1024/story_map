@@ -27,7 +27,7 @@ pip install -r requirements.txt
 说明：
 
 - `scripts/start_storymap.sh` 和 `scripts/test_storymap.sh` 会优先使用当前已激活的虚拟环境
-- 如果你没有激活虚拟环境，脚本才会继续尝试仓库内的 `.venv311`、`.venv`，最后回退到系统里的 `python` / `python3`
+- 如果你没有激活虚拟环境，脚本才会继续尝试仓库内的 `.venv311`、`.venv`，最后优先回退到系统里的 `python3`，再回退到 `python`
 - 因此不要求你一定创建名为 `.venv` 的目录，关键是当前解释器里已经安装项目依赖
 
 ## 环境变量配置
@@ -77,6 +77,10 @@ scripts/start_storymap.sh 8766
 
 - 首页：`http://localhost:8765/`
 - 接口文档：`http://localhost:8765/docs`
+- 已生成的人物页导出文件：
+  - `http://localhost:8765/<人物名>.html`
+  - `http://localhost:8765/<人物名>.geojson`
+  - `http://localhost:8765/<人物名>.csv`
 
 打开任意人物页后，也可以直接分享带地点状态的链接，例如：
 
@@ -94,6 +98,11 @@ scripts/start_storymap.sh 8766
 - 渲染页面
 
 生成期间主页会显示任务排队与分析进度，建议保持页面打开并等待完成。
+
+补充：
+
+- 首页和人物页依赖的 `vendor/*.js` 资源会优先从本地静态目录读取，只有本地不存在时才会回退到远程 CDN。
+- 因此即使外网受限，只要 `artifacts/story_map/vendor/` 中已有这些文件，本地页面仍可正常加载。
 
 ## 常用命令
 

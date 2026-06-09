@@ -144,7 +144,7 @@ data/                       # 人物主索引、坐标缓存、教材人物聚�
 如果你准备长期维护这个仓库，优先记住下面几个入口：
 
 - `scripts/start_storymap.sh`
-  - 本地启动入口，默认使用仓库内已有虚拟环境与 `8765` 端口
+  - 本地启动入口，优先使用当前已激活环境，其次尝试仓库内 `.venv311` / `.venv`，再回退到系统 `python3`
 - `storymap/script/story_map.py`
   - 运行时总入口，负责组装 `FastAPI`、任务服务、静态资源和问答代理
 - `storymap/script/app_factory.py`
@@ -174,6 +174,7 @@ scripts/test_storymap.sh
 
 - 默认会先跑一轮 `ruff check --select F`，只拦截会影响运行的导入/名称类问题
 - 然后执行一组核心回归测试，覆盖环境变量兼容、静态目录选择、任务流、模板和 Markdown 校验
+- `scripts/test_storymap.sh` 的解释器选择顺序与启动脚本一致：当前激活环境 -> 仓库内 `.venv311` / `.venv` -> 系统 `python3`
 - 若要跑完整测试集，可执行：
 
 ```bash
@@ -210,6 +211,8 @@ MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-a
 - `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
 - `build_all.py` 默认会先对当前 git 变更中的 Markdown 跑一次冒烟校验；若结构性错误会直接中止，避免把坏数据继续发布。
 - `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
+- 本地服务会直接放行 `artifacts/story_map/` 下的 `HTML / GeoJSON / CSV` 导出文件，便于浏览器直接查看或下载。
+- 人物页和首页依赖的 `vendor/*.js` 会优先从本地静态目录读取；只有本地不存在时才会回退远程抓取。
 - 若你已经配置 geocode key，想尽量补全地点坐标，可执行：
 
 ```bash
