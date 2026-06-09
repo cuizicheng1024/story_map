@@ -190,7 +190,7 @@ scripts/test_storymap.sh --all-tests
 推荐使用统一构建入口：
 
 ```bash
-python3 tools/build_all.py --concurrency 8
+python tools/build_all.py --concurrency 8
 ```
 
 这个脚本会统一重建：
@@ -203,7 +203,7 @@ python3 tools/build_all.py --concurrency 8
 如果你只想重渲染全部人物页 HTML：
 
 ```bash
-MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+MAP_STORY_RENDER_CONCURRENCY=8 python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
 ```
 
 说明：
@@ -216,7 +216,7 @@ MAP_STORY_RENDER_CONCURRENCY=8 python3 cli/generate_pure_story_map.py --render-a
 - 若你已经配置 geocode key，想尽量补全地点坐标，可执行：
 
 ```bash
-MAP_STORY_RENDER_CONCURRENCY=2 python3 cli/generate_pure_story_map.py --render-all --all-mode pure
+MAP_STORY_RENDER_CONCURRENCY=2 python cli/generate_pure_story_map.py --render-all --all-mode pure
 ```
 
 - 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
@@ -234,13 +234,13 @@ MAP_STORY_RENDER_CONCURRENCY=2 python3 cli/generate_pure_story_map.py --render-a
 校验命令：
 
 ```bash
-python3 tools/validate_story_markdown.py
+python tools/validate_story_markdown.py
 ```
 
 只校验当前改动文件：
 
 ```bash
-python3 tools/build_all.py --markdown-smoke-check changed
+python tools/build_all.py --markdown-smoke-check changed
 ```
 
 说明：
