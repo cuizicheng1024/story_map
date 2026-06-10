@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sqlite3
 import threading
 import time
 import uuid
@@ -100,33 +101,88 @@ class TaskService:
         self._active = 0
         self._task_lock = threading.Lock()
         self._tasks: Dict[str, Dict[str, object]] = {}
-        self._state_path = os.path.join(self._project_root(), "artifacts", "runtime", "task_state.json")
+        runtime_dir = os.path.join(self._project_root(), "artifacts", "runtime")
+        self._state_db_path = os.path.join(runtime_dir, "task_state.sqlite3")
+        self._legacy_state_path = os.path.join(runtime_dir, "task_state.json")
+        self._db = self._open_task_db()
+        self._ensure_task_table()
         self._load_tasks_from_disk()
 
     def shutdown(self) -> None:
         self._executor.shutdown(wait=False)
 
-    def _load_tasks_from_disk(self) -> None:
+    def _open_task_db(self) -> sqlite3.Connection:
+        parent = os.path.dirname(self._state_db_path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        conn = sqlite3.connect(self._state_db_path, check_same_thread=False)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        return conn
+
+    def _ensure_task_table(self) -> None:
+        with self._db:
+            self._db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS tasks (
+                    id TEXT PRIMARY KEY,
+                    updated_at REAL NOT NULL,
+                    payload TEXT NOT NULL
+                )
+                """
+            )
+            self._db.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_tasks_updated_at
+                ON tasks(updated_at)
+                """
+            )
+
+    def _load_tasks_from_sqlite(self) -> Dict[str, Dict[str, object]]:
+        recovered: Dict[str, Dict[str, object]] = {}
         try:
-            with open(self._state_path, "r", encoding="utf-8") as f:
+            rows = self._db.execute("SELECT id, payload FROM tasks").fetchall()
+        except Exception as exc:
+            self._logger.warning("task_state_load_failed path=%s error=%s", self._state_db_path, exc)
+            return recovered
+        for task_id, payload_text in rows:
+            try:
+                payload = json.loads(str(payload_text or ""))
+            except Exception:
+                continue
+            if isinstance(payload, dict):
+                recovered[str(task_id)] = payload
+        return recovered
+
+    def _load_tasks_from_legacy_json(self) -> Dict[str, Dict[str, object]]:
+        try:
+            with open(self._legacy_state_path, "r", encoding="utf-8") as f:
                 payload = json.load(f)
         except FileNotFoundError:
-            return
+            return {}
         except Exception as exc:
-            self._logger.warning("task_state_load_failed path=%s error=%s", self._state_path, exc)
-            return
+            self._logger.warning("task_state_load_failed path=%s error=%s", self._legacy_state_path, exc)
+            return {}
         tasks = payload.get("tasks") if isinstance(payload, dict) else None
         if not isinstance(tasks, list):
-            return
+            return {}
         recovered: Dict[str, Dict[str, object]] = {}
-        now = time.time()
         for item in tasks:
             if not isinstance(item, dict):
                 continue
             task_id = str(item.get("id") or "").strip()
-            if not task_id:
-                continue
-            task = dict(item)
+            if task_id:
+                recovered[task_id] = dict(item)
+        return recovered
+
+    def _load_tasks_from_disk(self) -> None:
+        recovered = self._load_tasks_from_sqlite()
+        if not recovered:
+            recovered = self._load_tasks_from_legacy_json()
+        now = time.time()
+        normalized: Dict[str, Dict[str, object]] = {}
+        for task_id, item in recovered.items():
+            task = dict(item or {})
             if task.get("status") in {"queued", "running"}:
                 progress = list(task.get("progress") or [])
                 progress.append(
@@ -140,21 +196,46 @@ class TaskService:
                 task["status"] = "failed"
                 task["error"] = "服务重启导致任务中断，请重新提交。"
                 task["updated_at"] = now
-            recovered[task_id] = task
+            normalized[str(task_id)] = task
         with self._task_lock:
-            self._tasks = recovered
+            self._tasks = normalized
             self._trim_tasks_locked()
-            self._persist_tasks_locked()
+            self._replace_all_tasks_locked()
 
-    def _persist_tasks_locked(self) -> None:
-        parent = os.path.dirname(self._state_path)
-        if parent:
-            os.makedirs(parent, exist_ok=True)
-        payload = {"tasks": list(self._tasks.values())}
-        tmp_path = f"{self._state_path}.tmp"
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_path, self._state_path)
+    def _upsert_task_locked(self, task: Dict[str, object]) -> None:
+        task_id = str(task.get("id") or "").strip()
+        if not task_id:
+            return
+        payload_text = json.dumps(task, ensure_ascii=False)
+        updated_at = float(task.get("updated_at") or 0)
+        with self._db:
+            self._db.execute(
+                "REPLACE INTO tasks (id, updated_at, payload) VALUES (?, ?, ?)",
+                (task_id, updated_at, payload_text),
+            )
+
+    def _delete_tasks_locked(self, task_ids: List[str]) -> None:
+        ids = [str(task_id).strip() for task_id in task_ids if str(task_id).strip()]
+        if not ids:
+            return
+        with self._db:
+            self._db.executemany("DELETE FROM tasks WHERE id = ?", ((task_id,) for task_id in ids))
+
+    def _replace_all_tasks_locked(self) -> None:
+        with self._db:
+            self._db.execute("DELETE FROM tasks")
+            self._db.executemany(
+                "REPLACE INTO tasks (id, updated_at, payload) VALUES (?, ?, ?)",
+                (
+                    (
+                        str(task.get("id") or ""),
+                        float(task.get("updated_at") or 0),
+                        json.dumps(task, ensure_ascii=False),
+                    )
+                    for task in self._tasks.values()
+                    if str(task.get("id") or "").strip()
+                ),
+            )
 
     def snapshot_task(self, task_id: str) -> Dict[str, object]:
         self._cleanup_tasks()
@@ -229,8 +310,9 @@ class TaskService:
         }
         with self._task_lock:
             self._tasks[task_id] = task
-            self._trim_tasks_locked()
-            self._persist_tasks_locked()
+            removed_ids = self._trim_tasks_locked()
+            self._upsert_task_locked(task)
+            self._delete_tasks_locked(removed_ids)
         return task_id
 
     def _cleanup_tasks(self) -> None:
@@ -244,13 +326,14 @@ class TaskService:
             ]
             for task_id in expired_ids:
                 self._tasks.pop(task_id, None)
-            self._trim_tasks_locked()
-            self._persist_tasks_locked()
+            removed_ids = expired_ids + self._trim_tasks_locked()
+            self._delete_tasks_locked(removed_ids)
 
-    def _trim_tasks_locked(self) -> None:
+    def _trim_tasks_locked(self) -> List[str]:
+        removed_ids: List[str] = []
         overflow = len(self._tasks) - self._max_tasks
         if overflow <= 0:
-            return
+            return removed_ids
         # 优先丢弃已结束且最久未更新的任务，避免运行中的任务被提前清理。
         ordered = sorted(
             self._tasks.items(),
@@ -265,7 +348,9 @@ class TaskService:
             if task.get("status") in {"queued", "running"}:
                 continue
             self._tasks.pop(task_id, None)
+            removed_ids.append(task_id)
             overflow -= 1
+        return removed_ids
 
     def _update_task(self, task_id: str, **fields: object) -> None:
         with self._task_lock:
@@ -274,8 +359,9 @@ class TaskService:
                 return
             task.update(fields)
             task["updated_at"] = time.time()
-            self._trim_tasks_locked()
-            self._persist_tasks_locked()
+            removed_ids = self._trim_tasks_locked()
+            self._upsert_task_locked(task)
+            self._delete_tasks_locked(removed_ids)
 
     def _append_progress(self, task_id: str, label: str, detail: str = "") -> None:
         event = {"label": label, "time": time.strftime("%H:%M:%S", time.localtime())}
@@ -290,7 +376,7 @@ class TaskService:
                 return
             task["progress"].append(event)
             task["updated_at"] = time.time()
-            self._persist_tasks_locked()
+            self._upsert_task_locked(task)
 
     def _run_task(self, task_id: str, text: str, allow_cache: bool = True) -> None:
         started_at = time.perf_counter()

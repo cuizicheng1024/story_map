@@ -1,4 +1,6 @@
 import sys
+import time
+import json
 from pathlib import Path
 
 
@@ -62,3 +64,66 @@ def test_story_markdown_agent_reuses_persisted_memory_across_agent_instances(tmp
     assert first["markdown"] == "# 李白\n"
     assert second["markdown"] == "# 李白\n"
     assert calls == ["search:李白"]
+
+
+def test_story_agent_memory_store_expires_entries_by_ttl(tmp_path):
+    path = tmp_path / "story_agent_memory.json"
+    payload = {
+        "schema_version": story_agent_memory.DEFAULT_MEMORY_SCHEMA_VERSION,
+        "people": {
+            "李白": {
+                "search_result": {"person": "李白", "summary": "唐代诗人"},
+                "updated_at": time.time() - 120,
+            }
+        },
+        "places": {},
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    store = story_agent_memory.StoryAgentMemoryStore(str(path), ttl_seconds=60)
+
+    assert store.get_person_search("李白") is None
+
+
+def test_story_agent_memory_store_invalidates_specific_entries(tmp_path):
+    path = tmp_path / "story_agent_memory.json"
+    store = story_agent_memory.StoryAgentMemoryStore(str(path))
+    store.set_person_search("李白", {"person": "李白", "summary": "唐代诗人"})
+    store.set_place_map("碎叶城", {"query": "碎叶城", "modern_name": "托克马克"})
+
+    assert store.invalidate_person_search("李白") is True
+    assert store.invalidate_place_map("碎叶城") is True
+
+    reloaded = story_agent_memory.StoryAgentMemoryStore(str(path))
+    assert reloaded.get_person_search("李白") is None
+    assert reloaded.get_place_map("碎叶城") is None
+
+
+def test_story_agent_memory_store_ignores_old_schema_and_rewrites_new_payload(tmp_path):
+    path = tmp_path / "story_agent_memory.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": story_agent_memory.DEFAULT_MEMORY_SCHEMA_VERSION - 1,
+                "people": {
+                    "李白": {
+                        "search_result": {"person": "李白", "summary": "旧缓存"},
+                        "updated_at": time.time(),
+                    }
+                },
+                "places": {},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    store = story_agent_memory.StoryAgentMemoryStore(str(path))
+
+    assert store.get_person_search("李白") is None
+    store.set_person_search("杜甫", {"person": "杜甫", "summary": "唐代诗人"})
+
+    reloaded_payload = json.loads(path.read_text(encoding="utf-8"))
+    assert reloaded_payload["schema_version"] == story_agent_memory.DEFAULT_MEMORY_SCHEMA_VERSION
+    assert "李白" not in reloaded_payload["people"]
+    assert reloaded_payload["people"]["杜甫"]["search_result"]["person"] == "杜甫"

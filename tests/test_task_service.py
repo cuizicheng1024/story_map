@@ -1,4 +1,5 @@
 import logging
+import json
 import sys
 import time
 from pathlib import Path
@@ -200,3 +201,43 @@ def test_task_service_marks_inflight_tasks_failed_after_restart(tmp_path):
         assert labels[-1] == "中断"
     finally:
         restored.shutdown()
+
+
+def test_task_service_migrates_legacy_json_state_into_sqlite(tmp_path):
+    _make_story_dir(tmp_path, "霍去病")
+    runtime_dir = tmp_path / "artifacts" / "runtime"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    legacy_path = runtime_dir / "task_state.json"
+    legacy_path.write_text(
+        json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "legacy-task",
+                        "text": "霍去病",
+                        "status": "completed",
+                        "created_at": time.time(),
+                        "updated_at": time.time(),
+                        "progress": [],
+                        "result": {"ok": True, "people": ["霍去病"]},
+                        "error": "",
+                        "queue": {},
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    service = _build_service(tmp_path)
+    try:
+        snapshot = service.snapshot_task("legacy-task")
+        sqlite_path = tmp_path / "artifacts" / "runtime" / "task_state.sqlite3"
+
+        assert snapshot["ok"] is True
+        assert snapshot["status"] == "completed"
+        assert snapshot["result"]["people"] == ["霍去病"]
+        assert sqlite_path.exists()
+    finally:
+        service.shutdown()

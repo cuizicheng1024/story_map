@@ -22,6 +22,7 @@ except Exception:
 try:
     from . import generation_service as generation_service_utils
     from . import parsers as parser_utils
+    from .story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
     from .story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
     from .story_agent_fallbacks import (
         fallback_generate_markdown,
@@ -39,10 +40,13 @@ try:
         merge_state,
         record_degraded_reason,
     )
-    from .story_tooling import invoke_tool, tool
+    from .story_agent_telemetry import copy_memory_counters, set_memory_access, update_memory_counters
+    from .story_agent_tool_runner import ToolCallError, call_tool
+    from .story_tooling import tool
 except ImportError:
     import generation_service as generation_service_utils
     import parsers as parser_utils
+    from story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
     from story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
     from story_agent_fallbacks import fallback_generate_markdown, fallback_search_result, fallback_validation
     from story_agent_router import build_supervisor_update, resolve_next_step
@@ -56,54 +60,9 @@ except ImportError:
         merge_state,
         record_degraded_reason,
     )
-    from story_tooling import invoke_tool, tool
-
-
-class ToolCallError(RuntimeError):
-    def __init__(
-        self,
-        message: str,
-        *,
-        tool_traces: List[Dict[str, object]],
-        llm_calls_used: int,
-        original: Optional[Exception] = None,
-    ) -> None:
-        super().__init__(message)
-        self.tool_traces = list(tool_traces or [])
-        self.llm_calls_used = int(llm_calls_used)
-        self.original = original
-
-
-def _set_memory_access(func: Callable[..., object], *, bucket: str, hit: bool) -> None:
-    try:
-        setattr(func, "__memory_last_access__", {"bucket": str(bucket or "").strip(), "hit": bool(hit)})
-    except Exception:
-        return
-
-
-def _consume_memory_access(func: Callable[..., object]) -> Dict[str, object]:
-    access = getattr(func, "__memory_last_access__", None)
-    try:
-        setattr(func, "__memory_last_access__", None)
-    except Exception:
-        pass
-    return dict(access) if isinstance(access, dict) else {}
-
-
-def _update_memory_counters(
-    state: StoryAgentState,
-    access: Dict[str, object],
-) -> tuple[Dict[str, int], Dict[str, int]]:
-    hits = dict(state.get("memory_hits") or {})
-    misses = dict(state.get("memory_misses") or {})
-    bucket = str(access.get("bucket") or "").strip()
-    if not bucket:
-        return hits, misses
-    if bool(access.get("hit")):
-        hits[bucket] = int(hits.get(bucket) or 0) + 1
-    else:
-        misses[bucket] = int(misses.get(bucket) or 0) + 1
-    return hits, misses
+    from story_agent_telemetry import copy_memory_counters, set_memory_access, update_memory_counters
+    from story_agent_tool_runner import ToolCallError, call_tool
+    from story_tooling import tool
 
 
 _DYNASTY_TOKENS = (
@@ -163,49 +122,6 @@ def _emit(llm: object, message: str) -> None:
         callback(message)
     except Exception:
         return
-
-
-def _strip_code_fences(text: str) -> str:
-    body = str(text or "").strip()
-    if body.startswith("```"):
-        body = re.sub(r"^```[a-zA-Z0-9_-]*\n?", "", body)
-        body = re.sub(r"\n?```$", "", body)
-    return body.strip()
-
-
-def _parse_json_payload(text: str) -> Optional[Dict[str, object]]:
-    body = _strip_code_fences(text)
-    if not body:
-        return None
-    candidates = [body]
-    match = re.search(r"(\{[\s\S]*\})", body)
-    if match:
-        candidates.append(match.group(1))
-    for candidate in candidates:
-        try:
-            obj = json.loads(candidate)
-        except Exception:
-            continue
-        if isinstance(obj, dict):
-            return obj
-    return None
-
-
-def _coerce_issue(
-    *,
-    field: str,
-    claim: str,
-    correction: str,
-    confidence: float,
-    reason: str,
-) -> AgentIssue:
-    return {
-        "field": field,
-        "claim": claim,
-        "correction": correction,
-        "confidence": round(float(confidence), 3),
-        "reason": reason,
-    }
 
 
 def _issue_field_from_text(text: str) -> str:
@@ -285,7 +201,7 @@ def _timeline_order_issues(parsed_doc: object) -> List[AgentIssue]:
         current_year, row = years[idx]
         if current_year < prev_year:
             issues.append(
-                _coerce_issue(
+                coerce_issue(
                     field="timeline",
                     claim=" | ".join(str(cell or "") for cell in row),
                     correction="按时间从早到晚重新排序时间线表",
@@ -305,7 +221,7 @@ def _location_precision_issues(parsed_doc: object) -> List[AgentIssue]:
         death_text = str(getattr(basic_info, "death_text", "") or "")
         if birth_text and _needs_modern_hint(birth_text):
             issues.append(
-                _coerce_issue(
+                coerce_issue(
                     field="location",
                     claim=birth_text,
                     correction="补充出生地对应的现代地名",
@@ -315,7 +231,7 @@ def _location_precision_issues(parsed_doc: object) -> List[AgentIssue]:
             )
         if death_text and _needs_modern_hint(death_text):
             issues.append(
-                _coerce_issue(
+                coerce_issue(
                     field="location",
                     claim=death_text,
                     correction="补充去世地对应的现代地名",
@@ -338,7 +254,7 @@ def _location_precision_issues(parsed_doc: object) -> List[AgentIssue]:
             ancient_name = str(row[modern_idx - 1] or "").strip() if modern_idx > 0 and modern_idx - 1 < len(row) else ""
             if ancient_name and not modern_name:
                 issues.append(
-                    _coerce_issue(
+                    coerce_issue(
                         field="location",
                         claim=" | ".join(str(cell or "") for cell in row),
                         correction="为该时间线条目补充现代地名",
@@ -363,7 +279,7 @@ def _lifespan_issues(parsed_doc: object) -> List[AgentIssue]:
     estimated = death_year - birth_year
     if abs(estimated - lifespan) > 1:
         issues.append(
-            _coerce_issue(
+            coerce_issue(
                 field="age",
                 claim=f"出生 {birth_year} 年，去世 {death_year} 年，享年 {lifespan} 岁",
                 correction=f"核对享年是否应为 {estimated} 岁左右",
@@ -407,26 +323,10 @@ def _llm_fact_check(
         timeline_excerpt=json.dumps(parsed_doc.timeline_rows[:8], ensure_ascii=False),
     )
     raw = llm.think([{"role": "system", "content": prompt}], temperature=0)
-    payload = _parse_json_payload(raw or "")
+    payload = parse_json_payload(raw or "")
     if not payload:
         return []
-    raw_issues = payload.get("issues") or []
-    if not isinstance(raw_issues, list):
-        return []
-    issues: List[AgentIssue] = []
-    for item in raw_issues:
-        if not isinstance(item, dict):
-            continue
-        issues.append(
-            _coerce_issue(
-                field=str(item.get("field") or "other"),
-                claim=str(item.get("claim") or ""),
-                correction=str(item.get("correction") or ""),
-                confidence=float(item.get("confidence") or 0.0),
-                reason=str(item.get("reason") or ""),
-            )
-        )
-    return issues
+    return coerce_issue_list(payload.get("issues") or [])
 
 
 def default_validate_markdown(
@@ -438,7 +338,7 @@ def default_validate_markdown(
     metrics = generation_service_utils.collect_quality_metrics(content)
     text_issues = generation_service_utils.validate_data_quality(content)
     issues: List[AgentIssue] = [
-        _coerce_issue(
+        coerce_issue(
             field=_issue_field_from_text(item),
             claim=item,
             correction="",
@@ -597,7 +497,7 @@ def default_search_person_info(
         ],
         temperature=0,
     )
-    payload = _parse_json_payload(raw or "")
+    payload = parse_json_payload(raw or "")
     if not payload:
         result["dynasty"] = _infer_dynasty(snippets, raw)
         result["summary"] = (raw or "").strip()
@@ -691,9 +591,9 @@ def create_agent_tools(
         if store is not None:
             cached = store.get_person_search(person_name)
             if isinstance(cached, dict) and cached.get("person"):
-                _set_memory_access(search_person_info, bucket="search", hit=True)
+                set_memory_access(search_person_info, bucket="search", hit=True)
                 return cached
-        _set_memory_access(search_person_info, bucket="search", hit=False)
+        set_memory_access(search_person_info, bucket="search", hit=False)
         result = search_impl(person_name)
         if store is not None and isinstance(result, dict) and result.get("person"):
             store.set_person_search(person_name, result)
@@ -717,9 +617,9 @@ def create_agent_tools(
         if store is not None:
             cached = store.get_place_map(place_name)
             if isinstance(cached, dict) and cached.get("query"):
-                _set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=True)
+                set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=True)
                 return cached
-        _set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=False)
+        set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=False)
         result = map_impl(place_name)
         if store is not None and isinstance(result, dict) and result.get("query"):
             store.set_place_map(place_name, result)
@@ -783,59 +683,6 @@ def list_agent_tools(tools: Dict[str, Callable[..., object]]) -> List[Dict[str, 
             }
         )
     return items
-
-
-def _tool_meta(func: Callable[..., object]) -> object:
-    return getattr(func, "__tool__", None)
-
-
-def _tool_tags(func: Callable[..., object]) -> set[str]:
-    meta = _tool_meta(func)
-    raw = getattr(meta, "tags", ()) if meta is not None else ()
-    return {str(item).strip() for item in raw if str(item).strip()}
-
-
-def _is_llm_tool(func: Callable[..., object]) -> bool:
-    tags = _tool_tags(func)
-    return bool({"llm", "llm_optional"} & tags)
-
-
-def _check_and_consume_llm_budget(
-    state: StoryAgentState,
-    func: Callable[..., object],
-) -> int:
-    if not _is_llm_tool(func):
-        return int(state.get("llm_calls_used") or 0)
-    used = int(state.get("llm_calls_used") or 0)
-    limit = max(0, int(state.get("llm_calls_limit") or 0))
-    if used >= limit:
-        raise RuntimeError(f"LLM_CALL_BUDGET_EXCEEDED:{used}/{limit}")
-    return used + 1
-
-
-def _call_tool(
-    state: StoryAgentState,
-    func: Callable[..., object],
-    payload: object,
-) -> tuple[object, List[Dict[str, object]], int, Dict[str, object]]:
-    tool_traces = list(state.get("tool_traces") or [])
-    llm_calls_used = int(state.get("llm_calls_used") or 0)
-    previous_trace_count = len(tool_traces)
-    try:
-        llm_calls_used = _check_and_consume_llm_budget(state, func)
-        result = invoke_tool(func, payload, trace_collector=tool_traces)
-    except Exception as exc:
-        raise ToolCallError(
-            str(exc),
-            tool_traces=tool_traces,
-            llm_calls_used=llm_calls_used,
-            original=exc if isinstance(exc, Exception) else None,
-        ) from exc
-    memory_access = _consume_memory_access(func)
-    if memory_access and len(tool_traces) > previous_trace_count and isinstance(tool_traces[-1], dict):
-        tool_traces[-1]["memory_bucket"] = str(memory_access.get("bucket") or "")
-        tool_traces[-1]["memory_hit"] = bool(memory_access.get("hit"))
-    return result, tool_traces, llm_calls_used, memory_access
 
 
 def _infer_dynasty(*texts: object) -> str:
@@ -902,15 +749,18 @@ def _search_agent_node_factory(
         _emit(llm, f"🔎 SearchAgent：检索 {state.get('person') or ''} 的资料")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
-        memory_hits = dict(state.get("memory_hits") or {})
-        memory_misses = dict(state.get("memory_misses") or {})
+        memory_hits, memory_misses = copy_memory_counters(state)
         try:
-            search_result, tool_traces, llm_calls_used, memory_access = _call_tool(
+            tool_run = call_tool(
                 state,
                 tools["search_person_info"],
                 str(state.get("person") or ""),
             )
-            memory_hits, memory_misses = _update_memory_counters(state, memory_access)
+            search_result = tool_run["result"]
+            tool_traces = tool_run["tool_traces"]
+            llm_calls_used = tool_run["llm_calls_used"]
+            memory_access = tool_run["memory_access"]
+            memory_hits, memory_misses = update_memory_counters(state, memory_access)
         except ToolCallError as exc:
             degraded_reasons = record_degraded_reason(degraded_reasons, f"search_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
@@ -943,17 +793,20 @@ def _map_agent_node_factory(
         tool_traces = list(state.get("tool_traces") or [])
         degraded_reasons = list(state.get("degraded_reasons") or [])
         llm_calls_used = int(state.get("llm_calls_used") or 0)
-        memory_hits = dict(state.get("memory_hits") or {})
-        memory_misses = dict(state.get("memory_misses") or {})
+        memory_hits, memory_misses = copy_memory_counters(state)
         working_state: StoryAgentState = dict(state)
         working_state["tool_traces"] = tool_traces
         working_state["llm_calls_used"] = llm_calls_used
         for place in places:
             try:
-                info, tool_traces, llm_calls_used, memory_access = _call_tool(working_state, tools["fetch_ancient_place_map"], place)
+                tool_run = call_tool(working_state, tools["fetch_ancient_place_map"], place)
+                info = tool_run["result"]
+                tool_traces = tool_run["tool_traces"]
+                llm_calls_used = tool_run["llm_calls_used"]
+                memory_access = tool_run["memory_access"]
                 working_state["tool_traces"] = tool_traces
                 working_state["llm_calls_used"] = llm_calls_used
-                memory_hits, memory_misses = _update_memory_counters(
+                memory_hits, memory_misses = update_memory_counters(
                     {"memory_hits": memory_hits, "memory_misses": memory_misses},
                     memory_access,
                 )
@@ -992,14 +845,16 @@ def _editor_agent_node_factory(
         _emit(llm, "📝 EditorAgent：生成或修订 Markdown")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
-        memory_hits = dict(state.get("memory_hits") or {})
-        memory_misses = dict(state.get("memory_misses") or {})
+        memory_hits, memory_misses = copy_memory_counters(state)
         try:
-            draft_markdown, tool_traces, llm_calls_used, _memory_access = _call_tool(
+            tool_run = call_tool(
                 state,
                 tools["generate_markdown"],
                 _build_editor_structure(state),
             )
+            draft_markdown = tool_run["result"]
+            tool_traces = tool_run["tool_traces"]
+            llm_calls_used = tool_run["llm_calls_used"]
         except ToolCallError as exc:
             degraded_reasons = record_degraded_reason(degraded_reasons, f"editor_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
@@ -1030,14 +885,16 @@ def _critic_agent_node_factory(
         _emit(llm, "🧪 CriticAgent：检查时间、地点和结构一致性")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
-        memory_hits = dict(state.get("memory_hits") or {})
-        memory_misses = dict(state.get("memory_misses") or {})
+        memory_hits, memory_misses = copy_memory_counters(state)
         try:
-            validation, tool_traces, llm_calls_used, _memory_access = _call_tool(
+            tool_run = call_tool(
                 state,
                 tools["validate_markdown"],
                 str(state.get("draft_markdown") or ""),
             )
+            validation = tool_run["result"]
+            tool_traces = tool_run["tool_traces"]
+            llm_calls_used = tool_run["llm_calls_used"]
         except ToolCallError as exc:
             degraded_reasons = record_degraded_reason(degraded_reasons, f"critic_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
