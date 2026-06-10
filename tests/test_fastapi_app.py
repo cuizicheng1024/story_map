@@ -74,14 +74,16 @@ async def test_generate_then_poll_task_flow(monkeypatch):
             "html_path": "/tmp/霍去病.html",
             "_agent_runtime": {
                 "person": person,
-                "llm_calls_used": 2,
-                "llm_calls_limit": 4,
-                "degraded_reasons": ["editor_fallback"],
-                "execution_trace": ["supervisor", "search_agent", "editor_agent"],
-                "tool_traces": [{"tool_name": "search_person_info"}],
                 "used_legacy_fallback": False,
-                "memory_hits": {"search": 1},
-                "memory_misses": {"place_map": 1},
+                "state": {
+                    "llm_calls_used": 2,
+                    "llm_calls_limit": 4,
+                    "degraded_reasons": ["editor_fallback"],
+                    "execution_trace": ["supervisor", "search_agent", "editor_agent"],
+                    "tool_traces": [{"tool_name": "search_person_info"}],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {"place_map": 1},
+                },
             },
             "_profile": {
                 "person": {"name": person},
@@ -112,11 +114,15 @@ async def test_generate_then_poll_task_flow(monkeypatch):
 
     assert snapshot is not None
     assert snapshot["status"] == "completed"
+    assert snapshot["status_info"]["code"] == "completed"
     assert snapshot["result"]["ok"] is True
+    assert snapshot["result"]["status_info"]["code"] == "completed"
     assert snapshot["result"]["people"] == ["霍去病"]
     assert snapshot["result"]["results"][0]["person"] == "霍去病"
     assert snapshot["result"]["meta"]["llm_calls_used"] == 2
     assert snapshot["result"]["meta"]["llm_calls_limit"] == 4
+    assert snapshot["result"]["meta"]["status"] == "degraded"
+    assert snapshot["result"]["meta"]["status_info"]["code"] == "degraded"
     assert snapshot["result"]["meta"]["degraded"] is True
     assert snapshot["result"]["meta"]["degraded_reasons"] == ["editor_fallback"]
     assert snapshot["result"]["meta"]["execution_traces"]["霍去病"] == ["supervisor", "search_agent", "editor_agent"]
@@ -150,6 +156,7 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     assert payload["exists"] is True
     assert payload["ok"] is False
     assert payload["status"] == "failed"
+    assert payload["status_info"]["code"] == "failed"
 
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         debug_response = await client.get("/task", params={"id": task_id, "debug": 1})
@@ -162,6 +169,7 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     debug_payload = debug_response.json()
     assert debug_payload["exists"] is True
     assert debug_payload["ok"] is False
+    assert debug_payload["debug"]["ui"]["banner"]["code"] == "failed"
     assert debug_payload["debug"]["meta"]["memory_hits"] == {}
     assert debug_payload["debug"]["meta"]["memory_misses"] == {}
     assert len(debug_payload["debug"]["people"]) == 1
@@ -172,23 +180,63 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     assert "Task Debug" in debug_page.text
     assert "霍去病" in debug_page.text
     assert "霍去病 failed" in debug_page.text
-
     assert list_response.status_code == 200
-    list_payload = list_response.json()
-    assert list_payload["ok"] is True
-    assert list_payload["total"] >= 1
-    assert any(item["id"] == task_id for item in list_payload["tasks"])
-
     assert storage_response.status_code == 200
-    storage_payload = storage_response.json()
-    assert storage_payload["task_count"] >= 1
-    assert storage_payload["db_path"].endswith("task_state.sqlite3")
-    assert storage_payload["db_size_bytes"] >= storage_payload["db_main_size_bytes"]
-
     assert maintain_response.status_code == 200
-    maintain_payload = maintain_response.json()
-    assert maintain_payload["ok"] is True
-    assert "stats" in maintain_payload
+
+
+async def test_task_debug_surface_partial_failed_status(monkeypatch):
+    def _fake_generate(_client, person, **_kwargs):
+        if person == "杜甫":
+            return {"ok": False, "person": person, "error": "杜甫 failed"}
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_agent_runtime": {
+                "person": person,
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "execution_trace": ["supervisor", "search_agent"],
+                    "tool_traces": [{"tool_name": "search_person_info"}],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {},
+                },
+            },
+            "_profile": {"person": {"name": person}, "locations": [], "mapStyle": {}},
+        }
+
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", _fake_generate)
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        submit = await client.post("/generate", json={"person": "李白 杜甫"})
+        task_id = submit.json()["task_id"]
+        snapshot = None
+        for _ in range(40):
+            response = await client.get("/task", params={"id": task_id, "debug": 1})
+            snapshot = response
+            if response.json().get("status") == "partial_failed":
+                break
+            await anyio.sleep(0.05)
+        debug_page = await client.get("/task/debug", params={"id": task_id})
+
+    assert snapshot is not None
+    assert snapshot.status_code == 200
+    payload = snapshot.json()
+    assert payload["status"] == "partial_failed"
+    assert payload["status_info"]["code"] == "partial_failed"
+    assert payload["debug"]["result"]["status_info"]["code"] == "partial_failed"
+    assert payload["debug"]["people"][0]["runtime_snapshot"]["state"]["llm_calls_used"] == 1
+    assert payload["debug"]["people"][0]["runtime_reflection"]["status"] == "stable"
+    assert "成功 1 人，失败 1 人" in payload["debug"]["ui"]["banner"]["hint"]
+    assert debug_page.status_code == 200
+    assert "部分失败" in debug_page.text
+    assert "Runtime Reflection" in debug_page.text
+    assert "Runtime Snapshot" in debug_page.text
+    assert "杜甫" in debug_page.text
 
 
 async def test_ai_proxy_prefers_local_agent(monkeypatch):

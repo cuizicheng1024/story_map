@@ -7,9 +7,11 @@ from typing import Callable, Dict, List, Optional
 try:
     from . import parsers as parser_utils
     from .story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
+    from .story_agent_runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
 except ImportError:
     import parsers as parser_utils
     from story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
+    from story_agent_runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
 
 
 def summarize_samples(items: List[str], limit: int = 3) -> str:
@@ -177,6 +179,10 @@ def _build_render_failure_result(
 
 def extract_agent_runtime_metadata(client: object) -> Dict[str, object]:
     return _extract_agent_runtime_metadata(client)
+
+
+def normalize_runtime_snapshot(client: object) -> Dict[str, object]:
+    return _normalize_runtime_snapshot(client)
 
 
 def _cache_older_than_dependencies(html_path: str, dependency_paths: List[str]) -> bool:
@@ -381,7 +387,7 @@ def generate_for_person(
     t_md = time.perf_counter() - t_step
     if not md:
         return {"ok": False, "person": person, "error": "未取得内容"}
-    agent_runtime = extract_agent_runtime_metadata(client)
+    agent_runtime = normalize_runtime_snapshot(client)
     if progress:
         progress(f"{person} 解析地点坐标")
     t_step = time.perf_counter()

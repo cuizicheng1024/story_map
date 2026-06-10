@@ -46,6 +46,7 @@ def test_create_agent_tools_expose_expected_names():
 
 def test_story_markdown_agent_revises_after_critic_feedback():
     calls = []
+    editor_structures = []
 
     def _search(person_name: str):
         calls.append(f"search:{person_name}")
@@ -72,6 +73,7 @@ def test_story_markdown_agent_revises_after_critic_feedback():
 
     def _generate(structure):
         calls.append("edit")
+        editor_structures.append(structure)
         feedback = structure.get("critic_feedback") or []
         if feedback:
             return (
@@ -147,6 +149,9 @@ def test_story_markdown_agent_revises_after_critic_feedback():
     assert result["state"]["execution_trace"].count("critic_agent") == 2
     assert len(result["state"]["tool_traces"]) == 7
     assert all("tool_name" in item for item in result["state"]["tool_traces"])
+    assert editor_structures[0]["runtime_reflection"]["tool_summary"]["total_calls"] >= 1
+    assert "运行时反思" in editor_structures[0]["runtime_reflection_prompt"]
+    assert editor_structures[1]["runtime_reflection"]["retry_summary"]["revision_count"] == 1
     assert calls == [
         "search:李白",
         "map:碎叶城",

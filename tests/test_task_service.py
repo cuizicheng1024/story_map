@@ -164,9 +164,13 @@ def test_task_service_marks_partial_failures_with_structured_status(tmp_path):
         assert snapshot["exists"] is True
         assert snapshot["ok"] is False
         assert snapshot["status"] == "partial_failed"
+        assert snapshot["status_info"]["code"] == "partial_failed"
+        assert snapshot["status_info"]["level"] == "warning"
         assert "杜甫 no data" in snapshot["error"]
         assert snapshot["result"]["status"] == "partial_failed"
         assert snapshot["result"]["ok"] is False
+        assert snapshot["result"]["status_info"]["code"] == "partial_failed"
+        assert "成功 1 人，失败 1 人" in snapshot["result"]["status_info"]["hint"]
         assert snapshot["result"]["success_count"] == 1
         assert snapshot["result"]["failed_count"] == 1
         assert snapshot["result"]["failed_people"] == ["杜甫"]
@@ -290,13 +294,15 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
             "html_path": f"/tmp/{person}.html",
             "_agent_runtime": {
                 "person": person,
-                "llm_calls_used": 1,
-                "llm_calls_limit": 4,
-                "degraded_reasons": [],
-                "execution_trace": ["supervisor", "search_agent"],
-                "tool_traces": [{"tool_name": "search_person_info"}],
-                "memory_hits": {"search": 1},
-                "memory_misses": {"place_map": 1},
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "degraded_reasons": [],
+                    "execution_trace": ["supervisor", "search_agent"],
+                    "tool_traces": [{"tool_name": "search_person_info"}],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {"place_map": 1},
+                },
             },
             "_profile": {
                 "person": {"name": person},
@@ -315,7 +321,14 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
 
         assert snapshot["status"] == "completed"
         assert debug_snapshot["debug"]["meta"]["memory_hits"] == {"search": 1}
+        assert debug_snapshot["debug"]["meta"]["status"] == "ok"
+        assert debug_snapshot["debug"]["meta"]["status_info"]["code"] == "ok"
+        assert debug_snapshot["debug"]["result"]["status"] == "completed"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "completed"
         assert debug_snapshot["debug"]["people"][0]["runtime"]["execution_trace"] == ["supervisor", "search_agent"]
+        assert debug_snapshot["debug"]["people"][0]["runtime_snapshot"]["state"]["execution_trace"] == ["supervisor", "search_agent"]
+        assert debug_snapshot["debug"]["people"][0]["runtime_reflection"]["tool_summary"]["total_calls"] == 1
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["status"] == "ok"
         assert "input_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
         assert "output_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
         assert query_payload["ok"] is True

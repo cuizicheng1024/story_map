@@ -29,6 +29,7 @@ try:
         fallback_search_result,
         fallback_validation,
     )
+    from .story_agent_runtime import build_runtime_reflection, build_runtime_reflection_prompt
     from .story_agent_router import build_supervisor_update, resolve_next_step
     from .story_agent_state import (
         AgentIssue,
@@ -49,6 +50,7 @@ except ImportError:
     from story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
     from story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
     from story_agent_fallbacks import fallback_generate_markdown, fallback_search_result, fallback_validation
+    from story_agent_runtime import build_runtime_reflection, build_runtime_reflection_prompt
     from story_agent_router import build_supervisor_update, resolve_next_step
     from story_agent_state import (
         AgentIssue,
@@ -539,15 +541,18 @@ def default_generate_markdown(structure: Dict[str, object], *, llm: object = Non
     research = json.dumps(structure.get("search_result") or {}, ensure_ascii=False, indent=2)
     place_maps = json.dumps(structure.get("place_maps") or [], ensure_ascii=False, indent=2)
     critic_feedback = json.dumps(structure.get("critic_feedback") or [], ensure_ascii=False, indent=2)
+    runtime_reflection = str(structure.get("runtime_reflection_prompt") or "").strip()
     user_prompt = (
         f"请根据以下结构化资料生成历史人物「{structure.get('person') or ''}」的最终 Markdown。\n\n"
         f"检索资料：\n{research}\n\n"
         f"古今地名映射：\n{place_maps}\n\n"
         f"Critic 反馈（若为空则代表首稿）：\n{critic_feedback}\n\n"
+        f"{runtime_reflection or '运行时反思：\n- 当前状态：stable'}\n\n"
         "要求：\n"
         "1. 严格遵守系统提示词版式；\n"
         "2. 如果 Critic 提示某个地点不够精确，要在正文和时间线里补出现代地名；\n"
-        "3. 如果资料有存疑点，用“存疑/说法不一”表达，不要编造。"
+        "3. 如果资料有存疑点，用“存疑/说法不一”表达，不要编造；\n"
+        "4. 优先吸收运行时反思里的瓶颈与下一步动作，避免重复上一轮失败模式。"
     )
     return llm.think(
         [
@@ -723,6 +728,7 @@ def _extract_places_for_mapping(state: StoryAgentState) -> List[str]:
 
 
 def _build_editor_structure(state: StoryAgentState) -> Dict[str, object]:
+    runtime_reflection = build_runtime_reflection(state)
     return {
         "person": state.get("person") or "",
         "plan": state.get("plan") or [],
@@ -730,6 +736,8 @@ def _build_editor_structure(state: StoryAgentState) -> Dict[str, object]:
         "place_maps": state.get("place_maps") or [],
         "critic_feedback": state.get("critic_feedback") or [],
         "previous_draft": state.get("draft_markdown") or "",
+        "runtime_reflection": runtime_reflection,
+        "runtime_reflection_prompt": build_runtime_reflection_prompt(state),
     }
 
 

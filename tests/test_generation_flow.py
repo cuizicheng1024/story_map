@@ -174,12 +174,12 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert result["_state"]["person"] == person
     assert result["_state"]["stage"] == "done"
     assert result["_state"]["quality_issues"] == []
-    assert result["_agent_runtime"]["llm_calls_used"] == 2
-    assert result["_agent_runtime"]["execution_trace"] == ["supervisor", "search_agent", "editor_agent", "critic_agent"]
-    assert result["_agent_runtime"]["tool_traces"] == [{"tool_name": "search_person_info"}]
-    assert result["_agent_runtime"]["memory_hits"] == {"search": 1}
-    assert result["_agent_runtime"]["memory_misses"] == {"place_map": 1}
-    assert result["_state"]["agent_runtime"]["llm_calls_limit"] == 4
+    assert result["_agent_runtime"]["state"]["llm_calls_used"] == 2
+    assert result["_agent_runtime"]["state"]["execution_trace"] == ["supervisor", "search_agent", "editor_agent", "critic_agent"]
+    assert result["_agent_runtime"]["state"]["tool_traces"] == [{"tool_name": "search_person_info"}]
+    assert result["_agent_runtime"]["state"]["memory_hits"] == {"search": 1}
+    assert result["_agent_runtime"]["state"]["memory_misses"] == {"place_map": 1}
+    assert result["_state"]["agent_runtime"]["state"]["llm_calls_limit"] == 4
     assert result["_state"]["agent_runtime"]["tool_specs"] == [{"name": "search_person_info"}]
     assert refreshed == [person]
     assert md_path.exists()
