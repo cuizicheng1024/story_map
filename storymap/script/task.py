@@ -32,6 +32,48 @@ _TASK_LIKE_TOKENS = (
 )
 
 
+def _collect_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str, object]:
+    llm_calls_used = 0
+    llm_calls_limit = 0
+    degraded_reasons: List[str] = []
+    execution_traces: Dict[str, List[str]] = {}
+    tool_trace_count = 0
+    used_legacy_fallback = False
+    for result in results:
+        runtime = result.get("_agent_runtime")
+        if not isinstance(runtime, dict):
+            continue
+        try:
+            llm_calls_used += int(runtime.get("llm_calls_used") or 0)
+        except Exception:
+            pass
+        try:
+            llm_calls_limit += int(runtime.get("llm_calls_limit") or 0)
+        except Exception:
+            pass
+        used_legacy_fallback = used_legacy_fallback or bool(runtime.get("used_legacy_fallback"))
+        for item in runtime.get("degraded_reasons") or []:
+            reason = str(item or "").strip()
+            if reason and reason not in degraded_reasons:
+                degraded_reasons.append(reason)
+        person = str(result.get("person") or runtime.get("person") or "").strip()
+        trace = runtime.get("execution_trace") or []
+        if person and isinstance(trace, list):
+            execution_traces[person] = [str(item) for item in trace]
+        tool_traces = runtime.get("tool_traces") or []
+        if isinstance(tool_traces, list):
+            tool_trace_count += len(tool_traces)
+    return {
+        "llm_calls_used": llm_calls_used,
+        "llm_calls_limit": llm_calls_limit,
+        "degraded": bool(degraded_reasons),
+        "degraded_reasons": degraded_reasons,
+        "used_legacy_fallback": used_legacy_fallback,
+        "execution_traces": execution_traces,
+        "tool_trace_count": tool_trace_count,
+    }
+
+
 def _looks_like_person_atom(text: str) -> bool:
     cleaned = str(text or "").strip()
     if not cleaned:
@@ -386,6 +428,7 @@ class TaskService:
             "conclusion": conclusion,
             "files": [],
         }
+        summary["meta"] = _collect_result_runtime_meta(results)
         for result in results:
             if not result.get("ok"):
                 continue

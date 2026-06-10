@@ -72,6 +72,15 @@ async def test_generate_then_poll_task_flow(monkeypatch):
             "person": person,
             "markdown_path": "/tmp/霍去病.md",
             "html_path": "/tmp/霍去病.html",
+            "_agent_runtime": {
+                "person": person,
+                "llm_calls_used": 2,
+                "llm_calls_limit": 4,
+                "degraded_reasons": ["editor_fallback"],
+                "execution_trace": ["supervisor", "search_agent", "editor_agent"],
+                "tool_traces": [{"tool_name": "search_person_info"}],
+                "used_legacy_fallback": False,
+            },
             "_profile": {
                 "person": {"name": person},
                 "locations": [],
@@ -104,6 +113,13 @@ async def test_generate_then_poll_task_flow(monkeypatch):
     assert snapshot["result"]["ok"] is True
     assert snapshot["result"]["people"] == ["霍去病"]
     assert snapshot["result"]["results"][0]["person"] == "霍去病"
+    assert snapshot["result"]["meta"]["llm_calls_used"] == 2
+    assert snapshot["result"]["meta"]["llm_calls_limit"] == 4
+    assert snapshot["result"]["meta"]["degraded"] is True
+    assert snapshot["result"]["meta"]["degraded_reasons"] == ["editor_fallback"]
+    assert snapshot["result"]["meta"]["execution_traces"]["霍去病"] == ["supervisor", "search_agent", "editor_agent"]
+    assert snapshot["result"]["meta"]["tool_trace_count"] == 1
+    assert snapshot["result"]["meta"]["used_legacy_fallback"] is False
 
 
 async def test_ai_proxy_prefers_local_agent(monkeypatch):

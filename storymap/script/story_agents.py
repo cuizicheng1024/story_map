@@ -5,14 +5,18 @@
 import argparse
 import json
 import os
+import time
+import uuid
 import requests
 import urllib3
 from typing import Dict, List, Optional, Tuple
 
 try:
     from .env_utils import load_project_env
+    from . import story_agent_graph as story_agent_graph_utils
 except ImportError:
     from env_utils import load_project_env
+    import story_agent_graph as story_agent_graph_utils
 
 # 禁用 urllib3 的不安全请求警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -25,6 +29,76 @@ def _project_root() -> str:
 load_project_env(from_file=__file__, override=False)
 
 _MAX_TEXT_LEN = 200
+
+
+class LLMRequestError(RuntimeError):
+    def __init__(
+        self,
+        message: str,
+        *,
+        classification: str,
+        request_id: str,
+        provider: str,
+        endpoint: str,
+        status_code: Optional[int] = None,
+        duration_ms: int = 0,
+        retryable: bool = True,
+        response_excerpt: str = "",
+    ):
+        super().__init__(message)
+        self.classification = classification
+        self.request_id = request_id
+        self.provider = provider
+        self.endpoint = endpoint
+        self.status_code = status_code
+        self.duration_ms = duration_ms
+        self.retryable = retryable
+        self.response_excerpt = response_excerpt
+
+
+def _safe_excerpt(text: object, limit: int = 240) -> str:
+    content = str(text or "").strip()
+    if len(content) <= limit:
+        return content
+    return f"{content[: limit - 3]}..."
+
+
+def _message_stats(messages: List[Dict[str, str]]) -> Dict[str, int]:
+    total_chars = 0
+    total_messages = 0
+    for item in messages or []:
+        if not isinstance(item, dict):
+            continue
+        total_messages += 1
+        total_chars += len(str(item.get("content") or ""))
+    return {"message_count": total_messages, "char_count": total_chars}
+
+
+def _classify_request_exception(exc: Exception) -> str:
+    message = str(exc or "").lower()
+    if isinstance(exc, requests.Timeout):
+        return "timeout"
+    if isinstance(exc, requests.SSLError):
+        return "ssl"
+    if isinstance(exc, requests.ConnectionError):
+        if "connection reset" in message or "reset by peer" in message:
+            return "connection_reset"
+        if "name resolution" in message or "temporary failure in name resolution" in message:
+            return "dns"
+        return "network"
+    if isinstance(exc, requests.HTTPError):
+        response = getattr(exc, "response", None)
+        status = getattr(response, "status_code", None)
+        if status in {401, 403}:
+            return "auth"
+        if status == 429:
+            return "rate_limit"
+        if isinstance(status, int):
+            if 400 <= status < 500:
+                return "http_4xx"
+            if status >= 500:
+                return "http_5xx"
+    return "unknown"
 
 
 def _validate_person(text: object) -> Optional[str]:
@@ -110,6 +184,10 @@ class StoryAgentLLM:
         self.provider = provider
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", os.getenv("MINIMAX_MAX_TOKENS", "4096")) or "4096")
         self._uses_anthropic_api = self._detect_anthropic_api(self.baseUrl, self.provider)
+        self.max_trace_entries = int(os.getenv("LLM_TRACE_MAX_ENTRIES", "50") or "50")
+        self.request_traces: List[Dict[str, object]] = []
+        self.last_request_trace: Dict[str, object] = {}
+        self.last_agent_runtime: Dict[str, object] = {}
 
         self.tool_id = "bigmodel.chat.completions.create.v4.bbf1f5ab"
 
@@ -124,8 +202,90 @@ class StoryAgentLLM:
         except Exception:
             pass
 
+    def _store_trace(self, trace: Dict[str, object]) -> None:
+        self.last_request_trace = dict(trace)
+        self.request_traces.append(dict(trace))
+        if len(self.request_traces) > self.max_trace_entries:
+            self.request_traces = self.request_traces[-self.max_trace_entries :]
+
+    def latest_trace(self) -> Dict[str, object]:
+        return dict(self.last_request_trace)
+
+    def health_snapshot(self) -> Dict[str, object]:
+        return {
+            "provider": self.provider,
+            "model": self.model,
+            "base_url": self.baseUrl,
+            "timeout": self.timeout,
+            "uses_anthropic_api": self._uses_anthropic_api,
+            "last_request_trace": self.latest_trace(),
+        }
+
+    def _post_json(
+        self,
+        *,
+        url: str,
+        headers: Dict[str, str],
+        payload: Dict[str, object],
+        request_id: str,
+        verify: bool = True,
+    ) -> Tuple[requests.Response, Dict[str, object]]:
+        request_headers = dict(headers or {})
+        request_headers.setdefault("X-Request-Id", request_id)
+        started = time.perf_counter()
+        try:
+            resp = requests.post(url, headers=request_headers, json=payload, timeout=self.timeout, verify=verify)
+        except requests.RequestException as exc:
+            duration_ms = int((time.perf_counter() - started) * 1000)
+            classification = _classify_request_exception(exc)
+            raise LLMRequestError(
+                str(exc),
+                classification=classification,
+                request_id=request_id,
+                provider=self.provider,
+                endpoint=url,
+                duration_ms=duration_ms,
+                retryable=classification not in {"auth", "http_4xx"},
+            ) from exc
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        meta = {
+            "status_code": resp.status_code,
+            "duration_ms": duration_ms,
+            "response_request_id": resp.headers.get("x-request-id")
+            or resp.headers.get("request-id")
+            or resp.headers.get("trace-id")
+            or "",
+        }
+        return resp, meta
+
+    def _raise_http_error(
+        self,
+        *,
+        response: requests.Response,
+        request_id: str,
+        duration_ms: int,
+    ) -> None:
+        classification = "http_4xx"
+        status_code = int(response.status_code)
+        if status_code in {401, 403}:
+            classification = "auth"
+        elif status_code == 429:
+            classification = "rate_limit"
+        elif status_code >= 500:
+            classification = "http_5xx"
+        raise LLMRequestError(
+            f"HTTP {status_code}: {_safe_excerpt(response.text)}",
+            classification=classification,
+            request_id=request_id,
+            provider=self.provider,
+            endpoint=str(response.request.url if response.request else ""),
+            status_code=status_code,
+            duration_ms=duration_ms,
+            retryable=classification not in {"auth", "http_4xx"},
+            response_excerpt=_safe_excerpt(response.text),
+        )
+
     def think(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
-        import time
         silent = (os.getenv("STORY_AGENT_SILENT") or "").strip().lower() in {"1", "true", "yes", "y", "on"}
         max_retries = 3
         provider = (self.provider or "qveris").strip().lower()
@@ -137,13 +297,35 @@ class StoryAgentLLM:
         if not silent:
             print(f"🧠 正在调用 {self.model} 模型 (via {provider})...")
         self._emit(f"🧠 正在调用 {self.model} 模型 (via {provider})...")
+        request_id = uuid.uuid4().hex[:12]
+        base_trace: Dict[str, object] = {
+            "request_id": request_id,
+            "provider": provider,
+            "model": self.model,
+            "base_url": self.baseUrl,
+            "temperature": float(temperature),
+            "message_stats": _message_stats(messages),
+            "max_retries": max_retries,
+        }
 
         for attempt in range(1, max_retries + 1):
+            started = time.perf_counter()
             try:
                 if provider == "minimax":
-                    content = self._think_minimax(messages, temperature=temperature)
+                    content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
                 else:
-                    content = self._think_qveris(messages, temperature=temperature)
+                    content, meta = self._think_qveris(messages, temperature=temperature, request_id=request_id)
+                duration_ms = int((time.perf_counter() - started) * 1000)
+                trace = {
+                    **base_trace,
+                    **meta,
+                    "attempt": attempt,
+                    "duration_ms": duration_ms,
+                    "success": True,
+                    "classification": "ok",
+                    "response_chars": len(str(content or "")),
+                }
+                self._store_trace(trace)
 
                 if content:
                     if not silent:
@@ -157,19 +339,64 @@ class StoryAgentLLM:
                     return ""
 
             except Exception as e:
+                duration_ms = int((time.perf_counter() - started) * 1000)
+                status_code = getattr(e, "status_code", None)
+                classification = getattr(e, "classification", "") or _classify_request_exception(e)
+                retryable = getattr(e, "retryable", True)
+                trace = {
+                    **base_trace,
+                    "attempt": attempt,
+                    "duration_ms": duration_ms,
+                    "success": False,
+                    "classification": classification,
+                    "status_code": status_code,
+                    "endpoint": getattr(e, "endpoint", ""),
+                    "error": str(e),
+                    "retryable": retryable,
+                    "response_excerpt": getattr(e, "response_excerpt", ""),
+                }
+                self._store_trace(trace)
                 if not silent:
-                    print(f"⚠️ 第 {attempt}/{max_retries} 次尝试失败: {e}")
-                if attempt < max_retries:
+                    print(f"⚠️ 第 {attempt}/{max_retries} 次尝试失败 [{classification}]: {e}")
+                if attempt < max_retries and retryable:
                     wait_time = 2 * attempt  # 简单的指数退避
                     if not silent:
                         print(f"⏳ {wait_time} 秒后重试...")
                     time.sleep(wait_time)
                 else:
                     if not silent:
-                        print(f"❌ 调用LLM API最终失败: {e}")
-                    self._emit(f"❌ 调用LLM API最终失败: {e}")
+                        print(f"❌ 调用LLM API最终失败 [{classification}] request_id={request_id}: {e}")
+                    self._emit(f"❌ 调用LLM API最终失败 [{classification}] request_id={request_id}: {e}")
+                    return None
 
-        return None
+    def check_health(
+        self,
+        *,
+        prompt: str = "请只回复 OK",
+        attempts: int = 1,
+        temperature: float = 0,
+    ) -> Dict[str, object]:
+        results: List[Dict[str, object]] = []
+        for _ in range(max(1, int(attempts))):
+            content = self.think([{"role": "user", "content": prompt}], temperature=temperature)
+            trace = self.latest_trace()
+            results.append(
+                {
+                    "ok": bool(content),
+                    "content_excerpt": _safe_excerpt(content),
+                    "trace": trace,
+                }
+            )
+        success_count = sum(1 for item in results if item["ok"])
+        return {
+            "ok": success_count == len(results),
+            "attempts": len(results),
+            "success_count": success_count,
+            "provider": self.provider,
+            "model": self.model,
+            "base_url": self.baseUrl,
+            "results": results,
+        }
 
     @staticmethod
     def _detect_anthropic_api(base_url: str, provider: str) -> bool:
@@ -224,12 +451,22 @@ class StoryAgentLLM:
             normalized = [{"role": "user", "content": "请继续。"}]
         return "\n\n".join(system_parts).strip(), normalized
 
-    def _think_minimax(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    def _think_minimax(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0,
+        request_id: str = "",
+    ) -> Tuple[str, Dict[str, object]]:
         if self._uses_anthropic_api:
-            return self._think_minimax_anthropic(messages, temperature=temperature)
-        return self._think_minimax_openai(messages, temperature=temperature)
+            return self._think_minimax_anthropic(messages, temperature=temperature, request_id=request_id)
+        return self._think_minimax_openai(messages, temperature=temperature, request_id=request_id)
 
-    def _think_minimax_openai(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    def _think_minimax_openai(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0,
+        request_id: str = "",
+    ) -> Tuple[str, Dict[str, object]]:
         url = f"{self.baseUrl.rstrip('/')}/chat/completions"
         headers = {
             "Content-Type": "application/json",
@@ -244,19 +481,25 @@ class StoryAgentLLM:
             "temperature": temperature,
             "stream": False,
         }
-        resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout)
-        resp.raise_for_status()
+        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
+        if not resp.ok:
+            self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
         choices = data.get("choices", []) if isinstance(data, dict) else []
         if choices and isinstance(choices[0], dict):
             message = choices[0].get("message") or {}
             if isinstance(message, dict):
-                return message.get("content") or ""
+                return message.get("content") or "", {"endpoint": url, **meta}
         if isinstance(data, dict) and isinstance(data.get("content"), str):
-            return data.get("content") or ""
-        return ""
+            return data.get("content") or "", {"endpoint": url, **meta}
+        return "", {"endpoint": url, **meta}
 
-    def _think_minimax_anthropic(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    def _think_minimax_anthropic(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0,
+        request_id: str = "",
+    ) -> Tuple[str, Dict[str, object]]:
         url = self._anthropic_endpoint(self.baseUrl)
         system_prompt, normalized_messages = self._normalize_anthropic_messages(messages)
         headers = {
@@ -273,10 +516,9 @@ class StoryAgentLLM:
             payload["system"] = system_prompt
         if temperature is not None:
             payload["temperature"] = temperature
-        resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout)
+        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
         if not resp.ok:
-            body = (resp.text or "").strip()
-            raise RuntimeError(f"MiniMax Token Plan request failed ({resp.status_code}): {body[:500]}")
+            self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
         blocks = data.get("content", []) if isinstance(data, dict) else []
         texts: List[str] = []
@@ -286,12 +528,17 @@ class StoryAgentLLM:
                 if text:
                     texts.append(text)
         if texts:
-            return "\n".join(texts).strip()
+            return "\n".join(texts).strip(), {"endpoint": url, **meta}
         if isinstance(data, dict) and isinstance(data.get("output_text"), str):
-            return data.get("output_text") or ""
-        return ""
+            return data.get("output_text") or "", {"endpoint": url, **meta}
+        return "", {"endpoint": url, **meta}
 
-    def _think_qveris(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    def _think_qveris(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0,
+        request_id: str = "",
+    ) -> Tuple[str, Dict[str, object]]:
         url = f"{self.baseUrl.rstrip('/')}/tools/execute"
         headers = {"Authorization": f"Bearer {self.apiKey}", "Content-Type": "application/json"}
         params_to_tool = {
@@ -302,12 +549,23 @@ class StoryAgentLLM:
             "Authorization": f"Bearer {self.apiKey}",
         }
         payload = {"tool_id": self.tool_id, "parameters": params_to_tool}
-        resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout, verify=False)
-        resp.raise_for_status()
+        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id, verify=False)
+        if not resp.ok:
+            self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
         if not data.get("success"):
             error_msg = data.get("error_message") or "Unknown error"
-            raise RuntimeError(f"Qveris execution failed: {error_msg}")
+            raise LLMRequestError(
+                f"Qveris execution failed: {error_msg}",
+                classification="upstream_error",
+                request_id=request_id,
+                provider=self.provider,
+                endpoint=url,
+                status_code=resp.status_code,
+                duration_ms=int(meta.get("duration_ms") or 0),
+                retryable=True,
+                response_excerpt=_safe_excerpt(error_msg),
+            )
         tool_result = data.get("result", {}).get("data", {})
         content = ""
         if isinstance(tool_result, dict):
@@ -317,7 +575,7 @@ class StoryAgentLLM:
                 content = message.get("content", "")
         if not content and isinstance(tool_result, str):
             content = tool_result
-        return content
+        return content, {"endpoint": url, **meta}
 
 
 def _read_prompt(relpath: str) -> str:
@@ -335,7 +593,7 @@ def _read_prompt(relpath: str) -> str:
         return f.read()
 
 
-def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[str]:
+def _legacy_generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[str]:
     """
     生成指定人物的生平 Markdown。
     """
@@ -348,7 +606,46 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
     return llm.think(messages, temperature=0.1)
 
 
-def extract_historical_figures(llm: "StoryAgentLLM", text: str) -> List[str]:
+def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[str]:
+    """
+    使用 Supervisor / Worker / Critic 的多 Agent 工作流生成 Markdown，
+    若图工作流不可用或返回空结果，则回退到原有单次生成逻辑。
+    """
+    if llm is not None:
+        llm.last_agent_runtime = {}
+    try:
+        result = story_agent_graph_utils.generate_markdown_with_agents(llm, person)
+        if llm is not None:
+            llm.last_agent_runtime = {
+                "person": person,
+                "max_llm_calls": result.get("max_llm_calls"),
+                "langgraph_available": bool(result.get("langgraph_available")),
+                "tool_specs": result.get("tool_specs") or [],
+                "state": result.get("state") or {},
+            }
+        markdown = str(result.get("markdown") or "").strip()
+        if markdown:
+            return markdown
+    except Exception as exc:
+        if llm and hasattr(llm, "_emit"):
+            llm._emit(f"⚠️ 多 Agent 工作流失败，回退单次生成：{exc}")
+        if llm is not None:
+            llm.last_agent_runtime = {
+                "person": person,
+                "fallback": "legacy_generate_historical_markdown",
+                "error": str(exc).strip() or exc.__class__.__name__,
+            }
+    markdown = _legacy_generate_historical_markdown(llm, person)
+    if llm is not None:
+        runtime = dict(getattr(llm, "last_agent_runtime", {}) or {})
+        runtime.setdefault("person", person)
+        runtime["used_legacy_fallback"] = True
+        runtime["legacy_markdown_ok"] = bool(str(markdown or "").strip())
+        llm.last_agent_runtime = runtime
+    return markdown
+
+
+def extract_historical_figures(llm: "StoryAgentLLM", text: object) -> List[str]:
     """
     从输入文本中抽取历史人物名称列表。
     """

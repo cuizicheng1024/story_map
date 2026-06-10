@@ -91,6 +91,7 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     md_path = tmp_path / f"{person}.md"
     out_html = tmp_path / f"{person}.html"
     refreshed = []
+    client = type("DummyClient", (), {})()
 
     monkeypatch.setattr(sm, "_story_paths", lambda _person: (str(md_path), str(out_html)))
     monkeypatch.setitem(sm._GENERATION_TOOLS, "geocode_markdown", lambda md: md + "\n\n## 地点坐标\n| 地点 | 纬度 | 经度 |\n| --- | --- | --- |\n| 黄冈 | 30.45 | 114.87 |\n")
@@ -112,13 +113,32 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
         sm,
         "generate_historical_markdown",
         lambda _client, requested_person: (
-            f"# {requested_person}\n\n"
-            "## 一、人物简介\n"
-            "- **出生**：湖北黄冈\n\n"
-            "## 四、生平时间线\n\n"
-            "| 年份 | 古称 | 现称 | 事件 |\n"
-            "| --- | --- | --- | --- |\n"
-            "| 1889年 | 黄冈 | 湖北黄冈 | 出生 |\n"
+            setattr(
+                _client,
+                "last_agent_runtime",
+                {
+                    "person": requested_person,
+                    "max_llm_calls": 4,
+                    "langgraph_available": True,
+                    "tool_specs": [{"name": "search_person_info"}],
+                    "state": {
+                        "llm_calls_used": 2,
+                        "llm_calls_limit": 4,
+                        "degraded_reasons": [],
+                        "execution_trace": ["supervisor", "search_agent", "editor_agent", "critic_agent"],
+                        "tool_traces": [{"tool_name": "search_person_info"}],
+                    },
+                },
+            )
+            or (
+                f"# {requested_person}\n\n"
+                "## 一、人物简介\n"
+                "- **出生**：湖北黄冈\n\n"
+                "## 四、生平时间线\n\n"
+                "| 年份 | 古称 | 现称 | 事件 |\n"
+                "| --- | --- | --- | --- |\n"
+                "| 1889年 | 黄冈 | 湖北黄冈 | 出生 |\n"
+            )
         ),
     )
     monkeypatch.setattr(sm, "compute_total_distance_km", lambda _md: None)
@@ -141,7 +161,7 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     monkeypatch.setattr(sm, "save_html", _save_html)
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: refreshed.append(requested_person) or {"ok": True, "person": requested_person})
 
-    result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
+    result = sm.generate_for_person(client=client, person=person, allow_cache=False)
 
     assert result["ok"] is True
     assert result["person"] == person
@@ -152,6 +172,11 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert result["_state"]["person"] == person
     assert result["_state"]["stage"] == "done"
     assert result["_state"]["quality_issues"] == []
+    assert result["_agent_runtime"]["llm_calls_used"] == 2
+    assert result["_agent_runtime"]["execution_trace"] == ["supervisor", "search_agent", "editor_agent", "critic_agent"]
+    assert result["_agent_runtime"]["tool_traces"] == [{"tool_name": "search_person_info"}]
+    assert result["_state"]["agent_runtime"]["llm_calls_limit"] == 4
+    assert result["_state"]["agent_runtime"]["tool_specs"] == [{"name": "search_person_info"}]
     assert refreshed == [person]
     assert md_path.exists()
     assert out_html.exists()

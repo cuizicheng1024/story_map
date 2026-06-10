@@ -23,6 +23,7 @@ class GenerationState:
     cached: bool = False
     refreshed: bool = False
     used_existing_markdown: bool = False
+    agent_runtime: Optional[Dict[str, object]] = None
 
 
 def _resolve_stage(result: Dict[str, object]) -> str:
@@ -92,6 +93,8 @@ def create_generation_api(
 
         profile = result.get("_profile")
         profile_data = profile if isinstance(profile, dict) else None
+        agent_runtime = result.get("_agent_runtime")
+        agent_runtime_data = agent_runtime if isinstance(agent_runtime, dict) else None
 
         return GenerationState(
             person=person,
@@ -105,6 +108,7 @@ def create_generation_api(
             cached=bool(result.get("cached")),
             refreshed=bool(result.get("refreshed")),
             used_existing_markdown=bool(result.get("used_existing_markdown")),
+            agent_runtime=agent_runtime_data,
         )
 
     def list_generation_tools() -> List[Dict[str, str]]:
