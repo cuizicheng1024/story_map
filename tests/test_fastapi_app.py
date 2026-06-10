@@ -80,6 +80,8 @@ async def test_generate_then_poll_task_flow(monkeypatch):
                 "execution_trace": ["supervisor", "search_agent", "editor_agent"],
                 "tool_traces": [{"tool_name": "search_person_info"}],
                 "used_legacy_fallback": False,
+                "memory_hits": {"search": 1},
+                "memory_misses": {"place_map": 1},
             },
             "_profile": {
                 "person": {"name": person},
@@ -120,6 +122,8 @@ async def test_generate_then_poll_task_flow(monkeypatch):
     assert snapshot["result"]["meta"]["execution_traces"]["霍去病"] == ["supervisor", "search_agent", "editor_agent"]
     assert snapshot["result"]["meta"]["tool_trace_count"] == 1
     assert snapshot["result"]["meta"]["used_legacy_fallback"] is False
+    assert snapshot["result"]["meta"]["memory_hits"] == {"search": 1}
+    assert snapshot["result"]["meta"]["memory_misses"] == {"place_map": 1}
 
 
 async def test_ai_proxy_prefers_local_agent(monkeypatch):

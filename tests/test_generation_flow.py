@@ -127,6 +127,8 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
                         "degraded_reasons": [],
                         "execution_trace": ["supervisor", "search_agent", "editor_agent", "critic_agent"],
                         "tool_traces": [{"tool_name": "search_person_info"}],
+                        "memory_hits": {"search": 1},
+                        "memory_misses": {"place_map": 1},
                     },
                 },
             )
@@ -175,6 +177,8 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert result["_agent_runtime"]["llm_calls_used"] == 2
     assert result["_agent_runtime"]["execution_trace"] == ["supervisor", "search_agent", "editor_agent", "critic_agent"]
     assert result["_agent_runtime"]["tool_traces"] == [{"tool_name": "search_person_info"}]
+    assert result["_agent_runtime"]["memory_hits"] == {"search": 1}
+    assert result["_agent_runtime"]["memory_misses"] == {"place_map": 1}
     assert result["_state"]["agent_runtime"]["llm_calls_limit"] == 4
     assert result["_state"]["agent_runtime"]["tool_specs"] == [{"name": "search_person_info"}]
     assert refreshed == [person]

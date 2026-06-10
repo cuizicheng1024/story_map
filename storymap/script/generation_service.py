@@ -6,8 +6,10 @@ from typing import Callable, Dict, List, Optional
 
 try:
     from . import parsers as parser_utils
+    from .story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
 except ImportError:
     import parsers as parser_utils
+    from story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
 
 
 def summarize_samples(items: List[str], limit: int = 3) -> str:
@@ -137,27 +139,7 @@ def render_html(
 
 
 def extract_agent_runtime_metadata(client: object) -> Dict[str, object]:
-    if client is None:
-        return {}
-    runtime = getattr(client, "last_agent_runtime", None)
-    if not isinstance(runtime, dict):
-        return {}
-    state = runtime.get("state") if isinstance(runtime.get("state"), dict) else {}
-    return {
-        "person": str(runtime.get("person") or ""),
-        "langgraph_available": bool(runtime.get("langgraph_available")),
-        "used_legacy_fallback": bool(runtime.get("used_legacy_fallback")),
-        "legacy_markdown_ok": bool(runtime.get("legacy_markdown_ok")),
-        "fallback": str(runtime.get("fallback") or ""),
-        "error": str(runtime.get("error") or ""),
-        "max_llm_calls": runtime.get("max_llm_calls"),
-        "tool_specs": runtime.get("tool_specs") or [],
-        "llm_calls_used": state.get("llm_calls_used"),
-        "llm_calls_limit": state.get("llm_calls_limit"),
-        "degraded_reasons": state.get("degraded_reasons") or [],
-        "execution_trace": state.get("execution_trace") or [],
-        "tool_traces": state.get("tool_traces") or [],
-    }
+    return _extract_agent_runtime_metadata(client)
 
 
 def _cache_older_than_dependencies(html_path: str, dependency_paths: List[str]) -> bool:

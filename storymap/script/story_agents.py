@@ -13,9 +13,11 @@ from typing import Dict, List, Optional, Tuple
 
 try:
     from .env_utils import load_project_env
+    from . import story_agent_runtime as story_agent_runtime_utils
     from . import story_agent_graph as story_agent_graph_utils
 except ImportError:
     from env_utils import load_project_env
+    import story_agent_runtime as story_agent_runtime_utils
     import story_agent_graph as story_agent_graph_utils
 
 # 禁用 urllib3 的不安全请求警告
@@ -616,13 +618,7 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
     try:
         result = story_agent_graph_utils.generate_markdown_with_agents(llm, person)
         if llm is not None:
-            llm.last_agent_runtime = {
-                "person": person,
-                "max_llm_calls": result.get("max_llm_calls"),
-                "langgraph_available": bool(result.get("langgraph_available")),
-                "tool_specs": result.get("tool_specs") or [],
-                "state": result.get("state") or {},
-            }
+            llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(person, result)
         markdown = str(result.get("markdown") or "").strip()
         if markdown:
             return markdown
@@ -630,18 +626,18 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
         if llm and hasattr(llm, "_emit"):
             llm._emit(f"⚠️ 多 Agent 工作流失败，回退单次生成：{exc}")
         if llm is not None:
-            llm.last_agent_runtime = {
-                "person": person,
-                "fallback": "legacy_generate_historical_markdown",
-                "error": str(exc).strip() or exc.__class__.__name__,
-            }
+            llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(
+                person,
+                fallback="legacy_generate_historical_markdown",
+                error=str(exc).strip() or exc.__class__.__name__,
+            )
     markdown = _legacy_generate_historical_markdown(llm, person)
     if llm is not None:
-        runtime = dict(getattr(llm, "last_agent_runtime", {}) or {})
-        runtime.setdefault("person", person)
-        runtime["used_legacy_fallback"] = True
-        runtime["legacy_markdown_ok"] = bool(str(markdown or "").strip())
-        llm.last_agent_runtime = runtime
+        llm.last_agent_runtime = story_agent_runtime_utils.mark_runtime_legacy_fallback(
+            getattr(llm, "last_agent_runtime", {}),
+            person=person,
+            markdown=markdown,
+        )
     return markdown
 
 

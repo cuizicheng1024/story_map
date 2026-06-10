@@ -8,6 +8,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import story_agent_graph
 import story_agents
+import story_agent_memory
 
 
 def test_create_agent_tools_expose_expected_names():
@@ -348,3 +349,88 @@ def test_story_markdown_agent_falls_back_when_critic_raises():
     assert result["state"]["final_markdown"] == result["markdown"]
     assert any("critic_agent:critic boom" in item for item in result["state"]["degraded_reasons"])
     assert "issues" in result["state"]["validation"]
+
+
+def test_story_markdown_agent_reuses_cached_search_result_across_runs(tmp_path):
+    calls = []
+    store = story_agent_memory.StoryAgentMemoryStore(str(tmp_path / "story_agent_memory.json"))
+
+    def _search(person_name: str):
+        calls.append(f"search:{person_name}")
+        return {
+            "person": person_name,
+            "summary": "李白，唐代诗人。",
+            "identities": ["诗人"],
+            "achievements": ["诗歌创作"],
+            "timeline": [],
+            "places": [],
+            "cautions": [],
+        }
+
+    agent = story_agent_graph.create_story_markdown_agent(
+        search_person_info_fn=_search,
+        generate_markdown_fn=lambda structure: f"# {structure.get('person')}\n",
+        validate_markdown_fn=lambda content: {"pass": True, "risk_level": "low", "issues": [], "notes": content},
+        max_llm_calls=2,
+        memory_store=store,
+    )
+
+    first = agent["run"]("李白", 0, agent["max_llm_calls"])
+    second = agent["run"]("李白", 0, agent["max_llm_calls"])
+
+    assert first["markdown"] == "# 李白\n"
+    assert second["markdown"] == "# 李白\n"
+    assert calls == ["search:李白"]
+    assert first["state"]["memory_hits"] == {}
+    assert first["state"]["memory_misses"] == {"search": 1}
+    assert second["state"]["memory_hits"] == {"search": 1}
+    assert second["state"]["memory_misses"] == {}
+    assert any(item.get("memory_bucket") == "search" and item.get("memory_hit") is True for item in second["state"]["tool_traces"])
+
+
+def test_story_markdown_agent_reuses_cached_place_map_across_runs(tmp_path):
+    calls = []
+    store = story_agent_memory.StoryAgentMemoryStore(str(tmp_path / "story_agent_memory.json"))
+
+    def _search(person_name: str):
+        return {
+            "person": person_name,
+            "summary": "李白，唐代诗人。",
+            "identities": ["诗人"],
+            "achievements": ["诗歌创作"],
+            "timeline": [{"year": "701年", "event": "出生", "place": "碎叶城"}],
+            "places": [{"name": "碎叶城", "context": "出生地"}],
+            "cautions": [],
+        }
+
+    def _map(place_name: str):
+        calls.append(f"map:{place_name}")
+        return {
+            "query": place_name,
+            "ancient_name": place_name,
+            "modern_name": "吉尔吉斯斯坦托克马克",
+            "lat": 42.84,
+            "lng": 75.29,
+            "source": "test",
+        }
+
+    agent = story_agent_graph.create_story_markdown_agent(
+        search_person_info_fn=_search,
+        fetch_ancient_place_map_fn=_map,
+        generate_markdown_fn=lambda structure: f"# {structure.get('person')}\n",
+        validate_markdown_fn=lambda content: {"pass": True, "risk_level": "low", "issues": [], "notes": content},
+        max_llm_calls=2,
+        memory_store=store,
+    )
+
+    first = agent["run"]("李白", 0, agent["max_llm_calls"])
+    second = agent["run"]("李白", 0, agent["max_llm_calls"])
+
+    assert first["markdown"] == "# 李白\n"
+    assert second["markdown"] == "# 李白\n"
+    assert calls == ["map:碎叶城"]
+    assert first["state"]["memory_hits"] == {}
+    assert first["state"]["memory_misses"] == {"search": 1, "place_map": 1}
+    assert second["state"]["memory_hits"] == {"search": 1, "place_map": 1}
+    assert second["state"]["memory_misses"] == {}
+    assert any(item.get("memory_bucket") == "place_map" and item.get("memory_hit") is True for item in second["state"]["tool_traces"])

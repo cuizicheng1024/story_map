@@ -4,7 +4,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, TypedDict
+from typing import Callable, Dict, List, Optional, Tuple
 from urllib.parse import quote
 
 import requests
@@ -22,47 +22,41 @@ except Exception:
 try:
     from . import generation_service as generation_service_utils
     from . import parsers as parser_utils
+    from .story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
+    from .story_agent_fallbacks import (
+        fallback_generate_markdown,
+        fallback_search_result,
+        fallback_validation,
+    )
+    from .story_agent_router import build_supervisor_update, resolve_next_step
+    from .story_agent_state import (
+        AgentIssue,
+        SearchSource,
+        StoryAgentState,
+        append_trace,
+        create_initial_state,
+        max_revisions_limit,
+        merge_state,
+        record_degraded_reason,
+    )
     from .story_tooling import invoke_tool, tool
 except ImportError:
     import generation_service as generation_service_utils
     import parsers as parser_utils
+    from story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
+    from story_agent_fallbacks import fallback_generate_markdown, fallback_search_result, fallback_validation
+    from story_agent_router import build_supervisor_update, resolve_next_step
+    from story_agent_state import (
+        AgentIssue,
+        SearchSource,
+        StoryAgentState,
+        append_trace,
+        create_initial_state,
+        max_revisions_limit,
+        merge_state,
+        record_degraded_reason,
+    )
     from story_tooling import invoke_tool, tool
-
-
-class AgentIssue(TypedDict, total=False):
-    field: str
-    claim: str
-    correction: str
-    confidence: float
-    reason: str
-
-
-class SearchSource(TypedDict, total=False):
-    source: str
-    title: str
-    summary: str
-    url: str
-
-
-class StoryAgentState(TypedDict, total=False):
-    person: str
-    plan: List[str]
-    next_step: str
-    search_result: Dict[str, object]
-    place_maps: List[Dict[str, object]]
-    draft_markdown: str
-    validation: Dict[str, object]
-    critic_feedback: List[AgentIssue]
-    revision_count: int
-    max_revisions: int
-    needs_revision: bool
-    needs_redraft: bool
-    final_markdown: str
-    execution_trace: List[str]
-    tool_traces: List[Dict[str, object]]
-    llm_calls_used: int
-    llm_calls_limit: int
-    degraded_reasons: List[str]
 
 
 class ToolCallError(RuntimeError):
@@ -78,6 +72,38 @@ class ToolCallError(RuntimeError):
         self.tool_traces = list(tool_traces or [])
         self.llm_calls_used = int(llm_calls_used)
         self.original = original
+
+
+def _set_memory_access(func: Callable[..., object], *, bucket: str, hit: bool) -> None:
+    try:
+        setattr(func, "__memory_last_access__", {"bucket": str(bucket or "").strip(), "hit": bool(hit)})
+    except Exception:
+        return
+
+
+def _consume_memory_access(func: Callable[..., object]) -> Dict[str, object]:
+    access = getattr(func, "__memory_last_access__", None)
+    try:
+        setattr(func, "__memory_last_access__", None)
+    except Exception:
+        pass
+    return dict(access) if isinstance(access, dict) else {}
+
+
+def _update_memory_counters(
+    state: StoryAgentState,
+    access: Dict[str, object],
+) -> tuple[Dict[str, int], Dict[str, int]]:
+    hits = dict(state.get("memory_hits") or {})
+    misses = dict(state.get("memory_misses") or {})
+    bucket = str(access.get("bucket") or "").strip()
+    if not bucket:
+        return hits, misses
+    if bool(access.get("hit")):
+        hits[bucket] = int(hits.get(bucket) or 0) + 1
+    else:
+        misses[bucket] = int(misses.get(bucket) or 0) + 1
+    return hits, misses
 
 
 _DYNASTY_TOKENS = (
@@ -639,7 +665,9 @@ def create_agent_tools(
     fetch_ancient_place_map_fn: Optional[Callable[[str], Dict[str, object]]] = None,
     generate_markdown_fn: Optional[Callable[[Dict[str, object]], str]] = None,
     validate_markdown_fn: Optional[Callable[[str], Dict[str, object]]] = None,
+    memory_store: Optional[StoryAgentMemoryStore] = None,
 ) -> Dict[str, Callable[..., object]]:
+    store = memory_store
     search_impl = search_person_info_fn or (lambda person_name: default_search_person_info(person_name, llm=llm))
     map_impl = fetch_ancient_place_map_fn or default_fetch_ancient_place_map
     editor_impl = generate_markdown_fn or (lambda structure: default_generate_markdown(structure, llm=llm))
@@ -660,7 +688,16 @@ def create_agent_tools(
         tags=["research", "llm"],
     )
     def search_person_info(person_name: str) -> Dict[str, object]:
-        return search_impl(person_name)
+        if store is not None:
+            cached = store.get_person_search(person_name)
+            if isinstance(cached, dict) and cached.get("person"):
+                _set_memory_access(search_person_info, bucket="search", hit=True)
+                return cached
+        _set_memory_access(search_person_info, bucket="search", hit=False)
+        result = search_impl(person_name)
+        if store is not None and isinstance(result, dict) and result.get("person"):
+            store.set_person_search(person_name, result)
+        return result
 
     @tool(
         name="fetch_ancient_place_map",
@@ -677,7 +714,16 @@ def create_agent_tools(
         tags=["map", "geocode"],
     )
     def fetch_ancient_place_map(place_name: str) -> Dict[str, object]:
-        return map_impl(place_name)
+        if store is not None:
+            cached = store.get_place_map(place_name)
+            if isinstance(cached, dict) and cached.get("query"):
+                _set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=True)
+                return cached
+        _set_memory_access(fetch_ancient_place_map, bucket="place_map", hit=False)
+        result = map_impl(place_name)
+        if store is not None and isinstance(result, dict) and result.get("query"):
+            store.set_place_map(place_name, result)
+        return result
 
     @tool(
         name="generate_markdown",
@@ -754,17 +800,6 @@ def _is_llm_tool(func: Callable[..., object]) -> bool:
     return bool({"llm", "llm_optional"} & tags)
 
 
-def _record_degraded_reason(current: object, reason: str) -> List[str]:
-    if isinstance(current, dict):
-        items = list(current.get("degraded_reasons") or [])
-    else:
-        items = list(current or [])
-    reason_text = str(reason or "").strip()
-    if reason_text and reason_text not in items:
-        items.append(reason_text)
-    return items
-
-
 def _check_and_consume_llm_budget(
     state: StoryAgentState,
     func: Callable[..., object],
@@ -778,168 +813,14 @@ def _check_and_consume_llm_budget(
     return used + 1
 
 
-def _fallback_search_result(person: str, state: StoryAgentState) -> Dict[str, object]:
-    existing = state.get("search_result") or {}
-    if isinstance(existing, dict) and existing.get("person"):
-        return dict(existing)
-    return {
-        "person": person,
-        "sources": [],
-        "source_names": [],
-        "dynasty": "",
-        "summary": "",
-        "identities": [],
-        "achievements": [],
-        "timeline": [],
-        "places": [],
-        "cautions": ["未完成联网检索，已使用降级资料结构。"],
-    }
-
-
-def _place_map_lookup(place_maps: List[Dict[str, object]]) -> Dict[str, str]:
-    mapping: Dict[str, str] = {}
-    for item in place_maps:
-        if not isinstance(item, dict):
-            continue
-        keys = [
-            parser_utils._normalize_place_key(str(item.get("query") or "")),
-            parser_utils._normalize_place_key(str(item.get("ancient_name") or "")),
-            parser_utils._normalize_place_key(str(item.get("modern_name") or "")),
-        ]
-        modern = str(item.get("modern_name") or "").strip()
-        if not modern:
-            continue
-        for key in keys:
-            if key:
-                mapping[key] = modern
-    return mapping
-
-
-def _fallback_generate_markdown(structure: Dict[str, object]) -> str:
-    person = str(structure.get("person") or "").strip() or "未知人物"
-    search_result = structure.get("search_result") if isinstance(structure.get("search_result"), dict) else {}
-    search_result = dict(search_result or {})
-    place_maps = [item for item in structure.get("place_maps") or [] if isinstance(item, dict)]
-    place_lookup = _place_map_lookup(place_maps)
-    timeline = [item for item in search_result.get("timeline") or [] if isinstance(item, dict)]
-    identities = [str(item).strip() for item in search_result.get("identities") or [] if str(item).strip()]
-    achievements = [str(item).strip() for item in search_result.get("achievements") or [] if str(item).strip()]
-    cautions = [str(item).strip() for item in search_result.get("cautions") or [] if str(item).strip()]
-    summary = str(search_result.get("summary") or "").strip() or f"{person} 的资料暂不完整，以下内容为降级整理稿。"
-    dynasty = str(search_result.get("dynasty") or "").strip() or _infer_dynasty(summary, " ".join(identities), " ".join(achievements))
-
-    birth_line = ""
-    death_line = ""
-    location_sections: List[Dict[str, str]] = []
-    seen_locations = set()
-    for item in timeline:
-        year = _format_year_text(item.get("year"))
-        place = str(item.get("place") or "").strip()
-        event = str(item.get("event") or "").strip()
-        normalized = parser_utils._normalize_place_key(place)
-        modern = place_lookup.get(normalized, place)
-        if ("出生" in event) and not birth_line:
-            birth_line = f"{year}，{place}（今{modern}）" if modern and modern != place else f"{year}，{place}"
-        if (("卒" in event) or ("逝" in event) or ("去世" in event)) and not death_line:
-            death_line = f"{year}，{place}（今{modern}）" if modern and modern != place else f"{year}，{place}"
-        section_key = (place, modern, event)
-        if place and section_key not in seen_locations:
-            seen_locations.add(section_key)
-            if "出生" in event:
-                heading = f"### 🟢 出生地：{place}"
-                event_label = "事迹"
-            elif (("卒" in event) or ("逝" in event) or ("去世" in event)):
-                heading = f"### 🔴 去世地：{place}"
-                event_label = "经过"
-            else:
-                heading = f"### 📍 重要地点：{place}"
-                event_label = "事迹"
-            location_sections.append(
-                {
-                    "heading": heading,
-                    "year": year,
-                    "location": f"{place}（今{modern}）" if modern and modern != place else (modern or place),
-                    "event_label": event_label,
-                    "event": event or "暂无相关事迹",
-                }
-            )
-
-    lines = [
-        f"# {person}",
-        "",
-        "## 一、人物档案",
-        "",
-        "### 基本信息",
-        f"- **姓名**：{person}",
-        f"- **时代**：{dynasty}",
-        f"- **出生**：{birth_line}",
-        f"- **去世**：{death_line}",
-        f"- **主要身份**：{'、'.join(identities)}",
-        f"- **主要成就**：{'；'.join(achievements[:4])}",
-        "",
-        "### 生平概述",
-        summary,
-        "",
-        "## 三、人生历程与重要地点（按时间顺序）",
-        "",
-    ]
-    if location_sections:
-        for section in location_sections:
-            lines.extend(
-                [
-                    section["heading"],
-                    f"- **公元纪年**：{section['year']}",
-                    f"- **位置**：{section['location']}",
-                    f"- **{section['event_label']}**：{section['event']}",
-                    "",
-                ]
-            )
-    else:
-        lines.extend(
-            [
-                "### 📍 重要地点：待补充",
-                "- **公元纪年**：待补充",
-                "- **位置**：待补充",
-                "- **事迹**：暂无可用地点资料",
-                "",
-            ]
-        )
-    lines.extend(
-        [
-        "## 四、生平时间线",
-        "",
-        "| 年份 | 古称 | 现称 | 事件 |",
-        "| --- | --- | --- | --- |",
-        ]
-    )
-    if timeline:
-        for item in timeline:
-            year = _format_year_text(item.get("year"))
-            place = str(item.get("place") or "").strip()
-            event = str(item.get("event") or "").strip()
-            normalized = parser_utils._normalize_place_key(place)
-            modern = place_lookup.get(normalized, place)
-            lines.append(f"| {year} | {place} | {modern} | {event} |")
-    else:
-        lines.append("|  |  |  | 暂无可用时间线资料 |")
-    if cautions:
-        lines.extend(["", "## 五、补充说明", ""])
-        for item in cautions:
-            lines.append(f"- {item}")
-    return "\n".join(lines).rstrip() + "\n"
-
-
-def _fallback_validation(content: str, *, person: str = "") -> Dict[str, object]:
-    return default_validate_markdown(content, person=person, llm=None)
-
-
 def _call_tool(
     state: StoryAgentState,
     func: Callable[..., object],
     payload: object,
-) -> tuple[object, List[Dict[str, object]], int]:
+) -> tuple[object, List[Dict[str, object]], int, Dict[str, object]]:
     tool_traces = list(state.get("tool_traces") or [])
     llm_calls_used = int(state.get("llm_calls_used") or 0)
+    previous_trace_count = len(tool_traces)
     try:
         llm_calls_used = _check_and_consume_llm_budget(state, func)
         result = invoke_tool(func, payload, trace_collector=tool_traces)
@@ -950,32 +831,11 @@ def _call_tool(
             llm_calls_used=llm_calls_used,
             original=exc if isinstance(exc, Exception) else None,
         ) from exc
-    return result, tool_traces, llm_calls_used
-
-
-def _append_trace(state: StoryAgentState, label: str) -> List[str]:
-    trace = list(state.get("execution_trace") or [])
-    trace.append(label)
-    return trace
-
-
-def _feedback_fields(feedback: List[AgentIssue]) -> set[str]:
-    fields: set[str] = set()
-    for item in feedback:
-        field = str(item.get("field") or "").strip()
-        if field:
-            fields.add(field)
-    return fields
-
-
-def _max_revisions_limit(state: StoryAgentState) -> int:
-    raw = state.get("max_revisions")
-    if raw is None:
-        return 1
-    try:
-        return max(0, int(raw))
-    except Exception:
-        return 1
+    memory_access = _consume_memory_access(func)
+    if memory_access and len(tool_traces) > previous_trace_count and isinstance(tool_traces[-1], dict):
+        tool_traces[-1]["memory_bucket"] = str(memory_access.get("bucket") or "")
+        tool_traces[-1]["memory_hit"] = bool(memory_access.get("hit"))
+    return result, tool_traces, llm_calls_used, memory_access
 
 
 def _infer_dynasty(*texts: object) -> str:
@@ -987,17 +847,6 @@ def _infer_dynasty(*texts: object) -> str:
             if token in content:
                 return token
     return ""
-
-
-def _format_year_text(text: object) -> str:
-    content = str(text or "").strip()
-    if not content:
-        return ""
-    if "年" in content:
-        return content
-    if re.search(r"\d", content):
-        return f"{content}年"
-    return content
 
 
 def _extract_places_for_mapping(state: StoryAgentState) -> List[str]:
@@ -1039,51 +888,7 @@ def _build_editor_structure(state: StoryAgentState) -> Dict[str, object]:
 
 def _supervisor_node_factory(llm: object) -> Callable[[StoryAgentState], StoryAgentState]:
     def supervisor_node(state: StoryAgentState) -> StoryAgentState:
-        trace = _append_trace(state, "supervisor")
-        plan = list(state.get("plan") or [])
-        if not plan:
-            plan = [
-                "SearchAgent 检索资料",
-                "MapAgent 补齐古今地名",
-                "EditorAgent 生成 Markdown",
-                "CriticAgent 评估并给出修正建议",
-            ]
-        next_step = "search_agent"
-        validation = state.get("validation") or {}
-        if not state.get("search_result"):
-            next_step = "search_agent"
-            _emit(llm, "🧭 Supervisor：先检索人物资料")
-        elif "place_maps" not in state:
-            next_step = "map_agent"
-            _emit(llm, "🧭 Supervisor：补齐古今地名与坐标")
-        elif not state.get("draft_markdown"):
-            next_step = "editor_agent"
-            _emit(llm, "🧭 Supervisor：生成首稿")
-        elif state.get("needs_redraft"):
-            next_step = "editor_agent"
-            _emit(llm, "🧭 Supervisor：根据最新资料重新写稿")
-        elif not validation:
-            next_step = "critic_agent"
-            _emit(llm, "🧭 Supervisor：交给 Critic 审阅")
-        elif bool(validation.get("pass")):
-            next_step = "finish_agent"
-            _emit(llm, "🧭 Supervisor：稿件通过审阅，准备交付")
-        elif state.get("needs_revision"):
-            fields = _feedback_fields(state.get("critic_feedback") or [])
-            if {"location", "timeline"} & fields:
-                next_step = "map_agent"
-                _emit(llm, "🧭 Supervisor：优先修正地点与时间线问题")
-            else:
-                next_step = "search_agent"
-                _emit(llm, "🧭 Supervisor：回到 SearchAgent 补充资料")
-        elif int(state.get("revision_count") or 0) >= _max_revisions_limit(state):
-            next_step = "finish_agent"
-            _emit(llm, "🧭 Supervisor：达到最大修订轮次，交付当前最佳稿")
-        return {
-            "plan": plan,
-            "next_step": next_step,
-            "execution_trace": trace,
-        }
+        return build_supervisor_update(state, emit=lambda message: _emit(llm, message))
 
     return supervisor_node
 
@@ -1093,21 +898,24 @@ def _search_agent_node_factory(
     llm: object,
 ) -> Callable[[StoryAgentState], StoryAgentState]:
     def search_agent_node(state: StoryAgentState) -> StoryAgentState:
-        trace = _append_trace(state, "search_agent")
+        trace = append_trace(state, "search_agent")
         _emit(llm, f"🔎 SearchAgent：检索 {state.get('person') or ''} 的资料")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
+        memory_hits = dict(state.get("memory_hits") or {})
+        memory_misses = dict(state.get("memory_misses") or {})
         try:
-            search_result, tool_traces, llm_calls_used = _call_tool(
+            search_result, tool_traces, llm_calls_used, memory_access = _call_tool(
                 state,
                 tools["search_person_info"],
                 str(state.get("person") or ""),
             )
+            memory_hits, memory_misses = _update_memory_counters(state, memory_access)
         except ToolCallError as exc:
-            degraded_reasons = _record_degraded_reason(degraded_reasons, f"search_agent:{exc}")
+            degraded_reasons = record_degraded_reason(degraded_reasons, f"search_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
             llm_calls_used = int(exc.llm_calls_used)
-            search_result = _fallback_search_result(str(state.get("person") or ""), state)
+            search_result = fallback_search_result(str(state.get("person") or ""), state)
             _emit(llm, "⚠️ SearchAgent 失败，已回退为最小检索结果")
         return {
             "search_result": search_result if isinstance(search_result, dict) else {},
@@ -1116,6 +924,8 @@ def _search_agent_node_factory(
             "tool_traces": tool_traces,
             "llm_calls_used": llm_calls_used,
             "degraded_reasons": degraded_reasons,
+            "memory_hits": memory_hits,
+            "memory_misses": memory_misses,
         }
 
     return search_agent_node
@@ -1126,17 +936,29 @@ def _map_agent_node_factory(
     llm: object,
 ) -> Callable[[StoryAgentState], StoryAgentState]:
     def map_agent_node(state: StoryAgentState) -> StoryAgentState:
-        trace = _append_trace(state, "map_agent")
+        trace = append_trace(state, "map_agent")
         places = _extract_places_for_mapping(state)
         _emit(llm, f"🗺️ MapAgent：校正 {len(places)} 个地点")
         place_maps: List[Dict[str, object]] = []
         tool_traces = list(state.get("tool_traces") or [])
         degraded_reasons = list(state.get("degraded_reasons") or [])
+        llm_calls_used = int(state.get("llm_calls_used") or 0)
+        memory_hits = dict(state.get("memory_hits") or {})
+        memory_misses = dict(state.get("memory_misses") or {})
+        working_state: StoryAgentState = dict(state)
+        working_state["tool_traces"] = tool_traces
+        working_state["llm_calls_used"] = llm_calls_used
         for place in places:
             try:
-                info = invoke_tool(tools["fetch_ancient_place_map"], place, trace_collector=tool_traces)
+                info, tool_traces, llm_calls_used, memory_access = _call_tool(working_state, tools["fetch_ancient_place_map"], place)
+                working_state["tool_traces"] = tool_traces
+                working_state["llm_calls_used"] = llm_calls_used
+                memory_hits, memory_misses = _update_memory_counters(
+                    {"memory_hits": memory_hits, "memory_misses": memory_misses},
+                    memory_access,
+                )
             except Exception as exc:
-                degraded_reasons = _record_degraded_reason(degraded_reasons, f"map_agent:{place}:{exc}")
+                degraded_reasons = record_degraded_reason(degraded_reasons, f"map_agent:{place}:{exc}")
                 info = {
                     "query": place,
                     "ancient_name": place,
@@ -1153,6 +975,9 @@ def _map_agent_node_factory(
             "execution_trace": trace,
             "tool_traces": tool_traces,
             "degraded_reasons": degraded_reasons,
+            "llm_calls_used": llm_calls_used,
+            "memory_hits": memory_hits,
+            "memory_misses": memory_misses,
         }
 
     return map_agent_node
@@ -1163,21 +988,23 @@ def _editor_agent_node_factory(
     llm: object,
 ) -> Callable[[StoryAgentState], StoryAgentState]:
     def editor_agent_node(state: StoryAgentState) -> StoryAgentState:
-        trace = _append_trace(state, "editor_agent")
+        trace = append_trace(state, "editor_agent")
         _emit(llm, "📝 EditorAgent：生成或修订 Markdown")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
+        memory_hits = dict(state.get("memory_hits") or {})
+        memory_misses = dict(state.get("memory_misses") or {})
         try:
-            draft_markdown, tool_traces, llm_calls_used = _call_tool(
+            draft_markdown, tool_traces, llm_calls_used, _memory_access = _call_tool(
                 state,
                 tools["generate_markdown"],
                 _build_editor_structure(state),
             )
         except ToolCallError as exc:
-            degraded_reasons = _record_degraded_reason(degraded_reasons, f"editor_agent:{exc}")
+            degraded_reasons = record_degraded_reason(degraded_reasons, f"editor_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
             llm_calls_used = int(exc.llm_calls_used)
-            draft_markdown = _fallback_generate_markdown(_build_editor_structure(state))
+            draft_markdown = fallback_generate_markdown(_build_editor_structure(state), infer_dynasty=_infer_dynasty)
             _emit(llm, "⚠️ EditorAgent 失败，已回退为确定性 Markdown 组装")
         return {
             "draft_markdown": str(draft_markdown or ""),
@@ -1187,6 +1014,8 @@ def _editor_agent_node_factory(
             "tool_traces": tool_traces,
             "llm_calls_used": llm_calls_used,
             "degraded_reasons": degraded_reasons,
+            "memory_hits": memory_hits,
+            "memory_misses": memory_misses,
         }
 
     return editor_agent_node
@@ -1197,21 +1026,27 @@ def _critic_agent_node_factory(
     llm: object,
 ) -> Callable[[StoryAgentState], StoryAgentState]:
     def critic_agent_node(state: StoryAgentState) -> StoryAgentState:
-        trace = _append_trace(state, "critic_agent")
+        trace = append_trace(state, "critic_agent")
         _emit(llm, "🧪 CriticAgent：检查时间、地点和结构一致性")
         llm_calls_used = int(state.get("llm_calls_used") or 0)
         degraded_reasons = list(state.get("degraded_reasons") or [])
+        memory_hits = dict(state.get("memory_hits") or {})
+        memory_misses = dict(state.get("memory_misses") or {})
         try:
-            validation, tool_traces, llm_calls_used = _call_tool(
+            validation, tool_traces, llm_calls_used, _memory_access = _call_tool(
                 state,
                 tools["validate_markdown"],
                 str(state.get("draft_markdown") or ""),
             )
         except ToolCallError as exc:
-            degraded_reasons = _record_degraded_reason(degraded_reasons, f"critic_agent:{exc}")
+            degraded_reasons = record_degraded_reason(degraded_reasons, f"critic_agent:{exc}")
             tool_traces = list(exc.tool_traces or [])
             llm_calls_used = int(exc.llm_calls_used)
-            validation = _fallback_validation(str(state.get("draft_markdown") or ""), person=str(state.get("person") or ""))
+            validation = fallback_validation(
+                str(state.get("draft_markdown") or ""),
+                person=str(state.get("person") or ""),
+                validate_fn=default_validate_markdown,
+            )
             _emit(llm, "⚠️ CriticAgent 失败，已回退为确定性校验")
         if not isinstance(validation, dict):
             validation = {"pass": False, "risk_level": "high", "issues": [], "notes": "校验器未返回字典"}
@@ -1225,12 +1060,14 @@ def _critic_agent_node_factory(
             "tool_traces": tool_traces,
             "llm_calls_used": llm_calls_used,
             "degraded_reasons": degraded_reasons,
+            "memory_hits": memory_hits,
+            "memory_misses": memory_misses,
         }
         if validation.get("pass"):
             updates["final_markdown"] = str(state.get("draft_markdown") or "")
             updates["needs_revision"] = False
             return updates
-        if int(state.get("revision_count") or 0) < _max_revisions_limit(state):
+        if int(state.get("revision_count") or 0) < max_revisions_limit(state):
             updates["revision_count"] = int(state.get("revision_count") or 0) + 1
             updates["needs_revision"] = True
             updates["needs_redraft"] = False
@@ -1240,19 +1077,18 @@ def _critic_agent_node_factory(
 
 
 def _finish_agent_node(state: StoryAgentState) -> StoryAgentState:
-    trace = _append_trace(state, "finish_agent")
+    trace = append_trace(state, "finish_agent")
     return {
         "final_markdown": str(state.get("final_markdown") or state.get("draft_markdown") or ""),
         "execution_trace": trace,
         "degraded_reasons": list(state.get("degraded_reasons") or []),
+        "memory_hits": dict(state.get("memory_hits") or {}),
+        "memory_misses": dict(state.get("memory_misses") or {}),
     }
 
 
 def _next_step_router(state: StoryAgentState) -> str:
-    step = str(state.get("next_step") or "").strip()
-    if step in {"search_agent", "map_agent", "editor_agent", "critic_agent", "finish_agent"}:
-        return step
-    return "finish_agent"
+    return resolve_next_step(state)
 
 
 def _build_langgraph_runner(
@@ -1287,18 +1123,11 @@ def _build_langgraph_runner(
     graph = workflow.compile()
 
     def run(person: str, max_revisions: int = 1, llm_calls_limit: int = 0) -> Dict[str, object]:
-        initial_state: StoryAgentState = {
-            "person": str(person or "").strip(),
-            "revision_count": 0,
-            "max_revisions": max(0, int(max_revisions)),
-            "needs_revision": False,
-            "needs_redraft": False,
-            "execution_trace": [],
-            "tool_traces": [],
-            "llm_calls_used": 0,
-            "llm_calls_limit": max(0, int(llm_calls_limit)),
-            "degraded_reasons": [],
-        }
+        initial_state = create_initial_state(
+            person,
+            max_revisions=max_revisions,
+            llm_calls_limit=llm_calls_limit,
+        )
         final_state = graph.invoke(initial_state)
         if not isinstance(final_state, dict):
             final_state = dict(initial_state)
@@ -1321,41 +1150,29 @@ def _build_manual_runner(
     editor_agent = _editor_agent_node_factory(tools, llm)
     critic_agent = _critic_agent_node_factory(tools, llm)
 
-    def merge(state: StoryAgentState, updates: StoryAgentState) -> StoryAgentState:
-        merged = dict(state)
-        merged.update(updates)
-        return merged
-
     def run(person: str, max_revisions: int = 1, llm_calls_limit: int = 0) -> Dict[str, object]:
-        state: StoryAgentState = {
-            "person": str(person or "").strip(),
-            "revision_count": 0,
-            "max_revisions": max(0, int(max_revisions)),
-            "needs_revision": False,
-            "needs_redraft": False,
-            "execution_trace": [],
-            "tool_traces": [],
-            "llm_calls_used": 0,
-            "llm_calls_limit": max(0, int(llm_calls_limit)),
-            "degraded_reasons": [],
-        }
+        state = create_initial_state(
+            person,
+            max_revisions=max_revisions,
+            llm_calls_limit=llm_calls_limit,
+        )
         for _ in range(16):
-            state = merge(state, supervisor(state))
+            state = merge_state(state, supervisor(state))
             step = _next_step_router(state)
             if step == "finish_agent":
-                state = merge(state, _finish_agent_node(state))
+                state = merge_state(state, _finish_agent_node(state))
                 break
             if step == "search_agent":
-                state = merge(state, search_agent(state))
+                state = merge_state(state, search_agent(state))
                 continue
             if step == "map_agent":
-                state = merge(state, map_agent(state))
+                state = merge_state(state, map_agent(state))
                 continue
             if step == "editor_agent":
-                state = merge(state, editor_agent(state))
+                state = merge_state(state, editor_agent(state))
                 continue
             if step == "critic_agent":
-                state = merge(state, critic_agent(state))
+                state = merge_state(state, critic_agent(state))
                 continue
             break
         return {
@@ -1374,13 +1191,20 @@ def create_story_markdown_agent(
     generate_markdown_fn: Optional[Callable[[Dict[str, object]], str]] = None,
     validate_markdown_fn: Optional[Callable[[str], Dict[str, object]]] = None,
     max_llm_calls: Optional[int] = None,
+    memory_store: Optional[StoryAgentMemoryStore] = None,
 ) -> Dict[str, object]:
+    resolved_memory_store = memory_store
+    if resolved_memory_store is None:
+        memory_enabled = (os.getenv("STORY_AGENT_ENABLE_MEMORY") or "").strip().lower() in {"1", "true", "yes", "on"}
+        if memory_enabled:
+            resolved_memory_store = get_default_memory_store()
     tools = create_agent_tools(
         llm=llm,
         search_person_info_fn=search_person_info_fn,
         fetch_ancient_place_map_fn=fetch_ancient_place_map_fn,
         generate_markdown_fn=generate_markdown_fn,
         validate_markdown_fn=validate_markdown_fn,
+        memory_store=resolved_memory_store,
     )
     runner = (
         _build_langgraph_runner(tools=tools, llm=llm)
