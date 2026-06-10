@@ -612,19 +612,40 @@ const mergedTeachingPointsNormalized = (() => {
   }
 })();
 const extractTeachingReviewSubtitle = (raw) => {
-  const lines = String(raw || '').split(/\n+/).map((x) => String(x || '').trim()).filter(Boolean);
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const BS = String.fromCharCode(92);
+  const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}n`, 'g');
+  const lines = String(raw || '').split(splitRe).map((x) => String(x || '').trim()).filter(Boolean);
+  const normalizeLine = (line) => String(line || '')
+    .replace(/^[-•]\s*/, '')
+    .replace(/^\d+\.\s*/, '')
+    .replace(/\*\*/g, '')
+    .trim();
+  const isBadSubtitle = (text) => {
+    const t = String(text || '').trim();
+    if (!t) return true;
+    if (/^#{1,4}\s*/.test(t)) return true;
+    if (/(相关作品|核心要点|关键史实|教材知识点|历史评价)\s*[：:]?$/.test(t)) return true;
+    if (/#{2,}|\\n|\\r|\| --- \|/.test(t)) return true;
+    if (t.length > 80) return true;
+    return false;
+  };
   for (const line of lines) {
     if (!/杜甫诗|评价|评曰/.test(line)) continue;
-    const plain = line.replace(/^[-•]\s*/, '').replace(/\*\*/g, '').trim();
+    const plain = normalizeLine(line);
+    if (!plain) continue;
     const quoteMatch = plain.match(/杜甫诗[“"「]([^”"」]+)[”"」]/);
     if (quoteMatch && String(quoteMatch[1] || '').trim()) {
       return `杜甫诗：${String(quoteMatch[1] || '').trim()}`;
     }
     const colonMatch = plain.match(/杜甫诗[:：]\s*(.+)$/);
     if (colonMatch && String(colonMatch[1] || '').trim()) {
-      return `杜甫诗：${String(colonMatch[1] || '').trim()}`;
+      const value = String(colonMatch[1] || '').trim();
+      if (!isBadSubtitle(value)) return `杜甫诗：${value}`;
+      continue;
     }
-    return plain;
+    if (!isBadSubtitle(plain)) return plain;
   }
   return '';
 };

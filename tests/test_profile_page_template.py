@@ -90,3 +90,11 @@ def test_render_profile_html_hides_tool_layer_section():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "本次使用工具" not in html
+
+
+def test_render_profile_html_limits_teaching_review_subtitle_to_short_lines():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const extractTeachingReviewSubtitle = (raw) => {" in html
+    assert "const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}n`, 'g');" in html
+    assert "if (t.length > 80) return true;" in html
