@@ -104,7 +104,7 @@
 
 ## 🚀 快速开始与项目结构
 
-这部分内容已经统一整理到 [install.md](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)：
+这部分内容已经统一整理到 [install.md](install.md)：
 
 - 安装依赖
 - `.env` 配置
@@ -115,7 +115,7 @@
 
 ## 开发与数据维护
 
-以下内容也已统一迁移到 [install.md](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)：
+以下内容也已统一迁移到 [install.md](install.md)：
 
 - 开发自检
 - 数据重建与重渲染

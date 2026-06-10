@@ -175,6 +175,9 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     assert len(debug_payload["debug"]["people"]) == 1
     assert debug_payload["debug"]["people"][0]["person"] == "霍去病"
     assert debug_payload["debug"]["people"][0]["ok"] is False
+    assert debug_payload["debug"]["people"][0]["status_info"]["code"] == "failed"
+    assert debug_payload["debug"]["people"][0]["runtime"]["status"] == "empty"
+    assert debug_payload["debug"]["people"][0]["runtime_reflection"]["status"] == "empty"
 
     assert debug_page.status_code == 200
     assert "Task Debug" in debug_page.text

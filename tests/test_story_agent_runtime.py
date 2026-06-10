@@ -203,3 +203,13 @@ def test_build_runtime_reflection_identifies_budget_memory_and_retry_risks():
     assert reflection["memory_summary"]["miss_count"] == 2
     assert any("预算上限" in item for item in reflection["bottlenecks"])
     assert any("长期记忆" in item for item in reflection["suggested_actions"])
+
+
+def test_empty_runtime_snapshot_and_reflection_stay_empty():
+    assert story_agent_runtime.normalize_runtime_snapshot(None) == {}
+
+    reflection = story_agent_runtime.build_runtime_reflection(None)
+
+    assert reflection["status"] == "empty"
+    assert reflection["tool_summary"]["total_calls"] == 0
+    assert reflection["suggested_actions"] == ["当前没有可用的 runtime snapshot。"]

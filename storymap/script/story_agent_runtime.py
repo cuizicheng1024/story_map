@@ -97,7 +97,7 @@ def _normalize_runtime_state_snapshot(source: object) -> StoryAgentRuntimeStateS
 
 def _runtime_snapshot_from(source: object) -> StoryAgentRuntimeSnapshot:
     runtime = getattr(source, "last_agent_runtime", source)
-    if not isinstance(runtime, dict):
+    if not isinstance(runtime, dict) or not runtime:
         return {}
     state = _normalize_runtime_state_snapshot(runtime.get("state"))
     return {
@@ -115,8 +115,8 @@ def _runtime_snapshot_from(source: object) -> StoryAgentRuntimeSnapshot:
 
 def normalize_runtime_snapshot(source: object) -> StoryAgentRuntimeSnapshot:
     runtime = getattr(source, "last_agent_runtime", source)
-    if not isinstance(runtime, dict):
-        return _runtime_snapshot_from({})
+    if not isinstance(runtime, dict) or not runtime:
+        return {}
     if "state" not in runtime and any(
         key in runtime
         for key in (
@@ -229,6 +229,17 @@ def _memory_summary(memory_hits: Dict[str, int], memory_misses: Dict[str, int]) 
 
 def build_runtime_reflection(source: object) -> StoryAgentRuntimeReflection:
     snapshot = normalize_runtime_snapshot(source)
+    if not snapshot:
+        return {
+            "status": "empty",
+            "strengths": [],
+            "bottlenecks": [],
+            "suggested_actions": ["当前没有可用的 runtime snapshot。"],
+            "llm_budget": {"used": 0, "limit": 0, "utilization": 0.0, "near_limit": False},
+            "retry_summary": {"revision_count": 0, "max_revisions": 0, "critic_passes": 0, "editor_passes": 0},
+            "tool_summary": {"total_calls": 0, "failed_calls": 0, "timed_out_calls": 0, "success_rate": 0.0},
+            "memory_summary": {"hit_count": 0, "miss_count": 0, "hit_buckets": [], "miss_buckets": []},
+        }
     state = dict(snapshot.get("state") or {})
     trace = [str(item) for item in list(state.get("execution_trace") or []) if str(item).strip()]
     tool_traces = [dict(item) for item in list(state.get("tool_traces") or []) if isinstance(item, dict)]

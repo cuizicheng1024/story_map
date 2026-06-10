@@ -356,6 +356,82 @@ def test_story_markdown_agent_falls_back_when_critic_raises():
     assert "issues" in result["state"]["validation"]
 
 
+def test_story_markdown_agent_stops_after_max_revisions():
+    calls = []
+
+    def _search(person_name: str):
+        calls.append("search")
+        return {
+            "person": person_name,
+            "summary": "李白，唐代诗人。",
+            "identities": ["诗人"],
+            "achievements": ["诗歌创作"],
+            "timeline": [{"year": "701年", "event": "出生", "place": "碎叶城"}],
+            "places": [{"name": "碎叶城", "context": "出生地"}],
+            "cautions": [],
+        }
+
+    def _map(place_name: str):
+        calls.append("map")
+        return {
+            "query": place_name,
+            "ancient_name": place_name,
+            "modern_name": "吉尔吉斯斯坦托克马克",
+            "lat": 42.84,
+            "lng": 75.29,
+            "source": "test",
+        }
+
+    def _generate(_structure):
+        calls.append("edit")
+        return (
+            "# 人物 生平传记与足迹\n\n"
+            "## 一、人物档案\n\n"
+            "### 基本信息\n"
+            "- **姓名**：李白\n"
+            "- **时代**：唐朝\n"
+            "- **出生**：701年，碎叶城\n"
+            "- **主要身份**：诗人\n\n"
+            "## 四、生平时间线\n\n"
+            "| 年份 | 古称 | 现称 | 事件 |\n"
+            "| --- | --- | --- | --- |\n"
+            "| 701年 | 碎叶城 |  | 出生 |\n"
+        )
+
+    def _validate(_content: str):
+        calls.append("critic")
+        return {
+            "pass": False,
+            "risk_level": "medium",
+            "issues": [
+                {
+                    "field": "location",
+                    "claim": "碎叶城",
+                    "correction": "碎叶城（今吉尔吉斯斯坦托克马克）",
+                    "confidence": 0.9,
+                    "reason": "地点仍不够精确",
+                }
+            ],
+            "notes": "仍需修订",
+        }
+
+    agent = story_agent_graph.create_story_markdown_agent(
+        search_person_info_fn=_search,
+        fetch_ancient_place_map_fn=_map,
+        generate_markdown_fn=_generate,
+        validate_markdown_fn=_validate,
+        max_llm_calls=6,
+    )
+
+    result = agent["run"]("李白", 1, agent["max_llm_calls"])
+
+    assert calls == ["search", "map", "edit", "critic", "map", "edit", "critic"]
+    assert result["state"]["revision_count"] == 1
+    assert result["state"]["needs_revision"] is False
+    assert result["state"]["execution_trace"].count("critic_agent") == 2
+    assert result["markdown"]
+
+
 def test_story_markdown_agent_reuses_cached_search_result_across_runs(tmp_path):
     calls = []
     store = story_agent_memory.StoryAgentMemoryStore(str(tmp_path / "story_agent_memory.json"))
@@ -391,6 +467,47 @@ def test_story_markdown_agent_reuses_cached_search_result_across_runs(tmp_path):
     assert second["state"]["memory_hits"] == {"search": 1}
     assert second["state"]["memory_misses"] == {}
     assert any(item.get("memory_bucket") == "search" and item.get("memory_hit") is True for item in second["state"]["tool_traces"])
+
+
+def test_story_markdown_agent_maps_all_deduped_places_without_top10_truncation():
+    mapped = []
+    place_names = [f"地点{i}" for i in range(12)]
+
+    def _search(person_name: str):
+        return {
+            "person": person_name,
+            "summary": "测试人物",
+            "identities": ["人物"],
+            "achievements": ["测试"],
+            "timeline": [{"year": "1年", "event": "事件", "place": place_names[0]}],
+            "places": [{"name": name, "context": f"事件{name}"} for name in place_names],
+            "cautions": [],
+        }
+
+    def _map(place_name: str):
+        mapped.append(place_name)
+        return {
+            "query": place_name,
+            "ancient_name": place_name,
+            "modern_name": place_name,
+            "lat": 1.0,
+            "lng": 1.0,
+            "source": "test",
+        }
+
+    agent = story_agent_graph.create_story_markdown_agent(
+        search_person_info_fn=_search,
+        fetch_ancient_place_map_fn=_map,
+        generate_markdown_fn=lambda structure: f"# {structure.get('person')}\n",
+        validate_markdown_fn=lambda content: {"pass": True, "risk_level": "low", "issues": [], "notes": content},
+        max_llm_calls=4,
+    )
+
+    result = agent["run"]("李白", 0, agent["max_llm_calls"])
+
+    assert result["markdown"] == "# 李白\n"
+    assert mapped == place_names
+    assert len(result["state"]["place_maps"]) == 12
 
 
 def test_story_markdown_agent_reuses_cached_place_map_across_runs(tmp_path):

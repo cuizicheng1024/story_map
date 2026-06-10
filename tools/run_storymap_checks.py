@@ -20,6 +20,9 @@ DEFAULT_TESTS = [
     "tests/test_generation_flow.py",
     "tests/test_fastapi_app.py",
     "tests/test_task_service.py",
+    "tests/test_story_agent_runtime.py",
+    "tests/test_story_agent_graph.py",
+    "tests/test_story_agent_router.py",
     "tests/test_profile_page_template.py",
     "tests/test_validate_story_markdown.py",
 ]

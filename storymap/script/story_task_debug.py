@@ -96,6 +96,14 @@ def _build_safe_runtime_reflection(runtime: object) -> Dict[str, object]:
     }
 
 
+def _build_person_status_info(item: Dict[str, object], runtime: Dict[str, object]) -> Dict[str, object]:
+    if not bool(item.get("ok")):
+        return build_status_info("failed", hint=str(item.get("error") or "").strip() or "该人物生成失败。")
+    if bool(runtime.get("has_runtime")):
+        return dict(runtime.get("status_info") or {})
+    return build_status_info("completed", hint="该人物生成成功，但未记录 runtime。")
+
+
 def _build_ui_payload(task: Dict[str, object], result: Dict[str, object], meta: Dict[str, object]) -> Dict[str, object]:
     task_status_info = dict(task.get("status_info") or {})
     result_status_info = dict(result.get("status_info") or {})
@@ -139,12 +147,13 @@ def build_task_debug_payload(snapshot: object) -> Dict[str, object]:
         runtime_snapshot = _build_safe_runtime_snapshot(runtime_source)
         runtime = _build_safe_runtime(extract_agent_runtime_metadata(runtime_source))
         runtime_reflection = _build_safe_runtime_reflection(runtime_source)
+        status_info = _build_person_status_info(item, runtime)
         people.append(
             {
                 "person": str(item.get("person") or runtime.get("person") or ""),
                 "ok": bool(item.get("ok")),
                 "error": str(item.get("error") or ""),
-                "status_info": dict(runtime.get("status_info") or {}),
+                "status_info": status_info,
                 "runtime": runtime,
                 "runtime_snapshot": runtime_snapshot,
                 "runtime_reflection": runtime_reflection,
@@ -173,10 +182,11 @@ def _render_status_banner(info: Dict[str, object]) -> str:
     level = str(info.get("level") or "muted").strip()
     label = html.escape(str(info.get("label") or str(info.get("code") or "状态未知")))
     hint = html.escape(str(info.get("hint") or "").strip())
+    hint_html = f'<div class="banner-hint">{hint}</div>' if hint else ""
     return (
         f'<div class="banner banner-{html.escape(level)}">'
         f"<strong>{label}</strong>"
-        f"{'<div class=\"banner-hint\">' + hint + '</div>' if hint else ''}"
+        f"{hint_html}"
         "</div>"
     )
 

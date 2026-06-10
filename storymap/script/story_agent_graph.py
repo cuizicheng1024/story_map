@@ -542,12 +542,13 @@ def default_generate_markdown(structure: Dict[str, object], *, llm: object = Non
     place_maps = json.dumps(structure.get("place_maps") or [], ensure_ascii=False, indent=2)
     critic_feedback = json.dumps(structure.get("critic_feedback") or [], ensure_ascii=False, indent=2)
     runtime_reflection = str(structure.get("runtime_reflection_prompt") or "").strip()
+    reflection = runtime_reflection or "运行时反思：\n- 当前状态：stable"
     user_prompt = (
         f"请根据以下结构化资料生成历史人物「{structure.get('person') or ''}」的最终 Markdown。\n\n"
         f"检索资料：\n{research}\n\n"
         f"古今地名映射：\n{place_maps}\n\n"
         f"Critic 反馈（若为空则代表首稿）：\n{critic_feedback}\n\n"
-        f"{runtime_reflection or '运行时反思：\n- 当前状态：stable'}\n\n"
+        f"{reflection}\n\n"
         "要求：\n"
         "1. 严格遵守系统提示词版式；\n"
         "2. 如果 Critic 提示某个地点不够精确，要在正文和时间线里补出现代地名；\n"
@@ -724,7 +725,7 @@ def _extract_places_for_mapping(state: StoryAgentState) -> List[str]:
             continue
         seen.add(place)
         deduped.append(place)
-    return deduped[:10]
+    return deduped
 
 
 def _build_editor_structure(state: StoryAgentState) -> Dict[str, object]:
@@ -935,6 +936,9 @@ def _critic_agent_node_factory(
         if int(state.get("revision_count") or 0) < max_revisions_limit(state):
             updates["revision_count"] = int(state.get("revision_count") or 0) + 1
             updates["needs_revision"] = True
+            updates["needs_redraft"] = False
+        else:
+            updates["needs_revision"] = False
             updates["needs_redraft"] = False
         return updates
 

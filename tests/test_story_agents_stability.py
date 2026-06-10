@@ -18,6 +18,22 @@ def _build_client():
     )
 
 
+def test_story_agent_llm_verifies_ssl_by_default():
+    client = _build_client()
+
+    assert client.verify_ssl is True
+    assert client.health_snapshot()["verify_ssl"] is True
+
+
+def test_story_agent_llm_allows_explicit_insecure_ssl(monkeypatch):
+    monkeypatch.setenv("STORY_AGENT_ALLOW_INSECURE_SSL", "1")
+
+    client = _build_client()
+
+    assert client.verify_ssl is False
+    assert client.health_snapshot()["verify_ssl"] is False
+
+
 def test_story_agent_llm_records_success_trace(monkeypatch):
     client = _build_client()
 

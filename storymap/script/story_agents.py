@@ -8,7 +8,6 @@ import os
 import time
 import uuid
 import requests
-import urllib3
 from typing import Dict, List, Optional, Tuple
 
 try:
@@ -19,10 +18,6 @@ except ImportError:
     from env_utils import load_project_env
     import story_agent_runtime as story_agent_runtime_utils
     import story_agent_graph as story_agent_graph_utils
-
-# 禁用 urllib3 的不安全请求警告
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -186,6 +181,8 @@ class StoryAgentLLM:
         self.provider = provider
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", os.getenv("MINIMAX_MAX_TOKENS", "4096")) or "4096")
         self._uses_anthropic_api = self._detect_anthropic_api(self.baseUrl, self.provider)
+        insecure_ssl = (os.getenv("STORY_AGENT_ALLOW_INSECURE_SSL") or os.getenv("LLM_ALLOW_INSECURE_SSL") or "").strip().lower()
+        self.verify_ssl = insecure_ssl not in {"1", "true", "yes", "on"}
         self.max_trace_entries = int(os.getenv("LLM_TRACE_MAX_ENTRIES", "50") or "50")
         self.request_traces: List[Dict[str, object]] = []
         self.last_request_trace: Dict[str, object] = {}
@@ -220,6 +217,7 @@ class StoryAgentLLM:
             "base_url": self.baseUrl,
             "timeout": self.timeout,
             "uses_anthropic_api": self._uses_anthropic_api,
+            "verify_ssl": self.verify_ssl,
             "last_request_trace": self.latest_trace(),
         }
 
@@ -230,13 +228,14 @@ class StoryAgentLLM:
         headers: Dict[str, str],
         payload: Dict[str, object],
         request_id: str,
-        verify: bool = True,
+        verify: Optional[bool] = None,
     ) -> Tuple[requests.Response, Dict[str, object]]:
         request_headers = dict(headers or {})
         request_headers.setdefault("X-Request-Id", request_id)
         started = time.perf_counter()
+        resolved_verify = self.verify_ssl if verify is None else bool(verify)
         try:
-            resp = requests.post(url, headers=request_headers, json=payload, timeout=self.timeout, verify=verify)
+            resp = requests.post(url, headers=request_headers, json=payload, timeout=self.timeout, verify=resolved_verify)
         except requests.RequestException as exc:
             duration_ms = int((time.perf_counter() - started) * 1000)
             classification = _classify_request_exception(exc)
@@ -253,6 +252,7 @@ class StoryAgentLLM:
         meta = {
             "status_code": resp.status_code,
             "duration_ms": duration_ms,
+            "verify_ssl": resolved_verify,
             "response_request_id": resp.headers.get("x-request-id")
             or resp.headers.get("request-id")
             or resp.headers.get("trace-id")
@@ -551,7 +551,7 @@ class StoryAgentLLM:
             "Authorization": f"Bearer {self.apiKey}",
         }
         payload = {"tool_id": self.tool_id, "parameters": params_to_tool}
-        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id, verify=False)
+        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
         if not resp.ok:
             self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
