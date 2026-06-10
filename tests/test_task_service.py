@@ -67,7 +67,7 @@ def _wait_for_task(service: TaskService, task_id: str, *, timeout: float = 2.0) 
     end = time.time() + timeout
     while time.time() < end:
         snapshot = service.snapshot_task(task_id)
-        if snapshot.get("status") in {"completed", "failed"}:
+        if snapshot.get("status") in {"completed", "failed", "partial_failed"}:
             return snapshot
         time.sleep(0.02)
     raise AssertionError(f"task {task_id} did not finish in time")
@@ -140,6 +140,40 @@ def test_task_service_builds_multi_person_summary(tmp_path):
         service.shutdown()
 
 
+def test_task_service_marks_partial_failures_with_structured_status(tmp_path):
+    def _generate(_client, person, **_kwargs):
+        if person == "杜甫":
+            return {"ok": False, "person": person, "error": "杜甫 no data"}
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate)
+    try:
+        submit = service.submit_task("李白 杜甫")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["exists"] is True
+        assert snapshot["ok"] is False
+        assert snapshot["status"] == "partial_failed"
+        assert "杜甫 no data" in snapshot["error"]
+        assert snapshot["result"]["status"] == "partial_failed"
+        assert snapshot["result"]["ok"] is False
+        assert snapshot["result"]["success_count"] == 1
+        assert snapshot["result"]["failed_count"] == 1
+        assert snapshot["result"]["failed_people"] == ["杜甫"]
+    finally:
+        service.shutdown()
+
+
 def test_task_service_accepts_unknown_plain_person_name(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -176,6 +210,7 @@ def test_task_service_recovers_completed_task_from_disk(tmp_path):
     restored = _build_service(tmp_path)
     try:
         recovered = restored.snapshot_task(submit["task_id"])
+        assert recovered["exists"] is True
         assert recovered["ok"] is True
         assert recovered["status"] == "completed"
         assert recovered["result"]["people"] == ["霍去病"]
@@ -194,7 +229,8 @@ def test_task_service_marks_inflight_tasks_failed_after_restart(tmp_path):
     restored = _build_service(tmp_path)
     try:
         snapshot = restored.snapshot_task(task_id)
-        assert snapshot["ok"] is True
+        assert snapshot["exists"] is True
+        assert snapshot["ok"] is False
         assert snapshot["status"] == "failed"
         assert "服务重启导致任务中断" in snapshot["error"]
         labels = [event["label"] for event in snapshot["progress"]]
@@ -235,9 +271,60 @@ def test_task_service_migrates_legacy_json_state_into_sqlite(tmp_path):
         snapshot = service.snapshot_task("legacy-task")
         sqlite_path = tmp_path / "artifacts" / "runtime" / "task_state.sqlite3"
 
+        assert snapshot["exists"] is True
         assert snapshot["ok"] is True
         assert snapshot["status"] == "completed"
         assert snapshot["result"]["people"] == ["霍去病"]
         assert sqlite_path.exists()
+    finally:
+        service.shutdown()
+
+
+def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
+    service = _build_service(
+        tmp_path,
+        generate_for_person=lambda _client, person, **_kwargs: {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_agent_runtime": {
+                "person": person,
+                "llm_calls_used": 1,
+                "llm_calls_limit": 4,
+                "degraded_reasons": [],
+                "execution_trace": ["supervisor", "search_agent"],
+                "tool_traces": [{"tool_name": "search_person_info"}],
+                "memory_hits": {"search": 1},
+                "memory_misses": {"place_map": 1},
+            },
+            "_profile": {
+                "person": {"name": person},
+                "locations": [],
+                "mapStyle": {},
+            },
+        },
+    )
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+        debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+        query_payload = service.list_tasks(limit=10)
+        stats = service.storage_stats()
+        maintain = service.maintain_storage(prune_expired=True, vacuum=False)
+
+        assert snapshot["status"] == "completed"
+        assert debug_snapshot["debug"]["meta"]["memory_hits"] == {"search": 1}
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["execution_trace"] == ["supervisor", "search_agent"]
+        assert "input_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
+        assert "output_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
+        assert query_payload["ok"] is True
+        assert query_payload["total"] >= 1
+        assert any(item["id"] == submit["task_id"] for item in query_payload["tasks"])
+        assert stats["task_count"] >= 1
+        assert stats["db_path"].endswith("task_state.sqlite3")
+        assert stats["db_size_bytes"] >= stats["db_main_size_bytes"]
+        assert maintain["ok"] is True
+        assert "stats" in maintain
     finally:
         service.shutdown()

@@ -435,8 +435,9 @@ def main() -> int:
     ap.add_argument("--skip-pep", action="store_true")
     ap.add_argument("--skip-html", action="store_true")
     ap.add_argument("--skip-home", action="store_true")
-    ap.add_argument("--validate", action="store_true", help="构建结束后输出校验报告；若发现错误则返回非 0")
+    ap.add_argument("--validate", action="store_true", help="兼容保留；当前默认已在校验错误时返回非 0")
     ap.add_argument("--validate-only", action="store_true", help="只生成 manifest 与校验报告，不执行重建")
+    ap.add_argument("--allow-validation-errors", action="store_true", help="即使校验报告存在错误也返回 0")
     ap.add_argument(
         "--markdown-smoke-check",
         choices=["off", "changed", "all"],
@@ -572,7 +573,7 @@ def main() -> int:
     _write_json(MANIFEST_JSON, manifest)
     print(f"[manifest] {MANIFEST_JSON}")
     print(f"[validate] {VALIDATION_JSON}  ok={report['ok']} errors={report['summary']['error_count']} warnings={report['summary']['warning_count']}")
-    if args.validate and not report["ok"]:
+    if (not report["ok"]) and (not args.allow_validation_errors):
         return 2
     return 0
 

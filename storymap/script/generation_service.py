@@ -138,6 +138,43 @@ def render_html(
     return render_amap_html(title, points, "")
 
 
+def _build_render_failure_result(
+    *,
+    person: str,
+    render_error: str,
+    fallback_html_path: str,
+    steps: List[Dict[str, object]],
+    duration: Dict[str, str],
+    profile: object,
+    validation: object,
+    markdown_path: str = "",
+    agent_runtime: Optional[Dict[str, object]] = None,
+    used_existing_markdown: bool = False,
+) -> Dict[str, object]:
+    result: Dict[str, object] = {
+        "ok": False,
+        "status": "degraded",
+        "degraded": True,
+        "person": person,
+        "error": str(render_error or "地图渲染失败"),
+        "render_error": str(render_error or "地图渲染失败"),
+        "fallback_html_path": fallback_html_path,
+        "html_path": fallback_html_path,
+        "steps": steps,
+        "duration": duration,
+        "_profile": profile,
+        "_validation": validation,
+        "cached": False,
+        "used_existing_markdown": bool(used_existing_markdown),
+        "warning": str(render_error or "地图渲染失败"),
+    }
+    if markdown_path:
+        result["markdown_path"] = markdown_path
+    if agent_runtime:
+        result["_agent_runtime"] = agent_runtime
+    return result
+
+
 def extract_agent_runtime_metadata(client: object) -> Dict[str, object]:
     return _extract_agent_runtime_metadata(client)
 
@@ -300,25 +337,38 @@ def generate_for_person(
         steps.append({"label": "文件写入", "duration": format_seconds(t_save)})
         total = time.perf_counter() - t0
         profile = load_profile_from_md(md_geo, event_callback=event_callback)
+        duration = {
+            "geocode": format_seconds(t_geo),
+            "render": format_seconds(t_render),
+            "save": format_seconds(t_save),
+            "total": format_seconds(total),
+        }
+        if render_error:
+            return _build_render_failure_result(
+                person=person,
+                render_error=render_error,
+                fallback_html_path=out,
+                markdown_path=md_path,
+                steps=steps,
+                duration=duration,
+                profile=profile,
+                validation=validation,
+                used_existing_markdown=True,
+            )
         result = {
             "ok": True,
+            "status": "ok",
+            "degraded": False,
             "person": person,
             "markdown_path": md_path,
             "html_path": out,
             "steps": steps,
-            "duration": {
-                "geocode": format_seconds(t_geo),
-                "render": format_seconds(t_render),
-                "save": format_seconds(t_save),
-                "total": format_seconds(total),
-            },
+            "duration": duration,
             "_profile": profile,
             "_validation": validation,
             "cached": False,
             "used_existing_markdown": True,
         }
-        if render_error:
-            result["warning"] = render_error
         return result
 
     t0 = time.perf_counter()
@@ -365,8 +415,34 @@ def generate_for_person(
     t_save = time.perf_counter() - t_step
     total = time.perf_counter() - t0
     profile = load_profile_from_md(md, event_callback=event_callback)
+    duration = {
+        "markdown": format_seconds(t_md),
+        "geocode": format_seconds(t_geo),
+        "render": format_seconds(t_render),
+        "save": format_seconds(t_save),
+        "total": format_seconds(total),
+    }
+    if render_error:
+        return _build_render_failure_result(
+            person=person,
+            render_error=render_error,
+            fallback_html_path=out,
+            markdown_path=saved,
+            steps=[
+                {"label": "生成人物档案", "duration": format_seconds(t_md)},
+                {"label": "解析地点坐标", "duration": format_seconds(t_geo)},
+                {"label": "构建时空结果", "duration": format_seconds(t_render)},
+                {"label": "保存分析产物", "duration": format_seconds(t_save)},
+            ],
+            duration=duration,
+            profile=profile,
+            validation=validation,
+            agent_runtime=agent_runtime,
+        )
     result = {
         "ok": True,
+        "status": "ok",
+        "degraded": False,
         "person": person,
         "markdown_path": saved,
         "html_path": out,
@@ -376,18 +452,10 @@ def generate_for_person(
             {"label": "构建时空结果", "duration": format_seconds(t_render)},
             {"label": "保存分析产物", "duration": format_seconds(t_save)},
         ],
-        "duration": {
-            "markdown": format_seconds(t_md),
-            "geocode": format_seconds(t_geo),
-            "render": format_seconds(t_render),
-            "save": format_seconds(t_save),
-            "total": format_seconds(total),
-        },
+        "duration": duration,
         "_profile": profile,
         "_validation": validation,
         "_agent_runtime": agent_runtime,
         "cached": False,
     }
-    if render_error:
-        result["warning"] = render_error
     return result

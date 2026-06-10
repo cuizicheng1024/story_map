@@ -28,7 +28,6 @@ REQUIRED_SECTION_PATTERNS = {
 }
 REQUIRED_INFO_KEYS = ("姓名", "出生", "去世")
 OPTIONAL_INFO_KEY_GROUPS = (("时代", "朝代"),)
-TIMELINE_HEADER = re.compile(r"^\|\s*年份\s*\|\s*年龄\s*\|\s*关键事件\s*\|", re.M)
 LOCATION_HEADING = re.compile(r"^###\s+[🟢📍🔴].+$", re.M)
 POSITION_FIELD = re.compile(r"^- \*\*位置\*\*：", re.M)
 PLACEHOLDER_LOCATION_PATTERNS = [
@@ -175,8 +174,18 @@ def validate_markdown(file_path: Path) -> ValidationResult:
             extra = "" if len(unresolved_locations) <= 5 else f" 等 {len(unresolved_locations)} 个地点"
             result.warnings.append(f"离线坐标未命中：{preview}{extra}")
 
-    if REQUIRED_SECTION_PATTERNS["生平时间线"].search(text) and not TIMELINE_HEADER.search(text):
-        result.errors.append("`生平时间线` 章节缺少标准表头 `年份 | 年龄 | 关键事件`")
+    if REQUIRED_SECTION_PATTERNS["生平时间线"].search(text):
+        timeline_header = [str(item or "").strip() for item in list(parsed_doc.timeline_header or [])]
+        header_text = " | ".join(timeline_header)
+        if not timeline_header:
+            result.errors.append("`生平时间线` 章节缺少可解析表头")
+        else:
+            if not any("年份" in col for col in timeline_header):
+                result.errors.append("`生平时间线` 表头缺少 `年份` 列")
+            if not any(("事件" in col) or ("关键事件" in col) for col in timeline_header):
+                result.errors.append("`生平时间线` 表头缺少 `事件` / `关键事件` 列")
+            if len(timeline_header) < 3:
+                result.errors.append(f"`生平时间线` 表头列数不足：{header_text}")
 
     locations = []
     for item in location_sections:

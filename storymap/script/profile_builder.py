@@ -10,6 +10,50 @@ except ImportError:
 
 
 Coord = Tuple[float, float]
+_LITERARY_ROLE_TOKENS = (
+    "诗人",
+    "词人",
+    "文学家",
+    "散文家",
+    "作家",
+    "小说家",
+    "剧作家",
+    "诗词家",
+    "文人",
+    "赋家",
+)
+_HISTORICAL_RECORD_TOKENS = (
+    "《史记》",
+    "《汉书》",
+    "《后汉书》",
+    "《三国志》",
+    "《晋书》",
+    "《宋书》",
+    "《南齐书》",
+    "《梁书》",
+    "《陈书》",
+    "《魏书》",
+    "《北齐书》",
+    "《周书》",
+    "《隋书》",
+    "《旧唐书》",
+    "《新唐书》",
+    "《旧五代史》",
+    "《新五代史》",
+    "《宋史》",
+    "《辽史》",
+    "《金史》",
+    "《元史》",
+    "《明史》",
+    "《清史稿》",
+    "《资治通鉴》",
+    "史载",
+    "记载",
+    "载曰",
+    "评曰",
+    "本纪",
+    "列传",
+)
 
 
 def extract_works(text: str) -> List[str]:
@@ -130,6 +174,106 @@ def extract_title_from_text(text: str) -> str:
     if m:
         return m.group(1).strip()
     return ""
+
+
+def _clean_short_review_text(text: str, *, max_len: int = 88) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    raw = re.sub(r"^\s*[-*•]\s*", "", raw)
+    raw = re.sub(r"^\d+\.\s*", "", raw)
+    raw = raw.replace("**", "").strip()
+    quoted = re.search(r"[“\"「『](.+?)[”\"」』]", raw)
+    if quoted and str(quoted.group(1) or "").strip():
+        return str(quoted.group(1) or "").strip()
+    trimmed = raw
+    if "：" in trimmed:
+        trimmed = trimmed.split("：", 1)[1].strip()
+    elif ":" in trimmed:
+        trimmed = trimmed.split(":", 1)[1].strip()
+    trimmed = re.split(r"\s*(?:——|--|—)\s*", trimmed, maxsplit=1)[0].strip()
+    trimmed = re.sub(r"[（(][^）)]{0,40}[）)]\s*$", "", trimmed).strip()
+    trimmed = trimmed.strip("“”\"「」『』")
+    trimmed = re.sub(r"\s+", " ", trimmed)
+    if not trimmed:
+        return ""
+    if len(trimmed) > max_len:
+        trimmed = trimmed[: max_len - 1].rstrip() + "…"
+    return trimmed
+
+
+def _is_literary_person(info: Dict[str, str]) -> bool:
+    haystack = " ".join(
+        [
+            str(info.get("主要身份") or ""),
+            str(info.get("历史地位") or ""),
+            str(info.get("主要成就") or ""),
+        ]
+    )
+    return any(token in haystack for token in _LITERARY_ROLE_TOKENS)
+
+
+def _is_historical_record_review(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw:
+        return False
+    return any(token in raw for token in _HISTORICAL_RECORD_TOKENS)
+
+
+def _is_literary_review(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw or _is_historical_record_review(raw):
+        return False
+    return "《" in raw and "》" in raw
+
+
+def _dedupe_review_candidates(items: List[str]) -> List[str]:
+    out: List[str] = []
+    seen = set()
+    for item in items:
+        cleaned = _clean_short_review_text(item)
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        out.append(cleaned)
+    return out
+
+
+def _collect_self_review_candidates(locations: List[Dict[str, str]], work_texts: Dict[str, str]) -> Tuple[List[str], List[str]]:
+    raw_candidates: List[str] = []
+    for loc in locations:
+        raw_candidates.extend(split_quote_lines(str(loc.get("quotes") or "")))
+    direct_candidates = _dedupe_review_candidates([item for item in raw_candidates if "《" not in str(item or "")])
+    work_candidates = _dedupe_review_candidates([item for item in raw_candidates if "《" in str(item or "")])
+    work_candidates.extend(_dedupe_review_candidates([str(text or "") for text in work_texts.values()]))
+    return direct_candidates, _dedupe_review_candidates(work_candidates)
+
+
+def choose_short_review(
+    *,
+    info: Dict[str, str],
+    locations: List[Dict[str, str]],
+    work_texts: Dict[str, str],
+    historical_reviews: List[str],
+    fallback: str = "",
+) -> str:
+    self_direct_candidates, self_work_candidates = _collect_self_review_candidates(locations, work_texts)
+    literary_review_raw = [item for item in historical_reviews if _is_literary_review(item)]
+    record_review_raw = [item for item in historical_reviews if _is_historical_record_review(item)]
+    literary_review_candidates = _dedupe_review_candidates(literary_review_raw)
+    record_review_candidates = _dedupe_review_candidates(record_review_raw)
+    categorized_raw = set(literary_review_raw + record_review_raw)
+    generic_review_candidates = _dedupe_review_candidates([item for item in historical_reviews if item not in categorized_raw])
+    candidate_groups = (
+        [self_work_candidates, self_direct_candidates, literary_review_candidates, record_review_candidates, generic_review_candidates]
+        if _is_literary_person(info)
+        else [literary_review_candidates, record_review_candidates, self_direct_candidates, self_work_candidates, generic_review_candidates]
+    )
+    for group in candidate_groups:
+        for item in group:
+            if str(item or "").strip():
+                return str(item).strip()
+    return _clean_short_review_text(fallback)
 
 
 def build_points(
@@ -312,6 +456,13 @@ def build_profile_data(
     description = re.sub(r"-{3,}$", "", description).strip()
     works = extract_works(" ".join([description, info.get("主要成就", ""), info.get("历史地位", "")]))
     work_texts = extract_work_texts(normalized_md)
+    short_review = choose_short_review(
+        info=info,
+        locations=locations,
+        work_texts=work_texts,
+        historical_reviews=parsed_doc.historical_reviews,
+        fallback=title,
+    )
     birth_text = info.get("出生", "")
     death_text = info.get("去世", "")
     birth_date, birth_loc = parser_utils._parse_date_location(birth_text, ["出生于", "生于"])
@@ -383,7 +534,8 @@ def build_profile_data(
         "name": name or "人物",
         "title": title,
         "description": description,
-        "quote": title,
+        "quote": short_review or title,
+        "shortReview": short_review or title,
         "dynasty": dynasty,
         "birthplace": birth_loc,
         "avatar": "",
@@ -528,20 +680,6 @@ def build_profile_data(
             ]
         else:
             loc_items = []
-    preferred_quote = ""
-    for loc in reversed(loc_items):
-        quote_lines = loc.get("quoteLines") or []
-        if quote_lines and str(loc.get("type") or "").strip().lower() == "death":
-            preferred_quote = quote_lines[0]
-            break
-    if not preferred_quote:
-        for loc in reversed(loc_items):
-            quote_lines = loc.get("quoteLines") or []
-            if quote_lines:
-                preferred_quote = quote_lines[0]
-                break
-    if preferred_quote:
-        person["quote"] = preferred_quote
     return {
         "person": person,
         "locations": loc_items,

@@ -24,9 +24,17 @@ def _first_year(text: str) -> Optional[int]:
     return y
 
 
-def _parse_story_md(path: Path) -> Dict[str, Any]:
+def _normalize_source_path(path: Path, *, repo_root: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(repo_root.resolve()))
+    except Exception:
+        return path.name
+
+
+def _parse_story_md(path: Path, *, repo_root: Optional[Path] = None) -> Dict[str, Any]:
     text = path.read_text(encoding="utf-8", errors="ignore")
     head = "\n".join(text.splitlines()[:140])
+    root = repo_root or Path(__file__).resolve().parents[1]
 
     name = path.stem
     dynasty = ""
@@ -71,7 +79,7 @@ def _parse_story_md(path: Path) -> Dict[str, Any]:
         "dynasty": dynasty,
         "birthYear": birth_year,
         "deathYear": death_year,
-        "source": str(path),
+        "source": _normalize_source_path(path, repo_root=root),
     }
 
 
@@ -83,7 +91,7 @@ def main() -> int:
 
     items = []
     for p in sorted(story_dir.glob("*.md")):
-        items.append(_parse_story_md(p))
+        items.append(_parse_story_md(p, repo_root=repo_root))
 
     out = {
         "items": items,

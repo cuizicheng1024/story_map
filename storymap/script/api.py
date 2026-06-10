@@ -1,7 +1,12 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request as FastAPIRequest, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+
+try:
+    from .story_task_debug import render_task_debug_html
+except ImportError:
+    from story_task_debug import render_task_debug_html
 
 
 def _enforce_origin(request: FastAPIRequest, resolve_cors_origin) -> None:
@@ -52,15 +57,55 @@ def create_app(
         return static_service.vendor_response(name)
 
     @app.get("/task")
-    async def get_task(id: str = "", request: FastAPIRequest = None) -> JSONResponse:
+    async def get_task(id: str = "", debug: int = 0, request: FastAPIRequest = None) -> JSONResponse:
         if request is not None:
             _enforce_origin(request, resolve_cors_origin)
         task_id = str(id or "").strip()
         if not task_id:
             return JSONResponse(status_code=400, content={"ok": False, "error": "id required"})
-        snapshot = task_service.snapshot_task(task_id)
-        status = 200 if snapshot.get("ok") else 404
+        snapshot = task_service.task_debug_snapshot(task_id) if int(debug or 0) else task_service.snapshot_task(task_id)
+        status = 200 if snapshot.get("exists", snapshot.get("ok")) else 404
         return JSONResponse(status_code=status, content=snapshot)
+
+    @app.get("/task/debug", include_in_schema=False)
+    async def get_task_debug(id: str = "", request: FastAPIRequest = None) -> HTMLResponse:
+        if request is not None:
+            _enforce_origin(request, resolve_cors_origin)
+        task_id = str(id or "").strip()
+        if not task_id:
+            return HTMLResponse(status_code=400, content="<h1>id required</h1>")
+        snapshot = task_service.task_debug_snapshot(task_id)
+        if not snapshot.get("exists", snapshot.get("ok")):
+            return HTMLResponse(status_code=404, content="<h1>task not found</h1>")
+        html = render_task_debug_html(snapshot, storage=task_service.storage_stats())
+        return HTMLResponse(status_code=200, content=html)
+
+    @app.get("/tasks")
+    async def list_tasks(limit: int = 20, offset: int = 0, status: str = "", request: FastAPIRequest = None) -> JSONResponse:
+        if request is not None:
+            _enforce_origin(request, resolve_cors_origin)
+        payload = task_service.list_tasks(limit=limit, offset=offset, status=status)
+        return JSONResponse(status_code=200, content=payload)
+
+    @app.get("/task/storage")
+    async def get_task_storage(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request, resolve_cors_origin)
+        return JSONResponse(status_code=200, content=task_service.storage_stats())
+
+    @app.post("/task/storage/maintain")
+    async def maintain_task_storage(request: FastAPIRequest) -> JSONResponse:
+        _enforce_origin(request, resolve_cors_origin)
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        payload = task_service.maintain_storage(
+            prune_expired=bool(data.get("prune_expired", True)),
+            vacuum=bool(data.get("vacuum", False)),
+        )
+        return JSONResponse(status_code=200, content=payload)
 
     @app.get("/generate")
     async def generate_get(request: FastAPIRequest, person: str = "", text: str = "") -> JSONResponse:

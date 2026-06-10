@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from typing import Dict, List, TypedDict
 
+try:
+    from .story_task_schema import AggregatedRuntimeMetadata, AgentRuntimeMetadata, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
+except ImportError:
+    from story_task_schema import AggregatedRuntimeMetadata, AgentRuntimeMetadata, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
+
 
 class StoryAgentRuntimeSnapshot(TypedDict, total=False):
     person: str
@@ -63,10 +68,10 @@ def mark_runtime_legacy_fallback(runtime: object, *, person: str, markdown: obje
     return snapshot
 
 
-def extract_agent_runtime_metadata(source: object) -> Dict[str, object]:
+def extract_agent_runtime_metadata(source: object) -> AgentRuntimeMetadata:
     runtime = getattr(source, "last_agent_runtime", source)
     if not isinstance(runtime, dict):
-        return {}
+        return normalize_agent_runtime_metadata({})
     if "state" not in runtime and any(
         key in runtime
         for key in (
@@ -79,7 +84,8 @@ def extract_agent_runtime_metadata(source: object) -> Dict[str, object]:
             "memory_misses",
         )
     ):
-        return {
+        return normalize_agent_runtime_metadata(
+            {
             "person": str(runtime.get("person") or ""),
             "langgraph_available": bool(runtime.get("langgraph_available")),
             "used_legacy_fallback": bool(runtime.get("used_legacy_fallback")),
@@ -95,10 +101,12 @@ def extract_agent_runtime_metadata(source: object) -> Dict[str, object]:
             "tool_traces": list(runtime.get("tool_traces") or []),
             "memory_hits": dict(runtime.get("memory_hits") or {}),
             "memory_misses": dict(runtime.get("memory_misses") or {}),
-        }
+            }
+        )
     snapshot = _runtime_snapshot_from(runtime)
     state = snapshot.get("state") if isinstance(snapshot.get("state"), dict) else {}
-    return {
+    return normalize_agent_runtime_metadata(
+        {
         "person": str(snapshot.get("person") or ""),
         "langgraph_available": bool(snapshot.get("langgraph_available")),
         "used_legacy_fallback": bool(snapshot.get("used_legacy_fallback")),
@@ -114,10 +122,11 @@ def extract_agent_runtime_metadata(source: object) -> Dict[str, object]:
         "tool_traces": list(state.get("tool_traces") or []),
         "memory_hits": dict(state.get("memory_hits") or {}),
         "memory_misses": dict(state.get("memory_misses") or {}),
-    }
+        }
+    )
 
 
-def aggregate_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str, object]:
+def aggregate_result_runtime_meta(results: List[Dict[str, object]]) -> AggregatedRuntimeMetadata:
     llm_calls_used = 0
     llm_calls_limit = 0
     degraded_reasons: List[str] = []
@@ -160,7 +169,8 @@ def aggregate_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str,
             if not key:
                 continue
             memory_misses[key] = int(memory_misses.get(key) or 0) + int(count or 0)
-    return {
+    return normalize_aggregated_runtime_meta(
+        {
         "llm_calls_used": llm_calls_used,
         "llm_calls_limit": llm_calls_limit,
         "degraded": bool(degraded_reasons),
@@ -170,7 +180,8 @@ def aggregate_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str,
         "tool_trace_count": tool_trace_count,
         "memory_hits": memory_hits,
         "memory_misses": memory_misses,
-    }
+        }
+    )
 
 
 __all__ = [

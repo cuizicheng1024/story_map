@@ -730,47 +730,50 @@ const workTextLibrary = (() => {
   }
   return out;
 })();
+const getWorkTooltipText = (title) => {
+  const cleanTitle = normalizeWorkTitle(title);
+  if (!cleanTitle) return '';
+  return String(workTextLibrary[cleanTitle] || '').trim();
+};
+const renderWorkTitleWithTooltip = (fullTitle, key, className) => {
+  const title = normalizeWorkTitle(fullTitle);
+  const workText = getWorkTooltipText(title);
+  if (!workText) {
+    return <React.Fragment key={key}>{fullTitle}</React.Fragment>;
+  }
+  return (
+    <span key={key} className="relative inline-flex align-baseline group">
+      <span className={className || "text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800 cursor-help"}>
+        {fullTitle}
+      </span>
+      <span className="pointer-events-none absolute left-0 top-full z-[80] mt-2 hidden min-w-[260px] max-w-[420px] whitespace-pre-wrap rounded-xl border border-[#c8b496]/60 bg-white/95 px-3 py-2 text-xs leading-6 text-gray-700 shadow-xl group-hover:block group-focus-within:block">
+        <span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>
+        <span>{workText}</span>
+      </span>
+    </span>
+  );
+};
+const renderWorkTokens = (segment, keyPrefix, className) => {
+  const out = [];
+  const regex = /《([^》]{1,80})》/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(segment)) !== null) {
+    if (match.index > lastIndex) {
+      out.push(<React.Fragment key={`${keyPrefix}-txt-${lastIndex}`}>{segment.slice(lastIndex, match.index)}</React.Fragment>);
+    }
+    const fullTitle = match[0];
+    out.push(renderWorkTitleWithTooltip(fullTitle, `${keyPrefix}-work-${match.index}`, className));
+    lastIndex = match.index + fullTitle.length;
+  }
+  if (lastIndex < segment.length) {
+    out.push(<React.Fragment key={`${keyPrefix}-tail-${lastIndex}`}>{segment.slice(lastIndex)}</React.Fragment>);
+  }
+  return out;
+};
 const renderTeachingInline = (text) => {
   const raw = String(text || '');
   const parts = raw.split(/(\*\*.*?\*\*)/g).filter(Boolean);
-  const renderWorkTokens = (segment, keyPrefix) => {
-    const out = [];
-    const regex = /《([^》]{1,80})》/g;
-    let lastIndex = 0;
-    let match;
-    while ((match = regex.exec(segment)) !== null) {
-      if (match.index > lastIndex) {
-        out.push(<React.Fragment key={`${keyPrefix}-txt-${lastIndex}`}>{segment.slice(lastIndex, match.index)}</React.Fragment>);
-      }
-      const fullTitle = match[0];
-      const title = normalizeWorkTitle(match[1]);
-      const workText = workTextLibrary[title];
-      if (workText) {
-        out.push(
-          <span key={`${keyPrefix}-work-${match.index}`} className="relative inline-flex align-baseline group">
-            <a
-              href={`#work-${encodeURIComponent(title)}`}
-              onClick={(e) => e.preventDefault()}
-              className="text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800"
-            >
-              {fullTitle}
-            </a>
-            <span className="pointer-events-none absolute left-0 top-full z-[80] mt-2 hidden min-w-[260px] max-w-[420px] whitespace-pre-wrap rounded-xl border border-[#c8b496]/60 bg-white/95 px-3 py-2 text-xs leading-6 text-gray-700 shadow-xl group-hover:block group-focus-within:block">
-              <span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>
-              <span>{workText}</span>
-            </span>
-          </span>
-        );
-      } else {
-        out.push(<React.Fragment key={`${keyPrefix}-plain-${match.index}`}>{fullTitle}</React.Fragment>);
-      }
-      lastIndex = match.index + fullTitle.length;
-    }
-    if (lastIndex < segment.length) {
-      out.push(<React.Fragment key={`${keyPrefix}-tail-${lastIndex}`}>{segment.slice(lastIndex)}</React.Fragment>);
-    }
-    return out;
-  };
   return parts.map((p, idx) => {
     const m = p.match(/^\*\*(.+?)\*\*$/);
     const content = m ? m[1] : p.replaceAll('**', '');
@@ -789,9 +792,9 @@ const renderInline = (text) => {
   return parts.map((p, idx) => {
     const m = p.match(/^\*\*(.+?)\*\*$/);
     if (m) {
-      return <strong key={idx} className="font-extrabold text-gray-900">{m[1]}</strong>;
+      return <strong key={idx} className="font-extrabold text-gray-900">{renderWorkTokens(m[1], `inline-bold-${idx}`)}</strong>;
     }
-    return <span key={idx}>{p.replaceAll('**', '')}</span>;
+    return <span key={idx}>{renderWorkTokens(p.replaceAll('**', ''), `inline-${idx}`)}</span>;
   });
 };
 
@@ -1166,12 +1169,13 @@ const App = () => {
   const relatedHonor = String(highlights.honor || data.person?.title || '').trim();
   const relatedStatus = String(highlights.status || '').trim();
   const relatedIdentities = String(highlights.identities || '').trim();
+  const shortReview = String(data.person?.shortReview || data.person?.quote || '').trim();
   const surname = String(data.person?.name || '').slice(0, 1);
   const teachingReviewSubtitle = useMemo(
     () => extractTeachingReviewSubtitle(mergedTeachingPointsNormalized),
     [mergedTeachingPointsNormalized]
   );
-  const headerSubtitle = String(relatedReviews[0] || teachingReviewSubtitle || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
+  const headerSubtitle = String(shortReview || relatedReviews[0] || teachingReviewSubtitle || relatedHonor || relatedWorks[0] || '').replace(/^\s*[-\d.]+\s*/, '').trim();
   const descSegments = useMemo(() => {
     if (!description) return [];
     const parts = description.split(/([。！？])/);
@@ -2445,7 +2449,7 @@ const App = () => {
                       <p className="text-gray-400 text-[10px] uppercase font-bold">名篇名句</p>
                       <ul className="list-disc pl-4 space-y-1">
                         {selectedLoc.works.map((w, idx) => (
-                          <li key={idx} className="text-xs text-gray-700">《{w}》</li>
+                          <li key={idx} className="text-xs text-gray-700">{renderWorkTitleWithTooltip(`《${w}》`, `selected-work-${idx}`, "text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800 cursor-help")}</li>
                         ))}
                       </ul>
                     </div>

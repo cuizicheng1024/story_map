@@ -248,6 +248,88 @@ def test_generate_for_person_inserts_distance_intro_after_geocoding(tmp_path, mo
     assert "地点坐标（自动地理编码）" in saved_md
 
 
+def test_generate_for_person_marks_render_failure_as_degraded_when_reusing_markdown(tmp_path):
+    person = "王昭君"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    md_path.write_text("# 王昭君\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前54年 | 南郡秭归 | 湖北秭归 | 出生 |\n", encoding="utf-8")
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person=person,
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: (_ for _ in ()).throw(RuntimeError("boom")),
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is False
+    assert result["status"] == "degraded"
+    assert result["degraded"] is True
+    assert result["used_existing_markdown"] is True
+    assert result["fallback_html_path"] == str(html_path)
+    assert result["render_error"] == "boom"
+
+
+def test_generate_for_person_marks_render_failure_as_degraded_for_new_generation(tmp_path):
+    person = "李四光"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+
+    result = generation_service.generate_for_person(
+        client=object(),
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: (_ for _ in ()).throw(RuntimeError("render failed")),
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, requested_person: f"# {requested_person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1889年 | 黄冈 | 湖北黄冈 | 出生 |\n",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is False
+    assert result["status"] == "degraded"
+    assert result["degraded"] is True
+    assert result["fallback_html_path"] == str(html_path)
+    assert result["render_error"] == "render failed"
+
+
 def test_append_coords_section_skips_event_column_when_timeline_has_no_place_headers(monkeypatch):
     md = """## 四、生平时间线
 

@@ -10,8 +10,36 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 try:
     from .story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
+    from .story_task_debug import build_task_debug_payload
+    from .story_task_schema import (
+        TaskFileEntry,
+        TaskListItem,
+        TaskMultiEntry,
+        TaskResultSummary,
+        TaskSnapshot,
+        TaskStorageMaintenanceResult,
+        TaskStorageQueryResult,
+        TaskStorageStats,
+        build_task_list_item,
+        build_task_result_summary,
+        build_task_snapshot,
+    )
 except ImportError:
     from story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
+    from story_task_debug import build_task_debug_payload
+    from story_task_schema import (
+        TaskFileEntry,
+        TaskListItem,
+        TaskMultiEntry,
+        TaskResultSummary,
+        TaskSnapshot,
+        TaskStorageMaintenanceResult,
+        TaskStorageQueryResult,
+        TaskStorageStats,
+        build_task_list_item,
+        build_task_result_summary,
+        build_task_snapshot,
+    )
 
 
 _TASK_LIKE_TOKENS = (
@@ -36,6 +64,7 @@ _TASK_LIKE_TOKENS = (
     "证据",
     "活动",
 )
+_TERMINAL_TASK_STATUSES = {"completed", "failed", "partial_failed"}
 
 
 def _collect_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str, object]:
@@ -202,6 +231,138 @@ class TaskService:
             self._trim_tasks_locked()
             self._replace_all_tasks_locked()
 
+    def _query_tasks_from_db(
+        self,
+        *,
+        limit: int = 20,
+        offset: int = 0,
+        status: str = "",
+    ) -> tuple[List[Dict[str, object]], int]:
+        normalized_status = str(status or "").strip()
+        safe_limit = max(1, min(int(limit), 200))
+        safe_offset = max(0, int(offset))
+        rows = self._db.execute("SELECT payload FROM tasks ORDER BY updated_at DESC").fetchall()
+        filtered: List[Dict[str, object]] = []
+        for (payload_text,) in rows:
+            try:
+                payload = json.loads(str(payload_text or ""))
+            except Exception:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if normalized_status and str(payload.get("status") or "").strip() != normalized_status:
+                continue
+            filtered.append(payload)
+        total = len(filtered)
+        return filtered[safe_offset : safe_offset + safe_limit], total
+
+    def list_tasks(
+        self,
+        *,
+        limit: int = 20,
+        offset: int = 0,
+        status: str = "",
+    ) -> TaskStorageQueryResult:
+        self._cleanup_tasks()
+        tasks, total = self._query_tasks_from_db(limit=limit, offset=offset, status=status)
+        items: List[TaskListItem] = [build_task_list_item(task) for task in tasks]
+        return {
+            "ok": True,
+            "limit": max(1, min(int(limit), 200)),
+            "offset": max(0, int(offset)),
+            "status": str(status or "").strip(),
+            "total": total,
+            "tasks": items,
+        }
+
+    def storage_stats(self) -> TaskStorageStats:
+        self._cleanup_tasks()
+        counts = {
+            "queued_count": 0,
+            "running_count": 0,
+            "completed_count": 0,
+            "failed_count": 0,
+        }
+        oldest = 0.0
+        newest = 0.0
+        with self._task_lock:
+            for task in self._tasks.values():
+                status = str(task.get("status") or "").strip()
+                key = f"{status}_count"
+                if key in counts:
+                    counts[key] += 1
+                updated_at = float(task.get("updated_at") or 0)
+                if updated_at > 0:
+                    if oldest <= 0 or updated_at < oldest:
+                        oldest = updated_at
+                    if updated_at > newest:
+                        newest = updated_at
+        main_size = 0
+        wal_size = 0
+        shm_size = 0
+        try:
+            main_size = os.path.getsize(self._state_db_path) if os.path.exists(self._state_db_path) else 0
+        except Exception:
+            main_size = 0
+        try:
+            wal_size = os.path.getsize(f"{self._state_db_path}-wal") if os.path.exists(f"{self._state_db_path}-wal") else 0
+        except Exception:
+            wal_size = 0
+        try:
+            shm_size = os.path.getsize(f"{self._state_db_path}-shm") if os.path.exists(f"{self._state_db_path}-shm") else 0
+        except Exception:
+            shm_size = 0
+        size_bytes = int(main_size) + int(wal_size) + int(shm_size)
+        return {
+            "db_path": self._state_db_path,
+            "db_size_bytes": int(size_bytes),
+            "db_main_size_bytes": int(main_size),
+            "db_wal_size_bytes": int(wal_size),
+            "db_shm_size_bytes": int(shm_size),
+            "task_count": sum(counts.values()),
+            "queued_count": counts["queued_count"],
+            "running_count": counts["running_count"],
+            "completed_count": counts["completed_count"],
+            "failed_count": counts["failed_count"],
+            "oldest_updated_at": oldest,
+            "newest_updated_at": newest,
+        }
+
+    def maintain_storage(
+        self,
+        *,
+        prune_expired: bool = True,
+        vacuum: bool = False,
+    ) -> TaskStorageMaintenanceResult:
+        before_ids = set()
+        with self._task_lock:
+            before_ids = set(self._tasks.keys())
+        if prune_expired:
+            self._cleanup_tasks()
+        after_ids = set()
+        with self._task_lock:
+            after_ids = set(self._tasks.keys())
+        pruned_count = max(0, len(before_ids - after_ids))
+        if vacuum:
+            with self._task_lock:
+                self._db.commit()
+                self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                self._db.execute("VACUUM")
+                self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        return {
+            "ok": True,
+            "pruned_count": pruned_count,
+            "vacuumed": bool(vacuum),
+            "stats": self.storage_stats(),
+        }
+
+    def task_debug_snapshot(self, task_id: str) -> Dict[str, object]:
+        snapshot = self.snapshot_task(task_id)
+        if not snapshot.get("exists"):
+            return snapshot
+        snapshot["debug"] = build_task_debug_payload(snapshot)
+        return snapshot
+
     def _upsert_task_locked(self, task: Dict[str, object]) -> None:
         task_id = str(task.get("id") or "").strip()
         if not task_id:
@@ -237,13 +398,13 @@ class TaskService:
                 ),
             )
 
-    def snapshot_task(self, task_id: str) -> Dict[str, object]:
+    def snapshot_task(self, task_id: str) -> TaskSnapshot:
         self._cleanup_tasks()
         with self._task_lock:
             task = self._tasks.get(task_id)
             if not task:
-                return {"ok": False, "error": "task not found"}
-            return {"ok": True, **task}
+                return {"exists": False, "ok": False, "error": "task not found"}
+            return build_task_snapshot(task)
 
     def submit_task(self, text: str) -> Dict[str, object]:
         self._cleanup_tasks()
@@ -321,7 +482,7 @@ class TaskService:
             expired_ids = [
                 task_id
                 for task_id, task in self._tasks.items()
-                if task.get("status") in {"completed", "failed"}
+                if task.get("status") in _TERMINAL_TASK_STATUSES
                 and float(task.get("updated_at") or 0) < cutoff
             ]
             for task_id in expired_ids:
@@ -338,14 +499,14 @@ class TaskService:
         ordered = sorted(
             self._tasks.items(),
             key=lambda item: (
-                item[1].get("status") not in {"completed", "failed"},
+                    item[1].get("status") not in _TERMINAL_TASK_STATUSES,
                 float(item[1].get("updated_at") or 0),
             ),
         )
         for task_id, task in ordered:
             if overflow <= 0:
                 break
-            if task.get("status") in {"queued", "running"}:
+            if task.get("status") not in _TERMINAL_TASK_STATUSES:
                 continue
             self._tasks.pop(task_id, None)
             removed_ids.append(task_id)
@@ -470,39 +631,55 @@ class TaskService:
 
         duration = self._format_seconds(time.perf_counter() - started_at)
         conclusion = self._build_conclusion(results, len(people_payload) > 1)
-        summary: Dict[str, object] = {
-            "ok": any(result.get("ok") for result in results),
-            "people": targets,
-            "results": results,
-            "multi_html_path": multi_html_path,
-            "multi_exports": multi_exports,
-            "overlaps": overlaps,
-            "duration": duration,
-            "conclusion": conclusion,
-            "files": [],
-        }
-        summary["meta"] = _collect_result_runtime_meta(results)
+        success_results = [result for result in results if result.get("ok")]
+        failed_results = [result for result in results if not result.get("ok")]
+        failed_people = [str(item.get("person") or "").strip() for item in failed_results if str(item.get("person") or "").strip()]
+        if success_results and failed_results:
+            summary_status = "partial_failed"
+        elif success_results:
+            summary_status = "completed"
+        else:
+            summary_status = "failed"
+        files: List[TaskFileEntry] = []
         for result in results:
             if not result.get("ok"):
                 continue
-            files = {
+            file_entry: TaskFileEntry = {
                 "markdown": self._relative_path(result.get("markdown_path", "")),
                 "html": self._relative_path(result.get("html_path", "")),
             }
             exports = result.get("exports") or {}
             if exports.get("geojson"):
-                files["geojson"] = self._relative_path(exports.get("geojson", ""))
+                file_entry["geojson"] = self._relative_path(exports.get("geojson", ""))
             if exports.get("csv"):
-                files["csv"] = self._relative_path(exports.get("csv", ""))
-            summary["files"].append(files)
+                file_entry["csv"] = self._relative_path(exports.get("csv", ""))
+            files.append(file_entry)
+        multi_entry: Optional[TaskMultiEntry] = None
         if multi_html_path:
-            summary["multi"] = {
+            multi_entry = {
                 "html": self._relative_path(multi_html_path),
                 "geojson": self._relative_path(multi_exports.get("geojson", "")) if multi_exports else "",
                 "csv": self._relative_path(multi_exports.get("csv", "")) if multi_exports else "",
             }
+        summary: TaskResultSummary = build_task_result_summary(
+            ok=(summary_status == "completed"),
+            status=summary_status,
+            people=targets,
+            results=results,
+            success_count=len(success_results),
+            failed_count=len(failed_results),
+            failed_people=failed_people,
+            multi_html_path=multi_html_path,
+            multi_exports=multi_exports,
+            overlaps=overlaps,
+            duration=duration,
+            conclusion=conclusion,
+            files=files,
+            meta=_collect_result_runtime_meta(results),
+            multi=multi_entry,
+        )
         self._append_progress(task_id, "输出结论")
-        if not summary["ok"]:
+        if summary_status == "failed":
             errors = []
             for result in results:
                 message = str(result.get("error") or "").strip()
@@ -513,6 +690,18 @@ class TaskService:
             self._append_progress(task_id, "失败", error_message)
             self._append_progress(task_id, "完成", "失败")
             self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
+            return
+        if summary_status == "partial_failed":
+            errors = []
+            for result in failed_results:
+                message = str(result.get("error") or "").strip()
+                if message and message not in errors:
+                    errors.append(message)
+            error_message = "；".join(errors[:3]) or f"部分人物生成失败：{'、'.join(failed_people[:3])}"
+            self._update_task(task_id, status="partial_failed", error=error_message, result=summary)
+            self._append_progress(task_id, "部分失败", error_message)
+            self._append_progress(task_id, "完成", "部分失败")
+            self._logger.warning("task_partial_failed id=%s error=%s", task_id, error_message)
             return
         self._update_task(task_id, status="completed", result=summary)
         self._logger.info("task_completed id=%s duration=%s", task_id, duration)

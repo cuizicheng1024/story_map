@@ -126,6 +126,71 @@ async def test_generate_then_poll_task_flow(monkeypatch):
     assert snapshot["result"]["meta"]["memory_misses"] == {"place_map": 1}
 
 
+async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
+    def _fake_generate(_client, person, **_kwargs):
+        return {"ok": False, "person": person, "error": f"{person} failed"}
+
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", _fake_generate)
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        submit = await client.post("/generate", json={"person": "霍去病"})
+        task_id = submit.json()["task_id"]
+        snapshot = None
+        for _ in range(40):
+            response = await client.get("/task", params={"id": task_id})
+            snapshot = response
+            if response.json().get("status") == "failed":
+                break
+            await anyio.sleep(0.05)
+
+    assert snapshot is not None
+    assert snapshot.status_code == 200
+    payload = snapshot.json()
+    assert payload["exists"] is True
+    assert payload["ok"] is False
+    assert payload["status"] == "failed"
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        debug_response = await client.get("/task", params={"id": task_id, "debug": 1})
+        debug_page = await client.get("/task/debug", params={"id": task_id})
+        list_response = await client.get("/tasks", params={"limit": 10})
+        storage_response = await client.get("/task/storage")
+        maintain_response = await client.post("/task/storage/maintain", json={"prune_expired": True, "vacuum": False})
+
+    assert debug_response.status_code == 200
+    debug_payload = debug_response.json()
+    assert debug_payload["exists"] is True
+    assert debug_payload["ok"] is False
+    assert debug_payload["debug"]["meta"]["memory_hits"] == {}
+    assert debug_payload["debug"]["meta"]["memory_misses"] == {}
+    assert len(debug_payload["debug"]["people"]) == 1
+    assert debug_payload["debug"]["people"][0]["person"] == "霍去病"
+    assert debug_payload["debug"]["people"][0]["ok"] is False
+
+    assert debug_page.status_code == 200
+    assert "Task Debug" in debug_page.text
+    assert "霍去病" in debug_page.text
+    assert "霍去病 failed" in debug_page.text
+
+    assert list_response.status_code == 200
+    list_payload = list_response.json()
+    assert list_payload["ok"] is True
+    assert list_payload["total"] >= 1
+    assert any(item["id"] == task_id for item in list_payload["tasks"])
+
+    assert storage_response.status_code == 200
+    storage_payload = storage_response.json()
+    assert storage_payload["task_count"] >= 1
+    assert storage_payload["db_path"].endswith("task_state.sqlite3")
+    assert storage_payload["db_size_bytes"] >= storage_payload["db_main_size_bytes"]
+
+    assert maintain_response.status_code == 200
+    maintain_payload = maintain_response.json()
+    assert maintain_payload["ok"] is True
+    assert "stats" in maintain_payload
+
+
 async def test_ai_proxy_prefers_local_agent(monkeypatch):
     def _fake_local_agent(data):
         assert data["context"]["personName"] == "苏轼"

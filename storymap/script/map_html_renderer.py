@@ -685,6 +685,7 @@ def build_info_panel_html(_title: str, fields: Dict[str, str]) -> str:
     构建基础地图页左上角的信息面板。
     """
     order = ["朝代", "身份", "生卒年", "主要事件", "主要作品", "历史地位", "一生行程"]
+    wrap = ['<div class="bio-panel"><div class="bio-body">']
     for k in order:
         val = fields.get(k, "")
         if val:
