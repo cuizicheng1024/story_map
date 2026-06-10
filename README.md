@@ -19,17 +19,15 @@
 
 <p align="center">
   <a href="https://www.bilibili.com/video/BV1aLoCBnEiN">故事地图视频演示</a> ·
-  <a href="#快速开始与项目结构">快速开始与项目结构</a> ·
-  <a href="./install.md">安装与本地部署</a> ·
-  <a href="#演示与在线静态版">演示与在线静态版</a>
+  <a href="#演示与在线静态版">在线静态版</a> ·
+  <a href="./install.md">安装、部署与维护文档</a>
 </p>
 
 ## 目录
 - [项目概况](#项目概况)
 - [适用场景](#适用场景)
 - [演示与在线静态版](#演示与在线静态版)
-- [安装与本地部署](./install.md)
-- [快速开始与项目结构](#快速开始与项目结构)
+- [安装、部署与维护文档](./install.md)
 - [作者信息](#作者信息)
 
 ## 项目概况
@@ -115,92 +113,13 @@
 - 项目结构
 - 维护入口
 
-## 开发自检
+## 开发与数据维护
 
-每次修改 `storymap/script`、`tests` 或 `tools` 后，建议先跑统一自检入口：
+以下内容也已统一迁移到 [install.md](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)：
 
-```bash
-scripts/test_storymap.sh
-```
-
-说明：
-
-- 默认会先跑一轮 `ruff check --select F`，只拦截会影响运行的导入/名称类问题
-- 然后执行一组核心回归测试，覆盖环境变量兼容、静态目录选择、任务流、模板和 Markdown 校验
-- `scripts/test_storymap.sh` 的解释器选择顺序与启动脚本一致：当前激活环境 -> 仓库内 `.venv311` / `.venv` -> 系统 `python3`
-- 若要跑完整测试集，可执行：
-
-```bash
-scripts/test_storymap.sh --all-tests
-```
-
-## 数据重建与重渲染
-
-当前仓库的数据单源为：
-
-- `storymap/examples/story/*.md`
-
-推荐使用统一构建入口：
-
-```bash
-python tools/build_all.py --concurrency 8
-```
-
-这个脚本会统一重建：
-
-- `data/people_master.json`
-- `data/people_master_pep.json`
-- `artifacts/story_map/stellar_home_data.json`
-- `artifacts/story_map/index.html`
-
-如果你只想重渲染全部人物页 HTML：
-
-```bash
-MAP_STORY_RENDER_CONCURRENCY=8 python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
-```
-
-说明：
-
-- `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
-- `build_all.py` 默认会先对当前 git 变更中的 Markdown 跑一次冒烟校验；若结构性错误会直接中止，避免把坏数据继续发布。
-- `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
-- 本地服务会直接放行 `artifacts/story_map/` 下的 `HTML / GeoJSON / CSV` 导出文件，便于浏览器直接查看或下载。
-- 人物页和首页依赖的 `vendor/*.js` 会优先从本地静态目录读取；只有本地不存在时才会回退远程抓取。
-- 若你已经配置 geocode key，想尽量补全地点坐标，可执行：
-
-```bash
-MAP_STORY_RENDER_CONCURRENCY=2 python cli/generate_pure_story_map.py --render-all --all-mode pure
-```
-
-- 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
-- 每次 `build_all.py` 完成后，还会刷新：
-  - `data/markdown_smoke_report.json`
-  - `data/low_coverage_story_report.json`
-  - `data/low_coverage_story_report.md`
-
-## 人物 Markdown 规范
-推荐每个人物文件都遵循统一规范，完整说明已单独存放在：
-
-- `storymap/docs/person_markdown_spec.md`
-- `storymap/docs/maintenance_map.md`
-
-校验命令：
-
-```bash
-python tools/validate_story_markdown.py
-```
-
-只校验当前改动文件：
-
-```bash
-python tools/build_all.py --markdown-smoke-check changed
-```
-
-说明：
-- 校验器会检查必需章节、关键字段、时间线表头
-- 校验器会调用解析器做一次离线解析，提示“地点为空”或“出生/去世地缺失”等高风险问题
-- 当前默认只把结构性问题视为错误；地点过少等问题先作为 warning，方便逐步清理历史数据
-- GitHub Pages workflow 会只校验本次 push 中改动过的 `storymap/examples/story/*.md`，用于拦截新增坏数据，不会被历史遗留文件阻塞
+- 开发自检
+- 数据重建与重渲染
+- 人物 Markdown 规范
 
 ## ✅ 无奖测试
 猜猜这些名句是谁写的？
