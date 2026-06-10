@@ -60,3 +60,22 @@ def test_resolve_main_role_band_places_philosophers_into_academic_band():
 
     assert band == "academic"
     assert label == "哲学家"
+
+
+def test_build_payload_meta_prefers_github_env(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    monkeypatch.setattr(module, "_now", lambda: "2026-06-10 12:00:00")
+    monkeypatch.setattr(module, "_git_head", lambda: "local-head-sha")
+    monkeypatch.setenv("GITHUB_SHA", "deploy-sha")
+    monkeypatch.setenv("GITHUB_RUN_ID", "123456")
+    monkeypatch.setenv("GITHUB_RUN_ATTEMPT", "2")
+
+    payload_meta = module._build_payload_meta()
+
+    assert payload_meta == {
+        "generated_at": "2026-06-10 12:00:00",
+        "source_commit": "deploy-sha",
+        "pages_run_id": 123456,
+        "pages_run_attempt": 2,
+    }

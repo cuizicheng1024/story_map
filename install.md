@@ -1,6 +1,6 @@
-# 安装与本地部署
+# 安装、本地部署与项目结构
 
-这份文档专门整理 `故事地图` 的环境要求、依赖安装、`.env` 配置和本地启动方式。
+这份文档专门整理 `故事地图` 的环境要求、依赖安装、`.env` 配置、本地启动方式和主要项目结构。
 
 ## 环境要求
 
@@ -87,6 +87,63 @@ scripts/start_storymap.sh 8766
 - `http://localhost:8765/苏轼.html#loc=3`
 
 其中 `#loc=N` 表示人物页左侧时间轴中第 `N` 个地点节点，从 `0` 开始计数。
+
+## 快速开始
+
+如果你已经装好依赖并配置好 `.env`，最短路径就是：
+
+```bash
+scripts/start_storymap.sh
+```
+
+常见体验入口：
+
+- 首页：`http://localhost:8765/`
+- 接口文档：`http://localhost:8765/docs`
+- 示例人物：`苏轼`、`李白`、`辛弃疾`
+
+## 项目结构
+
+```text
+artifacts/
+├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
+storymap/
+├── script/                 # 主服务与核心运行时：API、任务队列、渲染、解析、问答代理
+├── examples/
+│   └── story/              # 人物 Markdown 原始资料（单一数据源）
+├── docs/                   # 规范文档、素材和维护说明
+│   ├── assets/             # README 展示图片
+│   ├── person_markdown_spec.md
+│   └── maintenance_map.md  # 仓库维护地图
+cli/                        # 面向人物/HTML 生成的命令行入口
+scripts/                    # 本地启动等便捷脚本
+tools/                      # 数据构建、校验、索引生成工具
+data/                       # 人物主索引、坐标缓存、教材人物聚合结果
+.env                        # 地图与 LLM 的本地配置
+```
+
+## 维护入口
+
+如果你准备长期维护这个仓库，优先记住下面几个入口：
+
+- `scripts/start_storymap.sh`
+  - 本地启动入口，优先使用当前已激活环境，其次尝试仓库内 `.venv311` / `.venv`，再回退到系统 `python3`
+- `storymap/script/story_map.py`
+  - 运行时总入口，负责组装 `FastAPI`、任务服务、静态资源和问答代理
+- `storymap/script/app_factory.py`
+  - 运行时装配层，适合看清服务之间的依赖关系
+- `storymap/script/task.py`
+  - 生成人物页、多人物合并页、任务状态轮询的主流程
+- `storymap/script/profile_builder.py`
+  - Markdown -> 人物页结构化数据的主入口
+- `storymap/script/templates/profile_page.html`
+  - 人物页模板与大部分前端交互逻辑
+- `tools/build_all.py`
+  - 数据与首页构建入口
+- `tools/run_storymap_checks.py`
+  - 本地统一自检入口
+- `scripts/test_storymap.sh`
+  - 默认测试入口，本地修改后优先执行
 
 ## 未收录人物
 

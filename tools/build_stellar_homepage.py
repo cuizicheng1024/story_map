@@ -9,6 +9,7 @@ import math
 import os
 import re
 import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -73,6 +74,30 @@ ROLE_BAND_LABELS["other"] = "其他"
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _git_head() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(REPO_ROOT),
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
+
+
+def _build_payload_meta() -> Dict[str, object]:
+    run_id = str(os.getenv("GITHUB_RUN_ID") or "").strip()
+    run_attempt = str(os.getenv("GITHUB_RUN_ATTEMPT") or "").strip()
+    source_commit = str(os.getenv("GITHUB_SHA") or "").strip() or _git_head()
+    return {
+        "generated_at": _now(),
+        "source_commit": source_commit,
+        "pages_run_id": int(run_id) if run_id.isdigit() else run_id,
+        "pages_run_attempt": int(run_attempt) if run_attempt.isdigit() else run_attempt,
+    }
 
 
 def _analytics_head_html() -> str:
@@ -4563,7 +4588,7 @@ def main() -> int:
     out_data = story_map_dir / str(args.out_data)
     out_index = story_map_dir / str(args.out_index)
     payload = {
-        "generated_at": _now(),
+        **_build_payload_meta(),
         "min_year": min_year_v,
         "max_year": max_year_v,
         "default_start": int(args.default_start),

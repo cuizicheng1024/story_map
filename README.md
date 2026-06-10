@@ -77,9 +77,11 @@
 - 主页：人类群星闪耀时 + 时间轴联动
 - 人物页：地点连线与节点信息
 
-<img src="storymap/docs/assets/moler_post_01.png" alt="人物页：人物要点 + 地图轨迹" width="600" />
-<img src="storymap/docs/assets/moler_post_03.png" alt="主页：人类群星闪耀时 + 时间轴联动" width="600" />
-<img src="storymap/docs/assets/moler_post_05.png" alt="人物页：地点连线与节点信息" width="600" />
+<p align="center">
+  <img src="storymap/docs/assets/moler_post_01.png" alt="人物页：人物要点 + 地图轨迹" width="32%" />
+  <img src="storymap/docs/assets/moler_post_03.png" alt="主页：人类群星闪耀时 + 时间轴联动" width="32%" />
+  <img src="storymap/docs/assets/moler_post_05.png" alt="人物页：地点连线与节点信息" width="32%" />
+</p>
 
 主页默认展示：
 - 输入框：输入人物姓名、问题或任务，即可发起分析/跳转到人物页
@@ -104,63 +106,14 @@
 
 ## 🚀 快速开始与项目结构
 
-安装、环境变量配置和本地启动方式已经拆到独立文档：
+这部分内容已经统一整理到 [install.md](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)：
 
-- [安装与本地部署](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/install.md)
-
-如果你只想快速体验本地服务，可直接执行：
-
-```bash
-scripts/start_storymap.sh
-```
-
-### 示例人物
-- 苏轼
-- 李白
-- 辛弃疾
-
-### 项目结构
-
-```text
-artifacts/
-├── story_map/               # 构建产物目录：首页数据、首页产物、已生成人物 HTML/GeoJSON/CSV
-storymap/
-├── script/                 # 主服务与核心运行时：API、任务队列、渲染、解析、问答代理
-├── examples/
-│   └── story/              # 人物 Markdown 原始资料（单一数据源）
-├── docs/                   # 规范文档、素材和维护说明
-│   ├── assets/             # README 展示图片
-│   ├── person_markdown_spec.md
-│   └── maintenance_map.md  # 仓库维护地图
-cli/                        # 面向人物/HTML 生成的命令行入口
-scripts/                    # 本地启动等便捷脚本
-tools/                      # 数据构建、校验、索引生成工具
-data/                       # 人物主索引、坐标缓存、教材人物聚合结果
-.env                        # 地图与 LLM 的本地配置
-```
-
-### 维护入口
-
-如果你准备长期维护这个仓库，优先记住下面几个入口：
-
-- `scripts/start_storymap.sh`
-  - 本地启动入口，优先使用当前已激活环境，其次尝试仓库内 `.venv311` / `.venv`，再回退到系统 `python3`
-- `storymap/script/story_map.py`
-  - 运行时总入口，负责组装 `FastAPI`、任务服务、静态资源和问答代理
-- `storymap/script/app_factory.py`
-  - 运行时装配层，适合看清服务之间的依赖关系
-- `storymap/script/task.py`
-  - 生成人物页、多人物合并页、任务状态轮询的主流程
-- `storymap/script/profile_builder.py`
-  - Markdown -> 人物页结构化数据的主入口
-- `storymap/script/templates/profile_page.html`
-  - 人物页模板与大部分前端交互逻辑
-- `tools/build_all.py`
-  - 数据与首页构建入口
-- `tools/run_storymap_checks.py`
-  - 本地统一自检入口
-- `scripts/test_storymap.sh`
-  - 默认测试入口，本地修改后优先执行
+- 安装依赖
+- `.env` 配置
+- 本地启动
+- 快速开始
+- 项目结构
+- 维护入口
 
 ## 开发自检
 
@@ -251,14 +204,29 @@ python tools/build_all.py --markdown-smoke-check changed
 
 ## ✅ 无奖测试
 猜猜这些名句是谁写的？
-1. 峨眉山月半轮秋，影入平羌江水流
-<img src="storymap/docs/assets/moler_post_06.png" alt="人物页：事件卡片与地图联动" width="600" />
 
-2. 问余平生事业，黄州惠州儋州
-<img src="storymap/docs/assets/moler_post_02.png" alt="人物页：左侧时间轴 + 轨迹连线" width="600" />
-
-3. 关东有义士，兴兵讨群凶
-<img src="storymap/docs/assets/moler_post_04.png" alt="人物页：时间轴驱动的地点/事件弹窗" width="600" />
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <strong>1. 峨眉山月半轮秋，影入平羌江水流</strong><br />
+      <img src="storymap/docs/assets/李太白.jpeg" alt="李白人物页：事件卡片与地图联动" width="95%" />
+    </td>
+    <td align="center" width="50%">
+      <strong>2. 问余平生事业，黄州惠州儋州</strong><br />
+      <img src="storymap/docs/assets/苏东坡.jpeg" alt="苏轼人物页：左侧时间轴与轨迹连线" width="95%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <strong>3. 关东有义士，兴兵讨群凶</strong><br />
+      <img src="storymap/docs/assets/曹孟德.jpeg" alt="曹操人物页：时间轴驱动的地点事件弹窗" width="95%" />
+    </td>
+    <td align="center" width="50%">
+      <strong>4. 非淡泊无以明志，非宁静无以致远</strong><br />
+      <img src="storymap/docs/assets/诸葛亮.jpeg" alt="诸葛亮人物页：时间轴驱动的地点事件弹窗" width="95%" />
+    </td>
+  </tr>
+</table>
 
 
 ## 作者信息
