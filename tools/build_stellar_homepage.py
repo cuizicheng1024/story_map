@@ -3089,6 +3089,10 @@ def _render_index_html(title: str, data_file: str) -> str:
 
       const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
       const CHINA_OVERVIEW_ZOOM = 3.9;
+      const markerSvg = (sz, fill, glow, emph) => {{
+        const glowRadius = emph ? 10 : 6;
+        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+      }};
 
       const applyChinaOverview = () => {{
         try {{
@@ -3258,10 +3262,6 @@ def _render_index_html(title: str, data_file: str) -> str:
             }} catch (_) {{}}
           }};
 
-          const markerSvg = (sz, fill, glow, emph) => {{
-            const glowRadius = emph ? 10 : 6;
-            return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
-          }};
           const createMarkerContent = (n, lng, lat) => {{
             const el = document.createElement("div");
             const active = inWindow(n);
@@ -3360,49 +3360,56 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const updateMapMarkers = () => {{
-        // #region debug-point F:update-entry
-        dbgPost("F", "updateMapMarkers entry", {{ markerCount: markers.length, startYear, endYear, mapInited: !!mapInited, hasMap: !!amap, currentTab }});
-        // #endregion
-        if (!mapInited || !amap) return;
-        const hiIdx = selectedIdx >= 0 ? selectedIdx : (spotlightIdx >= 0 ? spotlightIdx : -1);
-        const focusSet = hiIdx >= 0 ? (() => {{
-          const s = new Set();
-          s.add(hiIdx);
-          for (const j of (neigh[hiIdx] || [])) s.add(j);
-          return s;
-        }})() : null;
-        for (const it of markers) {{
-          const n = it.n;
-          const idx = typeof n._idx === "number" ? n._idx : -1;
-          const active = inWindow(n);
-          const forceVisible = idx >= 0 && idx === hiIdx;
-          if (onlyActiveMarkers && !active && !forceVisible) {{
-            try {{ it.mk.hide(); }} catch (_) {{}}
-            continue;
+        try {{
+          if (!mapInited || !amap) return;
+          const hiIdx = selectedIdx >= 0 ? selectedIdx : (spotlightIdx >= 0 ? spotlightIdx : -1);
+          const focusSet = hiIdx >= 0 ? (() => {{
+            const s = new Set();
+            s.add(hiIdx);
+            for (const j of (neigh[hiIdx] || [])) s.add(j);
+            return s;
+          }})() : null;
+          let shownCount = 0;
+          let hiddenCount = 0;
+          let forcedVisibleCount = 0;
+          for (const it of markers) {{
+            const n = it.n;
+            const idx = typeof n._idx === "number" ? n._idx : -1;
+            const active = inWindow(n);
+            const forceVisible = idx >= 0 && idx === hiIdx;
+            if (forceVisible) forcedVisibleCount += 1;
+            if (onlyActiveMarkers && !active && !forceVisible) {{
+              hiddenCount += 1;
+              try {{ it.mk.hide(); }} catch (_) {{}}
+              continue;
+            }}
+            shownCount += 1;
+            try {{ it.mk.show(); }} catch (_) {{}}
+            const dim = focusSet && idx >= 0 && !focusSet.has(idx);
+            const emph = active || forceVisible;
+            const sz = dim ? 16 : (emph ? 20 : 18);
+            const base = colorByYear(n.time_year);
+            const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
+            const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
+            const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
+            const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
+            const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : accentSoft);
+            const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
+            if (it.el) {{
+              it.el.style.width = `${{sz}}px`;
+              it.el.style.height = `${{sz}}px`;
+              it.el.innerHTML = markerSvg(sz, fill, glow, emph);
+              it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
+              try {{
+                it.mk.setContent(it.el);
+              }} catch (_) {{}}
+            }} else {{
+              it.mk.setContent(markerSvg(sz, fill, glow, emph));
+            }}
+            it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
           }}
-          try {{ it.mk.show(); }} catch (_) {{}}
-          const dim = focusSet && idx >= 0 && !focusSet.has(idx);
-          const emph = active || forceVisible;
-          const sz = dim ? 16 : (emph ? 20 : 18);
-          const base = colorByYear(n.time_year);
-          const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
-          const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
-          const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
-          const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
-          const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : accentSoft);
-          const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
-          if (it.el) {{
-            it.el.style.width = `${{sz}}px`;
-            it.el.style.height = `${{sz}}px`;
-            it.el.innerHTML = markerSvg(sz, fill, glow, emph);
-            it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
-            try {{
-              it.mk.setContent(it.el);
-            }} catch (_) {{}}
-          }} else {{
-            it.mk.setContent(markerSvg(sz, fill, glow, emph));
-          }}
-          it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
+        }} catch (e) {{
+          throw e;
         }}
       }};
 

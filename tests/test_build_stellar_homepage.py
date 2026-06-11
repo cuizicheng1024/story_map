@@ -187,6 +187,20 @@ def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_windo
     assert "try { mk.hide(); } catch (_) {}" in html
 
 
+def test_render_index_html_keeps_marker_svg_in_shared_scope_for_map_refresh():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    marker_svg_idx = html.index("const markerSvg = (sz, fill, glow, emph) => {")
+    init_map_idx = html.index("const initMapOnce = () => {")
+    update_markers_idx = html.index("const updateMapMarkers = () => {")
+
+    assert marker_svg_idx < init_map_idx
+    assert marker_svg_idx < update_markers_idx
+    assert "it.el.innerHTML = markerSvg(sz, fill, glow, emph);" in html
+
+
 def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag():
     module = importlib.import_module("tools.build_stellar_homepage")
 
