@@ -427,7 +427,7 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "map-control-stack" in html
     assert "map-control-button" in html
     assert "map-2d-control-button" in html
-    assert "{ id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' }" in html
+    assert "{ id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' }" in html
     assert "{ id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' }" in html
     assert "{ id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' }" in html
     assert "{ id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }" in html
@@ -481,7 +481,7 @@ def test_profile_page_template_work_tooltip_avoids_duplicate_title_and_escapes_p
     assert "style={{ maxWidth: 'min(420px, calc(100vw - 2rem))' }}" in html
     assert "bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]" in html
     assert '<span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>' not in html
-    assert 'className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"' in html
+    assert 'className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
     assert 'className="glass-panel theme-card rounded-xl overflow-hidden flex flex-col"' not in html
 
 
@@ -494,6 +494,11 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert "const RelatedGraphTooltip = ({ node, isCenter = false }) => {" in html
     assert ".related-graph-tooltip {" in html
     assert ".related-graph-dot {" in html
+    assert ".related-graph-dot::before," in html
+    assert ".related-graph-dot::after {" in html
+    assert "width: 18px;" in html
+    assert ".related-graph-card.center .related-graph-dot {" in html
+    assert "width: 24px;" in html
     assert "悬浮查看详情，点击人物名跳转" in html
     assert "return getCanonicalPersonName(rawName) !== getCanonicalPersonName(data.person?.name);" in html
     assert "'苏东坡'" not in html.split("const centerPersonAliases = useMemo", 1)[1].split("const relatedCenterNode = useMemo", 1)[0]

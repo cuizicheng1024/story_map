@@ -150,17 +150,41 @@ def test_render_index_html_shows_person_info_on_map_marker_hover():
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     assert "const buildMapPersonInfoHtml = (n) => {" in html
-    assert 'mk.on("mouseover", () => {' in html
-    assert 'mk.on("mousemove", () => {' in html
-    assert "openMarkerInfo(n, lng, lat);" in html
+    assert 'id="mapTip" class="tooltip hidden"' in html
+    assert "const showMapTip = (n, clientX, clientY) => {" in html
+    assert "const resolveMapTipClientPoint = (evt, lng, lat) => {" in html
+    assert 'mk.on("mouseover", (evt) => {' in html
+    assert 'mk.on("mousemove", (evt) => {' in html
+    assert "showMapTip(n, pos.clientX, pos.clientY);" in html
     assert 'mk.on("mouseout", () => {' in html
+    assert "closeMapTip();" in html
     assert "if (infoWin) infoWin.close();" in html
     assert "const markerSvg = (sz, fill, glow, emph) => {" in html
     assert "const createMarkerContent = (n, lng, lat) => {" in html
+    assert "const active = inWindow(n);" in html
+    assert "const initialFill = active ? accent : accentSoft;" in html
+    assert "el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);" in html
+    assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
     assert 'el.addEventListener("mouseenter", show);' in html
     assert 'plugin=AMap.Geocoder' in html
     assert 'MarkerCluster' not in html
     assert 'const sz = dim ? 16 : (emph ? 20 : 18);' in html
+    assert "it.mk.setContent(it.el);" in html
+
+
+def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_window_visibility():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "const active = inWindow(n);" in html
+    assert "const base = colorByYear(n.time_year);" in html
+    assert "const accent = base.startsWith(\"#\") ? hexToRgba(base, 0.92) : base;" in html
+    assert "const accentSoft = base.startsWith(\"#\") ? hexToRgba(base, 0.62) : base;" in html
+    assert "const initialFill = active ? accent : accentSoft;" in html
+    assert "el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);" in html
+    assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
+    assert "try { mk.hide(); } catch (_) {}" in html
 
 
 def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag():
@@ -168,8 +192,32 @@ def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag()
 
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
-    assert "const offsetDeg = 1.05;" in html
+    assert "const offsetDeg = 1.32;" in html
+    assert 'offset: new window.AMap.Pixel(0, -5),' in html
+    assert "mohe[0] + (tengchong[0] - mohe[0]) / 3" in html
+    assert "mohe[1] + (tengchong[1] - mohe[1]) / 3" in html
     assert 'borderRadius: "2px",' in html
+
+
+def test_render_index_html_routes_timeline_drag_from_document_capture():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "const isEventWithinRail = (e) => {" in html
+    assert "document.addEventListener(\"pointerdown\", routeDown, true);" in html
+    assert "document.addEventListener(\"mousedown\", routeDown, true);" in html
+    assert "$rail.addEventListener(\"pointerdown\", onDown);" not in html
+    assert "$rail.addEventListener(\"mousedown\", onDown);" not in html
+
+
+def test_render_index_html_omits_static_demo_banner():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "静态演示版" not in html
+    assert "当前页面运行于 GitHub Pages 等静态站环境" not in html
 
 
 def test_render_index_html_removes_map_top5_footer_and_keeps_panes_same_height():

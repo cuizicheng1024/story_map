@@ -968,19 +968,6 @@ def _render_index_html(title: str, data_file: str) -> str:
     analytics_head = _analytics_head_html()
     shared_person_tooltip_js = person_tooltip_js()
     demo_banner = ""
-    if static_site:
-        mode_text = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；实时生成与人物对话需要额外部署 FastAPI 后端。"
-        demo_banner = f"""
-      <div class="glass card px-5 py-4 border border-amber-200/80 bg-amber-50/90">
-        <div class="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <div class="text-sm font-bold text-amber-900">静态演示版</div>
-            <div class="text-xs text-amber-800/90 mt-1">当前页面运行于 GitHub Pages 等静态站环境。{mode_text}</div>
-          </div>
-          <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-        </div>
-      </div>
-"""
     return rf"""<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -1043,6 +1030,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         border: 1px solid rgba(255,255,255,0.16);
         touch-action: none;
         user-select: none;
+        z-index: 2;
       }}
       .ticks {{
         background-image: none;
@@ -1209,6 +1197,7 @@ def _render_index_html(title: str, data_file: str) -> str:
             </div>
             <div id="mapPane" class="relative hidden distribution-pane">
               <div id="chinaMap" class="rounded-xl overflow-hidden border border-white/10 distribution-frame"></div>
+              <div id="mapTip" class="tooltip hidden"></div>
               <div id="provinceCurvePanel" class="hidden absolute right-4 bottom-4 z-10 w-[280px] max-w-[calc(100%-32px)] px-3 py-2 rounded-xl bg-[rgba(8,15,36,0.72)] border border-white/10 backdrop-blur-md shadow-[0_18px_50px_rgba(15,23,42,0.28)]">
                 <div class="flex items-center justify-between text-[11px]">
                   <div class="text-white/80 font-bold">各省份名人数量 Top5</div>
@@ -1289,6 +1278,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       const $c = document.getElementById("c");
       const ctx = $c.getContext("2d");
       const $tip = document.getElementById("tip");
+      const $mapTip = document.getElementById("mapTip");
       const $h1 = document.getElementById("h1");
       const $h2 = document.getElementById("h2");
       const $sel = document.getElementById("sel");
@@ -1511,6 +1501,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const setSelected = (n) => {{
         if (!n || typeof n._idx !== "number") {{
+          pendingMapFocusPerson = "";
           selectedIdx = -1;
           selected = null;
           spotlightIdx = -1;
@@ -2263,28 +2254,73 @@ def _render_index_html(title: str, data_file: str) -> str:
         return best;
       }};
 
-      const showTip = (n, clientX, clientY) => {{
-        if (!n) {{
-          $tip.classList.add("hidden");
-          setHoverMarkers(null);
-          return;
-        }}
+      const buildTooltipInnerHtml = (n) => {{
         const tipModel = buildPersonTooltipModel(n, {{ fallbackName: '相关人物' }});
         const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${{esc(row.label)}}：${{esc(row.value)}}</div>`).join("");
         const tline = tipModel.tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tipModel.tagline)}}”</div>` : "";
         const badge = !tipModel.hasStory ? ` <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">${{esc(tipModel.badgeText)}}</span>` : "";
-        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(tipModel.name)}}${{badge}}</div>${{rowHtml}}${{tline}}`;
-        const rect = $c.getBoundingClientRect();
-        let left = clientX - rect.left + 10;
-        let top = clientY - rect.top + 10;
+        return `<div class="font-bold text-white/95">${{esc(tipModel.name)}}${{badge}}</div>${{rowHtml}}${{tline}}`;
+      }};
+      const hideTooltipEl = (el) => {{
+        if (el) el.classList.add("hidden");
+      }};
+      const placeTooltipEl = (el, hostRect, clientX, clientY) => {{
+        if (!el || !hostRect) return;
+        const safeClientX = Number.isFinite(Number(clientX)) ? Number(clientX) : (hostRect.left + hostRect.width / 2);
+        const safeClientY = Number.isFinite(Number(clientY)) ? Number(clientY) : (hostRect.top + hostRect.height / 2);
+        let left = safeClientX - hostRect.left + 10;
+        let top = safeClientY - hostRect.top + 10;
         const tw = 260;
         const th = 146;
-        if (left + tw > rect.width - 8) left = Math.max(8, clientX - rect.left - tw - 10);
-        if (top + th > rect.height - 8) top = Math.max(8, clientY - rect.top - th - 10);
-        $tip.style.left = left + "px";
-        $tip.style.top = top + "px";
-        $tip.classList.remove("hidden");
+        if (left + tw > hostRect.width - 8) left = Math.max(8, safeClientX - hostRect.left - tw - 10);
+        if (top + th > hostRect.height - 8) top = Math.max(8, safeClientY - hostRect.top - th - 10);
+        el.style.left = left + "px";
+        el.style.top = top + "px";
+        el.classList.remove("hidden");
+      }};
+      const showTip = (n, clientX, clientY) => {{
+        if (!n) {{
+          hideTooltipEl($tip);
+          setHoverMarkers(null);
+          return;
+        }}
+        $tip.innerHTML = buildTooltipInnerHtml(n);
+        placeTooltipEl($tip, $c.getBoundingClientRect(), clientX, clientY);
         setHoverMarkers(n);
+      }};
+      const showMapTip = (n, clientX, clientY) => {{
+        if (!n || !$mapTip || !$chinaMap) {{
+          hideTooltipEl($mapTip);
+          return;
+        }}
+        $mapTip.innerHTML = buildTooltipInnerHtml(n);
+        placeTooltipEl($mapTip, $chinaMap.getBoundingClientRect(), clientX, clientY);
+      }};
+      const closeMapTip = () => {{
+        hideTooltipEl($mapTip);
+      }};
+      const resolveMapTipClientPoint = (evt, lng, lat) => {{
+        const eventClientX = Number(evt && evt.originEvent ? evt.originEvent.clientX : evt && evt.clientX);
+        const eventClientY = Number(evt && evt.originEvent ? evt.originEvent.clientY : evt && evt.clientY);
+        if (Number.isFinite(eventClientX) && Number.isFinite(eventClientY)) {{
+          return {{ clientX: eventClientX, clientY: eventClientY }};
+        }}
+        try {{
+          if (amap && typeof amap.lngLatToContainer === "function" && $chinaMap) {{
+            const pixel = amap.lngLatToContainer([lng, lat]);
+            const px = Number(pixel && pixel.x);
+            const py = Number(pixel && pixel.y);
+            if (Number.isFinite(px) && Number.isFinite(py)) {{
+              const rect = $chinaMap.getBoundingClientRect();
+              return {{ clientX: rect.left + px, clientY: rect.top + py }};
+            }}
+          }}
+        }} catch (_) {{}}
+        const rect = $chinaMap ? $chinaMap.getBoundingClientRect() : {{ left: 0, top: 0, width: 0, height: 0 }};
+        return {{
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height / 2,
+        }};
       }};
 
       const applyEdgeFilters = () => {{
@@ -2293,6 +2329,9 @@ def _render_index_html(title: str, data_file: str) -> str:
         neigh = [];
         edgeMeta = new Map();
         draw();
+        if (currentTab === "map") {{
+          updateMapMarkers();
+        }}
       }};
 
       const setGenStatus = (txt) => {{
@@ -2608,7 +2647,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (currentTab === "map") {{
           setTab("map");
           setTimeout(() => {{
-            centerMapOnPerson(n);
+            const ok = centerMapOnPerson(n);
+            pendingMapFocusPerson = ok ? "" : String(n.person || "").trim();
           }}, 260);
         }} else {{
           setTab("graph");
@@ -2690,6 +2730,9 @@ def _render_index_html(title: str, data_file: str) -> str:
       let markers = [];
       let amap = null;
       let amapLoading = false;
+      let coordFillRunning = false;
+      let coordFillAddMarker = null;
+      let pendingMapFocusPerson = "";
       let clusterer = null;
       let mapCameraTouched = false;
       const onlyActiveMarkers = true;
@@ -2900,17 +2943,19 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const centerMapOnPerson = (n) => {{
-        if (!n || !amap) return;
+        if (!n || !amap) return false;
         const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
         const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
         const p = wgs84ToGcj02(latW, lngW);
         const lat = p.lat;
         const lng = p.lng;
-        if (typeof lat !== "number" || typeof lng !== "number") return;
+        if (typeof lat !== "number" || typeof lng !== "number") return false;
         try {{
           const z = Math.max(6, Number(amap.getZoom ? amap.getZoom() : 6) || 6);
           amap.setZoomAndCenter(Math.min(10, z), [lng, lat]);
+          return true;
         }} catch (_) {{}}
+        return false;
       }};
       const geocodeText = (n) => {{
         const m = String(n.birthplace_modern || "").trim().replace(/^今\s*/g, "");
@@ -2923,54 +2968,87 @@ def _render_index_html(title: str, data_file: str) -> str:
         const bp = String(n.birthplace || "").trim();
         return bp.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").trim();
       }};
-      const prefillCoordsNoMap = () => {{
+      const runSharedCoordFill = (cache, addMarkerIfReady) => {{
+        if (addMarkerIfReady) coordFillAddMarker = addMarkerIfReady;
+        if (coordFillRunning) return;
         const key = _getAmapKey();
         if (!key) return;
-        const cache = readCoordCache();
+        coordFillRunning = true;
         applyCoordCacheToNodes(cache);
         updateCoordCount();
         _ensureAmap().then(() => {{
-          if (!window.AMap || !window.AMap.Geocoder) return;
+          if (!window.AMap || !window.AMap.Geocoder) {{
+            coordFillRunning = false;
+            return;
+          }}
           const geocoder = new window.AMap.Geocoder({{ city: "全国" }});
-          const pending = nodes.filter((n) => (typeof n.birth_lat_wgs84 !== "number" || typeof n.birth_lng_wgs84 !== "number"));
-          if (!pending.length) return;
-          const limit = pending.length;
           let idx = 0;
           const tick = () => {{
-            if (idx >= pending.length || idx >= limit) {{
-              writeCoordCache(cache);
-              applyCoordCacheToNodes(cache);
-              updateCoordCount();
-              _flushCoordsToServer();
-              return;
-            }}
-            const n = pending[idx++];
-            const q = geocodeText(n);
-            const person = String(n.person || "").trim();
-            if (!q || !person) return setTimeout(tick, 80);
-            geocoder.getLocation(q, (status, result) => {{
-              if (status === "complete" && result && result.geocodes && result.geocodes.length) {{
-                const loc = result.geocodes[0].location;
-                if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {{
-                  const lng = Number(loc.getLng());
-                  const lat = Number(loc.getLat());
-                  if (Number.isFinite(lat) && Number.isFinite(lng)) {{
-                    const w = gcj02ToWgs84(lat, lng);
-                    n.birth_lat_wgs84 = w.lat;
-                    n.birth_lng_wgs84 = w.lng;
-                    n.birth_lat = w.lat;
-                    n.birth_lng = w.lng;
-                    cache[person] = [w.lat, w.lng];
-                    updateCoordCount();
-                    _markCoordDirty(person, w.lat, w.lng);
+            while (idx < nodes.length) {{
+              const n = nodes[idx++];
+              if (!n) continue;
+              if (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") {{
+                if (coordFillAddMarker && mapInited && amap) coordFillAddMarker(n);
+                continue;
+              }}
+              const q = geocodeText(n);
+              const person = String(n.person || "").trim();
+              if (!q || !person) continue;
+              geocoder.getLocation(q, (status, result) => {{
+                if (status === "complete" && result && result.geocodes && result.geocodes.length) {{
+                  const loc = result.geocodes[0].location;
+                  if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {{
+                    const lng = Number(loc.getLng());
+                    const lat = Number(loc.getLat());
+                    if (Number.isFinite(lat) && Number.isFinite(lng)) {{
+                      const w = gcj02ToWgs84(lat, lng);
+                      n.birth_lat_wgs84 = w.lat;
+                      n.birth_lng_wgs84 = w.lng;
+                      n.birth_lat = w.lat;
+                      n.birth_lng = w.lng;
+                      cache[person] = [w.lat, w.lng];
+                      writeCoordCache(cache);
+                      updateCoordCount();
+                      _markCoordDirty(person, w.lat, w.lng);
+                      if (coordFillAddMarker && mapInited && amap) {{
+                        coordFillAddMarker(n);
+                        updateMapMarkers();
+                      }}
+                      if (
+                        pendingMapFocusPerson &&
+                        currentTab === "map" &&
+                        person === pendingMapFocusPerson &&
+                        centerMapOnPerson(n)
+                      ) {{
+                        pendingMapFocusPerson = "";
+                      }}
+                    }}
                   }}
                 }}
-              }}
-              setTimeout(tick, 140);
-            }});
+                if (idx >= nodes.length) {{
+                  coordFillRunning = false;
+                  _flushCoordsToServer();
+                  return;
+                }}
+                setTimeout(tick, 140);
+              }});
+              return;
+            }}
+            coordFillRunning = false;
+            writeCoordCache(cache);
+            updateCoordCount();
+            _flushCoordsToServer();
           }};
           setTimeout(tick, 400);
-        }}).catch(() => {{}});
+        }}).catch(() => {{
+          coordFillRunning = false;
+        }});
+      }};
+      const prefillCoordsNoMap = () => {{
+        const cache = readCoordCache();
+        applyCoordCacheToNodes(cache);
+        updateCoordCount();
+        runSharedCoordFill(cache, null);
       }};
 
       const setTab = (tab) => {{
@@ -3037,16 +3115,35 @@ def _render_index_html(title: str, data_file: str) -> str:
               const markTouched = () => {{
                 mapCameraTouched = true;
               }};
-              amap.on("dragstart", markTouched);
+              amap.on("dragstart", () => {{
+                markTouched();
+                closeMarkerInfo();
+                closeMapTip();
+              }});
               amap.on("mousewheel", markTouched);
-              amap.on("zoomstart", markTouched);
-              amap.on("touchstart", markTouched);
+              amap.on("zoomstart", () => {{
+                markTouched();
+                closeMarkerInfo();
+                closeMapTip();
+              }});
+              amap.on("touchstart", () => {{
+                markTouched();
+                closeMarkerInfo();
+                closeMapTip();
+              }});
+              amap.on("click", () => {{
+                closeMarkerInfo();
+                closeMapTip();
+              }});
             }}
           }} catch (_) {{}}
           try {{
             const mohe = [122.340, 53.480];
             const tengchong = [98.490, 25.020];
-            const mid = [(mohe[0] + tengchong[0]) / 2, (mohe[1] + tengchong[1]) / 2];
+            const mid = [
+              mohe[0] + (tengchong[0] - mohe[0]) / 3,
+              mohe[1] + (tengchong[1] - mohe[1]) / 3,
+            ];
             const line = new window.AMap.Polyline({{
               path: [mohe, tengchong],
               strokeColor: "rgba(249,115,22,0.92)",
@@ -3065,13 +3162,13 @@ def _render_index_html(title: str, data_file: str) -> str:
               nx = -nx;
               ny = -ny;
             }}
-            const offsetDeg = 1.05;
+            const offsetDeg = 1.32;
             const labelPos = [mid[0] + nx * offsetDeg, mid[1] + ny * offsetDeg];
             const ang = 0;
             const label = new window.AMap.Marker({{
               position: labelPos,
               anchor: "center",
-              offset: new window.AMap.Pixel(0, 0),
+              offset: new window.AMap.Pixel(0, -5),
               clickable: false,
               content:
                 '<div style="transform:rotate(' +
@@ -3165,9 +3262,17 @@ def _render_index_html(title: str, data_file: str) -> str:
             const glowRadius = emph ? 10 : 6;
             return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
           }};
-
           const createMarkerContent = (n, lng, lat) => {{
             const el = document.createElement("div");
+            const active = inWindow(n);
+            const base = colorByYear(n.time_year);
+            const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
+            const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
+            const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
+            const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
+            const initialSize = active ? 20 : 18;
+            const initialFill = active ? accent : accentSoft;
+            const initialGlow = active ? glowStrong : glowSoft;
             el.style.width = "18px";
             el.style.height = "18px";
             el.style.display = "flex";
@@ -3175,14 +3280,21 @@ def _render_index_html(title: str, data_file: str) -> str:
             el.style.justifyContent = "center";
             el.style.cursor = "pointer";
             el.style.pointerEvents = "auto";
-            el.innerHTML = markerSvg(18, "rgba(232,234,237,0.70)", "rgba(154,160,166,0.22)", false);
-            const show = () => openMarkerInfo(n, lng, lat);
+            el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);
+            el.style.animation = active ? "twinkle 2.2s ease-in-out infinite" : "none";
+            const show = (evt) => {{
+              const pos = resolveMapTipClientPoint(evt, lng, lat);
+              showMapTip(n, pos.clientX, pos.clientY);
+            }};
             el.addEventListener("mouseenter", show);
             el.addEventListener("mousemove", show);
-            el.addEventListener("mouseleave", closeMarkerInfo);
+            el.addEventListener("mouseleave", () => {{
+              closeMapTip();
+            }});
             el.addEventListener("click", (evt) => {{
               if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
-              show();
+              openMarkerInfo(n, lng, lat);
+              show(evt);
             }});
             el.addEventListener("dblclick", (evt) => {{
               if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
@@ -3193,6 +3305,7 @@ def _render_index_html(title: str, data_file: str) -> str:
 
           // Keep markers as individual points so historical colors and hover cards stay visible.
           const addMarker = (n) => {{
+            if (n && n._mapMarkerAdded) return;
             const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
             const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
             if (typeof latW !== "number" || typeof lngW !== "number") return;
@@ -3208,14 +3321,16 @@ def _render_index_html(title: str, data_file: str) -> str:
               anchor: "center",
               clickable: true,
             }});
-            mk.on("mouseover", () => {{
-              openMarkerInfo(n, lng, lat);
+            mk.on("mouseover", (evt) => {{
+              const pos = resolveMapTipClientPoint(evt, lng, lat);
+              showMapTip(n, pos.clientX, pos.clientY);
             }});
-            mk.on("mousemove", () => {{
-              openMarkerInfo(n, lng, lat);
+            mk.on("mousemove", (evt) => {{
+              const pos = resolveMapTipClientPoint(evt, lng, lat);
+              showMapTip(n, pos.clientX, pos.clientY);
             }});
             mk.on("mouseout", () => {{
-              closeMarkerInfo();
+              closeMapTip();
             }});
             mk.on("click", () => {{
               try {{
@@ -3224,6 +3339,10 @@ def _render_index_html(title: str, data_file: str) -> str:
             }});
             mk.on("dblclick", () => openPerson(n.person));
             try {{ mk.setMap(amap); }} catch (_) {{}}
+            if (onlyActiveMarkers && !inWindow(n)) {{
+              try {{ mk.hide(); }} catch (_) {{}}
+            }}
+            n._mapMarkerAdded = true;
             markers.push({{ mk, n, el: markerEl }});
           }};
 
@@ -3233,56 +3352,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           updateMapMarkers();
           mapCameraTouched = false;
 
-          const autoFillCoords = () => {{
-            let need = 0;
-            for (const n of nodes) {{
-              if (typeof n.birth_lat_wgs84 !== "number" || typeof n.birth_lng_wgs84 !== "number") need += 1;
-            }}
-            if (need <= 0) return;
-            if (!window.AMap || !window.AMap.Geocoder) return;
-            const geocoder = new window.AMap.Geocoder({{ city: "全国" }});
-            const pending = nodes.filter((n) => (typeof n.birth_lat_wgs84 !== "number" || typeof n.birth_lng_wgs84 !== "number"));
-            const limit = pending.length;
-            let idx = 0;
-            const tick = () => {{
-              if (idx >= pending.length || idx >= limit) {{
-                writeCoordCache(coordCache);
-                updateCoordCount();
-                updateMapMarkers();
-                _flushCoordsToServer();
-                return;
-              }}
-              const n = pending[idx++];
-              const q = geocodeText(n);
-              const person = String(n.person || "").trim();
-              if (!q || !person) return setTimeout(tick, 80);
-              geocoder.getLocation(q, (status, result) => {{
-                if (status === "complete" && result && result.geocodes && result.geocodes.length) {{
-                  const loc = result.geocodes[0].location;
-                  if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {{
-                    const lng = Number(loc.getLng());
-                    const lat = Number(loc.getLat());
-                    if (Number.isFinite(lat) && Number.isFinite(lng)) {{
-                      const w = gcj02ToWgs84(lat, lng);
-                      n.birth_lat_wgs84 = w.lat;
-                      n.birth_lng_wgs84 = w.lng;
-                      n.birth_lat = w.lat;
-                      n.birth_lng = w.lng;
-                      coordCache[person] = [w.lat, w.lng];
-                      writeCoordCache(coordCache);
-                      addMarker(n);
-                      updateCoordCount();
-                      updateMapMarkers();
-                      _markCoordDirty(person, w.lat, w.lng);
-                    }}
-                  }}
-                }}
-                setTimeout(tick, 140);
-              }});
-            }};
-            setTimeout(tick, 400);
-          }};
-          autoFillCoords();
+          runSharedCoordFill(coordCache, addMarker);
         }}).catch((e) => {{
           mapInited = false;
           try {{ console.warn("[stellar-map] amap init failed", e); }} catch (_) {{}}
@@ -3290,6 +3360,9 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const updateMapMarkers = () => {{
+        // #region debug-point F:update-entry
+        dbgPost("F", "updateMapMarkers entry", {{ markerCount: markers.length, startYear, endYear, mapInited: !!mapInited, hasMap: !!amap, currentTab }});
+        // #endregion
         if (!mapInited || !amap) return;
         const hiIdx = selectedIdx >= 0 ? selectedIdx : (spotlightIdx >= 0 ? spotlightIdx : -1);
         const focusSet = hiIdx >= 0 ? (() => {{
@@ -3316,13 +3389,16 @@ def _render_index_html(title: str, data_file: str) -> str:
           const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
           const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
           const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
-          const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : (focusSet ? accentSoft : "rgba(232,234,237,0.66)"));
+          const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : accentSoft);
           const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
           if (it.el) {{
             it.el.style.width = `${{sz}}px`;
             it.el.style.height = `${{sz}}px`;
             it.el.innerHTML = markerSvg(sz, fill, glow, emph);
             it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
+            try {{
+              it.mk.setContent(it.el);
+            }} catch (_) {{}}
           }} else {{
             it.mk.setContent(markerSvg(sz, fill, glow, emph));
           }}
@@ -3449,6 +3525,12 @@ def _render_index_html(title: str, data_file: str) -> str:
         return "";
       }};
 
+      const isEventWithinRail = (e) => {{
+        if (!$rail || !e || typeof e.clientX !== "number" || typeof e.clientY !== "number") return false;
+        const r = railRect();
+        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      }};
+
       const onDown = (e) => {{
         if (typeof e.button === "number" && e.button !== 0) return;
         const r = railRect();
@@ -3522,11 +3604,15 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (wasBrush && currentTab === "graph") draw();
       }};
 
-      $rail.addEventListener("pointerdown", onDown);
+      const routeDown = (e) => {{
+        if (!isEventWithinRail(e)) return;
+        onDown(e);
+      }};
+      document.addEventListener("pointerdown", routeDown, true);
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onUp);
-      $rail.addEventListener("mousedown", onDown);
+      document.addEventListener("mousedown", routeDown, true);
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
       $rail.addEventListener("dblclick", () => {{
