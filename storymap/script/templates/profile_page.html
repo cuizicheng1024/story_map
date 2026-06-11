@@ -2855,9 +2855,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -2867,7 +2878,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3262,10 +3273,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -3768,9 +3787,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -3792,7 +3817,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -4450,19 +4475,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -4810,7 +4840,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;

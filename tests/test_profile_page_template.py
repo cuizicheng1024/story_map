@@ -118,6 +118,14 @@ def test_render_profile_html_injects_shared_person_tooltip_helper():
     assert "tipModel.rows.map((row) => (" in html
 
 
+def test_timeline_card_click_uses_strict_map_focus():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const normalizeFocusOptions = (raw) => {" in html
+    assert "controller.focusIndex(idx, { pulse: pulseNow, strict });" in html
+    assert "applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     hints = typing.get_type_hints(renderer._canonical_person_name)
 
