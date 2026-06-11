@@ -4,7 +4,7 @@ import os
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 try:
     from .env_utils import apply_story_map_env_aliases, env_flag

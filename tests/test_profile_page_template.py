@@ -1,4 +1,5 @@
 import sys
+import typing
 from pathlib import Path
 
 
@@ -115,6 +116,13 @@ def test_render_profile_html_injects_shared_person_tooltip_helper():
     assert "const uniqStrings = (items) => {" in html
     assert "const tipModel = buildPersonTooltipModel(node, { fallbackName: '相关人物' });" in html
     assert "tipModel.rows.map((row) => (" in html
+
+
+def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
+    hints = typing.get_type_hints(renderer._canonical_person_name)
+
+    assert "available_names" in hints
+    assert hints["return"] is str
 
 
 def test_related_people_graph_preserves_real_story_alias_pages(monkeypatch):
