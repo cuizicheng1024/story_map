@@ -37,8 +37,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .[dev]
+          set -euxo pipefail
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -e .[dev]
 
       - name: Detect changed story markdown files
         id: changed_story_md
@@ -60,13 +61,16 @@ jobs:
         if: steps.changed_story_md.outputs.count != '0'
         shell: bash
         run: |
+          set -euxo pipefail
           mapfile -t files < /tmp/changed_story_md_filtered.txt
-          python tools/validate_story_markdown.py --report-json data/markdown_smoke_report.json --files "${files[@]}"
+          python3 tools/validate_story_markdown.py --report-json data/markdown_smoke_report.json --files "${files[@]}"
 
       - name: Build static story map site
         run: |
-          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
-          python tools/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+          set -euxo pipefail
+          python3 --version
+          python3 cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          python3 tools/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
           cp artifacts/story_map/index.html artifacts/story_map/404.html
           touch artifacts/story_map/.nojekyll
 
