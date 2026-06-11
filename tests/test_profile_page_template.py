@@ -126,6 +126,23 @@ def test_timeline_card_click_uses_strict_map_focus():
     assert "applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });" in html
 
 
+def test_static_site_notice_hides_on_localhost(monkeypatch):
+    monkeypatch.setenv("MAP_STORY_STATIC_SITE", "1")
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert 'id="site-mode-notice"' in html
+    assert "const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');" in html
+    assert "if (notice) notice.style.display = 'none';" in html
+
+
+def test_static_profile_page_tries_local_ai_proxy_on_localhost():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {" in html
+    assert "if (!staticSite || isLocalHost) {" in html
+    assert "pushUrl('http://127.0.0.1:8765/api/ai/proxy');" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     hints = typing.get_type_hints(renderer._canonical_person_name)
 

@@ -29,6 +29,14 @@ def test_profile_map_bootstrap_uses_runtime_geovis_config_without_inlining_token
 
     assert "geovis-config.js" in html
     assert "window.GEOVIS_TOKEN=" not in html
+    assert "window.MAP_STORY_STATIC_SITE !== true || isLocalHost" in html
+
+
+def test_amap_bootstrap_allows_localhost_runtime_config_even_in_static_mode():
+    html = map_html_renderer._amap_bootstrap_html()
+
+    assert "amap-config.js" in html
+    assert "window.MAP_STORY_STATIC_SITE !== true || isLocalHost" in html
 
 
 def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():

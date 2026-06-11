@@ -128,7 +128,7 @@ def _site_mode_notice_html() -> str:
         return ""
     detail = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。"
     return f"""
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
+<div id="site-mode-notice" class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
       <div class="text-sm font-semibold text-amber-900">静态演示版</div>
@@ -136,7 +136,18 @@ def _site_mode_notice_html() -> str:
     </div>
     <div class="text-[11px] font-semibold text-amber-700">Pages</div>
   </div>
-</div>"""
+</div>
+<script>
+(() => {{
+  try {{
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (!isLocalHost) return;
+    const notice = document.getElementById('site-mode-notice');
+    if (notice) notice.style.display = 'none';
+  }} catch (_) {{}}
+}})();
+</script>"""
 
 
 def _amap_bootstrap_html() -> str:
@@ -151,7 +162,9 @@ def _amap_bootstrap_html() -> str:
     loader = """<script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -223,7 +236,9 @@ def _profile_map_bootstrap_html() -> str:
     loader = """<script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
