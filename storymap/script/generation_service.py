@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from typing import Callable, Dict, List, Optional
 
@@ -122,14 +123,14 @@ def render_html(
     points: List[Dict[str, object]],
     *,
     md: str = "",
-    build_profile_data: Callable[[str], Optional[Dict[str, object]]],
+    build_profile_data: Callable[..., Optional[Dict[str, object]]],
     extract_intro_fields: Callable[[str], Dict[str, str]],
     render_profile_html: Callable[[Dict[str, object]], str],
     build_info_panel_html: Callable[[str, Dict[str, str]], str],
     render_amap_html: Callable[[str, List[Dict[str, object]], str], str],
 ) -> str:
     if md and isinstance(md, str):
-        profile = build_profile_data(md)
+        profile = build_profile_data(md, fallback_person=title)
         if profile:
             profile["markdown"] = md
             return render_profile_html(profile)
@@ -177,6 +178,52 @@ def _build_render_failure_result(
     return result
 
 
+def _validation_issues(validation: object) -> List[str]:
+    if not isinstance(validation, dict):
+        return []
+    return [str(item) for item in list(validation.get("issues") or []) if str(item).strip()]
+
+
+def _build_quality_degraded_result(
+    *,
+    person: str,
+    html_path: str,
+    steps: List[Dict[str, object]],
+    duration: Dict[str, str],
+    profile: object,
+    validation: object,
+    markdown_path: str = "",
+    cached: bool = False,
+    refreshed: bool = False,
+    used_existing_markdown: bool = False,
+    agent_runtime: Optional[Dict[str, object]] = None,
+) -> Dict[str, object]:
+    issues = _validation_issues(validation)
+    summary = "；".join(issues[:3]) or "人物页存在待修正的数据质量问题"
+    result: Dict[str, object] = {
+        "ok": False,
+        "status": "degraded",
+        "degraded": True,
+        "person": person,
+        "error": summary,
+        "warning": summary,
+        "html_path": html_path,
+        "steps": steps,
+        "duration": duration,
+        "_profile": profile,
+        "_validation": validation,
+        "cached": bool(cached),
+        "refreshed": bool(refreshed),
+        "used_existing_markdown": bool(used_existing_markdown),
+        "quality_issue_summary": summary,
+    }
+    if markdown_path:
+        result["markdown_path"] = markdown_path
+    if agent_runtime:
+        result["_agent_runtime"] = agent_runtime
+    return result
+
+
 def extract_agent_runtime_metadata(client: object) -> Dict[str, object]:
     return _extract_agent_runtime_metadata(client)
 
@@ -202,6 +249,23 @@ def _cache_older_than_dependencies(html_path: str, dependency_paths: List[str]) 
         except Exception:
             continue
     return False
+
+
+def _extract_html_template_signature(html: str) -> str:
+    text = str(html or "")
+    if not text:
+        return ""
+    m = re.search(r'"templateSignature"\s*:\s*"([^"]+)"', text)
+    if not m:
+        return ""
+    return str(m.group(1) or "").strip()
+
+
+def _is_usable_export_profile(data: object) -> bool:
+    if not isinstance(data, dict):
+        return False
+    person = data.get("person")
+    return isinstance(person, dict) and bool(str(person.get("name") or "").strip())
 
 
 def generate_for_person(
@@ -232,12 +296,14 @@ def generate_for_person(
     generate_historical_markdown: Callable[[object, str], str],
     cache_dependency_paths: Optional[List[str]],
     logger: object,
+    current_profile_signature: Optional[Callable[[], str]] = None,
 ) -> Dict[str, object]:
     md_path, html_path = story_paths(person)
     if allow_cache and os.path.exists(html_path):
         cached_html = read_text(html_path)
         cache_stale_by_code = _cache_older_than_dependencies(html_path, list(cache_dependency_paths or []))
         cache_stale_by_markdown = False
+        cache_stale_by_signature = False
         if os.path.exists(md_path):
             try:
                 cache_stale_by_markdown = os.path.getmtime(md_path) > os.path.getmtime(html_path)
@@ -250,29 +316,62 @@ def generate_for_person(
             or cache_stale_by_code
             or cache_stale_by_markdown
         )
+        if not needs_refresh and callable(current_profile_signature):
+            expected_signature = str(current_profile_signature() or "").strip()
+            actual_signature = _extract_html_template_signature(cached_html)
+            if expected_signature and actual_signature != expected_signature:
+                cache_stale_by_signature = True
+                needs_refresh = True
         if (not needs_refresh) and ("window.__EXPORT_DATA__" in cached_html):
             export_data = extract_export_data_from_html(cached_html)
-            if export_data and os.path.exists(md_path):
+            validation = {"metrics": {}, "issues": []}
+            if _is_usable_export_profile(export_data) and os.path.exists(md_path):
                 md = read_text(md_path)
                 if md:
                     export_data["markdown"] = md
-            return {
-                "ok": True,
-                "person": person,
-                "markdown_path": md_path if os.path.exists(md_path) else "",
-                "html_path": html_path,
-                "steps": [{"label": "命中缓存", "duration": "0.00s"}],
-                "duration": {"total": "0.00s"},
-                "_profile": export_data,
-                "cached": True,
-            }
+                    validation = validate_story_markdown_tool(md)
+            if _is_usable_export_profile(export_data):
+                if _validation_issues(validation):
+                    return _build_quality_degraded_result(
+                        person=person,
+                        html_path=html_path,
+                        markdown_path=md_path if os.path.exists(md_path) else "",
+                        steps=[{"label": "命中缓存", "duration": "0.00s"}],
+                        duration={"total": "0.00s"},
+                        profile=export_data,
+                        validation=validation,
+                        cached=True,
+                    )
+                return {
+                    "ok": True,
+                    "person": person,
+                    "markdown_path": md_path if os.path.exists(md_path) else "",
+                    "html_path": html_path,
+                    "steps": [{"label": "命中缓存", "duration": "0.00s"}],
+                    "duration": {"total": "0.00s"},
+                    "_profile": export_data,
+                    "cached": True,
+                }
         md = read_text(md_path) if os.path.exists(md_path) else ""
         export_data = extract_export_data_from_html(cached_html)
-        if export_data and (not cache_stale_by_code) and (not cache_stale_by_markdown):
+        if _is_usable_export_profile(export_data) and (not cache_stale_by_code) and (not cache_stale_by_markdown) and (not cache_stale_by_signature):
             if md:
                 export_data["markdown"] = md
             html = render_profile_html(export_data)
             write_text(html_path, html)
+            validation = validate_story_markdown_tool(md) if md else {"metrics": {}, "issues": []}
+            if _validation_issues(validation):
+                return _build_quality_degraded_result(
+                    person=person,
+                    html_path=html_path,
+                    markdown_path=md_path if os.path.exists(md_path) else "",
+                    steps=[{"label": "刷新缓存", "duration": "0.00s"}],
+                    duration={"total": "0.00s"},
+                    profile=export_data,
+                    validation=validation,
+                    cached=True,
+                    refreshed=True,
+                )
             return {
                 "ok": True,
                 "person": person,
@@ -285,11 +384,24 @@ def generate_for_person(
                 "refreshed": True,
             }
         if md:
-            profile = load_profile_from_md(md, event_callback=event_callback)
+            profile = load_profile_from_md(md, event_callback=event_callback, fallback_person=person)
             if profile:
                 profile["markdown"] = md
                 html = render_profile_html(profile)
                 write_text(html_path, html)
+                validation = validate_story_markdown_tool(md)
+                if _validation_issues(validation):
+                    return _build_quality_degraded_result(
+                        person=person,
+                        html_path=html_path,
+                        markdown_path=md_path,
+                        steps=[{"label": "刷新缓存", "duration": "0.00s"}],
+                        duration={"total": "0.00s"},
+                        profile=profile,
+                        validation=validation,
+                        cached=True,
+                        refreshed=True,
+                    )
                 return {
                     "ok": True,
                     "person": person,
@@ -342,7 +454,7 @@ def generate_for_person(
         t_save = time.perf_counter() - t_step
         steps.append({"label": "文件写入", "duration": format_seconds(t_save)})
         total = time.perf_counter() - t0
-        profile = load_profile_from_md(md_geo, event_callback=event_callback)
+        profile = load_profile_from_md(md_geo, event_callback=event_callback, fallback_person=person)
         duration = {
             "geocode": format_seconds(t_geo),
             "render": format_seconds(t_render),
@@ -354,6 +466,17 @@ def generate_for_person(
                 person=person,
                 render_error=render_error,
                 fallback_html_path=out,
+                markdown_path=md_path,
+                steps=steps,
+                duration=duration,
+                profile=profile,
+                validation=validation,
+                used_existing_markdown=True,
+            )
+        if _validation_issues(validation):
+            return _build_quality_degraded_result(
+                person=person,
+                html_path=out,
                 markdown_path=md_path,
                 steps=steps,
                 duration=duration,
@@ -420,7 +543,7 @@ def generate_for_person(
     out = save_html(person, html)
     t_save = time.perf_counter() - t_step
     total = time.perf_counter() - t0
-    profile = load_profile_from_md(md, event_callback=event_callback)
+    profile = load_profile_from_md(md, event_callback=event_callback, fallback_person=person)
     duration = {
         "markdown": format_seconds(t_md),
         "geocode": format_seconds(t_geo),
@@ -433,6 +556,22 @@ def generate_for_person(
             person=person,
             render_error=render_error,
             fallback_html_path=out,
+            markdown_path=saved,
+            steps=[
+                {"label": "生成人物档案", "duration": format_seconds(t_md)},
+                {"label": "解析地点坐标", "duration": format_seconds(t_geo)},
+                {"label": "构建时空结果", "duration": format_seconds(t_render)},
+                {"label": "保存分析产物", "duration": format_seconds(t_save)},
+            ],
+            duration=duration,
+            profile=profile,
+            validation=validation,
+            agent_runtime=agent_runtime,
+        )
+    if _validation_issues(validation):
+        return _build_quality_degraded_result(
+            person=person,
+            html_path=out,
             markdown_path=saved,
             steps=[
                 {"label": "生成人物档案", "duration": format_seconds(t_md)},

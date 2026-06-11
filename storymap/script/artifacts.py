@@ -149,6 +149,17 @@ def _relative_path(path: str) -> str:
         return path
 
 
+def _invalidate_stellar_home_render_cache() -> None:
+    try:
+        try:
+            from .map_html_renderer import invalidate_stellar_home_data_cache
+        except ImportError:
+            from map_html_renderer import invalidate_stellar_home_data_cache
+        invalidate_stellar_home_data_cache()
+    except Exception:
+        return
+
+
 def _update_home_coords(
     data: object,
     home_coords_lock: threading.Lock,
@@ -186,11 +197,14 @@ def _update_home_coords(
                 continue
             if not (-90 <= lat <= 90 and -180 <= lng <= 180):
                 continue
-            before_ok = isinstance(n.get("birth_lat"), (int, float)) and isinstance(
-                n.get("birth_lng"), (int, float)
+            before_ok = isinstance(n.get("birth_lat_wgs84"), (int, float)) and isinstance(
+                n.get("birth_lng_wgs84"), (int, float)
             )
             n["birth_lat"] = lat
             n["birth_lng"] = lng
+            n["birth_lat_wgs84"] = lat
+            n["birth_lng_wgs84"] = lng
+            n["birth_coord_system"] = "WGS84"
             if not before_ok:
                 updated += 1
         total = len([n for n in nodes if isinstance(n, dict)])
@@ -200,35 +214,51 @@ def _update_home_coords(
                 json.dump(home, f, ensure_ascii=False)
         except Exception as exc:
             return 500, {"ok": False, "error": str(exc)}
+    _invalidate_stellar_home_render_cache()
     return 200, {"ok": True, "updated": updated, "total": total}
 
 
 def refresh_stellar_homepage(person: str = "") -> Dict[str, object]:
-    command = [
-        sys.executable,
-        "tools/build_stellar_homepage.py",
-        "--story-map-dir",
-        _story_artifacts_dir(),
-        "--story-md-dir",
-        _story_md_dir(),
+    commands = [
+        [sys.executable, "tools/build_pep_people_spotlight.py"],
+        [
+            sys.executable,
+            "tools/build_stellar_homepage.py",
+            "--story-map-dir",
+            _story_artifacts_dir(),
+            "--story-md-dir",
+            _story_md_dir(),
+        ],
     ]
-    completed = subprocess.run(
-        command,
-        cwd=_project_root(),
-        capture_output=True,
-        text=True,
-    )
-    output = "\n".join(
-        part.strip()
-        for part in (completed.stdout or "", completed.stderr or "")
-        if part and part.strip()
-    ).strip()
+    outputs = []
+    completed = None
+    for command in commands:
+        completed = subprocess.run(
+            command,
+            cwd=_project_root(),
+            capture_output=True,
+            text=True,
+        )
+        command_output = "\n".join(
+            part.strip()
+            for part in (completed.stdout or "", completed.stderr or "")
+            if part and part.strip()
+        ).strip()
+        if command_output:
+            outputs.append(command_output)
+        if completed.returncode != 0:
+            break
+    output = "\n".join(outputs).strip()
+    returncode = int(getattr(completed, "returncode", 1) or 0)
+    if returncode == 0:
+        _invalidate_stellar_home_render_cache()
     return {
-        "ok": completed.returncode == 0,
+        "ok": returncode == 0,
         "person": person,
         "index_path": os.path.join(_story_artifacts_dir(), "index.html"),
         "data_path": os.path.join(_story_artifacts_dir(), "stellar_home_data.json"),
-        "returncode": completed.returncode,
+        "spotlight_path": os.path.join(_project_root(), "data", "pep_people_spotlight.json"),
+        "returncode": returncode,
         "output": output,
     }
 

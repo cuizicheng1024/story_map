@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from pathlib import Path
+from typing import Callable, Dict, List, Sequence
 
 try:
     from . import parsers as parser_utils
+    from .person_registry import canonical_person_name
+    from .project_paths import classify_story_person_authenticity, story_person_names
 except ImportError:
     import parsers as parser_utils
+    from person_registry import canonical_person_name
+    from project_paths import classify_story_person_authenticity, story_person_names
 
 
 _QUERY_STOPWORDS = {
@@ -86,17 +90,10 @@ class LocalHistoryQAAgent:
         return ""
 
     def _list_known_people(self) -> List[str]:
-        story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
         try:
-            entries = os.listdir(story_dir)
+            people = story_person_names(Path(self._project_root()) / "storymap" / "examples" / "story")
         except Exception:
             return []
-        people = []
-        for entry in entries:
-            if entry.endswith(".md"):
-                stem = os.path.splitext(entry)[0].strip()
-                if stem:
-                    people.append(stem)
         people.sort(key=len, reverse=True)
         return people
 
@@ -121,11 +118,15 @@ class LocalHistoryQAAgent:
         return system_text
 
     def _load_markdown(self, person_name: str) -> str:
-        story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
-        candidate = os.path.join(story_dir, f"{person_name}.md")
+        story_dir = Path(self._project_root()) / "storymap" / "examples" / "story"
+        accepted, _ = classify_story_person_authenticity(person_name, story_dir)
+        if not accepted:
+            return ""
+        known_people = self._list_known_people()
+        canonical = str(canonical_person_name(person_name, known_people) or person_name).strip()
+        candidate = story_dir / f"{canonical}.md"
         try:
-            with open(candidate, "r", encoding="utf-8") as f:
-                return f.read()
+            return candidate.read_text(encoding="utf-8")
         except Exception:
             return ""
 
@@ -153,7 +154,6 @@ class LocalHistoryQAAgent:
             return self._answer_achievements(person_name, info, overview, reviews)
 
         retrieval_answer = self._answer_by_retrieval(
-            person_name=person_name,
             question=question,
             info=info,
             overview=overview,
@@ -283,7 +283,6 @@ class LocalHistoryQAAgent:
     def _answer_by_retrieval(
         self,
         *,
-        person_name: str,
         question: str,
         info: Dict[str, str],
         overview: str,

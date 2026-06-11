@@ -6,23 +6,26 @@
   2. 重新生成 data/people_master_pep.json（PEP 教材人物）
   3. 增量重渲染 artifacts/story_map/*.html（人物页）
   4. 重新生成 data/people_birth_coords_wgs84.json（出生地经纬度）
-  5. 重新生成 artifacts/story_map/stellar_home_data.json + index.html
+  5. 重新生成 data/pep_people_spotlight.json（首页短评与引句）
+  6. 重新生成 artifacts/story_map/stellar_home_data.json + index.html
 
 数据源：单一来源 = storymap/examples/story/*.md
-幂等：默认不会触发 LLM 补缺、不会重新 geocode。带 --refresh-geocode 时重新跑一次地理编码。
+幂等：默认不会触发 LLM 补缺；人物页渲染走正常 pure 模式，优先复用现有缓存，必要时补齐缺失地理编码。
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-from storymap.script.project_paths import BAD_PERSON_NAMES, project_root_path, story_artifacts_dir_path, story_md_dir_path
+from storymap.script.project_paths import BAD_PERSON_NAMES, project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
+from storymap.script.map_html_renderer import profile_template_signature
 
 REPO_ROOT = project_root_path()
 STORY_DIR = story_md_dir_path()
@@ -99,13 +102,7 @@ def _story_files() -> list[Path]:
 
 
 def _story_people() -> list[str]:
-    out: list[str] = []
-    for p in _story_files():
-        name = p.stem.strip()
-        if not name or name in BAD_PERSON_NAMES:
-            continue
-        out.append(name)
-    return sorted(set(out))
+    return sorted(set(story_person_names(STORY_DIR)))
 
 
 def _existing_htmls() -> set[str]:
@@ -210,6 +207,19 @@ def _has_home_coords(node: dict) -> bool:
         return False
 
 
+def _extract_html_template_signature(path: Path) -> str:
+    if not path.exists():
+        return ""
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return ""
+    m = re.search(r'"templateSignature"\s*:\s*"([^"]+)"', text)
+    if not m:
+        return ""
+    return str(m.group(1) or "").strip()
+
+
 def _issue(code: str, items: list[str], level: str, message: str, limit: int = 20) -> dict | None:
     if not items:
         return None
@@ -270,6 +280,7 @@ def _build_manifest() -> dict:
             "people_master": _file_meta(DATA_DIR / "people_master.json"),
             "people_master_pep": _file_meta(DATA_DIR / "people_master_pep.json"),
             "people_birth_coords_wgs84": _file_meta(DATA_DIR / "people_birth_coords_wgs84.json"),
+            "pep_people_spotlight": _file_meta(DATA_DIR / "pep_people_spotlight.json"),
             "stellar_home_data": _file_meta(HOME_DATA),
             "index_html": _file_meta(STORY_MAP_DIR / "index.html"),
             "map_html_renderer": _file_meta(REPO_ROOT / "storymap" / "script" / "map_html_renderer.py"),
@@ -351,6 +362,8 @@ def _build_validation_report() -> dict:
     home_has_story_false = []
     home_file_mismatch = []
     home_missing_coords = []
+    stale_profile_html = []
+    expected_template_signature = profile_template_signature()
     for p in sorted(story_people & home_people):
         item = home[p]
         if item.get("has_story") is not True:
@@ -363,6 +376,11 @@ def _build_validation_report() -> dict:
     push_issue(errors, _issue("home_has_story_false", home_has_story_false, "error", "stellar_home_data.json 中 has_story 与 Markdown 不一致"))
     push_issue(errors, _issue("home_file_mismatch", home_file_mismatch, "error", "stellar_home_data.json 中 file 字段与人物 HTML 文件名不一致"))
     push_issue(warnings, _issue("home_missing_coords", home_missing_coords, "warning", "stellar_home_data.json 中存在节点，但缺少出生地坐标"))
+    for p in sorted(story_people & html_people):
+        html_path = STORY_MAP_DIR / f"{p}.html"
+        if _extract_html_template_signature(html_path) != expected_template_signature:
+            stale_profile_html.append(p)
+    push_issue(errors, _issue("story_html_template_stale", stale_profile_html, "error", "人物 HTML 未按当前共享模板重新生成"))
 
     report = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -384,18 +402,18 @@ def _build_validation_report() -> dict:
 
 
 def _patch_master_with_has_story(master_fp: Path) -> dict:
-    """按 .md 文件存在性强制刷新 has_story 与 story_md 字段。"""
+    """按可发布 Markdown 口径强制刷新 has_story 与 story_md 字段。"""
     obj = json.loads(master_fp.read_text(encoding="utf-8"))
     people = obj.get("people", [])
     if not isinstance(people, list):
         return {"updated": 0, "total": 0}
+    publishable_people = set(_story_people())
     updated = 0
     for p in people:
         name = str(p.get("person", "")).strip()
         if not name:
             continue
-        md_path = STORY_DIR / f"{name}.md"
-        has_story = md_path.exists()
+        has_story = name in publishable_people
         was = bool(p.get("has_story"))
         if was != has_story:
             updated += 1
@@ -408,18 +426,18 @@ def _patch_master_with_has_story(master_fp: Path) -> dict:
 
 
 def _patch_home_with_has_story(home_fp: Path) -> dict:
-    """给首页节点补 has_story 字段，源于 .md 存在性。"""
+    """给首页节点补 has_story 字段，源于可发布 Markdown 口径。"""
     obj = json.loads(home_fp.read_text(encoding="utf-8"))
     nodes = obj.get("nodes", [])
     if not isinstance(nodes, list):
         return {"updated": 0, "total": 0}
+    publishable_people = set(_story_people())
     updated = 0
     for n in nodes:
         name = str(n.get("person", "")).strip()
         if not name:
             continue
-        md_path = STORY_DIR / f"{name}.md"
-        has_story = md_path.exists()
+        has_story = name in publishable_people
         was = n.get("has_story")
         if was != has_story:
             updated += 1
@@ -445,7 +463,7 @@ def main() -> int:
         help="构建前执行 Markdown 冒烟校验：changed=仅校验 git 变更文件，all=全量校验，off=关闭",
     )
     ap.add_argument("--refresh-geocode", action="store_true",
-                    help="重新跑一次高德地理编码（默认用现有缓存）")
+                    help="兼容保留；默认批量渲染已走 pure 模式，会在缺失坐标时补齐地理编码")
     ap.add_argument("--fill-missing-md", action="store_true",
                     help="对 master 里没有 .md 的人物尝试 LLM 生成（需要 API key）")
     ap.add_argument("--concurrency", type=int, default=8)
@@ -456,7 +474,7 @@ def main() -> int:
     html_files = _existing_htmls()
     print(f"[init] .md 源文件: {len(story_files)} 个, 已渲染 .html: {len(html_files)} 个")
 
-    _print_section("0/5 markdown smoke check")
+    _print_section("0/6 markdown smoke check")
     rc = _run_markdown_smoke_check(args.markdown_smoke_check)
     if rc != 0:
         print(f"  ✗ Markdown 冒烟校验未通过，退出码 {rc}", flush=True)
@@ -474,7 +492,7 @@ def main() -> int:
 
     # ── 1. people_master.json ───────────────────────────────────
     if not args.skip_master:
-        _print_section("1/5 rebuild data/people_master.json")
+        _print_section("1/6 rebuild data/people_master.json")
         rc = _run([
             sys.executable, "tools/build_people_master.py",
             "--scope", "all",
@@ -484,14 +502,14 @@ def main() -> int:
         if rc != 0:
             print(f"  ✗ build_people_master.py 退出码 {rc}", flush=True)
             return rc
-        # 关键：用 .md 存在性强制覆盖 has_story
+        # 关键：用可发布 Markdown 口径强制覆盖 has_story
         master_fp = DATA_DIR / "people_master.json"
         stat = _patch_master_with_has_story(master_fp)
-        print(f"  ✓ has_story 字段按 .md 存在性强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
+        print(f"  ✓ has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
 
     # ── 2. people_master_pep.json ────────────────────────────────
     if not args.skip_pep:
-        _print_section("2/5 rebuild data/people_master_pep.json")
+        _print_section("2/6 rebuild data/people_master_pep.json")
         rc = _run([
             sys.executable, "tools/build_people_master.py",
             "--scope", "pep",
@@ -501,18 +519,18 @@ def main() -> int:
         if rc != 0:
             print(f"  ✗ build_people_master.py (pep) 退出码 {rc}", flush=True)
             return rc
-        # PEP 索引是教材口径的人物，用 .md 存在性刷 has_story
+        # PEP 索引是教材口径的人物，用可发布 Markdown 口径刷 has_story
         pep_fp = DATA_DIR / "people_master_pep.json"
         stat = _patch_master_with_has_story(pep_fp)
-        print(f"  ✓ pep has_story 字段按 .md 存在性强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
+        print(f"  ✓ pep has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
 
     # ── 3. 增量重渲染人物页 ───────────────────────────────────────
     if not args.skip_html:
-        _print_section("3/5 render changed artifacts/story_map/*.html")
+        _print_section("3/6 render changed artifacts/story_map/*.html")
         rc = _run([
             sys.executable, "cli/generate_pure_story_map.py",
             "--render-changed",
-            "--changed-mode", "nogeocode" if not args.refresh_geocode else "pure",
+            "--changed-mode", "pure",
             "--changed-limit", "0",
         ])
         if rc != 0:
@@ -520,14 +538,22 @@ def main() -> int:
             return rc
 
     # ── 4. 出生地经纬度 ─────────────────────────────────────────
-    _print_section("4/5 sync data/people_birth_coords_wgs84.json")
+    _print_section("4/6 sync data/people_birth_coords_wgs84.json")
     if args.refresh_geocode:
         print("  → 重新跑 build_stellar_homepage.py 以触发 geocode（如果有缺失）", flush=True)
     # 后续 build_stellar_homepage 也会写 coords 文件，这里仅做提示
 
-    # ── 5. stellar_home_data.json + index.html ──────────────────
+    # ── 5. pep_people_spotlight.json ────────────────────────────
     if not args.skip_home:
-        _print_section("5/5 rebuild stellar_home_data.json + index.html")
+        _print_section("5/6 rebuild data/pep_people_spotlight.json")
+        rc = _run([sys.executable, "tools/build_pep_people_spotlight.py"])
+        if rc != 0:
+            print(f"  ✗ build_pep_people_spotlight.py 退出码 {rc}", flush=True)
+            return rc
+
+    # ── 6. stellar_home_data.json + index.html ──────────────────
+    if not args.skip_home:
+        _print_section("6/6 rebuild stellar_home_data.json + index.html")
         rc = _run([
             sys.executable, "tools/build_stellar_homepage.py",
             "--story-map-dir", str(STORY_MAP_DIR),
@@ -536,10 +562,10 @@ def main() -> int:
         if rc != 0:
             print(f"  ✗ build_stellar_homepage.py 退出码 {rc}", flush=True)
             return rc
-        # 强制 home 节点 has_story 一致
+        # 强制 home 节点与可发布 Markdown 口径一致
         if HOME_DATA.exists():
             stat = _patch_home_with_has_story(HOME_DATA)
-            print(f"  ✓ home has_story 字段按 .md 存在性强制刷新: {stat['updated']} 处变更, {stat['total']} 节点", flush=True)
+            print(f"  ✓ home has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 节点", flush=True)
 
     # ── 收尾统计 ────────────────────────────────────────────────
     elapsed = time.time() - t0

@@ -54,6 +54,20 @@ _HISTORICAL_RECORD_TOKENS = (
     "本纪",
     "列传",
 )
+_SPECULATIVE_LOCATION_PATTERNS = (
+    r"推断",
+    r"存疑",
+    r"待考",
+    r"说法不一",
+    r"史料未载",
+    r"不可考",
+    r"古称不详",
+    r"地点不详",
+    r"某地",
+    r"一带",
+    r"周边区域",
+    r"可能",
+)
 
 
 def extract_works(text: str) -> List[str]:
@@ -107,17 +121,274 @@ def _loose_coord_lookup(coords_cache: Dict[str, Coord], candidates: List[str]) -
     return coords_cache.get(scored[0][1])
 
 
+def _split_person_alias_values(*values: object) -> List[str]:
+    out: List[str] = []
+    for raw in values:
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        for part in re.split(r"[、，,；;/\s]+", text):
+            alias = str(part or "").strip()
+            if alias and alias not in out:
+                out.append(alias)
+    return out
+
+
+def _coord_group_key(lat: object, lng: object) -> str:
+    try:
+        lat_value = float(lat)
+        lng_value = float(lng)
+    except Exception:
+        return ""
+    if not (-90 <= lat_value <= 90 and -180 <= lng_value <= 180):
+        return ""
+    return f"{lat_value:.4f},{lng_value:.4f}"
+
+
+def _is_speculative_location_item(item: Dict[str, object]) -> bool:
+    text = " ".join(
+        [
+            str(item.get("name") or ""),
+            str(item.get("ancientName") or ""),
+            str(item.get("modernName") or ""),
+            str(item.get("event") or ""),
+            str(item.get("significance") or ""),
+            str(item.get("time") or ""),
+        ]
+    ).strip()
+    if not text:
+        return False
+    return any(re.search(pattern, text) for pattern in _SPECULATIVE_LOCATION_PATTERNS)
+
+
+def _choose_primary_location(items: List[Dict[str, object]]) -> Dict[str, object]:
+    def score(item: Dict[str, object]) -> Tuple[int, int, int]:
+        text = " ".join(
+            [
+                str(item.get("event") or ""),
+                str(item.get("significance") or ""),
+                str(item.get("duration") or ""),
+            ]
+        ).strip()
+        return (
+            1 if str(item.get("duration") or "").strip() else 0,
+            len(extract_works(text)),
+            len(text),
+        )
+
+    return max(items, key=score)
+
+
+def _merge_location_cluster(items: List[Dict[str, object]]) -> Dict[str, object]:
+    base = dict(_choose_primary_location(items))
+
+    def merge_text(field: str) -> str:
+        seen: List[str] = []
+        for item in items:
+            value = str(item.get(field) or "").strip()
+            if value and value not in seen:
+                seen.append(value)
+        return "；".join(seen[:4])
+
+    merged_works: List[str] = []
+    merged_quotes: List[str] = []
+    for item in items:
+        for work in item.get("works") or []:
+            clean = str(work or "").strip()
+            if clean and clean not in merged_works:
+                merged_works.append(clean)
+        for quote in item.get("quoteLines") or []:
+            clean = str(quote or "").strip()
+            if clean and clean not in merged_quotes:
+                merged_quotes.append(clean)
+
+    base["event"] = merge_text("event") or str(base.get("event") or "")
+    base["significance"] = merge_text("significance") or str(base.get("significance") or "")
+    base["duration"] = merge_text("duration") or str(base.get("duration") or "")
+    base["works"] = merged_works
+    base["quoteLines"] = merged_quotes
+    return base
+
+
+def _collapse_sparse_single_site_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    if len(loc_items) <= 1:
+        return loc_items
+
+    groups: Dict[str, List[Dict[str, object]]] = {}
+    for item in loc_items:
+        key = _coord_group_key(item.get("lat"), item.get("lng"))
+        if not key:
+            continue
+        groups.setdefault(key, []).append(item)
+    if not groups:
+        return loc_items
+
+    concrete_keys = [
+        key for key, items in groups.items()
+        if any(not _is_speculative_location_item(item) for item in items)
+    ]
+    if len(concrete_keys) == 1:
+        return [_merge_location_cluster(groups[concrete_keys[0]])]
+
+    if len(groups) == 1:
+        key = next(iter(groups.keys()))
+        return [_merge_location_cluster(groups[key])]
+
+    return loc_items
+
+
+def _extract_location_time_bounds(raw: object) -> Tuple[Optional[int], Optional[int]]:
+    text = str(raw or "").strip()
+    if not text:
+        return None, None
+    years: List[int] = []
+    year_pattern = re.compile(r"(公元前|前)?\s*(\d{1,4})(?=年)")
+    for match in year_pattern.finditer(text):
+        try:
+            value = int(match.group(2))
+        except Exception:
+            continue
+        era = str(match.group(1) or "").strip()
+        years.append(-value if era else value)
+    if not years:
+        for match in re.finditer(r"(?<!\d)(-?\d{1,4})(?!\d)", text):
+            try:
+                years.append(int(match.group(1)))
+            except Exception:
+                continue
+    if not years:
+        return None, None
+    if len(years) == 1:
+        return years[0], years[0]
+    return min(years), max(years)
+
+
+def _looks_like_death_location(item: Dict[str, object]) -> bool:
+    kind = str(item.get("type") or "").strip().lower()
+    if kind == "death":
+        return True
+    text = " ".join(
+        str(item.get(key) or "").strip()
+        for key in ("event", "significance")
+        if str(item.get(key) or "").strip()
+    )
+    if not text:
+        return False
+    negated_death_pattern = re.compile(r"(不代表|并非|不是|并不是|非|不属|不算)(?:[^，。；;、,\s]{0,6})(去世|逝世|病逝|身亡|死亡|殒命|辞世|亡故|谢世|终老)")
+    if negated_death_pattern.search(text):
+        return False
+    death_tokens = ("去世", "逝世", "病逝", "身亡", "死亡", "殒命", "惊悸而死", "溺水", "辞世", "亡故", "谢世", "终老", "安葬", "葬于")
+    if any(token in text for token in death_tokens):
+        return True
+    return bool(re.search(r"(?:^|[，。；;、,\s])卒(?:于|地|处)?(?:$|[，。；;、,\s])", text))
+
+
+def _sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    if len(loc_items) <= 1:
+        return loc_items
+
+    indexed = list(enumerate(loc_items))
+
+    def _key(entry: Tuple[int, Dict[str, object]]) -> Tuple[int, int, int, int]:
+        idx, item = entry
+        start_year, end_year = _extract_location_time_bounds(item.get("time"))
+        kind = str(item.get("type") or "").strip().lower()
+        if kind == "birth":
+            rank = 0
+        elif kind == "death" or _looks_like_death_location(item):
+            rank = 2
+        else:
+            rank = 1
+        year_key = start_year if start_year is not None else 10**9
+        end_key = end_year if end_year is not None else year_key
+        return (year_key, rank, end_key, idx)
+
+    indexed.sort(key=_key)
+    return [item for _, item in indexed]
+
+
+def _work_title_aliases(title: str) -> List[str]:
+    clean_title = str(title or "").strip()
+    if not clean_title:
+        return []
+    aliases: List[str] = []
+
+    def push(value: str) -> None:
+        item = str(value or "").strip()
+        if item and item not in aliases:
+            aliases.append(item)
+
+    push(clean_title)
+    for chunk in re.split(r"[·・:：]", clean_title):
+        push(chunk)
+    short_title = re.sub(r"[上中下篇卷章节编]\s*$", "", clean_title).strip()
+    push(short_title)
+    for chunk in list(aliases):
+        trimmed = re.sub(r"[上中下篇卷章节编]\s*$", "", chunk).strip()
+        push(trimmed)
+    return aliases
+
+
+_WORK_TEXT_BAD_PREFIX_PATTERNS = (
+    r"^(课文/词作|作品简介|内容简介|作者简介|写作背景|主题思想|艺术特色|主要成就|核心要点|关键史实|历史地位)\s*[：:]",
+    r"^李春本人无文学作品传世",
+    r"^暂无[。；;!！]?$",
+)
+
+_DERIVED_WORK_TEXT_LIBRARY = {
+    "中国石拱桥": "\n".join(
+        [
+            "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”",
+            "“赵州桥不但形式优美，而且结构坚固。”",
+        ]
+    ),
+    "记承天寺夜游": "\n".join(
+        [
+            "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”",
+            "“但少闲人如吾两人者耳。”",
+        ]
+    ),
+}
+
+
+def _extract_work_excerpt_candidate(text: str) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    cleaned = re.sub(r"\s+", " ", raw.replace("**", "")).strip()
+    if not cleaned:
+        return ""
+    if re.fullmatch(r"(?:[诗词文赋文集帖序碑记]|代表作|作品)?\s*《[^》]{1,80}》[。！？!?]?", cleaned):
+        return ""
+    if re.fullmatch(r"(?:相关作品|代表作|作品|著有|写有|曾作|收录作品)?[：:]?\s*(?:[^《》]{0,24})?《[^》]{1,80}》[。！？!?]?", cleaned):
+        return ""
+    for pattern in _WORK_TEXT_BAD_PREFIX_PATTERNS:
+        if re.match(pattern, cleaned):
+            return ""
+    quoted = [
+        str(item or "").strip()
+        for item in re.findall(r"[“\"「](.+?)[”\"」]", cleaned)
+        if str(item or "").strip()
+    ]
+    if quoted:
+        return "\n".join(f"“{item}”" for item in quoted[:2])
+    for sentence in re.split(r"(?<=[。！？!?；;])\s*", cleaned):
+        candidate = str(sentence or "").strip()
+        if len(candidate) < 8 or len(candidate) > 120:
+            continue
+        if any(re.match(pattern, candidate) for pattern in _WORK_TEXT_BAD_PREFIX_PATTERNS):
+            continue
+        return candidate
+    return ""
+
+
 def _register_work_text(store: Dict[str, str], title: str, text: str) -> None:
     clean_title = str(title or "").strip()
     clean_text = str(text or "").strip()
     if not clean_title or not clean_text:
         return
     clean_text = re.sub(r"\s*\n\s*", "\n", clean_text).strip()
-    aliases = [clean_title]
-    short_title = clean_title.split("·", 1)[0].strip()
-    if short_title and short_title not in aliases:
-        aliases.append(short_title)
-    for alias in aliases:
+    for alias in _work_title_aliases(clean_title):
         if not alias:
             continue
         existing = str(store.get(alias) or "").strip()
@@ -130,13 +401,21 @@ def _register_work_context(store: Dict[str, str], title: str, text: str) -> None
     clean_text = str(text or "").strip()
     if not clean_title or not clean_text:
         return
-    aliases = [clean_title]
-    short_title = clean_title.split("·", 1)[0].strip()
-    if short_title and short_title not in aliases:
-        aliases.append(short_title)
+    aliases = _work_title_aliases(clean_title)
     if any(str(store.get(alias) or "").strip() for alias in aliases):
         return
     _register_work_text(store, clean_title, clean_text)
+
+
+def _merge_derived_work_texts(store: Dict[str, str]) -> Dict[str, str]:
+    merged = dict(store or {})
+    for title, derived_text in _DERIVED_WORK_TEXT_LIBRARY.items():
+        aliases = _work_title_aliases(title)
+        has_good_excerpt = any(_extract_work_excerpt_candidate(str(merged.get(alias) or "")) for alias in aliases)
+        if has_good_excerpt:
+            continue
+        _register_work_text(merged, title, derived_text)
+    return merged
 
 
 def extract_work_texts(md: str) -> Dict[str, str]:
@@ -153,20 +432,51 @@ def extract_work_texts(md: str) -> Dict[str, str]:
         line = str(raw_line or "").strip()
         if "《" not in line:
             continue
-        context = re.sub(r"^\s*[-*•]\s*", "", line)
-        context = re.sub(r"\*\*", "", context).strip()
-        context = re.sub(r"\s+", " ", context)
-        if len(context) > 140:
-            context = context[:137].rstrip() + "..."
-        for title in re.findall(r"《([^》]{1,80})》", line):
-            _register_work_context(work_texts, title, context)
-    return work_texts
+        clauses = [seg.strip() for seg in re.split(r"[；;]\s*", line) if str(seg or "").strip()]
+        for clause in clauses:
+            titles = re.findall(r"《([^》]{1,80})》", clause)
+            if not titles:
+                continue
+            context = re.sub(r"^\s*[-*•]\s*", "", clause)
+            context = re.sub(r"\*\*", "", context).strip()
+            context = re.sub(r"\s+", " ", context)
+            context = _extract_work_excerpt_candidate(context)
+            if not context:
+                continue
+            if len(titles) != 1:
+                # Multiple works in one clause often carry different quotes; avoid cross-assigning them.
+                continue
+            _register_work_context(work_texts, titles[0], context)
+    return _merge_derived_work_texts(work_texts)
 
 
 def split_quote_lines(text: str) -> List[str]:
     if not text:
         return []
-    return [p.strip() for p in re.split(r"[；;]\s*", text) if p.strip()]
+    parts: List[str] = []
+    buf: List[str] = []
+    quote_pairs = {"“": "”", '"': '"', "「": "」", "『": "』"}
+    closing_stack: List[str] = []
+    for ch in str(text):
+        if ch in quote_pairs:
+            expected = quote_pairs[ch]
+            if expected == ch and closing_stack and closing_stack[-1] == ch:
+                closing_stack.pop()
+            else:
+                closing_stack.append(expected)
+        elif closing_stack and ch == closing_stack[-1]:
+            closing_stack.pop()
+        if ch in {"；", ";"} and not closing_stack:
+            item = "".join(buf).strip()
+            if item:
+                parts.append(item)
+            buf = []
+            continue
+        buf.append(ch)
+    tail = "".join(buf).strip()
+    if tail:
+        parts.append(tail)
+    return parts
 
 
 def extract_title_from_text(text: str) -> str:
@@ -227,6 +537,13 @@ def _is_literary_review(text: str) -> bool:
     return "《" in raw and "》" in raw
 
 
+def _is_explicit_short_review(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw:
+        return False
+    return bool(re.match(r"^(人物)?短评\s*[：:]", raw))
+
+
 def _dedupe_review_candidates(items: List[str]) -> List[str]:
     out: List[str] = []
     seen = set()
@@ -258,16 +575,18 @@ def choose_short_review(
     fallback: str = "",
 ) -> str:
     self_direct_candidates, self_work_candidates = _collect_self_review_candidates(locations, work_texts)
+    explicit_short_review_raw = [item for item in historical_reviews if _is_explicit_short_review(item)]
     literary_review_raw = [item for item in historical_reviews if _is_literary_review(item)]
     record_review_raw = [item for item in historical_reviews if _is_historical_record_review(item)]
+    explicit_short_review_candidates = _dedupe_review_candidates(explicit_short_review_raw)
     literary_review_candidates = _dedupe_review_candidates(literary_review_raw)
     record_review_candidates = _dedupe_review_candidates(record_review_raw)
-    categorized_raw = set(literary_review_raw + record_review_raw)
+    categorized_raw = set(explicit_short_review_raw + literary_review_raw + record_review_raw)
     generic_review_candidates = _dedupe_review_candidates([item for item in historical_reviews if item not in categorized_raw])
     candidate_groups = (
-        [self_work_candidates, self_direct_candidates, literary_review_candidates, record_review_candidates, generic_review_candidates]
+        [explicit_short_review_candidates, self_work_candidates, record_review_candidates, self_direct_candidates, literary_review_candidates, generic_review_candidates]
         if _is_literary_person(info)
-        else [literary_review_candidates, record_review_candidates, self_direct_candidates, self_work_candidates, generic_review_candidates]
+        else [explicit_short_review_candidates, literary_review_candidates, record_review_candidates, self_direct_candidates, self_work_candidates, generic_review_candidates]
     )
     for group in candidate_groups:
         for item in group:
@@ -384,6 +703,7 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
 def build_profile_data(
     md: str,
     *,
+    fallback_person: str = "",
     allow_geocode: bool = True,
     event_callback: Optional[callable] = None,
     split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
@@ -447,7 +767,8 @@ def build_profile_data(
             ]
         if not info and not locations:
             return None
-    name_raw = info.get("姓名", "")
+    fallback_person = str(fallback_person or "").strip()
+    name_raw = info.get("姓名", "") or fallback_person
     name = name_raw.split("（", 1)[0].strip() or name_raw.strip()
     title = extract_title_from_text(info.get("历史地位", "")) or extract_title_from_text(name_raw) or ""
     description = parsed_doc.overview
@@ -518,8 +839,8 @@ def build_profile_data(
     death_modern = split_ancient_modern(death_loc, event_callback)[1]
     birth_geo = parser_utils._pick_geocode_name(birth_modern or birth_loc)
     death_geo = parser_utils._pick_geocode_name(death_modern or death_loc)
-    birth_coord = fuzzy_coord_lookup(coords_cache, [birth_geo, birth_modern, birth_loc])
-    death_coord = fuzzy_coord_lookup(coords_cache, [death_geo, death_modern, death_loc])
+    birth_coord = parser_utils._extract_inline_coord_pair(birth_text) or fuzzy_coord_lookup(coords_cache, [birth_geo, birth_modern, birth_loc])
+    death_coord = parser_utils._extract_inline_coord_pair(death_text) or fuzzy_coord_lookup(coords_cache, [death_geo, death_modern, death_loc])
     if not birth_coord:
         birth_coord = lookup_coords_from_historical_index(birth_geo, birth_modern, birth_loc)
     if not death_coord:
@@ -530,6 +851,16 @@ def build_profile_data(
         death_coord = resolve_place_coord(death_geo, None, death_loc, death_modern)
 
     dynasty = (info.get("时代", "") or info.get("朝代", "")).strip()
+    courtesy_name = str(info.get("字", "") or info.get("表字", "")).strip()
+    art_name = str(info.get("号", "") or info.get("别号", "")).strip()
+    aliases = _split_person_alias_values(
+        info.get("别名", ""),
+        info.get("别称", ""),
+        info.get("曾用名", ""),
+        info.get("又名", ""),
+        courtesy_name,
+        art_name,
+    )
     person = {
         "name": name or "人物",
         "title": title,
@@ -537,6 +868,9 @@ def build_profile_data(
         "quote": short_review or title,
         "shortReview": short_review or title,
         "dynasty": dynasty,
+        "courtesyName": courtesy_name,
+        "artName": art_name,
+        "aliases": aliases,
         "birthplace": birth_loc,
         "avatar": "",
         "birth": {
@@ -544,12 +878,14 @@ def build_profile_data(
             "location": birth_loc,
             "lat": birth_coord[0] if birth_coord else None,
             "lng": birth_coord[1] if birth_coord else None,
+            "coordSystem": "WGS84" if birth_coord else "",
         },
         "death": {
             "date": death_date,
             "location": death_loc,
             "lat": death_coord[0] if death_coord else None,
             "lng": death_coord[1] if death_coord else None,
+            "coordSystem": "WGS84" if death_coord else "",
         },
         "lifespan": lifespan,
         "highlights": {
@@ -568,7 +904,7 @@ def build_profile_data(
         ancient, modern = split_ancient_modern(loc_text, event_callback)
         geo_name = parser_utils._pick_geocode_name(modern or loc_text or loc.get("name") or ancient)
         coord_candidates = [geo_name, modern, loc_text, loc.get("name") or "", ancient]
-        coord = fuzzy_coord_lookup(coords_cache, coord_candidates)
+        coord = parser_utils._extract_inline_coord_pair(loc_text) or fuzzy_coord_lookup(coords_cache, coord_candidates)
         if not coord:
             coord = _loose_coord_lookup(coords_cache, coord_candidates)
         search_name = ""
@@ -635,6 +971,7 @@ def build_profile_data(
                 "modernName": modern or loc_text,
                 "lat": coord[0],
                 "lng": coord[1],
+                "coordSystem": "WGS84",
                 "type": loc.get("type", "normal"),
                 "event": loc.get("event", ""),
                 "time": loc.get("time", ""),
@@ -645,16 +982,39 @@ def build_profile_data(
             }
         )
     if not loc_items:
-        if birth_coord and death_coord:
-            birth_ancient, birth_modern_2 = split_ancient_modern(birth_loc, event_callback)
-            death_ancient, death_modern_2 = split_ancient_modern(death_loc, event_callback)
+        if coords_cache and not (birth_coord or death_coord):
             loc_items = [
                 {
+                    "name": key,
+                    "ancientName": "",
+                    "modernName": key,
+                    "lat": coord[0],
+                    "lng": coord[1],
+                    "coordSystem": "WGS84",
+                    "type": "move",
+                    "event": "",
+                    "time": "",
+                    "duration": "",
+                    "significance": "",
+                    "works": [],
+                    "quoteLines": [],
+                }
+                for key, coord in coords_cache.items()
+                if str(key or "").strip()
+            ]
+        elif birth_coord or death_coord:
+            birth_ancient, birth_modern_2 = split_ancient_modern(birth_loc, event_callback)
+            death_ancient, death_modern_2 = split_ancient_modern(death_loc, event_callback)
+            fallback_items: List[Dict[str, object]] = []
+            if birth_coord:
+                fallback_items.append(
+                    {
                     "name": birth_modern_2 or birth_modern or birth_loc or "出生地",
                     "ancientName": birth_ancient or "",
                     "modernName": birth_modern_2 or birth_modern or birth_loc or "",
                     "lat": birth_coord[0],
                     "lng": birth_coord[1],
+                    "coordSystem": "WGS84",
                     "type": "birth",
                     "event": "出生",
                     "time": birth_date or "",
@@ -662,13 +1022,17 @@ def build_profile_data(
                     "significance": "",
                     "works": [],
                     "quoteLines": [],
-                },
-                {
+                    }
+                )
+            if death_coord:
+                fallback_items.append(
+                    {
                     "name": death_modern_2 or death_modern or death_loc or "去世地",
                     "ancientName": death_ancient or "",
                     "modernName": death_modern_2 or death_modern or death_loc or "",
                     "lat": death_coord[0],
                     "lng": death_coord[1],
+                    "coordSystem": "WGS84",
                     "type": "death",
                     "event": "去世",
                     "time": death_date or "",
@@ -676,13 +1040,17 @@ def build_profile_data(
                     "significance": "",
                     "works": [],
                     "quoteLines": [],
-                },
-            ]
+                    }
+                )
+            loc_items = fallback_items
         else:
             loc_items = []
+    loc_items = _collapse_sparse_single_site_locations(loc_items)
+    loc_items = _sort_profile_locations(loc_items)
     return {
         "person": person,
         "locations": loc_items,
+        "coordinateSystem": "WGS84",
         "mapStyle": {
             "pathColor": "#1e40af",
             "markers": {
@@ -700,6 +1068,7 @@ def build_profile_data(
 def load_profile_from_md(
     md: str,
     *,
+    fallback_person: str = "",
     allow_geocode: bool = True,
     event_callback: Optional[callable] = None,
     split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
@@ -713,6 +1082,7 @@ def load_profile_from_md(
         return None
     return build_profile_data(
         md,
+        fallback_person=fallback_person,
         allow_geocode=allow_geocode,
         event_callback=event_callback,
         split_ancient_modern=split_ancient_modern,

@@ -5,10 +5,10 @@ import json
 from typing import Dict, List
 
 try:
-    from .story_agent_runtime import build_runtime_reflection, extract_agent_runtime_metadata, normalize_runtime_snapshot
+    from .story_agent_runtime import build_runtime_pdca, build_runtime_quality_framework, build_runtime_reflection, extract_agent_runtime_metadata, normalize_runtime_snapshot
     from .story_task_schema import build_status_info, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
 except ImportError:
-    from story_agent_runtime import build_runtime_reflection, extract_agent_runtime_metadata, normalize_runtime_snapshot
+    from story_agent_runtime import build_runtime_pdca, build_runtime_quality_framework, build_runtime_reflection, extract_agent_runtime_metadata, normalize_runtime_snapshot
     from story_task_schema import build_status_info, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
 
 
@@ -16,6 +16,7 @@ def _sanitize_tool_trace(item: object) -> Dict[str, object]:
     trace = dict(item or {}) if isinstance(item, dict) else {}
     sanitized: Dict[str, object] = {
         "tool_name": str(trace.get("tool_name") or ""),
+        "agent_step": str(trace.get("agent_step") or "").strip(),
         "success": bool(trace.get("success")),
         "attempt": int(trace.get("attempt") or 0),
         "duration_ms": int(trace.get("duration_ms") or 0),
@@ -30,6 +31,12 @@ def _sanitize_tool_trace(item: object) -> Dict[str, object]:
     error = str(trace.get("error") or "").strip()
     if error:
         sanitized["error"] = error
+    input_summary = str(trace.get("input_summary") or trace.get("input_preview") or "").strip()
+    if input_summary:
+        sanitized["input_summary"] = input_summary
+    output_summary = str(trace.get("output_summary") or trace.get("output_preview") or "").strip()
+    if output_summary:
+        sanitized["output_summary"] = output_summary
     return sanitized
 
 
@@ -71,6 +78,10 @@ def _build_safe_runtime_snapshot(runtime: object) -> Dict[str, object]:
         "state": {
             "llm_calls_used": int(state.get("llm_calls_used") or 0),
             "llm_calls_limit": int(state.get("llm_calls_limit") or 0),
+            "revision_count": int(state.get("revision_count") or 0),
+            "max_revisions": int(state.get("max_revisions") or 0),
+            "needs_revision": bool(state.get("needs_revision")),
+            "needs_redraft": bool(state.get("needs_redraft")),
             "degraded_reasons": [str(item) for item in list(state.get("degraded_reasons") or []) if str(item).strip()],
             "execution_trace": [str(item) for item in list(state.get("execution_trace") or []) if str(item).strip()],
             "tool_traces": [_sanitize_tool_trace(item) for item in list(state.get("tool_traces") or [])],
@@ -78,6 +89,13 @@ def _build_safe_runtime_snapshot(runtime: object) -> Dict[str, object]:
             "memory_misses": {
                 str(key): int(value or 0) for key, value in dict(state.get("memory_misses") or {}).items() if str(key).strip()
             },
+            "plan": [str(item) for item in list(state.get("plan") or []) if str(item).strip()],
+            "search_result": dict(state.get("search_result") or {}) if isinstance(state.get("search_result"), dict) else {},
+            "place_maps": [dict(item) for item in list(state.get("place_maps") or []) if isinstance(item, dict)],
+            "draft_markdown": str(state.get("draft_markdown") or ""),
+            "final_markdown": str(state.get("final_markdown") or ""),
+            "validation": dict(state.get("validation") or {}) if isinstance(state.get("validation"), dict) else {},
+            "critic_feedback": [dict(item) for item in list(state.get("critic_feedback") or []) if isinstance(item, dict)],
         },
     }
 
@@ -96,9 +114,58 @@ def _build_safe_runtime_reflection(runtime: object) -> Dict[str, object]:
     }
 
 
-def _build_person_status_info(item: Dict[str, object], runtime: Dict[str, object]) -> Dict[str, object]:
-    if not bool(item.get("ok")):
+def _build_safe_runtime_pdca(runtime: object) -> Dict[str, object]:
+    pdca = build_runtime_pdca(runtime)
+    return {
+        "status": str(pdca.get("status") or ""),
+        "person": str(pdca.get("person") or ""),
+        "plan": dict(pdca.get("plan") or {}),
+        "do": dict(pdca.get("do") or {}),
+        "check": dict(pdca.get("check") or {}),
+        "act": dict(pdca.get("act") or {}),
+    }
+
+
+def _build_safe_runtime_quality_framework(runtime: object) -> Dict[str, object]:
+    framework = build_runtime_quality_framework(runtime)
+    return {
+        "status": str(framework.get("status") or ""),
+        "person": str(framework.get("person") or ""),
+        "human": dict(framework.get("human") or {}),
+        "machine": dict(framework.get("machine") or {}),
+        "material": dict(framework.get("material") or {}),
+        "method": dict(framework.get("method") or {}),
+        "environment": dict(framework.get("environment") or {}),
+        "measurement": dict(framework.get("measurement") or {}),
+    }
+
+
+def _is_usable_result_item(item: Dict[str, object]) -> bool:
+    if bool(item.get("ok")):
+        return True
+    return str(item.get("status") or "").strip() == "degraded"
+
+
+def _build_person_status_info(
+    item: Dict[str, object],
+    runtime: Dict[str, object],
+    runtime_reflection: Dict[str, object],
+) -> Dict[str, object]:
+    if not _is_usable_result_item(item):
         return build_status_info("failed", hint=str(item.get("error") or "").strip() or "该人物生成失败。")
+    result_status = str(item.get("status") or "").strip()
+    if result_status == "degraded":
+        runtime_status = str(runtime.get("status") or "").strip()
+        if runtime_status == "degraded":
+            return dict(runtime.get("status_info") or {})
+        return build_status_info("degraded", hint=str(item.get("error") or "").strip() or "该人物使用降级结果完成。")
+    reflection_status = str(runtime_reflection.get("status") or "").strip()
+    if reflection_status == "degraded":
+        bottlenecks = [str(item) for item in list(runtime_reflection.get("bottlenecks") or []) if str(item).strip()]
+        return build_status_info("degraded", hint=(bottlenecks[0] if bottlenecks else "该人物 runtime 已出现降级信号。"))
+    if reflection_status == "watch":
+        bottlenecks = [str(item) for item in list(runtime_reflection.get("bottlenecks") or []) if str(item).strip()]
+        return build_status_info("watch", hint=(bottlenecks[0] if bottlenecks else "该人物 runtime 需要关注。"))
     if bool(runtime.get("has_runtime")):
         return dict(runtime.get("status_info") or {})
     return build_status_info("completed", hint="该人物生成成功，但未记录 runtime。")
@@ -108,7 +175,17 @@ def _build_ui_payload(task: Dict[str, object], result: Dict[str, object], meta: 
     task_status_info = dict(task.get("status_info") or {})
     result_status_info = dict(result.get("status_info") or {})
     meta_status_info = dict(meta.get("status_info") or {})
-    banner = result_status_info or task_status_info or build_status_info("empty")
+    task_code = str(task_status_info.get("code") or "").strip()
+    result_code = str(result_status_info.get("code") or "").strip()
+    meta_code = str(meta_status_info.get("code") or "").strip()
+    if result_code in {"failed", "partial_failed"}:
+        banner = result_status_info
+    elif task_code in {"failed", "partial_failed"}:
+        banner = task_status_info
+    elif meta_code in {"watch", "degraded", "failed"}:
+        banner = meta_status_info
+    else:
+        banner = result_status_info or task_status_info or meta_status_info or build_status_info("empty")
     return {
         "task_status": task_status_info,
         "result_status": result_status_info,
@@ -131,7 +208,7 @@ def build_task_debug_payload(snapshot: object) -> Dict[str, object]:
         "updated_at": task.get("updated_at"),
     }
     result_view = {
-        "ok": bool(result.get("ok")),
+        "ok": _is_usable_result_item(result),
         "status": str(result.get("status") or ""),
         "status_info": dict(result.get("status_info") or {}),
         "people": [str(item) for item in list(result.get("people") or []) if str(item).strip()],
@@ -147,16 +224,20 @@ def build_task_debug_payload(snapshot: object) -> Dict[str, object]:
         runtime_snapshot = _build_safe_runtime_snapshot(runtime_source)
         runtime = _build_safe_runtime(extract_agent_runtime_metadata(runtime_source))
         runtime_reflection = _build_safe_runtime_reflection(runtime_source)
-        status_info = _build_person_status_info(item, runtime)
+        runtime_pdca = _build_safe_runtime_pdca(runtime_source)
+        runtime_quality = _build_safe_runtime_quality_framework(runtime_source)
+        status_info = _build_person_status_info(item, runtime, runtime_reflection)
         people.append(
             {
                 "person": str(item.get("person") or runtime.get("person") or ""),
-                "ok": bool(item.get("ok")),
+                "ok": _is_usable_result_item(item),
                 "error": str(item.get("error") or ""),
                 "status_info": status_info,
                 "runtime": runtime,
                 "runtime_snapshot": runtime_snapshot,
                 "runtime_reflection": runtime_reflection,
+                "runtime_pdca": runtime_pdca,
+                "runtime_quality": runtime_quality,
                 "memory_hits": dict(runtime.get("memory_hits") or {}),
                 "memory_misses": dict(runtime.get("memory_misses") or {}),
             }
@@ -220,6 +301,10 @@ def render_task_debug_html(snapshot: object, *, storage: object = None) -> str:
             f"<pre>{html.escape(json.dumps(item.get('runtime_snapshot') or {}, ensure_ascii=False, indent=2))}</pre>"
             "<h3>Runtime Reflection</h3>"
             f"<pre>{html.escape(json.dumps(item.get('runtime_reflection') or {}, ensure_ascii=False, indent=2))}</pre>"
+            "<h3>PDCA View</h3>"
+            f"<pre>{html.escape(json.dumps(item.get('runtime_pdca') or {}, ensure_ascii=False, indent=2))}</pre>"
+            "<h3>6M View</h3>"
+            f"<pre>{html.escape(json.dumps(item.get('runtime_quality') or {}, ensure_ascii=False, indent=2))}</pre>"
             "<h3>Runtime Meta</h3>"
             f"<pre>{html.escape(json.dumps(runtime, ensure_ascii=False, indent=2))}</pre>"
             "</section>"

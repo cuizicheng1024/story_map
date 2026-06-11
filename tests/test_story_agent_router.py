@@ -54,6 +54,25 @@ def test_supervisor_prefers_editor_when_tools_are_unstable_during_revision():
     assert update["next_step"] == "editor_agent"
 
 
+def test_supervisor_does_not_retry_map_when_location_feedback_coexists_with_failed_map_call():
+    update = story_agent_router.build_supervisor_update(
+        {
+            "search_result": {"person": "李白"},
+            "place_maps": [],
+            "draft_markdown": "# draft",
+            "validation": {"pass": False},
+            "critic_feedback": [{"field": "location", "claim": "碎叶城"}],
+            "needs_revision": True,
+            "llm_calls_used": 1,
+            "llm_calls_limit": 4,
+            "execution_trace": ["supervisor", "search_agent", "map_agent", "editor_agent", "critic_agent"],
+            "tool_traces": [{"tool_name": "fetch_ancient_place_map", "success": False, "timed_out": True}],
+        }
+    )
+
+    assert update["next_step"] == "editor_agent"
+
+
 def test_supervisor_prefers_editor_when_memory_miss_is_high_on_revision():
     update = story_agent_router.build_supervisor_update(
         {

@@ -14,10 +14,12 @@ try:
     from .env_utils import load_project_env
     from . import story_agent_runtime as story_agent_runtime_utils
     from . import story_agent_graph as story_agent_graph_utils
+    from .project_paths import classify_story_person_authenticity
 except ImportError:
     from env_utils import load_project_env
     import story_agent_runtime as story_agent_runtime_utils
     import story_agent_graph as story_agent_graph_utils
+    from project_paths import classify_story_person_authenticity
 
 def _project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -113,8 +115,8 @@ class StoryAgentLLM:
     """
     主要职责：
     - 统一管理模型 ID、API Key、Base URL 等基础配置
-    - 调用 Qveris 的 Execute Tool 接口来执行大模型对话
-    - 兼容 OpenAI 格式的 messages 输入
+    - 调用 MiniMax 兼容接口来执行大模型对话
+    - 兼容 OpenAI / Anthropic 风格的 messages 输入
     """
     def __init__(
         self,
@@ -161,7 +163,7 @@ class StoryAgentLLM:
             or os.getenv("minimax_API_Base_URL")
             or os.getenv("MIMO_BASE_URL")
             or os.getenv("BASE_URL")
-            or "https://api.minimaxi.com/anthropic"
+            or "https://api.minimaxi.com/v1"
         )
 
         resolved_base = (baseUrl or os.getenv("LLM_BASE_URL") or fallback_base or "").strip()
@@ -174,21 +176,19 @@ class StoryAgentLLM:
         # Increase default timeout to 300 seconds (5 minutes)
         self.timeout = timeout or int(os.getenv("LLM_TIMEOUT", "300"))
         provider = (os.getenv("LLM_PROVIDER") or "").strip().lower()
-        if not provider:
-            provider = "minimax" if "minimax" in str(self.baseUrl or "").lower() else "qveris"
         if provider == "mimo":
+            provider = "minimax"
+        if provider != "minimax":
             provider = "minimax"
         self.provider = provider
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", os.getenv("MINIMAX_MAX_TOKENS", "4096")) or "4096")
-        self._uses_anthropic_api = self._detect_anthropic_api(self.baseUrl, self.provider)
+        self._uses_anthropic_api = self._detect_anthropic_api(self.baseUrl)
         insecure_ssl = (os.getenv("STORY_AGENT_ALLOW_INSECURE_SSL") or os.getenv("LLM_ALLOW_INSECURE_SSL") or "").strip().lower()
         self.verify_ssl = insecure_ssl not in {"1", "true", "yes", "on"}
         self.max_trace_entries = int(os.getenv("LLM_TRACE_MAX_ENTRIES", "50") or "50")
         self.request_traces: List[Dict[str, object]] = []
         self.last_request_trace: Dict[str, object] = {}
         self.last_agent_runtime: Dict[str, object] = {}
-
-        self.tool_id = "bigmodel.chat.completions.create.v4.bbf1f5ab"
 
         if not self.model or not self.apiKey or not self.baseUrl:
             raise ValueError("模型ID、API密钥和服务地址必须被提供或在.env文件中定义。")
@@ -290,11 +290,7 @@ class StoryAgentLLM:
     def think(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
         silent = (os.getenv("STORY_AGENT_SILENT") or "").strip().lower() in {"1", "true", "yes", "y", "on"}
         max_retries = 3
-        provider = (self.provider or "qveris").strip().lower()
-        if provider == "mimo":
-            provider = "minimax"
-        if provider not in {"qveris", "minimax"}:
-            provider = "qveris"
+        provider = "minimax"
 
         if not silent:
             print(f"🧠 正在调用 {self.model} 模型 (via {provider})...")
@@ -313,10 +309,7 @@ class StoryAgentLLM:
         for attempt in range(1, max_retries + 1):
             started = time.perf_counter()
             try:
-                if provider == "minimax":
-                    content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
-                else:
-                    content, meta = self._think_qveris(messages, temperature=temperature, request_id=request_id)
+                content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
                 duration_ms = int((time.perf_counter() - started) * 1000)
                 trace = {
                     **base_trace,
@@ -401,14 +394,22 @@ class StoryAgentLLM:
         }
 
     @staticmethod
-    def _detect_anthropic_api(base_url: str, provider: str) -> bool:
+    def _detect_anthropic_api(base_url: str) -> bool:
         base = str(base_url or "").strip().lower()
-        provider_name = str(provider or "").strip().lower()
         if "/anthropic" in base:
             return True
-        if "api.minimaxi.com" in base and provider_name == "minimax":
-            return True
         return False
+
+    @staticmethod
+    def _openai_endpoint(base_url: str) -> str:
+        base = (base_url or "").strip().rstrip("/")
+        if not base:
+            base = "https://api.minimaxi.com/v1"
+        if base.endswith("/chat/completions"):
+            return base
+        if base.endswith("/v1"):
+            return f"{base}/chat/completions"
+        return f"{base}/v1/chat/completions"
 
     @staticmethod
     def _anthropic_endpoint(base_url: str) -> str:
@@ -469,7 +470,7 @@ class StoryAgentLLM:
         temperature: float = 0,
         request_id: str = "",
     ) -> Tuple[str, Dict[str, object]]:
-        url = f"{self.baseUrl.rstrip('/')}/chat/completions"
+        url = self._openai_endpoint(self.baseUrl)
         headers = {
             "Content-Type": "application/json",
         }
@@ -535,50 +536,6 @@ class StoryAgentLLM:
             return data.get("output_text") or "", {"endpoint": url, **meta}
         return "", {"endpoint": url, **meta}
 
-    def _think_qveris(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0,
-        request_id: str = "",
-    ) -> Tuple[str, Dict[str, object]]:
-        url = f"{self.baseUrl.rstrip('/')}/tools/execute"
-        headers = {"Authorization": f"Bearer {self.apiKey}", "Content-Type": "application/json"}
-        params_to_tool = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temperature,
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.apiKey}",
-        }
-        payload = {"tool_id": self.tool_id, "parameters": params_to_tool}
-        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
-        if not resp.ok:
-            self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
-        data = resp.json()
-        if not data.get("success"):
-            error_msg = data.get("error_message") or "Unknown error"
-            raise LLMRequestError(
-                f"Qveris execution failed: {error_msg}",
-                classification="upstream_error",
-                request_id=request_id,
-                provider=self.provider,
-                endpoint=url,
-                status_code=resp.status_code,
-                duration_ms=int(meta.get("duration_ms") or 0),
-                retryable=True,
-                response_excerpt=_safe_excerpt(error_msg),
-            )
-        tool_result = data.get("result", {}).get("data", {})
-        content = ""
-        if isinstance(tool_result, dict):
-            choices = tool_result.get("choices", [])
-            if choices and len(choices) > 0:
-                message = choices[0].get("message", {})
-                content = message.get("content", "")
-        if not content and isinstance(tool_result, str):
-            content = tool_result
-        return content, {"endpoint": url, **meta}
-
 
 def _read_prompt(relpath: str) -> str:
     """
@@ -613,11 +570,31 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
     使用 Supervisor / Worker / Critic 的多 Agent 工作流生成 Markdown，
     若图工作流不可用或返回空结果，则回退到原有单次生成逻辑。
     """
+    accepted, reason = classify_story_person_authenticity(person, allow_unknown=False)
     if llm is not None:
         llm.last_agent_runtime = {}
+    if not accepted:
+        error = f"人物真实性过滤拦截：{person} ({reason or 'non_authentic'})"
+        if llm and hasattr(llm, "_emit"):
+            llm._emit(f"⛔ {error}")
+        if llm is not None:
+            llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(
+                person,
+                {
+                    "state": {
+                        "degraded_reasons": [f"authenticity_filter:{reason or 'non_authentic'}"],
+                        "execution_trace": ["finish_agent"],
+                    }
+                },
+                fallback="authenticity_filter",
+                error=error,
+            )
+        return None
     try:
         result = story_agent_graph_utils.generate_markdown_with_agents(llm, person)
         if llm is not None:
+            # Persist the full normalized runtime state so PDCA/6M/debug views keep
+            # access to validation, feedback, and intermediate artifacts.
             llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(person, result)
         markdown = str(result.get("markdown") or "").strip()
         if markdown:

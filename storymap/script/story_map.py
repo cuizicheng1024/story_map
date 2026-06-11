@@ -45,6 +45,7 @@ try:
     from .history_qa_agent import LocalHistoryQAAgent
     from . import parsers as parser_utils
     from . import profile_builder as profile_builder_utils
+    from .project_paths import story_md_dir_path, story_person_names
     from . import story_entrypoints as story_entrypoints_utils
     from . import story_generation_api as story_generation_api_utils
     from . import story_geocode_api as story_geocode_api_utils
@@ -97,6 +98,7 @@ except ImportError:
     from history_qa_agent import LocalHistoryQAAgent
     import parsers as parser_utils
     import profile_builder as profile_builder_utils
+    from project_paths import story_md_dir_path, story_person_names
     import story_entrypoints as story_entrypoints_utils
     import story_generation_api as story_generation_api_utils
     import story_geocode_api as story_geocode_api_utils
@@ -140,6 +142,7 @@ _ALLOWED_ORIGINS = _HELPERS["allowed_origins"]
 _VENDOR_CACHE = _HELPERS["vendor_cache"]
 _VENDOR_LOCK = _HELPERS["vendor_lock"]
 _amap_config_js = _HELPERS["amap_config_js"]
+_geovis_config_js = _HELPERS["geovis_config_js"]
 _local_history_reply = _HELPERS["local_history_reply"]
 _local_agent_reply = _HELPERS["local_agent_reply"]
 _fetch_vendor_bytes = _HELPERS["fetch_vendor_bytes"]
@@ -206,15 +209,12 @@ _GENERATION_API = story_generation_api_utils.create_generation_api(
     get_llm_client=lambda **kwargs: _get_llm_client(**kwargs),
     generate_historical_markdown=lambda client, person: generate_historical_markdown(client, person),
     cache_dependency_paths=[
-        getattr(generation_service_utils, "__file__", ""),
-        getattr(profile_builder_utils, "__file__", ""),
-        getattr(map_html_renderer_utils, "__file__", ""),
-        str(getattr(map_html_renderer_utils, "_TEMPLATE_DIR", "") / "profile_page.html")
-        if getattr(map_html_renderer_utils, "_TEMPLATE_DIR", None)
-        else "",
-        getattr(parser_utils, "__file__", ""),
+        str(path)
+        for path in map_html_renderer_utils.profile_render_dependency_paths()
     ],
+    current_profile_signature=lambda: map_html_renderer_utils.profile_template_signature(),
     refresh_stellar_homepage=lambda person: refresh_stellar_homepage(person),
+    available_story_names=lambda: story_person_names(story_md_dir_path()),
     logger=_LOGGER,
 )
 _GENERATION_TOOLS = _GENERATION_API["tools"]
@@ -243,6 +243,7 @@ def run_interactive() -> None:
             compute_total_distance_km=compute_total_distance_km,
             insert_distance_intro=insert_distance_intro,
         ),
+        validate_data_quality=generation_service_utils.validate_data_quality,
         print_quality_report=_print_quality_report,
         save_markdown=save_markdown,
         parse_places=parse_places,
@@ -262,6 +263,7 @@ def generate_for_person(
     progress: Optional[callable] = None,
     allow_cache: bool = True,
     event_callback: Optional[callable] = None,
+    refresh_homepage: bool = True,
 ) -> Dict[str, object]:
     return _GENERATION_API["generate_for_person"](
         client,
@@ -269,6 +271,7 @@ def generate_for_person(
         progress=progress,
         allow_cache=allow_cache,
         event_callback=event_callback,
+        refresh_homepage=refresh_homepage,
     )
 
 
@@ -305,6 +308,7 @@ _RUNTIME_API = story_runtime_api_utils.create_runtime_api(
     vendor_cache=_VENDOR_CACHE,
     vendor_lock=_VENDOR_LOCK,
     amap_config_js=_amap_config_js,
+    geovis_config_js=_geovis_config_js,
     update_home_coords=_update_home_coords,
     get_llm_client=_get_llm_client,
     local_agent_reply=_local_agent_reply,

@@ -72,13 +72,15 @@ def call_tool(
     state: StoryAgentState,
     func: Callable[..., object],
     payload: object,
+    *,
+    agent_step: str = "",
 ) -> ToolRunResult:
     tool_traces = list(state.get("tool_traces") or [])
     llm_calls_used = int(state.get("llm_calls_used") or 0)
     previous_trace_count = len(tool_traces)
     try:
         llm_calls_used = _check_and_consume_llm_budget(state, func)
-        result = invoke_tool(func, payload, trace_collector=tool_traces)
+        result = invoke_tool(func, payload, trace_collector=tool_traces, agent_step=agent_step)
     except Exception as exc:
         consume_memory_access(func)
         raise ToolCallError(

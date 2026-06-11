@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+from storymap.script.project_paths import story_person_names
+
 
 _YEAR_RE = re.compile(r"(?<!\d)(\d{1,4})(?!\d)")
 
@@ -90,7 +92,10 @@ def main() -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     items = []
-    for p in sorted(story_dir.glob("*.md")):
+    for name in story_person_names(story_dir):
+        p = story_dir / f"{name}.md"
+        if not p.is_file():
+            continue
         items.append(_parse_story_md(p, repo_root=repo_root))
 
     out = {

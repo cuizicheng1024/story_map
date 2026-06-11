@@ -48,10 +48,23 @@ async def test_root_serves_homepage_html(monkeypatch, tmp_path):
     assert "<html" in response.text.lower()
 
 
+async def test_geovis_config_endpoint_serves_runtime_script(monkeypatch):
+    monkeypatch.setenv("GEOVIS_TOKEN", "test-geovis-token")
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/geovis-config.js")
+
+    assert response.status_code == 200
+    assert "application/javascript" in response.headers.get("content-type", "")
+    assert 'window.GEOVIS_TOKEN="test-geovis-token";' == response.text
+
+
 async def test_existing_person_story_map_page_loads_normally(monkeypatch, tmp_path):
-    source_html = REPO_ROOT / "artifacts" / "story_map" / "王昭君.html"
     target_html = tmp_path / "王昭君.html"
-    target_html.write_text(source_html.read_text(encoding="utf-8"), encoding="utf-8")
+    target_html.write_text(
+        "<html><body><h1>王昭君</h1><script>window.__EXPORT_DATA__ = {\"person\":{\"name\":\"王昭君\"}};</script></body></html>",
+        encoding="utf-8",
+    )
     monkeypatch.setattr(story_map._STATIC_SERVICE, "_active_story_map_dir", lambda: str(tmp_path))
     monkeypatch.setattr(story_map._STATIC_SERVICE, "_public_story_map_dirs", lambda: [str(tmp_path)])
 
@@ -242,7 +255,7 @@ async def test_task_debug_surface_partial_failed_status(monkeypatch):
     assert "杜甫" in debug_page.text
 
 
-async def test_ai_proxy_prefers_local_agent(monkeypatch):
+async def test_ai_proxy_falls_back_to_local_agent_when_llm_unavailable(monkeypatch):
     def _fake_local_agent(data):
         assert data["context"]["personName"] == "苏轼"
         return {
@@ -271,7 +284,7 @@ async def test_ai_proxy_prefers_local_agent(monkeypatch):
     payload = response.json()
     assert payload["choices"][0]["message"]["content"] == "这是本地人物档案给出的回答。"
     assert payload["meta"]["source"] == "local_agent"
-    assert payload["meta"]["used_fallback"] is False
+    assert payload["meta"]["used_fallback"] is True
 
 
 async def test_ai_proxy_uses_llm_when_local_agent_not_handled(monkeypatch):

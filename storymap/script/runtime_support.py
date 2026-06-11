@@ -105,10 +105,13 @@ def collect_startup_issues(project_root: str) -> Dict[str, List[str]]:
     else:
         notes.append("大模型配置完整")
 
+    geovis_token = first_env("GEOVIS_TOKEN", "GeoVisKey", "DATACLOUD_TOKEN", "DATACLOUD_MAP_TOKEN")
     amap_js_key = first_env("AMAP_KEY")
     amap_security = first_env("AMAP_SECURITY")
-    if not amap_js_key:
-        warnings.append("缺少 AMAP_KEY；地图页面在浏览器端可能无法直接加载底图。")
+    if geovis_token:
+        notes.append("GeoVis 前端地图配置完整")
+    elif not amap_js_key:
+        warnings.append("缺少 GeoVisKey/GEOVIS_TOKEN；地图页面在浏览器端可能无法直接加载底图。")
     elif not amap_security:
         warnings.append("缺少 AMAP_SECURITY；部分环境下高德 JS SDK 可能加载失败。")
     else:
@@ -172,6 +175,11 @@ def build_amap_config_js() -> bytes:
             security=json.dumps(sec, ensure_ascii=False),
         ).encode("utf-8")
     )
+
+
+def build_geovis_config_js() -> bytes:
+    token = first_env("GEOVIS_TOKEN", "GeoVisKey", "DATACLOUD_TOKEN", "DATACLOUD_MAP_TOKEN")
+    return f"window.GEOVIS_TOKEN={json.dumps(token, ensure_ascii=False)};".encode("utf-8")
 
 
 def local_history_reply(messages: object) -> str:
@@ -375,8 +383,16 @@ def compute_overlaps(people: List[Dict[str, object]]) -> List[Dict[str, object]]
 
 
 def build_conclusion(results: List[Dict[str, object]], multi: bool) -> str:
-    ok = [item for item in results if item.get("ok")]
-    failed = [item for item in results if not item.get("ok")]
+    ok = [
+        item
+        for item in results
+        if bool(item.get("ok")) or str(item.get("status") or "").strip() == "degraded"
+    ]
+    failed = [
+        item
+        for item in results
+        if not (bool(item.get("ok")) or str(item.get("status") or "").strip() == "degraded")
+    ]
     if multi:
         return f"合并视图完成：人物 {len(ok)}，失败 {len(failed)}"
     if ok:

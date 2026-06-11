@@ -5,14 +5,17 @@ from dataclasses import asdict, dataclass, field
 from typing import Callable, Dict, List, Optional
 
 try:
+    from .person_registry import canonical_person_name
     from . import story_generation_tools as story_generation_tools_utils
 except ImportError:
+    from person_registry import canonical_person_name
     import story_generation_tools as story_generation_tools_utils
 
 
 @dataclass
 class GenerationState:
     person: str
+    requested_person: str = ""
     md_draft: str = ""
     quality_issues: List[str] = field(default_factory=list)
     retry_count: int = 0
@@ -26,8 +29,14 @@ class GenerationState:
     agent_runtime: Optional[Dict[str, object]] = None
 
 
+def _is_usable_result(result: Dict[str, object]) -> bool:
+    if bool(result.get("ok")):
+        return True
+    return str(result.get("status") or "").strip() == "degraded"
+
+
 def _resolve_stage(result: Dict[str, object]) -> str:
-    if not result.get("ok"):
+    if not _is_usable_result(result):
         return "failed"
     if result.get("cached") and not result.get("refreshed"):
         return "render_done"
@@ -65,7 +74,9 @@ def create_generation_api(
     get_llm_client: Callable[..., object],
     generate_historical_markdown: Callable[[object, str], str],
     cache_dependency_paths: List[str],
+    current_profile_signature: Callable[[], str],
     refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
+    available_story_names: Optional[Callable[[], List[str]]],
     logger: object,
 ) -> Dict[str, object]:
     generation_tools = story_generation_tools_utils.create_generation_tools(
@@ -78,7 +89,7 @@ def create_generation_api(
         print_quality_report=print_quality_report,
     )
 
-    def build_generation_state(person: str, result: Dict[str, object]) -> GenerationState:
+    def build_generation_state(person: str, result: Dict[str, object], *, requested_person: str = "") -> GenerationState:
         markdown_path = str(result.get("markdown_path") or "")
         md_draft = ""
         if markdown_path and os.path.exists(markdown_path):
@@ -98,6 +109,7 @@ def create_generation_api(
 
         return GenerationState(
             person=person,
+            requested_person=str(requested_person or result.get("requested_person") or person or ""),
             md_draft=md_draft,
             quality_issues=issues,
             retry_count=0,
@@ -127,7 +139,7 @@ def create_generation_api(
         return specs
 
     def should_refresh_stellar_home(result: Dict[str, object]) -> bool:
-        if not result.get("ok"):
+        if not _is_usable_result(result):
             return False
         if not str(result.get("html_path") or "").strip():
             return False
@@ -141,10 +153,19 @@ def create_generation_api(
         progress: Optional[callable] = None,
         allow_cache: bool = True,
         event_callback: Optional[callable] = None,
+        refresh_homepage: bool = True,
     ) -> Dict[str, object]:
+        requested_person = str(person or "").strip()
+        available_names: List[str] = []
+        if available_story_names:
+            try:
+                available_names = [str(item or "").strip() for item in list(available_story_names() or []) if str(item or "").strip()]
+            except Exception:
+                available_names = []
+        canonical_person = str(canonical_person_name(requested_person, available_names) or requested_person).strip()
         result = generation_service_utils.generate_for_person(
             client,
-            person,
+            canonical_person,
             progress=progress,
             allow_cache=allow_cache,
             event_callback=event_callback,
@@ -169,10 +190,12 @@ def create_generation_api(
             generate_historical_markdown=generate_historical_markdown,
             cache_dependency_paths=cache_dependency_paths,
             logger=logger,
+            current_profile_signature=current_profile_signature,
         )
-        if refresh_stellar_homepage and should_refresh_stellar_home(result):
-            result["_homepage_refresh"] = refresh_stellar_homepage(person)
-        result["_state"] = asdict(build_generation_state(person, result))
+        result["requested_person"] = requested_person
+        if refresh_homepage and refresh_stellar_homepage and should_refresh_stellar_home(result):
+            result["_homepage_refresh"] = refresh_stellar_homepage(canonical_person)
+        result["_state"] = asdict(build_generation_state(canonical_person, result, requested_person=requested_person))
         return result
 
     return {

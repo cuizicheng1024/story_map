@@ -6,9 +6,11 @@ import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
 try:
+    from .project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
     from .story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
     from .story_task_debug import build_task_debug_payload
     from .story_task_schema import (
@@ -25,6 +27,7 @@ try:
         build_task_snapshot,
     )
 except ImportError:
+    from project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
     from story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
     from story_task_debug import build_task_debug_payload
     from story_task_schema import (
@@ -80,6 +83,12 @@ def _looks_like_person_atom(text: str) -> bool:
     if re.search(r"[?？!！。:：；;（）()\[\]{}<>]", cleaned):
         return False
     return not any(token in cleaned for token in _TASK_LIKE_TOKENS)
+
+
+def _is_usable_result(result: Dict[str, object]) -> bool:
+    if bool(result.get("ok")):
+        return True
+    return str(result.get("status") or "").strip() == "degraded"
 
 
 class TaskService:
@@ -281,6 +290,7 @@ class TaskService:
             "queued_count": 0,
             "running_count": 0,
             "completed_count": 0,
+            "partial_failed_count": 0,
             "failed_count": 0,
         }
         oldest = 0.0
@@ -323,6 +333,7 @@ class TaskService:
             "queued_count": counts["queued_count"],
             "running_count": counts["running_count"],
             "completed_count": counts["completed_count"],
+            "partial_failed_count": counts["partial_failed_count"],
             "failed_count": counts["failed_count"],
             "oldest_updated_at": oldest,
             "newest_updated_at": newest,
@@ -362,6 +373,27 @@ class TaskService:
             return snapshot
         snapshot["debug"] = build_task_debug_payload(snapshot)
         return snapshot
+
+    def _refresh_queued_queue_state(self) -> None:
+        with self._queue_lock:
+            active_now = self._active
+        with self._task_lock:
+            queued = sorted(
+                (
+                    (task_id, task)
+                    for task_id, task in self._tasks.items()
+                    if str(task.get("status") or "").strip() == "queued"
+                ),
+                key=lambda item: (float(item[1].get("created_at") or 0), str(item[0])),
+            )
+            for position, (_task_id, task) in enumerate(queued, start=1):
+                queue = dict(task.get("queue") or {})
+                queue["position"] = position
+                queue["limit"] = self._max_concurrency
+                queue["active"] = active_now
+                task["queue"] = queue
+                task["updated_at"] = time.time()
+                self._upsert_task_locked(task)
 
     def _upsert_task_locked(self, task: Dict[str, object]) -> None:
         task_id = str(task.get("id") or "").strip()
@@ -418,6 +450,7 @@ class TaskService:
             active_now = self._active
         task_id = self._create_task(text)
         self._update_task(task_id, queue={"position": position, "limit": self._max_concurrency, "active": active_now})
+        self._refresh_queued_queue_state()
 
         def _run() -> None:
             started_at = time.perf_counter()
@@ -425,6 +458,7 @@ class TaskService:
                 self._pending -= 1
                 self._active += 1
                 active_at_start = self._active
+            self._refresh_queued_queue_state()
             self._update_task(
                 task_id,
                 queue={
@@ -451,6 +485,7 @@ class TaskService:
             finally:
                 with self._queue_lock:
                     self._active -= 1
+                self._refresh_queued_queue_state()
 
         self._executor.submit(_run)
         return {"ok": True, "task_id": task_id, "queue": {"position": position, "limit": self._max_concurrency}}
@@ -550,17 +585,17 @@ class TaskService:
 
         text_clean = str(text or "").strip()
         story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
-        known_people = set()
         try:
-            for entry in os.listdir(story_dir):
-                if entry.endswith(".md"):
-                    stem = os.path.splitext(entry)[0].strip()
-                    if stem:
-                        known_people.add(stem)
+            known_people = set(story_person_names(story_dir))
         except Exception:
             known_people = set()
+        try:
+            known_authentic_people = set(known_authentic_person_names(story_dir=Path(story_dir)))
+        except Exception:
+            known_authentic_people = set(known_people)
 
         targets: List[str] = []
+        targets_from_extraction = False
         if text_clean and text_clean in known_people:
             targets = [text_clean]
             self._append_progress(task_id, "识别任务对象", f"命中本地人物档案：{text_clean}")
@@ -574,6 +609,7 @@ class TaskService:
         if not targets:
             client = self._get_llm_client(event_callback=_llm_event)
             targets = self._extract_historical_figures(client, text)
+            targets_from_extraction = bool(targets)
         if not targets:
             fallback = str(text or "").strip()
             fallback_parts = [part.strip() for part in re.split(r"[、，,\s]+", fallback) if part.strip()]
@@ -591,7 +627,38 @@ class TaskService:
                 self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
                 return
 
-        results = []
+        resolved_targets = list(targets)
+        blocked_targets = [
+            person
+            for person in targets
+            if (
+                not classify_story_person_authenticity(person, story_dir)[0]
+                or (targets_from_extraction and person not in known_authentic_people)
+            )
+        ]
+        blocked_results: List[Dict[str, object]] = []
+        if blocked_targets:
+            error_message = f"已拦截非真实或存疑人物：{'、'.join(blocked_targets[:3])}"
+            self._append_progress(task_id, "真实性过滤", error_message)
+            blocked_results = [
+                {
+                    "ok": False,
+                    "status": "failed",
+                    "person": person,
+                    "error": f"已拦截非真实或存疑人物：{person}",
+                }
+                for person in blocked_targets
+            ]
+            allowed_targets = [person for person in targets if person not in blocked_targets]
+            if not allowed_targets:
+                self._update_task(task_id, status="failed", error=error_message)
+                self._append_progress(task_id, "失败", error_message)
+                self._append_progress(task_id, "完成", "失败")
+                self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
+                return
+            targets = allowed_targets
+
+        generated_results = []
         people_payload = []
         for idx, person in enumerate(targets):
             def _progress(message: str) -> None:
@@ -604,8 +671,8 @@ class TaskService:
                 allow_cache=allow_cache,
                 event_callback=_llm_event,
             )
-            results.append(result)
-            if result.get("ok") and result.get("_profile"):
+            generated_results.append(result)
+            if _is_usable_result(result) and result.get("_profile"):
                 profile = result.get("_profile") or {}
                 people_payload.append(
                     {
@@ -616,6 +683,9 @@ class TaskService:
                     }
                 )
                 result["exports"] = self._ensure_profile_exports(profile, person, allow_cache=allow_cache)
+
+        results = list(blocked_results)
+        results.extend(generated_results)
 
         overlaps = self._compute_overlaps(people_payload) if len(people_payload) > 1 else []
         multi_html_path = ""
@@ -631,8 +701,8 @@ class TaskService:
 
         duration = self._format_seconds(time.perf_counter() - started_at)
         conclusion = self._build_conclusion(results, len(people_payload) > 1)
-        success_results = [result for result in results if result.get("ok")]
-        failed_results = [result for result in results if not result.get("ok")]
+        success_results = [result for result in results if _is_usable_result(result)]
+        failed_results = [result for result in results if not _is_usable_result(result)]
         failed_people = [str(item.get("person") or "").strip() for item in failed_results if str(item.get("person") or "").strip()]
         if success_results and failed_results:
             summary_status = "partial_failed"
@@ -642,7 +712,7 @@ class TaskService:
             summary_status = "failed"
         files: List[TaskFileEntry] = []
         for result in results:
-            if not result.get("ok"):
+            if not _is_usable_result(result):
                 continue
             file_entry: TaskFileEntry = {
                 "markdown": self._relative_path(result.get("markdown_path", "")),
@@ -664,7 +734,7 @@ class TaskService:
         summary: TaskResultSummary = build_task_result_summary(
             ok=(summary_status == "completed"),
             status=summary_status,
-            people=targets,
+            people=resolved_targets,
             results=results,
             success_count=len(success_results),
             failed_count=len(failed_results),

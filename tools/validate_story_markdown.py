@@ -29,7 +29,7 @@ REQUIRED_SECTION_PATTERNS = {
 REQUIRED_INFO_KEYS = ("姓名", "出生", "去世")
 OPTIONAL_INFO_KEY_GROUPS = (("时代", "朝代"),)
 LOCATION_HEADING = re.compile(r"^###\s+[🟢📍🔴].+$", re.M)
-POSITION_FIELD = re.compile(r"^- \*\*位置\*\*：", re.M)
+POSITION_FIELD = re.compile(r"^- \*\*(?:位置|地点)\*\*：", re.M)
 PLACEHOLDER_LOCATION_PATTERNS = [
     re.compile(pattern)
     for pattern in [
@@ -41,6 +41,13 @@ PLACEHOLDER_LOCATION_PATTERNS = [
         r"虚构地点",
         r"无法定位",
         r"争议地区",
+    ]
+]
+VAGUE_LOCATION_PATTERNS = [
+    re.compile(pattern)
+    for pattern in [
+        r"(境内|诸地|各地|一带|附近|周边|沿线|流域|地区)$",
+        r"^(北方|南方|西方|东方|中原|关中|江南|塞外|岭南)(?:诸地|各地|一带|地区)?$",
     ]
 ]
 
@@ -84,6 +91,13 @@ def _is_placeholder_location(text: str) -> bool:
     return any(pattern.search(raw) for pattern in PLACEHOLDER_LOCATION_PATTERNS)
 
 
+def _is_vague_location(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw:
+        return False
+    return any(pattern.search(raw) for pattern in VAGUE_LOCATION_PATTERNS)
+
+
 def _resolve_location_offline_candidates(
     location_text: str,
     fallback_name: str = "",
@@ -108,6 +122,9 @@ def _resolve_location_offline_candidates(
         if candidate and candidate in (coords_search_map or {}):
             search_name = (coords_search_map or {}).get(candidate, "")
             break
+    direct_pair = ps._extract_inline_coord_pair(location)
+    if direct_pair:
+        return True, modern or ancient or location
     coord = gs.fuzzy_coord_lookup(
         coords_cache or {},
         [geo, modern, location, fallback_name, ancient],
@@ -149,26 +166,34 @@ def validate_markdown(file_path: Path) -> ValidationResult:
         if not location_sections:
             result.errors.append("`人生历程与重要地点` 章节无法解析出结构化地点小节")
         unresolved_locations: List[str] = []
+        vague_locations: List[str] = []
         for idx, item in enumerate(location_sections, start=1):
             loc_name = str(item.get("name") or "").strip()
             label = loc_name or f"第{idx}个地点"
+            location_text = str(item.get("location") or "").strip()
             if not str(item.get("time") or "").strip():
                 result.errors.append(f"`{label}` 缺少时间字段")
-            if not str(item.get("location") or "").strip():
+            if not location_text:
                 result.errors.append(f"`{label}` 缺少位置字段")
                 continue
             if not str(item.get("event") or "").strip():
                 result.warnings.append(f"`{label}` 缺少事迹/经过字段")
             if not str(item.get("significance") or "").strip():
                 result.warnings.append(f"`{label}` 缺少意义字段")
+            if _is_vague_location(location_text):
+                vague_locations.append(label)
             resolved, resolved_name = _resolve_location_offline_candidates(
-                item.get("location") or "",
+                location_text,
                 loc_name,
                 coords_cache=coords_cache,
                 coords_search_map=coords_search_map,
             )
-            if (not resolved) and (not _is_placeholder_location(item.get("location") or "")):
+            if (not resolved) and (not _is_placeholder_location(location_text)):
                 unresolved_locations.append(resolved_name or label)
+        if vague_locations:
+            preview = "、".join(vague_locations[:5])
+            extra = "" if len(vague_locations) <= 5 else f" 等 {len(vague_locations)} 个地点"
+            result.errors.append(f"存在泛地名，无法保证定位精度：{preview}{extra}")
         if unresolved_locations:
             preview = "、".join(unresolved_locations[:5])
             extra = "" if len(unresolved_locations) <= 5 else f" 等 {len(unresolved_locations)} 个地点"
@@ -202,8 +227,6 @@ def validate_markdown(file_path: Path) -> ValidationResult:
             locations.append(item)
     if not locations:
         result.warnings.append("未解析出任何地点，静态人物页可能显示为空时间轴")
-    if len(locations) < 3:
-        result.warnings.append(f"仅解析出 {len(locations)} 个地点，建议补充地点章节或离线坐标别名")
     if location_sections:
         expected = len(location_sections)
         actual = len(locations)

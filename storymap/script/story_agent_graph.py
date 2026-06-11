@@ -22,6 +22,7 @@ except Exception:
 try:
     from . import generation_service as generation_service_utils
     from . import parsers as parser_utils
+    from .project_paths import classify_story_person_authenticity
     from .story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
     from .story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
     from .story_agent_fallbacks import (
@@ -47,6 +48,7 @@ try:
 except ImportError:
     import generation_service as generation_service_utils
     import parsers as parser_utils
+    from project_paths import classify_story_person_authenticity
     from story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
     from story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
     from story_agent_fallbacks import fallback_generate_markdown, fallback_search_result, fallback_validation
@@ -94,6 +96,71 @@ _DYNASTY_TOKENS = (
     "清朝",
     "近代",
     "现代",
+)
+
+_QUOTE_LABEL_HINT_RE = re.compile(r"^\s*-\s*\*\*名篇名句\*\*：\s*(.+?)\s*$", re.MULTILINE)
+_TRUTH_QUOTE = "吾爱吾师，吾更爱真理"
+_APPROXIMATE_MARKERS = ("约", "约公元", "大约", "约于", "传为", "一说", "说法不一", "生年不详", "卒年不详")
+_BROAD_ANCIENT_REGION_TOKENS = frozenset(
+    {
+        "河西",
+        "河西走廊",
+        "陇西",
+        "漠北",
+        "平阳",
+        "关中",
+        "中原",
+        "江南",
+        "西域",
+    }
+)
+_NON_SINGLE_CITY_HINT_RE = re.compile(r"(一带|地区|沿线|流域|走廊|高原|草原|半岛|遗址|附近|周边|南部|北部|中部)")
+_UNCERTAINTY_MARKERS = ("存疑", "说法不一", "一说", "另说", "或说", "不详", "约", "可能", "疑为", "未详")
+_CHINESE_DIGIT_MAP = {
+    "零": 0,
+    "〇": 0,
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+}
+_IDENTITY_TOKEN_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
+    ("original_name", re.compile(r"(原名|本名|原姓)")),
+    ("alias", re.compile(r"(别名|别称|又名|曾用名)")),
+    ("courtesy_name", re.compile(r"(字|表字)")),
+    ("art_name", re.compile(r"(号|别号|自号)")),
+)
+_HIGH_RISK_CLAIM_RULES = (
+    {
+        "person": "亚里士多德",
+        "pattern": re.compile(r"《形而上学》[^。\n]*吾爱吾师，吾更爱真理"),
+        "field": "quote",
+        "correction": "将该句改写为后世概括语，不要直接标成《形而上学》的逐字原文。",
+        "confidence": 0.95,
+        "reason": "这句话常用于概括亚里士多德重真理的立场，但通常不宜直接写成《形而上学》的严格逐字引文。",
+    },
+    {
+        "person": "郑和",
+        "pattern": re.compile(r"(姓名|事件|原名)[^。\n]*原名[：:\s]*马三保"),
+        "field": "identity",
+        "correction": "改为“原姓马，小字三保；后世常见马三保等称谓”一类更稳妥的表述。",
+        "confidence": 0.9,
+        "reason": "“原名马三保”表述过于绝对，更稳妥的写法应保留姓马、小字三保与后世称谓之间的区分。",
+    },
+    {
+        "person": "霍去病",
+        "pattern": re.compile(r"(平阳[^\n]*今山西省临汾市|陇西[^\n]*今甘肃省定西市|河西(?:地区|走廊)?[^\n]*今甘肃省张掖市|漠北[^\n]*今内蒙古自治区呼和浩特市)"),
+        "field": "location",
+        "correction": "将古地名改写成“今某地区/一带/走廊沿线”等更稳妥的现代参照，不要压成单一现代城市。",
+        "confidence": 0.92,
+        "reason": "这类古地理范围通常大于单一现代城市，直接一一等同会造成知识性误导。",
+    },
 )
 
 
@@ -167,13 +234,47 @@ def _extract_year(text: str) -> Optional[int]:
 
 
 def _extract_age(text: str) -> Optional[int]:
-    match = re.search(r"(\d{1,3})\s*岁", str(text or ""))
+    content = str(text or "")
+    match = re.search(r"(\d{1,3})\s*(?:周)?岁", content)
     if not match:
-        return None
+        cn_match = re.search(r"([零〇一二两三四五六七八九十百廿卅]{1,6})\s*(?:周)?岁", content)
+        if not cn_match:
+            return None
+        return _parse_chinese_number(cn_match.group(1))
     try:
         return int(match.group(1))
     except Exception:
         return None
+
+
+def _parse_chinese_number(text: str) -> Optional[int]:
+    raw = str(text or "").strip()
+    if not raw:
+        return None
+    normalized = raw.replace("廿", "二十").replace("卅", "三十").replace("两", "二")
+    total = 0
+    current = 0
+    for ch in normalized:
+        if ch in _CHINESE_DIGIT_MAP:
+            current = _CHINESE_DIGIT_MAP[ch]
+            total += current
+            continue
+        if ch == "十":
+            if current == 0:
+                total += 10
+            else:
+                total += current * 9
+            current = 0
+            continue
+        if ch == "百":
+            if current == 0:
+                total = max(total, 1) * 100
+            else:
+                total += current * 99
+            current = 0
+            continue
+        return None
+    return total or None
 
 
 def _needs_modern_hint(text: str) -> bool:
@@ -185,6 +286,22 @@ def _needs_modern_hint(text: str) -> bool:
     if re.search(r"(省|市|县|区|州|郡|自治区|特别行政区)", content):
         return False
     return True
+
+
+def _is_vague_location(text: str) -> bool:
+    content = str(text or "").strip()
+    if not content:
+        return False
+    return bool(re.search(r"(境内|诸地|各地|一带|附近|周边|沿线|流域|地区|北方|南方|中原|关中|江南)$", content))
+
+
+def _looks_like_single_modern_city(text: str) -> bool:
+    content = str(text or "").strip()
+    if not content:
+        return False
+    if _NON_SINGLE_CITY_HINT_RE.search(content):
+        return False
+    return bool(re.search(r"(省)?[^，。、；;]{1,20}(市|县|区)$", content))
 
 
 def _timeline_order_issues(parsed_doc: object) -> List[AgentIssue]:
@@ -265,6 +382,55 @@ def _location_precision_issues(parsed_doc: object) -> List[AgentIssue]:
                     )
                 )
                 break
+            if modern_name and _is_vague_location(modern_name):
+                issues.append(
+                    coerce_issue(
+                        field="location",
+                        claim=" | ".join(str(cell or "") for cell in row),
+                        correction="将泛地名替换为可落点的现代城市、区县或明确遗址",
+                        confidence=0.9,
+                        reason="时间线现称仍是泛区域表述，无法保证地图定位精度",
+                    )
+                )
+                break
+    return issues
+
+
+def _ancient_modern_overmapping_issues(parsed_doc: object) -> List[AgentIssue]:
+    issues: List[AgentIssue] = []
+    header = list(getattr(parsed_doc, "timeline_header", []) or [])
+    rows = list(getattr(parsed_doc, "timeline_rows", []) or [])
+    ancient_idx = None
+    modern_idx = None
+    for idx, cell in enumerate(header):
+        label = str(cell or "")
+        if "古称" in label and ancient_idx is None:
+            ancient_idx = idx
+        if "现称" in label and modern_idx is None:
+            modern_idx = idx
+    if ancient_idx is None or modern_idx is None:
+        return issues
+    for row in rows:
+        if ancient_idx >= len(row) or modern_idx >= len(row):
+            continue
+        ancient_name = str(row[ancient_idx] or "").strip()
+        modern_name = str(row[modern_idx] or "").strip()
+        if not ancient_name or not modern_name:
+            continue
+        if ancient_name not in _BROAD_ANCIENT_REGION_TOKENS:
+            continue
+        if not _looks_like_single_modern_city(modern_name):
+            continue
+        issues.append(
+            coerce_issue(
+                field="location",
+                claim=" | ".join(str(cell or "") for cell in row),
+                correction="把这类古地理范围改成“今某地区/一带/走廊沿线”等更稳妥的现代参照，不要直接压成单一现代城市。",
+                confidence=0.86,
+                reason="古地理范围明显大于单一现代城市，存在过度一对一映射风险。",
+            )
+        )
+        break
     return issues
 
 
@@ -289,6 +455,133 @@ def _lifespan_issues(parsed_doc: object) -> List[AgentIssue]:
                 reason="生卒年与享年不自洽",
             )
         )
+    birth_text = str(getattr(basic_info, "birth_text", "") or "")
+    death_text = str(getattr(basic_info, "death_text", "") or "")
+    lifespan_text = str(getattr(basic_info, "lifespan", "") or "")
+    if lifespan is not None and any(marker in birth_text or marker in death_text for marker in _APPROXIMATE_MARKERS):
+        if "约" not in lifespan_text and "左右" not in lifespan_text and "余" not in lifespan_text:
+            issues.append(
+                coerce_issue(
+                    field="age",
+                    claim=f"出生：{birth_text}；去世：{death_text}；享年：{lifespan_text}",
+                    correction="如果生卒年份本身带有“约/一说/不详”等不确定性，享年也应改为“约 XX 岁”或补充说法来源。",
+                    confidence=0.84,
+                    reason="生卒信息存在不确定性时，享年不宜写成完全确定的绝对结论。",
+                )
+            )
+    return issues
+
+
+def _quote_label_issues(content: str, *, person: str) -> List[AgentIssue]:
+    issues: List[AgentIssue] = []
+    for match in _QUOTE_LABEL_HINT_RE.finditer(str(content or "")):
+        claim = str(match.group(1) or "").strip()
+        if not claim:
+            continue
+        if "《" in claim and "》" in claim and "“" not in claim and '"' not in claim:
+            issues.append(
+                coerce_issue(
+                    field="quote",
+                    claim=claim,
+                    correction="如果这里是在介绍作品或思想，请改成“代表作品”“代表著作”或“相关思想”，不要挂在“名篇名句”下。",
+                    confidence=0.78,
+                    reason="该条更像作品说明或思想概括，不像可核对的直接引文。",
+                )
+            )
+            continue
+        if "后世" in claim or "概括" in claim or "不宜" in claim or "非" in claim and "原文" in claim:
+            issues.append(
+                coerce_issue(
+                    field="quote",
+                    claim=claim,
+                    correction="该条已承认并非严格原文，建议从“名篇名句”改到“相关思想”或说明性条目。",
+                    confidence=0.72,
+                    reason="该条明确属于后世概括或非严格原文，不适合作为“名篇名句”展示。",
+                )
+            )
+    if person != "亚里士多德" and _TRUTH_QUOTE in str(content or ""):
+        issues.append(
+            coerce_issue(
+                field="quote",
+                claim=_TRUTH_QUOTE,
+                correction="不要把这句话当作当前人物本人的名言；若确需保留，应说明它是后世概括亚里士多德学派精神的常见说法。",
+                confidence=0.9,
+                reason="该句不应被移作其他人物本人的名言或原话。",
+            )
+        )
+    return issues
+
+
+def _identity_alias_issues(content: str) -> List[AgentIssue]:
+    issues: List[AgentIssue] = []
+    text = str(content or "")
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        categories = {
+            category
+            for category, pattern in _IDENTITY_TOKEN_PATTERNS
+            if pattern.search(line)
+        }
+        if ("姓名" in line or "人物" in line or "身份" in line) and len(categories) >= 2:
+            issues.append(
+                coerce_issue(
+                    field="identity",
+                    claim=line,
+                    correction="把原名、别名、字、号拆开表述，并补上“常见称谓/后世称法/早年姓氏”等限定，避免读者误解成唯一结论。",
+                    confidence=0.74,
+                    reason="原名/别名/字/号混写在同一结论里，容易把不同性质的称谓误读成同一种确定身份信息。",
+                )
+            )
+            break
+    return issues
+
+
+def _non_authentic_agent_result(person: str, reason: str, *, max_revisions: int, llm_calls_limit: int) -> Dict[str, object]:
+    issue = coerce_issue(
+        field="authenticity",
+        claim=str(person or ""),
+        correction="改成人物库中可核实的真实人物，或先补齐可靠史料依据后再生成。",
+        confidence=0.99,
+        reason=f"人物真实性过滤拦截：{reason or 'non_authentic'}",
+    )
+    state = create_initial_state(person, max_revisions=max_revisions, llm_calls_limit=llm_calls_limit)
+    state["validation"] = {
+        "pass": False,
+        "risk_level": "high",
+        "issues": [issue],
+        "notes": "人物真实性过滤拦截",
+        "metrics": {},
+    }
+    state["critic_feedback"] = [issue]
+    state["degraded_reasons"] = record_degraded_reason(state.get("degraded_reasons"), f"authenticity_filter:{reason or 'non_authentic'}")
+    state["execution_trace"] = ["finish_agent"]
+    state["final_markdown"] = ""
+    return {"markdown": "", "state": state}
+
+
+def _high_risk_claim_issues(content: str, *, person: str) -> List[AgentIssue]:
+    issues: List[AgentIssue] = []
+    text = str(content or "")
+    for rule in _HIGH_RISK_CLAIM_RULES:
+        if str(rule.get("person") or "") != str(person or ""):
+            continue
+        pattern = rule.get("pattern")
+        if not isinstance(pattern, re.Pattern):
+            continue
+        match = pattern.search(text)
+        if not match:
+            continue
+        issues.append(
+            coerce_issue(
+                field=str(rule.get("field") or "other"),
+                claim=str(match.group(0) or "").strip(),
+                correction=str(rule.get("correction") or "").strip(),
+                confidence=float(rule.get("confidence") or 0.0),
+                reason=str(rule.get("reason") or "").strip(),
+            )
+        )
     return issues
 
 
@@ -309,10 +602,7 @@ def _llm_fact_check(
     person: str,
     content: str,
 ) -> List[AgentIssue]:
-    if llm is None:
-        return []
-    enabled = (os.getenv("STORY_AGENT_ENABLE_FACT_CHECK_LLM") or "").strip().lower()
-    if enabled not in {"1", "true", "yes", "on"}:
+    if not _fact_check_llm_enabled(llm):
         return []
     try:
         parsed_doc = parser_utils.parse_story_document(content)
@@ -329,6 +619,96 @@ def _llm_fact_check(
     if not payload:
         return []
     return coerce_issue_list(payload.get("issues") or [])
+
+
+def _clean_short_review_candidate(text: object, *, limit: int = 60) -> str:
+    cleaned = str(text or "").strip()
+    cleaned = re.sub(r"^\s*[-*•]\s*", "", cleaned)
+    while True:
+        normalized = re.sub(r"^\s*(?:人物)?短评[：:]\s*", "", cleaned)
+        if normalized == cleaned:
+            break
+        cleaned = normalized.strip()
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    if not cleaned:
+        return ""
+    if len(cleaned) > limit:
+        cleaned = cleaned[: limit - 1].rstrip() + "…"
+    return cleaned
+
+
+def _fact_check_llm_enabled(llm: object = None) -> bool:
+    if llm is None:
+        return False
+    enabled = (os.getenv("STORY_AGENT_ENABLE_FACT_CHECK_LLM") or "").strip().lower()
+    return enabled in {"1", "true", "yes", "on"}
+
+
+def _tool_uses_llm(custom_impl: object, *, default_uses_llm: bool) -> bool:
+    if custom_impl is None:
+        return bool(default_uses_llm)
+    marker = getattr(custom_impl, "__story_agent_uses_llm__", None)
+    if marker is None:
+        return False
+    return bool(marker)
+
+
+def _ensure_short_review_in_markdown(markdown: str, candidate: object) -> str:
+    body = str(markdown or "")
+    review = _clean_short_review_candidate(candidate)
+    if not body.strip() or not review:
+        return body
+    if review in body:
+        return body
+    lines = body.splitlines()
+    history_idx = None
+    impact_idx = None
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == "## 五、历史影响":
+            impact_idx = idx
+        if stripped == "### 历史评价":
+            history_idx = idx
+            break
+    bullet = f"- 短评：{review}"
+    if history_idx is not None:
+        insert_at = history_idx + 1
+        while insert_at < len(lines) and not lines[insert_at].strip():
+            insert_at += 1
+        lines.insert(insert_at, bullet)
+        return "\n".join(lines)
+    if impact_idx is not None:
+        insert_at = impact_idx + 1
+        while insert_at < len(lines):
+            stripped = lines[insert_at].strip()
+            if stripped.startswith("## "):
+                break
+            insert_at += 1
+        block = ["", "### 历史评价", bullet]
+        lines[insert_at:insert_at] = block
+        return "\n".join(lines)
+    return body
+
+
+def _caution_consistency_issues(content: str, cautions: object) -> List[AgentIssue]:
+    issues: List[AgentIssue] = []
+    caution_list = [str(item).strip() for item in list(cautions or []) if str(item).strip()]
+    if not caution_list:
+        return issues
+    body = str(content or "")
+    if any(marker in body for marker in _UNCERTAINTY_MARKERS):
+        return issues
+    caution_preview = "；".join(caution_list[:2])
+    issues.append(
+        coerce_issue(
+            field="caution",
+            claim=caution_preview,
+            correction="把对应表述改成“存疑/说法不一/一说”等不确定表达，避免把检索阶段已标记的存疑点写成唯一结论。",
+            confidence=0.8,
+            reason="search_result 已标注存疑点，但当前正文没有体现不确定性表述。",
+        )
+    )
+    return issues
 
 
 def default_validate_markdown(
@@ -358,7 +738,11 @@ def default_validate_markdown(
             person = str(getattr(getattr(parsed_doc, "basic_info", None), "name", "") or "")
         issues.extend(_timeline_order_issues(parsed_doc))
         issues.extend(_location_precision_issues(parsed_doc))
+        issues.extend(_ancient_modern_overmapping_issues(parsed_doc))
         issues.extend(_lifespan_issues(parsed_doc))
+    issues.extend(_quote_label_issues(content, person=person))
+    issues.extend(_identity_alias_issues(content))
+    issues.extend(_high_risk_claim_issues(content, person=person))
     issues.extend(_llm_fact_check(llm, person=person, content=content))
     issues = _dedupe_issues(issues)
     risk_level = _risk_level_from_issues(issues)
@@ -466,6 +850,7 @@ def default_search_person_info(
         "source_names": [str(item.get("source") or "") for item in sources],
         "dynasty": "",
         "summary": "",
+        "short_review_candidate": "",
         "identities": [],
         "achievements": [],
         "timeline": [],
@@ -483,6 +868,7 @@ def default_search_person_info(
         "{\n"
         '  "dynasty": "所处时代/朝代",\n'
         '  "summary": "120字内摘要",\n'
+        '  "short_review_candidate": "适合放在人物名下的一句短评、史家评价或代表作品短句，尽量简短",\n'
         '  "identities": ["主要身份"],\n'
         '  "achievements": ["主要成就"],\n'
         '  "timeline": [{"year": "年份", "event": "事件", "place": "地点"}],\n'
@@ -506,6 +892,7 @@ def default_search_person_info(
         return result
     result["dynasty"] = str(payload.get("dynasty") or "").strip() or _infer_dynasty(payload.get("summary"), snippets, raw)
     result["summary"] = str(payload.get("summary") or "").strip()
+    result["short_review_candidate"] = str(payload.get("short_review_candidate") or "").strip()
     result["identities"] = [str(item).strip() for item in payload.get("identities") or [] if str(item).strip()]
     result["achievements"] = [str(item).strip() for item in payload.get("achievements") or [] if str(item).strip()]
     result["timeline"] = [item for item in payload.get("timeline") or [] if isinstance(item, dict)]
@@ -553,15 +940,19 @@ def default_generate_markdown(structure: Dict[str, object], *, llm: object = Non
         "1. 严格遵守系统提示词版式；\n"
         "2. 如果 Critic 提示某个地点不够精确，要在正文和时间线里补出现代地名；\n"
         "3. 如果资料有存疑点，用“存疑/说法不一”表达，不要编造；\n"
-        "4. 优先吸收运行时反思里的瓶颈与下一步动作，避免重复上一轮失败模式。"
+        "4. 如果 Critic 指出误引、张冠李戴，或把作品说明误写成“名篇名句”，要改成更准确的栏目和措辞；\n"
+        "5. 如果检索资料里有 short_review_candidate，优先把它放入“### 历史评价”的第一条，保持一句话短评风格；\n"
+        "6. 优先吸收运行时反思里的瓶颈与下一步动作，避免重复上一轮失败模式。"
     )
-    return llm.think(
+    markdown = llm.think(
         [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.1,
     ) or ""
+    candidate = dict(structure.get("search_result") or {}).get("short_review_candidate")
+    return _ensure_short_review_in_markdown(markdown, candidate)
 
 
 def create_agent_tools(
@@ -578,6 +969,20 @@ def create_agent_tools(
     map_impl = fetch_ancient_place_map_fn or default_fetch_ancient_place_map
     editor_impl = generate_markdown_fn or (lambda structure: default_generate_markdown(structure, llm=llm))
     critic_impl = validate_markdown_fn or (lambda content: default_validate_markdown(content, person="", llm=llm))
+    search_uses_llm = _tool_uses_llm(search_person_info_fn, default_uses_llm=llm is not None)
+    editor_uses_llm = _tool_uses_llm(generate_markdown_fn, default_uses_llm=llm is not None)
+    critic_uses_llm = validate_markdown_fn is None and _fact_check_llm_enabled(llm)
+    search_tags = ["research"]
+    if search_uses_llm:
+        search_tags.append("llm")
+    editor_permission = "model_call" if editor_uses_llm else "read"
+    editor_tags = ["editor"]
+    if editor_uses_llm:
+        editor_tags.append("llm")
+    critic_permission = "model_call" if critic_uses_llm else "read"
+    critic_tags = ["critic", "quality"]
+    if critic_uses_llm:
+        critic_tags.append("llm_optional")
 
     @tool(
         name="search_person_info",
@@ -591,7 +996,7 @@ def create_agent_tools(
         retry_count=2,
         cost_tier="medium",
         permission="network_read",
-        tags=["research", "llm"],
+        tags=search_tags,
     )
     def search_person_info(person_name: str) -> Dict[str, object]:
         if store is not None:
@@ -642,8 +1047,8 @@ def create_agent_tools(
         timeout_seconds=60.0,
         retry_count=1,
         cost_tier="high",
-        permission="model_call",
-        tags=["editor", "llm"],
+        permission=editor_permission,
+        tags=editor_tags,
     )
     def generate_markdown(structure: Dict[str, object]) -> str:
         return editor_impl(structure)
@@ -656,8 +1061,8 @@ def create_agent_tools(
         timeout_seconds=20.0,
         retry_count=0,
         cost_tier="low",
-        permission="read",
-        tags=["critic", "quality"],
+        permission=critic_permission,
+        tags=critic_tags,
     )
     def validate_markdown(content: str) -> Dict[str, object]:
         return critic_impl(content)
@@ -705,19 +1110,63 @@ def _infer_dynasty(*texts: object) -> str:
 def _extract_places_for_mapping(state: StoryAgentState) -> List[str]:
     search_result = state.get("search_result") or {}
     places_raw = search_result.get("places") if isinstance(search_result, dict) else []
+    timeline_raw = search_result.get("timeline") if isinstance(search_result, dict) else []
     places: List[str] = []
     for item in _normalize_places(places_raw):
         name = str(item.get("name") or "").strip()
         if name:
             places.append(name)
-    for issue in state.get("critic_feedback") or []:
-        for key in ("correction", "claim"):
-            text = str(issue.get(key) or "").strip()
-            if not text:
+    if isinstance(timeline_raw, list):
+        for item in timeline_raw:
+            if not isinstance(item, dict):
                 continue
-            match = re.search(r"([\u4e00-\u9fffA-Za-z·]{2,30})", text)
-            if match:
-                places.append(match.group(1))
+            place_name = str(item.get("place") or item.get("name") or item.get("location") or "").strip()
+            if place_name:
+                places.append(place_name)
+    for issue in state.get("critic_feedback") or []:
+        if not isinstance(issue, dict):
+            continue
+        if str(issue.get("field") or "").strip() not in {"location", "timeline"}:
+            continue
+        claim = str(issue.get("claim") or "").strip()
+        if not claim:
+            continue
+        segments = re.split(r"[|｜/、；;，,\n]", claim)
+        for segment in segments:
+            candidate = re.split(r"[（(]", segment, maxsplit=1)[0].strip()
+            if not candidate:
+                continue
+            if len(candidate) < 2 or len(candidate) > 30:
+                continue
+            if not re.fullmatch(r"[\u4e00-\u9fffA-Za-z·]{2,30}", candidate):
+                continue
+            if re.search(r"\d", candidate):
+                continue
+            if any(
+                marker in candidate
+                for marker in (
+                    "补充",
+                    "对应",
+                    "改成",
+                    "改为",
+                    "替换",
+                    "不要",
+                    "现代地名",
+                    "古地理",
+                    "现代参照",
+                    "单一现代城市",
+                    "时间线",
+                    "地点",
+                    "地名",
+                    "出生地",
+                    "去世地",
+                    "事件",
+                    "条目",
+                    "范围",
+                )
+            ):
+                continue
+            places.append(candidate)
     deduped: List[str] = []
     seen = set()
     for place in places:
@@ -764,6 +1213,7 @@ def _search_agent_node_factory(
                 state,
                 tools["search_person_info"],
                 str(state.get("person") or ""),
+                agent_step="search_agent",
             )
             search_result = tool_run["result"]
             tool_traces = tool_run["tool_traces"]
@@ -808,7 +1258,12 @@ def _map_agent_node_factory(
         working_state["llm_calls_used"] = llm_calls_used
         for place in places:
             try:
-                tool_run = call_tool(working_state, tools["fetch_ancient_place_map"], place)
+                tool_run = call_tool(
+                    working_state,
+                    tools["fetch_ancient_place_map"],
+                    place,
+                    agent_step="map_agent",
+                )
                 info = tool_run["result"]
                 tool_traces = tool_run["tool_traces"]
                 llm_calls_used = tool_run["llm_calls_used"]
@@ -819,6 +1274,20 @@ def _map_agent_node_factory(
                     {"memory_hits": memory_hits, "memory_misses": memory_misses},
                     memory_access,
                 )
+            except ToolCallError as exc:
+                tool_traces = list(exc.tool_traces or [])
+                llm_calls_used = int(exc.llm_calls_used)
+                working_state["tool_traces"] = tool_traces
+                working_state["llm_calls_used"] = llm_calls_used
+                degraded_reasons = record_degraded_reason(degraded_reasons, f"map_agent:{place}:{exc}")
+                info = {
+                    "query": place,
+                    "ancient_name": place,
+                    "modern_name": place,
+                    "lat": None,
+                    "lng": None,
+                    "source": "",
+                }
             except Exception as exc:
                 degraded_reasons = record_degraded_reason(degraded_reasons, f"map_agent:{place}:{exc}")
                 info = {
@@ -860,6 +1329,7 @@ def _editor_agent_node_factory(
                 state,
                 tools["generate_markdown"],
                 _build_editor_structure(state),
+                agent_step="editor_agent",
             )
             draft_markdown = tool_run["result"]
             tool_traces = tool_run["tool_traces"]
@@ -870,6 +1340,10 @@ def _editor_agent_node_factory(
             llm_calls_used = int(exc.llm_calls_used)
             draft_markdown = fallback_generate_markdown(_build_editor_structure(state), infer_dynasty=_infer_dynasty)
             _emit(llm, "⚠️ EditorAgent 失败，已回退为确定性 Markdown 组装")
+        draft_markdown = _ensure_short_review_in_markdown(
+            str(draft_markdown or ""),
+            dict(state.get("search_result") or {}).get("short_review_candidate"),
+        )
         return {
             "draft_markdown": str(draft_markdown or ""),
             "validation": {},
@@ -900,6 +1374,7 @@ def _critic_agent_node_factory(
                 state,
                 tools["validate_markdown"],
                 str(state.get("draft_markdown") or ""),
+                agent_step="critic_agent",
             )
             validation = tool_run["result"]
             tool_traces = tool_run["tool_traces"]
@@ -916,6 +1391,13 @@ def _critic_agent_node_factory(
             _emit(llm, "⚠️ CriticAgent 失败，已回退为确定性校验")
         if not isinstance(validation, dict):
             validation = {"pass": False, "risk_level": "high", "issues": [], "notes": "校验器未返回字典"}
+        merged_issues = [item for item in list(validation.get("issues") or []) if isinstance(item, dict)]
+        merged_issues.extend(_caution_consistency_issues(str(state.get("draft_markdown") or ""), dict(state.get("search_result") or {}).get("cautions") or []))
+        merged_issues = _dedupe_issues(merged_issues)
+        validation["issues"] = merged_issues
+        validation["risk_level"] = _risk_level_from_issues(merged_issues)
+        validation["pass"] = not any(float(item.get("confidence") or 0.0) >= 0.7 for item in merged_issues)
+        validation["notes"] = "" if not merged_issues else f"共发现 {len(merged_issues)} 个待核查点"
         feedback = validation.get("issues") or []
         if not isinstance(feedback, list):
             feedback = []
@@ -1025,11 +1507,16 @@ def _build_manual_runner(
             max_revisions=max_revisions,
             llm_calls_limit=llm_calls_limit,
         )
-        for _ in range(16):
+        # Manual fallback needs enough room for:
+        # search -> map -> edit -> critic -> (map/edit/critic * revisions) -> finish.
+        max_iterations = max(16, 8 + max(0, int(max_revisions)) * 4)
+        finished = False
+        for _ in range(max_iterations):
             state = merge_state(state, supervisor(state))
             step = _next_step_router(state)
             if step == "finish_agent":
                 state = merge_state(state, _finish_agent_node(state))
+                finished = True
                 break
             if step == "search_agent":
                 state = merge_state(state, search_agent(state))
@@ -1044,6 +1531,17 @@ def _build_manual_runner(
                 state = merge_state(state, critic_agent(state))
                 continue
             break
+        if not finished:
+            state = merge_state(
+                state,
+                {
+                    "degraded_reasons": record_degraded_reason(
+                        state.get("degraded_reasons"),
+                        f"manual_runner:max_iterations_exceeded:{max_iterations}",
+                    )
+                },
+            )
+            state = merge_state(state, _finish_agent_node(state))
         return {
             "markdown": str(state.get("final_markdown") or state.get("draft_markdown") or ""),
             "state": state,
@@ -1085,6 +1583,14 @@ def create_story_markdown_agent(
         resolved_max_llm_calls = int(os.getenv("STORY_AGENT_MAX_LLM_CALLS", "4") or "4")
     def bound_run(person: str, max_revisions: int = 1, llm_calls_limit: Optional[int] = None) -> Dict[str, object]:
         resolved_limit = resolved_max_llm_calls if llm_calls_limit is None else int(llm_calls_limit)
+        accepted, reason = classify_story_person_authenticity(person, allow_unknown=False)
+        if not accepted:
+            return _non_authentic_agent_result(
+                str(person or "").strip(),
+                str(reason or "").strip(),
+                max_revisions=max_revisions,
+                llm_calls_limit=resolved_limit,
+            )
         return runner(person, max_revisions, resolved_limit)
 
     return {

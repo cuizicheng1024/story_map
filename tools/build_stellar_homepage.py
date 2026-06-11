@@ -27,7 +27,10 @@ from storymap.script.project_paths import (
     project_root_path,
     story_artifacts_dir_path,
     story_md_dir_path,
+    story_person_names,
 )
+from storymap.script.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
+from storymap.script.person_tooltip_js import person_tooltip_js
 
 try:
     from tools.homepage_search import HAS_PINYIN, build_search_fields
@@ -71,6 +74,54 @@ ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
 ROLE_BAND_ORDER: List[str] = [item[0] for item in ROLE_BAND_SPECS] + ["other"]
 ROLE_BAND_LABELS: Dict[str, str] = {key: label for key, label, _ in ROLE_BAND_SPECS}
 ROLE_BAND_LABELS["other"] = "其他"
+PERSON_PAGE_REDIRECTS: Dict[str, str] = person_redirects()
+
+
+def _canonical_story_name_entries(raw_names: List[str]) -> List[Tuple[str, str, List[str]]]:
+    return registry_canonical_story_name_entries(raw_names)
+
+
+def _design_tokens_style_tag() -> str:
+    css_path = REPO_ROOT / "storymap" / "script" / "templates" / "design_tokens.css"
+    try:
+        css = css_path.read_text(encoding="utf-8")
+    except Exception:
+        return ""
+    return f"<style>\n{css}\n</style>"
+
+
+def _render_person_alias_redirect_html(alias: str, canonical: str) -> str:
+    alias_q = json.dumps(str(alias or "").strip(), ensure_ascii=False)
+    canonical_q = json.dumps(str(canonical or "").strip(), ensure_ascii=False)
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{alias} - 跳转中</title>
+</head>
+<body>
+  <script>
+    (function() {{
+      var alias = {alias_q};
+      var canonical = {canonical_q};
+      var search = window.location ? (window.location.search || "") : "";
+      var hash = window.location ? (window.location.hash || "") : "";
+      var target = "./" + encodeURIComponent(canonical + ".html") + search + hash;
+      try {{
+        window.location.replace(target);
+      }} catch (_) {{
+        window.location.href = target;
+      }}
+    }})();
+  </script>
+  <p>“{alias}”为“{canonical}”的别名，正在跳转…</p>
+  <noscript>
+    <p><a href="./{canonical}.html">点击进入 {canonical}</a></p>
+  </noscript>
+</body>
+</html>
+"""
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -209,6 +260,13 @@ def _scan_latest_html(story_map_dir: Path) -> Dict[str, HtmlEntry]:
         if e_has and not cur_has:
             latest[person] = e
             continue
+        canonical_name = f"{person}.html"
+        if e_has == cur_has:
+            cur_is_canonical = cur.file == canonical_name
+            e_is_canonical = e.file == canonical_name
+            if e_is_canonical and not cur_is_canonical:
+                latest[person] = e
+                continue
         if e_has == cur_has and e.mtime > cur.mtime:
             latest[person] = e
     return latest
@@ -252,10 +310,7 @@ def _read_json(path: Path) -> Any:
 
 
 def _scan_people_from_story_md(story_md_dir: Path) -> List[str]:
-    if not story_md_dir.exists():
-        return []
-    items = [p.stem for p in story_md_dir.glob("*.md") if p.is_file()]
-    return sorted({x.strip() for x in items if is_valid_person_name(x)})
+    return story_person_names(story_md_dir)
 
 
 def _extract_years_from_md(md_text: str) -> Tuple[Optional[int], Optional[int]]:
@@ -879,8 +934,19 @@ def _pick_quote(spot: Dict[str, Any]) -> str:
     return ""
 
 
+def _clean_review_text(text: str) -> str:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"^\s*[-*•]\s*", "", cleaned)
+    cleaned = re.sub(r"^\d+\.\s*", "", cleaned)
+    cleaned = re.sub(r"^(?:人物)?短评\s*[：:]\s*", "", cleaned)
+    return cleaned.strip()
+
+
 def _render_index_html(title: str, data_file: str) -> str:
     safe_title = title.strip() or "故事地图"
+    design_tokens = _design_tokens_style_tag()
     # Always render a fresh index.html instead of patching an existing template.
     # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
     static_site = bool(env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")) if env_flag else False
@@ -900,6 +966,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
     runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
     analytics_head = _analytics_head_html()
+    shared_person_tooltip_js = person_tooltip_js()
     demo_banner = ""
     if static_site:
         mode_text = "已接入外部后端，可继续使用实时生成与人物对话。" if api_base else "当前仅展示已生成内容；实时生成与人物对话需要额外部署 FastAPI 后端。"
@@ -914,7 +981,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         </div>
       </div>
 """
-    qhtml = ""
     return rf"""<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -924,32 +990,29 @@ def _render_index_html(title: str, data_file: str) -> str:
     {analytics_head}
     {amap_inline}
     {runtime_inline}
+    {design_tokens}
     <script src="./vendor/tailwindcss.js"></script>
     <style>
       body {{
-        background:
-          radial-gradient(1000px 680px at 12% 0%, rgba(37,99,235,0.14), transparent 62%),
-          radial-gradient(900px 720px at 92% 10%, rgba(236,72,153,0.10), transparent 60%),
-          radial-gradient(900px 520px at 50% 100%, rgba(16,185,129,0.08), transparent 60%),
-          linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%);
+        color: var(--color-text);
       }}
       .glass {{
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(225,225,225,0.85);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.84);
+        border: 1px solid rgba(218,220,224,0.8);
+        backdrop-filter: blur(16px);
       }}
       .card {{
-        border-radius: 16px;
-        box-shadow: 0 14px 38px rgba(15,23,42,0.08);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
       }}
       .graph {{
         background:
-          radial-gradient(1200px 640px at 18% 0%, rgba(56,189,248,0.14), transparent 58%),
-          radial-gradient(900px 620px at 84% 18%, rgba(244,63,94,0.12), transparent 56%),
-          radial-gradient(900px 600px at 40% 100%, rgba(167,139,250,0.12), transparent 62%),
-          linear-gradient(135deg, #07112a 0%, #090f2a 55%, #0a0c23 100%);
+          radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
+          radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
+          radial-gradient(720px 520px at 40% 100%, rgba(251,188,4,0.14), transparent 58%),
+          linear-gradient(140deg, #0f172a 0%, #14213d 56%, #10253f 100%);
       }}
-      canvas {{ display:block; }}
+      canvas {{ display:block; width:100%; }}
       .tooltip {{
         position: absolute;
         pointer-events: none;
@@ -996,9 +1059,9 @@ def _render_index_html(title: str, data_file: str) -> str:
         pointer-events: none;
       }}
       .range-sel {{
-        background: linear-gradient(90deg, rgba(34,197,94,0.22), rgba(56,189,248,0.16));
+        background: linear-gradient(90deg, rgba(52,168,83,0.22), rgba(26,115,232,0.16));
         border: 1px solid rgba(255,255,255,0.26);
-        box-shadow: 0 10px 24px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(34,197,94,0.18);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(52,168,83,0.18);
         pointer-events: none;
       }}
       .handle {{
@@ -1016,96 +1079,150 @@ def _render_index_html(title: str, data_file: str) -> str:
         50% {{ transform: scale(1.12); opacity: 1; }}
         100% {{ transform: scale(1); opacity: 0.86; }}
       }}
+      .home-search-card {{
+        background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,249,250,0.92));
+      }}
+      .home-hero {{
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(232,240,254,0.74));
+      }}
+      .home-title-wrap {{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 14px;
+        text-align: left;
+      }}
+      .home-title-mark {{
+        display: inline-flex;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+      }}
+      .home-title {{
+        font-size: clamp(28px, 4vw, 40px);
+        line-height: 1.06;
+        font-weight: 900;
+        letter-spacing: 0;
+        color: var(--color-text);
+        text-shadow: 0 1px 0 rgba(255,255,255,0.85);
+      }}
+      .home-title-link {{
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 0.18em;
+        color: var(--color-text);
+        text-decoration: none;
+      }}
+      .home-title-link:hover {{
+        color: var(--color-text);
+      }}
+      .home-title-char {{
+        display: inline-block;
+      }}
+      .home-title-sub {{
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--color-text-secondary);
+        max-width: 760px;
+      }}
+      .distribution-pane {{
+        height: 500px;
+      }}
+      .distribution-frame {{
+        height: 100%;
+      }}
+      #c {{
+        display: block;
+        width: 100%;
+        height: 100%;
+      }}
     </style>
   </head>
   <body class="min-h-screen">
-    <div class="max-w-5xl mx-auto px-4 py-6 space-y-4">
+    <div class="max-w-[1310px] mx-auto px-4 py-6 space-y-4">
       {demo_banner}
-      <div class="glass card px-6 py-5">
-        <div class="text-xl font-extrabold text-slate-900">故事地图</div>
-        <div class="text-xs text-slate-500 mt-1">输入人物、问题或任务，从人物→时空→事件的主线进入历史人物分析</div>
-        {qhtml}
-      </div>
-
-      <div class="glass card px-6 py-5 relative z-30 overflow-visible">
-        <div class="text-sm font-bold text-slate-800 mb-2">输入人物、问题或任务</div>
+      <div class="glass card theme-card home-search-card px-6 py-5 relative z-30 overflow-visible">
+        <div class="home-title-wrap">
+          <div class="home-title-mark">STORY MAP</div>
+          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noreferrer">
+            <span class="home-title-char">故</span>
+            <span class="home-title-char">事</span>
+            <span class="home-title-char">地</span>
+            <span class="home-title-char">图</span>
+          </a>
+        </div>
         <div class="relative">
           <div class="flex items-center gap-3">
-            <input id="q" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-slate-900/10" placeholder="例如：苏轼 / 李白 / 杜甫" />
-            <button id="go" class="px-5 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-slate-800 text-sm font-bold hover:bg-white shadow-sm">开始分析</button>
+            <input id="q" class="theme-input flex-1 px-4 py-2.5 rounded-xl" placeholder="例如：苏轼 / 李白 / 杜甫" />
+            <button id="go" class="theme-button-primary px-5 py-2.5 rounded-xl text-sm font-bold">开始分析</button>
           </div>
-          <div id="searchHint" class="mt-2 text-[11px] text-slate-500">支持本名、别名、外文名与拼音输入，优先命中已有档案</div>
-          <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
+          <div id="searchHint" class="home-title-sub mt-2">内置人教版教材500+历史人物</div>
+          <div id="searchSuggest" class="theme-card hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
         </div>
-        <div id="genStatus" class="hidden mt-2 text-xs text-slate-600"></div>
+        <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>
       </div>
 
-      <div class="card graph overflow-hidden relative z-10">
-        <div class="px-6 py-4 text-sm font-bold text-white/90 flex items-center justify-between">
+      <div class="card graph theme-graph-panel overflow-hidden relative z-10">
+        <div class="px-5 py-4 text-sm font-bold text-white/90 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div>人类群星闪耀时</div>
             <div class="flex items-center gap-1 text-[11px] font-normal">
-              <button id="tabGraph" class="px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90">关系图</button>
-              <button id="tabMap" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10">地图视角</button>
+              <button id="tabGraph" class="px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90">时间分布</button>
+              <button id="tabMap" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10">空间分布</button>
             </div>
           </div>
           <div class="text-[11px] font-normal text-white/60 flex items-center gap-2 flex-wrap justify-end">
-            窗口内：<span id="activeCount">-</span><span class="text-white/30">|</span>坐标点：<span id="coordCount">-</span>
+            窗口内：<span id="activeCount">-</span>
           </div>
         </div>
-        <div class="px-6 pb-2 -mt-2 text-[11px] text-white/60">拖动时间窗筛选人物；悬停查看简介；点击节点进入人物页或继续分析</div>
-        <div class="px-6 pb-2 -mt-1 text-[11px] text-white/55 flex items-center justify-between gap-3 flex-wrap">
+        <div class="px-5 pb-2 -mt-2 text-[11px] text-white/60">拖动时间窗筛选人物；悬停查看简介；点击节点进入人物页</div>
+        <div class="px-5 pb-2 -mt-1 text-[11px] text-white/55 flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-x-4 gap-y-1 flex-wrap">
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#22c55e"></span><span>先秦/公元前</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ef4444"></span><span>秦汉</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#60a5fa"></span><span>魏晋南北朝</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#f59e0b"></span><span>隋</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#fb7185"></span><span>唐</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#a855f7"></span><span>宋元</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#10b981"></span><span>明清</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#f97316"></span><span>近代</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#eab308"></span><span>现代</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#34a853"></span><span>先秦/公元前</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ea4335"></span><span>秦汉</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4285f4"></span><span>魏晋南北朝</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#fbbc04"></span><span>隋</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#1a73e8"></span><span>唐</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#7e57c2"></span><span>宋元</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#0f9d58"></span><span>明清</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ff7043"></span><span>近代</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#c0ca33"></span><span>现代</span></div>
           </div>
           <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70">
-            <label class="inline-flex items-center gap-1 select-none cursor-pointer">
-              <input id="onlyActiveMarkers" type="checkbox" class="accent-white/70" checked />
-              <span>仅显示时间窗</span>
-            </label>
-            <button id="focusPerson" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15">定位人物</button>
             <button id="resetMap" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15">重置视图</button>
           </div>
         </div>
 
-        <div class="relative px-3 pb-3 overflow-hidden">
-          <div id="tabTrack" class="flex w-[200%]" style="transform: translateX(0%); transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform;">
-            <div class="w-1/2 pr-3 relative">
-              <div class="rounded-xl overflow-hidden border border-white/10">
-                <canvas id="c" width="980" height="460"></canvas>
-              </div>
-              <div class="absolute right-5 top-5 z-10 flex items-center gap-2">
-                <button id="resetGraph" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15 text-[11px]">重置视图</button>
+        <div class="relative px-6 pb-4 overflow-hidden">
+          <div id="tabTrack" class="relative">
+            <div id="graphPane" class="relative distribution-pane">
+              <div class="rounded-xl overflow-hidden border border-white/10 distribution-frame">
+                <canvas id="c" width="900" height="500"></canvas>
               </div>
               <div class="absolute left-5 top-5 z-10 flex flex-col gap-2 text-[11px] text-white/80">
               </div>
               <div id="tip" class="tooltip hidden"></div>
             </div>
-            <div class="w-1/2 pl-3 relative">
-              <div id="chinaMap" class="rounded-xl overflow-hidden border border-white/10" style="height:460px;"></div>
+            <div id="mapPane" class="relative hidden distribution-pane">
+              <div id="chinaMap" class="rounded-xl overflow-hidden border border-white/10 distribution-frame"></div>
+              <div id="provinceCurvePanel" class="hidden absolute right-4 bottom-4 z-10 w-[280px] max-w-[calc(100%-32px)] px-3 py-2 rounded-xl bg-[rgba(8,15,36,0.72)] border border-white/10 backdrop-blur-md shadow-[0_18px_50px_rgba(15,23,42,0.28)]">
+                <div class="flex items-center justify-between text-[11px]">
+                  <div class="text-white/80 font-bold">各省份名人数量 Top5</div>
+                </div>
+                <div id="provinceBars" class="mt-2 max-h-[136px] overflow-y-auto pr-1" style="scrollbar-width: thin;"></div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="px-6 pb-6">
-          <div id="provinceCurvePanel" class="hidden mb-3 px-3 py-2 rounded-xl bg-black/40 border border-white/10 backdrop-blur-sm">
-            <div class="flex items-center justify-between text-[11px]">
-              <div class="text-white/80 font-bold">时间窗内省份名人 Top5</div>
-              <div class="text-white/55">仅中国｜柱状图</div>
-            </div>
-            <div id="provinceBars" class="mt-2 max-h-[160px] overflow-y-auto pr-1" style="scrollbar-width: thin;"></div>
-          </div>
           <div class="range-rail relative px-3 py-3">
-            <div class="absolute left-3 right-3 top-2 h-[12px] rounded-lg band flex items-start justify-between px-2 pt-[1px] text-[10px] text-white/55" id="bands"></div>
-            <div id="ticks" class="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-[34px] rounded-xl bg-white/5 border border-white/10 ticks"></div>
+            <div class="absolute top-2 h-[12px] rounded-lg band flex items-start justify-between px-2 pt-[1px] text-[10px] text-white/55" id="bands" style="left:18px;right:18px;"></div>
+            <div id="ticks" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl bg-white/5 border border-white/10 ticks" style="left:18px;right:18px;"></div>
             <div id="maskL" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-mask"></div>
             <div id="maskR" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-mask"></div>
             <div id="sel" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-sel"></div>
@@ -1129,13 +1246,20 @@ def _render_index_html(title: str, data_file: str) -> str:
               <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" />
             </div>
           </div>
-          <div class="flex flex-wrap items-center justify-center gap-2 mt-3 text-[11px] text-white/60" id="presetBar">
-            <button data-preset="all" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">全部</button>
-            <button data-preset="tang" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">唐</button>
-            <button data-preset="song" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">宋</button>
-            <button data-preset="mingqing" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">明清</button>
-            <button data-preset="modern" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">近代</button>
-            <button data-preset="contemporary" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15">现代</button>
+          <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3 text-[11px] text-white/60 max-w-[1020px] mx-auto" id="presetBar">
+            <button data-preset="all" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">全部</button>
+            <button data-preset="preqin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">春秋战国</button>
+            <button data-preset="qin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">秦</button>
+            <button data-preset="han" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">汉</button>
+            <button data-preset="weijin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">魏晋南北</button>
+            <button data-preset="sui" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">隋</button>
+            <button data-preset="tang" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">唐</button>
+            <button data-preset="song" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">宋</button>
+            <button data-preset="yuan" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">元</button>
+            <button data-preset="ming" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">明</button>
+            <button data-preset="qing" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">清</button>
+            <button data-preset="modern" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">近代</button>
+            <button data-preset="contemporary" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">现代</button>
           </div>
         </div>
       </div>
@@ -1177,7 +1301,6 @@ def _render_index_html(title: str, data_file: str) -> str:
       const $lifeBar = document.getElementById("lifeBar");
       const $ticks = document.getElementById("ticks");
       const $activeCount = document.getElementById("activeCount");
-      const $coordCount = document.getElementById("coordCount");
       const $spanYear = document.getElementById("spanYear");
       const $startYearInput = document.getElementById("startYearInput");
       const $endYearInput = document.getElementById("endYearInput");
@@ -1185,23 +1308,41 @@ def _render_index_html(title: str, data_file: str) -> str:
       const $maxLabel = document.getElementById("maxLabel");
       const $midLabel = document.getElementById("midLabel");
       const $tabTrack = document.getElementById("tabTrack");
+      const $graphPane = document.getElementById("graphPane");
       const $tabGraph = document.getElementById("tabGraph");
       const $tabMap = document.getElementById("tabMap");
+      const $mapPane = document.getElementById("mapPane");
       const $chinaMap = document.getElementById("chinaMap");
       const $provinceCurvePanel = document.getElementById("provinceCurvePanel");
       const $provinceBars = document.getElementById("provinceBars");
       const $genStatus = document.getElementById("genStatus");
-      const $resetGraph = document.getElementById("resetGraph");
       const $resetMap = document.getElementById("resetMap");
-      const $onlyActiveMarkers = document.getElementById("onlyActiveMarkers");
-      const $focusPerson = document.getElementById("focusPerson");
       const $mapStyle = document.getElementById("mapStyle");
       const $mapToolbar = document.getElementById("mapToolbar");
       const $presetBar = document.getElementById("presetBar");
 
-      const W = $c.width;
-      const H = $c.height;
+      let W = $c.width;
+      let H = $c.height;
       const pad = 18;
+      const syncCanvasSize = () => {{
+        if (!$c || !ctx) return;
+        const rect = $c.getBoundingClientRect();
+        const cssW = Math.max(1, Math.round(rect.width || $c.width || 1));
+        const cssH = Math.max(1, Math.round(rect.height || $c.height || 1));
+        const dpr = Math.max(1, Number(window.devicePixelRatio || 1));
+        W = cssW;
+        H = cssH;
+        const pixelW = Math.max(1, Math.round(cssW * dpr));
+        const pixelH = Math.max(1, Math.round(cssH * dpr));
+        if ($c.width !== pixelW || $c.height !== pixelH) {{
+          $c.width = pixelW;
+          $c.height = pixelH;
+        }}
+        try {{
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }} catch (_) {{}}
+      }};
+      syncCanvasSize();
 
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
       const lerp = (a, b, t) => a + (b - a) * t;
@@ -1220,16 +1361,15 @@ def _render_index_html(title: str, data_file: str) -> str:
 
       const colorByYear = (y) => {{
         if (y == null) return "rgba(255,255,255,0.75)";
-        if (y < 0) return "#22c55e";
-        if (y < 220) return "#ef4444";
-        if (y < 589) return "#60a5fa";
-        if (y < 618) return "#f59e0b";
-        if (y < 907) return "#fb7185";
-        if (y < 1279) return "#a855f7";
-        if (y < 1644) return "#10b981";
-        if (y < 1840) return "#10b981";
-        if (y < 1911) return "#f97316";
-        return "#eab308";
+        if (y < 0) return "#34a853";
+        if (y < 220) return "#ea4335";
+        if (y < 589) return "#4285f4";
+        if (y < 618) return "#fbbc04";
+        if (y < 907) return "#1a73e8";
+        if (y < 1368) return "#7e57c2";
+        if (y < 1840) return "#0f9d58";
+        if (y < 1911) return "#ff7043";
+        return "#c0ca33";
       }};
 
       const hexToRgba = (hex, a) => {{
@@ -1292,20 +1432,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const esc = (s) => String(s || "").replace(/[&<>\"']/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}})[c]);
-      const stripMd = (s) => String(s || "").replace(/\*\*/g, "").replace(/__/g, "");
-      const stripOuterQuotes = (s) => {{
-        let t = String(s || "").trim();
-        t = t.replace(/^[“"‘'「『]+/g, "").replace(/[”"’'」』]+$/g, "");
-        return t.trim();
-      }};
-      const stripParenChars = (s) => String(s || "").replace(/[（）()]/g, "").trim();
-      const formatBirthplace = (ancient, modern) => {{
-        const a = stripParenChars(String(ancient || "").trim());
-        const m0 = stripParenChars(String(modern || "").trim());
-        const m = m0.replace(/^今\s*/g, "今").trim();
-        if (a && m && a !== m) return a + " · " + m;
-        return a || m || "";
-      }};
+      {shared_person_tooltip_js}
       const normalizeSearchText = (s) => {{
         let t = String(s || "").trim().toLowerCase();
         if (!t) return "";
@@ -1352,6 +1479,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       let maxYear = 1840;
       let startYear = 0;
       let endYear = 1840;
+      let timeWindowSignature = "";
       let dragMode = "";
       let dragStartX = 0;
       let dragStartA = 0;
@@ -1371,13 +1499,13 @@ def _render_index_html(title: str, data_file: str) -> str:
 
       const worldToScreen = (x, y) => {{
         return {{
-          x: x * camScale + camOffX,
+          x,
           y: y * camScale + camOffY,
         }};
       }};
       const screenToWorld = (x, y) => {{
         return {{
-          x: (x - camOffX) / camScale,
+          x,
           y: (y - camOffY) / camScale,
         }};
       }};
@@ -1419,8 +1547,48 @@ def _render_index_html(title: str, data_file: str) -> str:
         updateMapMarkers();
       }};
 
-      const toT = (year) => (year - minYear) / (maxYear - minYear);
-      const fromT = (t) => Math.round(minYear + t * (maxYear - minYear));
+      const timelineSegments = () => {{
+        const segments = [
+          {{ a: minYear, b: Math.min(maxYear, 1840), w: 0.62 }},
+          {{ a: Math.max(minYear, 1840), b: Math.min(maxYear, 1911), w: 0.16 }},
+          {{ a: Math.max(minYear, 1911), b: maxYear, w: 0.22 }},
+        ].filter((seg) => Number.isFinite(seg.a) && Number.isFinite(seg.b) && seg.b > seg.a);
+        if (!segments.length) return [{{ a: minYear, b: maxYear, w: 1 }}];
+        const totalW = segments.reduce((sum, seg) => sum + Number(seg.w || 0), 0) || 1;
+        let acc = 0;
+        return segments.map((seg, idx) => {{
+          const w = Number(seg.w || 0) / totalW;
+          const start = acc;
+          const end = idx === segments.length - 1 ? 1 : (acc + w);
+          acc = end;
+          return {{ ...seg, start, end }};
+        }});
+      }};
+      const toT = (year) => {{
+        const y = Number(year);
+        if (!Number.isFinite(y)) return 0;
+        const segments = timelineSegments();
+        if (y <= segments[0].a) return 0;
+        for (const seg of segments) {{
+          if (y <= seg.b) {{
+            const local = clamp((y - seg.a) / Math.max(1, seg.b - seg.a), 0, 1);
+            return seg.start + local * (seg.end - seg.start);
+          }}
+        }}
+        return 1;
+      }};
+      const fromT = (t) => {{
+        const tt = clamp(Number(t) || 0, 0, 1);
+        const segments = timelineSegments();
+        for (const seg of segments) {{
+          if (tt <= seg.end || seg === segments[segments.length - 1]) {{
+            const width = Math.max(1e-6, seg.end - seg.start);
+            const local = clamp((tt - seg.start) / width, 0, 1);
+            return Math.round(seg.a + local * (seg.b - seg.a));
+          }}
+        }}
+        return maxYear;
+      }};
 
       const formatYear = (y) => {{
         const yy = Math.round(Number(y));
@@ -1461,6 +1629,31 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (s <= 1600) return 200;
         return 500;
       }};
+      const overlapYears = (a0, a1, b0, b1) => {{
+        const lo = Math.max(Math.min(Number(a0), Number(a1)), Math.min(Number(b0), Number(b1)));
+        const hi = Math.min(Math.max(Number(a0), Number(a1)), Math.max(Number(b0), Number(b1)));
+        return Math.max(0, hi - lo);
+      }};
+      const pickTickConfig = (start, end) => {{
+        const span = Math.max(1, Math.round(Math.abs((Number(end) || 0) - (Number(start) || 0))));
+        let step = pickTickStep(span);
+        const recentRatio = overlapYears(start, end, 1840, maxYear) / span;
+        const contemporaryRatio = overlapYears(start, end, 1911, maxYear) / span;
+        if (contemporaryRatio >= 0.7) {{
+          if (span <= 90) step = Math.max(step, 20);
+          else if (span <= 180) step = Math.max(step, 25);
+          else if (span <= 360) step = Math.max(step, 50);
+          else if (span <= 700) step = Math.max(step, 100);
+        }} else if (recentRatio >= 0.55) {{
+          if (span <= 80) step = Math.max(step, 15);
+          else if (span <= 160) step = Math.max(step, 25);
+          else if (span <= 320) step = Math.max(step, 50);
+          else if (span <= 620) step = Math.max(step, 100);
+        }}
+        const maxLabels = contemporaryRatio >= 0.7 ? 5 : (recentRatio >= 0.55 ? 6 : 9);
+        const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);
+        return {{ step, maxLabels, minPxPerLabel }};
+      }};
 
       const formatTickLabel = (y, span, step) => {{
         let yy = Math.round(Number(y));
@@ -1480,16 +1673,17 @@ def _render_index_html(title: str, data_file: str) -> str:
       const renderTicks = () => {{
         if (!$ticks) return;
         const span = Math.max(1, endYear - startYear);
-        const step = pickTickStep(span);
-        const r = $rail.getBoundingClientRect();
+        const tickConfig = pickTickConfig(startYear, endYear);
+        const step = tickConfig.step;
+        const r = $ticks.getBoundingClientRect();
         const w = r.width || 1;
         const x0 = clamp(toT(startYear), 0, 1) * w;
         const x1 = clamp(toT(endYear), 0, 1) * w;
         const ww = Math.max(1, x1 - x0);
         const density = Math.max(1, Math.floor((span / step)));
         const pxPerStep = (ww * step) / span;
-        const maxLabels = 9;
-        const minPxPerLabel = 56;
+        const maxLabels = tickConfig.maxLabels;
+        const minPxPerLabel = tickConfig.minPxPerLabel;
         let labelEvery = Math.max(1, Math.ceil(density / maxLabels));
         labelEvery = Math.max(labelEvery, Math.ceil(minPxPerLabel / Math.max(1, pxPerStep)));
         let y0 = Math.floor(startYear / step) * step;
@@ -1525,8 +1719,8 @@ def _render_index_html(title: str, data_file: str) -> str:
           $lifeBar.classList.add("hidden");
           return;
         }}
-        const r = $rail.getBoundingClientRect();
-        const w = r.width || 1;
+        const m = railMetrics();
+        const w = m.innerW || 1;
         let a = (b != null) ? b : d;
         let z = (d != null) ? d : b;
         if (a == null || z == null) {{
@@ -1538,8 +1732,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         const t2 = clamp(toT(z), 0, 1);
         const minW = 6 / w;
         const tt2 = Math.max(t2, t1 + minW);
-        $lifeBar.style.left = `${{(t1 * 100).toFixed(4)}}%`;
-        $lifeBar.style.width = `${{((tt2 - t1) * 100).toFixed(4)}}%`;
+        $lifeBar.style.left = `${{(m.inset + t1 * w).toFixed(2)}}px`;
+        $lifeBar.style.width = `${{Math.max(6, (tt2 - t1) * w).toFixed(2)}}px`;
         $lifeBar.classList.remove("hidden");
       }};
 
@@ -1567,6 +1761,53 @@ def _render_index_html(title: str, data_file: str) -> str:
         camOffY = (H - (minY + maxY) * camScale) / 2;
       }};
 
+      const getPresetRanges = () => ({{
+        all: [minYear, maxYear],
+        preqin: [-800, -221],
+        qin: [-221, -206],
+        han: [-206, 220],
+        weijin: [220, 589],
+        sui: [581, 618],
+        tang: [618, 907],
+        song: [960, 1279],
+        yuan: [1271, 1368],
+        ming: [1368, 1644],
+        qing: [1644, 1840],
+        modern: [1840, 1911],
+        contemporary: [1911, maxYear],
+      }});
+      const syncPresetButtons = () => {{
+        if (!$presetBar) return;
+        const presets = getPresetRanges();
+        let activeKey = "";
+        for (const [key, rawRange] of Object.entries(presets)) {{
+          const a = clamp(rawRange[0], minYear, maxYear);
+          let b = clamp(rawRange[1], minYear, maxYear);
+          if (a >= b) b = clamp(a + 1, minYear, maxYear);
+          if (startYear === a && endYear === b) {{
+            activeKey = key;
+            break;
+          }}
+        }}
+        const buttons = $presetBar.querySelectorAll("button[data-preset]");
+        buttons.forEach((btn) => {{
+          const key = String(btn.getAttribute("data-preset") || "");
+          const active = key === activeKey;
+          btn.style.background = active ? "linear-gradient(135deg, rgba(59,130,246,0.52), rgba(34,197,94,0.42))" : "rgba(255,255,255,0.10)";
+          btn.style.borderColor = active ? "rgba(255,255,255,0.54)" : "rgba(255,255,255,0.15)";
+          btn.style.color = active ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.72)";
+          btn.style.fontWeight = active ? "700" : "500";
+          btn.style.transform = active ? "translateY(-1px)" : "translateY(0)";
+          btn.style.boxShadow = active ? "0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 26px rgba(37,99,235,0.28), 0 0 18px rgba(34,197,94,0.20)" : "none";
+        }});
+      }};
+      const railMetrics = () => {{
+        const r = $rail.getBoundingClientRect();
+        const outerW = r.width || 1;
+        const inset = 18;
+        const innerW = Math.max(1, outerW - inset * 2);
+        return {{ outerW, innerW, inset }};
+      }};
       const setYearInputs = () => {{
         if ($startYearInput) $startYearInput.value = String(startYear);
         if ($endYearInput) $endYearInput.value = String(endYear);
@@ -1594,11 +1835,10 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const handlePosPx = () => {{
-        const r = $rail.getBoundingClientRect();
-        const w = r.width || 1;
-        const x1 = toT(startYear) * w;
-        const x2 = toT(endYear) * w;
-        return {{ x1, x2, w }};
+        const m = railMetrics();
+        const x1 = m.inset + toT(startYear) * m.innerW;
+        const x2 = m.inset + toT(endYear) * m.innerW;
+        return {{ x1, x2, w: m.outerW }};
       }};
 
       const setHoverMarkers = (n) => {{
@@ -1607,15 +1847,14 @@ def _render_index_html(title: str, data_file: str) -> str:
           $mDeath.classList.add("hidden");
           return;
         }}
-        const r = $rail.getBoundingClientRect();
-        const w = r.width || 1;
+        const m = railMetrics();
         const show = (el, year) => {{
           if (year == null) {{
             el.classList.add("hidden");
             return;
           }}
           const t = clamp(toT(year), 0, 1);
-          el.style.left = `calc(${{(t * 100).toFixed(4)}}% + 3px)`;
+          el.style.left = `${{(m.inset + t * m.innerW).toFixed(2)}}px`;
           el.classList.remove("hidden");
         }};
         show($mBirth, n.birth_year);
@@ -1623,21 +1862,22 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
 
       const setHandles = () => {{
+        const m = railMetrics();
         const t1 = clamp(toT(startYear), 0, 1);
         const t2 = clamp(toT(endYear), 0, 1);
-        const leftPct = (t1 * 100).toFixed(4) + "%";
-        const rightPct = (t2 * 100).toFixed(4) + "%";
-        $h1.style.left = `calc(${{leftPct}} - 7px)`;
-        $h2.style.left = `calc(${{rightPct}} - 7px)`;
-        $sel.style.left = leftPct;
-        $sel.style.width = ((t2 - t1) * 100).toFixed(4) + "%";
+        const leftPx = m.inset + t1 * m.innerW;
+        const rightPx = m.inset + t2 * m.innerW;
+        $h1.style.left = `${{(leftPx - 7).toFixed(2)}}px`;
+        $h2.style.left = `${{(rightPx - 7).toFixed(2)}}px`;
+        $sel.style.left = `${{leftPx.toFixed(2)}}px`;
+        $sel.style.width = `${{Math.max(1, rightPx - leftPx).toFixed(2)}}px`;
         if ($maskL) {{
-          $maskL.style.left = "0%";
-          $maskL.style.width = leftPct;
+          $maskL.style.left = `${{m.inset.toFixed(2)}}px`;
+          $maskL.style.width = `${{Math.max(0, leftPx - m.inset).toFixed(2)}}px`;
         }}
         if ($maskR) {{
-          $maskR.style.left = rightPct;
-          $maskR.style.width = ((1 - t2) * 100).toFixed(4) + "%";
+          $maskR.style.left = `${{rightPx.toFixed(2)}}px`;
+          $maskR.style.width = `${{Math.max(0, (m.outerW - m.inset) - rightPx).toFixed(2)}}px`;
         }}
         $spanYear.textContent = String(Math.max(0, endYear - startYear));
         setYearInputs();
@@ -1645,6 +1885,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         $maxLabel.textContent = formatYear(maxYear);
         $midLabel.textContent = formatYear(Math.round((startYear + endYear) / 2));
         renderTicks();
+        syncPresetButtons();
         setLifeBar(spotlight || selected);
         persistTimeWindow();
         scheduleMapFit();
@@ -1670,7 +1911,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         for (const n of nodes) {{
           if (typeof n.birth_lat === "number" && typeof n.birth_lng === "number") c += 1;
         }}
-        if ($coordCount) $coordCount.textContent = `${{c}}/${{nodes.length}}`;
       }};
 
       const provinceOf = (n) => {{
@@ -1744,8 +1984,7 @@ def _render_index_html(title: str, data_file: str) -> str:
             '</div>'
           );
         }}
-        const footer = '<div class=\"mt-1 text-[10px] text-white/50\">中国范围内：' + esc(String(total)) + ' 人</div>';
-        $provinceBars.innerHTML = (parts.join('') || '<div class=\"text-[11px] text-white/55\">当前时间窗无中国人物</div>') + footer;
+        $provinceBars.innerHTML = parts.join('') || '<div class=\"text-[11px] text-white/55\">当前时间窗无中国人物</div>';
       }};
 
       const renderBands = () => {{
@@ -1952,6 +2191,12 @@ def _render_index_html(title: str, data_file: str) -> str:
           ctx.globalAlpha = alpha;
           ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
           ctx.fill();
+          ctx.beginPath();
+          ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
+          ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
+          ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
+          ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
+          ctx.stroke();
           if (active) {{
             ctx.beginPath();
             ctx.strokeStyle = "rgba(255,255,255,0.22)";
@@ -1991,11 +2236,10 @@ def _render_index_html(title: str, data_file: str) -> str:
           if (typeof n.p !== "number") n.p = target;
           n.p = n.p + (target - n.p) * 0.10;
           const seed = hash(n.person || "");
-          const ox = Math.sin(t * 0.55 + (seed % 1000) * 0.01) * 2.0 + Math.sin(t * 0.17 + (seed % 97)) * 0.9;
           const oy = Math.cos(t * 0.50 + (seed % 777) * 0.01) * 1.8 + Math.cos(t * 0.19 + (seed % 83)) * 0.8;
           const bx = n.bx != null ? n.bx : n.x;
           const by = n.by != null ? n.by : n.y;
-          n.x = clamp(bx + ox, pad, W - pad);
+          n.x = clamp(bx, pad, W - pad);
           n.y = clamp(by + oy, pad, H - pad);
         }}
         draw();
@@ -2025,24 +2269,11 @@ def _render_index_html(title: str, data_file: str) -> str:
           setHoverMarkers(null);
           return;
         }}
-        const years = formatYearRange(n.birth_year, n.death_year);
-        const quote = stripMd(String(n.quote || "").trim());
-        const review = stripMd(String(n.review || "").trim());
-        const tagline = stripOuterQuotes(review || quote);
-        const dynasty = String(n.dynasty || "").trim();
-        const dline = dynasty ? `<div class="text-white/70 text-[11px] mt-1">时代：${{esc(dynasty)}}</div>` : "";
-        const aka = Array.isArray(n.aliases) ? n.aliases.filter((x) => x && String(x).trim()).slice(0, 3).join(" / ") : "";
-        const akaline = aka ? `<div class="text-white/70 text-[11px] mt-1">别名：${{esc(aka)}}</div>` : "";
-        const foreign = String(n.foreign_name || "").trim();
-        const foreignline = foreign ? `<div class="text-white/70 text-[11px] mt-1">外文：${{esc(foreign)}}</div>` : "";
-        const roleLabel = String(n.main_role_label || "").trim();
-        const roleLine = roleLabel ? `<div class="text-white/70 text-[11px] mt-1">身份：${{esc(roleLabel)}}</div>` : "";
-        const tags = Array.isArray(n.domain_tags) ? n.domain_tags.filter((x) => x && String(x).trim()).slice(0, 4).join(" / ") : "";
-        const tagline2 = tags ? `<div class="text-white/70 text-[11px] mt-1">领域：${{esc(tags)}}</div>` : "";
-        const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
-        const bpline = bp ? `<div class="text-white/70 text-[11px] mt-1">籍贯：${{esc(bp)}}</div>` : "";
-        const tline = tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tagline)}}”</div>` : "";
-        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(n.person)}}${{n.has_story === false ? ' <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">暂未生成</span>' : ''}}</div><div class="text-white/70 text-[11px] mt-1">生卒：${{esc(years)}}</div>${{dline}}${{roleLine}}${{akaline}}${{foreignline}}${{tagline2}}${{bpline}}${{tline}}`;
+        const tipModel = buildPersonTooltipModel(n, {{ fallbackName: '相关人物' }});
+        const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${{esc(row.label)}}：${{esc(row.value)}}</div>`).join("");
+        const tline = tipModel.tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tipModel.tagline)}}”</div>` : "";
+        const badge = !tipModel.hasStory ? ` <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">${{esc(tipModel.badgeText)}}</span>` : "";
+        $tip.innerHTML = `<div class="font-bold text-white/95">${{esc(tipModel.name)}}${{badge}}</div>${{rowHtml}}${{tline}}`;
         const rect = $c.getBoundingClientRect();
         let left = clientX - rect.left + 10;
         let top = clientY - rect.top + 10;
@@ -2128,7 +2359,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           }} catch (_) {{
             snapshot = null;
           }}
-          if (!snapshot || snapshot.ok !== true) {{
+          if (!snapshot || snapshot.exists !== true) {{
             setGenStatus("分析任务查询失败，请稍后重试");
             setGeneratingUI(false);
             clearGenTask();
@@ -2159,6 +2390,14 @@ def _render_index_html(title: str, data_file: str) -> str:
           }}
           if (st === "failed") {{
             setGenStatus("分析失败：" + String(snapshot.error || "未知错误"));
+            setGeneratingUI(false);
+            clearGenTask();
+            return;
+          }}
+          if (st === "partial_failed") {{
+            const result = snapshot.result || {{}};
+            const detail = String(snapshot.error || result.conclusion || "部分任务未成功");
+            setGenStatus("分析部分完成：" + detail);
             setGeneratingUI(false);
             clearGenTask();
             return;
@@ -2255,9 +2494,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const setSearchHint = () => {{
         if (!$searchHint) return;
-        const parts = ["支持本名", "别名", "外文名"];
-        if (searchCapabilities && searchCapabilities.pinyin) parts.push("拼音");
-        $searchHint.textContent = parts.join("、") + "输入，优先命中已有档案";
+        $searchHint.textContent = "内置人教版教材500+历史人物";
       }};
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
@@ -2364,14 +2601,18 @@ def _render_index_html(title: str, data_file: str) -> str:
         const picked = pickSearchMatch(name);
         return picked ? picked.node : null;
       }};
-      const focusPersonInGraph = (name, clientX, clientY) => {{
+      const focusKnownPerson = (name) => {{
         const n = findPersonNode(name);
         if (!n) return false;
-        setTab("graph");
-        camScale = clamp(1.9, 0.6, 2.4);
-        camOffX = (W * 0.50) - n.x * camScale;
-        camOffY = (H * 0.50) - n.y * camScale;
         setSelected(n);
+        if (currentTab === "map") {{
+          setTab("map");
+          setTimeout(() => {{
+            centerMapOnPerson(n);
+          }}, 260);
+        }} else {{
+          setTab("graph");
+        }}
         return true;
       }};
 
@@ -2381,7 +2622,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         const name = picked && picked.node ? String(picked.node.person || "").trim() : rawName;
         if (name) $q.value = name;
         hideSearchSuggest();
-        if (focusPersonInGraph(name, ev?.clientX, ev?.clientY)) return;
+        if (focusKnownPerson(name)) return;
         openPerson(name || rawName);
       }};
 
@@ -2451,7 +2692,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       let amapLoading = false;
       let clusterer = null;
       let mapCameraTouched = false;
-      let onlyActiveMarkers = true;
+      const onlyActiveMarkers = true;
       let _fitMapTimer = null;
       let _persistTimer = null;
       let mapStyleValue = "amap://styles/macaron";
@@ -2522,9 +2763,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         amapLoading = true;
         const sEl = document.createElement("script");
         sEl.async = true;
-        // Load AMap JS with clustering + geocoder plugins.
-        // Different AMap versions expose different globals (MarkerCluster / MarkerClusterer).
-        sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${{encodeURIComponent(key)}}&plugin=AMap.MarkerCluster,AMap.MarkerClusterer,AMap.Geocoder`;
+        // Load AMap JS with geocoder plugin only; markers remain individual so color + hover stay stable.
+        sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${{encodeURIComponent(key)}}&plugin=AMap.Geocoder`;
         sEl.onload = () => {{
           amapLoading = false;
           if (window.AMap && typeof window.AMap.Map === "function") resolve(true);
@@ -2536,52 +2776,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         }};
         document.head.appendChild(sEl);
       }});
-
-      const _amapKeyGate = () => {{
-        if (!$chinaMap) return null;
-        const wrap = document.createElement("div");
-        wrap.style.position = "absolute";
-        wrap.style.left = "0";
-        wrap.style.top = "0";
-        wrap.style.right = "0";
-        wrap.style.bottom = "0";
-        wrap.style.zIndex = "10";
-        wrap.style.display = "flex";
-        wrap.style.alignItems = "center";
-        wrap.style.justifyContent = "center";
-        wrap.style.background = "rgba(2,6,23,0.55)";
-        wrap.innerHTML = `
-          <div style="width:min(520px,92vw);border-radius:14px;padding:16px 16px 14px;background:rgba(255,255,255,0.92);border:1px solid rgba(255,255,255,0.35);box-shadow:0 18px 44px rgba(0,0,0,0.28)">
-            <div style="font-weight:800;color:#0f172a;font-size:14px">地图需要高德 Web Key</div>
-            <div style="margin-top:6px;color:rgba(15,23,42,0.65);font-size:12px;line-height:1.4">
-              由于环境 DNS 无法访问 AutoNavi 瓦片域名，这里改用 AMap JS API（webapi.amap.com）。请填入 Key（可选填 securityJsCode）。
-            </div>
-            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
-              <input id="amap-key" placeholder="AMAP_KEY" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(15,23,42,0.15);outline:none;font-size:12px" />
-              <input id="amap-sec" placeholder="AMAP_SECURITY（可选）" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(15,23,42,0.15);outline:none;font-size:12px" />
-              <div style="display:flex;gap:8px;justify-content:flex-end">
-                <button id="amap-save" style="padding:9px 12px;border-radius:10px;background:#0ea5e9;color:white;font-size:12px;font-weight:700">保存并加载</button>
-              </div>
-            </div>
-          </div>
-        `;
-        const keyEl = wrap.querySelector("#amap-key");
-        const secEl = wrap.querySelector("#amap-sec");
-        const saveEl = wrap.querySelector("#amap-save");
-        if (keyEl) keyEl.value = _getAmapKey();
-        if (secEl) secEl.value = _getAmapSecurity();
-        if (saveEl) {{
-          saveEl.addEventListener("click", () => {{
-            const k = (keyEl && keyEl.value ? String(keyEl.value) : "").trim();
-            const s = (secEl && secEl.value ? String(secEl.value) : "").trim();
-            if (k) localStorage.setItem("AMAP_KEY", k);
-            if (s) localStorage.setItem("AMAP_SECURITY", s);
-            wrap.remove();
-            initMapOnce();
-          }});
-        }}
-        return wrap;
-      }};
 
       const COORD_CACHE_KEY = "stellar_birth_coords_wgs84_v1";
       const COORD_CACHE_OLD_KEY = "stellar_birth_coords_v1";
@@ -2669,25 +2863,23 @@ def _render_index_html(title: str, data_file: str) -> str:
         }}
       }};
 
-      const TIME_WINDOW_KEY = "stellar_time_window_v1";
-      const readTimeWindow = () => {{
+      const LEGACY_TIME_WINDOW_KEY = "stellar_time_window_v2";
+      const LAST_MANUAL_TIME_WINDOW_KEY = "stellar_last_manual_time_window_v1";
+      const clearLegacyTimeWindow = () => {{
         try {{
-          const raw = localStorage.getItem(TIME_WINDOW_KEY);
-          const obj = raw ? JSON.parse(raw) : null;
-          if (!obj || typeof obj !== "object") return null;
-          const a = Number(obj.a);
-          const b = Number(obj.b);
-          if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-          return {{ a: Math.round(a), b: Math.round(b) }};
-        }} catch (_) {{
-          return null;
-        }}
+          localStorage.removeItem(LEGACY_TIME_WINDOW_KEY);
+        }} catch (_) {{}}
       }};
       const persistTimeWindow = () => {{
         if (_persistTimer) clearTimeout(_persistTimer);
         _persistTimer = setTimeout(() => {{
           try {{
-            localStorage.setItem(TIME_WINDOW_KEY, JSON.stringify({{ a: startYear, b: endYear }}));
+            localStorage.setItem(LAST_MANUAL_TIME_WINDOW_KEY, JSON.stringify({{
+              a: startYear,
+              b: endYear,
+              sig: timeWindowSignature,
+              saved_at: Date.now(),
+            }}));
           }} catch (_) {{}}
         }}, 260);
       }};
@@ -2783,8 +2975,13 @@ def _render_index_html(title: str, data_file: str) -> str:
 
       const setTab = (tab) => {{
         currentTab = tab;
-        if ($tabTrack) {{
-          $tabTrack.style.transform = tab === "graph" ? "translateX(0%)" : "translateX(-50%)";
+        if ($graphPane) {{
+          if (tab === "graph") $graphPane.classList.remove("hidden");
+          else $graphPane.classList.add("hidden");
+        }}
+        if ($mapPane) {{
+          if (tab === "map") $mapPane.classList.remove("hidden");
+          else $mapPane.classList.add("hidden");
         }}
         if ($tabGraph && $tabMap) {{
           if (tab === "graph") {{
@@ -2797,7 +2994,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         }}
         if (tab === "map") {{
           initMapOnce();
-          scheduleMapFit();
         }}
         if ($mapToolbar) {{
           if (tab === "map") $mapToolbar.classList.remove("hidden");
@@ -2813,6 +3009,15 @@ def _render_index_html(title: str, data_file: str) -> str:
         }}
       }};
 
+      const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
+      const CHINA_OVERVIEW_ZOOM = 3.9;
+
+      const applyChinaOverview = () => {{
+        try {{
+          if (amap) amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);
+        }} catch (_) {{}}
+      }};
+
       const initMapOnce = () => {{
         if (mapInited) return;
         if (!$chinaMap) return;
@@ -2821,8 +3026,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         _ensureAmap().then(() => {{
           if (!window.AMap) return;
           amap = new window.AMap.Map($chinaMap, {{
-            zoom: 4,
-            center: [105.0, 35.5],
+            zoom: CHINA_OVERVIEW_ZOOM,
+            center: CHINA_OVERVIEW_CENTER,
             viewMode: "2D",
             mapStyle: mapStyleValue || "amap://styles/whitesmoke",
             resizeEnable: true,
@@ -2860,7 +3065,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               nx = -nx;
               ny = -ny;
             }}
-            const offsetDeg = 0.6;
+            const offsetDeg = 1.05;
             const labelPos = [mid[0] + nx * offsetDeg, mid[1] + ny * offsetDeg];
             const ang = 0;
             const label = new window.AMap.Marker({{
@@ -2898,7 +3103,7 @@ def _render_index_html(title: str, data_file: str) -> str:
                   border: "1px solid rgba(15,23,42,0.18)",
                   color: "rgba(15,23,42,0.92)",
                   padding: "4px 8px",
-                  borderRadius: "999px",
+                  borderRadius: "2px",
                   fontSize: "12px",
                   fontWeight: "700",
                 }},
@@ -2920,7 +3125,73 @@ def _render_index_html(title: str, data_file: str) -> str:
             infoWin = null;
           }}
 
-          // Use markers (+ optional clusterer) to make dense distributions readable.
+          const buildMapPersonInfoHtml = (n) => {{
+            const years = formatYearRange(n.birth_year, n.death_year);
+            const dynasty = String(n.dynasty || "").trim();
+            const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
+            const quote = stripMd(String(n.quote || "").trim());
+            const review = stripMd(String(n.review || "").trim());
+            const tagline = stripOuterQuotes(review || quote);
+            const personJs = String(n.person || "")
+              .replace(/\\/g, "\\\\")
+              .replace(/'/g, "\\'");
+            let html = '';
+            html += '<div style="min-width:220px;max-width:280px">';
+            html += '<div style="font-weight:800;color:#0f172a;font-size:14px">' + esc(n.person) + '</div>';
+            html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">生卒：' + esc(years) + '</div>';
+            if (dynasty) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">时代：' + esc(dynasty) + '</div>';
+            if (bp) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">籍贯：' + esc(bp) + '</div>';
+            if (tagline) html += '<div style="margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4">“' + esc(tagline) + '”</div>';
+            html += "<div style=\"margin-top:8px\"><button onclick=\"window.__openPerson && window.__openPerson('" + personJs + "')\" style=\"background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer\">打开人物页</button></div>";
+            html += '</div>';
+            return html;
+          }};
+
+          const openMarkerInfo = (n, lng, lat) => {{
+            if (!infoWin) return;
+            try {{
+              infoWin.setContent(buildMapPersonInfoHtml(n));
+              infoWin.open(amap, [lng, lat]);
+            }} catch (_) {{}}
+          }};
+
+          const closeMarkerInfo = () => {{
+            try {{
+              if (infoWin) infoWin.close();
+            }} catch (_) {{}}
+          }};
+
+          const markerSvg = (sz, fill, glow, emph) => {{
+            const glowRadius = emph ? 10 : 6;
+            return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+          }};
+
+          const createMarkerContent = (n, lng, lat) => {{
+            const el = document.createElement("div");
+            el.style.width = "18px";
+            el.style.height = "18px";
+            el.style.display = "flex";
+            el.style.alignItems = "center";
+            el.style.justifyContent = "center";
+            el.style.cursor = "pointer";
+            el.style.pointerEvents = "auto";
+            el.innerHTML = markerSvg(18, "rgba(232,234,237,0.70)", "rgba(154,160,166,0.22)", false);
+            const show = () => openMarkerInfo(n, lng, lat);
+            el.addEventListener("mouseenter", show);
+            el.addEventListener("mousemove", show);
+            el.addEventListener("mouseleave", closeMarkerInfo);
+            el.addEventListener("click", (evt) => {{
+              if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
+              show();
+            }});
+            el.addEventListener("dblclick", (evt) => {{
+              if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
+              openPerson(n.person);
+            }});
+            return el;
+          }};
+
+          // Keep markers as individual points so historical colors and hover cards stay visible.
           const addMarker = (n) => {{
             const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
             const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
@@ -2929,63 +3200,38 @@ def _render_index_html(title: str, data_file: str) -> str:
             const lat = p.lat;
             const lng = p.lng;
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+            const markerEl = createMarkerContent(n, lng, lat);
             const mk = new window.AMap.Marker({{
               position: [lng, lat],
-              offset: new window.AMap.Pixel(-5, -5),
-              content: '<svg width="10" height="10" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 6px rgba(154,160,166,0.22));"><circle cx="12" cy="12" r="9" fill="rgba(232,234,237,0.70)"></circle></svg>',
+              offset: new window.AMap.Pixel(-9, -9),
+              content: markerEl,
               anchor: "center",
               clickable: true,
             }});
+            mk.on("mouseover", () => {{
+              openMarkerInfo(n, lng, lat);
+            }});
+            mk.on("mousemove", () => {{
+              openMarkerInfo(n, lng, lat);
+            }});
+            mk.on("mouseout", () => {{
+              closeMarkerInfo();
+            }});
             mk.on("click", () => {{
               try {{
-                const years = formatYearRange(n.birth_year, n.death_year);
-                const dynasty = String(n.dynasty || "").trim();
-                const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
-                const quote = stripMd(String(n.quote || "").trim());
-                const review = stripMd(String(n.review || "").trim());
-                const tagline = stripOuterQuotes(review || quote);
-                const personJs = String(n.person || "")
-                  .replace(/\\/g, "\\\\")
-                  .replace(/'/g, "\\'");
-                let html = '';
-                html += '<div style="min-width:220px;max-width:280px">';
-                html += '<div style="font-weight:800;color:#0f172a;font-size:14px">' + esc(n.person) + '</div>';
-                html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">生卒：' + esc(years) + '</div>';
-                if (dynasty) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">时代：' + esc(dynasty) + '</div>';
-                if (bp) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">籍贯：' + esc(bp) + '</div>';
-                if (tagline) html += '<div style="margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4">“' + esc(tagline) + '”</div>';
-                html += "<div style=\"margin-top:8px\"><button onclick=\"window.__openPerson && window.__openPerson('" + personJs + "')\" style=\"background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer\">打开人物页</button></div>";
-                html += '</div>';
-                if (infoWin) {{
-                  infoWin.setContent(html);
-                  infoWin.open(amap, [lng, lat]);
-                }}
+                openMarkerInfo(n, lng, lat);
               }} catch (_) {{}}
             }});
             mk.on("dblclick", () => openPerson(n.person));
             try {{ mk.setMap(amap); }} catch (_) {{}}
-            markers.push({{ mk, n }});
+            markers.push({{ mk, n, el: markerEl }});
           }};
 
           for (const n of nodes) addMarker(n);
           updateCoordCount();
-          try {{
-            const Cluster = window.AMap.MarkerClusterer || window.AMap.MarkerCluster;
-            if (Cluster) {{
-              try {{
-                clusterer = new Cluster(amap, markers.map((x) => x.mk), {{
-                  gridSize: 72,
-                  minClusterSize: 2,
-                  maxZoom: 7,
-                }});
-              }} catch (_) {{
-                clusterer = null;
-              }}
-            }}
-          }} catch (_) {{}}
+          clusterer = null;
           updateMapMarkers();
           mapCameraTouched = false;
-          scheduleMapFit(true);
 
           const autoFillCoords = () => {{
             let need = 0;
@@ -3025,10 +3271,6 @@ def _render_index_html(title: str, data_file: str) -> str:
                       coordCache[person] = [w.lat, w.lng];
                       writeCoordCache(coordCache);
                       addMarker(n);
-                      try {{
-                        if (clusterer && typeof clusterer.addMarker === "function") clusterer.addMarker(markers[markers.length - 1].mk);
-                        else if (clusterer && typeof clusterer.addMarkers === "function") clusterer.addMarkers([markers[markers.length - 1].mk]);
-                      }} catch (_) {{}}
                       updateCoordCount();
                       updateMapMarkers();
                       _markCoordDirty(person, w.lat, w.lng);
@@ -3043,10 +3285,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           autoFillCoords();
         }}).catch((e) => {{
           mapInited = false;
-          const gate = _amapKeyGate();
-          if (gate && $chinaMap && !$chinaMap.querySelector("#amap-key")) {{
-            $chinaMap.appendChild(gate);
-          }}
+          try {{ console.warn("[stellar-map] amap init failed", e); }} catch (_) {{}}
         }});
       }};
 
@@ -3061,63 +3300,45 @@ def _render_index_html(title: str, data_file: str) -> str:
         }})() : null;
         for (const it of markers) {{
           const n = it.n;
+          const idx = typeof n._idx === "number" ? n._idx : -1;
           const active = inWindow(n);
-          if (onlyActiveMarkers && !active) {{
+          const forceVisible = idx >= 0 && idx === hiIdx;
+          if (onlyActiveMarkers && !active && !forceVisible) {{
             try {{ it.mk.hide(); }} catch (_) {{}}
             continue;
           }}
           try {{ it.mk.show(); }} catch (_) {{}}
-          const idx = typeof n._idx === "number" ? n._idx : -1;
           const dim = focusSet && idx >= 0 && !focusSet.has(idx);
-          const sz = dim ? 9 : (active ? 13 : 11);
+          const emph = active || forceVisible;
+          const sz = dim ? 16 : (emph ? 20 : 18);
           const base = colorByYear(n.time_year);
           const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
           const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
           const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
           const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
-          const fill = dim ? "rgba(232,234,237,0.18)" : (active ? accent : (focusSet ? accentSoft : "rgba(232,234,237,0.66)"));
-          const glow = dim ? "rgba(154,160,166,0.08)" : (active ? glowStrong : glowSoft);
-          const anim = (!dim && active) ? "animation:twinkle 2.2s ease-in-out infinite;" : "";
-          it.mk.setContent(`<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="${{anim}}filter:drop-shadow(0 0 ${{active ? 10 : 6}}px ${{glow}});"><circle cx="12" cy="12" r="9" fill="${{fill}}"></circle></svg>`);
+          const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : (focusSet ? accentSoft : "rgba(232,234,237,0.66)"));
+          const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
+          if (it.el) {{
+            it.el.style.width = `${{sz}}px`;
+            it.el.style.height = `${{sz}}px`;
+            it.el.innerHTML = markerSvg(sz, fill, glow, emph);
+            it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
+          }} else {{
+            it.mk.setContent(markerSvg(sz, fill, glow, emph));
+          }}
           it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
         }}
       }};
 
       if ($tabGraph) $tabGraph.addEventListener("click", () => setTab("graph"));
       if ($tabMap) $tabMap.addEventListener("click", () => setTab("map"));
-      if ($onlyActiveMarkers) {{
-        $onlyActiveMarkers.addEventListener("change", () => {{
-          onlyActiveMarkers = Boolean($onlyActiveMarkers.checked);
-          updateMapMarkers();
-          scheduleMapFit();
-        }});
-      }}
-      if ($focusPerson) {{
-        $focusPerson.addEventListener("click", () => {{
-          const n = spotlight || selected;
-          if (!n) return;
-          if (currentTab !== "map") {{
-            setTab("map");
-          }}
-          setTimeout(() => {{
-            centerMapOnPerson(n);
-          }}, 260);
-        }});
-      }}
       if ($presetBar) {{
         $presetBar.addEventListener("click", (e) => {{
           const t = e && e.target ? e.target : null;
           const btn = t && t.closest ? t.closest("button[data-preset]") : null;
           const key = btn ? String(btn.getAttribute("data-preset") || "") : "";
           if (!key) return;
-          const presets = {{
-            all: [minYear, maxYear],
-            tang: [618, 907],
-            song: [960, 1279],
-            mingqing: [1368, 1840],
-            modern: [1840, 1911],
-            contemporary: [1911, maxYear],
-          }};
+          const presets = getPresetRanges();
           const r = presets[key];
           if (!r) return;
           startYear = clamp(r[0], minYear, maxYear);
@@ -3130,19 +3351,12 @@ def _render_index_html(title: str, data_file: str) -> str:
           draw();
         }});
       }}
-      const resetGraphView = () => {{
-        camScale = 1.0;
-        camOffX = 0.0;
-        camOffY = 0.0;
-        setSelected(null);
-      }};
       const resetMapView = () => {{
         try {{
           mapCameraTouched = false;
-          if (amap) amap.setZoomAndCenter(4, [105.0, 35.5]);
+          applyChinaOverview();
         }} catch (_) {{}}
       }};
-      if ($resetGraph) $resetGraph.addEventListener("click", resetGraphView);
       if ($resetMap) $resetMap.addEventListener("click", resetMapView);
       setTab("graph");
 
@@ -3171,6 +3385,11 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (_clickTimer) clearTimeout(_clickTimer);
         _clickTimer = setTimeout(() => {{
           if (n) {{
+            if (selected && typeof selected._idx === "number" && selected._idx === n._idx) {{
+              openPerson(n.person);
+              _clickTimer = null;
+              return;
+            }}
             setSelected(n);
           }} else {{
             setSelected(null);
@@ -3216,20 +3435,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         camOffY = panStartOffY + (e.clientY - panStartY) * (H / $c.getBoundingClientRect().height);
         draw();
       }});
-      $c.addEventListener("wheel", (e) => {{
-        const rect = $c.getBoundingClientRect();
-        const mx = (e.clientX - rect.left) * (W / rect.width);
-        const my = (e.clientY - rect.top) * (H / rect.height);
-        const before = screenToWorld(mx, my);
-        const dir = e.deltaY > 0 ? -1 : 1;
-        const factor = dir > 0 ? 1.12 : 1 / 1.12;
-        camScale = clamp(camScale * factor, 0.35, 3.8);
-        camOffX = mx - before.x * camScale;
-        camOffY = my - before.y * camScale;
-        draw();
-        try {{ e.preventDefault(); }} catch (_) {{}}
-      }}, {{ passive: false }});
-
       const railRect = () => $rail.getBoundingClientRect();
 
       const hitTestHandle = (e) => {{
@@ -3292,12 +3497,11 @@ def _render_index_html(title: str, data_file: str) -> str:
             const t = clamp(toT(dragStartB) + dt, toT(dragStartA) + 0.01, 1);
             endYear = fromT(t);
           }} else if (dragMode === "mid") {{
-            let a = dragStartA + Math.round(dt * (maxYear - minYear));
-            let b = a + span;
-            if (a < minYear) {{ a = minYear; b = a + span; }}
-            if (b > maxYear) {{ b = maxYear; a = b - span; }}
-            startYear = a;
-            endYear = b;
+            const spanT = Math.max(0.01, toT(dragStartB) - toT(dragStartA));
+            const nextStartT = clamp(toT(dragStartA) + dt, 0, 1 - spanT);
+            const nextEndT = clamp(nextStartT + spanT, spanT, 1);
+            startYear = fromT(nextStartT);
+            endYear = fromT(nextEndT);
           }}
         }}
         if (startYear >= endYear) {{
@@ -3315,10 +3519,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         if (!dragMode) return;
         const wasBrush = (dragMode === "brush");
         dragMode = "";
-        if (wasBrush && currentTab === "graph") {{
-          zoomToFitWindowNodes();
-          draw();
-        }}
+        if (wasBrush && currentTab === "graph") draw();
       }};
 
       $rail.addEventListener("pointerdown", onDown);
@@ -3349,6 +3550,12 @@ def _render_index_html(title: str, data_file: str) -> str:
         }});
         $endYearInput.addEventListener("blur", applyYearInputs);
       }}
+      window.addEventListener("resize", () => {{
+        syncCanvasSize();
+        renderBands();
+        setHandles();
+        draw();
+      }});
 
       const groupKey = (n) => {{
         const role = String(n.main_role_band || "").trim();
@@ -3388,6 +3595,8 @@ def _render_index_html(title: str, data_file: str) -> str:
       fetch(DATA_FILE).then((r) => r.json()).then((data) => {{
         searchCapabilities = Object.assign({{ aliases: true, foreign_name: true, pinyin: false }}, data.search_capabilities || {{}});
         setSearchHint();
+        minYear = data.min_year ?? -800;
+        maxYear = data.max_year ?? 1840;
         const raw = (data.nodes || []);
         const roleBandOrder = Array.isArray(data.role_band_order) && data.role_band_order.length
           ? data.role_band_order
@@ -3420,20 +3629,18 @@ def _render_index_html(title: str, data_file: str) -> str:
           return true;
         }};
 
-        const place = (dx, dy, wantX, wantY) => {{
-          const x = clamp(wantX + dx, pad, W - pad);
+        const placeAtY = (dy, wantX, wantY) => {{
+          const x = clamp(wantX, pad, W - pad);
           const y = clamp(wantY + dy, pad, H - pad);
           if (isFree(x, y)) return [x, y];
           return null;
         }};
 
         const offsets = [];
-        for (let r = 0; r <= 6; r++) {{
+        offsets.push(0);
+        for (let r = 1; r <= 12; r++) {{
           const step = 10;
-          for (let a = 0; a < 12; a++) {{
-            const ang = (a / 12) * Math.PI * 2;
-            offsets.push([Math.cos(ang) * r * step, Math.sin(ang) * r * step]);
-          }}
+          offsets.push(r * step, -r * step);
         }}
 
         nodes = raw.map((n, idx) => {{
@@ -3445,8 +3652,8 @@ def _render_index_html(title: str, data_file: str) -> str:
           const y0 = pad + yLane * (H - pad * 2) + laneJitter(n);
 
           let best = null;
-          for (const [dx, dy] of offsets) {{
-            const p = place(dx, dy, x0, y0);
+          for (const dy of offsets) {{
+            const p = placeAtY(dy, x0, y0);
             if (p) {{ best = p; break; }}
           }}
           if (!best) {{
@@ -3457,18 +3664,10 @@ def _render_index_html(title: str, data_file: str) -> str:
           return {{ ...n, x, y, bx: x, by: y, _idx: idx }};
         }});
         edgesAll = [];
-        minYear = data.min_year ?? -800;
-        maxYear = data.max_year ?? 1840;
         startYear = data.default_start ?? 100;
-        endYear = data.default_end ?? 1200;
-        const savedWin = readTimeWindow();
-        if (savedWin) {{
-          const a = clamp(savedWin.a, minYear, maxYear);
-          const b = clamp(savedWin.b, minYear, maxYear);
-          startYear = Math.min(a, b);
-          endYear = Math.max(a, b);
-          if (startYear === endYear) endYear = clamp(startYear + 1, minYear, maxYear);
-        }}
+        endYear = data.default_end ?? 1600;
+        timeWindowSignature = [minYear, maxYear, startYear, endYear].join(":");
+        clearLegacyTimeWindow();
         applyEdgeFilters();
         renderBands();
         setHandles();
@@ -3499,7 +3698,7 @@ def main() -> int:
     p.add_argument("--out-data", default="stellar_home_data.json")
     p.add_argument("--title", default="故事地图")
     p.add_argument("--default-start", type=int, default=100)
-    p.add_argument("--default-end", type=int, default=1200)
+    p.add_argument("--default-end", type=int, default=1600)
     args = p.parse_args()
 
     story_map_dir = Path(args.story_map_dir).resolve()
@@ -4093,7 +4292,21 @@ def main() -> int:
                     foreign_cache[addr] = res
 
     md_names = _scan_people_from_story_md(story_md_dir)
-    names = sorted(set(md_names))
+    if not md_names:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": f"no story markdown found in {story_md_dir}",
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 1
+    # 首页只给“仍然只是别名”的名字生成跳转页；如果它已经有真实 Markdown，
+    # 就不能再被 redirect 覆盖。
+    active_redirects = person_redirects(md_names)
+    story_name_entries = _canonical_story_name_entries(md_names)
 
     spotlight_data = _read_json(spotlight_path)
     spotlight_items = spotlight_data.get("items") if isinstance(spotlight_data, dict) else {}
@@ -4125,7 +4338,7 @@ def main() -> int:
         review = ""
         if isinstance(spot, dict):
             quote = _pick_quote(spot)
-            review = str(spot.get("review") or "").strip()
+            review = _clean_review_text(str(spot.get("review") or ""))
         if name == "武则天" and not review:
             review = "千秋功过，后人评说。"
         return quote, review
@@ -4311,6 +4524,7 @@ def main() -> int:
             "birth_lng_wgs84": birth_lng,
             "birth_lat": birth_lat,
             "birth_lng": birth_lng,
+            "birth_coord_system": "WGS84" if birth_lat is not None and birth_lng is not None else "",
             "file": html_entry.file if html_entry else "",
             "has_story": has_story,
             "seed": _sha1_int(name),
@@ -4326,8 +4540,8 @@ def main() -> int:
     max_year: Optional[int] = None
     pending_amap: Dict[int, str] = {}
     pending_foreign: Dict[int, str] = {}
-    for name in names:
-        md_path = story_md_dir / f"{name}.md"
+    for name, source_name, redirect_aliases in story_name_entries:
+        md_path = story_md_dir / f"{source_name}.md"
         has_story = md_path.exists()
         md_text = ""
         birth_year = None
@@ -4358,7 +4572,7 @@ def main() -> int:
             min_year = death_year if min_year is None else min(min_year, death_year)
             max_year = death_year if max_year is None else max(max_year, death_year)
 
-        html_entry = latest_html.get(name)
+        html_entry = latest_html.get(name) or latest_html.get(source_name)
         quote, review = _resolve_spotlight_copy(name)
         main_role_band, main_role_label = _resolve_main_role_band(
             md_text=md_text,
@@ -4385,6 +4599,10 @@ def main() -> int:
         pending_foreign_query = str(birth_context.get("pending_foreign_query") or "")
         node_idx = len(nodes)
         _register_pending_birth_queries(node_idx, pending_amap_query, pending_foreign_query)
+        aliases = [str(x).strip() for x in aliases if str(x).strip()]
+        for alias_name in redirect_aliases:
+            if alias_name not in aliases and alias_name != name:
+                aliases.append(alias_name)
         search_fields = build_search_fields(name, aliases, foreign_name)
         dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
         nodes.append(
@@ -4458,7 +4676,15 @@ def main() -> int:
                 except Exception:
                     pass
 
-    person_to_idx = {n["person"]: i for i, n in enumerate(nodes)}
+    person_to_idx: Dict[str, int] = {}
+    for i, node in enumerate(nodes):
+        person_name = str(node.get("person") or "").strip()
+        if person_name and person_name not in person_to_idx:
+            person_to_idx[person_name] = i
+        for alias_name in node.get("aliases") if isinstance(node.get("aliases"), list) else []:
+            alias_text = str(alias_name or "").strip()
+            if alias_text and alias_text not in person_to_idx:
+                person_to_idx[alias_text] = i
     edges: List[Dict[str, Any]] = []
     kg_edges: List[Dict[str, int]] = []
 
@@ -4644,6 +4870,14 @@ def main() -> int:
         pass
     out_data.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     out_index.write_text(_render_index_html(args.title, out_data.name), encoding="utf-8")
+    for alias, canonical in active_redirects.items():
+        if not alias or not canonical:
+            continue
+        try:
+            redirect_path = story_map_dir / f"{alias}.html"
+            redirect_path.write_text(_render_person_alias_redirect_html(alias, canonical), encoding="utf-8")
+        except Exception:
+            pass
     _sync_vendor_assets(story_map_dir)
     print(json.dumps({"ok": True, "index": str(out_index), "data": str(out_data), "count": len(nodes)}, ensure_ascii=False))
     return 0

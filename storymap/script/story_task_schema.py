@@ -36,6 +36,7 @@ class AggregatedRuntimeMetadata(TypedDict, total=False):
     status: str
     status_info: StatusInfo
     runtime_people_count: int
+    watch_people_count: int
     degraded_people_count: int
     llm_calls_used: int
     llm_calls_limit: int
@@ -133,6 +134,7 @@ class TaskStorageStats(TypedDict, total=False):
     queued_count: int
     running_count: int
     completed_count: int
+    partial_failed_count: int
     failed_count: int
     oldest_updated_at: float
     newest_updated_at: float
@@ -168,6 +170,13 @@ def _safe_float(value: object, default: float = 0.0) -> float:
         return float(default)
 
 
+def _is_usable_result_item(item: object) -> bool:
+    data = dict(item or {}) if isinstance(item, dict) else {}
+    if bool(data.get("ok")):
+        return True
+    return str(data.get("status") or "").strip() == "degraded"
+
+
 _STATUS_LABELS = {
     "queued": ("排队中", "info"),
     "running": ("进行中", "info"),
@@ -175,6 +184,7 @@ _STATUS_LABELS = {
     "partial_failed": ("部分失败", "warning"),
     "failed": ("失败", "error"),
     "ok": ("正常", "success"),
+    "watch": ("需关注", "warning"),
     "degraded": ("已降级", "warning"),
     "empty": ("无运行信息", "muted"),
 }
@@ -236,11 +246,18 @@ def _build_aggregated_runtime_status_info(meta: Dict[str, object]) -> StatusInfo
     if not has_runtime:
         return build_status_info("empty", hint="当前任务结果没有可聚合的 runtime 元数据。")
     runtime_people_count = _safe_int(meta.get("runtime_people_count"))
+    watch_people_count = _safe_int(meta.get("watch_people_count"))
     degraded_people_count = _safe_int(meta.get("degraded_people_count"))
+    observed_people_count = max(runtime_people_count, watch_people_count, degraded_people_count)
     if degraded_people_count > 0:
         return build_status_info(
             "degraded",
-            hint=f"{runtime_people_count} 个人物中有 {degraded_people_count} 个 runtime 带降级信号。",
+            hint=f"{observed_people_count} 个人物中有 {degraded_people_count} 个结果或 runtime 带降级信号。",
+        )
+    if watch_people_count > 0:
+        return build_status_info(
+            "watch",
+            hint=f"{observed_people_count} 个人物中有 {watch_people_count} 个 runtime 需要关注。",
         )
     return build_status_info("ok", hint=f"{runtime_people_count} 个人物 runtime 正常。")
 
@@ -282,6 +299,19 @@ def _build_task_snapshot_status_info(status: object, *, result: object, error: o
     if code == "failed" and str(error or "").strip():
         return build_status_info(code, hint=str(error or "").strip())
     return build_status_info(code)
+
+
+def _build_task_list_status_info(status: object, *, result: object, error: object = "") -> StatusInfo:
+    base = _build_task_snapshot_status_info(status, result=result, error=error)
+    code = str(status or "").strip()
+    result_dict = dict(result or {}) if isinstance(result, dict) else {}
+    if code != "completed" or not result_dict:
+        return base
+    meta = normalize_aggregated_runtime_meta(result_dict.get("meta") or {})
+    meta_code = str(meta.get("status") or "").strip()
+    if meta_code in {"watch", "degraded"}:
+        return dict(meta.get("status_info") or {})
+    return base
 
 
 def normalize_agent_runtime_metadata(source: object) -> AgentRuntimeMetadata:
@@ -333,10 +363,12 @@ def normalize_aggregated_runtime_meta(source: object) -> AggregatedRuntimeMetada
     runtime_people_count = _safe_int(meta.get("runtime_people_count"))
     if runtime_people_count <= 0:
         runtime_people_count = len(dict(normalized.get("execution_traces") or {}))
+    watch_people_count = _safe_int(meta.get("watch_people_count"))
     degraded_people_count = _safe_int(meta.get("degraded_people_count"))
     if degraded_people_count <= 0 and normalized.get("degraded"):
         degraded_people_count = 1
     normalized["runtime_people_count"] = runtime_people_count
+    normalized["watch_people_count"] = watch_people_count
     normalized["degraded_people_count"] = degraded_people_count
     normalized["has_runtime"] = bool(
         runtime_people_count
@@ -419,23 +451,23 @@ def normalize_task_result_summary(source: object) -> TaskResultSummary:
     }
     if isinstance(data.get("multi"), dict):
         summary["multi"] = dict(data.get("multi") or {})
+    if not summary["success_count"] and summary["results"]:
+        summary["success_count"] = sum(1 for item in summary["results"] if _is_usable_result_item(item))
+    if not summary["failed_count"] and summary["results"]:
+        summary["failed_count"] = sum(1 for item in summary["results"] if not _is_usable_result_item(item))
+    if not summary["failed_people"] and summary["results"]:
+        summary["failed_people"] = [
+            str(item.get("person") or "").strip()
+            for item in summary["results"]
+            if not _is_usable_result_item(item) and str(item.get("person") or "").strip()
+        ]
     if not summary["status"]:
-        if summary["ok"]:
+        if summary["ok"] or (summary["success_count"] and not summary["failed_count"]):
             summary["status"] = "completed"
         elif summary["failed_count"] and summary["success_count"]:
             summary["status"] = "partial_failed"
         elif summary["failed_count"] or summary["results"]:
             summary["status"] = "failed"
-    if not summary["success_count"] and summary["results"]:
-        summary["success_count"] = sum(1 for item in summary["results"] if bool(item.get("ok")))
-    if not summary["failed_count"] and summary["results"]:
-        summary["failed_count"] = sum(1 for item in summary["results"] if not bool(item.get("ok")))
-    if not summary["failed_people"] and summary["results"]:
-        summary["failed_people"] = [
-            str(item.get("person") or "").strip()
-            for item in summary["results"]
-            if not bool(item.get("ok")) and str(item.get("person") or "").strip()
-        ]
     summary["status_info"] = _build_task_result_status_info(
         summary.get("status"),
         people=summary.get("people") or [],
@@ -485,10 +517,10 @@ def build_task_list_item(task: object) -> TaskListItem:
         "updated_at": _safe_float(data.get("updated_at")),
         "error": str(data.get("error") or ""),
         "has_result": isinstance(result, dict),
-        "result_ok": bool(result.get("ok")) if isinstance(result, dict) else False,
+        "result_ok": _is_usable_result_item(result) if isinstance(result, dict) else False,
         "people": people,
     }
-    item["status_info"] = _build_task_snapshot_status_info(status, result=result, error=item.get("error"))
+    item["status_info"] = _build_task_list_status_info(status, result=result, error=item.get("error"))
     return item
 
 

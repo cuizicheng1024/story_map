@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 import re
+import warnings
 from typing import Dict, List
 
 try:
-    from pypinyin import lazy_pinyin  # type: ignore
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"codecs\.open\(\) is deprecated.*",
+            category=DeprecationWarning,
+            module=r"pypinyin(\..*)?",
+        )
+        from pypinyin import lazy_pinyin  # type: ignore
 except Exception:
     lazy_pinyin = None
 

@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Any
 
+from storymap.script.project_paths import story_person_names
+
 
 def _pick_first_nonempty(lines: List[str]) -> str:
     for ln in lines:
@@ -38,6 +40,16 @@ def _extract_section(md: str, title: str) -> str:
     return "\n".join(buf).strip()
 
 
+def _clean_review_text(text: str) -> str:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"^\s*[-*•]\s*", "", cleaned)
+    cleaned = re.sub(r"^\d+\.\s*", "", cleaned)
+    cleaned = re.sub(r"^(?:人物)?短评\s*[：:]\s*", "", cleaned)
+    return cleaned.strip()
+
+
 def _summarize(md: str) -> Dict[str, Any]:
     head = "\n".join(md.splitlines()[:200])
     quotes = _extract_quotes(md)
@@ -50,7 +62,7 @@ def _summarize(md: str) -> Dict[str, Any]:
 
     review = _extract_section(md, "### 历史评价")
     review_lines = [ln.strip() for ln in review.splitlines() if ln.strip().startswith(("-", "1.", "2.", "3."))]
-    review_pick = _pick_first_nonempty(review_lines)
+    review_pick = _clean_review_text(_pick_first_nonempty(review_lines))
     if review_pick and len(review_pick) > 90:
         review_pick = review_pick[:90].rstrip() + "…"
 
@@ -74,8 +86,10 @@ def main() -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     out: Dict[str, Any] = {}
-    for p in sorted(story_dir.glob("*.md")):
-        name = p.stem
+    for name in story_person_names(story_dir):
+        p = story_dir / f"{name}.md"
+        if not p.is_file():
+            continue
         md = p.read_text(encoding="utf-8", errors="ignore")
         out[name] = _summarize(md)
 

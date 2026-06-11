@@ -37,6 +37,7 @@ def create_story_map_runtime(
     vendor_cache: Dict[str, Tuple[str, bytes]],
     vendor_lock: object,
     amap_config_js: Callable[[], bytes],
+    geovis_config_js: Callable[[], bytes],
     update_home_coords: Callable[[object, threading.Lock], Tuple[int, Dict[str, object]]],
     get_llm_client: Callable[..., object],
     local_agent_reply: Callable[[object], object],
@@ -102,6 +103,7 @@ def create_story_map_runtime(
         task_service=task_service,
         proxy_service=proxy_service,
         amap_config_js=amap_config_js,
+        geovis_config_js=geovis_config_js,
         coords_bulk_update=coords_bulk_update,
     )
 

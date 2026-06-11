@@ -33,8 +33,11 @@ def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monk
     monkeypatch.setattr(module, "LOW_COVERAGE_MD", data_dir / "low_coverage_story_report.md")
     monkeypatch.setattr(module, "BAD_PERSON_NAMES", frozenset())
     monkeypatch.setattr(module, "_run_markdown_smoke_check", lambda _scope: 0)
+    commands = []
 
     def _fake_run(cmd, cwd=None):
+        _ = cwd
+        commands.append(cmd)
         cmd_text = " ".join(cmd)
         if "tools/build_people_master.py" in cmd_text:
             out_path = Path(cmd[cmd.index("--out") + 1])
@@ -49,7 +52,23 @@ def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monk
             return 0
         if "cli/generate_pure_story_map.py" in cmd_text:
             for person in ("李白", "王昭君"):
-                (story_map_dir / f"{person}.html").write_text(f"<html>{person}</html>", encoding="utf-8")
+                (story_map_dir / f"{person}.html").write_text(
+                    (
+                        "<html><script>const data = "
+                        + json.dumps(
+                            {"person": {"name": person}, "templateSignature": module.profile_template_signature()},
+                            ensure_ascii=False,
+                        )
+                        + ";window.__EXPORT_DATA__ = data;</script></html>"
+                    ),
+                    encoding="utf-8",
+                )
+            return 0
+        if "tools/build_pep_people_spotlight.py" in cmd_text:
+            (data_dir / "pep_people_spotlight.json").write_text(
+                json.dumps({"items": {"李白": {"review": "浪漫主义诗歌高峰。"}}}, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
             return 0
         if "tools/build_stellar_homepage.py" in cmd_text:
             module.HOME_DATA.write_text(
@@ -88,6 +107,9 @@ def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monk
     assert (story_map_dir / "index.html").exists()
     assert (story_map_dir / "李白.html").exists()
     assert (story_map_dir / "王昭君.html").exists()
+    spotlight_idx = next(i for i, cmd in enumerate(commands) if "tools/build_pep_people_spotlight.py" in " ".join(cmd))
+    homepage_idx = next(i for i, cmd in enumerate(commands) if "tools/build_stellar_homepage.py" in " ".join(cmd))
+    assert spotlight_idx < homepage_idx
 
 
 def test_build_all_fails_fast_when_validation_report_has_errors(tmp_path, monkeypatch):
@@ -156,3 +178,192 @@ def test_build_all_can_explicitly_allow_validation_errors(tmp_path, monkeypatch)
     rc = module.main()
 
     assert rc == 0
+
+
+def test_build_all_uses_pure_mode_for_changed_html_by_default(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_all")
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_map_dir = tmp_path / "artifacts" / "story_map"
+    data_dir = tmp_path / "data"
+    story_dir.mkdir(parents=True)
+    story_map_dir.mkdir(parents=True)
+    data_dir.mkdir(parents=True)
+    (story_dir / "李白.md").write_text("# 李白\n", encoding="utf-8")
+
+    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(module, "STORY_DIR", story_dir)
+    monkeypatch.setattr(module, "STORY_MAP_DIR", story_map_dir)
+    monkeypatch.setattr(module, "DATA_DIR", data_dir)
+    monkeypatch.setattr(module, "HOME_DATA", story_map_dir / "stellar_home_data.json")
+    monkeypatch.setattr(module, "MANIFEST_JSON", data_dir / "build_manifest.json")
+    monkeypatch.setattr(module, "VALIDATION_JSON", data_dir / "build_validation_report.json")
+    monkeypatch.setattr(module, "MARKDOWN_SMOKE_JSON", data_dir / "markdown_smoke_report.json")
+    monkeypatch.setattr(module, "LOW_COVERAGE_JSON", data_dir / "low_coverage_story_report.json")
+    monkeypatch.setattr(module, "LOW_COVERAGE_MD", data_dir / "low_coverage_story_report.md")
+    monkeypatch.setattr(module, "BAD_PERSON_NAMES", frozenset())
+    monkeypatch.setattr(module, "_run_markdown_smoke_check", lambda _scope: 0)
+    monkeypatch.setattr(module, "_patch_master_with_has_story", lambda _path: {"updated": 0, "total": 0})
+    monkeypatch.setattr(module, "_patch_home_with_has_story", lambda _path: {"updated": 0, "total": 0})
+    monkeypatch.setattr(module, "_build_manifest", lambda: {"ok": True})
+    monkeypatch.setattr(module, "_build_validation_report", lambda: {"ok": True, "summary": {"error_count": 0, "warning_count": 0}})
+
+    commands = []
+
+    def fake_run(cmd, cwd=None):
+        _ = cwd
+        commands.append(cmd)
+        if "build_people_master.py" in " ".join(cmd):
+            out_path = Path(cmd[cmd.index("--out") + 1])
+            out_path.write_text(json.dumps({"people": [], "count": 0}, ensure_ascii=False), encoding="utf-8")
+        elif "build_stellar_homepage.py" in " ".join(cmd):
+            module.HOME_DATA.write_text(json.dumps({"nodes": []}, ensure_ascii=False), encoding="utf-8")
+            (story_map_dir / "index.html").write_text("<html>index</html>", encoding="utf-8")
+        elif "report_low_coverage_places.py" in " ".join(cmd):
+            module.LOW_COVERAGE_JSON.write_text(json.dumps({"items": []}, ensure_ascii=False), encoding="utf-8")
+            module.LOW_COVERAGE_MD.write_text("# empty\n", encoding="utf-8")
+        return 0
+
+    monkeypatch.setattr(module, "_run", fake_run)
+    monkeypatch.setattr(sys, "argv", ["build_all.py", "--markdown-smoke-check", "off"])
+
+    rc = module.main()
+
+    assert rc == 0
+    render_cmd = next(cmd for cmd in commands if "cli/generate_pure_story_map.py" in " ".join(cmd))
+    assert render_cmd[render_cmd.index("--changed-mode") + 1] == "pure"
+
+
+def test_build_validation_report_flags_stale_profile_template(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_all")
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_map_dir = tmp_path / "artifacts" / "story_map"
+    data_dir = tmp_path / "data"
+    story_dir.mkdir(parents=True)
+    story_map_dir.mkdir(parents=True)
+    data_dir.mkdir(parents=True)
+
+    (story_dir / "李白.md").write_text("# 李白\n", encoding="utf-8")
+    (story_map_dir / "李白.html").write_text("<html><script>const data = {\"person\":{\"name\":\"李白\"}};window.__EXPORT_DATA__ = data;</script></html>", encoding="utf-8")
+    (data_dir / "people_master.json").write_text(
+        json.dumps({"people": [{"person": "李白", "has_story": True, "story_md": "storymap/examples/story/李白.md"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (story_map_dir / "stellar_home_data.json").write_text(
+        json.dumps({"nodes": [{"person": "李白", "file": "李白.html", "has_story": True, "birth_lat_wgs84": 30.0, "birth_lng_wgs84": 120.0}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (data_dir / "people_birth_coords_wgs84.json").write_text(json.dumps({"李白": [30.0, 120.0]}, ensure_ascii=False), encoding="utf-8")
+
+    monkeypatch.setattr(module, "STORY_DIR", story_dir)
+    monkeypatch.setattr(module, "STORY_MAP_DIR", story_map_dir)
+    monkeypatch.setattr(module, "DATA_DIR", data_dir)
+    monkeypatch.setattr(module, "HOME_DATA", story_map_dir / "stellar_home_data.json")
+
+    report = module._build_validation_report()
+
+    assert report["ok"] is False
+    stale_issue = next(item for item in report["errors"] if item["code"] == "story_html_template_stale")
+    assert stale_issue["samples"] == ["李白"]
+
+
+def test_patch_has_story_uses_publishable_story_people(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_all")
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_map_dir = tmp_path / "artifacts" / "story_map"
+    data_dir = tmp_path / "data"
+    story_dir.mkdir(parents=True)
+    story_map_dir.mkdir(parents=True)
+    data_dir.mkdir(parents=True)
+    (story_dir / "李白.md").write_text("# 李白\n", encoding="utf-8")
+    (story_dir / "嫦娥.md").write_text("# 嫦娥\n", encoding="utf-8")
+
+    master_path = data_dir / "people_master.json"
+    master_path.write_text(
+        json.dumps(
+            {
+                "people": [
+                    {"person": "李白", "has_story": False, "story_md": ""},
+                    {"person": "嫦娥", "has_story": True, "story_md": "storymap/examples/story/嫦娥.md"},
+                ]
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    home_path = story_map_dir / "stellar_home_data.json"
+    home_path.write_text(
+        json.dumps(
+            {
+                "nodes": [
+                    {"person": "李白", "has_story": False},
+                    {"person": "嫦娥", "has_story": True},
+                ]
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(module, "STORY_DIR", story_dir)
+    monkeypatch.setattr(module, "story_person_names", lambda path: ["李白"])
+
+    master_stat = module._patch_master_with_has_story(master_path)
+    home_stat = module._patch_home_with_has_story(home_path)
+    master_payload = json.loads(master_path.read_text(encoding="utf-8"))
+    home_payload = json.loads(home_path.read_text(encoding="utf-8"))
+
+    assert master_stat == {"updated": 2, "total": 2}
+    assert home_stat == {"updated": 2, "total": 2}
+    assert master_payload["people"] == [
+        {"person": "李白", "has_story": True, "story_md": "storymap/examples/story/李白.md"},
+        {"person": "嫦娥", "has_story": False, "story_md": ""},
+    ]
+    assert home_payload["nodes"] == [
+        {"person": "李白", "has_story": True},
+        {"person": "嫦娥", "has_story": False},
+    ]
+
+
+def test_build_validation_report_ignores_non_publishable_story_markdown(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_all")
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_map_dir = tmp_path / "artifacts" / "story_map"
+    data_dir = tmp_path / "data"
+    story_dir.mkdir(parents=True)
+    story_map_dir.mkdir(parents=True)
+    data_dir.mkdir(parents=True)
+
+    (story_dir / "李白.md").write_text("# 李白\n", encoding="utf-8")
+    (story_dir / "嫦娥.md").write_text("# 嫦娥 神话人物\n", encoding="utf-8")
+    (story_map_dir / "李白.html").write_text(
+        "<html><script>const data = {\"person\":{\"name\":\"李白\"},\"templateSignature\":\"ok\"};window.__EXPORT_DATA__ = data;</script></html>",
+        encoding="utf-8",
+    )
+    (data_dir / "people_master.json").write_text(
+        json.dumps({"people": [{"person": "李白", "has_story": True, "story_md": "storymap/examples/story/李白.md"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (data_dir / "people_master_pep.json").write_text(
+        json.dumps({"people": [{"person": "李白", "has_story": True, "story_md": "storymap/examples/story/李白.md"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (story_map_dir / "stellar_home_data.json").write_text(
+        json.dumps({"nodes": [{"person": "李白", "file": "李白.html", "has_story": True, "birth_lat_wgs84": 30.0, "birth_lng_wgs84": 120.0}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (data_dir / "people_birth_coords_wgs84.json").write_text(json.dumps({"李白": [30.0, 120.0]}, ensure_ascii=False), encoding="utf-8")
+
+    monkeypatch.setattr(module, "STORY_DIR", story_dir)
+    monkeypatch.setattr(module, "STORY_MAP_DIR", story_map_dir)
+    monkeypatch.setattr(module, "DATA_DIR", data_dir)
+    monkeypatch.setattr(module, "HOME_DATA", story_map_dir / "stellar_home_data.json")
+    monkeypatch.setattr(module, "story_person_names", lambda path: ["李白"])
+    monkeypatch.setattr(module, "profile_template_signature", lambda: "ok")
+
+    report = module._build_validation_report()
+
+    assert report["ok"] is True
+    samples = [sample for issue in report["errors"] + report["warnings"] for sample in issue.get("samples", [])]
+    assert "嫦娥" not in samples

@@ -1,10 +1,9 @@
 """
 map_client
 职责：与地图与地理计算相关的通用能力层，供 story_map 集成调用。
-- 地理编码：优先通过 QVeris 接入的高德工具（AMap/GCJ-02），拿到结果后统一转换为 WGS84；失败回退 OSM（原生 WGS84）
+- 地理编码：优先通过高德 WebService（GCJ-02），拿到结果后统一转换为 WGS84；失败回退 OSM（原生 WGS84）；国外地名再兜底百科坐标接口
 - 距离计算：本地 Haversine
-- 地图渲染：通过 QVeris 提供的高德地图渲染接口生成 HTML 片段
-依赖环境变量：QVERIS_API_URL/QVERIS_BASE_URL、QVERIS_API_KEY（可选）
+- 地图渲染：由本地 HTML 渲染模块生成页面
 """
 import json
 import math
@@ -33,6 +32,16 @@ _GEOCODE_ENDPOINTS = [
     ("https://geocode.maps.co/search?q={}", "list"),
     ("https://photon.komoot.io/api/?limit=1&q={}", "photon"),
 ]
+_WIKIDATA_SEARCH_ENDPOINT = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&type=item&limit=5&language={language}&uselang={language}&search={query}"
+_WIKIDATA_ENTITY_ENDPOINT = "https://www.wikidata.org/wiki/Special:EntityData/{entity_id}.json"
+_FOREIGN_LOCATION_MARKERS = (
+    "吉尔吉斯斯坦", "巴基斯坦", "阿富汗", "澳大利亚", "新西兰", "阿根廷", "葡萄牙",
+    "俄罗斯", "美国", "英国", "法国", "德国", "日本", "韩国", "朝鲜", "越南", "泰国",
+    "缅甸", "老挝", "柬埔寨", "印度", "伊朗", "伊拉克", "土耳其", "埃及", "加拿大",
+    "墨西哥", "巴西", "西班牙", "意大利", "荷兰", "比利时", "瑞士", "瑞典", "挪威",
+    "芬兰", "丹麦", "爱尔兰", "以色列", "沙特", "阿联酋", "卡塔尔", "南非", "共和国",
+    "王国", "联邦", "斯坦",
+)
 
 _LOGGER = logging.getLogger("map_client")
 if not _LOGGER.handlers:
@@ -146,21 +155,6 @@ load_project_env(from_file=__file__, override=False)
 _load_geocode_cache()
 
 
-def _http_post_json(url: str, headers: Dict[str, str], body: Dict[str, object]) -> Optional[object]:
-    """
-    使用 POST 请求发送 JSON，并返回解析后的 JSON 对象。
-    任何网络或解析异常统一回退为 None，避免上层调用中断。
-    """
-    try:
-        req = Request(url, headers=headers, data=json.dumps(body).encode("utf-8"), method="POST")
-        with urlopen(req, timeout=20) as resp:
-            data = resp.read()
-            return json.loads(data.decode("utf-8", errors="ignore"))
-    except Exception as exc:
-        _LOGGER.warning("http_post_failed url=%s error=%s", url, exc)
-        return None
-
-
 def _parse_latlon_pair(parts: Iterable[str]) -> Optional[Tuple[float, float]]:
     """
     将字符串列表解析为 (lat, lon)。
@@ -183,99 +177,6 @@ def _parse_latlon_pair(parts: Iterable[str]) -> Optional[Tuple[float, float]]:
         return a, b
     return a, b
 
-
-def _extract_latlon(value: object) -> Optional[Tuple[float, float]]:
-    """
-    递归从多形态数据中提取 (lat, lon)。
-    支持字符串 "lon,lat" / "lat,lon"，列表嵌套与常见字段名称。
-    """
-    if value is None:
-        return None
-    if isinstance(value, (int, float)):
-        return None
-    if isinstance(value, str):
-        # 兼容 "lat,lon" 或 "lon,lat" 字符串格式
-        return _parse_latlon_pair(value.split(","))
-    if isinstance(value, list):
-        # 列表内可能嵌套多种结构，递归寻找首个可用坐标
-        for item in value:
-            res = _extract_latlon(item)
-            if res:
-                return res
-        return None
-    if isinstance(value, dict):
-        # 常见字段组合优先提取
-        if "lat" in value and ("lon" in value or "lng" in value):
-            try:
-                lat = float(value.get("lat"))
-                lon = float(value.get("lon", value.get("lng")))
-                return lat, lon
-            except Exception:
-                pass
-        if "latitude" in value and ("longitude" in value or "lng" in value):
-            try:
-                lat = float(value.get("latitude"))
-                lon = float(value.get("longitude", value.get("lng")))
-                return lat, lon
-            except Exception:
-                pass
-        for key in ("location", "center", "lnglat"):
-            if key in value:
-                res = _extract_latlon(value.get(key))
-                if res:
-                    return res
-        # 兜底遍历字典子项
-        for v in value.values():
-            res = _extract_latlon(v)
-            if res:
-                return res
-    return None
-
-
-class QVerisClient:
-    """
-    QVeris 的轻量调用器：
-    - 统一管理 API URL 与 API Key
-    - 提供地理编码与距离计算的薄封装
-    """
-    def __init__(self, api_url: str, api_key: str):
-        self.api_url = api_url.rstrip("/")
-        self.api_key = api_key
-
-    def _execute(self, tool_id: str, parameters: Dict[str, object]) -> Optional[object]:
-        """
-        调用 QVeris 工具执行接口，返回 data 字段或原始数据。
-        """
-        if not tool_id:
-            return None
-        url = f"{self.api_url}/tools/execute?tool_id={tool_id}"
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
-        body = {"parameters": parameters, "max_response_size": 20480}
-        data = _http_post_json(url, headers, body)
-        if not isinstance(data, dict):
-            return None
-        result = data.get("result")
-        if isinstance(result, dict) and "data" in result:
-            # 兼容 result.data 的响应形态
-            return result.get("data")
-        return data.get("data", data)
-
-    def geocode(self, name: str) -> Optional[Tuple[float, float]]:
-        """
-        使用 QVeris 的地理编码工具解析地点坐标。
-        兼容 address / keywords / q 三种参数形式。
-        """
-        tool_id = os.getenv("QVERIS_GEOCODE_TOOL_ID") or "amap_webservice.geocode.geo.retrieve.v3"
-        payload = self._execute(tool_id, {"address": name})
-        res = _extract_latlon(payload)
-        if res:
-            return res
-        payload = self._execute(tool_id, {"keywords": name})
-        res = _extract_latlon(payload)
-        if res:
-            return res
-        payload = self._execute(tool_id, {"q": name})
-        return _extract_latlon(payload)
 
 def _is_valid_coord(lat: object, lon: object) -> bool:
     try:
@@ -360,56 +261,16 @@ def _looks_foreign_location(text: str) -> bool:
     value = str(text or "")
     if not value:
         return False
-    markers = [
-        "斯坦",
-        "共和国",
-        "王国",
-        "联邦",
-        "俄罗斯",
-        "美国",
-        "英国",
-        "法国",
-        "德国",
-        "日本",
-        "韩国",
-        "朝鲜",
-        "越南",
-        "泰国",
-        "缅甸",
-        "老挝",
-        "柬埔寨",
-        "印度",
-        "巴基斯坦",
-        "阿富汗",
-        "伊朗",
-        "伊拉克",
-        "土耳其",
-        "埃及",
-        "澳大利亚",
-        "新西兰",
-        "加拿大",
-        "墨西哥",
-        "巴西",
-        "阿根廷",
-        "西班牙",
-        "意大利",
-        "葡萄牙",
-        "荷兰",
-        "比利时",
-        "瑞士",
-        "瑞典",
-        "挪威",
-        "芬兰",
-        "丹麦",
-        "爱尔兰",
-        "以色列",
-        "沙特",
-        "阿联酋",
-        "卡塔尔",
-        "南非",
-        "吉尔吉斯斯坦",
-    ]
-    return any(m in value for m in markers)
+    return any(m in value for m in _FOREIGN_LOCATION_MARKERS)
+
+
+def _is_meaningful_place_candidate(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if value in {"-", "--", "—", "——", "未知", "不详", "无", "暂无"}:
+        return False
+    return bool(re.search(r"[^\W_]", value, flags=re.UNICODE))
 
 
 def _build_geocode_candidates(name: str) -> List[str]:
@@ -433,6 +294,12 @@ def _build_geocode_candidates(name: str) -> List[str]:
             if left:
                 items.append(left)
             break
+    if _looks_foreign_location(base):
+        for marker in sorted(_FOREIGN_LOCATION_MARKERS, key=len, reverse=True):
+            if marker and base.startswith(marker):
+                trimmed = base[len(marker):].strip(" ，,；;:/·•()（）")
+                if trimmed:
+                    items.append(trimmed)
     if (
         _looks_chinese(base)
         and "中国" not in base
@@ -444,10 +311,104 @@ def _build_geocode_candidates(name: str) -> List[str]:
     out = []
     for item in items:
         t = item.strip()
-        if t and t not in seen:
+        if _is_meaningful_place_candidate(t) and t not in seen:
             seen.add(t)
             out.append(t)
     return out
+
+
+def _looks_like_place_description(text: str) -> bool:
+    value = str(text or "").lower()
+    if not value:
+        return False
+    markers = (
+        "城市", "首都", "城镇", "聚居地", "行政区", "地区", "省", "州", "郡", "县", "村",
+        "岛", "湖", "河", "山", "港", "共和国", "联邦", "王国", "capital", "city", "town",
+        "village", "municipality", "county", "province", "region", "state", "country",
+        "island", "lake", "river", "mountain", "settlement",
+    )
+    return any(marker in value for marker in markers)
+
+
+def _looks_like_non_place_description(text: str) -> bool:
+    value = str(text or "").lower()
+    if not value:
+        return False
+    markers = (
+        "人物", "作家", "诗人", "哲学家", "皇帝", "国王", "演员", "歌手", "导演", "政治家",
+        "学者", "human", "person", "writer", "poet", "philosopher", "actor", "singer",
+        "politician", "scientist",
+    )
+    return any(marker in value for marker in markers)
+
+
+def _fetch_json(url: str, *, timeout: int = 16) -> Optional[object]:
+    req = Request(url, headers={"User-Agent": _DEFAULT_USER_AGENT, "Accept": "application/json"})
+    for attempt in range(3):
+        try:
+            with _GEOCODE_HTTP_SEM:
+                _geocode_rate_limit()
+                with urlopen(req, timeout=timeout) as resp:
+                    return json.loads(resp.read().decode("utf-8", errors="ignore"))
+        except HTTPError as exc:
+            code = getattr(exc, "code", None)
+            if code in {429, 503} and attempt < 2:
+                time.sleep(0.8 * (attempt + 1))
+                continue
+            return None
+        except (URLError, TimeoutError):
+            if attempt < 2:
+                time.sleep(0.5 * (attempt + 1))
+                continue
+            return None
+        except Exception:
+            return None
+    return None
+
+
+def _geocode_wikidata(name: str) -> Optional[Tuple[float, float]]:
+    query = str(name or "").strip()
+    if not _is_meaningful_place_candidate(query):
+        return None
+    for language in ("zh", "en"):
+        search_url = _WIKIDATA_SEARCH_ENDPOINT.format(language=quote(language), query=quote(query))
+        payload = _fetch_json(search_url)
+        if not isinstance(payload, dict):
+            continue
+        items = payload.get("search") or []
+        if not isinstance(items, list):
+            continue
+        for item in items[:5]:
+            if not isinstance(item, dict):
+                continue
+            entity_id = str(item.get("id") or "").strip()
+            if not entity_id:
+                continue
+            description = str(item.get("description") or "").strip()
+            if _looks_like_non_place_description(description):
+                continue
+            if description and not _looks_like_place_description(description):
+                continue
+            entity_url = _WIKIDATA_ENTITY_ENDPOINT.format(entity_id=quote(entity_id))
+            entity_payload = _fetch_json(entity_url)
+            if not isinstance(entity_payload, dict):
+                continue
+            entity = ((entity_payload.get("entities") or {}) if isinstance(entity_payload.get("entities"), dict) else {}).get(entity_id)
+            claims = (entity or {}).get("claims") if isinstance(entity, dict) else None
+            coord_claims = claims.get("P625") if isinstance(claims, dict) else None
+            if not isinstance(coord_claims, list) or not coord_claims:
+                continue
+            for claim in coord_claims:
+                mainsnak = claim.get("mainsnak") if isinstance(claim, dict) else None
+                datavalue = mainsnak.get("datavalue") if isinstance(mainsnak, dict) else None
+                value = datavalue.get("value") if isinstance(datavalue, dict) else None
+                if not isinstance(value, dict):
+                    continue
+                lat = value.get("latitude")
+                lon = value.get("longitude")
+                if _is_valid_coord(lat, lon):
+                    return float(lat), float(lon)
+    return None
 
 
 def _geocode_nominatim(name: str, force_cn: bool = False) -> Optional[Tuple[float, float]]:
@@ -582,17 +543,10 @@ def _amap_webservice_geocode(address: str) -> Optional[Tuple[float, float]]:
     return None
 
 
-def _get_qveris_client_class():
-    """
-    预留扩展：允许在单测或外部注入自定义客户端。
-    """
-    return QVerisClient
-
-
 def geocode_city(name: str) -> Optional[Tuple[float, float]]:
     """城市/地址字符串 → WGS84 经纬度。
 
-    - 若命中 QVeris 接入的高德地理编码（通常为 GCJ-02），则在落库/渲染前统一转换为 WGS84。
+    - 若命中高德 WebService 地理编码（通常为 GCJ-02），则在落库/渲染前统一转换为 WGS84。
     - 若回退公共地理编码（OSM 系），则其结果本身即为 WGS84。
     """
     name = str(name or "").strip()
@@ -612,34 +566,34 @@ def geocode_city(name: str) -> Optional[Tuple[float, float]]:
                 _geocode_cache_set(name, res)
                 _geocode_cache_set(cand, res)
                 return res
-    api_url = os.getenv("QVERIS_API_URL") or os.getenv("QVERIS_BASE_URL")
-    api_key = os.getenv("QVERIS_API_KEY")
-    if api_url and api_key:
+    if looks_foreign or not looks_cn:
         for cand in candidates:
-            try:
-                QVC = _get_qveris_client_class()
-                if not QVC:
-                    raise RuntimeError("QVerisClient unavailable")
-                client = QVC(api_url=api_url, api_key=api_key)
-                res = client.geocode(cand)
-                if res:
-                    lat, lon = res
-                    # 中文地址默认要求落在国内范围，避免解析到海外同名地点
-                    if not looks_cn or _is_inside_china(lat, lon):
-                        # 高德地理编码结果通常为 GCJ-02，这里在落库/渲染前统一纠偏到 WGS84
-                        res_wgs84 = _gcj02_to_wgs84(lat, lon)
-                        _geocode_cache_set(name, res_wgs84)
-                        _geocode_cache_set(cand, res_wgs84)
-                        return res_wgs84
-            except Exception as e:
-                _LOGGER.warning("QVeris 地理编码调用失败 (candidate=%s): %s", cand, e)
-                continue
+            res = _geocode_wikidata(cand)
+            if res:
+                _geocode_cache_set(name, res)
+                _geocode_cache_set(cand, res)
+                return res
     for cand in candidates:
         res = _geocode_nominatim(cand, force_cn=looks_cn and not looks_foreign)
         if res:
             _geocode_cache_set(name, res)
             _geocode_cache_set(cand, res)
             return res
+    # 有些国外城市会以纯中文形式出现，例如“都柏林”。这会让首轮查询看起来像
+    # 国内地点；如果带中国偏置的检索失败，需要再走一轮更适合国外地点的兜底。
+    if looks_cn and not looks_foreign:
+        for cand in candidates:
+            res = _geocode_wikidata(cand)
+            if res:
+                _geocode_cache_set(name, res)
+                _geocode_cache_set(cand, res)
+                return res
+        for cand in candidates:
+            res = _geocode_nominatim(cand, force_cn=False)
+            if res:
+                _geocode_cache_set(name, res)
+                _geocode_cache_set(cand, res)
+                return res
     return None
 
 
@@ -767,12 +721,12 @@ def append_coords_section(md: str) -> str:
     section = []
     section.append("")
     section.append("## 地点坐标（自动地理编码）")
-    section.append("| 现称 | 现代搜索地名 | 纬度 | 经度 |")
-    section.append("| --- | --- | --- | --- |")
+    section.append("| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |")
+    section.append("| --- | --- | --- | --- | --- |")
     for p in places:
         if p in coords:
             lat, lon = coords[p]
-            section.append(f"| {p} | {p} | {lat:.6f} | {lon:.6f} |")
+            section.append(f"| {p} | {p} | {lat:.6f} | {lon:.6f} | WGS84 |")
     return "\n".join(lines + section)
 
 

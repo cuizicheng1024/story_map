@@ -44,7 +44,7 @@ AMAP_WEBSERVICE_KEY=你的高德 WebService Key
 
 LLM_PROVIDER=minimax
 LLM_API_KEY=你的大模型 Key
-LLM_BASE_URL=https://api.minimaxi.com/anthropic
+LLM_BASE_URL=https://api.minimaxi.com/v1
 LLM_MODEL_ID=MiniMax-M3
 ```
 
@@ -56,7 +56,7 @@ LLM_MODEL_ID=MiniMax-M3
 - `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发通常写 `http://127.0.0.1:8765`
 - `LLM_PROVIDER`：当前推荐使用 `minimax`
 - `LLM_API_KEY`：用于人物对话与新人物实时生成
-- `LLM_BASE_URL`：MiniMax Token Plan 推荐为 `https://api.minimaxi.com/anthropic`
+- `LLM_BASE_URL`：默认推荐使用 OpenAI 兼容地址 `https://api.minimaxi.com/v1`
 - `LLM_MODEL_ID`：默认推荐 `MiniMax-M3`
 
 ## 本地启动

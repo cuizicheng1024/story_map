@@ -1,3 +1,6 @@
+import importlib
+import warnings
+
 from tools import homepage_search
 
 
@@ -19,3 +22,15 @@ def test_build_search_fields_include_name_alias_and_foreign_name():
 def test_normalize_search_text_strips_spacing_and_punctuation():
     assert homepage_search.normalize_search_text(" Zhaojun-Wang ") == "zhaojunwang"
     assert homepage_search.normalize_search_text("《王昭君》") == "王昭君"
+
+
+def test_reload_homepage_search_suppresses_pypinyin_codecs_deprecation_warning():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        importlib.reload(homepage_search)
+
+    assert not any(
+        isinstance(item.message, DeprecationWarning)
+        and "codecs.open() is deprecated" in str(item.message)
+        for item in caught
+    )

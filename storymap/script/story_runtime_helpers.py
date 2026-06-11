@@ -47,6 +47,9 @@ def create_runtime_helpers(
     def amap_config_js() -> bytes:
         return runtime_support_utils.build_amap_config_js()
 
+    def geovis_config_js() -> bytes:
+        return runtime_support_utils.build_geovis_config_js()
+
     def local_history_reply(messages: object) -> str:
         return runtime_support_utils.local_history_reply(messages)
 
@@ -79,6 +82,7 @@ def create_runtime_helpers(
         "vendor_cache": vendor_cache,
         "vendor_lock": vendor_lock,
         "amap_config_js": amap_config_js,
+        "geovis_config_js": geovis_config_js,
         "local_history_reply": local_history_reply,
         "local_agent_reply": local_agent_reply,
         "fetch_vendor_bytes": fetch_vendor_bytes,

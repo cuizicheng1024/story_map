@@ -41,10 +41,12 @@ def create_profile_api(
         md: str,
         event_callback: Optional[callable] = None,
         *,
+        fallback_person: str = "",
         allow_geocode: bool = True,
     ) -> Optional[Dict[str, object]]:
         return profile_builder_utils.build_profile_data(
             md,
+            fallback_person=fallback_person,
             allow_geocode=allow_geocode,
             event_callback=event_callback,
             split_ancient_modern=split_ancient_modern,
@@ -77,10 +79,12 @@ def create_profile_api(
         md: str,
         event_callback: Optional[callable] = None,
         *,
+        fallback_person: str = "",
         allow_geocode: bool = True,
     ) -> Optional[Dict[str, object]]:
         return profile_builder_utils.load_profile_from_md(
             md,
+            fallback_person=fallback_person,
             allow_geocode=allow_geocode,
             event_callback=event_callback,
             split_ancient_modern=split_ancient_modern,

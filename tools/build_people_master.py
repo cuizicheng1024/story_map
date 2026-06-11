@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
-import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from storymap.script.person_registry import canonical_person_name
+from storymap.script.project_paths import is_publishable_person_markdown, is_valid_person_name, story_person_names
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -170,11 +172,9 @@ def _collect_people() -> List[str]:
                     else:
                         names.append(_safe_name(n))
 
-    for p in STORY_DIR.glob("*.md"):
-        if p.is_file():
-            names.append(p.stem.strip())
+    names.extend(story_person_names(STORY_DIR))
 
-    return sorted(_uniq(names))
+    return sorted([name for name in _uniq(names) if is_valid_person_name(name)])
 
 
 def _collect_people_pep() -> List[str]:
@@ -182,7 +182,7 @@ def _collect_people_pep() -> List[str]:
     if p.exists():
         data = _read_json(p)
         if isinstance(data, list):
-            return sorted(_uniq([_safe_name(x) for x in data]))
+            return sorted([name for name in _uniq([_safe_name(x) for x in data]) if is_valid_person_name(name)])
     kg = DATA_DIR / "people_knowledge_graph.json"
     if kg.exists():
         data = _read_json(kg)
@@ -195,7 +195,7 @@ def _collect_people_pep() -> List[str]:
                         names.append(_safe_name(n.get("id") or n.get("label")))
                     else:
                         names.append(_safe_name(n))
-                return sorted(_uniq(names))
+                return sorted([name for name in _uniq(names) if is_valid_person_name(name)])
     return []
 
 
@@ -214,6 +214,24 @@ def _ensure_story_md(
     if not fill_missing:
         return {"attempted": 0, "created": 0, "failures": []}
 
+    targets: List[str] = []
+    seen_targets = set()
+    available_story_names = story_person_names(STORY_DIR)
+    for name in people:
+        target = str(canonical_person_name(name, available_story_names) or name).strip()
+        if not target or target not in available_story_names or target in seen_targets:
+            continue
+        path = STORY_DIR / f"{target}.md"
+        if skip_existing and path.exists():
+            continue
+        targets.append(target)
+        seen_targets.add(target)
+        if limit and len(targets) >= limit:
+            break
+
+    if not targets:
+        return {"attempted": 0, "created": 0, "failures": []}
+
     _load_env()
     _add_storymap_to_syspath()
     from story_agents import StoryAgentLLM, generate_historical_markdown, save_markdown  # type: ignore
@@ -222,18 +240,6 @@ def _ensure_story_md(
         StoryAgentLLM()
     except Exception as e:
         return {"attempted": 0, "created": 0, "failures": [{"person": "", "error": f"{type(e).__name__}: {e}"}]}
-
-    targets: List[str] = []
-    for name in people:
-        path = STORY_DIR / f"{name}.md"
-        if skip_existing and path.exists():
-            continue
-        targets.append(name)
-        if limit and len(targets) >= limit:
-            break
-
-    if not targets:
-        return {"attempted": 0, "created": 0, "failures": []}
 
     attempted = len(targets)
     workers = max(1, int(concurrency or 1))
@@ -288,15 +294,16 @@ def main() -> int:
     items: List[Dict[str, object]] = []
     for name in people:
         md_path = STORY_DIR / f"{name}.md"
-        md_text = md_path.read_text(encoding="utf-8", errors="ignore") if md_path.exists() else ""
+        has_story = md_path.exists() and is_publishable_person_markdown(md_path)
+        md_text = md_path.read_text(encoding="utf-8", errors="ignore") if has_story else ""
         birth_year, death_year = _pick_years(md_text) if md_text else (None, None)
         dynasty = _pick_dynasty(md_text) if md_text else ""
         bp_raw, bp_ancient, bp_modern = _pick_birthplace(md_text) if md_text else ("", "", "")
         items.append(
             {
                 "person": name,
-                "has_story": md_path.exists(),
-                "story_md": str(md_path.relative_to(REPO_ROOT)) if md_path.exists() else "",
+                "has_story": has_story,
+                "story_md": str(md_path.relative_to(REPO_ROOT)) if has_story else "",
                 "birth_year": birth_year,
                 "death_year": death_year,
                 "dynasty": dynasty,

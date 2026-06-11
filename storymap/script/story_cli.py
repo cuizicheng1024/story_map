@@ -39,6 +39,19 @@ def _looks_like_person_name(text: str) -> bool:
     return not any(token in cleaned for token in _TASK_LIKE_TOKENS)
 
 
+def _is_usable_result(result: Dict[str, object]) -> bool:
+    if bool(result.get("ok")):
+        return True
+    return str(result.get("status") or "").strip() == "degraded"
+
+
+def _summarize_quality_issues(issues: List[str]) -> str:
+    cleaned = [str(item).strip() for item in list(issues or []) if str(item).strip()]
+    if not cleaned:
+        return ""
+    return "；".join(cleaned[:3])
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="生成人物生平 Markdown，并导出可交互地图 HTML"
@@ -73,6 +86,7 @@ def run_interactive(
     resolve_targets: Callable[[object, str, bool], List[str]],
     generate_historical_markdown: Callable[[object, str], str],
     enrich_markdown_for_map: Callable[[str], str],
+    validate_data_quality: Callable[[str], List[str]],
     print_quality_report: Callable[[str], None],
     save_markdown: Callable[[str, str], str],
     parse_places: Callable[[str], List[Dict[str, str]]],
@@ -119,20 +133,28 @@ def run_interactive(
             t_step = time.perf_counter()
             md = enrich_markdown_for_map(md)
             t_geo = time.perf_counter() - t_step
+            quality_issues = validate_data_quality(md)
             print_quality_report(md)
             saved = save_markdown(person, md)
-            print(f"已生成：{saved}")
             t_step = time.perf_counter()
+            render_error = ""
             try:
                 places = parse_places(md)
                 events = parse_events(md)
                 pts = build_points(places, events)
                 html = render_html(person, pts, md)
             except Exception as exc:
+                render_error = str(exc).strip() or "地图渲染失败"
                 logger.warning("render_failed person=%s error=%s", person, exc)
                 html = render_amap_html(person, [], "")
             t_render = time.perf_counter() - t_step
             out = save_html(person, html)
+            if render_error or quality_issues:
+                summary = render_error or _summarize_quality_issues(quality_issues) or "人物页存在待修正问题"
+                print(f"已生成（降级）：{saved}")
+                print(f"提示：{summary}")
+            else:
+                print(f"已生成：{saved}")
             print(out)
             total = time.perf_counter() - t0
             print(
@@ -167,10 +189,12 @@ def run_person_generation(
     for person in targets:
         print(f"正在生成 {person} 生平文档，可能需要一些时间...")
         result = generate_for_person(client, person)
-        if not result.get("ok"):
+        if not _is_usable_result(result):
             print(f"未取得：{person}")
             stats["failed"] += 1
             continue
+        if str(result.get("status") or "").strip() == "degraded":
+            print(f"已生成（降级）：{person}，地图使用回退结果")
         print(f"已生成：{result.get('markdown_path')}")
         print(result.get("html_path"))
         duration = result.get("duration") or {}

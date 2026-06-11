@@ -23,6 +23,7 @@ def create_app(
     task_service,
     proxy_service,
     amap_config_js,
+    geovis_config_js,
     coords_bulk_update,
 ) -> FastAPI:
     app = FastAPI(title="故事地图 API")
@@ -50,6 +51,11 @@ def create_app(
     async def amap_config(request: FastAPIRequest) -> Response:
         _enforce_origin(request, resolve_cors_origin)
         return Response(content=amap_config_js(), media_type="application/javascript; charset=utf-8")
+
+    @app.get("/geovis-config.js", include_in_schema=False)
+    async def geovis_config(request: FastAPIRequest) -> Response:
+        _enforce_origin(request, resolve_cors_origin)
+        return Response(content=geovis_config_js(), media_type="application/javascript; charset=utf-8")
 
     @app.get("/vendor/{name:path}", include_in_schema=False)
     async def vendor_asset(name: str, request: FastAPIRequest) -> Response:

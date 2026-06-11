@@ -25,6 +25,7 @@ class ToolSpec:
 @dataclass
 class ToolTrace:
     tool_name: str
+    agent_step: str
     success: bool
     attempt: int
     duration_ms: int
@@ -32,8 +33,8 @@ class ToolTrace:
     error: str = ""
     permission: str = ""
     cost_tier: str = ""
-    input_preview: str = ""
-    output_preview: str = ""
+    input_summary: str = ""
+    output_summary: str = ""
 
     def to_dict(self) -> Dict[str, object]:
         return asdict(self)
@@ -96,6 +97,7 @@ def invoke_tool(
     func: Callable[..., object],
     *args: object,
     trace_collector: Optional[List[Dict[str, object]]] = None,
+    agent_step: str = "",
     **kwargs: object,
 ) -> object:
     spec = getattr(func, "__tool__", None)
@@ -115,9 +117,15 @@ def invoke_tool(
         started = time.perf_counter()
         timed_out = False
         try:
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(func, *args, **kwargs)
+            executor = ThreadPoolExecutor(max_workers=1)
+            future = executor.submit(func, *args, **kwargs)
+            try:
                 result = future.result(timeout=max(0.001, float(spec.timeout_seconds)))
+            except Exception:
+                future.cancel()
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            executor.shutdown(wait=False, cancel_futures=False)
             output_errors = validate_schema(result, spec.output_schema, path="$output")
             if output_errors:
                 raise ValueError(f"{spec.name} 输出不符合 schema: {'; '.join(output_errors)}")
@@ -126,13 +134,14 @@ def invoke_tool(
                 trace_collector.append(
                     ToolTrace(
                         tool_name=spec.name,
+                        agent_step=str(agent_step or "").strip(),
                         success=True,
                         attempt=attempt,
                         duration_ms=duration_ms,
                         permission=spec.permission,
                         cost_tier=spec.cost_tier,
-                        input_preview=_preview_value(input_payload),
-                        output_preview=_preview_value(result),
+                        input_summary=_preview_value(input_payload),
+                        output_summary=_preview_value(result),
                     ).to_dict()
                 )
             return result
@@ -146,6 +155,7 @@ def invoke_tool(
             trace_collector.append(
                 ToolTrace(
                     tool_name=spec.name,
+                    agent_step=str(agent_step or "").strip(),
                     success=False,
                     attempt=attempt,
                     duration_ms=duration_ms,
@@ -153,7 +163,7 @@ def invoke_tool(
                     error=str(last_error or ""),
                     permission=spec.permission,
                     cost_tier=spec.cost_tier,
-                    input_preview=_preview_value(input_payload),
+                    input_summary=_preview_value(input_payload),
                 ).to_dict()
             )
     if last_error is not None:

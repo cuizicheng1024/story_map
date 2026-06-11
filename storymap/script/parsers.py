@@ -518,6 +518,58 @@ def _parse_coord_cell(s: str) -> Optional[float]:
     return v
 
 
+def _parse_lat_lon_pair(text: str) -> Optional[tuple[float, float]]:
+    t = str(text or "").strip()
+    if not t:
+        return None
+    parts = [x.strip() for x in re.split(r"[,，;；]", t) if x.strip()]
+    if len(parts) < 2:
+        parts = [x.strip() for x in re.split(r"\s+", t) if x.strip()]
+    if len(parts) < 2:
+        return None
+
+    def _one(seg: str) -> Optional[tuple[float, str]]:
+        m = re.search(r"(-?\d+(?:\.\d+)?)\s*°?\s*([NSEW])?", seg.strip(), flags=re.I)
+        if not m:
+            return None
+        try:
+            v = float(m.group(1))
+        except Exception:
+            return None
+        d = (m.group(2) or "").upper()
+        if d in {"S", "W"} and v > 0:
+            v = -v
+        return (v, d)
+
+    a = _one(parts[0])
+    b = _one(parts[1])
+    if not a or not b:
+        return None
+    av, ad = a
+    bv, bd = b
+    if ad in {"E", "W"} and bd in {"N", "S"}:
+        return (bv, av)
+    return (av, bv)
+
+
+def _extract_inline_coord_pair(text: str) -> Optional[tuple[float, float]]:
+    t = str(text or "").replace("−", "-").strip()
+    if not t:
+        return None
+    for pattern in [
+        r"(?:坐标|经纬度|大致经纬度)\s*[:：]\s*([0-9NSEWnsew\.\-°\s,，;；]+)",
+        r"([0-9]+(?:\.\d+)?\s*°?\s*[NSns]\s*[,，]\s*[0-9]+(?:\.\d+)?\s*°?\s*[EWew])",
+        r"([0-9]+(?:\.\d+)?\s*[,，]\s*-?[0-9]+(?:\.\d+)?)",
+    ]:
+        m = re.search(pattern, t)
+        if not m:
+            continue
+        pair = _parse_lat_lon_pair(m.group(1))
+        if pair:
+            return pair
+    return None
+
+
 def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
     if not isinstance(md, str):
         return {}
@@ -529,39 +581,6 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
     idx_lon = None
     idx_coord = None
     coords: Dict[str, tuple[float, float]] = {}
-
-    def _parse_lat_lon_pair(text: str) -> Optional[tuple[float, float]]:
-        t = str(text or "").strip()
-        if not t:
-            return None
-        parts = [x.strip() for x in re.split(r"[,，;；]", t) if x.strip()]
-        if len(parts) < 2:
-            parts = [x.strip() for x in re.split(r"\s+", t) if x.strip()]
-        if len(parts) < 2:
-            return None
-
-        def _one(seg: str) -> Optional[tuple[float, str]]:
-            m = re.search(r"(-?\d+(?:\.\d+)?)\s*°?\s*([NSEW])?", seg.strip(), flags=re.I)
-            if not m:
-                return None
-            try:
-                v = float(m.group(1))
-            except Exception:
-                return None
-            d = (m.group(2) or "").upper()
-            if d in {"S", "W"} and v > 0:
-                v = -v
-            return (v, d)
-
-        a = _one(parts[0])
-        b = _one(parts[1])
-        if not a or not b:
-            return None
-        av, ad = a
-        bv, bd = b
-        if ad in {"E", "W"} and bd in {"N", "S"}:
-            return (bv, av)
-        return (av, bv)
 
     for line in lines:
         if line.strip().startswith("## "):
@@ -581,11 +600,14 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
             for i, c in enumerate(header):
                 if "现称" in c or "地点" in c:
                     idx_name = i
+                if ("现代搜索地名" in c) or ("现代行政区" in c) or ("行政区划" in c):
+                    if idx_name is None:
+                        idx_name = i
                 if "纬度" in c or "lat" in c.lower():
                     idx_lat = i
                 if "经度" in c or "lon" in c.lower() or "lng" in c.lower():
                     idx_lon = i
-                if "坐标" in c and idx_coord is None:
+                if ("坐标" in c or "经纬度" in c) and idx_coord is None:
                     idx_coord = i
             continue
         if table_started:
@@ -607,6 +629,12 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
                 pair = _parse_lat_lon_pair(row[idx_coord])
                 if pair:
                     lat, lon = pair
+            if (lat is None or lon is None):
+                for cell in row:
+                    pair = _extract_inline_coord_pair(cell)
+                    if pair:
+                        lat, lon = pair
+                        break
             if lat is None or lon is None:
                 continue
             if name:
@@ -639,7 +667,7 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
             for i, c in enumerate(header):
                 if "现称" in c or "地点" in c:
                     idx_name = i
-                if "现代搜索地名" in c:
+                if ("现代搜索地名" in c) or ("现代行政区" in c) or ("行政区划" in c):
                     idx_search = i
             continue
         if table_started:
@@ -824,11 +852,13 @@ def parse_story_document(md: str) -> ParsedStoryDocument:
 
 
 __all__ = [
+    "_extract_inline_coord_pair",
     "_derive_exam_points_from_textbook_points",
     "_is_table_separator",
     "_normalize_markdown_tables",
     "_parse_basic_info",
     "_parse_coord_cell",
+    "_parse_lat_lon_pair",
     "_parse_coords_search_map",
     "_parse_coords_table",
     "_parse_date_location",

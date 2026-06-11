@@ -36,15 +36,19 @@ def _resolve_revision_step(state: StoryAgentState) -> tuple[str, str]:
     timed_out_calls = int(tool_summary.get("timed_out_calls") or 0)
     miss_count = int(memory_summary.get("miss_count") or 0)
     hit_count = int(memory_summary.get("hit_count") or 0)
+    usable_place_maps = any(
+        isinstance(item, dict) and item.get("lat") is not None and item.get("lng") is not None
+        for item in list(state.get("place_maps") or [])
+    )
 
+    if failed_calls > 0 or timed_out_calls > 0:
+        if usable_place_maps or state.get("draft_markdown"):
+            return "editor_agent", "🧭 Supervisor：工具不稳定，优先复用现有资料修稿"
+        return "search_agent", "🧭 Supervisor：工具链异常，回到 SearchAgent 补齐最小资料"
     if {"location", "timeline"} & fields:
         if near_limit and state.get("place_maps"):
             return "editor_agent", "🧭 Supervisor：预算紧张，直接基于现有地名结果修稿"
         return "map_agent", "🧭 Supervisor：优先修正地点与时间线问题"
-    if failed_calls > 0 or timed_out_calls > 0:
-        if state.get("draft_markdown"):
-            return "editor_agent", "🧭 Supervisor：工具不稳定，优先复用现有资料修稿"
-        return "search_agent", "🧭 Supervisor：工具链异常，回到 SearchAgent 补齐最小资料"
     if near_limit and state.get("search_result"):
         return "editor_agent", "🧭 Supervisor：LLM 预算紧张，先处理高置信修订"
     if miss_count > hit_count and state.get("search_result"):

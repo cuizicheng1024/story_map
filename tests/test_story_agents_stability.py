@@ -13,7 +13,7 @@ def _build_client():
     return story_agents.StoryAgentLLM(
         model="MiniMax-M3",
         apiKey="test-key",
-        baseUrl="https://api.minimaxi.com/anthropic",
+        baseUrl="https://api.minimaxi.com/v1",
         timeout=1,
     )
 
@@ -34,6 +34,38 @@ def test_story_agent_llm_allows_explicit_insecure_ssl(monkeypatch):
     assert client.health_snapshot()["verify_ssl"] is False
 
 
+def test_story_agent_llm_defaults_to_minimax_provider(monkeypatch):
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+
+    client = _build_client()
+
+    assert client.provider == "minimax"
+    assert client.health_snapshot()["provider"] == "minimax"
+    assert client.health_snapshot()["uses_anthropic_api"] is False
+
+
+def test_story_agent_llm_ignores_removed_qveris_provider(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "qveris")
+
+    client = _build_client()
+
+    assert client.provider == "minimax"
+    assert client.health_snapshot()["provider"] == "minimax"
+
+
+def test_story_agent_llm_uses_anthropic_when_base_url_explicit(monkeypatch):
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+
+    client = story_agents.StoryAgentLLM(
+        model="MiniMax-M3",
+        apiKey="test-key",
+        baseUrl="https://api.minimaxi.com/anthropic",
+        timeout=1,
+    )
+
+    assert client.health_snapshot()["uses_anthropic_api"] is True
+
+
 def test_story_agent_llm_records_success_trace(monkeypatch):
     client = _build_client()
 
@@ -41,7 +73,7 @@ def test_story_agent_llm_records_success_trace(monkeypatch):
         assert messages[0]["content"] == "ping"
         assert temperature == 0
         assert request_id
-        return "OK", {"endpoint": "https://api.minimaxi.com/anthropic/v1/messages", "status_code": 200, "duration_ms": 12}
+        return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 12}
 
     monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
 
@@ -68,7 +100,7 @@ def test_story_agent_llm_stops_retry_on_non_retryable_error(monkeypatch):
             classification="auth",
             request_id=request_id or "req",
             provider="minimax",
-            endpoint="https://api.minimaxi.com/anthropic/v1/messages",
+            endpoint="https://api.minimaxi.com/v1/chat/completions",
             status_code=401,
             retryable=False,
         )
@@ -91,7 +123,7 @@ def test_story_agent_health_check_collects_results(monkeypatch):
 
     def _fake_think_minimax(_messages, temperature=0, request_id=""):
         _ = (temperature, request_id)
-        return "OK", {"endpoint": "https://api.minimaxi.com/anthropic/v1/messages", "status_code": 200, "duration_ms": 8}
+        return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 8}
 
     monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
 

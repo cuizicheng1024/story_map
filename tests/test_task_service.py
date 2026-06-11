@@ -1,6 +1,7 @@
 import logging
 import json
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -178,6 +179,62 @@ def test_task_service_marks_partial_failures_with_structured_status(tmp_path):
         service.shutdown()
 
 
+def test_task_service_preserves_degraded_result_files(tmp_path):
+    def _degraded(_client, person, **_kwargs):
+        return {
+            "ok": False,
+            "status": "degraded",
+            "degraded": True,
+            "person": person,
+            "error": "render failed",
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "fallback_html_path": f"/tmp/{person}.html",
+            "_agent_runtime": {
+                "person": person,
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "degraded_reasons": [],
+                    "execution_trace": ["supervisor", "search_agent"],
+                    "tool_traces": [
+                        {
+                            "tool_name": "search_person_info",
+                            "agent_step": "search_agent",
+                            "success": True,
+                        }
+                    ],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {},
+                },
+            },
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_degraded)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+        debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert snapshot["ok"] is True
+        assert snapshot["result"]["files"][0]["html"] == "霍去病.html"
+        assert snapshot["result"]["results"][0]["status"] == "degraded"
+        assert debug_snapshot["debug"]["result"]["ok"] is True
+        assert debug_snapshot["debug"]["meta"]["status"] == "degraded"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "degraded"
+        assert debug_snapshot["debug"]["people"][0]["ok"] is True
+        assert debug_snapshot["debug"]["people"][0]["status_info"]["code"] == "degraded"
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["status"] == "ok"
+    finally:
+        service.shutdown()
+
+
 def test_task_service_accepts_unknown_plain_person_name(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -186,6 +243,105 @@ def test_task_service_accepts_unknown_plain_person_name(tmp_path):
 
         assert snapshot["status"] == "completed"
         assert snapshot["result"]["people"] == ["辛弃疾"]
+    finally:
+        service.shutdown()
+
+
+def test_task_service_accepts_authentic_person_extracted_by_llm(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / "pep_people_merged.json").write_text(
+        json.dumps([{"name": "辛弃疾"}], ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    service = _build_service(
+        tmp_path,
+        extract_historical_figures=lambda _client, _text: ["辛弃疾"],
+    )
+    try:
+        submit = service.submit_task("请生成辛弃疾主页")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert snapshot["result"]["people"] == ["辛弃疾"]
+    finally:
+        service.shutdown()
+
+
+def test_task_service_blocks_non_authentic_story_people_before_generation(tmp_path):
+    _make_story_dir(tmp_path, "奥楚蔑洛夫")
+    (tmp_path / "storymap" / "examples" / "story" / "奥楚蔑洛夫.md").write_text(
+        "# 奥楚蔑洛夫 文学虚构人物\n\n并非真实历史人物。\n",
+        encoding="utf-8",
+    )
+    llm_calls = {"count": 0}
+
+    def _get_llm_client(**_kwargs):
+        llm_calls["count"] += 1
+        return object()
+
+    service = _build_service(tmp_path, get_llm_client=_get_llm_client)
+    try:
+        submit = service.submit_task("奥楚蔑洛夫")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "failed"
+        assert snapshot["error"] == "已拦截非真实或存疑人物：奥楚蔑洛夫"
+        assert llm_calls["count"] == 1
+    finally:
+        service.shutdown()
+
+
+def test_task_service_blocks_unknown_persons_extracted_by_llm(tmp_path):
+    generated = []
+
+    def _generate_for_person(_client, person, **_kwargs):
+        generated.append(person)
+        return {"ok": True, "person": person}
+
+    service = _build_service(
+        tmp_path,
+        extract_historical_figures=lambda _client, _text: ["海绵宝宝"],
+        generate_for_person=_generate_for_person,
+    )
+    try:
+        submit = service.submit_task("请生成海绵宝宝主页")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "failed"
+        assert snapshot["error"] == "已拦截非真实或存疑人物：海绵宝宝"
+        assert generated == []
+    finally:
+        service.shutdown()
+
+
+def test_task_service_marks_partially_blocked_targets_as_partial_failed(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / "pep_people_merged.json").write_text(
+        json.dumps([{"name": "辛弃疾"}], ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    service = _build_service(
+        tmp_path,
+        extract_historical_figures=lambda _client, _text: ["辛弃疾", "海绵宝宝"],
+    )
+    try:
+        submit = service.submit_task("请生成辛弃疾和海绵宝宝主页")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "partial_failed"
+        assert snapshot["error"] == "已拦截非真实或存疑人物：海绵宝宝"
+        assert snapshot["result"]["people"] == ["辛弃疾", "海绵宝宝"]
+        assert snapshot["result"]["success_count"] == 1
+        assert snapshot["result"]["failed_count"] == 1
+        assert snapshot["result"]["failed_people"] == ["海绵宝宝"]
+        assert {item["person"] for item in snapshot["result"]["results"]} == {"辛弃疾", "海绵宝宝"}
+        blocked = next(item for item in snapshot["result"]["results"] if item["person"] == "海绵宝宝")
+        assert blocked["status"] == "failed"
+        assert blocked["error"] == "已拦截非真实或存疑人物：海绵宝宝"
     finally:
         service.shutdown()
 
@@ -297,9 +453,18 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
                 "state": {
                     "llm_calls_used": 1,
                     "llm_calls_limit": 4,
+                    "revision_count": 1,
+                    "max_revisions": 2,
                     "degraded_reasons": [],
                     "execution_trace": ["supervisor", "search_agent"],
-                    "tool_traces": [{"tool_name": "search_person_info"}],
+                    "tool_traces": [
+                        {
+                            "tool_name": "search_person_info",
+                            "agent_step": "search_agent",
+                            "input_summary": "'霍去病'",
+                            "output_summary": "{'person': '霍去病'}",
+                        }
+                    ],
                     "memory_hits": {"search": 1},
                     "memory_misses": {"place_map": 1},
                 },
@@ -321,23 +486,197 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
 
         assert snapshot["status"] == "completed"
         assert debug_snapshot["debug"]["meta"]["memory_hits"] == {"search": 1}
-        assert debug_snapshot["debug"]["meta"]["status"] == "ok"
-        assert debug_snapshot["debug"]["meta"]["status_info"]["code"] == "ok"
+        assert debug_snapshot["debug"]["meta"]["status"] == "watch"
+        assert debug_snapshot["debug"]["meta"]["status_info"]["code"] == "watch"
         assert debug_snapshot["debug"]["result"]["status"] == "completed"
-        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "completed"
+        assert debug_snapshot["debug"]["ui"]["runtime_status"]["code"] == "watch"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "watch"
+        assert debug_snapshot["debug"]["people"][0]["status_info"]["code"] == "watch"
         assert debug_snapshot["debug"]["people"][0]["runtime"]["execution_trace"] == ["supervisor", "search_agent"]
         assert debug_snapshot["debug"]["people"][0]["runtime_snapshot"]["state"]["execution_trace"] == ["supervisor", "search_agent"]
+        assert debug_snapshot["debug"]["people"][0]["runtime_snapshot"]["state"]["revision_count"] == 1
+        assert debug_snapshot["debug"]["people"][0]["runtime_snapshot"]["state"]["max_revisions"] == 2
         assert debug_snapshot["debug"]["people"][0]["runtime_reflection"]["tool_summary"]["total_calls"] == 1
+        assert debug_snapshot["debug"]["people"][0]["runtime_pdca"]["status"] == "watch"
+        assert debug_snapshot["debug"]["people"][0]["runtime_pdca"]["do"]["items"] == [
+            "search_agent 调用 search_person_info，成功，0ms"
+        ]
+        assert debug_snapshot["debug"]["people"][0]["runtime_quality"]["status"] == "watch"
+        assert debug_snapshot["debug"]["people"][0]["runtime_quality"]["measurement"]["label"] == "测"
+        assert "tool_traces 记录 1 次调用。" in debug_snapshot["debug"]["people"][0]["runtime_quality"]["measurement"]["findings"]
         assert debug_snapshot["debug"]["people"][0]["runtime"]["status"] == "ok"
-        assert "input_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
-        assert "output_preview" not in debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]["agent_step"] == "search_agent"
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]["input_summary"] == "'霍去病'"
+        assert debug_snapshot["debug"]["people"][0]["runtime"]["tool_traces"][0]["output_summary"] == "{'person': '霍去病'}"
         assert query_payload["ok"] is True
         assert query_payload["total"] >= 1
-        assert any(item["id"] == submit["task_id"] for item in query_payload["tasks"])
+        list_item = next(item for item in query_payload["tasks"] if item["id"] == submit["task_id"])
+        assert list_item["status"] == "completed"
+        assert list_item["status_info"]["code"] == "watch"
         assert stats["task_count"] >= 1
         assert stats["db_path"].endswith("task_state.sqlite3")
         assert stats["db_size_bytes"] >= stats["db_main_size_bytes"]
         assert maintain["ok"] is True
         assert "stats" in maintain
     finally:
+        service.shutdown()
+
+
+def test_task_debug_ui_banner_prefers_runtime_degraded_signal(tmp_path):
+    service = _build_service(
+        tmp_path,
+        generate_for_person=lambda _client, person, **_kwargs: {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_agent_runtime": {
+                "person": person,
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "degraded_reasons": ["map_agent:timeout"],
+                    "execution_trace": ["supervisor", "map_agent"],
+                    "tool_traces": [],
+                    "memory_hits": {},
+                    "memory_misses": {},
+                },
+            },
+            "_profile": {
+                "person": {"name": person},
+                "locations": [],
+                "mapStyle": {},
+            },
+        },
+    )
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+        debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert debug_snapshot["debug"]["result"]["status"] == "completed"
+        assert debug_snapshot["debug"]["meta"]["status"] == "degraded"
+        assert debug_snapshot["debug"]["ui"]["runtime_status"]["code"] == "degraded"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "degraded"
+    finally:
+        service.shutdown()
+
+
+def test_task_debug_ui_banner_keeps_partial_failed_over_runtime_watch(tmp_path):
+    def _generate(_client, person, **_kwargs):
+        if person == "杜甫":
+            return {"ok": False, "person": person, "error": "杜甫 no data"}
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_agent_runtime": {
+                "person": person,
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "revision_count": 1,
+                    "max_revisions": 2,
+                    "degraded_reasons": [],
+                    "execution_trace": ["supervisor", "search_agent"],
+                    "tool_traces": [{"tool_name": "search_person_info", "agent_step": "search_agent"}],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {"place_map": 1},
+                },
+            },
+            "_profile": {
+                "person": {"name": person},
+                "locations": [],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate)
+    try:
+        submit = service.submit_task("李白 杜甫")
+        debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+        end = time.time() + 2.0
+        while time.time() < end and debug_snapshot.get("status") != "partial_failed":
+            time.sleep(0.02)
+            debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+
+        assert debug_snapshot["status"] == "partial_failed"
+        assert debug_snapshot["debug"]["meta"]["status"] == "watch"
+        assert debug_snapshot["debug"]["result"]["status"] == "partial_failed"
+        assert debug_snapshot["debug"]["ui"]["runtime_status"]["code"] == "watch"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "partial_failed"
+    finally:
+        service.shutdown()
+
+
+def test_task_service_counts_partial_failed_in_storage_stats(tmp_path):
+    def _generate(_client, person, **_kwargs):
+        if person == "杜甫":
+            return {"ok": False, "person": person, "error": "杜甫 no data"}
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate)
+    try:
+        submit = service.submit_task("李白 杜甫")
+        snapshot = _wait_for_task(service, submit["task_id"])
+        stats = service.storage_stats()
+
+        assert snapshot["status"] == "partial_failed"
+        assert stats["task_count"] >= 1
+        assert stats["partial_failed_count"] == 1
+    finally:
+        service.shutdown()
+
+
+def test_task_service_refreshes_waiting_queue_positions(tmp_path):
+    release_first = threading.Event()
+    first_started = threading.Event()
+
+    def _generate(_client, person, **_kwargs):
+        if person == "霍去病":
+            first_started.set()
+            release_first.wait(timeout=1.0)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, max_concurrency=1, generate_for_person=_generate)
+    try:
+        service.submit_task("霍去病")
+        second = service.submit_task("李白")
+        assert first_started.wait(timeout=1.0) is True
+
+        end = time.time() + 1.0
+        queued_snapshot = {}
+        while time.time() < end:
+            queued_snapshot = service.snapshot_task(second["task_id"])
+            if queued_snapshot.get("status") == "queued" and queued_snapshot.get("queue", {}).get("position") == 1:
+                break
+            time.sleep(0.02)
+
+        assert queued_snapshot["status"] == "queued"
+        assert queued_snapshot["queue"]["position"] == 1
+        assert queued_snapshot["queue"]["active"] == 1
+    finally:
+        release_first.set()
         service.shutdown()

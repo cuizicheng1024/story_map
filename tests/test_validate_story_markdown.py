@@ -165,3 +165,148 @@ def test_validator_accepts_extended_timeline_header_used_by_story_examples(tmp_p
     result = validator.validate_markdown(file_path)
 
     assert not any("生平时间线" in msg for msg in result.errors)
+
+
+def test_validator_rejects_vague_locations(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物丁.md"
+    file_path.write_text(
+        """# 人物丁
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物丁
+- **时代**：北魏
+- **出生**：466年，范阳涿州（今河北涿州）
+- **去世**：527年，阴盘驿（今陕西临潼）
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：范阳涿州
+- **公元纪年**：466年
+- **位置**：范阳涿州（今河北涿州）
+- **事迹**：出生。
+- **意义**：起点。
+
+### 📍 重要地点：北魏境内
+- **公元纪年**：495年
+- **位置**：北魏境内
+- **事迹**：任职。
+- **意义**：仕途展开。
+
+### 🔴 去世地：阴盘驿
+- **公元纪年**：527年
+- **位置**：阴盘驿（今陕西临潼）
+- **经过**：去世。
+- **意义**：终点。
+
+## 四、生平时间线
+
+| 年份 | 古称 | 现称 | 事件 |
+| :--- | :--- | :--- | :--- |
+| 466年 | 范阳涿州 | 河北涿州 | 出生 |
+| 495年 | 北魏境内 | 北魏境内 | 任职 |
+| 527年 | 阴盘驿 | 陕西临潼 | 去世 |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert any("存在泛地名" in msg for msg in result.errors)
+
+
+def test_validator_accepts_inline_coordinates_and_variant_coord_headers(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物戊.md"
+    file_path.write_text(
+        """# 人物戊
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物戊
+- **时代**：近现代
+- **出生**：1900年，都柏林
+- **去世**：1945年，都柏林
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：都柏林
+- **公元纪年**：1900年
+- **位置**：都柏林（今爱尔兰都柏林，坐标：53.3498, -6.2603）
+- **事迹**：出生。
+- **意义**：起点。
+
+### 📍 重要地点：三一学院
+- **公元纪年**：1918年
+- **位置**：都柏林三一学院（今爱尔兰都柏林三一学院，坐标：53.3438, -6.2546）
+- **事迹**：求学。
+- **意义**：成长。
+
+### 🔴 去世地：都柏林
+- **公元纪年**：1945年
+- **位置**：圣帕特里克大教堂（今爱尔兰都柏林圣帕特里克大教堂，坐标：53.3396, -6.2719）
+- **经过**：去世。
+- **意义**：终点。
+
+## 四、生平时间线
+
+| 年份 | 古称 | 现称 | 事件 |
+| :--- | :--- | :--- | :--- |
+| 1900年 | 都柏林 | 爱尔兰都柏林 | 出生 |
+| 1918年 | 三一学院 | 爱尔兰都柏林三一学院 | 求学 |
+| 1945年 | 圣帕特里克大教堂 | 爱尔兰都柏林圣帕特里克大教堂 | 去世 |
+
+## 地点坐标
+
+| 地点名称 | 现代行政区划 | 经纬度 |
+| :--- | :--- | :--- |
+| 都柏林 | 爱尔兰都柏林 | 53.3498°N, 6.2603°W |
+| 三一学院 | 爱尔兰都柏林三一学院 | 53.3438°N, 6.2546°W |
+| 圣帕特里克大教堂 | 爱尔兰都柏林圣帕特里克大教堂 | 53.3396°N, 6.2719°W |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert not any("离线命中率过低" in msg for msg in result.errors)
+    assert not any("离线坐标未命中" in msg for msg in result.warnings)
+
+
+def test_validator_allows_sparse_single_site_without_generic_count_warning(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物己.md"
+    file_path.write_text(
+        """# 人物己
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物己
+- **时代**：隋朝
+- **出生**：600年，赵州（今河北赵县）
+- **去世**：650年，赵州（今河北赵县）
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 重要地点：赵州桥
+- **公元纪年**：605年
+- **位置**：赵州桥（今河北省石家庄市赵县赵州桥）
+- **事迹**：主持修建。
+- **意义**：代表作所在地。
+
+## 四、生平时间线
+
+| 年份 | 古称 | 现称 | 事件 |
+| :--- | :--- | :--- | :--- |
+| 605年 | 赵州桥 | 河北省石家庄市赵县赵州桥 | 主持修建 |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert not any("仅解析出 1 个地点" in msg for msg in result.warnings)
