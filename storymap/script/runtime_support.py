@@ -110,8 +110,10 @@ def collect_startup_issues(project_root: str) -> Dict[str, List[str]]:
     amap_security = first_env("AMAP_SECURITY")
     if geovis_token:
         notes.append("GeoVis 前端地图配置完整")
-    elif not amap_js_key:
+    else:
         warnings.append("缺少 GeoVisKey/GEOVIS_TOKEN；地图页面在浏览器端可能无法直接加载底图。")
+    if not amap_js_key:
+        warnings.append("缺少 AMAP_KEY；高德前端地图能力将不可用。")
     elif not amap_security:
         warnings.append("缺少 AMAP_SECURITY；部分环境下高德 JS SDK 可能加载失败。")
     else:
