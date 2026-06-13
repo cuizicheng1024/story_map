@@ -1117,6 +1117,99 @@ def _render_index_html(title: str, data_file: str) -> str:
         color: var(--color-text-secondary);
         max-width: 760px;
       }}
+      .home-search-row {{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }}
+      .home-search-submit {{
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        flex: 0 0 auto;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        border-radius: 999px;
+        background: linear-gradient(180deg, #1a1d22, #111317);
+        color: #ffffff;
+        box-shadow:
+          0 14px 28px rgba(15, 23, 42, 0.22),
+          inset 0 -2px 0 rgba(255, 255, 255, 0.04);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+      }}
+      .home-search-submit:hover {{
+        transform: translateY(-1px);
+        box-shadow:
+          0 18px 30px rgba(15, 23, 42, 0.26),
+          inset 0 -2px 0 rgba(255, 255, 255, 0.05);
+      }}
+      .home-search-submit:active {{
+        transform: translateY(0);
+      }}
+      .home-search-submit:focus-visible {{
+        outline: none;
+        box-shadow:
+          0 0 0 4px rgba(66, 133, 244, 0.22),
+          0 18px 30px rgba(15, 23, 42, 0.26),
+          inset 0 -2px 0 rgba(255, 255, 255, 0.05);
+      }}
+      .home-search-submit:disabled {{
+        opacity: 0.72;
+        cursor: not-allowed;
+      }}
+      .home-search-submit[data-loading="true"] {{
+        background: linear-gradient(180deg, #202124, #17181c);
+        animation: home-submit-pulse 1.05s ease-in-out infinite;
+      }}
+      .home-search-submit-icon {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        transition: transform 0.18s ease, opacity 0.18s ease;
+      }}
+      .home-search-submit[data-loading="true"] .home-search-submit-icon {{
+        transform: scale(0.94);
+        opacity: 0.78;
+      }}
+      .home-search-submit-icon svg {{
+        display: block;
+        width: 100%;
+        height: 100%;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }}
+      .sr-only {{
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }}
+      @keyframes home-submit-pulse {{
+        0%, 100% {{
+          transform: scale(1);
+          box-shadow:
+            0 14px 28px rgba(15, 23, 42, 0.22),
+            inset 0 -2px 0 rgba(255, 255, 255, 0.04);
+        }}
+        50% {{
+          transform: scale(0.97);
+          box-shadow:
+            0 10px 18px rgba(15, 23, 42, 0.18),
+            inset 0 -2px 0 rgba(255, 255, 255, 0.03);
+        }}
+      }}
       .distribution-pane {{
         height: 500px;
       }}
@@ -1131,29 +1224,46 @@ def _render_index_html(title: str, data_file: str) -> str:
       .pixel-progress-shell {{
         position: fixed;
         right: 16px;
-        top: 16px;
         bottom: 16px;
         z-index: 160;
         width: min(388px, calc(100vw - 24px));
-        max-height: calc(100vh - 32px);
+        max-height: min(680px, calc(100vh - 32px));
       }}
       .pixel-progress-panel {{
+        position: relative;
         display: flex;
         flex-direction: column;
         width: 100%;
-        max-height: calc(100vh - 32px);
-        border-radius: 10px;
+        max-height: min(680px, calc(100vh - 32px));
+        border-radius: 4px;
         overflow: hidden;
-        border: 2px solid #1d2547;
+        border: 3px solid #1d4ed8;
         background:
-          linear-gradient(180deg, rgba(24, 31, 58, 0.98), rgba(10, 13, 27, 0.96)),
-          linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+          repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.04) 0,
+            rgba(255,255,255,0.04) 12px,
+            rgba(255,255,255,0.01) 12px,
+            rgba(255,255,255,0.01) 24px
+          ),
+          linear-gradient(180deg, #203b96 0%, #152b72 34%, #0b173e 100%);
         box-shadow:
-          0 0 0 2px #5f6ca8,
-          0 0 0 5px rgba(10, 13, 27, 0.94),
-          0 18px 32px rgba(3, 7, 18, 0.42);
+          0 0 0 2px #071632,
+          0 0 0 5px rgba(8, 15, 37, 0.92),
+          0 18px 0 rgba(5, 10, 24, 0.32),
+          0 26px 34px rgba(9, 15, 37, 0.48);
         color: #edf2ff;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }}
+      .pixel-progress-panel::before {{
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #4285f4 0%, #ea4335 34%, #fbbc04 68%, #34a853 100%);
+        z-index: 7;
       }}
       .pixel-progress-header {{
         position: sticky;
@@ -1162,96 +1272,157 @@ def _render_index_html(title: str, data_file: str) -> str:
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        padding: 10px 12px;
+        gap: 8px;
+        padding: 8px 10px;
         background:
           repeating-linear-gradient(
             90deg,
-            rgba(255,255,255,0.08) 0,
-            rgba(255,255,255,0.08) 8px,
-            rgba(255,255,255,0.03) 8px,
-            rgba(255,255,255,0.03) 16px
+            rgba(255,255,255,0.09) 0,
+            rgba(255,255,255,0.09) 10px,
+            rgba(255,255,255,0.03) 10px,
+            rgba(255,255,255,0.03) 20px
           ),
-          linear-gradient(180deg, rgba(120,134,214,0.18), rgba(47,57,100,0.18));
-        border-bottom: 2px solid rgba(121, 139, 218, 0.34);
+          linear-gradient(180deg, rgba(55,102,214,0.46), rgba(20,47,128,0.28));
+        border-bottom: 3px solid rgba(66, 133, 244, 0.42);
       }}
       .pixel-progress-title {{
+        flex: 1 1 auto;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 16px minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 10px;
+      }}
+      .pixel-progress-actions {{
         display: flex;
         align-items: center;
-        gap: 8px;
-        min-width: 0;
+        gap: 6px;
+        flex: 0 0 auto;
       }}
       .pixel-progress-lamp {{
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         flex: 0 0 auto;
         border-radius: 2px;
         background: #64748b;
-        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.92), inset 0 -2px 0 rgba(0, 0, 0, 0.45);
+      }}
+      .pixel-progress-lamp.is-idle {{
+        background: #4285f4;
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 8px rgba(66, 133, 244, 0.42);
       }}
       .pixel-progress-lamp.is-queued {{
         background: #fbbc04;
-        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 12px rgba(251, 188, 4, 0.42);
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 8px rgba(251, 188, 4, 0.42);
       }}
       .pixel-progress-lamp.is-running {{
-        background: #34d399;
-        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 12px rgba(52, 211, 153, 0.42);
+        background: #34a853;
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 8px rgba(52, 168, 83, 0.42);
       }}
       .pixel-progress-lamp.is-failed {{
-        background: #f87171;
-        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 12px rgba(248, 113, 113, 0.42);
+        background: #ea4335;
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 8px rgba(234, 67, 53, 0.42);
       }}
       .pixel-progress-lamp.is-completed {{
-        background: #60a5fa;
-        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 12px rgba(96, 165, 250, 0.42);
+        background: #4285f4;
+        box-shadow: 0 0 0 2px rgba(8, 11, 23, 0.82), 0 0 8px rgba(66, 133, 244, 0.42);
       }}
       .pixel-progress-meta {{
         min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }}
       .pixel-progress-caption {{
-        font-size: 10px;
+        font-size: 9px;
         line-height: 1.1;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: rgba(191, 219, 254, 0.72);
+        color: rgba(191, 219, 254, 0.76);
       }}
       .pixel-progress-person {{
-        margin-top: 2px;
-        font-size: 13px;
+        margin-top: 0;
+        font-size: 18px;
         font-weight: 700;
         color: #f8fbff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-shadow: 2px 2px 0 rgba(10, 16, 35, 0.45);
       }}
-      .pixel-progress-icon-btn {{
-        min-width: 62px;
-        height: 28px;
-        padding: 0 10px;
-        border: 1px solid rgba(160, 174, 255, 0.22);
-        border-radius: 6px;
-        background: linear-gradient(180deg, rgba(38, 47, 85, 0.96), rgba(17, 22, 40, 0.96));
-        color: #e2e8f0;
+      .pixel-progress-badge {{
+        min-width: 54px;
+        padding: 5px 8px 4px;
+        border-radius: 4px;
+        border: 2px solid rgba(255,255,255,0.18);
+        background: rgba(15, 23, 42, 0.82);
+        color: rgba(255,255,255,0.88);
         font-size: 11px;
         font-weight: 700;
-        box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.24);
+        letter-spacing: 0.06em;
+        text-align: center;
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.26), 2px 2px 0 rgba(8, 11, 23, 0.28);
+        justify-self: start;
+      }}
+      .pixel-progress-badge.is-idle {{
+        background: rgba(66, 133, 244, 0.18);
+        border-color: rgba(66, 133, 244, 0.48);
+        color: #dbeafe;
+      }}
+      .pixel-progress-badge.is-queued {{
+        background: rgba(251, 188, 4, 0.18);
+        border-color: rgba(251, 188, 4, 0.46);
+        color: #fef3c7;
+      }}
+      .pixel-progress-badge.is-running {{
+        background: rgba(52, 168, 83, 0.18);
+        border-color: rgba(52, 168, 83, 0.44);
+        color: #dcfce7;
+      }}
+      .pixel-progress-badge.is-failed {{
+        background: rgba(234, 67, 53, 0.18);
+        border-color: rgba(234, 67, 53, 0.42);
+        color: #fee2e2;
+      }}
+      .pixel-progress-badge.is-completed {{
+        background: rgba(66, 133, 244, 0.2);
+        border-color: rgba(52, 168, 83, 0.36);
+        color: #dbeafe;
+      }}
+      .pixel-progress-icon-btn {{
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 4px;
+        background: rgba(15, 23, 42, 0.56);
+        color: #f8fbff;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.22), 2px 2px 0 rgba(8, 11, 23, 0.28);
         flex: 0 0 auto;
       }}
       .pixel-progress-body {{
         padding: 12px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         min-height: 0;
         overflow: auto;
       }}
       .pixel-progress-scene {{
         position: relative;
         min-height: 176px;
-        border-radius: 10px;
-        border: 1px solid rgba(160, 174, 255, 0.2);
+        border-radius: 4px;
+        border: 2px solid rgba(66, 133, 244, 0.34);
         overflow: hidden;
-        background: linear-gradient(180deg, rgba(56, 68, 116, 0.96), rgba(18, 24, 48, 0.98));
+        background:
+          radial-gradient(circle at 18% 18%, rgba(66, 133, 244, 0.24), transparent 28%),
+          radial-gradient(circle at 82% 24%, rgba(251, 188, 4, 0.16), transparent 22%),
+          linear-gradient(180deg, rgba(66, 133, 244, 0.24), rgba(13, 24, 61, 0.98));
+        transition: background 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03), 4px 4px 0 rgba(8, 15, 36, 0.22);
       }}
       .pixel-progress-scene::before {{
         content: "";
@@ -1264,8 +1435,26 @@ def _render_index_html(title: str, data_file: str) -> str:
           rgba(255,255,255,0.02) 14px,
           rgba(255,255,255,0.02) 28px
         );
-        opacity: 0.6;
+        opacity: 0.58;
         pointer-events: none;
+      }}
+      .pixel-progress-scene[data-idle-scene="snack"] {{
+        background:
+          radial-gradient(circle at 18% 18%, rgba(255, 204, 128, 0.24), transparent 28%),
+          radial-gradient(circle at 82% 24%, rgba(255, 146, 84, 0.14), transparent 22%),
+          linear-gradient(180deg, rgba(72, 93, 150, 0.26), rgba(18, 28, 62, 0.98));
+      }}
+      .pixel-progress-scene[data-idle-scene="nap"] {{
+        background:
+          radial-gradient(circle at 18% 18%, rgba(132, 163, 255, 0.18), transparent 28%),
+          radial-gradient(circle at 82% 24%, rgba(164, 147, 255, 0.1), transparent 22%),
+          linear-gradient(180deg, rgba(34, 48, 102, 0.2), rgba(8, 15, 34, 0.99));
+      }}
+      .pixel-progress-scene[data-idle-scene="stroll"] {{
+        background:
+          radial-gradient(circle at 18% 18%, rgba(93, 214, 181, 0.18), transparent 28%),
+          radial-gradient(circle at 82% 24%, rgba(84, 173, 255, 0.14), transparent 22%),
+          linear-gradient(180deg, rgba(34, 79, 102, 0.22), rgba(11, 23, 46, 0.98));
       }}
       .pixel-progress-scene-floor {{
         position: absolute;
@@ -1273,9 +1462,9 @@ def _render_index_html(title: str, data_file: str) -> str:
         right: 0;
         bottom: 0;
         z-index: 0;
-        height: 32px;
-        background: linear-gradient(180deg, rgba(69, 46, 29, 0.62), rgba(44, 28, 17, 0.78));
-        border-top: 1px solid rgba(255, 216, 164, 0.16);
+        height: 26px;
+        background: linear-gradient(180deg, rgba(77, 52, 40, 0.42), rgba(46, 31, 24, 0.68));
+        border-top: 2px solid rgba(251, 188, 4, 0.22);
       }}
       .pixel-progress-scene-floor::before {{
         content: "";
@@ -1297,7 +1486,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         font-size: 10px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: rgba(191, 219, 254, 0.7);
+        color: rgba(191, 219, 254, 0.84);
+        text-shadow: 1px 1px 0 rgba(7, 11, 24, 0.4);
       }}
       .pixel-progress-status-lights {{
         position: absolute;
@@ -1312,7 +1502,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         height: 10px;
         border-radius: 2px;
         background: #334155;
-        box-shadow: inset 0 -1px 0 rgba(0,0,0,0.4);
+        box-shadow: 0 0 0 2px rgba(8,11,23,0.55), inset 0 -1px 0 rgba(0,0,0,0.4);
       }}
       .pixel-progress-scene-light.is-on {{
         animation: pixel-led-pulse 1s steps(2, end) infinite;
@@ -1322,12 +1512,12 @@ def _render_index_html(title: str, data_file: str) -> str:
         box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
       }}
       .pixel-progress-scene-light.is-green {{
-        background: #34d399;
-        box-shadow: 0 0 10px rgba(52, 211, 153, 0.45);
+        background: #34a853;
+        box-shadow: 0 0 10px rgba(52, 168, 83, 0.45);
       }}
       .pixel-progress-scene-light.is-cyan {{
-        background: #38bdf8;
-        box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+        background: #4285f4;
+        box-shadow: 0 0 10px rgba(66, 133, 244, 0.45);
       }}
       @keyframes pixel-led-pulse {{
         0%, 100% {{ filter: brightness(1); }}
@@ -1346,64 +1536,69 @@ def _render_index_html(title: str, data_file: str) -> str:
       }}
       .pixel-ocelot-wrap {{
         position: relative;
-        width: 116px;
-        height: 104px;
+        width: 138px;
+        height: 112px;
         flex: 0 0 auto;
       }}
       .pixel-ocelot-cat {{
         position: absolute;
-        left: 6px;
-        bottom: 4px;
-        width: 92px;
-        height: 86px;
+        left: 8px;
+        right: 8px;
+        bottom: 0;
+        height: 108px;
+        transition: transform 0.28s ease, opacity 0.28s ease, filter 0.28s ease;
       }}
       .pixel-ocelot-ear {{
         position: absolute;
-        top: 1px;
-        width: 16px;
-        height: 16px;
-        background: #d09a5e;
-        border: 2px solid #3e2718;
-        transform: rotate(45deg) skew(-6deg, -6deg);
+        top: 4px;
+        width: 18px;
+        height: 18px;
+        background: #f09a42;
+        border: 2px solid #5a321d;
+        transform: rotate(45deg);
+        border-radius: 2px;
+        z-index: 2;
       }}
-      .pixel-ocelot-ear.left {{ left: 14px; }}
-      .pixel-ocelot-ear.right {{ right: 14px; }}
+      .pixel-ocelot-ear.left {{ left: 32px; }}
+      .pixel-ocelot-ear.right {{ right: 32px; }}
       .pixel-ocelot-ear::after {{
         content: "";
         position: absolute;
-        inset: 3px;
-        background: rgba(253, 224, 191, 0.9);
+        inset: 4px;
+        background: #ffd6b3;
       }}
       .pixel-ocelot-head {{
         position: absolute;
-        left: 20px;
+        left: 34px;
         top: 10px;
         width: 48px;
-        height: 44px;
-        border: 2px solid #3e2718;
-        background: linear-gradient(180deg, #e7be79, #c58953);
-        border-radius: 10px 10px 12px 12px;
+        height: 38px;
+        border: 2px solid #5a321d;
+        background: linear-gradient(180deg, #f2a34a, #df7e35);
+        border-radius: 14px 14px 12px 12px;
+        z-index: 3;
+        transition: transform 0.28s ease;
       }}
       .pixel-ocelot-head::before,
       .pixel-ocelot-head::after {{
         content: "";
         position: absolute;
-        width: 7px;
-        height: 7px;
-        background: #6c472d;
-        border-radius: 2px;
-        top: 9px;
+        top: 8px;
+        width: 5px;
+        height: 10px;
+        background: rgba(153, 83, 31, 0.9);
+        border-radius: 3px;
       }}
-      .pixel-ocelot-head::before {{ left: 6px; }}
-      .pixel-ocelot-head::after {{ right: 6px; }}
+      .pixel-ocelot-head::before {{ left: 7px; }}
+      .pixel-ocelot-head::after {{ right: 7px; }}
       .pixel-ocelot-face {{
         position: absolute;
-        left: 10px;
-        right: 10px;
-        bottom: 6px;
-        height: 14px;
-        border-radius: 7px 7px 9px 9px;
-        background: rgba(252, 231, 191, 0.9);
+        left: 11px;
+        right: 11px;
+        bottom: 4px;
+        height: 16px;
+        border-radius: 7px 7px 10px 10px;
+        background: #fff6ed;
       }}
       .pixel-ocelot-face::before {{
         content: "";
@@ -1411,159 +1606,396 @@ def _render_index_html(title: str, data_file: str) -> str:
         left: 50%;
         top: 3px;
         width: 6px;
-        height: 4px;
+        height: 5px;
         margin-left: -3px;
-        background: #7c3f2d;
-        border-radius: 2px;
+        background: #c86a4d;
+        border-radius: 999px 999px 2px 2px;
+      }}
+      .pixel-ocelot-face::after {{
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 9px;
+        width: 14px;
+        height: 5px;
+        margin-left: -7px;
+        border-bottom: 2px solid rgba(90, 50, 29, 0.68);
+        border-radius: 0 0 14px 14px;
       }}
       .pixel-ocelot-eyes {{
         position: absolute;
-        left: 11px;
-        right: 11px;
-        top: 18px;
+        left: 14px;
+        right: 14px;
+        top: 15px;
         display: flex;
         justify-content: space-between;
       }}
       .pixel-ocelot-eyes span {{
-        width: 7px;
-        height: 5px;
-        background: #1f2937;
-        border-radius: 2px;
+        width: 6px;
+        height: 7px;
+        background: #2d221d;
+        border-radius: 999px;
+      }}
+      .pixel-ocelot-whiskers {{
+        position: absolute;
+        left: 3px;
+        right: 3px;
+        bottom: 8px;
+        height: 8px;
+        pointer-events: none;
+      }}
+      .pixel-ocelot-whiskers::before,
+      .pixel-ocelot-whiskers::after {{
+        content: "";
+        position: absolute;
+        top: 2px;
+        width: 14px;
+        height: 2px;
+        border-top: 2px solid rgba(255, 248, 238, 0.95);
+      }}
+      .pixel-ocelot-whiskers::before {{
+        left: 0;
+        transform: rotate(8deg);
+      }}
+      .pixel-ocelot-whiskers::after {{
+        right: 0;
+        transform: rotate(-8deg);
       }}
       .pixel-ocelot-body {{
         position: absolute;
-        left: 18px;
-        bottom: 8px;
-        width: 54px;
+        left: 26px;
+        bottom: 16px;
+        width: 64px;
         height: 34px;
-        border: 2px solid #3e2718;
-        background: linear-gradient(180deg, #d7a067, #bb7641);
+        border: 2px solid #5a321d;
+        background: linear-gradient(180deg, #ef7e52, #d55338);
+        border-radius: 14px 14px 9px 9px;
+        z-index: 1;
+        transition: transform 0.28s ease, height 0.28s ease, border-radius 0.28s ease, opacity 0.28s ease;
+      }}
+      .pixel-ocelot-body::before {{
+        content: "";
+        position: absolute;
+        left: 17px;
+        right: 17px;
+        top: 6px;
+        bottom: 5px;
+        background: rgba(255, 243, 230, 0.18);
         border-radius: 8px;
       }}
-      .pixel-ocelot-body::before,
       .pixel-ocelot-body::after {{
         content: "";
         position: absolute;
-        top: 8px;
-        width: 9px;
+        left: 20px;
+        right: 20px;
+        top: 12px;
         height: 8px;
-        background: rgba(92, 58, 35, 0.82);
-        border-radius: 3px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.18);
       }}
-      .pixel-ocelot-body::before {{ left: 10px; }}
-      .pixel-ocelot-body::after {{ right: 10px; }}
       .pixel-ocelot-tail {{
         position: absolute;
-        right: 2px;
-        bottom: 18px;
-        width: 28px;
+        right: 14px;
+        bottom: 28px;
+        width: 26px;
         height: 12px;
-        border: 2px solid #3e2718;
-        border-radius: 8px;
-        background: linear-gradient(180deg, #cf9559, #b26e3d);
+        border: 2px solid #5a321d;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #f0a04c, #da7b35);
         transform-origin: left center;
         animation: pixel-tail-wave 1.8s steps(2, end) infinite;
+        z-index: 0;
+        transition: transform 0.28s ease, opacity 0.28s ease;
       }}
       .pixel-ocelot-tail::before,
       .pixel-ocelot-tail::after {{
         content: "";
         position: absolute;
-        top: 2px;
-        width: 4px;
+        top: 1px;
+        width: 3px;
         height: 6px;
-        background: rgba(63, 39, 24, 0.75);
+        background: rgba(124, 71, 39, 0.72);
       }}
       .pixel-ocelot-tail::before {{ left: 6px; }}
-      .pixel-ocelot-tail::after {{ left: 16px; }}
+      .pixel-ocelot-tail::after {{ left: 15px; }}
       @keyframes pixel-tail-wave {{
         0%, 100% {{ transform: rotate(0deg); }}
         50% {{ transform: rotate(-9deg); }}
       }}
       .pixel-ocelot-desk {{
         position: absolute;
-        left: 0;
-        right: 6px;
+        left: 4px;
+        right: 4px;
         bottom: 0;
-        height: 16px;
-        border: 2px solid #2a1b11;
-        background: linear-gradient(180deg, #7b5333, #4b2f1d);
+        height: 18px;
+        border: 2px solid #3f2618;
+        background: linear-gradient(180deg, #8b5837, #5b361f);
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18);
       }}
       .pixel-ocelot-monitor {{
         position: absolute;
-        right: 2px;
-        bottom: 24px;
-        width: 54px;
-        height: 40px;
-        border: 2px solid #1f2937;
-        background: #0f172a;
-        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03);
+        left: 42px;
+        bottom: 20px;
+        width: 56px;
+        height: 42px;
+        border: 2px solid #7b6e60;
+        background: #cdbba7;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.06);
+        z-index: 4;
+        transition: left 0.28s ease, opacity 0.28s ease, transform 0.28s ease;
       }}
       .pixel-ocelot-monitor::before {{
         content: "";
         position: absolute;
-        left: 6px;
-        right: 6px;
-        top: 6px;
+        left: 5px;
+        right: 5px;
+        top: 5px;
         bottom: 10px;
         background:
-          linear-gradient(180deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.12)),
+          linear-gradient(180deg, rgba(56, 102, 164, 0.26), rgba(12, 27, 53, 0.2)),
           repeating-linear-gradient(
             180deg,
-            rgba(56, 189, 248, 0.22) 0,
-            rgba(56, 189, 248, 0.22) 2px,
-            rgba(15, 23, 42, 0.02) 2px,
-            rgba(15, 23, 42, 0.02) 6px
-          );
+            rgba(90, 144, 219, 0.2) 0,
+            rgba(90, 144, 219, 0.2) 2px,
+            rgba(11, 24, 45, 0.02) 2px,
+            rgba(11, 24, 45, 0.02) 6px
+          ),
+          linear-gradient(90deg, rgba(66,133,244,0.16) 0 26%, rgba(187,104,84,0.16) 26% 54%, rgba(83,160,136,0.16) 54% 100%);
+        transition: background 0.28s ease, opacity 0.28s ease;
       }}
       .pixel-ocelot-monitor::after {{
         content: "";
         position: absolute;
-        left: 18px;
-        right: 18px;
+        left: 17px;
+        right: 17px;
         bottom: -8px;
         height: 8px;
-        background: #475569;
-        border: 2px solid #1f2937;
+        background: #9c8e7d;
+        border: 2px solid #7b6e60;
       }}
       .pixel-ocelot-paw {{
         position: absolute;
-        bottom: 17px;
-        width: 14px;
-        height: 9px;
-        border: 2px solid #3e2718;
-        background: #d7a067;
-        border-radius: 3px;
+        bottom: 18px;
+        width: 16px;
+        height: 10px;
+        border: 2px solid #5a321d;
+        background: #f6b570;
+        border-radius: 4px;
+        z-index: 5;
+        transition: transform 0.28s ease, left 0.28s ease, bottom 0.28s ease, opacity 0.28s ease;
       }}
       .pixel-ocelot-paw.left {{
-        left: 32px;
+        left: 44px;
         animation: pixel-paw-type-left 0.66s steps(2, end) infinite;
       }}
       .pixel-ocelot-paw.right {{
-        left: 48px;
+        left: 62px;
         animation: pixel-paw-type-right 0.66s steps(2, end) infinite;
       }}
       .pixel-ocelot-spot {{
         position: absolute;
-        background: rgba(88, 55, 31, 0.88);
+        background: rgba(176, 84, 34, 0.72);
         border-radius: 3px;
       }}
       .pixel-ocelot-spot.head-left {{
-        left: 23px;
-        top: 18px;
-        width: 5px;
-        height: 5px;
+        left: 43px;
+        top: 17px;
+        width: 4px;
+        height: 8px;
       }}
       .pixel-ocelot-spot.head-right {{
-        right: 23px;
-        top: 18px;
-        width: 5px;
-        height: 5px;
+        right: 43px;
+        top: 17px;
+        width: 4px;
+        height: 8px;
       }}
       .pixel-ocelot-spot.body-center {{
-        left: 39px;
-        top: 52px;
-        width: 7px;
+        left: 51px;
+        top: 63px;
+        width: 12px;
+        height: 7px;
+        background: rgba(255,255,255,0.18);
+      }}
+      .pixel-ocelot-lamp {{
+        position: absolute;
+        left: 10px;
+        bottom: 18px;
+        width: 18px;
+        height: 38px;
+        z-index: 3;
+      }}
+      .pixel-ocelot-lamp::before {{
+        content: "";
+        position: absolute;
+        left: 5px;
+        bottom: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #af7c4c;
+        border: 2px solid #5a321d;
+      }}
+      .pixel-ocelot-lamp::after {{
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 4px;
+        width: 3px;
+        height: 24px;
+        background: #af7c4c;
+        border-radius: 999px;
+        box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(255, 207, 110, 0.88);
+        transition: box-shadow 0.28s ease, opacity 0.28s ease;
+      }}
+      .pixel-ocelot-mug {{
+        position: absolute;
+        right: 16px;
+        bottom: 18px;
+        width: 10px;
+        height: 12px;
+        border: 2px solid #5f7f78;
+        border-radius: 2px 2px 4px 4px;
+        background: #7aa39a;
+        z-index: 3;
+        transition: transform 0.28s ease, opacity 0.28s ease;
+      }}
+      .pixel-ocelot-mug::after {{
+        content: "";
+        position: absolute;
+        right: -5px;
+        top: 2px;
+        width: 4px;
+        height: 5px;
+        border: 2px solid #5f7f78;
+        border-left: none;
+        border-radius: 0 4px 4px 0;
+      }}
+      .pixel-ocelot-treat {{
+        position: absolute;
+        left: 92px;
+        top: 30px;
+        width: 18px;
         height: 6px;
+        border: 2px solid #8d5d33;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #f4d9bc 0 56%, #e6806d 56% 100%);
+        display: none;
+        z-index: 6;
+      }}
+      .pixel-ocelot-dream {{
+        position: absolute;
+        right: 8px;
+        top: 2px;
+        display: none;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: rgba(255, 248, 238, 0.88);
+        text-shadow: 0 0 8px rgba(255,255,255,0.12);
+        z-index: 6;
+      }}
+      .pixel-ocelot-footprints {{
+        position: absolute;
+        left: 20px;
+        bottom: 16px;
+        width: 22px;
+        height: 8px;
+        display: none;
+        z-index: 3;
+      }}
+      .pixel-ocelot-footprints::before,
+      .pixel-ocelot-footprints::after {{
+        content: "";
+        position: absolute;
+        width: 7px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255, 244, 231, 0.7);
+      }}
+      .pixel-ocelot-footprints::before {{
+        left: 0;
+        top: 3px;
+      }}
+      .pixel-ocelot-footprints::after {{
+        right: 0;
+        top: 0;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="snack"] .pixel-ocelot-treat {{
+        display: block;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="snack"] .pixel-ocelot-head {{
+        transform: rotate(-6deg) translateY(-1px);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="snack"] .pixel-ocelot-paw.right {{
+        transform: translateY(-3px) translateX(3px);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="snack"] .pixel-ocelot-lamp::after {{
+        box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(255, 220, 142, 0.95);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-dream {{
+        display: block;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-head {{
+        transform: translateY(6px);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-body {{
+        transform: translateY(6px);
+        height: 28px;
+        border-radius: 14px 14px 12px 12px;
+        opacity: 0.95;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-eyes span {{
+        height: 2px;
+        margin-top: 2px;
+        border-radius: 2px;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-paw {{
+        opacity: 0.42;
+        bottom: 14px;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-tail {{
+        animation-duration: 2.8s;
+        opacity: 0.72;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-monitor::before {{
+        background:
+          linear-gradient(180deg, rgba(84, 108, 160, 0.14), rgba(8, 16, 35, 0.24)),
+          repeating-linear-gradient(
+            180deg,
+            rgba(104, 126, 175, 0.08) 0,
+            rgba(104, 126, 175, 0.08) 2px,
+            rgba(11, 24, 45, 0.03) 2px,
+            rgba(11, 24, 45, 0.03) 6px
+          );
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-lamp::after {{
+        opacity: 0.6;
+        box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(155, 171, 255, 0.28);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-cat {{
+        transform: translateX(14px) translateY(-4px);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-footprints {{
+        display: block;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-paw.left {{
+        left: 52px;
+        bottom: 16px;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-paw.right {{
+        left: 70px;
+        bottom: 15px;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-monitor {{
+        left: 34px;
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-monitor::before {{
+        background:
+          linear-gradient(180deg, rgba(70, 151, 214, 0.2), rgba(13, 37, 58, 0.18)),
+          linear-gradient(90deg, transparent 0 18%, rgba(138, 233, 197, 0.26) 18% 22%, transparent 22% 52%, rgba(138, 233, 197, 0.2) 52% 56%, transparent 56% 100%);
+      }}
+      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-lamp::after {{
+        box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(132, 183, 255, 0.86);
       }}
       @keyframes pixel-paw-type-left {{
         0%, 100% {{ transform: translateY(0); }}
@@ -1577,30 +2009,31 @@ def _render_index_html(title: str, data_file: str) -> str:
         position: relative;
         flex: 1 1 auto;
         min-height: 104px;
-        padding: 12px 14px 14px;
-        border-radius: 10px;
-        border: 1px solid rgba(191, 219, 254, 0.22);
-        background: rgba(10, 14, 28, 0.8);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+        padding: 14px 15px 15px;
+        border-radius: 4px;
+        border: 2px solid rgba(66, 133, 244, 0.28);
+        background:
+          linear-gradient(180deg, rgba(17, 31, 84, 0.92), rgba(8, 17, 50, 0.88));
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03), 4px 4px 0 rgba(8, 15, 36, 0.2);
       }}
       .pixel-progress-bubble::after {{
         content: "";
         position: absolute;
         left: -8px;
         bottom: 24px;
-        width: 14px;
-        height: 14px;
+        width: 12px;
+        height: 12px;
         transform: rotate(45deg);
-        background: rgba(10, 14, 28, 0.8);
-        border-left: 1px solid rgba(191, 219, 254, 0.22);
-        border-bottom: 1px solid rgba(191, 219, 254, 0.22);
+        background: rgba(9, 20, 58, 0.92);
+        border-left: 2px solid rgba(66, 133, 244, 0.28);
+        border-bottom: 2px solid rgba(66, 133, 244, 0.28);
       }}
       .pixel-progress-bubble-title {{
         font-size: 10px;
         line-height: 1.1;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: rgba(191, 219, 254, 0.72);
+        color: rgba(191, 219, 254, 0.82);
       }}
       .pixel-progress-speech {{
         margin-top: 10px;
@@ -1631,10 +2064,22 @@ def _render_index_html(title: str, data_file: str) -> str:
         justify-content: space-between;
         gap: 12px;
       }}
+      .pixel-progress-group {{
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }}
+      .pixel-progress-group-label {{
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(191, 219, 254, 0.54);
+      }}
       .pixel-progress-stage {{
         font-size: 13px;
         font-weight: 700;
-        color: #fde68a;
+        color: #fbbc04;
+        text-shadow: 0 0 12px rgba(251, 188, 4, 0.18);
       }}
       .pixel-progress-status {{
         font-size: 10px;
@@ -1648,32 +2093,36 @@ def _render_index_html(title: str, data_file: str) -> str:
         gap: 6px;
       }}
       .pixel-progress-step {{
-        min-height: 34px;
-        padding: 5px 4px;
-        border-radius: 6px;
-        border: 1px solid rgba(148, 163, 184, 0.12);
-        background: rgba(15, 23, 42, 0.7);
+        min-height: 36px;
+        padding: 6px 4px;
+        border-radius: 4px;
+        border: 2px solid rgba(148, 163, 184, 0.18);
+        background: rgba(15, 23, 42, 0.52);
+        backdrop-filter: blur(10px);
         text-align: center;
         font-size: 10px;
         line-height: 1.2;
-        color: rgba(191, 219, 254, 0.54);
+        color: rgba(191, 219, 254, 0.58);
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.22);
       }}
       .pixel-progress-step.is-done {{
-        border-color: rgba(52, 211, 153, 0.34);
-        background: linear-gradient(180deg, rgba(16, 88, 71, 0.96), rgba(11, 42, 37, 0.96));
-        color: #d1fae5;
+        border-color: rgba(52, 168, 83, 0.24);
+        background: rgba(52, 168, 83, 0.14);
+        color: rgba(220, 252, 231, 0.9);
       }}
       .pixel-progress-step.is-active {{
-        border-color: rgba(96, 165, 250, 0.42);
-        background: linear-gradient(180deg, rgba(38, 75, 145, 0.96), rgba(18, 34, 67, 0.96));
+        border-color: rgba(66, 133, 244, 0.42);
+        background: linear-gradient(180deg, rgba(66, 133, 244, 0.28), rgba(23, 78, 166, 0.22));
         color: #eff6ff;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 14px rgba(96, 165, 250, 0.18);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(66, 133, 244, 0.12);
       }}
       .pixel-progress-card {{
-        border: 1px solid rgba(160, 174, 255, 0.18);
-        border-radius: 8px;
-        background: rgba(8, 13, 27, 0.76);
-        padding: 10px;
+        border: 2px solid rgba(66, 133, 244, 0.18);
+        border-radius: 4px;
+        background:
+          linear-gradient(180deg, rgba(13, 28, 72, 0.9), rgba(8, 17, 50, 0.82));
+        padding: 12px;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03);
       }}
       .pixel-progress-card.is-clickable {{
         cursor: pointer;
@@ -1709,21 +2158,22 @@ def _render_index_html(title: str, data_file: str) -> str:
       }}
       .pixel-progress-agent {{
         padding: 8px 6px;
-        border-radius: 8px;
-        border: 1px solid rgba(148, 163, 184, 0.12);
-        background: rgba(15, 23, 42, 0.7);
-        color: rgba(191, 219, 254, 0.62);
+        border-radius: 4px;
+        border: 2px solid rgba(148, 163, 184, 0.14);
+        background: rgba(15, 23, 42, 0.46);
+        color: rgba(191, 219, 254, 0.56);
         text-align: center;
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18);
       }}
       .pixel-progress-agent.is-active {{
-        border-color: rgba(250, 204, 21, 0.36);
-        background: linear-gradient(180deg, rgba(133, 77, 14, 0.96), rgba(67, 36, 8, 0.96));
+        border-color: rgba(251, 188, 4, 0.34);
+        background: linear-gradient(180deg, rgba(251, 188, 4, 0.18), rgba(197, 138, 0, 0.12));
         color: #fef3c7;
-        box-shadow: 0 0 14px rgba(250, 204, 21, 0.18);
+        box-shadow: 0 0 14px rgba(251, 188, 4, 0.12);
       }}
       .pixel-progress-agent.is-done {{
-        border-color: rgba(52, 211, 153, 0.28);
-        background: linear-gradient(180deg, rgba(15, 72, 57, 0.92), rgba(9, 42, 32, 0.94));
+        border-color: rgba(52, 168, 83, 0.2);
+        background: rgba(52, 168, 83, 0.12);
         color: #d1fae5;
       }}
       .pixel-progress-agent-name {{
@@ -1735,6 +2185,13 @@ def _render_index_html(title: str, data_file: str) -> str:
         font-size: 9px;
         line-height: 1.25;
         opacity: 0.88;
+      }}
+      .pixel-progress-agent-status {{
+        margin-top: 4px;
+        font-size: 8px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        opacity: 0.72;
       }}
       .pixel-progress-detail.is-collapsed {{
         display: -webkit-box;
@@ -1773,6 +2230,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         align-items: center;
         justify-content: space-between;
         gap: 10px;
+        padding-top: 2px;
+        border-top: 1px solid rgba(66, 133, 244, 0.16);
         font-size: 10px;
         color: rgba(191, 219, 254, 0.72);
       }}
@@ -1794,22 +2253,32 @@ def _render_index_html(title: str, data_file: str) -> str:
       .pixel-progress-mini-fill {{
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, #38bdf8, #22c55e);
+        background: linear-gradient(90deg, #4285f4 0%, #ea4335 34%, #fbbc04 68%, #34a853 100%);
       }}
       @media (max-width: 640px) {{
+        .home-search-row {{
+          gap: 10px;
+        }}
+        .home-search-submit {{
+          width: 56px;
+          height: 56px;
+        }}
+        .home-search-submit-icon {{
+          width: 26px;
+          height: 26px;
+        }}
         .pixel-progress-shell {{
           right: 12px;
-          top: 56px;
           bottom: 12px;
           width: calc(100vw - 24px);
-          max-height: calc(100vh - 68px);
+          max-height: min(640px, calc(100vh - 68px));
         }}
         .pixel-progress-workbench {{
           gap: 10px;
         }}
         .pixel-ocelot-wrap {{
-          width: 92px;
-          transform: scale(0.92);
+          width: 110px;
+          transform: scale(0.9);
           transform-origin: left bottom;
         }}
         .pixel-progress-agents {{
@@ -1832,9 +2301,17 @@ def _render_index_html(title: str, data_file: str) -> str:
           </a>
         </div>
         <div class="relative">
-          <div class="flex items-center gap-3">
+          <div class="home-search-row">
             <input id="q" class="theme-input flex-1 px-4 py-2.5 rounded-xl" placeholder="例如：苏轼 / 李白 / 杜甫" />
-            <button id="go" class="theme-button-primary px-5 py-2.5 rounded-xl text-sm font-bold">开始分析</button>
+            <button id="go" class="home-search-submit" type="button" aria-label="开始分析" title="开始分析" data-loading="false">
+              <span class="home-search-submit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M12 18V6"></path>
+                  <path d="M6.5 11.5L12 6l5.5 5.5"></path>
+                </svg>
+              </span>
+              <span class="sr-only home-search-submit-label">开始分析</span>
+            </button>
           </div>
           <div id="searchHint" class="home-title-sub mt-2">内置人教版教材500+历史人物</div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
@@ -1847,28 +2324,31 @@ def _render_index_html(title: str, data_file: str) -> str:
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>
       </div>
-      <div id="pixelGenPanel" class="pixel-progress-shell hidden">
+      <div id="pixelGenPanel" class="pixel-progress-shell">
         <div class="pixel-progress-panel">
           <div class="pixel-progress-header">
             <div class="pixel-progress-title">
               <div id="pixelGenLamp" class="pixel-progress-lamp"></div>
               <div class="pixel-progress-meta">
-                <div class="pixel-progress-caption">Live Story Forge</div>
-                <div id="pixelGenPerson" class="pixel-progress-person">待命中</div>
+                <div class="pixel-progress-caption">Story Console</div>
+                <div id="pixelGenPerson" class="pixel-progress-person">飞飞</div>
               </div>
+              <div id="pixelGenStatusBadge" class="pixel-progress-badge is-idle">待命</div>
             </div>
-            <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button">收起</button>
+            <div class="pixel-progress-actions">
+              <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button" aria-expanded="false" aria-label="展开看板" title="展开看板">+</button>
+            </div>
           </div>
-          <div id="pixelGenBody" class="pixel-progress-body">
-            <div class="pixel-progress-scene">
-              <div class="pixel-progress-scene-title">豹猫工位</div>
+          <div id="pixelGenBody" class="pixel-progress-body" style="display:none">
+            <div id="pixelGenScene" class="pixel-progress-scene">
+              <div id="pixelGenSceneTitle" class="pixel-progress-scene-title">工位</div>
               <div id="pixelGenSceneLights" class="pixel-progress-status-lights">
                 <div class="pixel-progress-scene-light"></div>
                 <div class="pixel-progress-scene-light"></div>
                 <div class="pixel-progress-scene-light"></div>
               </div>
               <div class="pixel-progress-workbench">
-                <div class="pixel-ocelot-wrap">
+                <div id="pixelOcelotWrap" class="pixel-ocelot-wrap" data-idle-scene="snack">
                   <div class="pixel-ocelot-cat">
                     <div class="pixel-ocelot-ear left"></div>
                     <div class="pixel-ocelot-ear right"></div>
@@ -1877,32 +2357,44 @@ def _render_index_html(title: str, data_file: str) -> str:
                       <div class="pixel-ocelot-spot head-right"></div>
                       <div class="pixel-ocelot-eyes"><span></span><span></span></div>
                       <div class="pixel-ocelot-face"></div>
+                      <div class="pixel-ocelot-whiskers"></div>
                     </div>
                     <div class="pixel-ocelot-body"></div>
                     <div class="pixel-ocelot-spot body-center"></div>
                     <div class="pixel-ocelot-tail"></div>
+                    <div class="pixel-ocelot-treat"></div>
+                    <div class="pixel-ocelot-dream">Zz</div>
+                    <div class="pixel-ocelot-footprints"></div>
+                  <div class="pixel-ocelot-lamp"></div>
                     <div class="pixel-ocelot-monitor"></div>
+                  <div class="pixel-ocelot-mug"></div>
                     <div class="pixel-ocelot-paw left"></div>
                     <div class="pixel-ocelot-paw right"></div>
                     <div class="pixel-ocelot-desk"></div>
                   </div>
                 </div>
                 <div class="pixel-progress-bubble">
-                  <div class="pixel-progress-bubble-title">实时汇报</div>
-                  <div id="pixelGenSpeech" class="pixel-progress-speech">等待任务状态更新…</div>
+                  <div class="pixel-progress-bubble-title">状态</div>
+                  <div id="pixelGenSpeech" class="pixel-progress-speech">空闲中</div>
                 </div>
               </div>
               <div class="pixel-progress-scene-floor"></div>
             </div>
             <div class="pixel-progress-stage-wrap">
-              <div id="pixelGenStage" class="pixel-progress-stage">等待开始</div>
-              <div id="pixelGenStatusText" class="pixel-progress-status">idle</div>
+              <div id="pixelGenStage" class="pixel-progress-stage">空闲中</div>
+              <div id="pixelGenStatusText" class="pixel-progress-status">待命</div>
             </div>
-            <div id="pixelGenSteps" class="pixel-progress-steps"></div>
-            <div id="pixelGenAgents" class="pixel-progress-agents"></div>
+            <div class="pixel-progress-group">
+              <div class="pixel-progress-group-label">流程阶段</div>
+              <div id="pixelGenSteps" class="pixel-progress-steps"></div>
+            </div>
+            <div class="pixel-progress-group">
+              <div class="pixel-progress-group-label">执行模块</div>
+              <div id="pixelGenAgents" class="pixel-progress-agents"></div>
+            </div>
             <div id="pixelGenDetailCard" class="pixel-progress-card is-clickable">
               <div class="pixel-progress-card-head">
-                <div class="pixel-progress-card-title">执行进度</div>
+                <div class="pixel-progress-card-title">摘要</div>
                 <div id="pixelGenDetailHint" class="pixel-progress-card-hint">点击展开</div>
               </div>
               <div id="pixelGenDetail" class="pixel-progress-detail"></div>
@@ -1914,7 +2406,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               <div id="pixelGenLog" class="pixel-progress-log"></div>
             </div>
             <div class="pixel-progress-footer">
-              <div id="pixelGenFooterText">等待任务创建</div>
+              <div id="pixelGenFooterText">空闲中</div>
               <div class="pixel-progress-mini">
                 <span id="pixelGenPercent">0%</span>
                 <div class="pixel-progress-mini-bar">
@@ -2045,6 +2537,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
+      const $goLabel = $go ? $go.querySelector(".home-search-submit-label") : null;
       const $searchHint = document.getElementById("searchHint");
       const $searchSuggest = document.getElementById("searchSuggest");
       const $c = document.getElementById("c");
@@ -2082,6 +2575,10 @@ def _render_index_html(title: str, data_file: str) -> str:
       const $pixelGenBody = document.getElementById("pixelGenBody");
       const $pixelGenLamp = document.getElementById("pixelGenLamp");
       const $pixelGenPerson = document.getElementById("pixelGenPerson");
+      const $pixelGenStatusBadge = document.getElementById("pixelGenStatusBadge");
+      const $pixelGenScene = document.getElementById("pixelGenScene");
+      const $pixelGenSceneTitle = document.getElementById("pixelGenSceneTitle");
+      const $pixelOcelotWrap = document.getElementById("pixelOcelotWrap");
       const $pixelGenStage = document.getElementById("pixelGenStage");
       const $pixelGenStatusText = document.getElementById("pixelGenStatusText");
       const $pixelGenSteps = document.getElementById("pixelGenSteps");
@@ -3139,24 +3636,93 @@ def _render_index_html(title: str, data_file: str) -> str:
         {{ key: "review", label: "Critic", role: "审阅校验" }},
         {{ key: "deliver", label: "Deliver", role: "保存交付" }},
       ];
-      let pixelGenCollapsed = false;
+      const PIXEL_IDLE_STATES = [
+        {{
+          key: "snack",
+          person: "飞飞",
+          sceneTitle: "补能",
+          stage: "吃猫条",
+          speech: "吃猫条中",
+          summary: "暂无任务，正在补充能量。",
+          footer: "空闲中",
+        }},
+        {{
+          key: "nap",
+          person: "飞飞",
+          sceneTitle: "小睡",
+          stage: "打盹",
+          speech: "打盹中",
+          summary: "暂无任务，正在工位小睡。",
+          footer: "空闲中",
+        }},
+        {{
+          key: "stroll",
+          person: "飞飞",
+          sceneTitle: "巡查",
+          stage: "遛弯",
+          speech: "巡查中",
+          summary: "暂无任务，正在附近巡查。",
+          footer: "空闲中",
+        }},
+      ];
+      let pixelGenCollapsed = true;
       let pixelGenDetailExpanded = false;
       let pixelGenTypingSeq = 0;
       let pixelGenTypingTimer = null;
+      let pixelIdleSceneTimer = null;
       let pixelGenState = {{
-        visible: false,
-        person: "",
+        visible: true,
+        person: "飞飞",
         status: "idle",
-        summary: "",
+        sceneTitle: "工位",
+        idleStageLabel: "空闲中",
+        summary: "暂无任务。",
+        footerText: "空闲中",
         progress: [],
         stageKey: "queued",
         speechText: "",
+        idleSceneKey: "snack",
+      }};
+      const pickPixelIdleState = (excludeKey = "") => {{
+        const states = PIXEL_IDLE_STATES.filter((item) => item && item.key !== excludeKey);
+        const pool = states.length ? states : PIXEL_IDLE_STATES;
+        const idx = Math.floor(Math.random() * Math.max(1, pool.length));
+        return pool[idx] || PIXEL_IDLE_STATES[0];
+      }};
+      const applyPixelIdleScene = (key) => {{
+        const safeKey = String(key || "snack").trim() || "snack";
+        if ($pixelOcelotWrap) $pixelOcelotWrap.dataset.idleScene = safeKey;
+        if ($pixelGenScene) $pixelGenScene.dataset.idleScene = safeKey;
+      }};
+      const clearPixelIdleSceneRotation = () => {{
+        if (pixelIdleSceneTimer) {{
+          try {{ clearTimeout(pixelIdleSceneTimer); }} catch (_) {{}}
+          pixelIdleSceneTimer = null;
+        }}
+      }};
+      const schedulePixelIdleSceneRotation = () => {{
+        clearPixelIdleSceneRotation();
+        pixelIdleSceneTimer = window.setTimeout(() => {{
+          if (String(pixelGenState.status || "").trim() !== "idle") return;
+          const next = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
+          updatePixelProgressPanel({{
+            status: "idle",
+            idleSceneKey: next.key,
+            person: next.person,
+            sceneTitle: next.sceneTitle,
+            idleStageLabel: next.stage,
+            summary: next.summary,
+            footerText: next.footer,
+            speechText: next.speech,
+          }});
+        }}, 7000 + Math.floor(Math.random() * 5000));
       }};
       const resolvePixelStageKey = (status, lastTxt, lastDetail, progress) => {{
         const head = String(lastTxt || "").trim();
         const detail = String(lastDetail || "").trim();
         const tail = Array.isArray(progress) && progress.length ? String(progress[progress.length - 1].label || "").trim() : "";
         const text = `${{head}} ${{detail}} ${{tail}}`.toLowerCase();
+        if (status === "idle") return "queued";
         if (status === "queued") return "queued";
         if (status === "completed" || status === "failed" || status === "partial_failed") return "deliver";
         if (text.includes("searchagent") || text.includes("检索") || text.includes("理解任务")) return "search";
@@ -3167,6 +3733,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         return "search";
       }};
       const resolvePixelStageLabel = (status, stageKey) => {{
+        if (status === "idle") return String(pixelGenState.idleStageLabel || "").trim() || "空闲中";
         if (status === "queued") return "排队分发任务";
         if (status === "completed") return "交付完成";
         if (status === "failed") return "生成失败";
@@ -3179,16 +3746,25 @@ def _render_index_html(title: str, data_file: str) -> str:
         return "等待开始";
       }};
       const resolvePixelLampClass = (status) => {{
+        if (status === "idle") return "is-idle";
         if (status === "queued") return "is-queued";
         if (status === "failed" || status === "partial_failed") return "is-failed";
         if (status === "completed") return "is-completed";
         if (status === "running") return "is-running";
         return "";
       }};
+      const resolvePixelBadgeClass = (status) => {{
+        if (status === "idle") return "is-idle";
+        if (status === "queued") return "is-queued";
+        if (status === "failed" || status === "partial_failed") return "is-failed";
+        if (status === "completed") return "is-completed";
+        if (status === "running") return "is-running";
+        return "is-idle";
+      }};
       const renderPixelSceneLights = (status, stageKey) => {{
         if (!pixelGenSceneLights.length) return;
         const defs = [
-          {{ on: status === "queued", tint: "is-amber" }},
+          {{ on: status === "idle" || status === "queued", tint: status === "idle" ? "is-cyan" : "is-amber" }},
           {{ on: status === "running" || stageKey === "review", tint: "is-green" }},
           {{ on: stageKey === "deliver" || status === "completed", tint: "is-cyan" }},
         ];
@@ -3200,12 +3776,18 @@ def _render_index_html(title: str, data_file: str) -> str:
       const setPixelPanelCollapsed = (collapsed) => {{
         pixelGenCollapsed = !!collapsed;
         if ($pixelGenBody) $pixelGenBody.style.display = pixelGenCollapsed ? "none" : "";
-        if ($pixelGenToggle) $pixelGenToggle.textContent = pixelGenCollapsed ? "展开" : "收起";
+        if ($pixelGenToggle) {{
+          $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
+          $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
+          $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
+          $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
+        }}
       }};
       const setPixelSpeechText = (text) => {{
         if ($pixelGenSpeech) $pixelGenSpeech.textContent = String(text || "").trim() || "等待任务状态更新…";
       }};
       const resolvePixelSceneSpeech = (status) => {{
+        if (status === "idle") return String(pixelGenState.speechText || "").trim() || "空闲中";
         if (status === "queued") return "排队中";
         if (status === "completed") return "已完成";
         if (status === "failed") return "执行失败";
@@ -3248,28 +3830,42 @@ def _render_index_html(title: str, data_file: str) -> str:
       const renderPixelProgressSteps = (status, stageKey) => {{
         if (!$pixelGenSteps) return;
         const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
+        const isIdle = status === "idle";
         $pixelGenSteps.innerHTML = PIXEL_STAGE_FLOW.map((item, idx) => {{
-          const done = status === "completed" ? true : idx < stageIdx;
-          const active = status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === stageIdx;
+          const done = !isIdle && (status === "completed" ? true : idx < stageIdx);
+          const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === stageIdx;
           const cls = "pixel-progress-step" + (done ? " is-done" : "") + (active ? " is-active" : "");
           return `<div class="${{cls}}">${{item.label}}</div>`;
         }}).join("");
       }};
+      const resolvePixelStatusText = (status) => {{
+        if (status === "idle") return "待命";
+        if (status === "queued") return "排队";
+        if (status === "running") return "执行中";
+        if (status === "completed") return "已完成";
+        if (status === "failed") return "失败";
+        if (status === "partial_failed") return "部分完成";
+        return String(status || "").trim() || "待命";
+      }};
       const renderPixelAgentCards = (status, stageKey) => {{
         if (!$pixelGenAgents) return;
         const activeIdx = Math.max(0, PIXEL_AGENT_CARDS.findIndex((item) => item.key === stageKey || (stageKey === "queued" && item.key === "search")));
+        const isIdle = status === "idle";
         $pixelGenAgents.innerHTML = PIXEL_AGENT_CARDS.map((item, idx) => {{
-          const done = status === "completed" ? true : idx < activeIdx;
-          const active = status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === activeIdx;
+          const done = !isIdle && (status === "completed" ? true : idx < activeIdx);
+          const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === activeIdx;
           const cls = "pixel-progress-agent" + (done ? " is-done" : "") + (active ? " is-active" : "");
-          return `<div class="${{cls}}"><div class="pixel-progress-agent-name">${{item.label}}</div><div class="pixel-progress-agent-role">${{item.role}}</div></div>`;
+          const stateText = isIdle ? "待命" : (active ? "处理中" : (done ? "已完成" : "等待"));
+          return `<div class="${{cls}}"><div class="pixel-progress-agent-name">${{item.label}}</div><div class="pixel-progress-agent-role">${{item.role}}</div><div class="pixel-progress-agent-status">${{stateText}}</div></div>`;
         }}).join("");
       }};
-      const renderPixelProgressLog = (progress) => {{
+      const renderPixelProgressLog = (status, progress) => {{
         if (!$pixelGenLog) return;
         const items = (Array.isArray(progress) ? progress : []).slice(-5);
         if (!items.length) {{
-          $pixelGenLog.innerHTML = '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">等待中</div><div class="pixel-progress-log-detail">任务创建后会在这里持续显示最新执行步骤。</div></div>';
+          $pixelGenLog.innerHTML = status === "idle"
+            ? '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">空闲中</div><div class="pixel-progress-log-detail">输入人物后开始生成。</div></div>'
+            : '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">等待中</div><div class="pixel-progress-log-detail">任务创建后会在这里持续显示最新执行步骤。</div></div>';
           return;
         }}
         $pixelGenLog.innerHTML = items.map((item) => {{
@@ -3288,31 +3884,52 @@ def _render_index_html(title: str, data_file: str) -> str:
         const person = String(pixelGenState.person || "").trim();
         const summary = String(pixelGenState.summary || "").trim();
         const progress = Array.isArray(pixelGenState.progress) ? pixelGenState.progress : [];
-        const visible = pixelGenState.visible !== false && !!(person || summary || progress.length);
+        const visible = pixelGenState.visible !== false;
         if (!visible) {{
           $pixelGenPanel.classList.add("hidden");
           return;
         }}
         const status = String(pixelGenState.status || "running").trim() || "running";
         const stageKey = String(pixelGenState.stageKey || "search").trim() || "search";
+        if ((status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {{
+          setPixelPanelCollapsed(false);
+        }}
         const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
-        const basePercent = status === "completed" ? 100 : Math.round(((stageIdx + (status === "queued" ? 0 : 1)) / PIXEL_STAGE_FLOW.length) * 100);
+        const basePercent = status === "idle"
+          ? 0
+          : (status === "completed"
+            ? 100
+            : Math.round(((stageIdx + (status === "queued" ? 0 : 1)) / PIXEL_STAGE_FLOW.length) * 100));
         $pixelGenPanel.classList.remove("hidden");
-        if ($pixelGenPerson) $pixelGenPerson.textContent = person || "实时人物分析";
+        applyPixelIdleScene(String(pixelGenState.idleSceneKey || "snack"));
+        if ($pixelGenPerson) $pixelGenPerson.textContent = person || "飞飞";
+        if ($pixelGenSceneTitle) {{
+          $pixelGenSceneTitle.textContent = status === "idle"
+            ? (String(pixelGenState.sceneTitle || "").trim() || "工位")
+            : "工位";
+        }}
         if ($pixelGenStage) $pixelGenStage.textContent = resolvePixelStageLabel(status, stageKey);
-        if ($pixelGenStatusText) $pixelGenStatusText.textContent = status;
+        if ($pixelGenStatusText) $pixelGenStatusText.textContent = resolvePixelStatusText(status);
         if ($pixelGenLamp) $pixelGenLamp.className = "pixel-progress-lamp " + resolvePixelLampClass(status);
+        if ($pixelGenStatusBadge) {{
+          $pixelGenStatusBadge.className = "pixel-progress-badge " + resolvePixelBadgeClass(status);
+          $pixelGenStatusBadge.textContent = resolvePixelStatusText(status);
+        }}
         if ($pixelGenFooterText) {{
-          $pixelGenFooterText.textContent = status === "queued"
+          $pixelGenFooterText.textContent = status === "idle"
+            ? (String(pixelGenState.footerText || "").trim() || "空闲中")
+            : (status === "queued"
             ? "任务已进入排队，等待分配算力"
             : (status === "completed"
               ? "产物已生成，正在准备打开页面"
               : (status === "failed" || status === "partial_failed"
                 ? "任务已停止，请查看上方错误信息"
-                : "豹猫正在持续汇报 agent 的执行进度"));
+                : "飞飞正在持续汇报 agent 的执行进度")));
         }}
         if ($pixelGenPercent) $pixelGenPercent.textContent = `${{basePercent}}%`;
         if ($pixelGenFill) $pixelGenFill.style.width = `${{basePercent}}%`;
+        if (status === "idle") schedulePixelIdleSceneRotation();
+        else clearPixelIdleSceneRotation();
         renderPixelSceneLights(status, stageKey);
         const sceneSpeech = resolvePixelSceneSpeech(status);
         setPixelDetailText(summary);
@@ -3324,7 +3941,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         pixelGenState.speechText = sceneSpeech;
         renderPixelProgressSteps(status, stageKey);
         renderPixelAgentCards(status, stageKey);
-        renderPixelProgressLog(progress);
+        renderPixelProgressLog(status, progress);
       }};
       try {{
         if ($pixelGenToggle) {{
@@ -3339,12 +3956,23 @@ def _render_index_html(title: str, data_file: str) -> str:
           }});
         }}
       }} catch (_) {{}}
-      setPixelPanelCollapsed(false);
+      setPixelPanelCollapsed(true);
+      const initialIdleState = pickPixelIdleState();
+      pixelGenState = Object.assign({{}}, pixelGenState, {{
+        idleSceneKey: initialIdleState.key,
+        person: initialIdleState.person,
+        sceneTitle: initialIdleState.sceneTitle,
+        idleStageLabel: initialIdleState.stage,
+        summary: initialIdleState.summary,
+        footerText: initialIdleState.footer,
+        speechText: initialIdleState.speech,
+      }});
+      updatePixelProgressPanel(pixelGenState);
 
       const setGenStatus = (txt) => {{
         const t = String(txt || "").trim();
         updatePixelProgressPanel({{
-          visible: !!t,
+          visible: true,
           summary: t,
         }});
         if (!$genStatus) return;
@@ -3362,7 +3990,14 @@ def _render_index_html(title: str, data_file: str) -> str:
       const setGeneratingUI = (isGenerating) => {{
         const on = !!isGenerating;
         try {{ $go.disabled = on; }} catch (_) {{}}
-        try {{ $go.textContent = on ? "分析中..." : "开始分析"; }} catch (_) {{}}
+        try {{
+          if ($go) {{
+            $go.dataset.loading = on ? "true" : "false";
+            $go.setAttribute("aria-label", on ? "分析中" : "开始分析");
+            $go.setAttribute("title", on ? "分析中" : "开始分析");
+          }}
+          if ($goLabel) $goLabel.textContent = on ? "分析中" : "开始分析";
+        }} catch (_) {{}}
         try {{
           if (on) {{
             $go.classList.add("opacity-60");

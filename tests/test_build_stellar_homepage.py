@@ -101,19 +101,61 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
 
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
-    assert 'id="pixelGenPanel"' in html
+    assert 'id="pixelGenPanel" class="pixel-progress-shell"' in html
     assert 'id="pixelGenToggle"' in html
+    assert 'id="pixelGenStatusBadge"' in html
     assert 'id="pixelGenSpeech"' in html
     assert 'id="pixelGenAgents"' in html
     assert 'id="pixelGenDetailCard"' in html
     assert "pixel-ocelot-monitor" in html
     assert "pixel-progress-scene-light" in html
+    assert 'id="pixelGenScene"' in html
+    assert 'id="pixelGenSceneTitle"' in html
+    assert "Story Console" in html
+    assert ">飞飞</div>" in html
+    assert ">空闲中</div>" in html
+    assert 'aria-expanded="false"' in html
+    assert 'id="pixelGenBody" class="pixel-progress-body" style="display:none"' in html
+    assert "展开看板" in html
+    assert "流程阶段" in html
+    assert "执行模块" in html
     assert "const PIXEL_STAGE_FLOW = [" in html
     assert "const PIXEL_AGENT_CARDS = [" in html
+    assert "const PIXEL_IDLE_STATES = [" in html
     assert "const updatePixelProgressPanel = (patch = {}) => {" in html
     assert 'const $pixelGenToggle = document.getElementById("pixelGenToggle");' in html
+    assert 'const $pixelGenStatusBadge = document.getElementById("pixelGenStatusBadge");' in html
+    assert 'const $pixelGenScene = document.getElementById("pixelGenScene");' in html
+    assert 'const $pixelGenSceneTitle = document.getElementById("pixelGenSceneTitle");' in html
     assert 'const $pixelGenSpeech = document.getElementById("pixelGenSpeech");' in html
     assert 'const $pixelGenDetailCard = document.getElementById("pixelGenDetailCard");' in html
+    assert 'let pixelGenCollapsed = true;' in html
+    assert 'visible: true,' in html
+    assert 'setPixelPanelCollapsed(true);' in html
+    assert 'updatePixelProgressPanel(pixelGenState);' in html
+    assert 'const resolvePixelStageLabel = (status, stageKey) => {' in html
+    assert 'if (status === "idle") return String(pixelGenState.idleStageLabel || "").trim() || "空闲中";' in html
+    assert 'const resolvePixelBadgeClass = (status) => {' in html
+    assert 'const resolvePixelStatusText = (status) => {' in html
+    assert 'if (status === "idle") return "待命";' in html
+    assert 'const basePercent = status === "idle"' in html
+    assert '$pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";' in html
+    assert 'renderPixelProgressLog(status, progress);' in html
+    assert 'speechText: next.speech,' in html
+
+
+def test_render_index_html_uses_google_palette_for_pixel_progress_panel():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert ".pixel-progress-lamp.is-idle {" in html
+    assert ".pixel-progress-badge.is-idle {" in html
+    assert "#4285f4" in html
+    assert "#34a853" in html
+    assert "#ea4335" in html
+    assert "#fbbc04" in html
+    assert "linear-gradient(90deg, #4285f4 0%, #ea4335 34%, #fbbc04 68%, #34a853 100%)" in html
 
 
 def test_render_index_html_uses_shared_person_tooltip_model():

@@ -714,6 +714,21 @@ def test_profile_page_template_removes_floating_chat_button_and_keeps_inline_ent
     assert ">NEW</span>" not in html
 
 
+def test_profile_page_template_uses_recommended_question_cards_and_color_teaching_points():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "推荐问题" in html
+    assert "推荐任务" not in html
+    assert "const detectPromptProfile = () => {" in html
+    assert "recommended-question-grid" in html
+    assert "recommended-question-card" in html
+    assert "recommended-question-kicker" in html
+    assert "teaching-point-card" in html
+    assert "teaching-point-heading" in html
+    assert "teaching-point-note" in html
+    assert "text-left" in html
+
+
 def test_profile_page_template_uses_context_aware_war_badge_rule():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
