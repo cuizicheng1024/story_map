@@ -15,7 +15,9 @@
   try {
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
+    const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -84,7 +86,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
   try {
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
+    const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -533,6 +537,11 @@ body {
 .journey-shell {
   position: relative;
 }
+.journey-shell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 .journey-shell.is-fullscreen {
   position: fixed;
   inset: 12px;
@@ -547,6 +556,113 @@ body {
 .journey-shell:fullscreen {
   padding: 12px;
   background: rgba(248, 250, 252, 0.98);
+}
+.journey-shell.is-fullscreen .journey-shell-content,
+.journey-shell:fullscreen .journey-shell-content {
+  display: grid;
+  grid-template-rows: minmax(0, var(--journey-top-pane, 64%)) 10px minmax(0, 1fr);
+  height: calc(100vh - 48px);
+  gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+.journey-main-row {
+  min-width: 0;
+  min-height: 0;
+}
+.journey-shell.is-fullscreen .journey-main-row,
+.journey-shell:fullscreen .journey-main-row {
+  display: grid;
+  grid-template-columns: minmax(320px, var(--journey-left-pane, 34%)) 10px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+.journey-shell.is-fullscreen .journey-chat-section,
+.journey-shell:fullscreen .journey-chat-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.journey-timeline-column,
+.journey-map-column {
+  min-width: 0;
+  min-height: 0;
+}
+.journey-timeline-column {
+  overflow: hidden;
+}
+.journey-map-column {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.journey-pane-resizer {
+  position: relative;
+  background: linear-gradient(180deg, rgba(218, 220, 224, 0.24), rgba(197, 164, 118, 0.26), rgba(218, 220, 224, 0.24));
+  border-radius: 999px;
+  user-select: none;
+  touch-action: none;
+}
+.journey-pane-resizer::before {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(157, 124, 78, 0.52);
+  box-shadow: 0 6px 18px rgba(84, 63, 37, 0.18);
+}
+.journey-pane-resizer.is-vertical {
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+}
+.journey-pane-resizer.is-vertical::before {
+  width: 4px;
+  height: 72px;
+}
+.journey-pane-resizer.is-horizontal {
+  width: 100%;
+  height: 10px;
+  cursor: row-resize;
+}
+.journey-pane-resizer.is-horizontal::before {
+  width: 84px;
+  height: 4px;
+}
+.journey-chat-section {
+  position: relative;
+  z-index: 8;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(218, 220, 224, 0.92);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+.journey-chat-list,
+.journey-chat-section .theme-soft-section,
+.journey-chat-section .theme-panel-muted {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.98);
+}
+.journey-shell.is-exporting {
+  overflow: visible;
+}
+.journey-shell.is-exporting .journey-shell-content {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  overflow: visible;
+}
+.journey-shell.is-exporting .journey-main-row {
+  overflow: visible;
+  flex: 0 0 auto;
+}
+.journey-shell.is-exporting .journey-chat-section,
+.journey-shell.is-exporting .journey-timeline-column,
+.journey-shell.is-exporting .journey-map-column {
+  overflow: visible;
 }
 .map-3d-control-button {
   min-width: 36px;
@@ -569,6 +685,11 @@ body {
   flex-direction: column;
   gap: 10px;
   align-items: flex-end;
+}
+.map-control-cluster.is-inline {
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
 }
 .map-control-button {
   min-height: 52px;
@@ -616,40 +737,57 @@ body {
   align-items: flex-end;
 }
 .map-layer-trigger {
-  min-height: 52px;
-  min-width: 74px;
-  border-radius: 18px;
+  min-height: 46px;
+  min-width: 68px;
+  border-radius: 16px;
   padding: 0 10px;
-  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
-  border: 1px solid rgba(154, 126, 88, 0.34);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  color: #5f3f22;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.98), rgba(245, 236, 219, 0.99));
+  border: 1px solid rgba(171, 140, 94, 0.34);
+  box-shadow: 0 10px 22px rgba(84, 63, 37, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  color: #6b4724;
 }
 .map-bottom-button {
-  min-height: 52px;
-  min-width: 74px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
-  border: 1px solid rgba(154, 126, 88, 0.34);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  color: #5f3f22;
+  min-height: 46px;
+  min-width: 68px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.98), rgba(245, 236, 219, 0.99));
+  border: 1px solid rgba(171, 140, 94, 0.34);
+  box-shadow: 0 10px 22px rgba(84, 63, 37, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  color: #6b4724;
 }
 .map-compact-action-button {
-  width: 60px;
-  min-width: 60px;
+  width: 52px;
+  min-width: 52px;
   padding-left: 0;
   padding-right: 0;
   justify-content: center;
 }
 .map-layer-trigger:hover,
 .map-bottom-button:hover {
-  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
-  border-color: rgba(143, 112, 72, 0.48);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  background: linear-gradient(180deg, rgba(255, 253, 249, 1), rgba(248, 239, 224, 1));
+  border-color: rgba(157, 124, 78, 0.44);
+  box-shadow: 0 14px 28px rgba(84, 63, 37, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .map-layer-trigger:active,
 .map-bottom-button:active {
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  box-shadow: 0 6px 14px rgba(84, 63, 37, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+.map-bottom-button.is-accent-export {
+  background: linear-gradient(180deg, rgba(244, 247, 255, 0.98), rgba(232, 237, 255, 0.98));
+  border-color: rgba(109, 120, 255, 0.28);
+  color: #4153b3;
+}
+.map-bottom-button.is-accent-export:hover {
+  background: linear-gradient(180deg, rgba(249, 251, 255, 1), rgba(238, 242, 255, 1));
+  border-color: rgba(89, 102, 230, 0.36);
+  box-shadow: 0 14px 28px rgba(65, 83, 179, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+@media (min-width: 1024px) {
+  .journey-main-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
 }
 .map-layer-trigger-icon {
   width: 30px;
@@ -886,6 +1024,7 @@ body {
   inset: 0;
 }
 #map-maplibre.map-canvas,
+#map-amap.map-canvas,
 #map-cesium.map-canvas {
   position: absolute !important;
   inset: 0 !important;
@@ -896,6 +1035,23 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+.map-fallback-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 24;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.map-fallback-overlay.is-active {
+  opacity: 1;
+}
+.map-fallback-overlay-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 #map-cesium,
 #map-cesium .cesium-viewer,
@@ -938,15 +1094,17 @@ body {
 .map-point-label-shell {
   background: transparent;
   border: none;
+  pointer-events: auto;
 }
 .map-point-label {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: max-content;
-  max-width: 112px;
-  padding: 3px 8px;
-  border-radius: 10px;
+  max-width: 132px;
+  padding: 4px 9px 5px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(218, 220, 224, 0.9);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
@@ -957,8 +1115,35 @@ body {
   --label-soft-strong: rgba(52, 168, 83, 0.28);
   transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, background 180ms ease, border-color 180ms ease;
 }
+.map-point-label-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  max-width: 100%;
+  padding: 1px 6px;
+  margin-bottom: 3px;
+  border-radius: 999px;
+  background: var(--label-soft);
+  color: var(--label-color);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.map-point-label-name {
+  max-width: 132px;
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.18;
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+}
 .map-point-label-text {
-  max-width: 112px;
+  max-width: 132px;
   color: var(--color-text-secondary);
   font-size: 9px;
   font-weight: 700;
@@ -979,6 +1164,13 @@ body {
 .map-point-label.is-active .map-point-label-text {
   color: #fff;
 }
+.map-point-label.is-active .map-point-label-badge {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.map-point-label.is-active .map-point-label-name {
+  color: #fff;
+}
 .map-point-label.is-start {
   background: rgba(236, 253, 245, 0.96);
   border-color: rgba(52, 168, 83, 0.32);
@@ -986,11 +1178,21 @@ body {
 .map-point-label.is-start .map-point-label-text {
   color: var(--color-success);
 }
+.map-point-label.is-start .map-point-label-name {
+  color: var(--color-success);
+}
 .map-point-label.is-end {
   background: rgba(249, 244, 244, 0.98);
   border-color: rgba(139, 100, 103, 0.24);
 }
 .map-point-label.is-end .map-point-label-text {
+  color: #7d5659;
+}
+.map-point-label.is-end .map-point-label-badge {
+  background: rgba(139, 100, 103, 0.12);
+  color: #7d5659;
+}
+.map-point-label.is-end .map-point-label-name {
   color: #7d5659;
 }
 .map-segment-arrow {
@@ -1365,18 +1567,18 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 152px;
-  height: 152px;
+  width: 118px;
+  height: 118px;
   transform: translate(-50%, -50%);
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(96,165,250,0.24) 0, rgba(59,130,246,0.14) 28%, rgba(37,99,235,0.05) 52%, transparent 74%);
-  box-shadow: 0 0 42px rgba(96,165,250,0.16);
+  background: radial-gradient(circle, rgba(96,165,250,0.18) 0, rgba(59,130,246,0.1) 36%, rgba(37,99,235,0.03) 64%, transparent 76%);
+  box-shadow: 0 0 28px rgba(96,165,250,0.12);
   pointer-events: none;
 }
 .related-graph-node {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 170px;
+  width: 164px;
   text-align: center;
   z-index: 2;
 }
@@ -1424,9 +1626,16 @@ body {
   transition: transform .18s ease;
 }
 .related-graph-card.center {
-  min-width: 188px;
-  max-width: 220px;
-  padding-top: 10px;
+  min-width: 136px;
+  max-width: 136px;
+  width: 136px;
+  height: 136px;
+  padding: 0;
+  border-radius: 999px;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 46%, rgba(21, 36, 74, 0.95) 0%, rgba(17, 31, 66, 0.94) 62%, rgba(15, 23, 42, 0.88) 100%);
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 42px rgba(2, 6, 23, 0.18);
 }
 .related-graph-dot {
   width: 18px;
@@ -1459,8 +1668,12 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 24px;
-  height: 24px;
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.08),
     0 0 24px rgba(96,165,250,0.26);
@@ -1491,9 +1704,37 @@ body {
   text-shadow: 0 1px 16px rgba(15,23,42,0.48);
 }
 .related-graph-label.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px 0;
   color: #f8fbff;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
+  text-align: center;
+}
+.related-graph-edge-line {
+  stroke: rgba(96,165,250,0.34);
+  stroke-width: 0.34;
+  stroke-linecap: round;
+}
+.related-graph-edge-line.is-glow {
+  stroke: rgba(96,165,250,0.12);
+  stroke-width: 0.78;
+}
+.related-graph-edge-label-bg {
+  fill: rgba(15, 23, 42, 0.86);
+  stroke: rgba(147, 197, 253, 0.24);
+  stroke-width: 0.16;
+}
+.related-graph-edge-label-text {
+  fill: rgba(239, 246, 255, 0.96);
+  font-size: 2.9px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
 .related-graph-tooltip {
   position: absolute;
@@ -1661,8 +1902,84 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "庄子，名周", "title": "老庄", "description": "庄子名周，战国中期宋国蒙人。他生活在一个诸侯争霸、百家争鸣的时代，曾短暂担任漆园吏，后绝意仕进，终身不仕。他继承并发展了老子的道家思想，主张清静无为、顺应天道、逍遥自得，对儒家名教及世俗功利进行了深刻批判。其思想主要保存于《庄子》一书中，该书分内、外、杂篇，文风瑰丽奇谲，想象超凡，通过大量寓言阐述深奥哲理，如“庖丁解牛”、“庄周梦蝶”等，既是哲学名篇，也是文学经典。", "quote": "庖丁解牛", "shortReview": "庖丁解牛", "dynasty": "战国中期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "河南省商丘市民权县", "avatar": "", "birth": {"date": "公元前369年", "location": "河南省商丘市民权县", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前286年", "location": "宋国蒙邑（今地同出生地）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "存疑（据生卒年推算约83岁，但生卒年均有争议）", "highlights": {"honor": "老庄", "status": "道家学派的代表人物，与老子并称“老庄”，其思想与文学成就对中国哲学与文学影响深远。", "identities": "思想家、哲学家、文学家", "achievements": "", "works": ["庄子"], "reviews": []}}, "locations": [{"name": "商丘（宋国都城）", "ancientName": "宋国都城商丘", "modernName": "河南省商丘市睢阳区", "lat": 34.388, "lng": 115.617, "coordSystem": "WGS84", "type": "normal", "event": "曾任“漆园吏”（管理漆树园的小官）。在此期间，目睹官场与社会现实，为其绝意仕途、批判世俗的思想埋下伏笔。", "time": "青壮年时期", "duration": "数年", "significance": "其唯一已知的出仕经历发生地，也是其哲学思想形成的重要社会观察窗口。", "works": [], "quoteLines": []}, {"name": "大梁（魏国都城）", "ancientName": "魏国都城大梁", "modernName": "河南省开封市", "lat": 34.797, "lng": 114.308, "coordSystem": "WGS84", "type": "normal", "event": "与魏国贤士惠施相交，并发生著名的“鸱得腐鼠”之喻，讽刺惠施对相位的执着。在此宣扬其“无用之用”的思想。", "time": "中年时期", "duration": "短暂游历", "significance": "与名家惠施进行思想交锋的主要舞台，展现了道家与名家不同的价值取向。", "works": [], "quoteLines": []}, {"name": "濠梁", "ancientName": "濠水之上", "modernName": "安徽省凤阳县临淮关镇附近", "lat": 32.883, "lng": 117.567, "coordSystem": "WGS84", "type": "normal", "event": "与惠施同游，发生著名的“濠梁之辩”，围绕“子非鱼，安知鱼之乐”展开哲学辩论。", "time": "中晚年", "duration": "短暂", "significance": "中国哲学史上关于认知与共情能力的经典论辩发生地，体现了庄子物我合一的境界。", "works": [], "quoteLines": []}, {"name": "楚国（郢都或彭城）", "ancientName": "楚国或彭城）", "modernName": "湖北荆州", "lat": 30.335, "lng": 112.239, "coordSystem": "WGS84", "type": "normal", "event": "楚威王曾派使者以厚币重礼迎聘庄子，许以为相。庄子以“宁生而曳尾涂中”的神龟为喻，拒绝出仕。", "time": "中年", "duration": "短暂", "significance": "庄子“终身不仕”决心最著名的体现，彰显其追求精神自由、鄙弃权势富贵的高洁人格。", "works": [], "quoteLines": []}, {"name": "陶邑（或为贸易中心）", "ancientName": "宋国陶邑", "modernName": "山东省菏泽市定陶区", "lat": 35.071, "lng": 115.569, "coordSystem": "WGS84", "type": "normal", "event": "可能因生活困顿或游历至此。其文中对商业、盗贼、社会动荡的描写，或与当时作为天下之中、商贸繁荣但也纷争不断的陶邑见闻有关。", "time": "晚年", "duration": "不详", "significance": "为其观察社会百态、思考“有用”与“无用”、“材与不材”提供了现实素材。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《逍遥游》**（节选）、**《庖丁解牛》**（节选自《养生主》）、**《庄子与惠子游于濠梁之上》**（节选自《秋水》）。\n- 核心要点：\n    - **重点**：**《逍遥游》** 通过鲲鹏、蜩与学鸠等对比，阐述了“**小大之辩**”，并提出“**无待**”（不依赖外物）才能达到真正逍遥的最高境界。\n    - **重点**：**《庖丁解牛》** 以寓言阐述“**缘督以为经**”的养生之道，即顺应自然规律（“依乎天理”、“因其固然”），方能游刃有余，保全自身。\n    - **重点**：**《庄子与惠子游于濠梁之上》** 的“**濠梁之辩**”，展现了庄子“**物我合一**”的审美体验与惠子逻辑认知的差异，是理解庄子哲学感性特质的关键。\n    - **寓言**艺术：庄子善用**寓言**（如鲲鹏、庖丁、骷髅）说理，将抽象哲理形象化。\n    - **想象**奇特：文风**汪洋恣肆**，**想象**瑰丽雄奇，如“怒而飞，其翼若垂天之云”。\n    - **浪漫主义**风格：其文开创了中国文学的**浪漫主义**传统，与屈原并称“庄骚”。\n    - **批判精神**：对儒家**仁义**礼法等世俗价值进行了深刻批判与解构。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：庄子是**战国中期**宋国人，**道家学派**的集大成者，与老子并称“**老庄**”。\n    - **重点**：其主要思想保存于**《庄子》** 一书，分内、外、杂篇，一般认为内篇为庄子自著，外杂篇可能包含其弟子及后学思想。\n    - 楚威王曾厚币迎聘，庄子**拒绝出仕**，终身不仕，体现了**隐逸**的处世态度。\n- 核心要点：\n    - **重点**：庄子哲学的核心是追求精神的绝对自由，即“**逍遥**”，主张“**齐物**”（万物平等）、“**无为**”，顺应自然之道。\n    - **重点**：其思想与**老子**同属道家，但更强调超越世俗、泯灭物我差别，具有更强烈的批判性和超越性。\n    - **重点**：庄子不仅是哲学家，也是杰出的**文学家**，其散文艺术成就极高，对后世文学（如魏晋玄学、唐诗宋词）影响巨大。\n    - 在**百家争鸣**中，庄子代表了道家对儒家、法家等功利主义和制度主义的深刻反思与批判。\n    - 其“**无用之用**”、“**材与不材**”等观点，提供了在乱世中保全生命、安顿心灵的独特智慧。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《逍遥游》**（节选）、**《庖丁解牛》**（节选自《养生主》）、**《庄子与惠子游于濠梁之上》**（节选自《秋水》）。\n- 核心要点：\n    - **重点**：**《逍遥游》** 通过鲲鹏、蜩与学鸠等对比，阐述了“**小大之辩**”，并提出“**无待**”（不依赖外物）才能达到真正逍遥的最高境界。\n    - **重点**：**《庖丁解牛》** 以寓言阐述“**缘督以为经**”的养生之道，即顺应自然规律（“依乎天理”、“因其固然”），方能游刃有余，保全自身。\n    - **重点**：**《庄子与惠子游于濠梁之上》** 的“**濠梁之辩**”，展现了庄子“**物我合一**”的审美体验与惠子逻辑认知的差异，是理解庄子哲学感性特质的关键。\n    - **寓言**艺术：庄子善用**寓言**（如鲲鹏、庖丁、骷髅）说理，将抽象哲理形象化。\n    - **想象**奇特：文风**汪洋恣肆**，**想象**瑰丽雄奇，如“怒而飞，其翼若垂天之云”。\n    - **浪漫主义**风格：其文开创了中国文学的**浪漫主义**传统，与屈原并称“庄骚”。\n    - **批判精神**：对儒家**仁义**礼法等世俗价值进行了深刻批判与解构。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：庄子是**战国中期**宋国人，**道家学派**的集大成者，与老子并称“**老庄**”。\n    - **重点**：其主要思想保存于**《庄子》** 一书，分内、外、杂篇，一般认为内篇为庄子自著，外杂篇可能包含其弟子及后学思想。\n    - 楚威王曾厚币迎聘，庄子**拒绝出仕**，终身不仕，体现了**隐逸**的处世态度。\n- 核心要点：\n    - **重点**：庄子哲学的核心是追求精神的绝对自由，即“**逍遥**”，主张“**齐物**”（万物平等）、“**无为**”，顺应自然之道。\n    - **重点**：其思想与**老子**同属道家，但更强调超越世俗、泯灭物我差别，具有更强烈的批判性和超越性。\n    - **重点**：庄子不仅是哲学家，也是杰出的**文学家**，其散文艺术成就极高，对后世文学（如魏晋玄学、唐诗宋词）影响巨大。\n    - 在**百家争鸣**中，庄子代表了道家对儒家、法家等功利主义和制度主义的深刻反思与批判。\n    - 其“**无用之用**”、“**材与不材**”等观点，提供了在乱世中保全生命、安顿心灵的独特智慧。\n\n---", "workTexts": {"庄子": "“庖丁解牛”\n“庄周梦蝶”", "逍遥游": "“小大之辩”\n“无待”", "庖丁解牛": "“缘督以为经”\n“依乎天理”", "庄子与惠子游于濠梁之上": "“濠梁之辩”\n“物我合一”", "庄子与惠子游于濠梁之": "“濠梁之辩”\n“物我合一”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 庄子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：庄子，名周\n- **时代**：战国中期\n- **出生**：约公元前369年（存疑），宋国蒙邑（今地存疑，一说河南省商丘市民权县，一说安徽省蒙城县）\n- **去世**：约公元前286年（存疑），宋国蒙邑（今地同出生地）\n- **享年**：存疑（据生卒年推算约83岁，但生卒年均有争议）\n- **主要身份**：思想家、哲学家、文学家\n- **历史地位**：道家学派的代表人物，与老子并称“老庄”，其思想与文学成就对中国哲学与文学影响深远。\n- **主要成就**：\n    - 创立了与老子齐名的道家哲学体系。\n    - 著有《庄子》（又称《南华经》），其文汪洋恣肆，想象奇绝。\n    - 提出“逍遥游”、“齐物论”、“万物与我为一”等核心哲学命题。\n    - 将哲学思想融入寓言故事，创造了极高的文学价值。\n\n### 生平概述\n庄子名周，战国中期宋国蒙人。他生活在一个诸侯争霸、百家争鸣的时代，曾短暂担任漆园吏，后绝意仕进，终身不仕。他继承并发展了老子的道家思想，主张清静无为、顺应天道、逍遥自得，对儒家名教及世俗功利进行了深刻批判。其思想主要保存于《庄子》一书中，该书分内、外、杂篇，文风瑰丽奇谲，想象超凡，通过大量寓言阐述深奥哲理，如“庖丁解牛”、“庄周梦蝶”等，既是哲学名篇，也是文学经典。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于战国中后期的宋国、魏国、楚国等黄淮流域。\n- ⏱️ **时间跨度**：约公元前369年 - 公元前286年（生卒年跨度约83年，生卒年存疑）。\n- 📍 **地理范围**：以宋国（今豫东、皖北）为中心，北至魏国大梁（今开封），南至楚国彭城（今徐州）、濠水（今安徽凤阳一带）。\n- 🌟 **重要节点数量**：8个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蒙邑\n- **时间**：约公元前369年（存疑）\n- **停留时间**：青少年时期\n- **地点**：宋国蒙邑（今地存疑，一说河南省商丘市民权县，一说安徽省蒙城县）\n- **事件**：出生并成长于此，可能在此接受早期教育，形成早期思想基础。\n- **意义**：庄子的故乡，其思想与人格的起点。\n\n### 📍 重要地点：商丘（宋国都城）\n- **时间**：青壮年时期\n- **停留时间**：数年\n- **地点**：宋国都城商丘（今河南省商丘市睢阳区）\n- **事件**：曾任“漆园吏”（管理漆树园的小官）。在此期间，目睹官场与社会现实，为其绝意仕途、批判世俗的思想埋下伏笔。\n- **意义**：其唯一已知的出仕经历发生地，也是其哲学思想形成的重要社会观察窗口。\n\n### 📍 重要地点：大梁（魏国都城）\n- **时间**：中年时期\n- **停留时间**：短暂游历\n- **地点**：魏国都城大梁（今河南省开封市）\n- **事件**：与魏国贤士惠施相交，并发生著名的“鸱得腐鼠”之喻，讽刺惠施对相位的执着。在此宣扬其“无用之用”的思想。\n- **意义**：与名家惠施进行思想交锋的主要舞台，展现了道家与名家不同的价值取向。\n\n### 📍 重要地点：濠梁\n- **时间**：中晚年\n- **停留时间**：短暂\n- **地点**：濠水之上（今安徽省凤阳县临淮关镇附近）\n- **事件**：与惠施同游，发生著名的“濠梁之辩”，围绕“子非鱼，安知鱼之乐”展开哲学辩论。\n- **意义**：中国哲学史上关于认知与共情能力的经典论辩发生地，体现了庄子物我合一的境界。\n\n### 📍 重要地点：楚国（郢都或彭城）\n- **时间**：中年\n- **停留时间**：短暂\n- **地点**：楚国（具体地点存疑，可能为郢都（今湖北荆州）或彭城（今江苏徐州））\n- **事件**：楚威王曾派使者以厚币重礼迎聘庄子，许以为相。庄子以“宁生而曳尾涂中”的神龟为喻，拒绝出仕。\n- **意义**：庄子“终身不仕”决心最著名的体现，彰显其追求精神自由、鄙弃权势富贵的高洁人格。\n\n### 📍 重要地点：陶邑（或为贸易中心）\n- **时间**：晚年\n- **停留时间**：不详\n- **地点**：宋国陶邑（今山东省菏泽市定陶区）\n- **事件**：可能因生活困顿或游历至此。其文中对商业、盗贼、社会动荡的描写，或与当时作为天下之中、商贸繁荣但也纷争不断的陶邑见闻有关。\n- **意义**：为其观察社会百态、思考“有用”与“无用”、“材与不材”提供了现实素材。\n\n### 📍 重要地点：雕陵之樊（寓言地点）\n- **时间**：不详（寓言发生地）\n- **停留时间**：短暂\n- **地点**：雕陵（寓言地名，具体地点存疑，或为虚构）\n- **事件**：庄子在此游历，观察到“螳螂捕蝉，黄雀在后”的景象，进而感悟到物物相累、利害相生的道理。\n- **意义**：体现了庄子对自然与人事中潜在危机的深刻洞察，是其“缘督以为经”（顺应中道）思想的形象说明。\n\n### 🔴 去世地：蒙邑\n- **时间**：约公元前286年（存疑）\n- **停留时间**：晚年\n- **地点**：宋国蒙邑（今地同出生地）\n- **事件**：庄子晚年回到故乡，并在此去世。临终前，弟子欲厚葬之，庄子反对，主张以天地为棺椁，日月星辰为陪葬，体现其彻底的自然观。\n- **意义**：生命的终点，其哲学思想在死亡观上的最终实践与升华。\n\n---\n\n## 生平时间线\n| 年份（约） | 年龄（约） | 关键事件 |\n| :--- | :--- | :--- |\n| 公元前369年（存疑） | 0岁 | 出生于宋国蒙邑。 |\n| 青年时期 | - | 曾任宋国“漆园吏”，不久辞官。 |\n| 公元前330年代 | 约30-40岁 | 游历魏国大梁，与惠施交游辩论。 |\n| 公元前320年代 | 约40-50岁 | 楚威王遣使迎聘，拒为楚相。 |\n| 中晚年 | - | 游于濠梁，与惠施论“鱼之乐”。 |\n| 晚年 | - | 生活贫困，居于陋巷，著书授徒。 |\n| 公元前286年（存疑） | 约83岁 | 逝世于宋国蒙邑。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《逍遥游》**（节选）、**《庖丁解牛》**（节选自《养生主》）、**《庄子与惠子游于濠梁之上》**（节选自《秋水》）。\n- 核心要点：\n    - **重点**：**《逍遥游》** 通过鲲鹏、蜩与学鸠等对比，阐述了“**小大之辩**”，并提出“**无待**”（不依赖外物）才能达到真正逍遥的最高境界。\n    - **重点**：**《庖丁解牛》** 以寓言阐述“**缘督以为经**”的养生之道，即顺应自然规律（“依乎天理”、“因其固然”），方能游刃有余，保全自身。\n    - **重点**：**《庄子与惠子游于濠梁之上》** 的“**濠梁之辩**”，展现了庄子“**物我合一**”的审美体验与惠子逻辑认知的差异，是理解庄子哲学感性特质的关键。\n    - **寓言**艺术：庄子善用**寓言**（如鲲鹏、庖丁、骷髅）说理，将抽象哲理形象化。\n    - **想象**奇特：文风**汪洋恣肆**，**想象**瑰丽雄奇，如“怒而飞，其翼若垂天之云”。\n    - **浪漫主义**风格：其文开创了中国文学的**浪漫主义**传统，与屈原并称“庄骚”。\n    - **批判精神**：对儒家**仁义**礼法等世俗价值进行了深刻批判与解构。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：庄子是**战国中期**宋国人，**道家学派**的集大成者，与老子并称“**老庄**”。\n    - **重点**：其主要思想保存于**《庄子》** 一书，分内、外、杂篇，一般认为内篇为庄子自著，外杂篇可能包含其弟子及后学思想。\n    - 楚威王曾厚币迎聘，庄子**拒绝出仕**，终身不仕，体现了**隐逸**的处世态度。\n- 核心要点：\n    - **重点**：庄子哲学的核心是追求精神的绝对自由，即“**逍遥**”，主张“**齐物**”（万物平等）、“**无为**”，顺应自然之道。\n    - **重点**：其思想与**老子**同属道家，但更强调超越世俗、泯灭物我差别，具有更强烈的批判性和超越性。\n    - **重点**：庄子不仅是哲学家，也是杰出的**文学家**，其散文艺术成就极高，对后世文学（如魏晋玄学、唐诗宋词）影响巨大。\n    - 在**百家争鸣**中，庄子代表了道家对儒家、法家等功利主义和制度主义的深刻反思与批判。\n    - 其“**无用之用**”、“**材与不材**”等观点，提供了在乱世中保全生命、安顿心灵的独特智慧。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省商丘市睢阳区（商丘） | 34.388 | 115.617 |\n| 河南省开封市（大梁） | 34.797 | 114.308 |\n| 安徽省凤阳县临淮关镇（濠梁） | 32.883 | 117.567 |\n| 湖北省荆州市（郢都，楚国都城，具体地点存疑） | 30.335 | 112.239 |\n| 江苏省徐州市（彭城，楚国都城，具体地点存疑） | 34.204 | 117.284 |\n| 山东省菏泽市定陶区（陶邑） | 35.071 | 115.569 |", "relatedGraph": {"center": {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "“万物与我为一”", "review": "庖丁解牛", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "“万物与我为一”", "review": "庖丁解牛", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "“治大国，若烹小鲜。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "“惟草木之零落兮，恐美人之迟暮。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": ["文学家", "政治家", "楚辞", "爱国主义"], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "列子", "name": "列子", "file": "列子.html", "dynasty": "战国前期（约公元前4世纪）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“子列子穷，容貌有饥色。客有言之郑子阳者曰：‘列御寇，盖有道之士也，居君之国而穷，君无乃为不好士乎？’”", "review": "", "foreign_name": "", "main_role_label": "道家思想家", "birthplace": "但无确切史料依据", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "“天行有常，制天命而用之”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "“两点之间直线最短。”", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": ["数学", "几何学"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "“全部西方哲学传统都是对柏拉图的一系列注脚。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "庄子", "target": "老子", "label": "并称", "confidence": 0.55}, {"source": "庄子", "target": "屈原", "label": "并称", "confidence": 0.55}, {"source": "庄子", "target": "列子", "label": "同时代人物", "confidence": null}, {"source": "庄子", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "庄子", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "庄子", "target": "柏拉图", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
+      const data = {"person": {"name": "庄子，名周", "title": "老庄", "description": "庄子名周，战国中期宋国蒙人。他生活在一个诸侯争霸、百家争鸣的时代，曾短暂担任漆园吏，后绝意仕进，终身不仕。他继承并发展了老子的道家思想，主张清静无为、顺应天道、逍遥自得，对儒家名教及世俗功利进行了深刻批判。其思想主要保存于《庄子》一书中，该书分内、外、杂篇，文风瑰丽奇谲，想象超凡，通过大量寓言阐述深奥哲理，如“庖丁解牛”、“庄周梦蝶”等，既是哲学名篇，也是文学经典。", "quote": "庖丁解牛", "shortReview": "庖丁解牛", "dynasty": "战国中期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "河南省商丘市民权县", "avatar": "", "birth": {"date": "公元前369年", "location": "河南省商丘市民权县", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前286年", "location": "宋国蒙邑（今地同出生地）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "存疑（据生卒年推算约83岁，但生卒年均有争议）", "highlights": {"honor": "老庄", "status": "道家学派的代表人物，与老子并称“老庄”，其思想与文学成就对中国哲学与文学影响深远。", "identities": "思想家、哲学家、文学家", "achievements": "", "works": ["庄子"], "reviews": []}}, "locations": [{"name": "商丘（宋国都城）", "ancientName": "宋国都城商丘", "modernName": "河南省商丘市睢阳区", "lat": 34.388, "lng": 115.617, "coordSystem": "WGS84", "type": "normal", "event": "曾任“漆园吏”（管理漆树园的小官）。在此期间，目睹官场与社会现实，为其绝意仕途、批判世俗的思想埋下伏笔。", "time": "青壮年时期", "duration": "数年", "significance": "其唯一已知的出仕经历发生地，也是其哲学思想形成的重要社会观察窗口。", "works": [], "quoteLines": []}, {"name": "大梁（魏国都城）", "ancientName": "魏国都城大梁", "modernName": "河南省开封市", "lat": 34.797, "lng": 114.308, "coordSystem": "WGS84", "type": "normal", "event": "与魏国贤士惠施相交，并发生著名的“鸱得腐鼠”之喻，讽刺惠施对相位的执着。在此宣扬其“无用之用”的思想。", "time": "中年时期", "duration": "短暂游历", "significance": "与名家惠施进行思想交锋的主要舞台，展现了道家与名家不同的价值取向。", "works": [], "quoteLines": []}, {"name": "濠梁", "ancientName": "濠水之上", "modernName": "安徽省凤阳县临淮关镇附近", "lat": 32.883, "lng": 117.567, "coordSystem": "WGS84", "type": "normal", "event": "与惠施同游，发生著名的“濠梁之辩”，围绕“子非鱼，安知鱼之乐”展开哲学辩论。", "time": "中晚年", "duration": "短暂", "significance": "中国哲学史上关于认知与共情能力的经典论辩发生地，体现了庄子物我合一的境界。", "works": [], "quoteLines": []}, {"name": "楚国（郢都或彭城）", "ancientName": "楚国或彭城）", "modernName": "湖北荆州", "lat": 30.335, "lng": 112.239, "coordSystem": "WGS84", "type": "normal", "event": "楚威王曾派使者以厚币重礼迎聘庄子，许以为相。庄子以“宁生而曳尾涂中”的神龟为喻，拒绝出仕。", "time": "中年", "duration": "短暂", "significance": "庄子“终身不仕”决心最著名的体现，彰显其追求精神自由、鄙弃权势富贵的高洁人格。", "works": [], "quoteLines": []}, {"name": "陶邑（或为贸易中心）", "ancientName": "宋国陶邑", "modernName": "山东省菏泽市定陶区", "lat": 35.071, "lng": 115.569, "coordSystem": "WGS84", "type": "normal", "event": "可能因生活困顿或游历至此。其文中对商业、盗贼、社会动荡的描写，或与当时作为天下之中、商贸繁荣但也纷争不断的陶邑见闻有关。", "time": "晚年", "duration": "不详", "significance": "为其观察社会百态、思考“有用”与“无用”、“材与不材”提供了现实素材。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《逍遥游》**（节选）、**《庖丁解牛》**（节选自《养生主》）、**《庄子与惠子游于濠梁之上》**（节选自《秋水》）。\n- 核心要点：\n    - **重点**：**《逍遥游》** 通过鲲鹏、蜩与学鸠等对比，阐述了“**小大之辩**”，并提出“**无待**”（不依赖外物）才能达到真正逍遥的最高境界。\n    - **重点**：**《庖丁解牛》** 以寓言阐述“**缘督以为经**”的养生之道，即顺应自然规律（“依乎天理”、“因其固然”），方能游刃有余，保全自身。\n    - **重点**：**《庄子与惠子游于濠梁之上》** 的“**濠梁之辩**”，展现了庄子“**物我合一**”的审美体验与惠子逻辑认知的差异，是理解庄子哲学感性特质的关键。\n    - **寓言**艺术：庄子善用**寓言**（如鲲鹏、庖丁、骷髅）说理，将抽象哲理形象化。\n    - **想象**奇特：文风**汪洋恣肆**，**想象**瑰丽雄奇，如“怒而飞，其翼若垂天之云”。\n    - **浪漫主义**风格：其文开创了中国文学的**浪漫主义**传统，与屈原并称“庄骚”。\n    - **批判精神**：对儒家**仁义**礼法等世俗价值进行了深刻批判与解构。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：庄子是**战国中期**宋国人，**道家学派**的集大成者，与老子并称“**老庄**”。\n    - **重点**：其主要思想保存于**《庄子》** 一书，分内、外、杂篇，一般认为内篇为庄子自著，外杂篇可能包含其弟子及后学思想。\n    - 楚威王曾厚币迎聘，庄子**拒绝出仕**，终身不仕，体现了**隐逸**的处世态度。\n- 核心要点：\n    - **重点**：庄子哲学的核心是追求精神的绝对自由，即“**逍遥**”，主张“**齐物**”（万物平等）、“**无为**”，顺应自然之道。\n    - **重点**：其思想与**老子**同属道家，但更强调超越世俗、泯灭物我差别，具有更强烈的批判性和超越性。\n    - **重点**：庄子不仅是哲学家，也是杰出的**文学家**，其散文艺术成就极高，对后世文学（如魏晋玄学、唐诗宋词）影响巨大。\n    - 在**百家争鸣**中，庄子代表了道家对儒家、法家等功利主义和制度主义的深刻反思与批判。\n    - 其“**无用之用**”、“**材与不材**”等观点，提供了在乱世中保全生命、安顿心灵的独特智慧。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《逍遥游》**（节选）、**《庖丁解牛》**（节选自《养生主》）、**《庄子与惠子游于濠梁之上》**（节选自《秋水》）。\n- 核心要点：\n    - **重点**：**《逍遥游》** 通过鲲鹏、蜩与学鸠等对比，阐述了“**小大之辩**”，并提出“**无待**”（不依赖外物）才能达到真正逍遥的最高境界。\n    - **重点**：**《庖丁解牛》** 以寓言阐述“**缘督以为经**”的养生之道，即顺应自然规律（“依乎天理”、“因其固然”），方能游刃有余，保全自身。\n    - **重点**：**《庄子与惠子游于濠梁之上》** 的“**濠梁之辩**”，展现了庄子“**物我合一**”的审美体验与惠子逻辑认知的差异，是理解庄子哲学感性特质的关键。\n    - **寓言**艺术：庄子善用**寓言**（如鲲鹏、庖丁、骷髅）说理，将抽象哲理形象化。\n    - **想象**奇特：文风**汪洋恣肆**，**想象**瑰丽雄奇，如“怒而飞，其翼若垂天之云”。\n    - **浪漫主义**风格：其文开创了中国文学的**浪漫主义**传统，与屈原并称“庄骚”。\n    - **批判精神**：对儒家**仁义**礼法等世俗价值进行了深刻批判与解构。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：庄子是**战国中期**宋国人，**道家学派**的集大成者，与老子并称“**老庄**”。\n    - **重点**：其主要思想保存于**《庄子》** 一书，分内、外、杂篇，一般认为内篇为庄子自著，外杂篇可能包含其弟子及后学思想。\n    - 楚威王曾厚币迎聘，庄子**拒绝出仕**，终身不仕，体现了**隐逸**的处世态度。\n- 核心要点：\n    - **重点**：庄子哲学的核心是追求精神的绝对自由，即“**逍遥**”，主张“**齐物**”（万物平等）、“**无为**”，顺应自然之道。\n    - **重点**：其思想与**老子**同属道家，但更强调超越世俗、泯灭物我差别，具有更强烈的批判性和超越性。\n    - **重点**：庄子不仅是哲学家，也是杰出的**文学家**，其散文艺术成就极高，对后世文学（如魏晋玄学、唐诗宋词）影响巨大。\n    - 在**百家争鸣**中，庄子代表了道家对儒家、法家等功利主义和制度主义的深刻反思与批判。\n    - 其“**无用之用**”、“**材与不材**”等观点，提供了在乱世中保全生命、安顿心灵的独特智慧。\n\n---", "workTexts": {"庄子": "“庖丁解牛”\n“庄周梦蝶”", "逍遥游": "“小大之辩”\n“无待”", "庖丁解牛": "“缘督以为经”\n“依乎天理”", "庄子与惠子游于濠梁之上": "“濠梁之辩”\n“物我合一”", "庄子与惠子游于濠梁之": "“濠梁之辩”\n“物我合一”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "relatedGraph": {"center": {"id": "庄子，名周", "name": "庄子，名周", "file": "庄子，名周.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "庖丁解牛", "review": "庖丁解牛", "foreign_name": "", "main_role_label": "老庄", "birthplace": "河南省商丘市民权县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "庄子，名周", "name": "庄子，名周", "file": "庄子，名周.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "庖丁解牛", "review": "庖丁解牛", "foreign_name": "", "main_role_label": "老庄", "birthplace": "河南省商丘市民权县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "列子", "name": "列子", "file": "列子.html", "dynasty": "战国前期（约公元前4世纪）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“子列子穷，容貌有饥色。客有言之郑子阳者曰：‘列御寇，盖有道之士也，居君之国而穷，君无乃为不好士乎？’”", "review": "", "foreign_name": "", "main_role_label": "道家思想家", "birthplace": "但无确切史料依据", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "“天行有常，制天命而用之”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "“两点之间直线最短。”", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": ["数学", "几何学"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "“全部西方哲学传统都是对柏拉图的一系列注脚。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "“万物与我为一”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "“惟草木之零落兮，恐美人之迟暮。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": ["文学家", "政治家", "楚辞", "爱国主义"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "庄子，名周", "target": "列子", "label": "同时代人物", "confidence": null}, {"source": "庄子，名周", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "庄子，名周", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "庄子，名周", "target": "柏拉图", "label": "同时代人物", "confidence": null}, {"source": "庄子，名周", "target": "庄子", "label": "同时代人物", "confidence": null}, {"source": "庄子，名周", "target": "屈原", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "009c07795bc5"};
       window.__EXPORT_DATA__ = data;
+const waitForMs = (ms) => new Promise((resolve) => window.setTimeout(resolve, Math.max(0, Number(ms || 0))));
+const stopMediaStream = (stream) => {
+  try {
+    const tracks = stream && typeof stream.getTracks === 'function' ? stream.getTracks() : [];
+    tracks.forEach((track) => {
+      try { track.stop(); } catch (_) {}
+    });
+  } catch (_) {}
+};
+const freezeScrollableElementForExport = (element) => {
+  if (!(element instanceof HTMLElement)) return () => {};
+  const prev = {
+    height: element.style.height,
+    maxHeight: element.style.maxHeight,
+    overflow: element.style.overflow,
+    overflowY: element.style.overflowY,
+    scrollBehavior: element.style.scrollBehavior,
+    scrollTop: element.scrollTop,
+  };
+  const rect = element.getBoundingClientRect();
+  const lockedHeight = Math.max(1, Math.round(rect.height || element.clientHeight || 0));
+  element.style.height = `${lockedHeight}px`;
+  element.style.maxHeight = `${lockedHeight}px`;
+  element.style.overflow = 'hidden';
+  element.style.overflowY = 'hidden';
+  element.style.scrollBehavior = 'auto';
+  element.scrollTop = prev.scrollTop;
+  return () => {
+    element.style.height = prev.height;
+    element.style.maxHeight = prev.maxHeight;
+    element.style.overflow = prev.overflow;
+    element.style.overflowY = prev.overflowY;
+    element.style.scrollBehavior = prev.scrollBehavior;
+    element.scrollTop = prev.scrollTop;
+  };
+};
+const captureCurrentTabFrame = async () => {
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
+    throw new Error('SCREEN_CAPTURE_UNSUPPORTED');
+  }
+  const stream = await navigator.mediaDevices.getDisplayMedia({
+    video: {
+      frameRate: { ideal: 1, max: 2 },
+      width: { ideal: 4096 },
+      height: { ideal: 2160 }
+    },
+    audio: false,
+    preferCurrentTab: true,
+  });
+  try {
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.muted = true;
+    video.playsInline = true;
+    await new Promise((resolve, reject) => {
+      video.onloadedmetadata = () => resolve(null);
+      video.onerror = () => reject(new Error('SCREEN_CAPTURE_VIDEO_FAILED'));
+    });
+    const playResult = video.play();
+    if (playResult && typeof playResult.then === 'function') {
+      await playResult.catch(() => {});
+    }
+    await waitForMs(180);
+    const sourceWidth = Math.max(1, Number(video.videoWidth || window.innerWidth || document.documentElement?.clientWidth || 0));
+    const sourceHeight = Math.max(1, Number(video.videoHeight || window.innerHeight || document.documentElement?.clientHeight || 0));
+    const canvas = document.createElement('canvas');
+    canvas.width = sourceWidth;
+    canvas.height = sourceHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('SCREEN_CAPTURE_CONTEXT_FAILED');
+    ctx.drawImage(video, 0, 0, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+    return canvas;
+  } finally {
+    stopMediaStream(stream);
+  }
+};
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
   if (el) el.style.display = 'none';
@@ -1726,6 +2043,214 @@ const getRenderedPointLoc = (idx) => {
     renderLng: Number.isFinite(renderLng) ? renderLng : Number(loc.lng),
     renderLat: Number.isFinite(renderLat) ? renderLat : Number(loc.lat)
   };
+};
+const getRenderedLngLat = (idx) => {
+  const renderLoc = getRenderedPointLoc(idx);
+  if (!renderLoc) return null;
+  const lng = Number(renderLoc.renderLng);
+  const lat = Number(renderLoc.renderLat);
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+  return [lng, lat];
+};
+const getRenderedLngLatFromLoc = (loc, idx) => {
+  const rendered = getRenderedLngLat(idx);
+  if (rendered) return rendered;
+  const lng = Number(loc?.lng);
+  const lat = Number(loc?.lat);
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+  return [lng, lat];
+};
+function buildCurvedSegmentPath(from, to, idx, prev, next) {
+  const clampLocal = (value, min, max) => Math.min(max, Math.max(min, value));
+  if (!Array.isArray(from) || !Array.isArray(to)) return [from, to].filter(Boolean);
+  const fromLng = Number(from[0]);
+  const fromLat = Number(from[1]);
+  const toLng = Number(to[0]);
+  const toLat = Number(to[1]);
+  if (![fromLng, fromLat, toLng, toLat].every(Number.isFinite)) return [from, to];
+  const distanceKm = calculateDistance(fromLat, fromLng, toLat, toLng);
+  if (!Number.isFinite(distanceKm) || distanceKm >= 420) {
+    return [[fromLng, fromLat], [toLng, toLat]];
+  }
+  const avgLat = (fromLat + toLat) / 2;
+  const safePrev = Array.isArray(prev) && prev.length >= 2 ? prev : [fromLng, fromLat];
+  const safeNext = Array.isArray(next) && next.length >= 2 ? next : [toLng, toLat];
+  const p0 = toProjectedXY(Number(safePrev[0]), Number(safePrev[1]), avgLat);
+  const p1 = toProjectedXY(fromLng, fromLat, avgLat);
+  const p2 = toProjectedXY(toLng, toLat, avgLat);
+  const p3 = toProjectedXY(Number(safeNext[0]), Number(safeNext[1]), avgLat);
+  const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  if (!Number.isFinite(dist) || dist <= 1) return [[fromLng, fromLat], [toLng, toLat]];
+  const curveStrength = clampLocal(distanceKm / 420, 0, 1);
+  const tension = clampLocal(
+    0.1 + curveStrength * 0.06,
+    0.1,
+    0.16
+  );
+  const steps = Math.max(8, Math.min(18, Math.round(distanceKm / 130) + 8));
+  const path = [];
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    const t2 = t * t;
+    const t3 = t2 * t;
+    const m1x = (p2.x - p0.x) * tension;
+    const m1y = (p2.y - p0.y) * tension;
+    const m2x = (p3.x - p1.x) * tension;
+    const m2y = (p3.y - p1.y) * tension;
+    const h00 = 2 * t3 - 3 * t2 + 1;
+    const h10 = t3 - 2 * t2 + t;
+    const h01 = -2 * t3 + 3 * t2;
+    const h11 = t3 - t2;
+    const px = h00 * p1.x + h10 * m1x + h01 * p2.x + h11 * m2x;
+    const py = h00 * p1.y + h10 * m1y + h01 * p2.y + h11 * m2y;
+    path.push(fromProjectedXY(px, py, avgLat));
+  }
+  return path;
+}
+function toProjectedXY(lng, lat, refLat) {
+  const refRad = (refLat || 0) * Math.PI / 180;
+  const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
+  const scaleY = 110540;
+  return {
+    x: lng * scaleX,
+    y: lat * scaleY
+  };
+}
+function fromProjectedXY(x, y, refLat) {
+  const refRad = (refLat || 0) * Math.PI / 180;
+  const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
+  const scaleY = 110540;
+  return [x / scaleX, y / scaleY];
+}
+const buildRenderedSegmentPath = (idx) => {
+  const from = getRenderedLngLat(idx);
+  const to = getRenderedLngLat(idx + 1);
+  const prev = idx > 0 ? getRenderedLngLat(idx - 1) : null;
+  const next = idx + 2 < locations.length ? getRenderedLngLat(idx + 2) : null;
+  return buildCurvedSegmentPath(from, to, idx, prev, next);
+};
+const buildLabelCollisionBox = (screenPoint, detailLevel) => {
+  if (!screenPoint || !Number.isFinite(Number(screenPoint.x)) || !Number.isFinite(Number(screenPoint.y))) return null;
+  const level = Number(detailLevel || 0);
+  const width = level >= 8 ? 106 : (level >= 6.5 ? 118 : (level >= 5 ? 126 : 134));
+  const height = level >= 8 ? 34 : (level >= 6.5 ? 38 : 42);
+  const paddingX = level >= 8 ? 12 : 18;
+  const paddingY = level >= 8 ? 8 : 10;
+  return {
+    left: Number(screenPoint.x) - width / 2 - paddingX,
+    right: Number(screenPoint.x) + width / 2 + paddingX,
+    top: Number(screenPoint.y) - height - paddingY,
+    bottom: Number(screenPoint.y) + paddingY
+  };
+};
+const isLabelCollision = (a, b) => {
+  if (!a || !b) return false;
+  return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+};
+const getPersistentLabelIndexes = () => {
+  const total = locations.length;
+  if (total <= 0) return new Set();
+  if (total <= 4) {
+    return new Set(Array.from({ length: total }, (_, idx) => idx));
+  }
+  const anchors = new Set([0, total - 1]);
+  const stageRatios = total >= 10 ? [0.2, 0.4, 0.6, 0.8] : [0.25, 0.5, 0.75];
+  const getMilestoneScore = (idx) => {
+    const loc = locations[idx] || {};
+    const text = `${loc.event || ''} ${loc.note || ''} ${loc.significance || ''} ${loc.summary || ''}`;
+    let score = 0;
+    if (loc.type === 'birth' || loc.type === 'death') score += 10;
+    if (/[称帝封侯即位登基受命出仕结义北伐建安大捷凯旋镇守遇害去世病逝追谥]/.test(text)) score += 4;
+    if (String(loc.name || loc.ancientName || loc.modernName || '').trim()) score += 1;
+    return score;
+  };
+  stageRatios.forEach((ratio) => {
+    const target = ratio * (total - 1);
+    let bestIdx = null;
+    let bestScore = -Infinity;
+    for (let idx = 1; idx < total - 1; idx += 1) {
+      const coord = getRenderedLngLat(idx);
+      if (!coord) continue;
+      const score = getMilestoneScore(idx) * 20 - Math.abs(idx - target);
+      if (score > bestScore) {
+        bestScore = score;
+        bestIdx = idx;
+      }
+    }
+    if (bestIdx != null) anchors.add(bestIdx);
+  });
+  return anchors;
+};
+const getPreferredLabelIndexes = ({ activeIdx, detailLevel = 6, isVisible, projectToScreen }) => {
+  const total = locations.length;
+  if (total <= 0) return new Set();
+  const essential = getPersistentLabelIndexes();
+  [activeIdx, activeIdx - 1, activeIdx + 1].forEach((idx) => {
+    if (Number.isFinite(idx) && idx >= 0 && idx < total) essential.add(idx);
+  });
+  const candidates = [];
+  for (let idx = 0; idx < total; idx += 1) {
+    const coord = getRenderedLngLat(idx);
+    if (!coord) continue;
+    const visible = typeof isVisible === 'function' ? Boolean(isVisible(coord[0], coord[1], idx)) : true;
+    if (visible || essential.has(idx)) {
+      candidates.push(idx);
+    }
+  }
+  if (!candidates.length) return essential;
+  const level = Number(detailLevel || 0);
+  const minIndexGap = level >= 8 ? 1 : (level >= 6.5 ? 2 : (level >= 5 ? 3 : 4));
+  const kept = new Set(essential);
+  const placedBoxes = [];
+  const canKeep = (idx, box) => {
+    for (const existing of kept) {
+      if (Math.abs(Number(existing) - idx) < minIndexGap) return false;
+    }
+    if (box) {
+      for (const existingBox of placedBoxes) {
+        if (isLabelCollision(existingBox, box)) return false;
+      }
+    }
+    return true;
+  };
+  const orderedCandidates = candidates
+    .map((idx) => {
+      const coord = getRenderedLngLat(idx);
+      let screen = null;
+      if (coord && typeof projectToScreen === 'function') {
+        try {
+          screen = projectToScreen(coord[0], coord[1], idx);
+        } catch (_) {
+          screen = null;
+        }
+      }
+      const priority = idx === activeIdx
+        ? 0
+        : (idx === 0 || idx === total - 1 ? 1 : (Math.abs(idx - activeIdx) <= 1 ? 2 : 3));
+      return { idx, screen, priority };
+    })
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      const distanceA = Math.abs(Number(a.idx) - Number(activeIdx || 0));
+      const distanceB = Math.abs(Number(b.idx) - Number(activeIdx || 0));
+      if (distanceA !== distanceB) return distanceA - distanceB;
+      return a.idx - b.idx;
+    });
+  orderedCandidates.forEach((entry) => {
+    if (!essential.has(entry.idx)) return;
+    const box = buildLabelCollisionBox(entry.screen, detailLevel);
+    if (box) placedBoxes.push(box);
+  });
+  orderedCandidates.forEach((entry) => {
+    const idx = entry.idx;
+    if (kept.has(idx)) return;
+    const box = buildLabelCollisionBox(entry.screen, detailLevel);
+    if (canKeep(idx, box)) {
+      kept.add(idx);
+      if (box) placedBoxes.push(box);
+    }
+  });
+  return kept;
 };
 const textbookPoints = String(data.textbookPoints || '').trim();
 const examPoints = String(data.examPoints || '').trim();
@@ -2687,15 +3212,16 @@ const App = () => {
   })();
   const initialLocIdx = initialLoc?.idx || 0;
   const initialLocFromHash = Boolean(initialLoc?.fromHash);
+  const defaultFocusZoom = locations.length <= 1 ? 5.6 : 10;
   const focusZoom = useMemo(() => {
     if (typeof window === 'undefined' || !window.location) return 10;
     let z = NaN;
     try {
       z = parseFloat(new URLSearchParams(window.location.search || '').get('locZoom') || '');
     } catch (_) {}
-    const v = Number.isFinite(z) ? z : 10;
+    const v = Number.isFinite(z) ? z : defaultFocusZoom;
     return Math.min(18, Math.max(3, v));
-  }, []);
+  }, [defaultFocusZoom]);
   const [selectedLoc, setSelectedLoc] = useState(locations[initialLocIdx] || null);
   const [activeIndex, setActiveIndex] = useState(initialLocIdx);
   const [showFullDesc, setShowFullDesc] = useState(false);
@@ -2711,13 +3237,19 @@ const App = () => {
   const [chatDraft, setChatDraft] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState('');
+  const [journeyExportError, setJourneyExportError] = useState('');
+  const [isJourneyExporting, setIsJourneyExporting] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const isAutoPlayingRef = useRef(false);
-  const [splitPct, setSplitPct] = useState(30);
+  const [splitPct, setSplitPct] = useState(34);
+  const [topPanePct, setTopPanePct] = useState(64);
   const [mapLayerType, setMapLayerType] = useState('vector');
+  const [mapRecoveryTick, setMapRecoveryTick] = useState(0);
   const [mapReadyTick, setMapReadyTick] = useState(0);
   const [isJourneyFullscreen, setIsJourneyFullscreen] = useState(false);
+  const [isJourneyExportFullscreenLayout, setIsJourneyExportFullscreenLayout] = useState(false);
   const [terrainCompassState, setTerrainCompassState] = useState({ headingDeg: 0, pitchDeg: -45 });
+  const [mapStatusNotice, setMapStatusNotice] = useState(null);
   const maplibreMapRef = useRef(null);
   const cesiumViewerRef = useRef(null);
   const amapMapRef = useRef(null);
@@ -2734,12 +3266,14 @@ const App = () => {
   const amapControllerRef = useRef(null);
   const mapRef = useRef(null);
   const splitRef = useRef(null);
+  const shellContentRef = useRef(null);
   const journeyShellRef = useRef(null);
-  const draggingRef = useRef(false);
+  const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
+  const fullscreenChatRestoreRef = useRef(null);
   const locItemRefs = useRef([]);
   const totalEvents = locations.length;
   const getOverviewPadding = (containerWidth) => {
@@ -2828,6 +3362,7 @@ const App = () => {
     ? `${birthDate}${birthDate && deathDate ? '-' : ''}${deathDate}`
     : (data.person?.lifespan || '');
   const birthYear = useMemo(() => extractYear(birthDate), [birthDate]);
+  const deathYear = useMemo(() => extractYear(deathDate), [deathDate]);
   const birthplaceParts = useMemo(() => {
     const raw = String(data.person?.birthplace || '').trim();
     if (!raw) return { ancient: '', modern: '' };
@@ -3039,10 +3574,10 @@ const App = () => {
   const relatedGraphLayout = useMemo(() => {
     const count = relatedNeighborNodes.length;
     if (!count) return [];
-    const leftX = 18;
-    const rightX = 82;
+    const leftX = 24;
+    const rightX = 76;
     const centerY = 50;
-    const spread = count <= 2 ? 14 : (count <= 4 ? 22 : 28);
+    const spread = count <= 2 ? 12 : (count <= 4 ? 18 : 24);
     const leftNodes = [];
     const rightNodes = [];
     relatedNeighborNodes.forEach((node, idx) => {
@@ -3071,6 +3606,11 @@ const App = () => {
       };
     });
   }, [relatedNeighborNodes]);
+  const getRelatedGraphEdgeLabel = (node) => {
+    const label = String(node?.relationLabel || '').trim();
+    if (!label) return '';
+    return label.length > 10 ? `${label.slice(0, 9)}…` : label;
+  };
   const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
   const hexToRgba = (hex, alpha) => {
     const s = String(hex || '').replace('#', '').trim();
@@ -3106,9 +3646,14 @@ const LIFE_GRADIENT_END = '#5D4037';
   const getAgeValue = (loc) => {
     const year = extractYear(loc.time || '');
     if (!birthYear || !year) return null;
+    if (deathYear && year > deathYear) return null;
     const age = year - birthYear;
     if (!Number.isFinite(age) || age < 0 || age > 150) return null;
     return age;
+  };
+  const isPosthumousEvent = (loc) => {
+    const year = extractYear(loc?.time || '');
+    return Boolean(deathYear && year && year > deathYear);
   };
   const getAgeText = (loc) => {
     const age = getAgeValue(loc);
@@ -3116,6 +3661,7 @@ const LIFE_GRADIENT_END = '#5D4037';
     return `${age}岁`;
   };
   const getMarkerBadgeText = (loc, idx) => {
+    if (isPosthumousEvent(loc)) return '身后';
     const ageText = getAgeText(loc);
     if (loc.type === 'birth' || idx === 0) return ageText || '0岁';
     if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
@@ -3124,29 +3670,59 @@ const LIFE_GRADIENT_END = '#5D4037';
   const getMapPointLabelName = (loc, idx) => (
     String(loc.name || loc.ancientName || loc.modernName || `第${idx + 1}站`).trim()
   );
+  const getMapPointLabelParts = (loc, idx) => {
+    const badgeText = String(getMarkerBadgeText(loc, idx) || '').trim();
+    const name = String(getMapPointLabelName(loc, idx) || '').trim();
+    return { badgeText, name };
+  };
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-  const updateMapPointLabelElement = (el, loc, idx, activeIdx) => {
-    if (!el || !loc) return;
+  const getMapPointLabelText = (loc, idx) => {
+    const { badgeText, name } = getMapPointLabelParts(loc, idx);
+    return badgeText && name ? `${badgeText}\n${name}` : (badgeText || name);
+  };
+  const getMapPointLabelVisualState = (loc, idx, activeIdx) => {
     const isActive = idx === activeIdx;
     const isPassed = idx < activeIdx;
     const isStart = loc.type === 'birth' || idx === 0;
     const isEnd = loc.type === 'death' || idx === totalEvents - 1;
     const pointColor = getLifeColor(loc, idx);
+    const defaultTextColor = isStart ? '#2f855a' : (isEnd ? '#7d5659' : '#5f6368');
+    return {
+      isActive,
+      isPassed,
+      isStart,
+      isEnd,
+      pointColor,
+      textColor: isActive ? '#ffffff' : defaultTextColor,
+      textHaloColor: isActive ? hexToRgba(pointColor, 0.42) : hexToRgba('#ffffff', isPassed ? 0.92 : 0.98),
+      textHaloWidth: isActive ? 2.4 : 1.75,
+      textOpacity: isPassed ? 0.8 : 0.98,
+      textSize: isActive ? 11.5 : (isStart || isEnd ? 10.8 : 10.2),
+      sortKey: isActive ? 4000 : ((isStart || isEnd) ? 2600 : (1800 + idx))
+    };
+  };
+  const updateMapPointLabelElement = (el, loc, idx, activeIdx) => {
+    if (!el || !loc) return;
+    const visual = getMapPointLabelVisualState(loc, idx, activeIdx);
+    const { badgeText, name } = getMapPointLabelParts(loc, idx);
     el.className = 'map-point-label';
-    if (isPassed) el.classList.add('is-passed');
-    if (isActive) el.classList.add('is-active');
-    if (isStart) el.classList.add('is-start');
-    if (isEnd) el.classList.add('is-end');
-    el.style.setProperty('--label-color', pointColor);
-    el.style.setProperty('--label-soft', hexToRgba(pointColor, isActive ? 0.2 : 0.14));
-    el.style.setProperty('--label-soft-strong', hexToRgba(pointColor, isActive ? 0.3 : 0.18));
+    if (visual.isPassed) el.classList.add('is-passed');
+    if (visual.isActive) el.classList.add('is-active');
+    if (visual.isStart) el.classList.add('is-start');
+    if (visual.isEnd) el.classList.add('is-end');
+    el.style.setProperty('--label-color', visual.pointColor);
+    el.style.setProperty('--label-soft', hexToRgba(visual.pointColor, visual.isActive ? 0.2 : 0.14));
+    el.style.setProperty('--label-soft-strong', hexToRgba(visual.pointColor, visual.isActive ? 0.3 : 0.18));
     el.innerHTML = `
-      <div class="map-point-label-text">${escapeHtml(getMarkerBadgeText(loc, idx))} ${escapeHtml(getMapPointLabelName(loc, idx))}</div>
+      <div class="map-point-label-text">
+        ${badgeText ? `<div class="map-point-label-badge">${escapeHtml(badgeText)}</div>` : ''}
+        <div class="map-point-label-name">${escapeHtml(name)}</div>
+      </div>
     `;
   };
   const buildMapPointLabelElement = (loc, idx, activeIdx) => {
@@ -3154,11 +3730,25 @@ const LIFE_GRADIENT_END = '#5D4037';
     updateMapPointLabelElement(el, loc, idx, activeIdx);
     return el;
   };
+  const buildMapPointLabelShell = (loc, idx, activeIdx) => {
+    const shell = document.createElement('div');
+    shell.className = 'map-point-label-shell';
+    shell.setAttribute('data-story-idx', String(idx));
+    shell.appendChild(buildMapPointLabelElement(loc, idx, activeIdx));
+    return shell;
+  };
+  const setMapPointLabelMarkerVisibility = (marker, shouldShow) => {
+    const root = marker && typeof marker.getElement === 'function' ? marker.getElement() : null;
+    if (!root) return;
+    root.style.display = shouldShow ? '' : 'none';
+    root.style.opacity = shouldShow ? '1' : '0';
+    root.style.pointerEvents = shouldShow ? 'auto' : 'none';
+  };
   const getMapPointLabelOffset = (idx) => {
     const isEndpoint = idx === 0 || idx === totalEvents - 1;
     return {
-      maplibre: [0, isEndpoint ? -14 : -10],
-      amap: [0, isEndpoint ? -24 : -18],
+      maplibre: [0, isEndpoint ? -20 : -16],
+      amap: [0, isEndpoint ? -30 : -24],
     };
   };
   const getLifeProgress = (loc, idx) => {
@@ -3172,6 +3762,7 @@ const LIFE_GRADIENT_END = '#5D4037';
   };
   const getLifeStage = (loc, idx) => {
     if (loc.type === 'birth' || idx === 0) return '出生';
+    if (isPosthumousEvent(loc)) return '身后';
     if (loc.type === 'death' || idx === totalEvents - 1) return '终章';
     const p = getLifeProgress(loc, idx);
     if (p < 0.18) return '少时';
@@ -3210,63 +3801,6 @@ const LIFE_GRADIENT_END = '#5D4037';
       return { headingDeg: nextHeadingDeg, pitchDeg: nextPitchDeg };
     });
   };
-  const toProjectedXY = (lng, lat, refLat) => {
-    const refRad = (refLat || 0) * Math.PI / 180;
-    const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
-    const scaleY = 110540;
-    return {
-      x: lng * scaleX,
-      y: lat * scaleY
-    };
-  };
-  const fromProjectedXY = (x, y, refLat) => {
-    const refRad = (refLat || 0) * Math.PI / 180;
-    const scaleX = 111320 * Math.max(Math.cos(refRad), 0.35);
-    const scaleY = 110540;
-    return [x / scaleX, y / scaleY];
-  };
-  const buildCurvedSegmentPath = (from, to, idx, prev, next) => {
-    if (!Array.isArray(from) || !Array.isArray(to)) return [from, to].filter(Boolean);
-    const fromLng = Number(from[0]);
-    const fromLat = Number(from[1]);
-    const toLng = Number(to[0]);
-    const toLat = Number(to[1]);
-    if (![fromLng, fromLat, toLng, toLat].every(Number.isFinite)) return [from, to];
-    const distanceKm = calculateDistance(fromLat, fromLng, toLat, toLng);
-    const avgLat = (fromLat + toLat) / 2;
-    const safePrev = Array.isArray(prev) && prev.length >= 2 ? prev : [fromLng, fromLat];
-    const safeNext = Array.isArray(next) && next.length >= 2 ? next : [toLng, toLat];
-    const p0 = toProjectedXY(Number(safePrev[0]), Number(safePrev[1]), avgLat);
-    const p1 = toProjectedXY(fromLng, fromLat, avgLat);
-    const p2 = toProjectedXY(toLng, toLat, avgLat);
-    const p3 = toProjectedXY(Number(safeNext[0]), Number(safeNext[1]), avgLat);
-    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-    if (!Number.isFinite(dist) || dist <= 1) return [[fromLng, fromLat], [toLng, toLat]];
-    const tension = clampValue(
-      0.16 + Math.min(distanceKm, 2600) / 2600 * 0.08,
-      0.16,
-      0.24
-    );
-    const steps = Math.max(16, Math.min(28, Math.round(distanceKm / 110) + 14));
-    const path = [];
-    for (let step = 0; step <= steps; step += 1) {
-      const t = step / steps;
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const m1x = (p2.x - p0.x) * tension;
-      const m1y = (p2.y - p0.y) * tension;
-      const m2x = (p3.x - p1.x) * tension;
-      const m2y = (p3.y - p1.y) * tension;
-      const h00 = 2 * t3 - 3 * t2 + 1;
-      const h10 = t3 - 2 * t2 + t;
-      const h01 = -2 * t3 + 3 * t2;
-      const h11 = t3 - t2;
-      const px = h00 * p1.x + h10 * m1x + h01 * p2.x + h11 * m2x;
-      const py = h00 * p1.y + h10 * m1y + h01 * p2.y + h11 * m2y;
-      path.push(fromProjectedXY(px, py, avgLat));
-    }
-    return path;
-  };
   const getPathAnchorPoint = (path, ratio) => {
     if (!Array.isArray(path) || path.length === 0) return null;
     if (path.length === 1) return Array.isArray(path[0]) ? path[0] : null;
@@ -3299,20 +3833,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       scored.push({ idx: i, distance });
     }
     if (!scored.length) return new Set();
-    const distanceFloor = 25;
-    const visible = scored
-      .filter((item) => item.distance >= distanceFloor)
-      .sort((a, b) => b.distance - a.distance)
-      .map((item) => item.idx);
-    if (!visible.length) {
-      return new Set(
-        scored
-          .sort((a, b) => b.distance - a.distance)
-          .slice(0, 1)
-          .map((item) => item.idx)
-      );
+    const indexed = scored.sort((a, b) => a.idx - b.idx);
+    const totalSegments = indexed.length;
+    const stride = totalSegments >= 12 ? 3 : (totalSegments >= 7 ? 2 : 1);
+    const keep = new Set([0, totalSegments - 1]);
+    indexed.forEach((item, order) => {
+      if (item.distance >= 80 && order % stride === 0) keep.add(item.idx);
+    });
+    if (keep.size <= 2) {
+      indexed
+        .slice()
+        .sort((a, b) => b.distance - a.distance)
+        .slice(0, Math.min(2, indexed.length))
+        .forEach((item) => keep.add(item.idx));
     }
-    return new Set(visible);
+    return keep;
   };
   const getSegmentArrowMeta = (path) => {
     if (!Array.isArray(path) || path.length < 2) return null;
@@ -3591,7 +4126,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         haloLineWidth: uniformHaloWidth,
         lineOpacity: isCurrent ? 1 : (isPassed ? 0.92 : 0.05),
         lineWidth: uniformLineWidth,
-        showArrow: layerType === 'terrain-3d' ? isCurrent : isCurrent,
+        showArrow: true,
         isCurrent,
         isPassed,
         isFuture,
@@ -3605,7 +4140,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       haloLineWidth: uniformHaloWidth,
       lineOpacity: isCurrent ? 1 : (isPassed ? 0.98 : (isContrastMode ? 0.97 : 0.88)),
       lineWidth: uniformLineWidth,
-      showArrow: isCurrent,
+      showArrow: true,
       isCurrent,
       isPassed,
       isFuture,
@@ -3623,9 +4158,18 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (mode === 'terrain-3d') return '3D地形图';
     return '矢量地图';
   };
+  const describeProviderType = (provider) => {
+    const value = String(provider || 'geovis');
+    if (value === 'amap') return '高德地图';
+    if (value === 'cesium') return 'GeoVis 3D';
+    return 'GeoVis';
+  };
   const probeGeoVisLayerType = async (geovis, layerType) => {
     if (!geovis) throw new Error('GEOVIS_UNAVAILABLE');
     const mode = String(layerType || 'vector');
+    if (mode === 'vector') {
+      return true;
+    }
     if (mode === 'terrain-3d') {
       if (typeof geovis.terrainServiceUrl !== 'function') {
         throw new Error('GEOVIS_TERRAIN_URL_REQUIRED');
@@ -3647,7 +4191,6 @@ const LIFE_GRADIENT_END = '#5D4037';
       await geovis.probeTile('ter', 'png');
       return true;
     }
-    await geovis.probeTile('vec', 'png');
     return true;
   };
   const applyMapViewMode = (mapInstance, layerType, immediate = false) => {
@@ -3675,14 +4218,71 @@ const LIFE_GRADIENT_END = '#5D4037';
   const syncMapCanvasVisibility = (layerType) => {
     if (typeof document === 'undefined') return;
     const maplibreEl = document.getElementById('map-maplibre');
+    const amapEl = document.getElementById('map-amap');
     const cesiumEl = document.getElementById('map-cesium');
+    const provider = String(mapProviderRef.current || 'geovis');
     const terrainMode = isTerrain3DMode(layerType);
-    if (maplibreEl) maplibreEl.classList.toggle('is-hidden', terrainMode);
-    if (cesiumEl) cesiumEl.classList.toggle('is-hidden', !terrainMode);
+    const showAmap = provider === 'amap';
+    const showCesium = !showAmap && terrainMode;
+    const showMapLibre = !showAmap && !showCesium;
+    if (maplibreEl) maplibreEl.classList.toggle('is-hidden', !showMapLibre);
+    if (amapEl) amapEl.classList.toggle('is-hidden', !showAmap);
+    if (cesiumEl) cesiumEl.classList.toggle('is-hidden', !showCesium);
   };
-  const setMapNotice = (message) => {
+  const clearMapNotice = () => {
     const el = document.getElementById('boot-diag');
-    if (el) el.textContent = String(message || '');
+    if (el) el.textContent = '';
+    setMapStatusNotice(null);
+  };
+  const setMapNotice = (raw) => {
+    const next = typeof raw === 'string'
+      ? {
+          tone: 'info',
+          title: '地图提示',
+          message: String(raw || '').trim(),
+          provider: mapProviderRef.current,
+          layerType: currentBaseLayerRef.current,
+          action: null,
+        }
+      : (raw && typeof raw === 'object'
+        ? {
+            tone: String(raw.tone || 'info'),
+            title: String(raw.title || '地图提示').trim(),
+            message: String(raw.message || '').trim(),
+            provider: String(raw.provider || mapProviderRef.current || 'geovis'),
+            layerType: String(raw.layerType || currentBaseLayerRef.current || mapLayerType || 'vector'),
+            action: raw.action && typeof raw.action === 'object' ? raw.action : null,
+          }
+        : null);
+    const text = next ? [next.title, next.message].filter(Boolean).join('\n') : '';
+    const el = document.getElementById('boot-diag');
+    if (el) el.textContent = text;
+    setMapStatusNotice(next);
+  };
+  const retryPreferredMapProvider = (targetLayerType) => {
+    const nextLayerType = String(targetLayerType || mapLayerType || 'vector');
+    mapProviderRef.current = isTerrain3DMode(nextLayerType) ? 'cesium' : 'geovis';
+    currentBaseLayerRef.current = nextLayerType;
+    clearMapNotice();
+    syncMapCanvasVisibility(nextLayerType);
+    if (nextLayerType !== mapLayerType) {
+      setMapLayerType(nextLayerType);
+      return;
+    }
+    setMapRecoveryTick((value) => value + 1);
+  };
+  const handleMapNoticeAction = (action) => {
+    if (!action || typeof action !== 'object') return;
+    const kind = String(action.kind || '');
+    const targetLayerType = String(action.targetLayerType || mapLayerType || 'vector');
+    if (kind === 'retry-geovis') {
+      retryPreferredMapProvider(targetLayerType);
+      return;
+    }
+    if (kind === 'switch-layer') {
+      clearMapNotice();
+      setMapLayerType(targetLayerType);
+    }
   };
   const activateAmapFallback = async (preferredMode, message) => {
     if (typeof _ensureAmap !== 'function') {
@@ -3696,7 +4296,7 @@ const LIFE_GRADIENT_END = '#5D4037';
     const nextMode = String(preferredMode || 'vector') === 'imagery' ? 'imagery' : 'vector';
     let map = amapMapRef.current;
     if (!map) {
-      map = new AMap.Map('map-maplibre', {
+      map = new AMap.Map('map-amap', {
         zoom: 4,
         center: locations[0] ? [Number(locations[0].lng), Number(locations[0].lat)] : [105, 35],
         viewMode: '2D',
@@ -3714,16 +4314,10 @@ const LIFE_GRADIENT_END = '#5D4037';
       const segmentEntries = [];
       const pointEntries = [];
       const arrowRenderableIndexes = getArrowRenderableSegmentIndexes();
-      const latlngs = locations.map((l) => [Number(l.lng), Number(l.lat)]);
-      if (latlngs.length > 1) {
-        for (let i = 0; i < latlngs.length - 1; i++) {
-          const segmentPath = buildCurvedSegmentPath(
-            latlngs[i],
-            latlngs[i + 1],
-            i,
-            i > 0 ? latlngs[i - 1] : null,
-            i + 2 < latlngs.length ? latlngs[i + 2] : null
-          );
+      const latlngs = locations.map((loc, idx) => getRenderedLngLatFromLoc(loc, idx));
+      if (latlngs.filter(Boolean).length > 1) {
+        for (let i = 0; i < locations.length - 1; i++) {
+          const segmentPath = buildRenderedSegmentPath(i);
           const fromColor = getLifeColor(locations[i], i);
           const toColor = getLifeColor(locations[i + 1], i + 1);
           const segmentColor = mixHex(fromColor, toColor, 0.5);
@@ -3829,6 +4423,44 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (activePinMarker) {
         try { map.add(activePinMarker); } catch (_) {}
       }
+      const updateAmapLabelVisibility = (activeIdx) => {
+        const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
+        const visibleIndexes = getPreferredLabelIndexes({
+          activeIdx,
+          detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
+          isVisible: (lng, lat) => {
+            if (!bounds || typeof bounds.contains !== 'function' || !window.AMap || typeof window.AMap.LngLat !== 'function') return true;
+            try {
+              return bounds.contains(new window.AMap.LngLat(Number(lng), Number(lat)));
+            } catch (_) {
+              return true;
+            }
+          },
+          projectToScreen: (lng, lat) => {
+            if (!window.AMap || typeof window.AMap.LngLat !== 'function') return null;
+            try {
+              if (typeof map.lngLatToContainer === 'function') {
+                const pixel = map.lngLatToContainer(new window.AMap.LngLat(Number(lng), Number(lat)));
+                return pixel ? { x: Number(pixel.x), y: Number(pixel.y) } : null;
+              }
+              if (typeof map.lngLatToPixel === 'function') {
+                const pixel = map.lngLatToPixel(new window.AMap.LngLat(Number(lng), Number(lat)));
+                return pixel ? { x: Number(pixel.x), y: Number(pixel.y) } : null;
+              }
+            } catch (_) {}
+            return null;
+          }
+        });
+        pointEntries.forEach((entry) => {
+          const shouldShow = visibleIndexes.has(entry.idx);
+          try {
+            if (entry.label && typeof entry.label.show === 'function' && typeof entry.label.hide === 'function') {
+              if (shouldShow) entry.label.show();
+              else entry.label.hide();
+            }
+          } catch (_) {}
+        });
+      };
       const setActive = (activeIdx) => {
         activeIndexRef.current = activeIdx;
         segmentEntries.forEach((segment) => {
@@ -3896,6 +4528,7 @@ const LIFE_GRADIENT_END = '#5D4037';
             } catch (_) {}
           }
         }
+        updateAmapLabelVisibility(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -3904,26 +4537,29 @@ const LIFE_GRADIENT_END = '#5D4037';
         const focusOptions = normalizeFocusOptions(rawOptions);
         if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
         if (focusOptions.strict) {
+          const strictCenter = getRenderedLngLatFromLoc(loc, nextIdx) || [Number(loc.lng), Number(loc.lat)];
           try {
-            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            map.setZoomAndCenter(focusZoom, strictCenter);
             return;
           } catch (_) {}
         }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
-          .map((item) => locations[item])
-          .filter(Boolean)
-          .map((item) => [Number(item.lng), Number(item.lat)]);
+          .map((item) => getRenderedLngLat(item))
+          .filter(Boolean);
         try {
           if (focusPoints.length >= 2) {
             const bounds = new AMap.Bounds(focusPoints[0], focusPoints[0]);
             focusPoints.slice(1).forEach((item) => bounds.extend(item));
             map.setBounds(bounds, false, getAmapFocusPadding(typeof map.getContainer === 'function' ? map.getContainer()?.clientWidth : 0));
           } else {
-            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            const center = getRenderedLngLatFromLoc(loc, nextIdx) || [Number(loc.lng), Number(loc.lat)];
+            map.setZoomAndCenter(focusZoom, center);
           }
         } catch (_) {}
       };
+      try { map.on('moveend', () => updateAmapLabelVisibility(activeIndexRef.current)); } catch (_) {}
+      try { map.on('zoomend', () => updateAmapLabelVisibility(activeIndexRef.current)); } catch (_) {}
       amapControllerRef.current = {
         _type: 'amap',
         setView: (latlng, z) => {
@@ -3940,8 +4576,8 @@ const LIFE_GRADIENT_END = '#5D4037';
         },
         fitAll: () => {
           const boundsPoints = locations
-            .filter((item) => item && Number.isFinite(item.lng) && Number.isFinite(item.lat))
-            .map((item) => [Number(item.lng), Number(item.lat)]);
+            .map((item, idx) => getRenderedLngLatFromLoc(item, idx))
+            .filter(Boolean);
           if (!boundsPoints.length) return;
           try {
             if (boundsPoints.length === 1) {
@@ -3975,6 +4611,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           segmentStates: segmentEntries.map((segment) => segment.state)
         })
       };
+      updateAmapLabelVisibility(activeIndexRef.current);
     }
     mapProviderRef.current = 'amap';
     currentBaseLayerRef.current = nextMode;
@@ -3986,7 +4623,14 @@ const LIFE_GRADIENT_END = '#5D4037';
         setBasemap: (nextType) => {
           const resolvedType = String(nextType || 'vector');
           if (resolvedType === 'terrain' || resolvedType === 'terrain-3d') {
-            setMapNotice('高德地图回退模式下仅支持矢量图和影像图，当前底图暂无服务。');
+            setMapNotice({
+              tone: 'warning',
+              title: '高德模式不支持当前底图',
+              message: '当前处于高德回退模式，仅支持矢量图和影像图。你可以恢复 GeoVis 后再重试地形底图。',
+              provider: 'amap',
+              layerType: currentBaseLayerRef.current,
+              action: { kind: 'retry-geovis', label: '恢复 GeoVis', targetLayerType: resolvedType }
+            });
             return false;
           }
           setMapLayerType(resolvedType === 'imagery' ? 'imagery' : 'vector');
@@ -4017,7 +4661,16 @@ const LIFE_GRADIENT_END = '#5D4037';
       };
     }
     try { amapControllerRef.current.setActive(activeIndexRef.current); } catch (_) {}
-    if (message) setMapNotice(message);
+    if (message) {
+      setMapNotice({
+        tone: 'warning',
+        title: '已切换到高德备用底图',
+        message: String(message || '').trim(),
+        provider: 'amap',
+        layerType: nextMode,
+        action: { kind: 'retry-geovis', label: '恢复 GeoVis', targetLayerType: nextMode }
+      });
+    }
     return amapControllerRef.current;
   };
   useEffect(() => {
@@ -4057,7 +4710,6 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       try {
         await ((window.__MAP_STORY_GEOVIS__ && window.__MAP_STORY_GEOVIS__.ensureMapLibre) || _ensureMapLibre)();
-        await probeGeoVisLayerType(geovis, 'vector');
       } catch (err) {
         await fallbackToAmap(`GeoVis 服务暂不可用：${String(err?.message || err)}，已回退到高德地图`);
         return;
@@ -4074,6 +4726,10 @@ const LIFE_GRADIENT_END = '#5D4037';
           dragRotate: true,
           pitchWithRotate: true,
           antialias: true,
+          canvasContextAttributes: {
+            antialias: true,
+            preserveDrawingBuffer: true
+          },
           maxPitch: 70
         });
       } catch (err) {
@@ -4083,6 +4739,11 @@ const LIFE_GRADIENT_END = '#5D4037';
       mapProviderRef.current = 'geovis';
       maplibreMapRef.current = map;
       currentBaseLayerRef.current = 'vector';
+      const maplibreCanvasEl = typeof document !== 'undefined' ? document.getElementById('map-maplibre') : null;
+      let overlayRepairRaf = 0;
+      let fallbackOverlayRaf = 0;
+      let fallbackOverlayHost = null;
+      let fallbackOverlaySvg = null;
       const total = locations.length;
       const getPointVisualState = (idx, activeIdx) => {
         const isActive = idx === activeIdx;
@@ -4161,8 +4822,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       const applyFitBounds = () => {
         if (hasLocHash() || !locations.length) return;
         const bounds = new maplibregl.LngLatBounds();
-        locations.forEach((loc) => {
-          if (Number.isFinite(loc.lng) && Number.isFinite(loc.lat)) bounds.extend([loc.lng, loc.lat]);
+        locations.forEach((loc, idx) => {
+          const coord = getRenderedLngLatFromLoc(loc, idx);
+          if (coord) bounds.extend(coord);
         });
         if (!bounds.isEmpty()) {
           try {
@@ -4173,6 +4835,132 @@ const LIFE_GRADIENT_END = '#5D4037';
           } catch (_) {}
         }
       };
+      const pointSourceId = 'story-point-source';
+      const pointHaloId = 'story-point-halo';
+      const pointCoreId = 'story-point-core';
+      const pointLabelSourceId = 'story-point-label-source';
+      const pointLabelLayerId = 'story-point-label';
+      const isValidMapCoordinatePair = (pair) => {
+        if (!Array.isArray(pair) || pair.length < 2) return false;
+        const lng = Number(pair[0]);
+        const lat = Number(pair[1]);
+        return Number.isFinite(lng) && Number.isFinite(lat);
+      };
+      const sanitizeMapPath = (path) => (
+        Array.isArray(path)
+          ? path
+            .filter((item) => isValidMapCoordinatePair(item))
+            .map((item) => [Number(item[0]), Number(item[1])])
+          : []
+      );
+      const canRenderSegmentPath = (path) => sanitizeMapPath(path).length >= 2;
+      const shouldExpectMapPoints = () => locations.some((loc, idx) => Boolean(getRenderedLngLatFromLoc(loc, idx)));
+      const shouldExpectMapSegments = () => locations.length > 1;
+      const ensureFallbackOverlay = () => {
+        if (!maplibreCanvasEl || typeof document === 'undefined') return null;
+        if (fallbackOverlayHost && fallbackOverlayHost.isConnected && fallbackOverlaySvg) return fallbackOverlayHost;
+        fallbackOverlayHost = document.createElement('div');
+        fallbackOverlayHost.className = 'map-fallback-overlay';
+        fallbackOverlayHost.setAttribute('aria-hidden', 'true');
+        fallbackOverlaySvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        fallbackOverlaySvg.setAttribute('class', 'map-fallback-overlay-svg');
+        fallbackOverlaySvg.setAttribute('preserveAspectRatio', 'none');
+        fallbackOverlayHost.appendChild(fallbackOverlaySvg);
+        maplibreCanvasEl.appendChild(fallbackOverlayHost);
+        return fallbackOverlayHost;
+      };
+      const clearFallbackOverlay = () => {
+        if (fallbackOverlaySvg) fallbackOverlaySvg.innerHTML = '';
+        if (fallbackOverlayHost) fallbackOverlayHost.classList.remove('is-active');
+      };
+      const renderFallbackOverlay = (activeIdx = activeIndexRef.current) => {
+        const host = ensureFallbackOverlay();
+        if (!host || !fallbackOverlaySvg || !maplibreCanvasEl) return;
+        if (String(mapProviderRef.current || 'geovis') !== 'geovis' || isTerrain3DMode(currentBaseLayerRef.current)) {
+          clearFallbackOverlay();
+          return;
+        }
+        const width = Number(maplibreCanvasEl.clientWidth || 0);
+        const height = Number(maplibreCanvasEl.clientHeight || 0);
+        if (width <= 0 || height <= 0) {
+          clearFallbackOverlay();
+          return;
+        }
+        const lineMarkup = [];
+        for (let i = 0; i < locations.length - 1; i++) {
+          const segmentPath = sanitizeMapPath(buildRenderedSegmentPath(i));
+          if (segmentPath.length < 2) continue;
+          const segmentColor = mixHex(getLifeColor(locations[i], i), getLifeColor(locations[i + 1], i + 1), 0.5);
+          const segmentVisual = getSegmentVisualState(i, activeIdx, segmentColor);
+          const screenPath = [];
+          for (const coord of segmentPath) {
+            try {
+              const point = map.project(coord);
+              if (!Number.isFinite(Number(point?.x)) || !Number.isFinite(Number(point?.y))) continue;
+              screenPath.push([Number(point.x), Number(point.y)]);
+            } catch (_) {}
+          }
+          if (screenPath.length < 2) continue;
+          const d = screenPath.map((point, pointIdx) => `${pointIdx === 0 ? 'M' : 'L'} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`).join(' ');
+          lineMarkup.push(`<path d="${d}" fill="none" stroke="${hexToRgba(segmentVisual.baseColor, segmentVisual.lineOpacity)}" stroke-width="${Number(segmentVisual.lineWidth || 0).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" />`);
+        }
+        const pointMarkup = [];
+        locations.forEach((loc, idx) => {
+          const coord = getRenderedLngLatFromLoc(loc, idx);
+          if (!coord) return;
+          try {
+            const point = map.project(coord);
+            const x = Number(point?.x);
+            const y = Number(point?.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+            const visual = getPointVisualState(idx, activeIdx);
+            pointMarkup.push(`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${Number(visual.haloRadius || 0).toFixed(2)}" fill="${hexToRgba(visual.haloColor || visual.fillColor, visual.haloOpacity)}" />`);
+            pointMarkup.push(`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${Number(visual.radius || 0).toFixed(2)}" fill="${visual.fillColor}" fill-opacity="${Number(visual.fillOpacity || 1).toFixed(3)}" stroke="${visual.strokeColor}" stroke-width="${Number(visual.strokeWeight || 0).toFixed(2)}" />`);
+          } catch (_) {}
+        });
+        fallbackOverlaySvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        fallbackOverlaySvg.setAttribute('width', String(width));
+        fallbackOverlaySvg.setAttribute('height', String(height));
+        fallbackOverlaySvg.innerHTML = `${lineMarkup.join('')}${pointMarkup.join('')}`;
+        host.classList.add('is-active');
+      };
+      const scheduleFallbackOverlayRender = (reason = 'map-change') => {
+        if (hasRenderableOverlayArtifacts()) {
+          clearFallbackOverlay();
+          return;
+        }
+        if (fallbackOverlayRaf) {
+          try { window.cancelAnimationFrame(fallbackOverlayRaf); } catch (_) {}
+          fallbackOverlayRaf = 0;
+        }
+        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+          fallbackOverlayRaf = window.requestAnimationFrame(() => {
+            fallbackOverlayRaf = 0;
+            renderFallbackOverlay(activeIndexRef.current, reason);
+          });
+          return;
+        }
+        renderFallbackOverlay(activeIndexRef.current, reason);
+      };
+      const hasRenderableOverlayArtifacts = () => {
+        try {
+          const hasPointArtifacts = !shouldExpectMapPoints() || (
+            Boolean(map.getSource(pointSourceId)) &&
+            Boolean(map.getLayer(pointCoreId))
+          );
+          const trackedLineIds = Array.isArray(overlayStateRef.current?.lineIds) ? overlayStateRef.current.lineIds : [];
+          const hasSegmentArtifacts = !shouldExpectMapSegments() || trackedLineIds.some((id) => {
+            try {
+              return Boolean(id && map.getLayer(id));
+            } catch (_) {
+              return false;
+            }
+          });
+          return hasPointArtifacts && hasSegmentArtifacts;
+        } catch (_) {
+          return false;
+        }
+      };
       const renderStoryOverlays = () => {
         overlayStateRef.current.clear();
         const pointLayers = [];
@@ -4181,6 +4969,16 @@ const LIFE_GRADIENT_END = '#5D4037';
         const extraLayerIds = [];
         const extraSourceIds = [];
         const segmentLayers = [];
+        const ensureLayerRemoved = (id) => {
+          try {
+            if (id && map.getLayer(id)) map.removeLayer(id);
+          } catch (_) {}
+        };
+        const ensureSourceRemoved = (id) => {
+          try {
+            if (id && map.getSource(id)) map.removeSource(id);
+          } catch (_) {}
+        };
         // #region debug-point A:overlay-build
         debugEmit('A', 'profile_page.html:renderStoryOverlays', 'overlay rebuild start', {
           activeIndex: activeIndexRef.current,
@@ -4191,29 +4989,42 @@ const LIFE_GRADIENT_END = '#5D4037';
         });
         // #endregion
         const addLineLayer = (id, path, color, width, opacity) => {
-          map.addSource(id, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: path }
-            }
-          });
-          map.addLayer({
-            id,
-            type: 'line',
-            source: id,
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-              'line-color': color,
-              'line-width': width,
-              'line-opacity': opacity
-            }
-          });
-          lineIds.push(id);
+          const validPath = sanitizeMapPath(path);
+          if (validPath.length < 2) return false;
+          ensureLayerRemoved(id);
+          ensureSourceRemoved(id);
+          try {
+            map.addSource(id, {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: validPath }
+              }
+            });
+            map.addLayer({
+              id,
+              type: 'line',
+              source: id,
+              layout: { 'line-join': 'round', 'line-cap': 'round' },
+              paint: {
+                'line-color': color,
+                'line-width': width,
+                'line-opacity': opacity
+              }
+            });
+            lineIds.push(id);
+            return true;
+          } catch (error) {
+            debugEmit('A', 'profile_page.html:addLineLayer', 'line layer skipped after addLayer failure', {
+              id,
+              coordinateCount: validPath.length,
+              message: String(error?.message || error || '')
+            });
+            ensureLayerRemoved(id);
+            ensureSourceRemoved(id);
+            return false;
+          }
         };
-        const pointSourceId = 'story-point-source';
-        const pointHaloId = 'story-point-halo';
-        const pointCoreId = 'story-point-core';
         const buildPointFeatureCollection = (activeIdx) => ({
           type: 'FeatureCollection',
           features: locations.map((loc, idx) => {
@@ -4242,101 +5053,152 @@ const LIFE_GRADIENT_END = '#5D4037';
           }).filter(Boolean)
         });
         const mixSegmentToMuted = (color, ratio) => mixHex(String(color || '#94a3b8'), '#d7dde8', clampValue(ratio, 0, 1));
-        const latlngs = locations.map((l) => [Number(l.lng), Number(l.lat)]);
+        const latlngs = locations.map((loc, idx) => getRenderedLngLatFromLoc(loc, idx));
         const arrowRenderableIndexes = getArrowRenderableSegmentIndexes();
-        if (latlngs.length > 1) {
-          for (let i = 0; i < latlngs.length - 1; i++) {
-            const segmentPath = buildCurvedSegmentPath(
-              latlngs[i],
-              latlngs[i + 1],
-              i,
-              i > 0 ? latlngs[i - 1] : null,
-              i + 2 < latlngs.length ? latlngs[i + 2] : null
-            );
-            const fromColor = getLifeColor(locations[i], i);
-            const toColor = getLifeColor(locations[i + 1], i + 1);
-            const segmentColor = mixHex(fromColor, toColor, 0.5);
-            const initialVisual = getSegmentVisualState(i, activeIndexRef.current, segmentColor);
-            const haloId = `story-segment-halo-${i}`;
-            const lineId = `story-segment-line-${i}`;
-            addLineLayer(
-              haloId,
-              segmentPath,
-              initialVisual.haloColor ? hexToRgba(initialVisual.haloColor, initialVisual.haloOpacity) : hexToRgba(initialVisual.baseColor, initialVisual.haloOpacity),
-              initialVisual.haloLineWidth,
-              initialVisual.haloLineOpacity
-            );
-            addLineLayer(lineId, segmentPath, initialVisual.baseColor, initialVisual.lineWidth, initialVisual.lineOpacity);
-            const arrowMeta = arrowRenderableIndexes.has(i) ? getSegmentArrowMeta(segmentPath) : null;
-            let arrowMarker = null;
-            if (arrowMeta) {
-              arrowMarker = new maplibregl.Marker({ element: buildDirectionArrowHtml(initialVisual.baseColor, arrowMeta.angle), anchor: 'center' })
-                .setLngLat(arrowMeta.position)
-                .addTo(map);
-              setMarkerZ(arrowMarker, 140);
-              markers.push(arrowMarker);
+        if (latlngs.filter(Boolean).length > 1) {
+          for (let i = 0; i < locations.length - 1; i++) {
+            try {
+              const segmentPath = sanitizeMapPath(buildRenderedSegmentPath(i));
+              if (segmentPath.length < 2) {
+                debugEmit('A', 'profile_page.html:renderStoryOverlays', 'segment skipped because path is not renderable', {
+                  segmentIdx: i,
+                  coordinateCount: segmentPath.length
+                });
+                continue;
+              }
+              const fromColor = getLifeColor(locations[i], i);
+              const toColor = getLifeColor(locations[i + 1], i + 1);
+              const segmentColor = mixHex(fromColor, toColor, 0.5);
+              const initialVisual = getSegmentVisualState(i, activeIndexRef.current, segmentColor);
+              const haloId = `story-segment-halo-${i}`;
+              const lineId = `story-segment-line-${i}`;
+              const hasHaloLayer = addLineLayer(
+                haloId,
+                segmentPath,
+                initialVisual.haloColor ? hexToRgba(initialVisual.haloColor, initialVisual.haloOpacity) : hexToRgba(initialVisual.baseColor, initialVisual.haloOpacity),
+                initialVisual.haloLineWidth,
+                initialVisual.haloLineOpacity
+              );
+              const hasCoreLayer = addLineLayer(lineId, segmentPath, initialVisual.baseColor, initialVisual.lineWidth, initialVisual.lineOpacity);
+              if (!hasHaloLayer && !hasCoreLayer) continue;
+              const arrowMeta = arrowRenderableIndexes.has(i) ? getSegmentArrowMeta(segmentPath) : null;
+              let arrowMarker = null;
+              if (arrowMeta && isValidMapCoordinatePair(arrowMeta.position)) {
+                try {
+                  arrowMarker = new maplibregl.Marker({ element: buildDirectionArrowHtml(initialVisual.baseColor, arrowMeta.angle), anchor: 'center' })
+                    .setLngLat(arrowMeta.position)
+                    .addTo(map);
+                  setMarkerZ(arrowMarker, 140);
+                  markers.push(arrowMarker);
+                } catch (error) {
+                  debugEmit('A', 'profile_page.html:renderStoryOverlays', 'segment arrow skipped after marker failure', {
+                    segmentIdx: i,
+                    message: String(error?.message || error || '')
+                  });
+                }
+              }
+              segmentLayers.push({
+                idx: i,
+                haloId,
+                lineId,
+                color: segmentColor,
+                arrowMarker
+              });
+            } catch (error) {
+              debugEmit('A', 'profile_page.html:renderStoryOverlays', 'segment skipped after render failure', {
+                segmentIdx: i,
+                message: String(error?.message || error || '')
+              });
             }
-            segmentLayers.push({
-              idx: i,
-              haloId,
-              lineId,
-              color: segmentColor,
-              arrowMarker
-            });
           }
         }
         const pointData = buildPointFeatureCollection(activeIndexRef.current);
-        const pointLabelEntries = [];
+        const buildMapLibreVisibleLabelIndexes = (activeIdx) => {
+          const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
+          return getPreferredLabelIndexes({
+            activeIdx,
+            detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
+            isVisible: (lng, lat) => {
+              if (!bounds || typeof bounds.contains !== 'function') return true;
+              try {
+                return bounds.contains([Number(lng), Number(lat)]);
+              } catch (_) {
+                return true;
+              }
+            },
+            projectToScreen: (lng, lat) => {
+              try {
+                if (typeof map.project === 'function') {
+                  const pixel = map.project([Number(lng), Number(lat)]);
+                  return pixel ? { x: Number(pixel.x), y: Number(pixel.y) } : null;
+                }
+              } catch (_) {}
+              return null;
+            }
+          });
+        };
         if (pointData.features.length) {
-          map.addSource(pointSourceId, { type: 'geojson', data: pointData });
-          map.addLayer({
-            id: pointHaloId,
-            type: 'circle',
-            source: pointSourceId,
-            paint: {
-              'circle-radius': ['get', 'haloRadius'],
-              'circle-color': ['get', 'haloColor'],
-              'circle-opacity': ['get', 'haloOpacity'],
-              'circle-blur': 0.08
-            }
-          });
-          map.addLayer({
-            id: pointCoreId,
-            type: 'circle',
-            source: pointSourceId,
-            paint: {
-              'circle-radius': ['get', 'radius'],
-              'circle-color': ['get', 'fillColor'],
-              'circle-opacity': ['get', 'fillOpacity'],
-              'circle-stroke-color': ['get', 'strokeColor'],
-              'circle-stroke-width': ['get', 'strokeWeight']
-            }
-          });
-          extraLayerIds.push(pointHaloId, pointCoreId);
-          extraSourceIds.push(pointSourceId);
+          try {
+            ensureLayerRemoved(pointHaloId);
+            ensureLayerRemoved(pointCoreId);
+            ensureLayerRemoved(pointLabelLayerId);
+            ensureSourceRemoved(pointLabelSourceId);
+            ensureSourceRemoved(pointSourceId);
+            map.addSource(pointSourceId, { type: 'geojson', data: pointData });
+            map.addLayer({
+              id: pointHaloId,
+              type: 'circle',
+              source: pointSourceId,
+              paint: {
+                'circle-radius': ['get', 'haloRadius'],
+                'circle-color': ['get', 'haloColor'],
+                'circle-opacity': ['get', 'haloOpacity'],
+                'circle-blur': 0.08
+              }
+            });
+            map.addLayer({
+              id: pointCoreId,
+              type: 'circle',
+              source: pointSourceId,
+              paint: {
+                'circle-radius': ['get', 'radius'],
+                'circle-color': ['get', 'fillColor'],
+                'circle-opacity': ['get', 'fillOpacity'],
+                'circle-stroke-color': ['get', 'strokeColor'],
+                'circle-stroke-width': ['get', 'strokeWeight']
+              }
+            });
+            pointLayers.push(pointHaloId, pointCoreId);
+            extraLayerIds.push(pointHaloId, pointCoreId);
+            extraSourceIds.push(pointSourceId);
+          } catch (error) {
+            debugEmit('A', 'profile_page.html:renderStoryOverlays', 'point layers skipped after render failure', {
+              pointCount: pointData.features.length,
+              message: String(error?.message || error || '')
+            });
+          }
           locations.forEach((loc, idx) => {
             const renderLoc = getRenderedPointLoc(idx);
-            if (!renderLoc) return;
+            if (!loc || !renderLoc) return;
             if (!Number.isFinite(renderLoc.renderLng) || !Number.isFinite(renderLoc.renderLat)) return;
-            const isEndpoint = idx === 0 || idx === totalEvents - 1;
-            const labelOffset = getMapPointLabelOffset(idx);
-            const labelEl = buildMapPointLabelElement(loc, idx, activeIndexRef.current);
-            labelEl.onclick = () => {
-              activeIndexRef.current = idx;
-              setSelectedLoc(loc);
-              setActiveIndex(idx);
-              focusTimelineIndex(idx, true);
-            };
-            const labelMarker = new maplibregl.Marker({
-              element: labelEl,
-              anchor: 'bottom',
-              offset: labelOffset.maplibre
-            })
-              .setLngLat([Number(renderLoc.renderLng), Number(renderLoc.renderLat)])
-              .addTo(map);
-            setMarkerZ(labelMarker, idx === activeIndexRef.current ? 320 : (220 + idx));
-            markers.push(labelMarker);
-            pointLabelEntries.push({ idx, loc, labelMarker, isEndpoint });
+            try {
+              const labelOffset = getMapPointLabelOffset(idx);
+              const labelMarker = new maplibregl.Marker({
+                element: buildMapPointLabelShell(loc, idx, activeIndexRef.current),
+                anchor: 'bottom',
+                offset: labelOffset.maplibre
+              })
+                .setLngLat([Number(renderLoc.renderLng), Number(renderLoc.renderLat)])
+                .addTo(map);
+              const rootEl = typeof labelMarker.getElement === 'function' ? labelMarker.getElement() : null;
+              if (rootEl) {
+                rootEl.addEventListener('click', () => {
+                  changeEvent(idx);
+                });
+              }
+              setMarkerZ(labelMarker, idx === activeIndexRef.current ? 280 : 220);
+              markers.push(labelMarker);
+            } catch (_) {}
           });
         }
         const initialActiveRenderLoc = getRenderedPointLoc(activeIndexRef.current);
@@ -4351,6 +5213,27 @@ const LIFE_GRADIENT_END = '#5D4037';
           setMarkerZ(activePinMarker, 360);
           markers.push(activePinMarker);
         }
+        const updateMapLibreLabelVisibility = (activeIdx) => {
+          const visibleIndexes = buildMapLibreVisibleLabelIndexes(activeIdx);
+          markers.forEach((marker) => {
+            const rootEl = marker && typeof marker.getElement === 'function' ? marker.getElement() : null;
+            if (!rootEl || !rootEl.classList || !rootEl.classList.contains('map-point-label-shell')) return;
+            const idx = Number(rootEl.getAttribute('data-story-idx'));
+            if (!Number.isFinite(idx)) return;
+            const loc = locations[idx];
+            const renderLoc = getRenderedPointLoc(idx);
+            const shouldShow = visibleIndexes.has(idx);
+            if (renderLoc) {
+              try {
+                marker.setLngLat([Number(renderLoc.renderLng), Number(renderLoc.renderLat)]);
+              } catch (_) {}
+            }
+            setMapPointLabelMarkerVisibility(marker, shouldShow);
+            const labelEl = rootEl.firstElementChild;
+            if (labelEl) updateMapPointLabelElement(labelEl, loc, idx, activeIdx);
+            setMarkerZ(marker, idx === activeIdx ? 280 : ((idx === 0 || idx === totalEvents - 1) ? 240 : 220));
+          });
+        };
         const setActive = (activeIdx) => {
           activeIndexRef.current = activeIdx;
           segmentLayers.forEach((segment) => {
@@ -4382,13 +5265,8 @@ const LIFE_GRADIENT_END = '#5D4037';
               pointSource.setData(buildPointFeatureCollection(activeIdx));
             }
           } catch (_) {}
-          pointLabelEntries.forEach((entry) => {
-            const labelEl = entry.labelMarker && typeof entry.labelMarker.getElement === 'function'
-              ? entry.labelMarker.getElement()
-              : null;
-            updateMapPointLabelElement(labelEl, entry.loc, entry.idx, activeIdx);
-            setMarkerZ(entry.labelMarker, entry.idx === activeIdx ? 320 : (220 + entry.idx));
-          });
+          updateMapLibreLabelVisibility(activeIdx);
+          scheduleFallbackOverlayRender('set-active');
           if (activePinMarker) {
             const activeRenderLoc = getRenderedPointLoc(activeIdx);
             const activeLoc = locations[activeIdx];
@@ -4416,7 +5294,8 @@ const LIFE_GRADIENT_END = '#5D4037';
           if (!loc) return;
           const focusOptions = normalizeFocusOptions(rawOptions);
           if (focusOptions.strict) {
-            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            const strictCenter = getRenderedLngLatFromLoc(loc, idx) || [Number(loc.lng), Number(loc.lat)];
+            try { map.easeTo({ center: strictCenter, zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
             if (focusOptions.pulse) pulseByIndex(idx);
             return;
           }
@@ -4424,11 +5303,11 @@ const LIFE_GRADIENT_END = '#5D4037';
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
           const focusPoints = neighborIndexes
-            .map((item) => locations[item])
-            .filter((item) => item && Number.isFinite(item.lng) && Number.isFinite(item.lat));
+            .map((item) => getRenderedLngLat(item))
+            .filter(Boolean);
           if (focusPoints.length >= 2) {
             const bounds = new maplibregl.LngLatBounds();
-            focusPoints.forEach((item) => bounds.extend([item.lng, item.lat]));
+            focusPoints.forEach((item) => bounds.extend(item));
             try {
               map.fitBounds(bounds, {
                 padding: getFocusPadding(typeof map.getContainer === 'function' ? map.getContainer()?.clientWidth : 0),
@@ -4436,10 +5315,12 @@ const LIFE_GRADIENT_END = '#5D4037';
                 duration: 650
               });
             } catch (_) {
-              try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
+              const fallbackCenter = getRenderedLngLatFromLoc(loc, idx) || [Number(loc.lng), Number(loc.lat)];
+              try { map.easeTo({ center: fallbackCenter, zoom: focusZoom, duration: 650 }); } catch (_) {}
             }
           } else {
-            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
+            const fallbackCenter = getRenderedLngLatFromLoc(loc, idx) || [Number(loc.lng), Number(loc.lat)];
+            try { map.easeTo({ center: fallbackCenter, zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
           if (focusOptions.pulse) pulseByIndex(idx);
         };
@@ -4465,8 +5346,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           try { map.on('mouseenter', pointCoreId, onPointLayerEnter); } catch (_) {}
           try { map.on('mouseleave', pointCoreId, onPointLayerLeave); } catch (_) {}
         }
+        try { map.on('moveend', () => updateMapLibreLabelVisibility(activeIndexRef.current)); } catch (_) {}
+        try { map.on('zoomend', () => updateMapLibreLabelVisibility(activeIndexRef.current)); } catch (_) {}
         overlayStateRef.current = {
           pointLayers,
+          lineIds,
+          extraLayerIds,
+          extraSourceIds,
+          pointSourceId,
+          pointCoreId,
           clear: () => {
             clearPulse();
             try { map.off('click', pointCoreId, onPointLayerClick); } catch (_) {}
@@ -4487,6 +5375,7 @@ const LIFE_GRADIENT_END = '#5D4037';
             });
           }
         };
+        scheduleFallbackOverlayRender('render-story-overlays');
         const controller = {
           _type: 'maplibre',
           setView: (latlng, z, pulse) => {
@@ -4518,13 +5407,18 @@ const LIFE_GRADIENT_END = '#5D4037';
             } catch (_) {}
           },
           fitAll: () => {
-            const bounds = new maplibregl.LngLatBounds();
-            locations.forEach((loc) => {
-              if (loc && Number.isFinite(loc.lng) && Number.isFinite(loc.lat)) bounds.extend([Number(loc.lng), Number(loc.lat)]);
-            });
-            if (bounds.isEmpty()) return;
+            const boundsPoints = locations
+              .map((loc, idx) => getRenderedLngLatFromLoc(loc, idx))
+              .filter(Boolean);
+            if (!boundsPoints.length) return;
             try {
+              if (boundsPoints.length === 1) {
+                map.easeTo({ center: boundsPoints[0], zoom: focusZoom, duration: 420 });
+                return;
+              }
               if (typeof map.fitBounds === 'function') {
+                const bounds = new maplibregl.LngLatBounds();
+                boundsPoints.forEach((item) => bounds.extend(item));
                 map.fitBounds(bounds, {
                   padding: getOverviewPadding(typeof map.getContainer === 'function' ? map.getContainer()?.clientWidth : 0),
                   duration: 420
@@ -4563,6 +5457,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           })
         };
         maplibreControllerRef.current = controller;
+        updateMapLibreLabelVisibility(activeIndexRef.current);
         if (!isTerrain3DMode(currentBaseLayerRef.current)) {
           mapRef.current = controller;
         }
@@ -4589,6 +5484,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 if (!isTerrain3DMode(resolvedType)) {
                   try { geovis.applyMapLibreMode(map, resolvedType); } catch (_) {}
                   try { applyMapViewMode(map, resolvedType, false); } catch (_) {}
+                  scheduleMapLibreOverlayRebuild();
                   if (maplibreControllerRef.current) {
                     mapRef.current = maplibreControllerRef.current;
                     try { maplibreControllerRef.current.setActive(activeIndexRef.current); } catch (_) {}
@@ -4661,6 +5557,65 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       };
       rebuildOverlaysRef.current = renderStoryOverlays;
+      const scheduleMapLibreOverlayRebuild = (reason = 'unknown') => {
+        if (overlayRepairRaf) {
+          try { window.cancelAnimationFrame(overlayRepairRaf); } catch (_) {}
+          overlayRepairRaf = 0;
+        }
+        const run = () => {
+          overlayRepairRaf = 0;
+          if (disposed) return;
+          if (!maplibreMapRef.current) return;
+          try {
+            if (typeof map.isStyleLoaded === 'function' && !map.isStyleLoaded()) return;
+          } catch (_) {}
+          try {
+            debugEmit('A', 'profile_page.html:scheduleMapLibreOverlayRebuild', 'overlay rebuild scheduled run', {
+              reason: String(reason || ''),
+              hasOverlayArtifacts: hasRenderableOverlayArtifacts()
+            });
+            rebuildOverlaysRef.current();
+            if (!hasRenderableOverlayArtifacts()) {
+              scheduleFallbackOverlayRender(`post-rebuild:${String(reason || '')}`);
+            } else {
+              clearFallbackOverlay();
+            }
+          } catch (_) {}
+        };
+        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+          overlayRepairRaf = window.requestAnimationFrame(() => {
+            overlayRepairRaf = window.requestAnimationFrame(run);
+          });
+          return;
+        }
+        run();
+      };
+      const healMapLibreOverlaysIfMissing = (reason = 'integrity-check') => {
+        if (disposed) return;
+        if (!maplibreMapRef.current) return;
+        if (String(mapProviderRef.current || 'geovis') !== 'geovis') return;
+        if (isTerrain3DMode(currentBaseLayerRef.current)) return;
+        if (!shouldExpectMapPoints() && !shouldExpectMapSegments()) return;
+        if (hasRenderableOverlayArtifacts()) {
+          clearFallbackOverlay();
+          return;
+        }
+        debugEmit('A', 'profile_page.html:healMapLibreOverlaysIfMissing', 'overlay artifacts missing, scheduling rebuild', {
+          reason: String(reason || ''),
+          hasPointSource: Boolean(map.getSource(pointSourceId)),
+          hasPointCore: Boolean(map.getLayer(pointCoreId)),
+          trackedLineIds: Array.isArray(overlayStateRef.current?.lineIds) ? overlayStateRef.current.lineIds.length : 0
+        });
+        scheduleFallbackOverlayRender(`pre-rebuild:${String(reason || '')}`);
+        scheduleMapLibreOverlayRebuild(reason);
+      };
+      try { map.on('movestart', clearFallbackOverlay); } catch (_) {}
+      try { map.on('zoomstart', clearFallbackOverlay); } catch (_) {}
+      try { map.on('move', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('move'); }); } catch (_) {}
+      try { map.on('zoom', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('zoom'); }); } catch (_) {}
+      try { map.on('resize', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('resize'); }); } catch (_) {}
+      try { map.on('styledata', () => healMapLibreOverlaysIfMissing('styledata')); } catch (_) {}
+      try { map.on('idle', () => healMapLibreOverlaysIfMissing('idle')); } catch (_) {}
       map.on('load', () => {
         if (!disposed) {
           // #region debug-point A:map-load
@@ -4681,10 +5636,19 @@ const LIFE_GRADIENT_END = '#5D4037';
     initMap();
     return () => {
       disposed = true;
+        if (overlayRepairRaf) {
+          try { window.cancelAnimationFrame(overlayRepairRaf); } catch (_) {}
+          overlayRepairRaf = 0;
+        }
+        if (fallbackOverlayRaf) {
+          try { window.cancelAnimationFrame(fallbackOverlayRaf); } catch (_) {}
+          fallbackOverlayRaf = 0;
+        }
       try {
         if (typeof window !== 'undefined' && window.__STORY_MAP_TEST__) delete window.__STORY_MAP_TEST__;
       } catch (_) {}
       overlayStateRef.current.clear();
+        clearFallbackOverlay();
       if (amapMapRef.current) {
         try { amapMapRef.current.destroy(); } catch (_) {}
         amapMapRef.current = null;
@@ -4716,20 +5680,7 @@ const LIFE_GRADIENT_END = '#5D4037';
     });
     // #endregion
     syncMapCanvasVisibility(mapLayerType);
-    if (mapProviderRef.current === 'amap' && isAmapSupportedMode(mapLayerType)) {
-      const activateAmap2D = async () => {
-        try {
-          await activateAmapFallback(mapLayerType, 'GeoVis 服务暂不可用，当前已使用高德地图。');
-        } catch (err) {
-          setMapNotice(`高德地图加载失败：${String(err?.message || err)}`);
-        }
-      };
-      activateAmap2D();
-      return () => {
-        cancelled = true;
-      };
-    }
-    const fallbackToMapLibreMode = (message) => {
+    const fallbackToMapLibreMode = (message, attemptedLayerType = '') => {
       // #region debug-point C:terrain-fallback
       debugEmit('C', 'profile_page.html:fallbackToMapLibreMode', 'terrain fallback triggered', {
         message: String(message || ''),
@@ -4743,13 +5694,22 @@ const LIFE_GRADIENT_END = '#5D4037';
         : String(currentBaseLayerRef.current || 'vector');
       currentBaseLayerRef.current = fallbackMode;
       syncMapCanvasVisibility(fallbackMode);
-      const el = document.getElementById('boot-diag');
-      if (el) el.textContent = String(message || '3D地形图暂不可用，已切回普通底图');
+      setMapNotice({
+        tone: 'info',
+        title: '已保留当前 GeoVis 底图',
+        message: String(message || '3D地形图暂不可用，已切回普通底图'),
+        provider: 'geovis',
+        layerType: fallbackMode,
+        action: attemptedLayerType
+          ? { kind: 'retry-geovis', label: `重试${describeLayerType(attemptedLayerType)}`, targetLayerType: attemptedLayerType }
+          : null
+      });
       const m = maplibreMapRef.current;
       if (m && geovis && typeof geovis.applyMapLibreMode === 'function') {
         try {
           geovis.applyMapLibreMode(m, fallbackMode);
           applyMapViewMode(m, fallbackMode, false);
+          rebuildOverlaysRef.current();
         } catch (_) {}
       }
       if (maplibreControllerRef.current) {
@@ -4765,9 +5725,11 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!m || !geovis || typeof geovis.applyMapLibreMode !== 'function') return;
       mapProviderRef.current = 'geovis';
       currentBaseLayerRef.current = mapLayerType;
+      clearMapNotice();
       try {
         geovis.applyMapLibreMode(m, mapLayerType);
         applyMapViewMode(m, mapLayerType, false);
+        rebuildOverlaysRef.current();
       } catch (_) {}
       if (maplibreControllerRef.current) {
         mapRef.current = maplibreControllerRef.current;
@@ -4779,6 +5741,10 @@ const LIFE_GRADIENT_END = '#5D4037';
         await probeGeoVisLayerType(geovis, mapLayerType);
       } catch (err) {
         const label = describeLayerType(mapLayerType);
+        if (maplibreMapRef.current && maplibreControllerRef.current) {
+          fallbackToMapLibreMode(`${label} 暂不可用，已保留当前 GeoVis 底图。`, mapLayerType);
+          return;
+        }
         if (isAmapSupportedMode(mapLayerType)) {
           try {
             await activateAmapFallback(mapLayerType, `${label} 暂不可用，已回退到高德地图。`);
@@ -4787,7 +5753,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
           return;
         }
-        fallbackToMapLibreMode(`${label} 暂不可用，且高德暂无对应底图，已切回普通底图。`);
+        fallbackToMapLibreMode(`${label} 暂不可用，且高德暂无对应底图，已切回普通底图。`, mapLayerType);
         return;
       }
       if (cancelled) return;
@@ -4795,13 +5761,13 @@ const LIFE_GRADIENT_END = '#5D4037';
     };
     const activateCesium = async () => {
       if (!geovis || typeof geovis.ensureCesium !== 'function' || typeof geovis.terrainServiceUrl !== 'function') {
-        fallbackToMapLibreMode('GeoVis Terrain-3D 配置未就绪，已切回普通底图');
+        fallbackToMapLibreMode('GeoVis Terrain-3D 配置未就绪，已切回普通底图', 'terrain-3d');
         return;
       }
       try {
         await geovis.ensureCesium();
       } catch (err) {
-        fallbackToMapLibreMode(`3D地形图加载失败：${String(err?.message || err)}，已切回普通底图`);
+        fallbackToMapLibreMode(`3D地形图加载失败：${String(err?.message || err)}，已切回普通底图`, 'terrain-3d');
         return;
       }
       if (cancelled) return;
@@ -4900,7 +5866,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           });
         }
         if (!terrainProvider) {
-          fallbackToMapLibreMode('3D地形图服务未就绪，已切回普通底图。');
+          fallbackToMapLibreMode('3D地形图服务未就绪，已切回普通底图。', 'terrain-3d');
           return;
         }
         // #region debug-point C:terrain-provider-events
@@ -4979,6 +5945,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       } catch (_) {}
       mapProviderRef.current = 'geovis';
       currentBaseLayerRef.current = mapLayerType;
+      clearMapNotice();
       try {
         if (viewer.camera) {
           viewer.camera.percentageChanged = 0.0008;
@@ -5098,6 +6065,7 @@ const LIFE_GRADIENT_END = '#5D4037';
             activePinEntity.storyIndex = activeIdx;
           }
         }
+        updateCesiumLabelVisibility(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -5106,13 +6074,15 @@ const LIFE_GRADIENT_END = '#5D4037';
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
+        const points = (focusOptions.strict ? [nextIdx] : pickIndexes)
+          .map((item) => getRenderedLngLat(item))
+          .filter(Boolean);
         if (!points.length) return;
-        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
-          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+        if (focusOptions.strict && points[0]) {
+          setView([Number(points[0][1]), Number(points[0][0])], focusZoom);
           return;
         }
-        const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
+        const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item[0]), Number(item[1]), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
@@ -5141,16 +6111,10 @@ const LIFE_GRADIENT_END = '#5D4037';
           });
         } catch (_) {}
       };
-      const latlngs = locations.map((l) => [Number(l.lng), Number(l.lat)]);
-      if (latlngs.length > 1) {
-        for (let i = 0; i < latlngs.length - 1; i++) {
-          const segmentPath = buildCurvedSegmentPath(
-            latlngs[i],
-            latlngs[i + 1],
-            i,
-            i > 0 ? latlngs[i - 1] : null,
-            i + 2 < latlngs.length ? latlngs[i + 2] : null
-          );
+      const latlngs = locations.map((loc, idx) => getRenderedLngLatFromLoc(loc, idx));
+      if (latlngs.filter(Boolean).length > 1) {
+        for (let i = 0; i < locations.length - 1; i++) {
+          const segmentPath = buildRenderedSegmentPath(i);
           const fromColor = getLifeColor(locations[i], i);
           const toColor = getLifeColor(locations[i + 1], i + 1);
           const segmentColor = mixHex(fromColor, toColor, 0.5);
@@ -5232,6 +6196,47 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (activePinEntity) {
         activePinEntity.storyIndex = activeIndexRef.current;
       }
+      const updateCesiumLabelVisibility = (activeIdx) => {
+        const scene = viewer && viewer.scene;
+        const width = Number(viewer?.canvas?.clientWidth || 0);
+        const height = Number(viewer?.canvas?.clientHeight || 0);
+        const cameraHeight = Number(viewer?.camera?.positionCartographic?.height || 0);
+        const detailLevel = cameraHeight <= 1200000 ? 8 : (cameraHeight <= 2200000 ? 6.5 : 5);
+        const visibleIndexes = getPreferredLabelIndexes({
+          activeIdx,
+          detailLevel,
+          isVisible: (lng, lat) => {
+            if (!scene || !width || !height || !Cesium.SceneTransforms || typeof Cesium.SceneTransforms.wgs84ToWindowCoordinates !== 'function') return true;
+            try {
+              const point = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+                scene,
+                Cesium.Cartesian3.fromDegrees(Number(lng), Number(lat), 0)
+              );
+              if (!point) return false;
+              return point.x >= -24 && point.x <= width + 24 && point.y >= -24 && point.y <= height + 24;
+            } catch (_) {
+              return true;
+            }
+          },
+          projectToScreen: (lng, lat) => {
+            if (!scene || !Cesium.SceneTransforms || typeof Cesium.SceneTransforms.wgs84ToWindowCoordinates !== 'function') return null;
+            try {
+              const point = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+                scene,
+                Cesium.Cartesian3.fromDegrees(Number(lng), Number(lat), 0)
+              );
+              return point ? { x: Number(point.x), y: Number(point.y) } : null;
+            } catch (_) {
+              return null;
+            }
+          }
+        });
+        pointEntries.forEach((entry) => {
+          if (entry.entity && entry.entity.label) {
+            entry.entity.label.show = visibleIndexes.has(entry.idx);
+          }
+        });
+      };
       viewer.screenSpaceEventHandler.setInputAction((movement) => {
         const picked = viewer.scene.pick(movement.position);
         const idx = Number(picked && picked.id && picked.id.storyIndex);
@@ -5249,15 +6254,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         setView,
         focusIndex,
         fitAll: (animate = true) => {
-          const validLocs = locations.filter((item) => item && Number.isFinite(item.lng) && Number.isFinite(item.lat));
-          const points = validLocs.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
+          const points = locations
+            .map((item, idx) => getRenderedLngLatFromLoc(item, idx))
+            .filter(Boolean)
+            .map((item) => Cesium.Cartesian3.fromDegrees(Number(item[0]), Number(item[1]), 0));
           if (!points.length) return;
           if (points.length === 1) {
-            const item = validLocs[0];
-            if (!item) return;
+            const coord = locations.map((item, idx) => getRenderedLngLatFromLoc(item, idx)).filter(Boolean)[0];
+            if (!coord) return;
             try {
               viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 1200000 / Math.max(1, focusZoom)),
+                destination: Cesium.Cartesian3.fromDegrees(Number(coord[0]), Number(coord[1]), 1200000 / Math.max(1, focusZoom)),
                 orientation: {
                   heading: 0,
                   pitch: Cesium.Math.toRadians(-48),
@@ -5292,6 +6299,14 @@ const LIFE_GRADIENT_END = '#5D4037';
         })
       };
       cesiumControllerRef.current = controller;
+      try {
+        if (viewer.camera && viewer.camera.changed && typeof viewer.camera.changed.addEventListener === 'function') {
+          viewer.camera.changed.addEventListener(() => {
+            try { updateCesiumLabelVisibility(activeIndexRef.current); } catch (_) {}
+          });
+        }
+      } catch (_) {}
+      updateCesiumLabelVisibility(activeIndexRef.current);
       currentBaseLayerRef.current = mapLayerType;
       mapRef.current = controller;
       hideBootFallback();
@@ -5310,7 +6325,7 @@ const LIFE_GRADIENT_END = '#5D4037';
     return () => {
       cancelled = true;
     };
-  }, [mapLayerType]);
+  }, [mapLayerType, mapRecoveryTick]);
   // 把当前位置写到 URL hash，分享链接可定位到具体地点
   useEffect(() => {
     if (typeof window === 'undefined' || !window.history) return;
@@ -5325,15 +6340,23 @@ const LIFE_GRADIENT_END = '#5D4037';
   }, [activeIndex, initialLocFromHash, initialLocIdx]);
   useEffect(() => {
     const onMove = (e) => {
-      if (!draggingRef.current || !splitRef.current) return;
-      const rect = splitRef.current.getBoundingClientRect();
-      const next = ((e.clientX - rect.left) / rect.width) * 100;
-      if (!Number.isFinite(next)) return;
-      const clamped = Math.min(60, Math.max(20, next));
-      setSplitPct(clamped);
+      if (!draggingRef.current) return;
+      if (draggingRef.current === 'vertical' && splitRef.current) {
+        const rect = splitRef.current.getBoundingClientRect();
+        const next = ((e.clientX - rect.left) / rect.width) * 100;
+        if (!Number.isFinite(next)) return;
+        setSplitPct(Math.min(58, Math.max(24, next)));
+        return;
+      }
+      if (draggingRef.current === 'horizontal' && shellContentRef.current) {
+        const rect = shellContentRef.current.getBoundingClientRect();
+        const next = ((e.clientY - rect.top) / rect.height) * 100;
+        if (!Number.isFinite(next)) return;
+        setTopPanePct(Math.min(78, Math.max(42, next)));
+      }
     };
     const onUp = () => {
-      draggingRef.current = false;
+      draggingRef.current = null;
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -5356,6 +6379,20 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
     };
   }, []);
+  useEffect(() => {
+    if (isJourneyFullscreen) {
+      fullscreenChatRestoreRef.current = chatOpen;
+      if (!chatOpen) {
+        setChatOpen(true);
+      }
+      return;
+    }
+    if (fullscreenChatRestoreRef.current === false) {
+      setChatOpen(false);
+    }
+    fullscreenChatRestoreRef.current = null;
+  }, [isJourneyFullscreen]);
+  const journeyFullscreenActive = isJourneyFullscreen || isJourneyExportFullscreenLayout;
   useEffect(() => {
     const syncMapViewport = () => {
       try {
@@ -5383,7 +6420,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
           ? amapMapRef.current.getContainer()
-          : document.getElementById('map-maplibre');
+          : document.getElementById('map-amap');
         if (amapContainer) {
           amapContainer.style.position = 'absolute';
           amapContainer.style.inset = '0';
@@ -5428,10 +6465,11 @@ const LIFE_GRADIENT_END = '#5D4037';
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
+  }, [splitPct, topPanePct, mapReadyTick, mapLayerType, journeyFullscreenActive, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
+    setJourneyExportError('');
     const isNativeFullscreen = typeof document !== 'undefined' && document.fullscreenElement === shell;
     if (isNativeFullscreen) {
       try { await document.exitFullscreen(); } catch (_) {}
@@ -5444,6 +6482,47 @@ const LIFE_GRADIENT_END = '#5D4037';
       } catch (_) {}
     }
     setIsJourneyFullscreen((prev) => !prev);
+  };
+  const exportJourneySnapshot = async () => {
+    const shell = journeyShellRef.current;
+    if (!shell || isJourneyExporting) return;
+    setJourneyExportError('');
+    setIsJourneyExporting(true);
+    const restoreSteps = [];
+    try {
+      restoreSteps.push(freezeScrollableElementForExport(chatListRef.current));
+      await waitForMs(32);
+      if (isJourneyFullscreen) {
+        setIsJourneyExportFullscreenLayout(true);
+        restoreSteps.push(() => setIsJourneyExportFullscreenLayout(false));
+        await waitForMs(32);
+        await waitForMs(96);
+      }
+      const canvas = await captureCurrentTabFrame();
+      const safePersonName = String(data?.person?.name || '历史人物').trim().replace(/[\\/:*?"<>|]+/g, '-');
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `${safePersonName}-当前视图截图.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.warn('exportJourneySnapshot failed', error);
+      const errName = String(error?.name || '');
+      const errMessage = String(error?.message || '');
+      if (errName === 'NotAllowedError' || errName === 'AbortError' || errMessage === 'NotAllowedError') {
+        setJourneyExportError('请在浏览器弹窗中选择并共享当前标签页，才能导出当前所见视图。');
+      } else if (errMessage === 'SCREEN_CAPTURE_UNSUPPORTED') {
+        setJourneyExportError('当前浏览器不支持所见即所得导出，请使用最新版 Chrome 或 Edge。');
+      } else {
+        setJourneyExportError('当前视图导出失败，请稍后重试。');
+      }
+    } finally {
+      restoreSteps.reverse().forEach((step) => {
+        try { step(); } catch (_) {}
+      });
+      setIsJourneyExporting(false);
+    }
   };
   const adjustCesiumView = (action) => {
     const viewer = cesiumViewerRef.current;
@@ -5743,9 +6822,12 @@ const LIFE_GRADIENT_END = '#5D4037';
       setChatLoading(false);
     }
   };
-  const journeyPanelHeight = isJourneyFullscreen ? 'calc(100vh - 9rem)' : '620px';
-  const journeyPanelMinHeight = isJourneyFullscreen ? '560px' : '620px';
+  const journeyPanelHeight = journeyFullscreenActive
+    ? '100%'
+    : '620px';
+  const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const isTerrain3DActive = mapLayerType === 'terrain-3d';
+  const mapStatusTopOffset = mapStatusNotice ? (journeyFullscreenActive ? '8.75rem' : '6.25rem') : (journeyFullscreenActive ? '3.5rem' : '1rem');
   const timelineZoom = 1;
   const map2DControls = [
     { id: 'fit-all', label: '总览', title: '查看完整轨迹' }
@@ -5841,13 +6923,23 @@ const LIFE_GRADIENT_END = '#5D4037';
       <div className="space-y-6">
         <div
           ref={journeyShellRef}
-          className={`journey-shell ${isJourneyFullscreen ? 'is-fullscreen' : ''}`}
+          className={`journey-shell ${journeyFullscreenActive ? 'is-fullscreen' : ''}`}
           data-testid="journey-shell"
         >
-          <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
+          <div
+            ref={shellContentRef}
+            className="journey-shell-content"
+            style={{
+              '--journey-left-pane': `${splitPct}%`,
+              '--journey-top-pane': `${topPanePct}%`
+            }}
+          >
+          <div ref={splitRef} className={journeyFullscreenActive ? "journey-main-row min-h-0" : "journey-main-row flex flex-col lg:flex-row gap-6 items-stretch"}>
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
-              style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
+              className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
+              style={journeyFullscreenActive
+                ? { height: journeyPanelHeight, minHeight: journeyPanelMinHeight }
+                : { flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -6029,19 +7121,32 @@ const LIFE_GRADIENT_END = '#5D4037';
                 )}
               </div>
             </div>
-            <div
-              className="hidden lg:block w-2 rounded bg-[#c8b496]/50 hover:bg-[#c8b496] cursor-col-resize"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                draggingRef.current = true;
-              }}
-            ></div>
-            <div className="relative flex-1 min-w-0">
+            {journeyFullscreenActive ? (
+              <div
+                className="journey-pane-resizer is-vertical hidden lg:block"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  draggingRef.current = 'vertical';
+                }}
+                data-export-ignore="true"
+              ></div>
+            ) : (
+              <div
+                className="hidden lg:block w-2 rounded bg-[#c8b496]/50 hover:bg-[#c8b496] cursor-col-resize"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  draggingRef.current = 'vertical';
+                }}
+                data-export-ignore="true"
+              ></div>
+            )}
+            <div className="journey-map-column relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
+                <div id="map-amap" className="map-canvas is-hidden"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
               </div>
-              <div className="absolute top-4 right-4 z-[1000] map-floating-controls flex flex-col gap-3 items-end">
+              <div className="absolute top-4 right-4 z-[1000] map-floating-controls flex flex-col gap-3 items-end" data-export-ignore="true">
                 {isTerrain3DActive ? (
                   <div className="map-control-stack">
                     <div className="terrain-compass" aria-label="3D方向罗盘">
@@ -6090,7 +7195,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                   </div>
                 ) : (
                   <div className="map-control-stack">
-                    <div className="map-control-cluster">
+                    <div className="map-control-cluster is-inline">
                       {map2DControls.map((control) => (
                         <button
                           key={control.id}
@@ -6103,11 +7208,73 @@ const LIFE_GRADIENT_END = '#5D4037';
                           {control.label}
                         </button>
                       ))}
+                      {journeyFullscreenActive ? (
+                        <button
+                          onClick={exportJourneySnapshot}
+                          aria-label="生成图片"
+                          title="生成图片"
+                          className="theme-button-secondary map-bottom-button is-accent-export inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)]"
+                          disabled={isJourneyExporting}
+                        >
+                          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true">
+                            <path d="M12 16V5m0 11 4-4m-4 4-4-4M5 19h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span>生成图片</span>
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 )}
               </div>
-              <div className="absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2">
+              {mapStatusNotice ? (
+                <div className="absolute top-4 left-4 z-[1001] max-w-[min(560px,calc(100%-8.5rem))]" data-export-ignore="true">
+                  <div className={`glass-panel rounded-2xl border px-4 py-3 shadow-lg ${
+                    mapStatusNotice.tone === 'warning'
+                      ? 'bg-[rgba(255,248,235,0.96)] border-[rgba(194,120,3,0.28)]'
+                      : 'bg-[rgba(240,247,255,0.96)] border-[rgba(102,157,246,0.28)]'
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="theme-title text-sm font-semibold">{mapStatusNotice.title}</span>
+                          <span className="theme-chip-muted inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold">
+                            当前: {describeProviderType(mapStatusNotice.provider)} · {describeLayerType(mapStatusNotice.layerType)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">{mapStatusNotice.message}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearMapNotice}
+                        className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] text-sm leading-none"
+                        aria-label="关闭底图提示"
+                        title="关闭底图提示"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      {mapStatusNotice.action ? (
+                        <button
+                          type="button"
+                          onClick={() => handleMapNoticeAction(mapStatusNotice.action)}
+                          className="theme-button-secondary inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)]"
+                        >
+                          {String(mapStatusNotice.action.label || '立即恢复')}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={clearMapNotice}
+                        className="inline-flex items-center justify-center rounded-lg border border-[rgba(218,220,224,0.9)] bg-white/80 px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)]"
+                      >
+                        我知道了
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              <div className="absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2" data-export-ignore="true">
                 <MapDropdown
                 label="底图"
                 value={mapLayerType}
@@ -6121,12 +7288,12 @@ const LIFE_GRADIENT_END = '#5D4037';
                 />
                 <button
                   onClick={toggleJourneyFullscreen}
-                  aria-label={isJourneyFullscreen ? '退出全屏' : '全屏查看'}
-                  title={isJourneyFullscreen ? '退出全屏' : '全屏查看'}
+                  aria-label={journeyFullscreenActive ? '退出全屏' : '全屏查看'}
+                  title={journeyFullscreenActive ? '退出全屏' : '全屏查看'}
                   className="theme-button-secondary map-bottom-button map-compact-action-button inline-flex items-center justify-center gap-1.5 py-1.5 text-xs text-[var(--color-text-secondary)]"
                 >
                   <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
-                    {isJourneyFullscreen ? (
+                    {journeyFullscreenActive ? (
                       <path d="M9 4H4v5M15 4h5v5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                     ) : (
                       <path d="M9 4H4v5M15 4h5v5M4 15v5h5M20 15v5h-5M8 8L4 4M16 8l4-4M8 16l-4 4M16 16l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -6135,7 +7302,15 @@ const LIFE_GRADIENT_END = '#5D4037';
                 </button>
               </div>
               {selectedLoc && (
-              <div className="absolute top-4 left-4 z-[1000] w-72 max-w-[calc(100%-2rem)] glass-panel theme-float-panel p-4 rounded-xl shadow-xl border-t-4 theme-accent-strip">
+              <div
+                className="absolute left-4 z-[1000] w-72 max-w-[calc(100%-2rem)] overflow-y-auto custom-scrollbar glass-panel theme-float-panel p-4 rounded-xl shadow-xl border-t-4 theme-accent-strip"
+                style={{
+                  top: mapStatusTopOffset,
+                  maxHeight: mapStatusNotice
+                    ? (journeyFullscreenActive ? 'calc(100% - 9.75rem)' : 'calc(100% - 7rem)')
+                    : (journeyFullscreenActive ? 'calc(100% - 4.5rem)' : 'calc(100% - 2rem)')
+                }}
+              >
                   <button
                     onClick={() => setSelectedLoc(null)}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
@@ -6181,108 +7356,134 @@ const LIFE_GRADIENT_END = '#5D4037';
               )}
             </div>
           </div>
-        </div>
-        <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <div>
-              <h2 className="theme-title text-lg font-bold">{data.person?.name ? `与${data.person.name}对话` : '历史人物对话'}</h2>
+          {journeyFullscreenActive ? (
+            <div
+              className="journey-pane-resizer is-horizontal"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                draggingRef.current = 'horizontal';
+              }}
+              data-export-ignore="true"
+            ></div>
+          ) : null}
+          <section ref={chatSectionRef} className={`journey-chat-section glass-panel theme-card p-6 rounded-xl shadow-sm ${journeyFullscreenActive ? 'min-h-0' : ''}`}>
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <h2 className="theme-title text-lg font-bold">{data.person?.name ? `与${data.person.name}对话` : '历史人物对话'}</h2>
+              </div>
+              {!journeyFullscreenActive ? (
+              <div className="flex items-center gap-2" data-export-ignore="true">
+                <button
+                  onClick={() => setChatOpen(v => !v)}
+                  className="theme-button-primary text-[11px] px-3 py-1 rounded"
+                >
+                  {chatOpen ? '收起对话' : '打开对话'}
+                </button>
+              </div>
+              ) : null}
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setChatOpen(v => !v)}
-                className="theme-button-primary text-[11px] px-3 py-1 rounded"
-              >
-                {chatOpen ? '收起对话' : '打开对话'}
-              </button>
-            </div>
-          </div>
-          {chatOpen ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2">
-                <div ref={chatListRef} className="theme-scrollbar h-[340px] overflow-y-auto custom-scrollbar bg-white/70 border border-[rgba(218,220,224,0.72)] rounded-xl p-3 space-y-3">
-                  {chatMessages.map((m, idx) => {
-                    const isUser = m.role === 'user';
-                    const bubbleClass = isUser
-                      ? 'bg-[var(--color-primary)] text-white ml-auto'
-                      : 'bg-white text-gray-800 mr-auto';
-                    const wrapClass = isUser ? 'justify-end' : 'justify-start';
-                    const rawText = normalizeDisplayText(m.content);
-                    return (
-                      <div key={idx} className={`flex ${wrapClass}`}>
-                        <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[rgba(218,220,224,0.72)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
-                          {renderMdBlock(rawText) || renderInline(rawText)}
+            {(journeyFullscreenActive || chatOpen) ? (
+              <div className={journeyFullscreenActive ? "grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0 flex-1" : "grid grid-cols-1 lg:grid-cols-3 gap-4"}>
+                <div className={journeyFullscreenActive ? "lg:col-span-2 min-h-0 flex flex-col" : "lg:col-span-2"}>
+                  <div
+                    ref={chatListRef}
+                    className="journey-chat-list theme-scrollbar overflow-y-auto custom-scrollbar bg-white/70 border border-[rgba(218,220,224,0.72)] rounded-xl p-3"
+                    style={{
+                      height: journeyFullscreenActive ? '100%' : '340px'
+                    }}
+                  >
+                    <div className="flex min-h-full flex-col justify-end gap-3">
+                      {chatMessages.map((m, idx) => {
+                        const isUser = m.role === 'user';
+                        const bubbleClass = isUser
+                          ? 'bg-[var(--color-primary)] text-white ml-auto'
+                          : 'bg-white text-gray-800 mr-auto';
+                        const wrapClass = isUser ? 'justify-end' : 'justify-start';
+                        const rawText = normalizeDisplayText(m.content);
+                        return (
+                          <div key={idx} className={`flex ${wrapClass}`}>
+                            <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[rgba(218,220,224,0.72)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
+                              {renderMdBlock(rawText) || renderInline(rawText)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {chatLoading ? (
+                        <div className="flex justify-start">
+                          <div className="max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[rgba(218,220,224,0.72)] bg-white text-gray-700">
+                            正在分析…
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                  {chatLoading ? (
-                    <div className="flex justify-start">
-                      <div className="max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm border border-[rgba(218,220,224,0.72)] bg-white text-gray-700">
-                        正在分析…
-                      </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  {chatError ? (
+                    <div className="mt-2 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+                      {chatError}
                     </div>
                   ) : null}
-                </div>
-                {chatError ? (
-                  <div className="mt-2 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1">
-                    {chatError}
-                  </div>
-                ) : null}
-                <div className="mt-3 flex gap-2">
-                  <input
-                    value={chatDraft}
-                    onChange={(e) => setChatDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendChat(chatDraft);
-                      }
-                    }}
-                    placeholder="输入一个问题或任务，例如：他为何离开故乡？按 Enter 发送"
-                    className="theme-input flex-1 px-3 py-2 rounded-xl text-sm"
-                    disabled={chatLoading}
-                  />
-                  <button
-                    onClick={() => sendChat(chatDraft)}
-                    className="theme-button-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50"
-                    disabled={chatLoading || !String(chatDraft || '').trim()}
-                  >
-                    发送
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="theme-soft-section rounded-xl p-3">
-                  <p className="theme-primary-text text-[10px] uppercase font-bold mb-2">对话原则</p>
-                  <ul className="text-[11px] text-gray-700 space-y-1 leading-relaxed">
-                    <li>- 优先按人物身份口吻作答，再补充足迹、时间线或概述作依据。</li>
-                    <li>- 问经历就讲经历，问作品就讲作品，问地点就结合当前地图节点回答。</li>
-                    <li>- 若接口不可用，自动回退到档案库结果；不确定处明确标注“存疑”或“史料未载”。</li>
-                  </ul>
-                </div>
-                <div className="theme-panel-muted rounded-xl p-3">
-                  <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">推荐任务</p>
-                  <div className="flex flex-wrap gap-2">
-                    {recommendedChatPrompts.map((q, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => sendChat(q)}
-                        className="text-[11px] px-2 py-1 rounded-full bg-gray-50 border border-gray-200 hover:bg-white"
-                        disabled={chatLoading}
-                      >
-                        {q}
-                      </button>
-                    ))}
+                  {journeyExportError ? (
+                    <div className="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      {journeyExportError}
+                    </div>
+                  ) : null}
+                  <div className="mt-3 flex gap-2" data-export-ignore="true">
+                    <input
+                      value={chatDraft}
+                      onChange={(e) => setChatDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendChat(chatDraft);
+                        }
+                      }}
+                      placeholder="输入一个问题或任务，例如：他为何离开故乡？按 Enter 发送"
+                      className="theme-input flex-1 px-3 py-2 rounded-xl text-sm"
+                      disabled={chatLoading}
+                    />
+                    <button
+                      onClick={() => sendChat(chatDraft)}
+                      className="theme-button-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50"
+                      disabled={chatLoading || !String(chatDraft || '').trim()}
+                    >
+                      发送
+                    </button>
                   </div>
                 </div>
+                <div className={`space-y-3 ${journeyFullscreenActive ? 'min-h-0 overflow-y-auto custom-scrollbar pr-1' : ''}`} data-export-ignore="true">
+                  <div className="theme-soft-section rounded-xl p-3">
+                    <p className="theme-primary-text text-[10px] uppercase font-bold mb-2">对话原则</p>
+                    <ul className="text-[11px] text-gray-700 space-y-1 leading-relaxed">
+                      <li>- 优先按人物身份口吻作答，再补充足迹、时间线或概述作依据。</li>
+                      <li>- 问经历就讲经历，问作品就讲作品，问地点就结合当前地图节点回答。</li>
+                      <li>- 若接口不可用，自动回退到档案库结果；不确定处明确标注“存疑”或“史料未载”。</li>
+                    </ul>
+                  </div>
+                  <div className="theme-panel-muted rounded-xl p-3">
+                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">推荐任务</p>
+                    <div className="flex flex-wrap gap-2">
+                      {recommendedChatPrompts.map((q, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => sendChat(q)}
+                          className="text-[11px] px-2 py-1 rounded-full bg-gray-50 border border-gray-200 hover:bg-white"
+                          disabled={chatLoading}
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-600 leading-relaxed">
-              打开后即可直接向对应历史人物发问；若当前环境未接通 LLM 接口，系统会自动改用人物档案库返回相关结果。
-            </div>
-          )}
-        </section>
+            ) : (
+              <div className="text-sm text-gray-600 leading-relaxed">
+                打开后即可直接向对应历史人物发问；若当前环境未接通 LLM 接口，系统会自动改用人物档案库返回相关结果。
+              </div>
+            )}
+          </section>
+          </div>
+        </div>
 
         {mergedTeachingPoints ? (
           <section className="glass-panel theme-card p-6 rounded-xl shadow-sm theme-soft-section">
@@ -6321,10 +7522,34 @@ const LIFE_GRADIENT_END = '#5D4037';
                         y1="50"
                         x2={node.x}
                         y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
+                        className="related-graph-edge-line is-glow"
                       />
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        className="related-graph-edge-line"
+                      />
+                      {getRelatedGraphEdgeLabel(node) ? (
+                        <>
+                          <rect
+                            x={50 + (node.x - 50) * 0.56 - Math.min(8.5, Math.max(4.2, getRelatedGraphEdgeLabel(node).length * 1.3 + 2))}
+                            y={50 + (node.y - 50) * 0.56 - 3.4}
+                            width={Math.min(17, Math.max(8.4, getRelatedGraphEdgeLabel(node).length * 2.6 + 4))}
+                            height="6.4"
+                            rx="3.2"
+                            className="related-graph-edge-label-bg"
+                          />
+                          <text
+                            x={50 + (node.x - 50) * 0.56}
+                            y={50 + (node.y - 50) * 0.56}
+                            className="related-graph-edge-label-text"
+                          >
+                            {getRelatedGraphEdgeLabel(node)}
+                          </text>
+                        </>
+                      ) : null}
                     </g>
                   ))}
                 </svg>

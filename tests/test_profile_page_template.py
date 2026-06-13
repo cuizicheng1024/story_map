@@ -155,6 +155,25 @@ def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_
     assert "showArrow: true," in html
 
 
+def test_profile_template_zooms_out_single_point_story_to_show_basemap():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const defaultFocusZoom = locations.length <= 1 ? 5.6 : 10;" in html
+    assert "const v = Number.isFinite(z) ? z : defaultFocusZoom;" in html
+    assert "if (boundsPoints.length === 1) {" in html
+    assert "map.easeTo({ center: boundsPoints[0], zoom: focusZoom, duration: 420 });" in html
+
+
+def test_profile_template_only_uses_fallback_overlay_when_maplibre_artifacts_are_missing():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "if (hasRenderableOverlayArtifacts()) {" in html
+    assert "try { map.on('movestart', clearFallbackOverlay); } catch (_) {}" in html
+    assert "try { map.on('zoomstart', clearFallbackOverlay); } catch (_) {}" in html
+    assert "try { map.on('move', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('move'); }); } catch (_) {}" in html
+    assert "try { map.on('zoom', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('zoom'); }); } catch (_) {}" in html
+
+
 def test_static_site_notice_hides_on_localhost(monkeypatch):
     monkeypatch.setenv("MAP_STORY_STATIC_SITE", "1")
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})

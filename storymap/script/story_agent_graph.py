@@ -1583,7 +1583,7 @@ def create_story_markdown_agent(
         resolved_max_llm_calls = int(os.getenv("STORY_AGENT_MAX_LLM_CALLS", "4") or "4")
     def bound_run(person: str, max_revisions: int = 1, llm_calls_limit: Optional[int] = None) -> Dict[str, object]:
         resolved_limit = resolved_max_llm_calls if llm_calls_limit is None else int(llm_calls_limit)
-        accepted, reason = classify_story_person_authenticity(person, allow_unknown=False)
+        accepted, reason = classify_story_person_authenticity(person, allow_unknown=True)
         if not accepted:
             return _non_authentic_agent_result(
                 str(person or "").strip(),

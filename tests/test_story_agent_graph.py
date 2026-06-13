@@ -797,24 +797,31 @@ def test_generate_historical_markdown_blocks_non_authentic_person_before_agent_a
     assert client.last_agent_runtime["error"].startswith("人物真实性过滤拦截")
 
 
-def test_generate_historical_markdown_rejects_unknown_person_in_strict_authenticity_mode():
+def test_generate_historical_markdown_allows_unknown_person_for_live_generation():
     class DummyLLM:
         def __init__(self):
             self.last_agent_runtime = {}
             self.events = []
 
         def think(self, _messages, temperature=0):
-            raise AssertionError(f"should not call llm: {temperature}")
+            raise AssertionError(f"should not call llm fallback: {temperature}")
 
         def _emit(self, message):
             self.events.append(message)
 
+    original = story_agents.story_agent_graph_utils.generate_markdown_with_agents
+    story_agents.story_agent_graph_utils.generate_markdown_with_agents = lambda _llm, person: {
+        "markdown": f"# {person}\n",
+        "state": {"execution_trace": ["supervisor", "finish_agent"]},
+    }
     client = DummyLLM()
-    result = story_agents.generate_historical_markdown(client, "海绵宝宝")
+    try:
+        result = story_agents.generate_historical_markdown(client, "海绵宝宝")
+    finally:
+        story_agents.story_agent_graph_utils.generate_markdown_with_agents = original
 
-    assert result is None
-    assert any("人物真实性过滤拦截" in item for item in client.events)
-    assert client.last_agent_runtime["fallback"] == "authenticity_filter"
+    assert result == "# 海绵宝宝"
+    assert not any("人物真实性过滤拦截" in item for item in client.events)
 
 
 def test_story_markdown_agent_uses_fallback_markdown_when_llm_budget_exhausted():

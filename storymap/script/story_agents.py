@@ -77,7 +77,7 @@ def _classify_request_exception(exc: Exception) -> str:
     message = str(exc or "").lower()
     if isinstance(exc, requests.Timeout):
         return "timeout"
-    if isinstance(exc, requests.SSLError):
+    if isinstance(exc, requests.exceptions.SSLError):
         return "ssl"
     if isinstance(exc, requests.ConnectionError):
         if "connection reset" in message or "reset by peer" in message:
@@ -570,7 +570,7 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
     使用 Supervisor / Worker / Critic 的多 Agent 工作流生成 Markdown，
     若图工作流不可用或返回空结果，则回退到原有单次生成逻辑。
     """
-    accepted, reason = classify_story_person_authenticity(person, allow_unknown=False)
+    accepted, reason = classify_story_person_authenticity(person, allow_unknown=True)
     if llm is not None:
         llm.last_agent_runtime = {}
     if not accepted:

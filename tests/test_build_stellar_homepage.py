@@ -96,6 +96,26 @@ def test_render_index_html_uses_sparser_tick_config_for_recent_ranges():
     assert "const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);" in html
 
 
+def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'id="pixelGenPanel"' in html
+    assert 'id="pixelGenToggle"' in html
+    assert 'id="pixelGenSpeech"' in html
+    assert 'id="pixelGenAgents"' in html
+    assert 'id="pixelGenDetailCard"' in html
+    assert "pixel-ocelot-monitor" in html
+    assert "pixel-progress-scene-light" in html
+    assert "const PIXEL_STAGE_FLOW = [" in html
+    assert "const PIXEL_AGENT_CARDS = [" in html
+    assert "const updatePixelProgressPanel = (patch = {}) => {" in html
+    assert 'const $pixelGenToggle = document.getElementById("pixelGenToggle");' in html
+    assert 'const $pixelGenSpeech = document.getElementById("pixelGenSpeech");' in html
+    assert 'const $pixelGenDetailCard = document.getElementById("pixelGenDetailCard");' in html
+
+
 def test_render_index_html_uses_shared_person_tooltip_model():
     module = importlib.import_module("tools.build_stellar_homepage")
 

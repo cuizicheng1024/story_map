@@ -118,6 +118,12 @@ def test_story_agent_llm_stops_retry_on_non_retryable_error(monkeypatch):
     assert trace["retryable"] is False
 
 
+def test_classify_request_exception_marks_ssl_errors():
+    exc = story_agents.requests.exceptions.SSLError("certificate verify failed")
+
+    assert story_agents._classify_request_exception(exc) == "ssl"
+
+
 def test_story_agent_health_check_collects_results(monkeypatch):
     client = _build_client()
 

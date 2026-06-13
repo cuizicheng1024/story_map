@@ -352,6 +352,39 @@ def test_task_service_blocks_unknown_persons_extracted_by_llm(tmp_path):
         service.shutdown()
 
 
+def test_task_service_allows_explicit_single_person_input_not_in_registry(tmp_path):
+    generated = []
+
+    def _generate_for_person(_client, person, **_kwargs):
+        generated.append(person)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(
+        tmp_path,
+        extract_historical_figures=lambda _client, _text: ["岑参"],
+        generate_for_person=_generate_for_person,
+    )
+    try:
+        submit = service.submit_task("岑参")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert snapshot["result"]["people"] == ["岑参"]
+        assert generated == ["岑参"]
+    finally:
+        service.shutdown()
+
+
 def test_task_service_marks_partially_blocked_targets_as_partial_failed(tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir(parents=True, exist_ok=True)

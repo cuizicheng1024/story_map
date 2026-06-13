@@ -2639,15 +2639,16 @@ const App = () => {
   })();
   const initialLocIdx = initialLoc?.idx || 0;
   const initialLocFromHash = Boolean(initialLoc?.fromHash);
+  const defaultFocusZoom = locations.length <= 1 ? 5.6 : 10;
   const focusZoom = useMemo(() => {
     if (typeof window === 'undefined' || !window.location) return 10;
     let z = NaN;
     try {
       z = parseFloat(new URLSearchParams(window.location.search || '').get('locZoom') || '');
     } catch (_) {}
-    const v = Number.isFinite(z) ? z : 10;
+    const v = Number.isFinite(z) ? z : defaultFocusZoom;
     return Math.min(18, Math.max(3, v));
-  }, []);
+  }, [defaultFocusZoom]);
   const [selectedLoc, setSelectedLoc] = useState(locations[initialLocIdx] || null);
   const [activeIndex, setActiveIndex] = useState(initialLocIdx);
   const [showFullDesc, setShowFullDesc] = useState(false);
@@ -4351,6 +4352,10 @@ const LIFE_GRADIENT_END = '#5D4037';
         host.classList.add('is-active');
       };
       const scheduleFallbackOverlayRender = (reason = 'map-change') => {
+        if (hasRenderableOverlayArtifacts()) {
+          clearFallbackOverlay();
+          return;
+        }
         if (fallbackOverlayRaf) {
           try { window.cancelAnimationFrame(fallbackOverlayRaf); } catch (_) {}
           fallbackOverlayRaf = 0;
@@ -4829,14 +4834,18 @@ const LIFE_GRADIENT_END = '#5D4037';
             } catch (_) {}
           },
           fitAll: () => {
-            const bounds = new maplibregl.LngLatBounds();
-            locations.forEach((loc, idx) => {
-              const coord = getRenderedLngLatFromLoc(loc, idx);
-              if (coord) bounds.extend(coord);
-            });
-            if (bounds.isEmpty()) return;
+            const boundsPoints = locations
+              .map((loc, idx) => getRenderedLngLatFromLoc(loc, idx))
+              .filter(Boolean);
+            if (!boundsPoints.length) return;
             try {
+              if (boundsPoints.length === 1) {
+                map.easeTo({ center: boundsPoints[0], zoom: focusZoom, duration: 420 });
+                return;
+              }
               if (typeof map.fitBounds === 'function') {
+                const bounds = new maplibregl.LngLatBounds();
+                boundsPoints.forEach((item) => bounds.extend(item));
                 map.fitBounds(bounds, {
                   padding: getOverviewPadding(typeof map.getContainer === 'function' ? map.getContainer()?.clientWidth : 0),
                   duration: 420
@@ -5027,9 +5036,11 @@ const LIFE_GRADIENT_END = '#5D4037';
         scheduleFallbackOverlayRender(`pre-rebuild:${String(reason || '')}`);
         scheduleMapLibreOverlayRebuild(reason);
       };
-      try { map.on('move', () => scheduleFallbackOverlayRender('move')); } catch (_) {}
-      try { map.on('zoom', () => scheduleFallbackOverlayRender('zoom')); } catch (_) {}
-      try { map.on('resize', () => scheduleFallbackOverlayRender('resize')); } catch (_) {}
+      try { map.on('movestart', clearFallbackOverlay); } catch (_) {}
+      try { map.on('zoomstart', clearFallbackOverlay); } catch (_) {}
+      try { map.on('move', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('move'); }); } catch (_) {}
+      try { map.on('zoom', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('zoom'); }); } catch (_) {}
+      try { map.on('resize', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('resize'); }); } catch (_) {}
       try { map.on('styledata', () => healMapLibreOverlaysIfMissing('styledata')); } catch (_) {}
       try { map.on('idle', () => healMapLibreOverlaysIfMissing('idle')); } catch (_) {}
       map.on('load', () => {

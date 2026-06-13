@@ -584,6 +584,7 @@ class TaskService:
             self._append_progress(task_id, "模型调用", message)
 
         text_clean = str(text or "").strip()
+        explicit_single_person_input = _looks_like_person_atom(text_clean)
         story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
         try:
             known_people = set(story_person_names(story_dir))
@@ -633,7 +634,11 @@ class TaskService:
             for person in targets
             if (
                 not classify_story_person_authenticity(person, story_dir)[0]
-                or (targets_from_extraction and person not in known_authentic_people)
+                or (
+                    targets_from_extraction
+                    and not explicit_single_person_input
+                    and person not in known_authentic_people
+                )
             )
         ]
         blocked_results: List[Dict[str, object]] = []
