@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "尼古拉·哥白尼", "title": "", "description": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。", "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "shortReview": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "dynasty": "文艺复兴时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "托伦（今波兰托伦）", "avatar": "", "birth": {"date": "1473年", "location": "托伦（今波兰托伦）", "lat": 53.0138, "lng": 18.5984, "coordSystem": "WGS84"}, "death": {"date": "1543年", "location": "弗龙堡（今波兰弗龙堡）", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84"}, "lifespan": "70岁", "highlights": {"honor": "", "status": "现代天文学的奠基人，日心说的创立者，开启了科学革命。", "identities": "天文学家、数学家、医生、教会法博士", "achievements": "提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。", "works": ["天体运行论"], "reviews": []}}, "locations": [{"name": "托伦", "ancientName": "托伦", "modernName": "波兰托伦", "lat": 53.0138, "lng": 18.5984, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的铜商家庭，童年在此度过。", "time": "公元1473年", "duration": "约10年", "significance": "其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。", "works": [], "quoteLines": []}, {"name": "克拉科夫", "ancientName": "克拉科夫", "modernName": "波兰克拉科夫", "lat": 50.0647, "lng": 19.945, "coordSystem": "WGS84", "type": "normal", "event": "进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。", "time": "公元1491年 - 公元1495年", "duration": "约4年", "significance": "在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。", "works": [], "quoteLines": []}, {"name": "博洛尼亚", "ancientName": "博洛尼亚", "modernName": "意大利博洛尼亚", "lat": 44.4949, "lng": 11.3426, "coordSystem": "WGS84", "type": "normal", "event": "在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。", "time": "公元1496年 - 公元1500年", "duration": "约4年", "significance": "与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。", "works": [], "quoteLines": []}, {"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "normal", "event": "可能在此进行过天文学演讲或交流。", "time": "约公元1500年", "duration": "短暂访问（具体时长待考）", "significance": "作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。", "works": [], "quoteLines": []}, {"name": "帕多瓦", "ancientName": "帕多瓦", "modernName": "意大利帕多瓦", "lat": 45.4064, "lng": 11.8768, "coordSystem": "WGS84", "type": "normal", "event": "在帕多瓦大学攻读医学。", "time": "公元1501年 - 公元1503年", "duration": "约2年", "significance": "获得了医学博士学位，为其日后担任教区医生提供了资质。", "works": [], "quoteLines": []}, {"name": "费拉拉", "ancientName": "费拉拉", "modernName": "意大利费拉拉", "lat": 44.8381, "lng": 11.6198, "coordSystem": "WGS84", "type": "normal", "event": "在费拉拉大学获得教会法博士学位。", "time": "公元1503年", "duration": "短暂", "significance": "完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。", "works": [], "quoteLines": []}, {"name": "海尔斯堡（利兹巴克）", "ancientName": "利兹巴克-瓦尔明斯基", "modernName": "波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡", "lat": 54.126, "lng": 20.579, "coordSystem": "WGS84", "type": "normal", "event": "返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。", "time": "公元1503年 - 公元1510年", "duration": "约7年", "significance": "在相对安稳的环境中，初步形成了日心说的核心框架。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84", "type": "normal", "event": "作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。", "time": "公元1510年 - 公元1543年", "duration": "约33年", "significance": "这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。", "works": ["天体运行论"], "quoteLines": []}, {"name": "奥尔什丁", "ancientName": "奥尔什丁", "modernName": "波兰奥尔什丁", "lat": 53.778, "lng": 20.481, "coordSystem": "WGS84", "type": "normal", "event": "可能因条顿骑士团与波兰的战争，短期参与管理或避难。", "time": "公元1519年 - 公元1520年（具体时长待考）", "duration": "数月", "significance": "反映了其作为教士需履行的世俗管理职责。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84", "type": "death", "event": "在病榻上收到《天体运行论》的印刷本，随即逝世。", "time": "公元1543年5月24日", "duration": "终老于此", "significance": "其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。", "works": ["天体运行论"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"天体运行论": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 哥白尼\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉·哥白尼\n- **时代**：文艺复兴时期\n- **出生**：公元1473年2月19日，托伦（今波兰托伦）\n- **去世**：公元1543年5月24日，弗龙堡（今波兰弗龙堡）\n- **享年**：70岁\n- **主要身份**：天文学家、数学家、医生、教会法博士\n- **历史地位**：现代天文学的奠基人，日心说的创立者，开启了科学革命。\n- **主要成就**：提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。\n\n### 生平概述\n哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：托伦\n- **时间**：公元1473年\n- **停留时间**：约10年\n- **地点**：托伦（今波兰托伦）\n- **事件**：出生于一个富裕的铜商家庭，童年在此度过。\n- **意义**：其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。\n\n### 📍 重要地点：克拉科夫\n- **时间**：公元1491年 - 公元1495年\n- **停留时间**：约4年\n- **地点**：克拉科夫（今波兰克拉科夫）\n- **事件**：进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。\n- **意义**：在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。\n\n### 📍 重要地点：博洛尼亚\n- **时间**：公元1496年 - 公元1500年\n- **停留时间**：约4年\n- **地点**：博洛尼亚（今意大利博洛尼亚）\n- **事件**：在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。\n- **意义**：与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。\n\n### 📍 重要地点：罗马\n- **时间**：约公元1500年\n- **停留时间**：短暂访问（具体时长待考）\n- **地点**：罗马（今意大利罗马）\n- **事件**：可能在此进行过天文学演讲或交流。\n- **意义**：作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。\n\n### 📍 重要地点：帕多瓦\n- **时间**：公元1501年 - 公元1503年\n- **停留时间**：约2年\n- **地点**：帕多瓦（今意大利帕多瓦）\n- **事件**：在帕多瓦大学攻读医学。\n- **意义**：获得了医学博士学位，为其日后担任教区医生提供了资质。\n\n### 📍 重要地点：费拉拉\n- **时间**：公元1503年\n- **停留时间**：短暂\n- **地点**：费拉拉（今意大利费拉拉）\n- **事件**：在费拉拉大学获得教会法博士学位。\n- **意义**：完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。\n\n### 📍 重要地点：海尔斯堡（利兹巴克）\n- **时间**：公元1503年 - 公元1510年\n- **停留时间**：约7年\n- **地点**：利兹巴克-瓦尔明斯基（今波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡）\n- **事件**：返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。\n- **意义**：在相对安稳的环境中，初步形成了日心说的核心框架。\n\n### 📍 重要地点：弗龙堡\n- **时间**：公元1510年 - 公元1543年\n- **停留时间**：约33年\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。\n- **意义**：这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。\n\n### 📍 重要地点：奥尔什丁\n- **时间**：公元1519年 - 公元1520年（具体时长待考）\n- **停留时间**：数月\n- **地点**：奥尔什丁（今波兰奥尔什丁）\n- **事件**：可能因条顿骑士团与波兰的战争，短期参与管理或避难。\n- **意义**：反映了其作为教士需履行的世俗管理职责。\n\n### 🔴 去世地：弗龙堡\n- **时间**：公元1543年5月24日\n- **停留时间**：终老于此\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：在病榻上收到《天体运行论》的印刷本，随即逝世。\n- **意义**：其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 托伦 | 53.0138 | 18.5984 |\n| 克拉科夫 | 50.0647 | 19.9450 |\n| 博洛尼亚 | 44.4949 | 11.3426 |\n| 罗马 | 41.9028 | 12.4964 |\n| 帕多瓦 | 45.4064 | 11.8768 |\n| 费拉拉 | 44.8381 | 11.6198 |\n| 利兹巴克-瓦尔明斯基 | 54.1260 | 20.5790 |\n| 弗龙堡 | 54.3520 | 19.6830 |\n| 奥尔什丁 | 53.7780 | 20.4810 |", "relatedGraph": {"center": {"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "aliases": [], "birth_year": 1473, "death_year": 1543, "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学", "review": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "托伦", "birthplace_modern": "波兰托伦", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "aliases": [], "birth_year": 1473, "death_year": 1543, "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学", "review": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "托伦", "birthplace_modern": "波兰托伦", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "达·芬奇", "name": "达·芬奇", "file": "达·芬奇.html", "dynasty": "文艺复兴时期（15-16世纪）", "aliases": [], "birth_year": 1452, "death_year": 1519, "quote": "“文艺复兴艺术三杰”", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "佛罗伦萨共和国芬奇镇", "birthplace_modern": "意大利托斯卡纳大区芬奇镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "米开朗琪罗", "name": "米开朗琪罗", "file": "米开朗琪罗.html", "dynasty": "文艺复兴盛期（意大利）", "aliases": [], "birth_year": 1475, "death_year": 1564, "quote": "“文艺复兴后三杰”", "review": "*乔尔乔·瓦萨里（艺术史家）**：“米开朗琪罗是上帝派到人间来向我们展示艺术所能达到的最高境界的使者。”", "foreign_name": "", "main_role_label": "雕塑家", "birthplace": "意大利卡普雷塞", "birthplace_modern": "托斯卡纳大区阿雷佐省卡普雷塞-米开朗琪罗", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "伽利略", "name": "伽利略", "file": "伽利略.html", "dynasty": "文艺复兴晚期 / 科学革命初期", "aliases": [], "birth_year": 1564, "death_year": 1642, "quote": "“比萨斜塔实验”", "review": "*阿尔伯特·爱因斯坦**：“伽利略的发现，以及他所用的科学推理方法，是人类思想史上最伟大的成就之一，而且标志着物理学的真正开端。”", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "意大利比萨", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦哲伦", "name": "麦哲伦", "file": "麦哲伦.html", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "aliases": [], "birth_year": 1480, "death_year": 1521, "quote": "麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "葡萄牙王国波尔图", "birthplace_modern": "葡萄牙波尔图", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "aliases": [], "birth_year": 1483, "death_year": 1546, "quote": "“当钱币投入钱柜中叮当作响时，增加的只是贪婪和私欲。”", "review": "", "foreign_name": "", "main_role_label": "宗教改革家", "birthplace": "艾斯莱本", "birthplace_modern": "德国萨克森-安哈尔特州艾斯莱本", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "哥白尼", "target": "达·芬奇", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "米开朗琪罗", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "伽利略", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "麦哲伦", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "胡居仁", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "尼古拉·哥白尼", "title": "", "description": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。", "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "shortReview": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "dynasty": "文艺复兴时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "托伦（今波兰托伦）", "avatar": "", "birth": {"date": "1473年", "location": "托伦（今波兰托伦）", "lat": 53.0138, "lng": 18.5984, "coordSystem": "WGS84"}, "death": {"date": "1543年", "location": "弗龙堡（今波兰弗龙堡）", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84"}, "lifespan": "70岁", "highlights": {"honor": "", "status": "现代天文学的奠基人，日心说的创立者，开启了科学革命。", "identities": "天文学家、数学家、医生、教会法博士", "achievements": "提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。", "works": ["天体运行论"], "reviews": []}}, "locations": [{"name": "托伦", "ancientName": "托伦", "modernName": "波兰托伦", "lat": 53.0138, "lng": 18.5984, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的铜商家庭，童年在此度过。", "time": "公元1473年", "duration": "约10年", "significance": "其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。", "works": [], "quoteLines": []}, {"name": "克拉科夫", "ancientName": "克拉科夫", "modernName": "波兰克拉科夫", "lat": 50.0647, "lng": 19.945, "coordSystem": "WGS84", "type": "normal", "event": "进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。", "time": "公元1491年 - 公元1495年", "duration": "约4年", "significance": "在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。", "works": [], "quoteLines": []}, {"name": "博洛尼亚", "ancientName": "博洛尼亚", "modernName": "意大利博洛尼亚", "lat": 44.4949, "lng": 11.3426, "coordSystem": "WGS84", "type": "normal", "event": "在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。", "time": "公元1496年 - 公元1500年", "duration": "约4年", "significance": "与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。", "works": [], "quoteLines": []}, {"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "normal", "event": "可能在此进行过天文学演讲或交流。", "time": "约公元1500年", "duration": "短暂访问（具体时长待考）", "significance": "作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。", "works": [], "quoteLines": []}, {"name": "帕多瓦", "ancientName": "帕多瓦", "modernName": "意大利帕多瓦", "lat": 45.4064, "lng": 11.8768, "coordSystem": "WGS84", "type": "normal", "event": "在帕多瓦大学攻读医学。", "time": "公元1501年 - 公元1503年", "duration": "约2年", "significance": "获得了医学博士学位，为其日后担任教区医生提供了资质。", "works": [], "quoteLines": []}, {"name": "费拉拉", "ancientName": "费拉拉", "modernName": "意大利费拉拉", "lat": 44.8381, "lng": 11.6198, "coordSystem": "WGS84", "type": "normal", "event": "在费拉拉大学获得教会法博士学位。", "time": "公元1503年", "duration": "短暂", "significance": "完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。", "works": [], "quoteLines": []}, {"name": "海尔斯堡（利兹巴克）", "ancientName": "利兹巴克-瓦尔明斯基", "modernName": "波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡", "lat": 54.126, "lng": 20.579, "coordSystem": "WGS84", "type": "normal", "event": "返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。", "time": "公元1503年 - 公元1510年", "duration": "约7年", "significance": "在相对安稳的环境中，初步形成了日心说的核心框架。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84", "type": "normal", "event": "作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。", "time": "公元1510年 - 公元1543年", "duration": "约33年", "significance": "这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。", "works": ["天体运行论"], "quoteLines": []}, {"name": "奥尔什丁", "ancientName": "奥尔什丁", "modernName": "波兰奥尔什丁", "lat": 53.778, "lng": 20.481, "coordSystem": "WGS84", "type": "normal", "event": "可能因条顿骑士团与波兰的战争，短期参与管理或避难。", "time": "公元1519年 - 公元1520年（具体时长待考）", "duration": "数月", "significance": "反映了其作为教士需履行的世俗管理职责。", "works": [], "quoteLines": []}, {"name": "弗龙堡", "ancientName": "弗龙堡", "modernName": "波兰弗龙堡", "lat": 54.352, "lng": 19.683, "coordSystem": "WGS84", "type": "death", "event": "在病榻上收到《天体运行论》的印刷本，随即逝世。", "time": "公元1543年5月24日", "duration": "终老于此", "significance": "其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。", "works": ["天体运行论"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"天体运行论": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 哥白尼\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉·哥白尼\n- **时代**：文艺复兴时期\n- **出生**：公元1473年2月19日，托伦（今波兰托伦）\n- **去世**：公元1543年5月24日，弗龙堡（今波兰弗龙堡）\n- **享年**：70岁\n- **主要身份**：天文学家、数学家、医生、教会法博士\n- **历史地位**：现代天文学的奠基人，日心说的创立者，开启了科学革命。\n- **主要成就**：提出日心说（太阳中心说）；撰写划时代著作《天体运行论》；通过长期观测与数学计算为新宇宙模型提供证据；其思想从根本上动摇了中世纪宇宙观，为近代科学的发展铺平道路。\n\n### 生平概述\n哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。在意大利期间，他开始系统思考并构建以太阳为中心的宇宙模型。返回波兰后，他在弗龙堡担任教士，同时进行天文观测、行医并完善其学说。尽管顾虑教会压力，他仍在晚年将毕生心血著成《天体运行论》，并在临终前出版。他的学说挑战了被教会奉为圭臬的托勒密地心体系，是人类认识宇宙的一次根本性飞跃。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：托伦\n- **时间**：公元1473年\n- **停留时间**：约10年\n- **地点**：托伦（今波兰托伦）\n- **事件**：出生于一个富裕的铜商家庭，童年在此度过。\n- **意义**：其出生地是波兰重要的商业城市，繁荣的环境为其早期教育提供了条件。\n\n### 📍 重要地点：克拉科夫\n- **时间**：公元1491年 - 公元1495年\n- **停留时间**：约4年\n- **地点**：克拉科夫（今波兰克拉科夫）\n- **事件**：进入克拉科夫大学（今雅盖隆大学）学习天文学、数学和古典文化。\n- **意义**：在此接受了系统的科学训练，对天文学产生浓厚兴趣，为其日后研究奠定了关键基础。\n\n### 📍 重要地点：博洛尼亚\n- **时间**：公元1496年 - 公元1500年\n- **停留时间**：约4年\n- **地点**：博洛尼亚（今意大利博洛尼亚）\n- **事件**：在博洛尼亚大学学习教会法，同时跟随天文学家诺瓦拉进行天文观测。\n- **意义**：与诺瓦拉的交流深化了他对宇宙结构的思考，开始质疑托勒密体系的复杂性。\n\n### 📍 重要地点：罗马\n- **时间**：约公元1500年\n- **停留时间**：短暂访问（具体时长待考）\n- **地点**：罗马（今意大利罗马）\n- **事件**：可能在此进行过天文学演讲或交流。\n- **意义**：作为欧洲学术与宗教中心，此行可能拓宽了他的学术视野。\n\n### 📍 重要地点：帕多瓦\n- **时间**：公元1501年 - 公元1503年\n- **停留时间**：约2年\n- **地点**：帕多瓦（今意大利帕多瓦）\n- **事件**：在帕多瓦大学攻读医学。\n- **意义**：获得了医学博士学位，为其日后担任教区医生提供了资质。\n\n### 📍 重要地点：费拉拉\n- **时间**：公元1503年\n- **停留时间**：短暂\n- **地点**：费拉拉（今意大利费拉拉）\n- **事件**：在费拉拉大学获得教会法博士学位。\n- **意义**：完成了在意大利的法学学业，为其在教会体系内的任职铺平道路。\n\n### 📍 重要地点：海尔斯堡（利兹巴克）\n- **时间**：公元1503年 - 公元1510年\n- **停留时间**：约7年\n- **地点**：利兹巴克-瓦尔明斯基（今波兰利兹巴克-瓦尔明斯基，历史上称海尔斯堡）\n- **事件**：返回波兰，担任其舅父（瓦尔米亚主教）的秘书和私人医生，同时开始整理早期宇宙模型思想。\n- **意义**：在相对安稳的环境中，初步形成了日心说的核心框架。\n\n### 📍 重要地点：弗龙堡\n- **时间**：公元1510年 - 公元1543年\n- **停留时间**：约33年\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：作为教士定居于此，进行长期天文观测、行医、管理教产，并撰写《天体运行论》。\n- **意义**：这是他一生中最重要的工作和生活地点，在此完成了其革命性学说的构建与著述。\n\n### 📍 重要地点：奥尔什丁\n- **时间**：公元1519年 - 公元1520年（具体时长待考）\n- **停留时间**：数月\n- **地点**：奥尔什丁（今波兰奥尔什丁）\n- **事件**：可能因条顿骑士团与波兰的战争，短期参与管理或避难。\n- **意义**：反映了其作为教士需履行的世俗管理职责。\n\n### 🔴 去世地：弗龙堡\n- **时间**：公元1543年5月24日\n- **停留时间**：终老于此\n- **地点**：弗龙堡（今波兰弗龙堡）\n- **事件**：在病榻上收到《天体运行论》的印刷本，随即逝世。\n- **意义**：其学说在他生命的最后时刻得以面世，标志着一个科学新时代的开端。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 托伦 | 53.0138 | 18.5984 |\n| 克拉科夫 | 50.0647 | 19.9450 |\n| 博洛尼亚 | 44.4949 | 11.3426 |\n| 罗马 | 41.9028 | 12.4964 |\n| 帕多瓦 | 45.4064 | 11.8768 |\n| 费拉拉 | 44.8381 | 11.6198 |\n| 利兹巴克-瓦尔明斯基 | 54.1260 | 20.5790 |\n| 弗龙堡 | 54.3520 | 19.6830 |\n| 奥尔什丁 | 53.7780 | 20.4810 |", "relatedGraph": {"center": {"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "aliases": [], "birth_year": 1473, "death_year": 1543, "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学", "review": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "托伦", "birthplace_modern": "波兰托伦", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "哥白尼", "name": "哥白尼", "file": "哥白尼.html", "dynasty": "文艺复兴时期", "aliases": [], "birth_year": 1473, "death_year": 1543, "quote": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学", "review": "哥白尼生于波兰托伦的一个商人家庭，早年在克拉科夫大学学习，后赴意大利深造，广泛涉猎天文学、数学、法学和医学。", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "托伦", "birthplace_modern": "波兰托伦", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "达·芬奇", "name": "达·芬奇", "file": "达·芬奇.html", "dynasty": "文艺复兴时期（15-16世纪）", "aliases": [], "birth_year": 1452, "death_year": 1519, "quote": "“文艺复兴艺术三杰”", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "佛罗伦萨共和国芬奇镇", "birthplace_modern": "意大利托斯卡纳大区芬奇镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "米开朗琪罗", "name": "米开朗琪罗", "file": "米开朗琪罗.html", "dynasty": "文艺复兴盛期（意大利）", "aliases": [], "birth_year": 1475, "death_year": 1564, "quote": "“文艺复兴后三杰”", "review": "*乔尔乔·瓦萨里（艺术史家）**：“米开朗琪罗是上帝派到人间来向我们展示艺术所能达到的最高境界的使者。”", "foreign_name": "", "main_role_label": "雕塑家", "birthplace": "意大利卡普雷塞", "birthplace_modern": "托斯卡纳大区阿雷佐省卡普雷塞-米开朗琪罗", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "伽利略", "name": "伽利略", "file": "伽利略.html", "dynasty": "文艺复兴晚期 / 科学革命初期", "aliases": [], "birth_year": 1564, "death_year": 1642, "quote": "“比萨斜塔实验”", "review": "*阿尔伯特·爱因斯坦**：“伽利略的发现，以及他所用的科学推理方法，是人类思想史上最伟大的成就之一，而且标志着物理学的真正开端。”", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "意大利比萨", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦哲伦", "name": "麦哲伦", "file": "麦哲伦.html", "dynasty": "地理大发现时代（15世纪末-16世纪初）", "aliases": [], "birth_year": 1480, "death_year": 1521, "quote": "麦哲伦出生于葡萄牙，早年曾参与葡萄牙对东方的殖民探险", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "葡萄牙王国波尔图", "birthplace_modern": "葡萄牙波尔图", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "aliases": [], "birth_year": 1483, "death_year": 1546, "quote": "“当钱币投入钱柜中叮当作响时，增加的只是贪婪和私欲。”", "review": "", "foreign_name": "", "main_role_label": "宗教改革家", "birthplace": "艾斯莱本", "birthplace_modern": "德国萨克森-安哈尔特州艾斯莱本", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "哥白尼", "target": "达·芬奇", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "米开朗琪罗", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "伽利略", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "麦哲伦", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "哥白尼", "target": "胡居仁", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

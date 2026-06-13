@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "班昭", "title": "", "description": "班昭出身儒学世家与史学门第，其父班彪、长兄班固均为著名史学家。班固承父志著《汉书》，未竟而卒。和帝命班昭就东观藏书阁续写，她最终补成八表及《天文志》，使这部纪传体断代史巨著得以完整传世。她学识渊博，尤精通天文、历史，被召入宫中教授皇后及诸贵人经学天文，尊称“大家”。邓太后临朝时，班昭参与政事，其子曹成被封关内侯。她一生著述颇丰，对后世史学与女性教育影响深远。", "quote": "著有《东征赋》等文学作品", "shortReview": "著有《东征赋》等文学作品", "dynasty": "东汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "系后人推算）", "avatar": "", "birth": {"date": "49年", "location": "系后人推算）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "120年", "location": "洛阳（今河南省洛阳市）", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84"}, "lifespan": "约七十一岁（据存疑生卒年推算）", "highlights": {"honor": "", "status": "东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "identities": "史学家、文学家、宫廷女师、参与政事的学者", "achievements": "1. 续写并最终完成《汉书》八表及《天文志》；2. 著有《东征赋》等文学作品；3. 担任皇后及贵人教师，被尊称为“曹大家（gū）”；4. 多次上疏议论政事，对东汉政治产生影响。", "works": ["汉书", "天文志", "东征赋"], "reviews": []}}, "locations": [{"name": "洛阳（东汉都城）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84", "type": "normal", "event": "兄长班固被召为校书郎，后迁为兰台令史，开始在洛阳集中精力撰写《汉书》。班昭可能因家庭团聚或协助兄长而频繁往来于扶风与洛阳之间。公元92年后，奉和帝诏入东观藏书阁续写《汉书》。约公元100年后，应召入宫教授皇后及诸贵人，尊称“曹大家”。公元105年邓太后临朝后，参与政事。晚年在洛阳居所进行著述、教学，并上疏论政。；邓太后素服举哀，使者监护丧事，以极高礼遇安葬。", "time": "约公元62年后 - 约公元120年", "duration": "长期居住；长期居住直至去世", "significance": "洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。；以宫廷女师、史学家的身份终老于东汉都城，其一生成就获得当时最高统治者的官方认可与哀荣。", "works": ["汉书"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---", "workTexts": {"东征赋": "2. 著有《东征赋》等文学作品", "汉书": "意义：洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。", "为兄超求代疏": "| 约公元110年 | 约61岁 | 上《为兄超求代疏》，促成年迈的兄长班超从西域回朝。", "女诫": "| 约公元110年-120年间 | 晚年 | 撰写《女诫》七篇，教授马融等学者。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 班昭\n\n## 人物档案\n\n### 基本信息\n- **姓名**：班昭（一名姬，字惠班）\n- **时代**：东汉\n- **出生**：约公元49年（存疑，系后人推算），扶风安陵（今陕西省咸阳市渭城区）\n- **去世**：约公元120年，洛阳（今河南省洛阳市）\n- **享年**：约七十一岁（据存疑生卒年推算）\n- **主要身份**：史学家、文学家、宫廷女师、参与政事的学者\n- **历史地位**：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。\n- **主要成就**：1. 续写并最终完成《汉书》八表及《天文志》；2. 著有《东征赋》等文学作品；3. 担任皇后及贵人教师，被尊称为“曹大家（gū）”；4. 多次上疏议论政事，对东汉政治产生影响。\n\n### 生平概述\n班昭出身儒学世家与史学门第，其父班彪、长兄班固均为著名史学家。班固承父志著《汉书》，未竟而卒。和帝命班昭就东观藏书阁续写，她最终补成八表及《天文志》，使这部纪传体断代史巨著得以完整传世。她学识渊博，尤精通天文、历史，被召入宫中教授皇后及诸贵人经学天文，尊称“大家”。邓太后临朝时，班昭参与政事，其子曹成被封关内侯。她一生著述颇丰，对后世史学与女性教育影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于东汉都城洛阳（今河南洛阳）及其周边地区，早年随家族在扶风安陵（今陕西咸阳渭城区）生活。\n- ⏱️ **时间跨度**：约公元49年 - 约公元120年，跨度约71年。\n- 📍 **地理范围**：以中原的洛阳为核心，辐射至关中地区的扶风安陵。\n- 🌟 **重要节点数量**：核心地点2个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扶风安陵\n- **时间**：约公元49年（存疑）\n- **停留时间**：幼年及少年时期\n- **地点**：扶风安陵（今陕西省咸阳市渭城区）\n- **事件**：出生于著名的儒学世家和史学家族，父亲班彪是著名学者，兄长班固、班超皆在此成长。\n- **意义**：奠定了深厚的家学渊源，自幼接触经史典籍，为其日后史学成就打下基础。\n\n### 📍 重要地点：洛阳（东汉都城）\n- **时间**：约公元62年后 - 约公元120年\n- **停留时间**：长期居住\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：兄长班固被召为校书郎，后迁为兰台令史，开始在洛阳集中精力撰写《汉书》。班昭可能因家庭团聚或协助兄长而频繁往来于扶风与洛阳之间。公元92年后，奉和帝诏入东观藏书阁续写《汉书》。约公元100年后，应召入宫教授皇后及诸贵人，尊称“曹大家”。公元105年邓太后临朝后，参与政事。晚年在洛阳居所进行著述、教学，并上疏论政。\n- **意义**：洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。\n\n### 🔴 去世地：洛阳\n- **时间**：约公元120年\n- **停留时间**：长期居住直至去世\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：邓太后素服举哀，使者监护丧事，以极高礼遇安葬。\n- **意义**：以宫廷女师、史学家的身份终老于东汉都城，其一生成就获得当时最高统治者的官方认可与哀荣。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元49年（存疑） | 0岁 | 出生于扶风安陵（今陕西咸阳渭城区）的班氏家族。 |\n| 约公元50年-55年间（具体年份不详） | 童年 | 父亲班彪去世（时间不详，约在班昭童年时期），家学熏陶下成长。 |\n| 约公元62年 | 约13岁 | 出嫁同郡曹世叔。 |\n| 公元62年左右 | 约13岁 | 兄长班固被召入洛阳任校书郎，开始撰写《汉书》。 |\n| 公元92年 | 约43岁 | 兄长班固受窦宪案牵连，死于洛阳狱中。《汉书》未成。 |\n| 公元92年后 | 约43岁后 | 奉汉和帝诏，入东观藏书阁，续写《汉书》八表及《天文志》。 |\n| 约公元100年后 | 约50岁后 | 应召入宫，教授皇后及诸贵人经学、天文，尊称“曹大家”。 |\n| 公元105年 | 约56岁 | 汉和帝去世，邓太后临朝。班昭以师傅之恩参与政事。 |\n| 约公元110年 | 约61岁 | 上《为兄超求代疏》，促成年迈的兄长班超从西域回朝。 |\n| 约公元110年-120年间 | 晚年 | 撰写《女诫》七篇，教授马融等学者。 |\n| 约公元120年 | 约71岁 | 在洛阳去世，邓太后素服举哀，隆重治丧。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 陕西省咸阳市渭城区 | 34.40 | 108.78 |\n| 河南省洛阳市 | 34.62 | 112.45 |", "relatedGraph": {"center": {"id": "班昭", "name": "班昭", "file": "班昭.html", "dynasty": "东汉", "aliases": [], "birth_year": 49, "death_year": 120, "quote": "“曹大家（gū）”", "review": "著有《东征赋》等文学作品", "foreign_name": "", "main_role_label": "史学家", "birthplace": "系后人推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "班昭", "name": "班昭", "file": "班昭.html", "dynasty": "东汉", "aliases": [], "birth_year": 49, "death_year": 120, "quote": "“曹大家（gū）”", "review": "著有《东征赋》等文学作品", "foreign_name": "", "main_role_label": "史学家", "birthplace": "系后人推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "班超", "name": "班超", "file": "班超.html", "dynasty": "东汉", "aliases": [], "birth_year": 32, "death_year": 102, "quote": "“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "扶风平陵", "birthplace_modern": "陕西省咸阳市秦都区", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "班固", "name": "班固", "file": "班固.html", "dynasty": "东汉", "aliases": [], "birth_year": 32, "death_year": 92, "quote": "“铄王师兮征荒裔，剿凶虐兮截海外。”", "review": "", "foreign_name": "", "main_role_label": "史学家", "birthplace": "扶风安陵", "birthplace_modern": "陕西省咸阳市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蔡伦", "name": "蔡伦", "file": "蔡伦.html", "dynasty": "东汉", "aliases": ["龙亭侯"], "birth_year": 63, "death_year": 121, "quote": "“**蔡伦造纸**”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "桂阳郡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张衡", "name": "张衡", "file": "张衡.html", "dynasty": "东汉", "aliases": ["张平子"], "birth_year": 78, "death_year": 139, "quote": "“通五经，贯六艺”", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "南阳郡西鄂县", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "班昭", "target": "班超", "label": "宗亲", "confidence": null}, {"source": "班昭", "target": "班固", "label": "宗亲", "confidence": null}, {"source": "班昭", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "蔡伦", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "张衡", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "陈韪", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "班昭", "title": "", "description": "班昭出身儒学世家与史学门第，其父班彪、长兄班固均为著名史学家。班固承父志著《汉书》，未竟而卒。和帝命班昭就东观藏书阁续写，她最终补成八表及《天文志》，使这部纪传体断代史巨著得以完整传世。她学识渊博，尤精通天文、历史，被召入宫中教授皇后及诸贵人经学天文，尊称“大家”。邓太后临朝时，班昭参与政事，其子曹成被封关内侯。她一生著述颇丰，对后世史学与女性教育影响深远。", "quote": "著有《东征赋》等文学作品", "shortReview": "著有《东征赋》等文学作品", "dynasty": "东汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "系后人推算）", "avatar": "", "birth": {"date": "49年", "location": "系后人推算）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "120年", "location": "洛阳（今河南省洛阳市）", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84"}, "lifespan": "约七十一岁（据存疑生卒年推算）", "highlights": {"honor": "", "status": "东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "identities": "史学家、文学家、宫廷女师、参与政事的学者", "achievements": "1. 续写并最终完成《汉书》八表及《天文志》；2. 著有《东征赋》等文学作品；3. 担任皇后及贵人教师，被尊称为“曹大家（gū）”；4. 多次上疏议论政事，对东汉政治产生影响。", "works": ["汉书", "天文志", "东征赋"], "reviews": []}}, "locations": [{"name": "洛阳（东汉都城）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84", "type": "normal", "event": "兄长班固被召为校书郎，后迁为兰台令史，开始在洛阳集中精力撰写《汉书》。班昭可能因家庭团聚或协助兄长而频繁往来于扶风与洛阳之间。公元92年后，奉和帝诏入东观藏书阁续写《汉书》。约公元100年后，应召入宫教授皇后及诸贵人，尊称“曹大家”。公元105年邓太后临朝后，参与政事。晚年在洛阳居所进行著述、教学，并上疏论政。；邓太后素服举哀，使者监护丧事，以极高礼遇安葬。", "time": "约公元62年后 - 约公元120年", "duration": "长期居住；长期居住直至去世", "significance": "洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。；以宫廷女师、史学家的身份终老于东汉都城，其一生成就获得当时最高统治者的官方认可与哀荣。", "works": ["汉书"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---", "workTexts": {"东征赋": "2. 著有《东征赋》等文学作品", "汉书": "意义：洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。", "为兄超求代疏": "| 约公元110年 | 约61岁 | 上《为兄超求代疏》，促成年迈的兄长班超从西域回朝。", "女诫": "| 约公元110年-120年间 | 晚年 | 撰写《女诫》七篇，教授马融等学者。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 班昭\n\n## 人物档案\n\n### 基本信息\n- **姓名**：班昭（一名姬，字惠班）\n- **时代**：东汉\n- **出生**：约公元49年（存疑，系后人推算），扶风安陵（今陕西省咸阳市渭城区）\n- **去世**：约公元120年，洛阳（今河南省洛阳市）\n- **享年**：约七十一岁（据存疑生卒年推算）\n- **主要身份**：史学家、文学家、宫廷女师、参与政事的学者\n- **历史地位**：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。\n- **主要成就**：1. 续写并最终完成《汉书》八表及《天文志》；2. 著有《东征赋》等文学作品；3. 担任皇后及贵人教师，被尊称为“曹大家（gū）”；4. 多次上疏议论政事，对东汉政治产生影响。\n\n### 生平概述\n班昭出身儒学世家与史学门第，其父班彪、长兄班固均为著名史学家。班固承父志著《汉书》，未竟而卒。和帝命班昭就东观藏书阁续写，她最终补成八表及《天文志》，使这部纪传体断代史巨著得以完整传世。她学识渊博，尤精通天文、历史，被召入宫中教授皇后及诸贵人经学天文，尊称“大家”。邓太后临朝时，班昭参与政事，其子曹成被封关内侯。她一生著述颇丰，对后世史学与女性教育影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于东汉都城洛阳（今河南洛阳）及其周边地区，早年随家族在扶风安陵（今陕西咸阳渭城区）生活。\n- ⏱️ **时间跨度**：约公元49年 - 约公元120年，跨度约71年。\n- 📍 **地理范围**：以中原的洛阳为核心，辐射至关中地区的扶风安陵。\n- 🌟 **重要节点数量**：核心地点2个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扶风安陵\n- **时间**：约公元49年（存疑）\n- **停留时间**：幼年及少年时期\n- **地点**：扶风安陵（今陕西省咸阳市渭城区）\n- **事件**：出生于著名的儒学世家和史学家族，父亲班彪是著名学者，兄长班固、班超皆在此成长。\n- **意义**：奠定了深厚的家学渊源，自幼接触经史典籍，为其日后史学成就打下基础。\n\n### 📍 重要地点：洛阳（东汉都城）\n- **时间**：约公元62年后 - 约公元120年\n- **停留时间**：长期居住\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：兄长班固被召为校书郎，后迁为兰台令史，开始在洛阳集中精力撰写《汉书》。班昭可能因家庭团聚或协助兄长而频繁往来于扶风与洛阳之间。公元92年后，奉和帝诏入东观藏书阁续写《汉书》。约公元100年后，应召入宫教授皇后及诸贵人，尊称“曹大家”。公元105年邓太后临朝后，参与政事。晚年在洛阳居所进行著述、教学，并上疏论政。\n- **意义**：洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。\n\n### 🔴 去世地：洛阳\n- **时间**：约公元120年\n- **停留时间**：长期居住直至去世\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：邓太后素服举哀，使者监护丧事，以极高礼遇安葬。\n- **意义**：以宫廷女师、史学家的身份终老于东汉都城，其一生成就获得当时最高统治者的官方认可与哀荣。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元49年（存疑） | 0岁 | 出生于扶风安陵（今陕西咸阳渭城区）的班氏家族。 |\n| 约公元50年-55年间（具体年份不详） | 童年 | 父亲班彪去世（时间不详，约在班昭童年时期），家学熏陶下成长。 |\n| 约公元62年 | 约13岁 | 出嫁同郡曹世叔。 |\n| 公元62年左右 | 约13岁 | 兄长班固被召入洛阳任校书郎，开始撰写《汉书》。 |\n| 公元92年 | 约43岁 | 兄长班固受窦宪案牵连，死于洛阳狱中。《汉书》未成。 |\n| 公元92年后 | 约43岁后 | 奉汉和帝诏，入东观藏书阁，续写《汉书》八表及《天文志》。 |\n| 约公元100年后 | 约50岁后 | 应召入宫，教授皇后及诸贵人经学、天文，尊称“曹大家”。 |\n| 公元105年 | 约56岁 | 汉和帝去世，邓太后临朝。班昭以师傅之恩参与政事。 |\n| 约公元110年 | 约61岁 | 上《为兄超求代疏》，促成年迈的兄长班超从西域回朝。 |\n| 约公元110年-120年间 | 晚年 | 撰写《女诫》七篇，教授马融等学者。 |\n| 约公元120年 | 约71岁 | 在洛阳去世，邓太后素服举哀，隆重治丧。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《东征赋》**（节选可能出现在古代文学选读或拓展阅读中）。\n- 核心要点：\n    - **重点**：**《东征赋》** 是班昭随子赴任途中所作，抒发了旅途感怀与对历史的思考，是汉代抒情小赋的代表作之一。\n    - 赋中体现了作者深厚的**儒家道德观念**与对先贤的追慕。\n    - 语言典雅，情感含蓄，展现了班昭作为**女性作家**的独特视角与文学才华。\n    - **重点**：作品反映了东汉士人家庭**女性**的学识修养与精神世界。\n    - **重点**：其文学价值在于将个人行旅与**历史沉思**相结合，拓展了赋体的表现内容。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**《汉书》** 的编撰历经班彪、班固、班昭（及马续）两代三人之手，班昭负责最终补全**八表**与**《天文志》**，使之成为完璧。\n    - 班昭是历史上第一位进入**皇家藏书阁（东观）** 并主持修史的女性学者。\n    - 她以“**曹大家**”之名成为**邓太后**的宫廷教师与政治顾问，深度参与了东汉中期的政治。\n    - 其著作**《女诫》** 系统化阐述了儒家对女性的规范，对后世**女性教育**与社会伦理产生了极其深远的影响。\n- 核心要点：\n    - **重点**：班昭的成就体现了**东汉**时期**世家大族**在文化传承中的核心作用，以及**家学**的深厚影响。\n    - **重点**：她作为**女性史学家**的身份，在以男性为主导的中国古代史学传统中具有开创性与特殊性。\n    - **重点**：她的政治活动（上疏、议政）展示了汉代**知识女性**通过学识与师道尊严间接参与最高决策的独特路径。\n    - 对班昭的评价存在两面性：一方面肯定其史学贡献与才华，另一方面其**《女诫》** 中对女性的严苛要求在后世也引发争议。\n    - 她与**马融**等学者的关系，体现了东汉经学与史学的学术传承网络。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 陕西省咸阳市渭城区 | 34.40 | 108.78 |\n| 河南省洛阳市 | 34.62 | 112.45 |", "relatedGraph": {"center": {"id": "班昭", "name": "班昭", "file": "班昭.html", "dynasty": "东汉", "aliases": [], "birth_year": 49, "death_year": 120, "quote": "“曹大家（gū）”", "review": "著有《东征赋》等文学作品", "foreign_name": "", "main_role_label": "史学家", "birthplace": "系后人推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "班昭", "name": "班昭", "file": "班昭.html", "dynasty": "东汉", "aliases": [], "birth_year": 49, "death_year": 120, "quote": "“曹大家（gū）”", "review": "著有《东征赋》等文学作品", "foreign_name": "", "main_role_label": "史学家", "birthplace": "系后人推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "班超", "name": "班超", "file": "班超.html", "dynasty": "东汉", "aliases": [], "birth_year": 32, "death_year": 102, "quote": "“大丈夫无它志略，犹当效傅介子、张骞立功异域，以取封侯，安能久事笔研间乎？”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "扶风平陵", "birthplace_modern": "陕西省咸阳市秦都区", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "班固", "name": "班固", "file": "班固.html", "dynasty": "东汉", "aliases": [], "birth_year": 32, "death_year": 92, "quote": "“铄王师兮征荒裔，剿凶虐兮截海外。”", "review": "", "foreign_name": "", "main_role_label": "史学家", "birthplace": "扶风安陵", "birthplace_modern": "陕西省咸阳市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蔡伦", "name": "蔡伦", "file": "蔡伦.html", "dynasty": "东汉", "aliases": ["龙亭侯"], "birth_year": 63, "death_year": 121, "quote": "“**蔡伦造纸**”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "桂阳郡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张衡", "name": "张衡", "file": "张衡.html", "dynasty": "东汉", "aliases": ["张平子"], "birth_year": 78, "death_year": 139, "quote": "“通五经，贯六艺”", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "南阳郡西鄂县", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "班昭", "target": "班超", "label": "宗亲", "confidence": null}, {"source": "班昭", "target": "班固", "label": "宗亲", "confidence": null}, {"source": "班昭", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "蔡伦", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "张衡", "label": "同时代人物", "confidence": null}, {"source": "班昭", "target": "陈韪", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

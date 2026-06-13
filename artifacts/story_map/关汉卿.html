@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "关汉卿", "title": "元曲四大家", "description": "关汉卿生活在金末元初，由金入元。他长期活跃于元大都（今北京）的书会才人之中，与杂剧艺人交往密切，躬践排场，面敷粉墨，是当时戏剧界的领袖人物。他一生创作了大量杂剧，题材广泛，深刻揭露社会黑暗，歌颂反抗精神，尤其擅长刻画底层妇女形象。其作品如《窦娥冤》等具有深远影响。", "quote": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "shortReview": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "dynasty": "元代", "courtesyName": "", "artName": "", "aliases": ["已斋叟", "已斋"], "birthplace": "", "avatar": "", "birth": {"date": "1220年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1300年", "location": "常见说法为大都（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "约80岁（据存疑生卒年推算）。", "highlights": {"honor": "元曲四大家", "status": "元杂剧的奠基人，“元曲四大家”之首。", "identities": "戏曲作家、散曲家", "achievements": "创作杂剧六十余种，今存十八种；塑造了众多鲜明的舞台形象；推动了中国戏曲艺术的成熟与发展。", "works": ["窦娥冤"], "reviews": []}}, "locations": [{"name": "大都（前期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "加入“玉京书会”，与杂剧作家、艺人密切合作，开始其戏剧创作与演出生涯。创作了《窦娥冤》、《救风尘》、《望江亭》等大量杂剧。", "time": "约13世纪中后期（具体起止时间存疑）", "duration": "可能长达数十年", "significance": "其艺术生涯的黄金时期，奠定了元杂剧创作的核心地位。", "works": ["窦娥冤", "救风尘", "望江亭"], "quoteLines": ["《窦娥冤》：“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "《救风尘》"]}, {"name": "真定（可能）", "ancientName": "真定", "modernName": "河北省正定县", "lat": 38.1464, "lng": 114.571, "coordSystem": "WGS84", "type": "normal", "event": "可能在此地游历或生活，与当地文人、剧作家交流。", "time": "约13世纪中后期（说法不一）", "duration": "数年（存疑）", "significance": "真定是元代早期杂剧活动的另一个中心，可能丰富了其创作视野。", "works": [], "quoteLines": ["《单刀会》：“大江东去浪千叠，引着这数十人驾着这小舟一叶。”"]}, {"name": "杭州（可能）", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "normal", "event": "元灭南宋后，可能南下杭州。杭州是南方的戏曲中心，他可能在此继续从事戏曲活动，并与南方戏曲家交流。", "time": "约13世纪末至14世纪初（说法不一）", "duration": "约十余年（存疑）", "significance": "若属实，则促进了南北戏曲文化的交流，扩大了其影响力。", "works": [], "quoteLines": ["《南吕·一枝花·杭州景》：“普天下锦绣乡，环海内风流地。”（此散曲作者是否关汉卿，存疑）"]}, {"name": "解州（说法不一）", "ancientName": "解州或大都", "modernName": "山西省运城市", "lat": 35.0264, "lng": 111.0075, "coordSystem": "WGS84", "type": "birth", "event": "可能出生并成长于此，接受了传统教育。", "time": "约公元1220年", "duration": "青少年时期（存疑）", "significance": "为其后来的创作提供了文化滋养，关姓为当地望族（存疑）。", "works": [], "quoteLines": []}, {"name": "大都（后期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "晚年可能返回大都，并在此去世。", "time": "约公元1300年", "duration": "晚年（存疑）", "significance": "始于斯，终于斯，完成了其作为伟大戏剧家的一生。", "works": [], "quoteLines": []}, {"name": "扬州（可能）", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3944, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "可能游历至此，与当地文士交游。", "time": "南下期间（说法不一）", "duration": "不定", "significance": "扬州是运河枢纽和商业都会，可能丰富了其人生阅历。", "works": [], "quoteLines": []}, {"name": "淮安（存疑/说法不一）", "ancientName": "淮安", "modernName": "江苏省淮安市", "lat": 33.5975, "lng": 119.0212, "coordSystem": "WGS84", "type": "normal", "event": "可能途经或停留（史料记载不一）。", "time": "南下期间（说法不一）", "duration": "不定", "significance": "作为南北交通要冲，可能是其南下旅程中的一个节点（存疑）。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---", "workTexts": {"窦娥冤": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "单刀会": "大江东去浪千叠，引着这数十人驾着这小舟一叶。", "南吕·一枝花·杭州景": "普天下锦绣乡，环海内风流地。", "南吕": "普天下锦绣乡，环海内风流地。", "一枝花": "普天下锦绣乡，环海内风流地。", "杭州景": "普天下锦绣乡，环海内风流地。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 关汉卿\n\n## 人物档案\n\n### 基本信息\n- **姓名**：关汉卿\n- **别名**：已斋叟、已斋\n- **时代**：元代\n- **出生**：约公元1220年（生卒年存疑）。出生地：存疑/说法不一/待考（常见说法有解州（今山西省运城市）或大都（今北京市））。\n- **去世**：约公元1300年（生卒年存疑）。去世地点存疑，常见说法为大都（今北京市）。\n- **享年**：约80岁（据存疑生卒年推算）。\n- **主要身份**：戏曲作家、散曲家\n- **历史地位**：元杂剧的奠基人，“元曲四大家”之首。\n- **主要成就**：创作杂剧六十余种，今存十八种；塑造了众多鲜明的舞台形象；推动了中国戏曲艺术的成熟与发展。\n\n### 生平概述\n关汉卿生活在金末元初，由金入元。他长期活跃于元大都（今北京）的书会才人之中，与杂剧艺人交往密切，躬践排场，面敷粉墨，是当时戏剧界的领袖人物。他一生创作了大量杂剧，题材广泛，深刻揭露社会黑暗，歌颂反抗精神，尤其擅长刻画底层妇女形象。其作品如《窦娥冤》等具有深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以元大都（今北京）为中心，足迹可能涉及山西、河北、江苏、浙江等省份。\n- ⏱️ **时间跨度**：约公元1220年 - 约公元1300年，总跨度约80年。\n- 📍 **地理范围**：主要活动于华北地区（今北京、河北、山西），晚年可能南下至今江苏、浙江地区。\n- 🌟 **重要节点数量**：核心地点7个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：解州（说法不一）\n- **时间**：约公元1220年\n- **停留时间**：青少年时期（存疑）\n- **地点**：解州（今山西省运城市）或大都（今北京市）（说法不一）\n- **事件**：可能出生并成长于此，接受了传统教育。\n- **意义**：为其后来的创作提供了文化滋养，关姓为当地望族（存疑）。\n\n### 📍 重要地点：大都（前期）\n- **时间**：约13世纪中后期（具体起止时间存疑）\n- **停留时间**：可能长达数十年\n- **地点**：大都（今北京市）\n- **事件**：加入“玉京书会”，与杂剧作家、艺人密切合作，开始其戏剧创作与演出生涯。创作了《窦娥冤》、《救风尘》、《望江亭》等大量杂剧。\n- **意义**：其艺术生涯的黄金时期，奠定了元杂剧创作的核心地位。\n- **名篇名句**：《窦娥冤》：“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”；《救风尘》\n\n### 📍 重要地点：真定（可能）\n- **时间**：约13世纪中后期（说法不一）\n- **停留时间**：数年（存疑）\n- **地点**：真定（今河北省正定县）\n- **事件**：可能在此地游历或生活，与当地文人、剧作家交流。\n- **意义**：真定是元代早期杂剧活动的另一个中心，可能丰富了其创作视野。\n- **名篇名句**：《单刀会》：“大江东去浪千叠，引着这数十人驾着这小舟一叶。”\n\n### 📍 重要地点：杭州（可能）\n- **时间**：约13世纪末至14世纪初（说法不一）\n- **停留时间**：约十余年（存疑）\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：元灭南宋后，可能南下杭州。杭州是南方的戏曲中心，他可能在此继续从事戏曲活动，并与南方戏曲家交流。\n- **意义**：若属实，则促进了南北戏曲文化的交流，扩大了其影响力。\n- **名篇名句**：《南吕·一枝花·杭州景》：“普天下锦绣乡，环海内风流地。”（此散曲作者是否关汉卿，存疑）\n\n### 📍 重要地点：扬州（可能）\n- **时间**：南下期间（说法不一）\n- **停留时间**：不定\n- **地点**：扬州（今江苏省扬州市）\n- **事件**：可能游历至此，与当地文士交游。\n- **意义**：扬州是运河枢纽和商业都会，可能丰富了其人生阅历。\n\n### 📍 重要地点：淮安（存疑/说法不一）\n- **时间**：南下期间（说法不一）\n- **停留时间**：不定\n- **地点**：淮安（今江苏省淮安市）\n- **事件**：可能途经或停留（史料记载不一）。\n- **意义**：作为南北交通要冲，可能是其南下旅程中的一个节点（存疑）。\n\n### 🔴 去世地：大都（后期）\n- **时间**：约公元1300年\n- **停留时间**：晚年（存疑）\n- **地点**：大都（今北京市）（去世地点存疑）\n- **事件**：晚年可能返回大都，并在此去世。\n- **意义**：始于斯，终于斯，完成了其作为伟大戏剧家的一生。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1220年 | 0岁 | 生于解州（今山西运城）（籍贯存疑，常见说法有解州或大都）。 |\n| 约13世纪中叶 | 不详 | 可能已活跃于大都（今北京）的戏剧圈，开始接触杂剧艺术。 |\n| 约13世纪中后期 | 不详 | 在大都加入“玉京书会”，成为书会才人领袖，进入创作鼎盛期，完成《窦娥冤》《救风尘》等代表作。 |\n| 约13世纪中后期 | 不详 | 可能游历真定（今河北正定）等地。 |\n| 约1279年后 | 不详 | 元统一全国后，可能南下杭州、扬州等地游历（说法不一）。 |\n| 约14世纪初 | 不详 | 可能在南方活动，促进南北戏曲交流（存疑）。 |\n| 约1300年 | 约80岁 | 卒于大都（今北京）（生卒年及去世地点均存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 山西省运城市 | 35.0264 | 111.0075 |\n| 北京市 | 39.9042 | 116.4074 |\n| 河北省正定县 | 38.1464 | 114.5710 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 江苏省扬州市 | 32.3944 | 119.4130 |\n| 江苏省淮安市 | 33.5975 | 119.0212 |", "relatedGraph": {"center": {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "“枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。”", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "朱世杰", "name": "朱世杰", "file": "朱世杰.html", "dynasty": "元代", "aliases": [], "birth_year": 1249, "death_year": 1314, "quote": "“**三才运元**”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称燕山", "birthplace_modern": "北京", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”", "review": "《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "“开国文臣之首”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "aliases": [], "birth_year": 1254, "death_year": 1324, "quote": "“一个非常大而高贵的城市”", "review": "", "foreign_name": "Marco Polo", "main_role_label": "作家", "birthplace": "威尼斯共和国", "birthplace_modern": "意大利威尼斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "宋", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "“一回归年为365.2425日”", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "关汉卿", "target": "马致远", "label": "并称", "confidence": 0.55}, {"source": "关汉卿", "target": "朱世杰", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "宋濂", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "马可·波罗", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "郭守敬", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "关汉卿", "title": "元曲四大家", "description": "关汉卿生活在金末元初，由金入元。他长期活跃于元大都（今北京）的书会才人之中，与杂剧艺人交往密切，躬践排场，面敷粉墨，是当时戏剧界的领袖人物。他一生创作了大量杂剧，题材广泛，深刻揭露社会黑暗，歌颂反抗精神，尤其擅长刻画底层妇女形象。其作品如《窦娥冤》等具有深远影响。", "quote": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "shortReview": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "dynasty": "元代", "courtesyName": "", "artName": "", "aliases": ["已斋叟", "已斋"], "birthplace": "", "avatar": "", "birth": {"date": "1220年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1300年", "location": "常见说法为大都（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "约80岁（据存疑生卒年推算）。", "highlights": {"honor": "元曲四大家", "status": "元杂剧的奠基人，“元曲四大家”之首。", "identities": "戏曲作家、散曲家", "achievements": "创作杂剧六十余种，今存十八种；塑造了众多鲜明的舞台形象；推动了中国戏曲艺术的成熟与发展。", "works": ["窦娥冤"], "reviews": []}}, "locations": [{"name": "大都（前期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "加入“玉京书会”，与杂剧作家、艺人密切合作，开始其戏剧创作与演出生涯。创作了《窦娥冤》、《救风尘》、《望江亭》等大量杂剧。", "time": "约13世纪中后期（具体起止时间存疑）", "duration": "可能长达数十年", "significance": "其艺术生涯的黄金时期，奠定了元杂剧创作的核心地位。", "works": ["窦娥冤", "救风尘", "望江亭"], "quoteLines": ["《窦娥冤》：“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "《救风尘》"]}, {"name": "真定（可能）", "ancientName": "真定", "modernName": "河北省正定县", "lat": 38.1464, "lng": 114.571, "coordSystem": "WGS84", "type": "normal", "event": "可能在此地游历或生活，与当地文人、剧作家交流。", "time": "约13世纪中后期（说法不一）", "duration": "数年（存疑）", "significance": "真定是元代早期杂剧活动的另一个中心，可能丰富了其创作视野。", "works": [], "quoteLines": ["《单刀会》：“大江东去浪千叠，引着这数十人驾着这小舟一叶。”"]}, {"name": "杭州（可能）", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "normal", "event": "元灭南宋后，可能南下杭州。杭州是南方的戏曲中心，他可能在此继续从事戏曲活动，并与南方戏曲家交流。", "time": "约13世纪末至14世纪初（说法不一）", "duration": "约十余年（存疑）", "significance": "若属实，则促进了南北戏曲文化的交流，扩大了其影响力。", "works": [], "quoteLines": ["《南吕·一枝花·杭州景》：“普天下锦绣乡，环海内风流地。”（此散曲作者是否关汉卿，存疑）"]}, {"name": "解州（说法不一）", "ancientName": "解州或大都", "modernName": "山西省运城市", "lat": 35.0264, "lng": 111.0075, "coordSystem": "WGS84", "type": "birth", "event": "可能出生并成长于此，接受了传统教育。", "time": "约公元1220年", "duration": "青少年时期（存疑）", "significance": "为其后来的创作提供了文化滋养，关姓为当地望族（存疑）。", "works": [], "quoteLines": []}, {"name": "大都（后期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "晚年可能返回大都，并在此去世。", "time": "约公元1300年", "duration": "晚年（存疑）", "significance": "始于斯，终于斯，完成了其作为伟大戏剧家的一生。", "works": [], "quoteLines": []}, {"name": "扬州（可能）", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3944, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "可能游历至此，与当地文士交游。", "time": "南下期间（说法不一）", "duration": "不定", "significance": "扬州是运河枢纽和商业都会，可能丰富了其人生阅历。", "works": [], "quoteLines": []}, {"name": "淮安（存疑/说法不一）", "ancientName": "淮安", "modernName": "江苏省淮安市", "lat": 33.5975, "lng": 119.0212, "coordSystem": "WGS84", "type": "normal", "event": "可能途经或停留（史料记载不一）。", "time": "南下期间（说法不一）", "duration": "不定", "significance": "作为南北交通要冲，可能是其南下旅程中的一个节点（存疑）。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---", "workTexts": {"窦娥冤": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "单刀会": "大江东去浪千叠，引着这数十人驾着这小舟一叶。", "南吕·一枝花·杭州景": "普天下锦绣乡，环海内风流地。", "南吕": "普天下锦绣乡，环海内风流地。", "一枝花": "普天下锦绣乡，环海内风流地。", "杭州景": "普天下锦绣乡，环海内风流地。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 关汉卿\n\n## 人物档案\n\n### 基本信息\n- **姓名**：关汉卿\n- **别名**：已斋叟、已斋\n- **时代**：元代\n- **出生**：约公元1220年（生卒年存疑）。出生地：存疑/说法不一/待考（常见说法有解州（今山西省运城市）或大都（今北京市））。\n- **去世**：约公元1300年（生卒年存疑）。去世地点存疑，常见说法为大都（今北京市）。\n- **享年**：约80岁（据存疑生卒年推算）。\n- **主要身份**：戏曲作家、散曲家\n- **历史地位**：元杂剧的奠基人，“元曲四大家”之首。\n- **主要成就**：创作杂剧六十余种，今存十八种；塑造了众多鲜明的舞台形象；推动了中国戏曲艺术的成熟与发展。\n\n### 生平概述\n关汉卿生活在金末元初，由金入元。他长期活跃于元大都（今北京）的书会才人之中，与杂剧艺人交往密切，躬践排场，面敷粉墨，是当时戏剧界的领袖人物。他一生创作了大量杂剧，题材广泛，深刻揭露社会黑暗，歌颂反抗精神，尤其擅长刻画底层妇女形象。其作品如《窦娥冤》等具有深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以元大都（今北京）为中心，足迹可能涉及山西、河北、江苏、浙江等省份。\n- ⏱️ **时间跨度**：约公元1220年 - 约公元1300年，总跨度约80年。\n- 📍 **地理范围**：主要活动于华北地区（今北京、河北、山西），晚年可能南下至今江苏、浙江地区。\n- 🌟 **重要节点数量**：核心地点7个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：解州（说法不一）\n- **时间**：约公元1220年\n- **停留时间**：青少年时期（存疑）\n- **地点**：解州（今山西省运城市）或大都（今北京市）（说法不一）\n- **事件**：可能出生并成长于此，接受了传统教育。\n- **意义**：为其后来的创作提供了文化滋养，关姓为当地望族（存疑）。\n\n### 📍 重要地点：大都（前期）\n- **时间**：约13世纪中后期（具体起止时间存疑）\n- **停留时间**：可能长达数十年\n- **地点**：大都（今北京市）\n- **事件**：加入“玉京书会”，与杂剧作家、艺人密切合作，开始其戏剧创作与演出生涯。创作了《窦娥冤》、《救风尘》、《望江亭》等大量杂剧。\n- **意义**：其艺术生涯的黄金时期，奠定了元杂剧创作的核心地位。\n- **名篇名句**：《窦娥冤》：“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”；《救风尘》\n\n### 📍 重要地点：真定（可能）\n- **时间**：约13世纪中后期（说法不一）\n- **停留时间**：数年（存疑）\n- **地点**：真定（今河北省正定县）\n- **事件**：可能在此地游历或生活，与当地文人、剧作家交流。\n- **意义**：真定是元代早期杂剧活动的另一个中心，可能丰富了其创作视野。\n- **名篇名句**：《单刀会》：“大江东去浪千叠，引着这数十人驾着这小舟一叶。”\n\n### 📍 重要地点：杭州（可能）\n- **时间**：约13世纪末至14世纪初（说法不一）\n- **停留时间**：约十余年（存疑）\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：元灭南宋后，可能南下杭州。杭州是南方的戏曲中心，他可能在此继续从事戏曲活动，并与南方戏曲家交流。\n- **意义**：若属实，则促进了南北戏曲文化的交流，扩大了其影响力。\n- **名篇名句**：《南吕·一枝花·杭州景》：“普天下锦绣乡，环海内风流地。”（此散曲作者是否关汉卿，存疑）\n\n### 📍 重要地点：扬州（可能）\n- **时间**：南下期间（说法不一）\n- **停留时间**：不定\n- **地点**：扬州（今江苏省扬州市）\n- **事件**：可能游历至此，与当地文士交游。\n- **意义**：扬州是运河枢纽和商业都会，可能丰富了其人生阅历。\n\n### 📍 重要地点：淮安（存疑/说法不一）\n- **时间**：南下期间（说法不一）\n- **停留时间**：不定\n- **地点**：淮安（今江苏省淮安市）\n- **事件**：可能途经或停留（史料记载不一）。\n- **意义**：作为南北交通要冲，可能是其南下旅程中的一个节点（存疑）。\n\n### 🔴 去世地：大都（后期）\n- **时间**：约公元1300年\n- **停留时间**：晚年（存疑）\n- **地点**：大都（今北京市）（去世地点存疑）\n- **事件**：晚年可能返回大都，并在此去世。\n- **意义**：始于斯，终于斯，完成了其作为伟大戏剧家的一生。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1220年 | 0岁 | 生于解州（今山西运城）（籍贯存疑，常见说法有解州或大都）。 |\n| 约13世纪中叶 | 不详 | 可能已活跃于大都（今北京）的戏剧圈，开始接触杂剧艺术。 |\n| 约13世纪中后期 | 不详 | 在大都加入“玉京书会”，成为书会才人领袖，进入创作鼎盛期，完成《窦娥冤》《救风尘》等代表作。 |\n| 约13世纪中后期 | 不详 | 可能游历真定（今河北正定）等地。 |\n| 约1279年后 | 不详 | 元统一全国后，可能南下杭州、扬州等地游历（说法不一）。 |\n| 约14世纪初 | 不详 | 可能在南方活动，促进南北戏曲交流（存疑）。 |\n| 约1300年 | 约80岁 | 卒于大都（今北京）（生卒年及去世地点均存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《窦娥冤》**（节选，第三折）\n- 核心要点：\n    - **重点**：通过窦娥的冤狱，深刻揭露了**元代社会**的黑暗、官吏的贪暴和法制的混乱。\n    - **重点**：成功塑造了**窦娥**这一善良、刚强、具有反抗精神的悲剧女性形象。\n    - 运用了**浪漫主义手法**（三桩誓愿：血溅白练、六月飞雪、亢旱三年），强化了悲剧力量和批判精神。\n    - 语言本色当行，符合人物性格，大量运用**口语**、**俗语**，生动泼辣。\n    - **重点**：剧作体现了强烈的**现实主义精神**与**理想主义光辉**的结合。\n    - 结构上遵循元杂剧**四折一楔子**的典型体制。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：关汉卿是**元杂剧**最杰出的代表作家，被誉为“**元曲四大家**”之首（另有白朴、马致远、郑光祖）。\n    - 他长期生活在**大都**的**书会**组织中，是典型的“**书会才人**”，与勾栏瓦舍的艺人紧密合作。\n    - 其创作反映了**元代**这一特殊历史时期，汉族文人仕进无门、沉入市井的社会现实。\n- 核心要点：\n    - **重点**：关汉卿的作品题材广泛，尤以反映**社会矛盾**、**妇女问题**（如妓女、童养媳、寡妇）最为深刻。\n    - **重点**：他自称“**我是个蒸不烂、煮不熟、捶不扁、炒不爆、响珰珰一粒铜豌豆**”，展现了其坚韧、玩世不恭的个性，是元代下层文人精神状态的写照。\n    - 其戏剧成就标志着中国**戏曲艺术**的成熟，对后世戏曲、小说产生了深远影响。\n    - **重点**：1958年，关汉卿被世界和平理事会列为**世界文化名人**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 山西省运城市 | 35.0264 | 111.0075 |\n| 北京市 | 39.9042 | 116.4074 |\n| 河北省正定县 | 38.1464 | 114.5710 |\n| 浙江省杭州市 | 30.2741 | 120.1551 |\n| 江苏省扬州市 | 32.3944 | 119.4130 |\n| 江苏省淮安市 | 33.5975 | 119.0212 |", "relatedGraph": {"center": {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "“枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。”", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "朱世杰", "name": "朱世杰", "file": "朱世杰.html", "dynasty": "元代", "aliases": [], "birth_year": 1249, "death_year": 1314, "quote": "“**三才运元**”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称燕山", "birthplace_modern": "北京", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”", "review": "《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "“开国文臣之首”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "aliases": [], "birth_year": 1254, "death_year": 1324, "quote": "“一个非常大而高贵的城市”", "review": "", "foreign_name": "Marco Polo", "main_role_label": "作家", "birthplace": "威尼斯共和国", "birthplace_modern": "意大利威尼斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "宋", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "“一回归年为365.2425日”", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "关汉卿", "target": "马致远", "label": "并称", "confidence": 0.55}, {"source": "关汉卿", "target": "朱世杰", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "宋濂", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "马可·波罗", "label": "同时代人物", "confidence": null}, {"source": "关汉卿", "target": "郭守敬", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

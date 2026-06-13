@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "曹雪芹", "title": "", "description": "曹雪芹，名霑，字梦阮，号雪芹，又号芹圃、芹溪。出身于清代显赫的“百年望族”——江宁曹家，祖辈三代四人世袭江宁织造，曾祖母孙氏为康熙帝乳母，家族极受皇恩。少年时代，他亲历了一段“锦衣纨绔、饫甘餍肥”的富贵生活。雍正年间，曹家因亏空获罪被抄，家道急剧中落。约在乾隆初年，曹雪芹随家人迁回北京，晚年居住在北京西郊，生活陷入“举家食粥酒常赊”的困顿境地。在贫病交加中，他“披阅十载，增删五次”，将全部心血倾注于《红楼梦》的创作，直至耗尽生命。这部巨著未竟而终，成为文学史上永恒的遗憾。", "quote": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "shortReview": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "dynasty": "清代（清康熙末年至乾隆中期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "1715年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1763年", "location": "北京西山（今北京市海淀区香山正白旗村）（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约四十八岁或四十岁（因生年存疑，按1715-1763年计算约48岁，按1724-1764年计算约40岁）", "highlights": {"honor": "", "status": "中国古典小说巅峰之作《红楼梦》的作者，伟大的现实主义文学大师。", "identities": "小说家、诗人、画家", "achievements": "", "works": ["红楼梦"], "reviews": []}}, "locations": [{"name": "北京白家疃", "ancientName": "白家疃", "modernName": "北京市海淀区温泉镇白家疃村", "lat": 40.003, "lng": 116.198, "coordSystem": "WGS84", "type": "normal", "event": "晚年主要居住地，传说曾在此“结庐著书”，生活极度清贫，专注于《红楼梦》的写作与修改。", "time": "约1750年代（乾隆十五年左右）至去世", "duration": "约十年", "significance": "这是《红楼梦》主要创作阶段的核心地点，见证了“批阅十载，增删五次”的艰辛历程。", "works": ["红楼梦"], "quoteLines": ["《红楼梦》：“满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---", "workTexts": {"红楼梦": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "佩刀质酒歌": "曹子大笑称快哉，击石作歌声琅琅。", "寄怀曹雪芹": "事件：常与好友敦敏、敦诚兄弟聚会，饮酒赋诗，畅谈抱负。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 曹雪芹\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹雪芹\n- **时代**：清代（清康熙末年至乾隆中期）\n- **出生**：约公元1715年（一说1724年），江宁织造府（今江苏省南京市玄武区）（具体年份存疑）\n- **去世**：约公元1763年或1764年除夕，北京西山（今北京市海淀区香山正白旗村）（说法不一）\n- **享年**：约四十八岁或四十岁（因生年存疑，按1715-1763年计算约48岁，按1724-1764年计算约40岁）\n- **主要身份**：小说家、诗人、画家\n- **历史地位**：中国古典小说巅峰之作《红楼梦》的作者，伟大的现实主义文学大师。\n- **主要成就**：\n    - 创作不朽名著《红楼梦》（又名《石头记》）。\n    - 以自身家族兴衰为蓝本，深刻揭示了封建社会的末世景象。\n    - 开创了中国古典小说叙事艺术的新范式，塑造了数百个栩栩如生的人物形象。\n    - 在诗词、绘画、园林美学等方面亦有深厚造诣。\n\n### 生平概述\n曹雪芹，名霑，字梦阮，号雪芹，又号芹圃、芹溪。出身于清代显赫的“百年望族”——江宁曹家，祖辈三代四人世袭江宁织造，曾祖母孙氏为康熙帝乳母，家族极受皇恩。少年时代，他亲历了一段“锦衣纨绔、饫甘餍肥”的富贵生活。雍正年间，曹家因亏空获罪被抄，家道急剧中落。约在乾隆初年，曹雪芹随家人迁回北京，晚年居住在北京西郊，生活陷入“举家食粥酒常赊”的困顿境地。在贫病交加中，他“披阅十载，增删五次”，将全部心血倾注于《红楼梦》的创作，直至耗尽生命。这部巨著未竟而终，成为文学史上永恒的遗憾。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从南京到北京，再迁居西山，一生轨迹浓缩了家族从江南繁华到京华落魄的巨变。\n- ⏱️ **时间跨度**：约1715年 - 1763年（一说1724-1764年），总计约48年（一说约40年）。\n- 📍 **地理范围**：主要活动于今江苏省南京市、北京市城区及西郊一带。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：江宁织造府\n- **时间**：约1715年（存疑）\n- **停留时间**：约13年（至抄家前）\n- **地点**：江宁织造府（今江苏省南京市玄武区）\n- **事件**：出生于曹家鼎盛时期的江宁织造府，童年与少年时期在此度过，亲历家族最后的繁华。\n- **意义**：这里是曹雪芹世界观与审美形成的起点，也是《红楼梦》中贾府“烈火烹油，鲜花着锦”之盛的灵感源泉。\n\n### 📍 重要地点：北京蒜市口\n- **时间**：约1728年（雍正六年）后\n- **停留时间**：数年\n- **地点**：蒜市口（今北京市东城区广渠门内大街一带）\n- **事件**：曹家被抄后举家迁回北京的早期居所之一，生活从云端跌落，开始体验市井艰辛。\n- **意义**：家族命运转折的关键地，使其深刻体会世态炎凉，为创作积累了丰富的生活素材。\n\n### 📍 重要地点：右翼宗学\n- **时间**：约1730年代（雍正末年至乾隆初年）\n- **停留时间**：数年\n- **地点**：右翼宗学（今北京市西城区小石虎胡同一带）\n- **事件**：曾在此短期任职或学习（具体职务存疑，有“瑟夫”即教习一说），结识了敦敏、敦诚等宗室文人。\n- **意义**：在此与文友诗酒唱和，展现了卓越的才华与不羁的性格，获得了重要的精神支持与交流圈。\n\n### 📍 重要地点：北京卧佛寺\n- **时间**：约1740年代\n- **停留时间**：暂居\n- **地点**：卧佛寺（今北京市海淀区香山卧佛寺）\n- **事件**：生活日益困顿，曾移居西山附近，常游憩于卧佛寺等古刹名胜。\n- **意义**：西山清幽的环境为其提供了创作空间，寺庙的兴衰与人生感悟可能融入了《红楼梦》的哲学思考。\n\n### 📍 重要地点：北京白家疃\n- **时间**：约1750年代（乾隆十五年左右）至去世\n- **停留时间**：约十年\n- **地点**：白家疃（今北京市海淀区温泉镇白家疃村）\n- **事件**：晚年主要居住地，传说曾在此“结庐著书”，生活极度清贫，专注于《红楼梦》的写作与修改。\n- **意义**：这是《红楼梦》主要创作阶段的核心地点，见证了“批阅十载，增删五次”的艰辛历程。\n- **名篇名句**：《红楼梦》：“满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？”\n\n### 📍 重要地点：北京敦敏、敦诚宅邸\n- **时间**：贯穿在京期间\n- **停留时间**：不定期拜访\n- **地点**：槐园、西园等（具体位置存疑，约在清代北京内城，今北京市东城区、西城区一带）\n- **事件**：常与好友敦敏、敦诚兄弟聚会，饮酒赋诗，畅谈抱负。敦诚《寄怀曹雪芹》等诗记录了其生活片段。\n- **意义**：这些交往是曹雪芹困顿生活中重要的精神慰藉，其诗才在友朋间备受推崇。\n- **名篇名句**：敦诚《佩刀质酒歌》：“曹子大笑称快哉，击石作歌声琅琅。”\n\n### 📍 重要地点：北京明琳宅邸\n- **时间**：约1760年代初\n- **停留时间**：不定期聚会\n- **地点**：明琳宅邸（具体位置存疑，约在清代北京内城，今北京市东城区、西城区一带）\n- **事件**：经朋友介绍结识宗室画家明琳，曾在其宅中高谈阔论，“隔院闻高谈声，疑是曹君”。\n- **意义**：展现了曹雪芹在困顿中依然豪放不羁、才华横溢的个性，以及其在小圈子内的影响力。\n\n### 📍 重要地点：北京张家湾\n- **时间**：约1762年（乾隆二十七年）\n- **停留时间**：短暂经过\n- **地点**：通州张家湾（今北京市通州区张家湾镇）\n- **事件**：据考证，曹家被抄后，部分家产（包括书籍）可能暂存于此地当铺或旧宅。曹雪芹晚年或曾来此处理旧物。\n- **意义**：连接其家族过往与当下困顿的实物纽带，是触发其对家族往事回忆的潜在地点。\n\n### 🔴 去世地：北京西山\n- **时间**：约1763年或1764年除夕（说法不一）\n- **停留时间**：晚年长期居住\n- **地点**：北京西山（今北京市海淀区香山正白旗村，具体去世地点存疑）\n- **事件**：在幼子夭折的沉重打击下，一病不起，于除夕夜（或前后）溘然长逝。\n- **意义**：巨星陨落之地。《红楼梦》前八十回的定稿与流传于此完成，后四十回（或更多）遗稿在此散失，成为中国文学史上最大的谜团之一。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1715年 | 0岁 | 出生于江宁织造府曹家（存疑）。 |\n| 约1728年 | 约13岁 | 曹家被抄，随家人迁居北京，生活发生巨变。 |\n| 约1730年代 | 约15-20岁 | 可能在右翼宗学任职或学习，结识敦敏、敦诚（雍正末年至乾隆初年）。 |\n| 约1740年代 | 约25-35岁 | 家境进一步衰落，迁居西山一带，开始《红楼梦》的创作。 |\n| 约1750年代 | 约35-45岁 | 定居西山白家疃，专心著书，“批阅十载，增删五次”。 |\n| 约1760年代初 | 约45岁 | 与明琳等友人交往，诗酒唱和，名声在小圈子内传播。 |\n| 约1762年 | 约47岁 | 幼子夭折，身心遭受重创。 |\n| 约1763/1764年 | 约48/49岁 | 于除夕夜病逝于北京西山（说法不一）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 南京江宁织造博物馆（原址附近） | 32.047 | 118.792 |\n| 北京蒜市口（广渠门内大街） | 39.892 | 116.434 |\n| 北京小石虎胡同（右翼宗学旧址） | 39.912 | 116.378 |\n| 北京卧佛寺 | 39.993 | 116.205 |\n| 北京白家疃村 | 40.003 | 116.198 |\n| 北京香山正白旗村（曹雪芹纪念馆） | 39.992 | 116.210 |\n| 北京通州张家湾古镇 | 39.853 | 116.705 |", "relatedGraph": {"center": {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "“江山代有才人出，各领风骚数百年”", "review": "*清代学者李慈铭评**：“（《廿二史札记》）贯串全史，参互考订，不特阙文误义多所辨明，而各朝之史，皆综其要义，铨其异闻，使首尾井然，一览可悉。”", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹雪芹", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "赵翼", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "蒲松龄", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "纪昀", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "牛顿", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "曹雪芹", "title": "", "description": "曹雪芹，名霑，字梦阮，号雪芹，又号芹圃、芹溪。出身于清代显赫的“百年望族”——江宁曹家，祖辈三代四人世袭江宁织造，曾祖母孙氏为康熙帝乳母，家族极受皇恩。少年时代，他亲历了一段“锦衣纨绔、饫甘餍肥”的富贵生活。雍正年间，曹家因亏空获罪被抄，家道急剧中落。约在乾隆初年，曹雪芹随家人迁回北京，晚年居住在北京西郊，生活陷入“举家食粥酒常赊”的困顿境地。在贫病交加中，他“披阅十载，增删五次”，将全部心血倾注于《红楼梦》的创作，直至耗尽生命。这部巨著未竟而终，成为文学史上永恒的遗憾。", "quote": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "shortReview": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "dynasty": "清代（清康熙末年至乾隆中期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "1715年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1763年", "location": "北京西山（今北京市海淀区香山正白旗村）（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约四十八岁或四十岁（因生年存疑，按1715-1763年计算约48岁，按1724-1764年计算约40岁）", "highlights": {"honor": "", "status": "中国古典小说巅峰之作《红楼梦》的作者，伟大的现实主义文学大师。", "identities": "小说家、诗人、画家", "achievements": "", "works": ["红楼梦"], "reviews": []}}, "locations": [{"name": "北京白家疃", "ancientName": "白家疃", "modernName": "北京市海淀区温泉镇白家疃村", "lat": 40.003, "lng": 116.198, "coordSystem": "WGS84", "type": "normal", "event": "晚年主要居住地，传说曾在此“结庐著书”，生活极度清贫，专注于《红楼梦》的写作与修改。", "time": "约1750年代（乾隆十五年左右）至去世", "duration": "约十年", "significance": "这是《红楼梦》主要创作阶段的核心地点，见证了“批阅十载，增删五次”的艰辛历程。", "works": ["红楼梦"], "quoteLines": ["《红楼梦》：“满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---", "workTexts": {"红楼梦": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "佩刀质酒歌": "曹子大笑称快哉，击石作歌声琅琅。", "寄怀曹雪芹": "事件：常与好友敦敏、敦诚兄弟聚会，饮酒赋诗，畅谈抱负。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 曹雪芹\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹雪芹\n- **时代**：清代（清康熙末年至乾隆中期）\n- **出生**：约公元1715年（一说1724年），江宁织造府（今江苏省南京市玄武区）（具体年份存疑）\n- **去世**：约公元1763年或1764年除夕，北京西山（今北京市海淀区香山正白旗村）（说法不一）\n- **享年**：约四十八岁或四十岁（因生年存疑，按1715-1763年计算约48岁，按1724-1764年计算约40岁）\n- **主要身份**：小说家、诗人、画家\n- **历史地位**：中国古典小说巅峰之作《红楼梦》的作者，伟大的现实主义文学大师。\n- **主要成就**：\n    - 创作不朽名著《红楼梦》（又名《石头记》）。\n    - 以自身家族兴衰为蓝本，深刻揭示了封建社会的末世景象。\n    - 开创了中国古典小说叙事艺术的新范式，塑造了数百个栩栩如生的人物形象。\n    - 在诗词、绘画、园林美学等方面亦有深厚造诣。\n\n### 生平概述\n曹雪芹，名霑，字梦阮，号雪芹，又号芹圃、芹溪。出身于清代显赫的“百年望族”——江宁曹家，祖辈三代四人世袭江宁织造，曾祖母孙氏为康熙帝乳母，家族极受皇恩。少年时代，他亲历了一段“锦衣纨绔、饫甘餍肥”的富贵生活。雍正年间，曹家因亏空获罪被抄，家道急剧中落。约在乾隆初年，曹雪芹随家人迁回北京，晚年居住在北京西郊，生活陷入“举家食粥酒常赊”的困顿境地。在贫病交加中，他“披阅十载，增删五次”，将全部心血倾注于《红楼梦》的创作，直至耗尽生命。这部巨著未竟而终，成为文学史上永恒的遗憾。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从南京到北京，再迁居西山，一生轨迹浓缩了家族从江南繁华到京华落魄的巨变。\n- ⏱️ **时间跨度**：约1715年 - 1763年（一说1724-1764年），总计约48年（一说约40年）。\n- 📍 **地理范围**：主要活动于今江苏省南京市、北京市城区及西郊一带。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：江宁织造府\n- **时间**：约1715年（存疑）\n- **停留时间**：约13年（至抄家前）\n- **地点**：江宁织造府（今江苏省南京市玄武区）\n- **事件**：出生于曹家鼎盛时期的江宁织造府，童年与少年时期在此度过，亲历家族最后的繁华。\n- **意义**：这里是曹雪芹世界观与审美形成的起点，也是《红楼梦》中贾府“烈火烹油，鲜花着锦”之盛的灵感源泉。\n\n### 📍 重要地点：北京蒜市口\n- **时间**：约1728年（雍正六年）后\n- **停留时间**：数年\n- **地点**：蒜市口（今北京市东城区广渠门内大街一带）\n- **事件**：曹家被抄后举家迁回北京的早期居所之一，生活从云端跌落，开始体验市井艰辛。\n- **意义**：家族命运转折的关键地，使其深刻体会世态炎凉，为创作积累了丰富的生活素材。\n\n### 📍 重要地点：右翼宗学\n- **时间**：约1730年代（雍正末年至乾隆初年）\n- **停留时间**：数年\n- **地点**：右翼宗学（今北京市西城区小石虎胡同一带）\n- **事件**：曾在此短期任职或学习（具体职务存疑，有“瑟夫”即教习一说），结识了敦敏、敦诚等宗室文人。\n- **意义**：在此与文友诗酒唱和，展现了卓越的才华与不羁的性格，获得了重要的精神支持与交流圈。\n\n### 📍 重要地点：北京卧佛寺\n- **时间**：约1740年代\n- **停留时间**：暂居\n- **地点**：卧佛寺（今北京市海淀区香山卧佛寺）\n- **事件**：生活日益困顿，曾移居西山附近，常游憩于卧佛寺等古刹名胜。\n- **意义**：西山清幽的环境为其提供了创作空间，寺庙的兴衰与人生感悟可能融入了《红楼梦》的哲学思考。\n\n### 📍 重要地点：北京白家疃\n- **时间**：约1750年代（乾隆十五年左右）至去世\n- **停留时间**：约十年\n- **地点**：白家疃（今北京市海淀区温泉镇白家疃村）\n- **事件**：晚年主要居住地，传说曾在此“结庐著书”，生活极度清贫，专注于《红楼梦》的写作与修改。\n- **意义**：这是《红楼梦》主要创作阶段的核心地点，见证了“批阅十载，增删五次”的艰辛历程。\n- **名篇名句**：《红楼梦》：“满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？”\n\n### 📍 重要地点：北京敦敏、敦诚宅邸\n- **时间**：贯穿在京期间\n- **停留时间**：不定期拜访\n- **地点**：槐园、西园等（具体位置存疑，约在清代北京内城，今北京市东城区、西城区一带）\n- **事件**：常与好友敦敏、敦诚兄弟聚会，饮酒赋诗，畅谈抱负。敦诚《寄怀曹雪芹》等诗记录了其生活片段。\n- **意义**：这些交往是曹雪芹困顿生活中重要的精神慰藉，其诗才在友朋间备受推崇。\n- **名篇名句**：敦诚《佩刀质酒歌》：“曹子大笑称快哉，击石作歌声琅琅。”\n\n### 📍 重要地点：北京明琳宅邸\n- **时间**：约1760年代初\n- **停留时间**：不定期聚会\n- **地点**：明琳宅邸（具体位置存疑，约在清代北京内城，今北京市东城区、西城区一带）\n- **事件**：经朋友介绍结识宗室画家明琳，曾在其宅中高谈阔论，“隔院闻高谈声，疑是曹君”。\n- **意义**：展现了曹雪芹在困顿中依然豪放不羁、才华横溢的个性，以及其在小圈子内的影响力。\n\n### 📍 重要地点：北京张家湾\n- **时间**：约1762年（乾隆二十七年）\n- **停留时间**：短暂经过\n- **地点**：通州张家湾（今北京市通州区张家湾镇）\n- **事件**：据考证，曹家被抄后，部分家产（包括书籍）可能暂存于此地当铺或旧宅。曹雪芹晚年或曾来此处理旧物。\n- **意义**：连接其家族过往与当下困顿的实物纽带，是触发其对家族往事回忆的潜在地点。\n\n### 🔴 去世地：北京西山\n- **时间**：约1763年或1764年除夕（说法不一）\n- **停留时间**：晚年长期居住\n- **地点**：北京西山（今北京市海淀区香山正白旗村，具体去世地点存疑）\n- **事件**：在幼子夭折的沉重打击下，一病不起，于除夕夜（或前后）溘然长逝。\n- **意义**：巨星陨落之地。《红楼梦》前八十回的定稿与流传于此完成，后四十回（或更多）遗稿在此散失，成为中国文学史上最大的谜团之一。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1715年 | 0岁 | 出生于江宁织造府曹家（存疑）。 |\n| 约1728年 | 约13岁 | 曹家被抄，随家人迁居北京，生活发生巨变。 |\n| 约1730年代 | 约15-20岁 | 可能在右翼宗学任职或学习，结识敦敏、敦诚（雍正末年至乾隆初年）。 |\n| 约1740年代 | 约25-35岁 | 家境进一步衰落，迁居西山一带，开始《红楼梦》的创作。 |\n| 约1750年代 | 约35-45岁 | 定居西山白家疃，专心著书，“批阅十载，增删五次”。 |\n| 约1760年代初 | 约45岁 | 与明琳等友人交往，诗酒唱和，名声在小圈子内传播。 |\n| 约1762年 | 约47岁 | 幼子夭折，身心遭受重创。 |\n| 约1763/1764年 | 约48/49岁 | 于除夕夜病逝于北京西山（说法不一）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《红楼梦》**（节选，如《林黛玉进贾府》《香菱学诗》等）\n- 核心要点：\n    - **重点**：通过**贾宝玉**、**林黛玉**等人的爱情悲剧，深刻揭示了封建大家族的腐朽与必然衰落的命运。\n    - **重点**：塑造了**金陵十二钗**等众多性格鲜明、命运各异的女性形象，展现了对个体生命价值的深切关怀。\n    - **叙事艺术**：采用**草蛇灰线，伏脉千里**的伏笔手法，结构宏大精密，细节耐人寻味。\n    - **语言风格**：人物对话高度个性化，**诗词曲赋**与情节、人物性格完美融合。\n    - **象征体系**：**太虚幻境**、**通灵宝玉**等构成了小说深邃的象征与神话框架。\n    - **重点**：作品体现了作者对**人生**、**命运**、**情感**的深刻哲思，具有永恒的艺术魅力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **江宁织造**曹家的兴衰是清代**包衣奴才**家族命运与皇权关系的一个缩影。\n    - 曹雪芹的生活年代处于“**康乾盛世**”的中后期，社会表面繁荣，内部矛盾已开始积累。\n    - **重点**：其家族因**经济亏空**（直接原因）和**政治失势**（根本原因）被抄家，反映了清代官场的残酷。\n- 核心要点：\n    - **重点**：曹雪芹是**中国古代现实主义文学**的巅峰代表，其创作根植于个人家族的**盛衰巨变**。\n    - **文学地位**：《红楼梦》被誉为中国封建社会的“**百科全书**”，具有极高的社会历史认识价值。\n    - **重点**：他的生平体现了从**富贵**到**贫贱**的极端人生体验，这种体验是其创作最深刻的情感源泉。\n    - **时代背景**：生活在文字狱盛行的清代中期，小说“**真事隐去，假语村言**”的写法具有时代必然性。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 南京江宁织造博物馆（原址附近） | 32.047 | 118.792 |\n| 北京蒜市口（广渠门内大街） | 39.892 | 116.434 |\n| 北京小石虎胡同（右翼宗学旧址） | 39.912 | 116.378 |\n| 北京卧佛寺 | 39.993 | 116.205 |\n| 北京白家疃村 | 40.003 | 116.198 |\n| 北京香山正白旗村（曹雪芹纪念馆） | 39.992 | 116.210 |\n| 北京通州张家湾古镇 | 39.853 | 116.705 |", "relatedGraph": {"center": {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "“江山代有才人出，各领风骚数百年”", "review": "*清代学者李慈铭评**：“（《廿二史札记》）贯串全史，参互考订，不特阙文误义多所辨明，而各朝之史，皆综其要义，铨其异闻，使首尾井然，一览可悉。”", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹雪芹", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "赵翼", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "蒲松龄", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "纪昀", "label": "同时代人物", "confidence": null}, {"source": "曹雪芹", "target": "牛顿", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "黄庭坚", "title": "苏黄", "description": "黄庭坚，字鲁直，号山谷道人、涪翁。他生于北宋仁宗庆历年间，历经仁宗、英宗、神宗、哲宗、徽宗五朝。早年随舅父李常游学，才华出众。治平四年（1067年）进士及第，从此踏上仕途。他一生深受**新旧党争**牵连，仕途坎坷，多次被贬。其诗风奇崛瘦硬，力避轻俗，开创了影响深远的**江西诗派**。晚年因被划入“元祐党人”而屡遭贬谪，最终卒于宜州贬所。他在诗歌、书法领域均取得了极高的成就，是宋代文化的重要代表人物。", "quote": "落木千山天远大，澄江一道月分明。", "shortReview": "落木千山天远大，澄江一道月分明。", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "洪州分宁（今江西省九江市修水县）", "avatar": "", "birth": {"date": "1045年", "location": "洪州分宁（今江西省九江市修水县）", "lat": 29.0, "lng": 114.5, "coordSystem": "WGS84"}, "death": {"date": "1105年", "location": "宜州（今广西壮族自治区河池市宜州区）", "lat": 24.5, "lng": 108.6, "coordSystem": "WGS84"}, "lifespan": "约60岁（因出生年份有1045年与1049年两说，此取1045年生，享年60岁）", "highlights": {"honor": "苏黄", "status": "北宋文学巨匠，与苏轼并称“苏黄”，书法为“宋四家”之一。", "identities": "诗人、词人、书法家、江西诗派开山之祖", "achievements": "开创**江西诗派**，影响深远；书法与苏轼、米芾、蔡襄并称“宋四家”；诗歌讲究“**点铁成金**”、“**夺胎换骨**”；词作与秦观齐名。", "works": [], "reviews": []}}, "locations": [{"name": "洪州分宁", "ancientName": "洪州分宁", "modernName": "江西省九江市修水县", "lat": 29.0, "lng": 114.5, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，父亲黄庶为庆历年间进士。早年丧父，随舅父李常（淮南西路提点刑狱）游学。", "time": "约公元1045年", "duration": "幼年", "significance": "奠定了深厚的家学渊源与文学基础。", "works": [], "quoteLines": []}, {"name": "叶县", "ancientName": "汝州叶县", "modernName": "河南省平顶山市叶县", "lat": 33.6, "lng": 113.3, "coordSystem": "WGS84", "type": "normal", "event": "其父黄庶在叶县任职（一说黄庭坚随舅父在此居住）。此期间他开始系统学习并创作诗歌。", "time": "公元1063年 - 公元1067年", "duration": "约4年", "significance": "早期文学积累与风格形成的重要阶段。", "works": [], "quoteLines": []}, {"name": "汴京", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.3, "coordSystem": "WGS84", "type": "normal", "event": "参加科举，登**进士第**。登第后授叶县尉。", "time": "公元1067年", "duration": "短暂", "significance": "正式开启仕途，进入北宋政治文化中心。", "works": [], "quoteLines": []}, {"name": "大名府", "ancientName": "大名府", "modernName": "河北省邯郸市大名县", "lat": 36.3, "lng": 115.1, "coordSystem": "WGS84", "type": "normal", "event": "任北京国子监教授。期间与**苏轼**通信，得到苏轼赏识，声名渐起。", "time": "公元1072年 - 公元1079年", "duration": "约7年", "significance": "文名日盛，并确立了与文坛领袖苏轼的终身友谊。", "works": [], "quoteLines": []}, {"name": "太和县", "ancientName": "吉州太和县", "modernName": "江西省吉安市泰和县", "lat": 26.8, "lng": 114.9, "coordSystem": "WGS84", "type": "normal", "event": "任太和县令。深入民间，体察民情，创作了大量反映现实、关心民瘼的诗篇。", "time": "公元1080年 - 公元1083年", "duration": "约3年", "significance": "诗歌创作的高峰期之一，体现了其儒家仁政思想。名篇**《登快阁》** 作于此地。", "works": ["登快阁"], "quoteLines": ["《登快阁》：落木千山天远大，澄江一道月分明。"]}, {"name": "德州德平镇", "ancientName": "德州德平镇", "modernName": "山东省德州市临邑县德平镇", "lat": 37.2, "lng": 116.9, "coordSystem": "WGS84", "type": "normal", "event": "任德平镇监。诗歌风格更趋成熟老练。", "time": "公元1084年 - 公元1085年", "duration": "约1年", "significance": "地方任职经历的延续，诗艺进一步精进。", "works": [], "quoteLines": []}, {"name": "汴京（馆阁时期）", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.3, "coordSystem": "WGS84", "type": "normal", "event": "哲宗即位，旧党执政。黄庭坚被召入京，任秘书省校书郎、**《神宗实录》检讨官**、著作佐郎等职。与苏轼、秦观、晁补之、张耒等交游，号“**苏门四学士**”。", "time": "公元1086年 - 公元1093年", "duration": "约7年", "significance": "政治与文学地位的顶峰时期，深度参与元祐年间的文化活动。", "works": ["神宗实录"], "quoteLines": []}, {"name": "黔州", "ancientName": "黔州", "modernName": "重庆市彭水苗族土家族自治县", "lat": 29.3, "lng": 108.2, "coordSystem": "WGS84", "type": "normal", "event": "哲宗亲政，新党得势。因修《神宗实录》被指控“多诬”，贬为涪州别驾，安置于黔州。在艰苦环境中坚持创作与治学。", "time": "公元1094年 - 公元1098年", "duration": "约4年", "significance": "人生重大转折，贬谪生涯的开始。诗风更显苍凉沉郁，心境趋于超脱。", "works": ["神宗实录"], "quoteLines": ["《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？"]}, {"name": "宜州", "ancientName": "宜州", "modernName": "广西壮族自治区河池市宜州区", "lat": 24.5, "lng": 108.6, "coordSystem": "WGS84", "type": "death", "event": "徽宗即位后稍复官职，但旋即因“**元祐党人**”碑再遭贬谪，编管宜州。在宜州生活困顿，于崇宁四年（1105年）九月三十日病逝。", "time": "公元1100年 - 公元1105年", "duration": "约5年", "significance": "生命的终点，体现了其在政治迫害下坚守文人风骨的最后岁月。", "works": [], "quoteLines": ["《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---", "workTexts": {"登快阁": "意义：诗歌创作的高峰期之一，体现了其儒家仁政思想。", "神宗实录": "“苏门四学士”", "定风波·次高左藏使君韵": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "定风波": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "次高左藏使君韵": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "虞美人·宜州见梅作": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "虞美人": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "宜州见梅作": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "寄黄几复": "“桃李春风一杯酒，江湖夜雨十年灯”", "清平乐·春归何处": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "清平乐": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "春归何处": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 黄庭坚\n\n## 人物档案\n\n### 基本信息\n- **姓名**：黄庭坚\n- **时代**：北宋\n- **出生**：约公元1045年（一说1049年，存疑），洪州分宁（今江西省九江市修水县）。\n- **去世**：公元1105年，宜州（今广西壮族自治区河池市宜州区）\n- **享年**：约60岁（因出生年份有1045年与1049年两说，此取1045年生，享年60岁）\n- **主要身份**：诗人、词人、书法家、江西诗派开山之祖\n- **历史地位**：北宋文学巨匠，与苏轼并称“苏黄”，书法为“宋四家”之一。\n- **主要成就**：开创**江西诗派**，影响深远；书法与苏轼、米芾、蔡襄并称“宋四家”；诗歌讲究“**点铁成金**”、“**夺胎换骨**”；词作与秦观齐名。\n\n### 生平概述\n黄庭坚，字鲁直，号山谷道人、涪翁。他生于北宋仁宗庆历年间，历经仁宗、英宗、神宗、哲宗、徽宗五朝。早年随舅父李常游学，才华出众。治平四年（1067年）进士及第，从此踏上仕途。他一生深受**新旧党争**牵连，仕途坎坷，多次被贬。其诗风奇崛瘦硬，力避轻俗，开创了影响深远的**江西诗派**。晚年因被划入“元祐党人”而屡遭贬谪，最终卒于宜州贬所。他在诗歌、书法领域均取得了极高的成就，是宋代文化的重要代表人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及今江西、河南、河北、山东、重庆、广西等省市，从中原腹地到岭南烟瘴之地。\n- ⏱️ **时间跨度**：约公元1045年 - 公元1105年，共约60年。\n- 📍 **地理范围**：主要活动于长江中下游、中原及岭南地区。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：洪州分宁\n- **时间**：约公元1045年\n- **停留时间**：幼年\n- **地点**：洪州分宁（今江西省九江市修水县）\n- **事件**：出生于书香门第，父亲黄庶为庆历年间进士。早年丧父，随舅父李常（淮南西路提点刑狱）游学。\n- **意义**：奠定了深厚的家学渊源与文学基础。\n\n### 📍 重要地点：叶县\n- **时间**：公元1063年 - 公元1067年\n- **停留时间**：约4年\n- **地点**：汝州叶县（今河南省平顶山市叶县）\n- **事件**：其父黄庶在叶县任职（一说黄庭坚随舅父在此居住）。此期间他开始系统学习并创作诗歌。\n- **意义**：早期文学积累与风格形成的重要阶段。\n\n### 📍 重要地点：汴京\n- **时间**：公元1067年\n- **停留时间**：短暂\n- **地点**：开封府（今河南省开封市）\n- **事件**：参加科举，登**进士第**。登第后授叶县尉。\n- **意义**：正式开启仕途，进入北宋政治文化中心。\n\n### 📍 重要地点：大名府\n- **时间**：公元1072年 - 公元1079年\n- **停留时间**：约7年\n- **地点**：大名府（今河北省邯郸市大名县）\n- **事件**：任北京国子监教授。期间与**苏轼**通信，得到苏轼赏识，声名渐起。\n- **意义**：文名日盛，并确立了与文坛领袖苏轼的终身友谊。\n\n### 📍 重要地点：太和县\n- **时间**：公元1080年 - 公元1083年\n- **停留时间**：约3年\n- **地点**：吉州太和县（今江西省吉安市泰和县）\n- **事件**：任太和县令。深入民间，体察民情，创作了大量反映现实、关心民瘼的诗篇。\n- **意义**：诗歌创作的高峰期之一，体现了其儒家仁政思想。名篇**《登快阁》** 作于此地。\n- **名篇名句**：《登快阁》：落木千山天远大，澄江一道月分明。\n\n### 📍 重要地点：德州德平镇\n- **时间**：公元1084年 - 公元1085年\n- **停留时间**：约1年\n- **地点**：德州德平镇（今山东省德州市临邑县德平镇）\n- **事件**：任德平镇监。诗歌风格更趋成熟老练。\n- **意义**：地方任职经历的延续，诗艺进一步精进。\n\n### 📍 重要地点：汴京（馆阁时期）\n- **时间**：公元1086年 - 公元1093年\n- **停留时间**：约7年\n- **地点**：开封府（今河南省开封市）\n- **事件**：哲宗即位，旧党执政。黄庭坚被召入京，任秘书省校书郎、**《神宗实录》检讨官**、著作佐郎等职。与苏轼、秦观、晁补之、张耒等交游，号“**苏门四学士**”。\n- **意义**：政治与文学地位的顶峰时期，深度参与元祐年间的文化活动。\n\n### 📍 重要地点：黔州\n- **时间**：公元1094年 - 公元1098年\n- **停留时间**：约4年\n- **地点**：黔州（今重庆市彭水苗族土家族自治县）\n- **事件**：哲宗亲政，新党得势。因修《神宗实录》被指控“多诬”，贬为涪州别驾，安置于黔州。在艰苦环境中坚持创作与治学。\n- **意义**：人生重大转折，贬谪生涯的开始。诗风更显苍凉沉郁，心境趋于超脱。\n- **名篇名句**：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？\n\n### 🔴 去世地：宜州\n- **时间**：公元1100年 - 公元1105年\n- **停留时间**：约5年\n- **地点**：宜州（今广西壮族自治区河池市宜州区）\n- **事件**：徽宗即位后稍复官职，但旋即因“**元祐党人**”碑再遭贬谪，编管宜州。在宜州生活困顿，于崇宁四年（1105年）九月三十日病逝。\n- **意义**：生命的终点，体现了其在政治迫害下坚守文人风骨的最后岁月。\n- **名篇名句**：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1045 | 1岁 | 生于洪州分宁（今江西修水）。 |\n| 1063 | 约18岁 | 随舅父游学，至叶县等地。 |\n| 1067 | 约22岁 | 登进士第，调叶县尉。 |\n| 1072 | 约27岁 | 任北京（大名府）国子监教授。 |\n| 1080 | 约35岁 | 知吉州太和县。 |\n| 1084 | 约39岁 | 移监德州德平镇。 |\n| 1086 | 约41岁 | 入京任秘书省校书郎，为《神宗实录》检讨官，与苏轼等交游。 |\n| 1094 | 约49岁 | 哲宗亲政，被贬涪州别驾，黔州安置。 |\n| 1100 | 约55岁 | 徽宗即位，复官，旋即又被除名，羁管宜州。 |\n| 1105 | 60岁 | 卒于宜州贬所。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省九江市修水县 | 29.0 | 114.5 |\n| 河南省平顶山市叶县 | 33.6 | 113.3 |\n| 河南省开封市 | 34.8 | 114.3 |\n| 河北省邯郸市大名县 | 36.3 | 115.1 |\n| 江西省吉安市泰和县 | 26.8 | 114.9 |\n| 山东省德州市临邑县德平镇 | 37.2 | 116.9 |\n| 重庆市彭水苗族土家族自治县 | 29.3 | 108.2 |\n| 广西壮族自治区河池市宜州区 | 24.5 | 108.6 |", "relatedGraph": {"center": {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "落木千山天远大，澄江一道月分明。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "落木千山天远大，澄江一道月分明。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏洵", "name": "苏洵", "file": "苏洵.html", "dynasty": "北宋", "aliases": [], "birth_year": 1009, "death_year": 1066, "quote": "“六国破灭，非兵不利，战不善，弊在赂秦。”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏东坡", "name": "苏东坡", "file": "苏东坡.html", "dynasty": "北宋（仁宗至徽宗年间）", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "苏轼出生于四川眉山一个书香之家，自幼聪颖，在父亲苏洵的悉心教导下，与弟弟苏辙一起饱读诗书", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "宋仁宗景祐四年生于眉州眉山", "birthplace_modern": "四川省眉山市东坡区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "黄庭坚", "target": "苏轼", "label": "并称", "confidence": 0.55}, {"source": "黄庭坚", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏舜钦", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏洵", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏东坡", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "黄庭坚", "title": "苏黄", "description": "黄庭坚，字鲁直，号山谷道人、涪翁。他生于北宋仁宗庆历年间，历经仁宗、英宗、神宗、哲宗、徽宗五朝。早年随舅父李常游学，才华出众。治平四年（1067年）进士及第，从此踏上仕途。他一生深受**新旧党争**牵连，仕途坎坷，多次被贬。其诗风奇崛瘦硬，力避轻俗，开创了影响深远的**江西诗派**。晚年因被划入“元祐党人”而屡遭贬谪，最终卒于宜州贬所。他在诗歌、书法领域均取得了极高的成就，是宋代文化的重要代表人物。", "quote": "落木千山天远大，澄江一道月分明。", "shortReview": "落木千山天远大，澄江一道月分明。", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "洪州分宁（今江西省九江市修水县）", "avatar": "", "birth": {"date": "1045年", "location": "洪州分宁（今江西省九江市修水县）", "lat": 29.0, "lng": 114.5, "coordSystem": "WGS84"}, "death": {"date": "1105年", "location": "宜州（今广西壮族自治区河池市宜州区）", "lat": 24.5, "lng": 108.6, "coordSystem": "WGS84"}, "lifespan": "约60岁（因出生年份有1045年与1049年两说，此取1045年生，享年60岁）", "highlights": {"honor": "苏黄", "status": "北宋文学巨匠，与苏轼并称“苏黄”，书法为“宋四家”之一。", "identities": "诗人、词人、书法家、江西诗派开山之祖", "achievements": "开创**江西诗派**，影响深远；书法与苏轼、米芾、蔡襄并称“宋四家”；诗歌讲究“**点铁成金**”、“**夺胎换骨**”；词作与秦观齐名。", "works": [], "reviews": []}}, "locations": [{"name": "洪州分宁", "ancientName": "洪州分宁", "modernName": "江西省九江市修水县", "lat": 29.0, "lng": 114.5, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，父亲黄庶为庆历年间进士。早年丧父，随舅父李常（淮南西路提点刑狱）游学。", "time": "约公元1045年", "duration": "幼年", "significance": "奠定了深厚的家学渊源与文学基础。", "works": [], "quoteLines": []}, {"name": "叶县", "ancientName": "汝州叶县", "modernName": "河南省平顶山市叶县", "lat": 33.6, "lng": 113.3, "coordSystem": "WGS84", "type": "normal", "event": "其父黄庶在叶县任职（一说黄庭坚随舅父在此居住）。此期间他开始系统学习并创作诗歌。", "time": "公元1063年 - 公元1067年", "duration": "约4年", "significance": "早期文学积累与风格形成的重要阶段。", "works": [], "quoteLines": []}, {"name": "汴京", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.3, "coordSystem": "WGS84", "type": "normal", "event": "参加科举，登**进士第**。登第后授叶县尉。", "time": "公元1067年", "duration": "短暂", "significance": "正式开启仕途，进入北宋政治文化中心。", "works": [], "quoteLines": []}, {"name": "大名府", "ancientName": "大名府", "modernName": "河北省邯郸市大名县", "lat": 36.3, "lng": 115.1, "coordSystem": "WGS84", "type": "normal", "event": "任北京国子监教授。期间与**苏轼**通信，得到苏轼赏识，声名渐起。", "time": "公元1072年 - 公元1079年", "duration": "约7年", "significance": "文名日盛，并确立了与文坛领袖苏轼的终身友谊。", "works": [], "quoteLines": []}, {"name": "太和县", "ancientName": "吉州太和县", "modernName": "江西省吉安市泰和县", "lat": 26.8, "lng": 114.9, "coordSystem": "WGS84", "type": "normal", "event": "任太和县令。深入民间，体察民情，创作了大量反映现实、关心民瘼的诗篇。", "time": "公元1080年 - 公元1083年", "duration": "约3年", "significance": "诗歌创作的高峰期之一，体现了其儒家仁政思想。名篇**《登快阁》** 作于此地。", "works": ["登快阁"], "quoteLines": ["《登快阁》：落木千山天远大，澄江一道月分明。"]}, {"name": "德州德平镇", "ancientName": "德州德平镇", "modernName": "山东省德州市临邑县德平镇", "lat": 37.2, "lng": 116.9, "coordSystem": "WGS84", "type": "normal", "event": "任德平镇监。诗歌风格更趋成熟老练。", "time": "公元1084年 - 公元1085年", "duration": "约1年", "significance": "地方任职经历的延续，诗艺进一步精进。", "works": [], "quoteLines": []}, {"name": "汴京（馆阁时期）", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.8, "lng": 114.3, "coordSystem": "WGS84", "type": "normal", "event": "哲宗即位，旧党执政。黄庭坚被召入京，任秘书省校书郎、**《神宗实录》检讨官**、著作佐郎等职。与苏轼、秦观、晁补之、张耒等交游，号“**苏门四学士**”。", "time": "公元1086年 - 公元1093年", "duration": "约7年", "significance": "政治与文学地位的顶峰时期，深度参与元祐年间的文化活动。", "works": ["神宗实录"], "quoteLines": []}, {"name": "黔州", "ancientName": "黔州", "modernName": "重庆市彭水苗族土家族自治县", "lat": 29.3, "lng": 108.2, "coordSystem": "WGS84", "type": "normal", "event": "哲宗亲政，新党得势。因修《神宗实录》被指控“多诬”，贬为涪州别驾，安置于黔州。在艰苦环境中坚持创作与治学。", "time": "公元1094年 - 公元1098年", "duration": "约4年", "significance": "人生重大转折，贬谪生涯的开始。诗风更显苍凉沉郁，心境趋于超脱。", "works": ["神宗实录"], "quoteLines": ["《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？"]}, {"name": "宜州", "ancientName": "宜州", "modernName": "广西壮族自治区河池市宜州区", "lat": 24.5, "lng": 108.6, "coordSystem": "WGS84", "type": "death", "event": "徽宗即位后稍复官职，但旋即因“**元祐党人**”碑再遭贬谪，编管宜州。在宜州生活困顿，于崇宁四年（1105年）九月三十日病逝。", "time": "公元1100年 - 公元1105年", "duration": "约5年", "significance": "生命的终点，体现了其在政治迫害下坚守文人风骨的最后岁月。", "works": [], "quoteLines": ["《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---", "workTexts": {"登快阁": "意义：诗歌创作的高峰期之一，体现了其儒家仁政思想。", "神宗实录": "“苏门四学士”", "定风波·次高左藏使君韵": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "定风波": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "次高左藏使君韵": "名篇名句：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？", "虞美人·宜州见梅作": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "虞美人": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "宜州见梅作": "名篇名句：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。", "寄黄几复": "“桃李春风一杯酒，江湖夜雨十年灯”", "清平乐·春归何处": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "清平乐": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "春归何处": "词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以拟人手法写惜春之情，清新流丽。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 黄庭坚\n\n## 人物档案\n\n### 基本信息\n- **姓名**：黄庭坚\n- **时代**：北宋\n- **出生**：约公元1045年（一说1049年，存疑），洪州分宁（今江西省九江市修水县）。\n- **去世**：公元1105年，宜州（今广西壮族自治区河池市宜州区）\n- **享年**：约60岁（因出生年份有1045年与1049年两说，此取1045年生，享年60岁）\n- **主要身份**：诗人、词人、书法家、江西诗派开山之祖\n- **历史地位**：北宋文学巨匠，与苏轼并称“苏黄”，书法为“宋四家”之一。\n- **主要成就**：开创**江西诗派**，影响深远；书法与苏轼、米芾、蔡襄并称“宋四家”；诗歌讲究“**点铁成金**”、“**夺胎换骨**”；词作与秦观齐名。\n\n### 生平概述\n黄庭坚，字鲁直，号山谷道人、涪翁。他生于北宋仁宗庆历年间，历经仁宗、英宗、神宗、哲宗、徽宗五朝。早年随舅父李常游学，才华出众。治平四年（1067年）进士及第，从此踏上仕途。他一生深受**新旧党争**牵连，仕途坎坷，多次被贬。其诗风奇崛瘦硬，力避轻俗，开创了影响深远的**江西诗派**。晚年因被划入“元祐党人”而屡遭贬谪，最终卒于宜州贬所。他在诗歌、书法领域均取得了极高的成就，是宋代文化的重要代表人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及今江西、河南、河北、山东、重庆、广西等省市，从中原腹地到岭南烟瘴之地。\n- ⏱️ **时间跨度**：约公元1045年 - 公元1105年，共约60年。\n- 📍 **地理范围**：主要活动于长江中下游、中原及岭南地区。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：洪州分宁\n- **时间**：约公元1045年\n- **停留时间**：幼年\n- **地点**：洪州分宁（今江西省九江市修水县）\n- **事件**：出生于书香门第，父亲黄庶为庆历年间进士。早年丧父，随舅父李常（淮南西路提点刑狱）游学。\n- **意义**：奠定了深厚的家学渊源与文学基础。\n\n### 📍 重要地点：叶县\n- **时间**：公元1063年 - 公元1067年\n- **停留时间**：约4年\n- **地点**：汝州叶县（今河南省平顶山市叶县）\n- **事件**：其父黄庶在叶县任职（一说黄庭坚随舅父在此居住）。此期间他开始系统学习并创作诗歌。\n- **意义**：早期文学积累与风格形成的重要阶段。\n\n### 📍 重要地点：汴京\n- **时间**：公元1067年\n- **停留时间**：短暂\n- **地点**：开封府（今河南省开封市）\n- **事件**：参加科举，登**进士第**。登第后授叶县尉。\n- **意义**：正式开启仕途，进入北宋政治文化中心。\n\n### 📍 重要地点：大名府\n- **时间**：公元1072年 - 公元1079年\n- **停留时间**：约7年\n- **地点**：大名府（今河北省邯郸市大名县）\n- **事件**：任北京国子监教授。期间与**苏轼**通信，得到苏轼赏识，声名渐起。\n- **意义**：文名日盛，并确立了与文坛领袖苏轼的终身友谊。\n\n### 📍 重要地点：太和县\n- **时间**：公元1080年 - 公元1083年\n- **停留时间**：约3年\n- **地点**：吉州太和县（今江西省吉安市泰和县）\n- **事件**：任太和县令。深入民间，体察民情，创作了大量反映现实、关心民瘼的诗篇。\n- **意义**：诗歌创作的高峰期之一，体现了其儒家仁政思想。名篇**《登快阁》** 作于此地。\n- **名篇名句**：《登快阁》：落木千山天远大，澄江一道月分明。\n\n### 📍 重要地点：德州德平镇\n- **时间**：公元1084年 - 公元1085年\n- **停留时间**：约1年\n- **地点**：德州德平镇（今山东省德州市临邑县德平镇）\n- **事件**：任德平镇监。诗歌风格更趋成熟老练。\n- **意义**：地方任职经历的延续，诗艺进一步精进。\n\n### 📍 重要地点：汴京（馆阁时期）\n- **时间**：公元1086年 - 公元1093年\n- **停留时间**：约7年\n- **地点**：开封府（今河南省开封市）\n- **事件**：哲宗即位，旧党执政。黄庭坚被召入京，任秘书省校书郎、**《神宗实录》检讨官**、著作佐郎等职。与苏轼、秦观、晁补之、张耒等交游，号“**苏门四学士**”。\n- **意义**：政治与文学地位的顶峰时期，深度参与元祐年间的文化活动。\n\n### 📍 重要地点：黔州\n- **时间**：公元1094年 - 公元1098年\n- **停留时间**：约4年\n- **地点**：黔州（今重庆市彭水苗族土家族自治县）\n- **事件**：哲宗亲政，新党得势。因修《神宗实录》被指控“多诬”，贬为涪州别驾，安置于黔州。在艰苦环境中坚持创作与治学。\n- **意义**：人生重大转折，贬谪生涯的开始。诗风更显苍凉沉郁，心境趋于超脱。\n- **名篇名句**：《定风波·次高左藏使君韵》：莫笑老翁犹气岸，君看，几人黄菊上华颠？\n\n### 🔴 去世地：宜州\n- **时间**：公元1100年 - 公元1105年\n- **停留时间**：约5年\n- **地点**：宜州（今广西壮族自治区河池市宜州区）\n- **事件**：徽宗即位后稍复官职，但旋即因“**元祐党人**”碑再遭贬谪，编管宜州。在宜州生活困顿，于崇宁四年（1105年）九月三十日病逝。\n- **意义**：生命的终点，体现了其在政治迫害下坚守文人风骨的最后岁月。\n- **名篇名句**：《虞美人·宜州见梅作》：平生个里愿杯深，去国十年老尽少年心。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约1045 | 1岁 | 生于洪州分宁（今江西修水）。 |\n| 1063 | 约18岁 | 随舅父游学，至叶县等地。 |\n| 1067 | 约22岁 | 登进士第，调叶县尉。 |\n| 1072 | 约27岁 | 任北京（大名府）国子监教授。 |\n| 1080 | 约35岁 | 知吉州太和县。 |\n| 1084 | 约39岁 | 移监德州德平镇。 |\n| 1086 | 约41岁 | 入京任秘书省校书郎，为《神宗实录》检讨官，与苏轼等交游。 |\n| 1094 | 约49岁 | 哲宗亲政，被贬涪州别驾，黔州安置。 |\n| 1100 | 约55岁 | 徽宗即位，复官，旋即又被除名，羁管宜州。 |\n| 1105 | 60岁 | 卒于宜州贬所。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《登快阁》**、**《寄黄几复》**、《清平乐·春归何处》、《雨中登岳阳楼望君山二首》。\n- 核心要点：\n    - **重点**：诗歌理论强调“**点铁成金**”、“**夺胎换骨**”，主张化用前人诗句典故而自出新意。\n    - **重点**：诗风以**生新瘦硬**、奇崛峭拔著称，讲究字句的锤炼与章法的奇崛，是**江西诗派**的宗师。\n    - **重点**：**《登快阁》** 中的“落木千山天远大，澄江一道月分明”体现了其开阔的胸襟与清朗的意境。\n    - 《寄黄几复》中“桃李春风一杯酒，江湖夜雨十年灯”运用**意象并置**，凝练地表达了深挚的友情与人生的漂泊感。\n    - 词作兼具豪放与婉约，如《清平乐·春归何处》构思新颖，以**拟人**手法写惜春之情，清新流丽。\n    - 部分诗作直接反映社会现实与个人坎坷遭遇，情感真挚深沉。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：身处**新旧党争**激烈的时代，一生仕途与**元祐党人**的命运紧密相连，屡遭贬谪。\n    - **重点**：作为“**苏门四学士**”之一，与苏轼亦师亦友，文学观念深受苏轼影响，但最终自成一家。\n    - 因参与修撰**《神宗实录》**，被新党指控“诬毁先帝”，成为其被贬黔州的直接原因。\n- 核心要点：\n    - **重点**：其人生轨迹是北宋中后期**党争**文人命运的典型缩影，在政治迫害中坚持文学与艺术创作。\n    - **重点**：在文学史上，他被尊为**江西诗派**的**开山之祖**，其诗歌理论与创作实践对后世（尤其是南宋诗坛）影响极为深远。\n    - **重点**：在书法史上，与苏轼、米芾、蔡襄并称“**宋四家**”，其书法以侧险取势，纵横奇倔，自成一格。\n    - 评价上，历来将其与苏轼并称“**苏黄**”，代表了宋诗的一种独特美学追求与艺术高度。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省九江市修水县 | 29.0 | 114.5 |\n| 河南省平顶山市叶县 | 33.6 | 113.3 |\n| 河南省开封市 | 34.8 | 114.3 |\n| 河北省邯郸市大名县 | 36.3 | 115.1 |\n| 江西省吉安市泰和县 | 26.8 | 114.9 |\n| 山东省德州市临邑县德平镇 | 37.2 | 116.9 |\n| 重庆市彭水苗族土家族自治县 | 29.3 | 108.2 |\n| 广西壮族自治区河池市宜州区 | 24.5 | 108.6 |", "relatedGraph": {"center": {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "落木千山天远大，澄江一道月分明。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "落木千山天远大，澄江一道月分明。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏洵", "name": "苏洵", "file": "苏洵.html", "dynasty": "北宋", "aliases": [], "birth_year": 1009, "death_year": 1066, "quote": "“六国破灭，非兵不利，战不善，弊在赂秦。”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏东坡", "name": "苏东坡", "file": "苏东坡.html", "dynasty": "北宋（仁宗至徽宗年间）", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "苏轼出生于四川眉山一个书香之家，自幼聪颖，在父亲苏洵的悉心教导下，与弟弟苏辙一起饱读诗书", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "宋仁宗景祐四年生于眉州眉山", "birthplace_modern": "四川省眉山市东坡区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "黄庭坚", "target": "苏轼", "label": "并称", "confidence": 0.55}, {"source": "黄庭坚", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏舜钦", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏洵", "label": "同时代人物", "confidence": null}, {"source": "黄庭坚", "target": "苏东坡", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

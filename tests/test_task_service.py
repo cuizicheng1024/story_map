@@ -235,6 +235,42 @@ def test_task_service_preserves_degraded_result_files(tmp_path):
         service.shutdown()
 
 
+def test_task_service_rebuilds_exports_after_profile_refresh(tmp_path):
+    export_calls = []
+
+    def _generate(_client, person, **_kwargs):
+        return {
+            "ok": True,
+            "person": person,
+            "cached": True,
+            "refreshed": True,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    def _ensure_exports(_profile, person, *, allow_cache=True, **_kwargs):
+        export_calls.append({"person": person, "allow_cache": allow_cache})
+        return {
+            "geojson": f"/tmp/{person}.geojson",
+            "csv": f"/tmp/{person}.csv",
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate, ensure_profile_exports=_ensure_exports)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert export_calls == [{"person": "霍去病", "allow_cache": False}]
+    finally:
+        service.shutdown()
+
+
 def test_task_service_accepts_unknown_plain_person_name(tmp_path):
     service = _build_service(tmp_path)
     try:

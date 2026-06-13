@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李渊", "title": "", "description": "李渊出身于北周关陇贵族家庭，袭封唐国公。隋末天下大乱，他于大业十三年（617年）在晋阳起兵，同年攻占长安，立隋炀帝之孙杨侑为帝。次年（618年），隋炀帝死讯传来，李渊迫杨侑禅让，建立唐朝，年号武德。在位期间，他削平薛仁杲、李轨、刘武周、王世充、窦建德等割据势力，基本完成全国统一。武德九年（626年），其子李世民发动“玄武门之变”，李渊被迫立李世民为太子，不久禅位，成为太上皇，直至去世。", "quote": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "shortReview": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "dynasty": "隋末唐初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西西安）", "avatar": "", "birth": {"date": "566年", "location": "长安（今陕西西安）", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84"}, "death": {"date": "635年", "location": "长安（大安宫/垂拱殿", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84"}, "lifespan": "70岁（虚岁）", "highlights": {"honor": "", "status": "唐朝的开国皇帝，为大唐王朝近三百年的基业奠定了基础。", "identities": "政治家、军事家、唐朝开国皇帝", "achievements": "晋阳起兵、攻占长安、建立唐朝、统一全国、初步奠定唐初政治制度。", "works": [], "reviews": ["《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "毛泽东：“唐高祖李渊是中国封建史上一位杰出的政治家、军事家。”", "现代史家多认为，李渊在晋阳起兵中的主导作用长期被其子李世民的光环所掩盖，他是一位深谋远虑、善于把握时机的政治领袖。"]}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "birth", "event": "出生于北周贵族家庭，袭封唐国公。", "time": "公元566年", "duration": "童年及青少年时期", "significance": "其家族根基所在，也是其政治生涯的起点和最终归宿。", "works": [], "quoteLines": []}, {"name": "陇西成纪", "ancientName": "陇西成纪", "modernName": "甘肃省秦安县", "lat": 34.94, "lng": 105.7, "coordSystem": "WGS84", "type": "normal", "event": "李氏家族的郡望所在地，是其贵族身份的象征性源头。", "time": "约公元566年之前（郡望）", "duration": "家族祖籍地", "significance": "标榜其家族出身，增强政治号召力。", "works": [], "quoteLines": []}, {"name": "太原/晋阳", "ancientName": "太原郡晋阳县", "modernName": "山西省太原市西南", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "任太原留守，于此地招揽人才，储备力量，最终在晋阳宫起兵反隋。", "time": "公元615年—617年", "duration": "约2年", "significance": "其事业的发祥地，“唐”国号亦源于此（古唐国之地）。", "works": [], "quoteLines": []}, {"name": "晋阳宫", "ancientName": "晋阳宫", "modernName": "晋阳宫遗址（位于今山西省太原市晋源区）", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "在此诛杀副留守王威、高君雅，正式宣布起兵，史称“晋阳起兵”。", "time": "公元617年农历五月", "duration": "事件发生地（起兵决策与发动）", "significance": "李渊集团公开反隋的标志性地点，唐朝国运的起点。", "works": [], "quoteLines": []}, {"name": "霍邑", "ancientName": "霍邑", "modernName": "山西省霍州市", "lat": 36.56, "lng": 111.73, "coordSystem": "WGS84", "type": "normal", "event": "率军南下，于此地击败隋将宋老生，打开了进军关中的通道。", "time": "公元617年农历八月", "duration": "事件发生地（战役）", "significance": "起兵后的第一场关键性胜利，极大鼓舞了军心。", "works": [], "quoteLines": []}, {"name": "长安（大兴城）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "normal", "event": "攻占长安后，拥立隋恭帝，自封大丞相、唐王。次年受禅称帝，建立唐朝，以此为都。在此统治全国，后于此成为太上皇。", "time": "公元617年农历十一月—635年", "duration": "约18年（自攻占至去世）", "significance": "唐朝的京师，其政治生涯的核心舞台与最终归宿。", "works": [], "quoteLines": []}, {"name": "长春宫", "ancientName": "长春宫", "modernName": "长春宫遗址（位于今陕西省渭南市大荔县朝邑镇）", "lat": 34.79, "lng": 110.1, "coordSystem": "WGS84", "type": "normal", "event": "称帝后曾驻跸于此，指挥对关东割据势力的战争。", "time": "公元618年—619年", "duration": "称帝初期", "significance": "唐朝初年重要的前线指挥所。", "works": [], "quoteLines": []}, {"name": "长安（大安宫/垂拱殿）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "death", "event": "玄武门之变后退位为太上皇，晚年在宫中度过，郁郁而终。大安宫（原弘义宫）为其晚年居所。", "time": "公元635年农历五月", "duration": "太上皇时期（626年—635年）", "significance": "人生的终点，见证了从开国之君到失势太上皇的转变。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**隋末农民起义**，天下大乱。\n- **关键事件**：**晋阳起兵**（617年）；攻占**长安**；**建立唐朝**（618年，年号武德）。\n- **代表贡献**：完成**统一**；定都长安。\n- **常见易混点**：与**李世民**的贡献区分（李渊是开国之君，李世民是治国之君并开创“贞观之治”）。\n\n### 高中阶段\n- **时代背景**：**关陇集团**；**隋唐嬗代**。\n- **关键事件**：**晋阳起兵决策**的主导者问题（**存疑/说法不一**，传统史书强调李世民作用，现代研究多肯定李渊主导）；**玄武门之变**（626年）与**禅位**。\n- **代表思想/制度**：**《武德律》**；**租庸调制**；**府兵制**的承袭与初步完善。\n- **历史意义**：唐朝**制度奠基**者；其统治时期是**贞观之治**的准备阶段。\n- **对比点**：与**隋文帝**（开国与制度开创）对比；与**李世民**（开国与守成、治国）的功绩与形象对比。\n\n---", "examPoints": "### 初中阶段\n- 唐朝的建立者：**李渊**。\n- 建立时间：**618年**。\n- 都城：**长安**（今西安）。\n- 主要事件：从**太原**起兵，攻入长安。\n- 与唐太宗**李世民**的关系：父子，李渊是父亲，李世民是儿子。\n\n### 高中阶段\n- **晋阳起兵**的背景与主要谋划者（**存疑/说法不一**，教材常采《旧唐书》说，强调李世民首谋；学术研究有不同观点）。\n- 唐朝建立后面临的**主要割据势力**（如薛仁杲、刘武周、王世充、窦建德等）。\n- **武德年间**的政治特点：**宰相制度**（三省长官均为宰相）；**律令格式**的初步整理。\n- **玄武门之变**的性质与影响：宫廷政变，导致皇位继承权转移，李渊被迫退位。\n- **历史评价**的变迁：从被描述为优柔寡断到被重新评价为富有政治经验的开国君主。", "workTexts": {"旧唐书·高祖本纪": "（贞观）九年五月庚子，崩于太安宫之垂拱殿。", "旧唐书": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "高祖本纪": "（贞观）九年五月庚子，崩于太安宫之垂拱殿。", "授三秦豪杰等官敕": "相关文献：存疑（一说《授三秦豪杰等官敕》为李渊所下，但原文出处待考）。", "赐秦王诗": "相关文献：存疑（一说《赐秦王诗》为后世伪托，非李渊作品）。", "武德律": "“贞观之治”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李渊\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：李渊（字叔德）\n- **时代**：隋末唐初\n- **出生**：公元566年，长安（今陕西西安）\n- **去世**：公元635年，长安（大安宫/垂拱殿，今陕西西安）\n- **享年**：70岁（虚岁）\n- **主要身份**：政治家、军事家、唐朝开国皇帝\n- **历史地位**：唐朝的开国皇帝，为大唐王朝近三百年的基业奠定了基础。\n- **主要成就**：晋阳起兵、攻占长安、建立唐朝、统一全国、初步奠定唐初政治制度。\n\n### 生平概述\n李渊出身于北周关陇贵族家庭，袭封唐国公。隋末天下大乱，他于大业十三年（617年）在晋阳起兵，同年攻占长安，立隋炀帝之孙杨侑为帝。次年（618年），隋炀帝死讯传来，李渊迫杨侑禅让，建立唐朝，年号武德。在位期间，他削平薛仁杲、李轨、刘武周、王世充、窦建德等割据势力，基本完成全国统一。武德九年（626年），其子李世民发动“玄武门之变”，李渊被迫立李世民为太子，不久禅位，成为太上皇，直至去世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以长安（今西安）为中心，足迹遍及关中、山西、陇西等地。\n- ⏱️ **时间跨度**：公元566年—635年，共约70年。\n- 📍 **地理范围**：大致覆盖今陕西、山西、甘肃、河南等地区。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **公元纪年**：公元566年\n- **停留时间**：童年及青少年时期\n- **位置**：长安（今陕西省西安市）\n- **事迹**：出生于北周贵族家庭，袭封唐国公。\n- **意义**：其家族根基所在，也是其政治生涯的起点和最终归宿。\n\n### 📍 重要地点：陇西成纪\n- **公元纪年**：约公元566年之前（郡望）\n- **停留时间**：家族祖籍地\n- **位置**：陇西成纪（今甘肃省秦安县）\n- **事迹**：李氏家族的郡望所在地，是其贵族身份的象征性源头。\n- **意义**：标榜其家族出身，增强政治号召力。\n- **史料记载**：《旧唐书·高祖本纪》：“姓李氏，陇西成纪人也。”\n\n### 📍 重要地点：太原/晋阳\n- **公元纪年**：公元615年—617年\n- **停留时间**：约2年\n- **位置**：太原郡晋阳县（今山西省太原市西南）\n- **事迹**：任太原留守，于此地招揽人才，储备力量，最终在晋阳宫起兵反隋。\n- **意义**：其事业的发祥地，“唐”国号亦源于此（古唐国之地）。\n- **相关文献**：存疑（一说《授三秦豪杰等官敕》为李渊所下，但原文出处待考）。\n\n### 📍 重要地点：晋阳宫\n- **公元纪年**：公元617年农历五月\n- **停留时间**：事件发生地（起兵决策与发动）\n- **位置**：晋阳宫遗址（位于今山西省太原市晋源区）\n- **事迹**：在此诛杀副留守王威、高君雅，正式宣布起兵，史称“晋阳起兵”。\n- **意义**：李渊集团公开反隋的标志性地点，唐朝国运的起点。\n\n### 📍 重要地点：霍邑\n- **公元纪年**：公元617年农历八月\n- **停留时间**：事件发生地（战役）\n- **位置**：霍邑（今山西省霍州市）\n- **事迹**：率军南下，于此地击败隋将宋老生，打开了进军关中的通道。\n- **意义**：起兵后的第一场关键性胜利，极大鼓舞了军心。\n\n### 📍 重要地点：长安（大兴城）\n- **公元纪年**：公元617年农历十一月—635年\n- **停留时间**：约18年（自攻占至去世）\n- **位置**：长安（今陕西省西安市）\n- **事迹**：攻占长安后，拥立隋恭帝，自封大丞相、唐王。次年受禅称帝，建立唐朝，以此为都。在此统治全国，后于此成为太上皇。\n- **意义**：唐朝的京师，其政治生涯的核心舞台与最终归宿。\n- **相关文献**：存疑（一说《赐秦王诗》为后世伪托，非李渊作品）。\n\n### 📍 重要地点：长春宫\n- **公元纪年**：公元618年—619年\n- **停留时间**：称帝初期\n- **位置**：长春宫遗址（位于今陕西省渭南市大荔县朝邑镇）\n- **事迹**：称帝后曾驻跸于此，指挥对关东割据势力的战争。\n- **意义**：唐朝初年重要的前线指挥所。\n\n### 🔴 去世地：长安（大安宫/垂拱殿）\n- **公元纪年**：公元635年农历五月\n- **停留时间**：太上皇时期（626年—635年）\n- **位置**：长安（今陕西省西安市）\n- **经过**：玄武门之变后退位为太上皇，晚年在宫中度过，郁郁而终。大安宫（原弘义宫）为其晚年居所。\n- **意义**：人生的终点，见证了从开国之君到失势太上皇的转变。\n- **史料记载**：《旧唐书·高祖本纪》：“（贞观）九年五月庚子，崩于太安宫之垂拱殿。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元566年 | 0岁 | 出生于长安。 |\n| 公元572年 | 6岁 | 袭封唐国公。 |\n| 公元615年 | 49岁 | 被任命为山西河东慰抚大使，镇压起义，后升任太原留守。 |\n| 公元617年 | 51岁 | 农历五月，于晋阳起兵；农历十一月，攻占长安，立隋恭帝，自任大丞相、唐王。 |\n| 公元618年 | 52岁 | 隋炀帝死讯至，受禅称帝，建立唐朝，年号武德。 |\n| 公元618年—624年 | 52—58岁 | 进行统一战争，先后平定薛仁杲、李轨、刘武周、王世充、窦建德、刘黑闼等势力。 |\n| 公元626年 | 60岁 | 农历六月，玄武门之变爆发，秦王李世民杀太子李建成、齐王李元吉；农历八月，禅位于李世民，自称太上皇。 |\n| 公元635年 | 70岁 | 崩于长安大安宫，庙号高祖，葬于献陵。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n李渊在隋末乱世中抓住时机，成功起兵并建立唐朝，结束了隋末的分裂局面，重新统一了中国。他在位期间确立的官制、律法（如《武德律》）、均田制与租庸调制等，为“贞观之治”的繁荣奠定了坚实的制度基础。\n\n### 对后世的影响\n1.  **奠定大唐基业**：作为唐朝的创建者，其政治决策和军事行动为大唐近三百年的国祚开辟了道路。\n2.  **制度承前启后**：其武德年间的制度建设，上承隋制，下启贞观，是隋唐制度演进的关键一环。\n3.  **家族政治典范**：其以关陇贵族为核心，联合各方力量夺取天下的模式，成为后世研究贵族政治与王朝创建的重要案例。\n\n### 历史评价\n1.  《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”\n2.  毛泽东：“唐高祖李渊是中国封建史上一位杰出的政治家、军事家。”\n3.  现代史家多认为，李渊在晋阳起兵中的主导作用长期被其子李世民的光环所掩盖，他是一位深谋远虑、善于把握时机的政治领袖。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**隋末农民起义**，天下大乱。\n- **关键事件**：**晋阳起兵**（617年）；攻占**长安**；**建立唐朝**（618年，年号武德）。\n- **代表贡献**：完成**统一**；定都长安。\n- **常见易混点**：与**李世民**的贡献区分（李渊是开国之君，李世民是治国之君并开创“贞观之治”）。\n\n### 高中阶段\n- **时代背景**：**关陇集团**；**隋唐嬗代**。\n- **关键事件**：**晋阳起兵决策**的主导者问题（**存疑/说法不一**，传统史书强调李世民作用，现代研究多肯定李渊主导）；**玄武门之变**（626年）与**禅位**。\n- **代表思想/制度**：**《武德律》**；**租庸调制**；**府兵制**的承袭与初步完善。\n- **历史意义**：唐朝**制度奠基**者；其统治时期是**贞观之治**的准备阶段。\n- **对比点**：与**隋文帝**（开国与制度开创）对比；与**李世民**（开国与守成、治国）的功绩与形象对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 唐朝的建立者：**李渊**。\n- 建立时间：**618年**。\n- 都城：**长安**（今西安）。\n- 主要事件：从**太原**起兵，攻入长安。\n- 与唐太宗**李世民**的关系：父子，李渊是父亲，李世民是儿子。\n\n### 高中阶段\n- **晋阳起兵**的背景与主要谋划者（**存疑/说法不一**，教材常采《旧唐书》说，强调李世民首谋；学术研究有不同观点）。\n- 唐朝建立后面临的**主要割据势力**（如薛仁杲、刘武周、王世充、窦建德等）。\n- **武德年间**的政治特点：**宰相制度**（三省长官均为宰相）；**律令格式**的初步整理。\n- **玄武门之变**的性质与影响：宫廷政变，导致皇位继承权转移，李渊被迫退位。\n- **历史评价**的变迁：从被描述为优柔寡断到被重新评价为富有政治经验的开国君主。\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 长安 | 陕西省西安市 | 34.26 | 108.94 |\n| 陇西成纪 | 甘肃省秦安县 | 34.94 | 105.70 |\n| 太原/晋阳 | 山西省太原市西南 | 37.87 | 112.55 |\n| 霍邑 | 山西省霍州市 | 36.56 | 111.73 |\n| 长春宫 | 陕西省渭南市大荔县朝邑镇 | 34.79 | 110.10 |", "relatedGraph": {"center": {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "李渊", "target": "李世民", "label": "禅让", "confidence": null}, {"source": "李渊", "target": "隋炀帝", "label": "君臣", "confidence": null}, {"source": "李渊", "target": "唐太宗", "label": "宗亲", "confidence": null}, {"source": "李渊", "target": "魏征", "label": "同时代人物", "confidence": null}, {"source": "李渊", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "李渊", "target": "唐高宗", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李渊", "title": "", "description": "李渊出身于北周关陇贵族家庭，袭封唐国公。隋末天下大乱，他于大业十三年（617年）在晋阳起兵，同年攻占长安，立隋炀帝之孙杨侑为帝。次年（618年），隋炀帝死讯传来，李渊迫杨侑禅让，建立唐朝，年号武德。在位期间，他削平薛仁杲、李轨、刘武周、王世充、窦建德等割据势力，基本完成全国统一。武德九年（626年），其子李世民发动“玄武门之变”，李渊被迫立李世民为太子，不久禅位，成为太上皇，直至去世。", "quote": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "shortReview": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "dynasty": "隋末唐初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西西安）", "avatar": "", "birth": {"date": "566年", "location": "长安（今陕西西安）", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84"}, "death": {"date": "635年", "location": "长安（大安宫/垂拱殿", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84"}, "lifespan": "70岁（虚岁）", "highlights": {"honor": "", "status": "唐朝的开国皇帝，为大唐王朝近三百年的基业奠定了基础。", "identities": "政治家、军事家、唐朝开国皇帝", "achievements": "晋阳起兵、攻占长安、建立唐朝、统一全国、初步奠定唐初政治制度。", "works": [], "reviews": ["《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "毛泽东：“唐高祖李渊是中国封建史上一位杰出的政治家、军事家。”", "现代史家多认为，李渊在晋阳起兵中的主导作用长期被其子李世民的光环所掩盖，他是一位深谋远虑、善于把握时机的政治领袖。"]}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "birth", "event": "出生于北周贵族家庭，袭封唐国公。", "time": "公元566年", "duration": "童年及青少年时期", "significance": "其家族根基所在，也是其政治生涯的起点和最终归宿。", "works": [], "quoteLines": []}, {"name": "陇西成纪", "ancientName": "陇西成纪", "modernName": "甘肃省秦安县", "lat": 34.94, "lng": 105.7, "coordSystem": "WGS84", "type": "normal", "event": "李氏家族的郡望所在地，是其贵族身份的象征性源头。", "time": "约公元566年之前（郡望）", "duration": "家族祖籍地", "significance": "标榜其家族出身，增强政治号召力。", "works": [], "quoteLines": []}, {"name": "太原/晋阳", "ancientName": "太原郡晋阳县", "modernName": "山西省太原市西南", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "任太原留守，于此地招揽人才，储备力量，最终在晋阳宫起兵反隋。", "time": "公元615年—617年", "duration": "约2年", "significance": "其事业的发祥地，“唐”国号亦源于此（古唐国之地）。", "works": [], "quoteLines": []}, {"name": "晋阳宫", "ancientName": "晋阳宫", "modernName": "晋阳宫遗址（位于今山西省太原市晋源区）", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "在此诛杀副留守王威、高君雅，正式宣布起兵，史称“晋阳起兵”。", "time": "公元617年农历五月", "duration": "事件发生地（起兵决策与发动）", "significance": "李渊集团公开反隋的标志性地点，唐朝国运的起点。", "works": [], "quoteLines": []}, {"name": "霍邑", "ancientName": "霍邑", "modernName": "山西省霍州市", "lat": 36.56, "lng": 111.73, "coordSystem": "WGS84", "type": "normal", "event": "率军南下，于此地击败隋将宋老生，打开了进军关中的通道。", "time": "公元617年农历八月", "duration": "事件发生地（战役）", "significance": "起兵后的第一场关键性胜利，极大鼓舞了军心。", "works": [], "quoteLines": []}, {"name": "长安（大兴城）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "normal", "event": "攻占长安后，拥立隋恭帝，自封大丞相、唐王。次年受禅称帝，建立唐朝，以此为都。在此统治全国，后于此成为太上皇。", "time": "公元617年农历十一月—635年", "duration": "约18年（自攻占至去世）", "significance": "唐朝的京师，其政治生涯的核心舞台与最终归宿。", "works": [], "quoteLines": []}, {"name": "长春宫", "ancientName": "长春宫", "modernName": "长春宫遗址（位于今陕西省渭南市大荔县朝邑镇）", "lat": 34.79, "lng": 110.1, "coordSystem": "WGS84", "type": "normal", "event": "称帝后曾驻跸于此，指挥对关东割据势力的战争。", "time": "公元618年—619年", "duration": "称帝初期", "significance": "唐朝初年重要的前线指挥所。", "works": [], "quoteLines": []}, {"name": "长安（大安宫/垂拱殿）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.26, "lng": 108.94, "coordSystem": "WGS84", "type": "death", "event": "玄武门之变后退位为太上皇，晚年在宫中度过，郁郁而终。大安宫（原弘义宫）为其晚年居所。", "time": "公元635年农历五月", "duration": "太上皇时期（626年—635年）", "significance": "人生的终点，见证了从开国之君到失势太上皇的转变。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**隋末农民起义**，天下大乱。\n- **关键事件**：**晋阳起兵**（617年）；攻占**长安**；**建立唐朝**（618年，年号武德）。\n- **代表贡献**：完成**统一**；定都长安。\n- **常见易混点**：与**李世民**的贡献区分（李渊是开国之君，李世民是治国之君并开创“贞观之治”）。\n\n### 高中阶段\n- **时代背景**：**关陇集团**；**隋唐嬗代**。\n- **关键事件**：**晋阳起兵决策**的主导者问题（**存疑/说法不一**，传统史书强调李世民作用，现代研究多肯定李渊主导）；**玄武门之变**（626年）与**禅位**。\n- **代表思想/制度**：**《武德律》**；**租庸调制**；**府兵制**的承袭与初步完善。\n- **历史意义**：唐朝**制度奠基**者；其统治时期是**贞观之治**的准备阶段。\n- **对比点**：与**隋文帝**（开国与制度开创）对比；与**李世民**（开国与守成、治国）的功绩与形象对比。\n\n---", "examPoints": "### 初中阶段\n- 唐朝的建立者：**李渊**。\n- 建立时间：**618年**。\n- 都城：**长安**（今西安）。\n- 主要事件：从**太原**起兵，攻入长安。\n- 与唐太宗**李世民**的关系：父子，李渊是父亲，李世民是儿子。\n\n### 高中阶段\n- **晋阳起兵**的背景与主要谋划者（**存疑/说法不一**，教材常采《旧唐书》说，强调李世民首谋；学术研究有不同观点）。\n- 唐朝建立后面临的**主要割据势力**（如薛仁杲、刘武周、王世充、窦建德等）。\n- **武德年间**的政治特点：**宰相制度**（三省长官均为宰相）；**律令格式**的初步整理。\n- **玄武门之变**的性质与影响：宫廷政变，导致皇位继承权转移，李渊被迫退位。\n- **历史评价**的变迁：从被描述为优柔寡断到被重新评价为富有政治经验的开国君主。", "workTexts": {"旧唐书·高祖本纪": "（贞观）九年五月庚子，崩于太安宫之垂拱殿。", "旧唐书": "高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。", "高祖本纪": "（贞观）九年五月庚子，崩于太安宫之垂拱殿。", "授三秦豪杰等官敕": "相关文献：存疑（一说《授三秦豪杰等官敕》为李渊所下，但原文出处待考）。", "赐秦王诗": "相关文献：存疑（一说《赐秦王诗》为后世伪托，非李渊作品）。", "武德律": "“贞观之治”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李渊\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：李渊（字叔德）\n- **时代**：隋末唐初\n- **出生**：公元566年，长安（今陕西西安）\n- **去世**：公元635年，长安（大安宫/垂拱殿，今陕西西安）\n- **享年**：70岁（虚岁）\n- **主要身份**：政治家、军事家、唐朝开国皇帝\n- **历史地位**：唐朝的开国皇帝，为大唐王朝近三百年的基业奠定了基础。\n- **主要成就**：晋阳起兵、攻占长安、建立唐朝、统一全国、初步奠定唐初政治制度。\n\n### 生平概述\n李渊出身于北周关陇贵族家庭，袭封唐国公。隋末天下大乱，他于大业十三年（617年）在晋阳起兵，同年攻占长安，立隋炀帝之孙杨侑为帝。次年（618年），隋炀帝死讯传来，李渊迫杨侑禅让，建立唐朝，年号武德。在位期间，他削平薛仁杲、李轨、刘武周、王世充、窦建德等割据势力，基本完成全国统一。武德九年（626年），其子李世民发动“玄武门之变”，李渊被迫立李世民为太子，不久禅位，成为太上皇，直至去世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以长安（今西安）为中心，足迹遍及关中、山西、陇西等地。\n- ⏱️ **时间跨度**：公元566年—635年，共约70年。\n- 📍 **地理范围**：大致覆盖今陕西、山西、甘肃、河南等地区。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **公元纪年**：公元566年\n- **停留时间**：童年及青少年时期\n- **位置**：长安（今陕西省西安市）\n- **事迹**：出生于北周贵族家庭，袭封唐国公。\n- **意义**：其家族根基所在，也是其政治生涯的起点和最终归宿。\n\n### 📍 重要地点：陇西成纪\n- **公元纪年**：约公元566年之前（郡望）\n- **停留时间**：家族祖籍地\n- **位置**：陇西成纪（今甘肃省秦安县）\n- **事迹**：李氏家族的郡望所在地，是其贵族身份的象征性源头。\n- **意义**：标榜其家族出身，增强政治号召力。\n- **史料记载**：《旧唐书·高祖本纪》：“姓李氏，陇西成纪人也。”\n\n### 📍 重要地点：太原/晋阳\n- **公元纪年**：公元615年—617年\n- **停留时间**：约2年\n- **位置**：太原郡晋阳县（今山西省太原市西南）\n- **事迹**：任太原留守，于此地招揽人才，储备力量，最终在晋阳宫起兵反隋。\n- **意义**：其事业的发祥地，“唐”国号亦源于此（古唐国之地）。\n- **相关文献**：存疑（一说《授三秦豪杰等官敕》为李渊所下，但原文出处待考）。\n\n### 📍 重要地点：晋阳宫\n- **公元纪年**：公元617年农历五月\n- **停留时间**：事件发生地（起兵决策与发动）\n- **位置**：晋阳宫遗址（位于今山西省太原市晋源区）\n- **事迹**：在此诛杀副留守王威、高君雅，正式宣布起兵，史称“晋阳起兵”。\n- **意义**：李渊集团公开反隋的标志性地点，唐朝国运的起点。\n\n### 📍 重要地点：霍邑\n- **公元纪年**：公元617年农历八月\n- **停留时间**：事件发生地（战役）\n- **位置**：霍邑（今山西省霍州市）\n- **事迹**：率军南下，于此地击败隋将宋老生，打开了进军关中的通道。\n- **意义**：起兵后的第一场关键性胜利，极大鼓舞了军心。\n\n### 📍 重要地点：长安（大兴城）\n- **公元纪年**：公元617年农历十一月—635年\n- **停留时间**：约18年（自攻占至去世）\n- **位置**：长安（今陕西省西安市）\n- **事迹**：攻占长安后，拥立隋恭帝，自封大丞相、唐王。次年受禅称帝，建立唐朝，以此为都。在此统治全国，后于此成为太上皇。\n- **意义**：唐朝的京师，其政治生涯的核心舞台与最终归宿。\n- **相关文献**：存疑（一说《赐秦王诗》为后世伪托，非李渊作品）。\n\n### 📍 重要地点：长春宫\n- **公元纪年**：公元618年—619年\n- **停留时间**：称帝初期\n- **位置**：长春宫遗址（位于今陕西省渭南市大荔县朝邑镇）\n- **事迹**：称帝后曾驻跸于此，指挥对关东割据势力的战争。\n- **意义**：唐朝初年重要的前线指挥所。\n\n### 🔴 去世地：长安（大安宫/垂拱殿）\n- **公元纪年**：公元635年农历五月\n- **停留时间**：太上皇时期（626年—635年）\n- **位置**：长安（今陕西省西安市）\n- **经过**：玄武门之变后退位为太上皇，晚年在宫中度过，郁郁而终。大安宫（原弘义宫）为其晚年居所。\n- **意义**：人生的终点，见证了从开国之君到失势太上皇的转变。\n- **史料记载**：《旧唐书·高祖本纪》：“（贞观）九年五月庚子，崩于太安宫之垂拱殿。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元566年 | 0岁 | 出生于长安。 |\n| 公元572年 | 6岁 | 袭封唐国公。 |\n| 公元615年 | 49岁 | 被任命为山西河东慰抚大使，镇压起义，后升任太原留守。 |\n| 公元617年 | 51岁 | 农历五月，于晋阳起兵；农历十一月，攻占长安，立隋恭帝，自任大丞相、唐王。 |\n| 公元618年 | 52岁 | 隋炀帝死讯至，受禅称帝，建立唐朝，年号武德。 |\n| 公元618年—624年 | 52—58岁 | 进行统一战争，先后平定薛仁杲、李轨、刘武周、王世充、窦建德、刘黑闼等势力。 |\n| 公元626年 | 60岁 | 农历六月，玄武门之变爆发，秦王李世民杀太子李建成、齐王李元吉；农历八月，禅位于李世民，自称太上皇。 |\n| 公元635年 | 70岁 | 崩于长安大安宫，庙号高祖，葬于献陵。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n李渊在隋末乱世中抓住时机，成功起兵并建立唐朝，结束了隋末的分裂局面，重新统一了中国。他在位期间确立的官制、律法（如《武德律》）、均田制与租庸调制等，为“贞观之治”的繁荣奠定了坚实的制度基础。\n\n### 对后世的影响\n1.  **奠定大唐基业**：作为唐朝的创建者，其政治决策和军事行动为大唐近三百年的国祚开辟了道路。\n2.  **制度承前启后**：其武德年间的制度建设，上承隋制，下启贞观，是隋唐制度演进的关键一环。\n3.  **家族政治典范**：其以关陇贵族为核心，联合各方力量夺取天下的模式，成为后世研究贵族政治与王朝创建的重要案例。\n\n### 历史评价\n1.  《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”\n2.  毛泽东：“唐高祖李渊是中国封建史上一位杰出的政治家、军事家。”\n3.  现代史家多认为，李渊在晋阳起兵中的主导作用长期被其子李世民的光环所掩盖，他是一位深谋远虑、善于把握时机的政治领袖。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**隋末农民起义**，天下大乱。\n- **关键事件**：**晋阳起兵**（617年）；攻占**长安**；**建立唐朝**（618年，年号武德）。\n- **代表贡献**：完成**统一**；定都长安。\n- **常见易混点**：与**李世民**的贡献区分（李渊是开国之君，李世民是治国之君并开创“贞观之治”）。\n\n### 高中阶段\n- **时代背景**：**关陇集团**；**隋唐嬗代**。\n- **关键事件**：**晋阳起兵决策**的主导者问题（**存疑/说法不一**，传统史书强调李世民作用，现代研究多肯定李渊主导）；**玄武门之变**（626年）与**禅位**。\n- **代表思想/制度**：**《武德律》**；**租庸调制**；**府兵制**的承袭与初步完善。\n- **历史意义**：唐朝**制度奠基**者；其统治时期是**贞观之治**的准备阶段。\n- **对比点**：与**隋文帝**（开国与制度开创）对比；与**李世民**（开国与守成、治国）的功绩与形象对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 唐朝的建立者：**李渊**。\n- 建立时间：**618年**。\n- 都城：**长安**（今西安）。\n- 主要事件：从**太原**起兵，攻入长安。\n- 与唐太宗**李世民**的关系：父子，李渊是父亲，李世民是儿子。\n\n### 高中阶段\n- **晋阳起兵**的背景与主要谋划者（**存疑/说法不一**，教材常采《旧唐书》说，强调李世民首谋；学术研究有不同观点）。\n- 唐朝建立后面临的**主要割据势力**（如薛仁杲、刘武周、王世充、窦建德等）。\n- **武德年间**的政治特点：**宰相制度**（三省长官均为宰相）；**律令格式**的初步整理。\n- **玄武门之变**的性质与影响：宫廷政变，导致皇位继承权转移，李渊被迫退位。\n- **历史评价**的变迁：从被描述为优柔寡断到被重新评价为富有政治经验的开国君主。\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 长安 | 陕西省西安市 | 34.26 | 108.94 |\n| 陇西成纪 | 甘肃省秦安县 | 34.94 | 105.70 |\n| 太原/晋阳 | 山西省太原市西南 | 37.87 | 112.55 |\n| 霍邑 | 山西省霍州市 | 36.56 | 111.73 |\n| 长春宫 | 陕西省渭南市大荔县朝邑镇 | 34.79 | 110.10 |", "relatedGraph": {"center": {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "李渊", "target": "李世民", "label": "禅让", "confidence": null}, {"source": "李渊", "target": "隋炀帝", "label": "君臣", "confidence": null}, {"source": "李渊", "target": "唐太宗", "label": "宗亲", "confidence": null}, {"source": "李渊", "target": "魏征", "label": "同时代人物", "confidence": null}, {"source": "李渊", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "李渊", "target": "唐高宗", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

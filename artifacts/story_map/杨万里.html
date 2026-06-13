@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "杨万里", "title": "中兴四大诗人", "description": "杨万里生于南宋初年，历经高宗、孝宗、光宗、宁宗四朝。他于绍兴二十四年（1154年）中进士，步入仕途，历任赣州司户、零陵县丞、奉新知县、国子博士、江东转运副使等职。他为人清正，力主抗金，因反对权臣韩侂胄专权而辞官归乡，辞官后主要归隐故乡，期间可能短暂复出，最终在湴塘去世。在文学上，他初学江西诗派，后跳出窠臼，师法自然，形成独具特色的“诚斋体”，与陆游、范成大、尤袤齐名，对后世影响深远。", "quote": "小荷才露尖尖角，早有蜻蜓立上头", "shortReview": "小荷才露尖尖角，早有蜻蜓立上头", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉州吉水县（今江西省吉安市吉水县）", "avatar": "", "birth": {"date": "1127年", "location": "吉州吉水县（今江西省吉安市吉水县）", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84"}, "death": {"date": "1206年", "location": "吉州吉水县（今江西省吉安市吉水县）", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84"}, "lifespan": "约80岁（虚岁）", "highlights": {"honor": "中兴四大诗人", "status": "南宋“中兴四大诗人”之一，创立了活泼自然的“诚斋体”。", "identities": "诗人、官员", "achievements": "1. 创立“诚斋体”，以自然景物和日常生活入诗，风格清新活泼；2. 诗歌作品数量丰富，现存诗四千二百余首；3. 忠诚正直，为官清廉，关心民生疾苦；4. 爱国情怀深厚，诗作中常流露对家国命运的关切。", "works": [], "reviews": []}}, "locations": [{"name": "吉州吉水县", "ancientName": "吉州吉水县", "modernName": "江西省吉安市吉水县", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个清寒的读书人家庭。", "time": "公元1127年", "duration": "幼年及青少年时期", "significance": "其人生起点与最终归宿，故乡的山水风物是其诗歌创作的重要源泉。", "works": [], "quoteLines": []}, {"name": "临安（杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "参加礼部试，登进士第。", "time": "公元1154年", "duration": "科考期间", "significance": "正式开启仕途，人生进入新阶段。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "虔州/赣州", "modernName": "江西省赣州市", "lat": 25.83, "lng": 114.93, "coordSystem": "WGS84", "type": "normal", "event": "初授赣州司户参军，负责户籍、赋税等事务。", "time": "公元1155年-1159年", "duration": "约4年", "significance": "首次担任地方官职，积累了基层行政经验。", "works": [], "quoteLines": []}, {"name": "零陵县", "ancientName": "永州零陵县", "modernName": "湖南省永州市零陵区", "lat": 26.22, "lng": 111.63, "coordSystem": "WGS84", "type": "normal", "event": "调任永州零陵县丞。期间曾因公务至长沙，拜访谪居于此的主战派名臣张浚，深受其“正心诚意”之教诲（具体年份存疑）。", "time": "公元1159年-1162年", "duration": "约3年", "significance": "张浚的教诲对他一生为人为官产生了深远影响，他自名书斋为“诚斋”即源于此。", "works": [], "quoteLines": []}, {"name": "奉新县", "ancientName": "隆兴府奉新县", "modernName": "江西省宜春市奉新县", "lat": 28.68, "lng": 115.18, "coordSystem": "WGS84", "type": "normal", "event": "任奉新县知县。整顿吏治，减轻赋税，不扰民生。", "time": "公元1170年-1172年", "duration": "约2年", "significance": "展现了其爱民如子的治理理念，政绩显著，受到百姓爱戴。", "works": [], "quoteLines": []}, {"name": "临安（京城）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "历任国子博士、太常博士、广东提点刑狱、枢密院检详官兼太子侍读等京职与外任。多次上书谏言，反对派系斗争，主张抗金。", "time": "公元1173年-1180年代（断续）", "duration": "累计数年", "significance": "文学创作与政治生涯的高峰时期，与陆游、范成大等诗人交游唱和，诗名日盛。", "works": [], "quoteLines": []}, {"name": "江东转运副使辖区", "ancientName": "主要驻地建康府", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "coordSystem": "WGS84", "type": "normal", "event": "任江东转运副使，总领淮西、江东军马钱粮。期间巡视辖区，体察民情。", "time": "公元1186年-1187年", "duration": "约1年", "significance": "官至较高职位，但因朝廷腐败，难有更大作为，后因朝廷行铁钱于江南，他上疏反对不被采纳，遂请辞归乡。", "works": [], "quoteLines": []}, {"name": "吉州吉水县", "ancientName": "吉州吉水县湴塘村", "modernName": "江西省吉安市吉水县黄桥镇湴塘村", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84", "type": "death", "event": "因反对权臣韩侂胄专权、轻率北伐而辞官归里，隐居湴塘，直至逝世。", "time": "公元1206年", "duration": "约15年（晚年归隐）", "significance": "完成了从官员到纯粹诗人的最终回归，在故乡的宁静中走完一生，留下大量脍炙人口的诗篇。", "works": [], "quoteLines": ["《小池》：小荷才露尖尖角，早有蜻蜓立上头", "《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红", "《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。"]}, {"name": "湴塘", "ancientName": "吉州吉水县湴塘村", "modernName": "江西省吉安市吉水县黄桥镇湴塘村", "lat": 27.25, "lng": 115.1, "coordSystem": "WGS84", "type": "normal", "event": "在家乡湴塘读书启蒙，接受早期教育。", "time": "青少年时期", "duration": "多年", "significance": "奠定了其文学基础，故乡的田园生活成为其日后诗歌创作的底色。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---", "workTexts": {"小池": "名篇名句：《小池》：小荷才露尖尖角，早有蜻蜓立上头", "晓出净慈寺送林子方": "《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红", "宿新市徐公店": "《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 杨万里\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨万里\n- **时代**：南宋\n- **出生**：公元1127年，吉州吉水县（今江西省吉安市吉水县）\n- **去世**：公元1206年，吉州吉水县（今江西省吉安市吉水县）\n- **享年**：约80岁（虚岁）\n- **主要身份**：诗人、官员\n- **历史地位**：南宋“中兴四大诗人”之一，创立了活泼自然的“诚斋体”。\n- **主要成就**：1. 创立“诚斋体”，以自然景物和日常生活入诗，风格清新活泼；2. 诗歌作品数量丰富，现存诗四千二百余首；3. 忠诚正直，为官清廉，关心民生疾苦；4. 爱国情怀深厚，诗作中常流露对家国命运的关切。\n\n### 生平概述\n杨万里生于南宋初年，历经高宗、孝宗、光宗、宁宗四朝。他于绍兴二十四年（1154年）中进士，步入仕途，历任赣州司户、零陵县丞、奉新知县、国子博士、江东转运副使等职。他为人清正，力主抗金，因反对权臣韩侂胄专权而辞官归乡，辞官后主要归隐故乡，期间可能短暂复出，最终在湴塘去世。在文学上，他初学江西诗派，后跳出窠臼，师法自然，形成独具特色的“诚斋体”，与陆游、范成大、尤袤齐名，对后世影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于江西、浙江、湖南、广东等地，晚年归隐故乡。\n- ⏱️ **时间跨度**：约公元1127年 - 1206年，总跨度约80年。\n- 📍 **地理范围**：覆盖今江西省、浙江省、湖南省、广东省等区域。\n- 🌟 **重要节点数量**：11个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：吉州吉水县\n- **时间**：公元1127年\n- **停留时间**：幼年及青少年时期\n- **地点**：吉州吉水县（今江西省吉安市吉水县）\n- **事件**：出生于一个清寒的读书人家庭。\n- **意义**：其人生起点与最终归宿，故乡的山水风物是其诗歌创作的重要源泉。\n\n### 📍 重要地点：湴塘\n- **时间**：青少年时期\n- **停留时间**：多年\n- **地点**：吉州吉水县湴塘村（今江西省吉安市吉水县黄桥镇湴塘村）\n- **事件**：在家乡湴塘读书启蒙，接受早期教育。\n- **意义**：奠定了其文学基础，故乡的田园生活成为其日后诗歌创作的底色。\n\n### 📍 重要地点：临安（杭州）\n- **时间**：公元1154年\n- **停留时间**：科考期间\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：参加礼部试，登进士第。\n- **意义**：正式开启仕途，人生进入新阶段。\n\n### 📍 重要地点：赣州\n- **时间**：公元1155年-1159年\n- **停留时间**：约4年\n- **地点**：虔州/赣州（今江西省赣州市）\n- **事件**：初授赣州司户参军，负责户籍、赋税等事务。\n- **意义**：首次担任地方官职，积累了基层行政经验。\n\n### 📍 重要地点：零陵县\n- **时间**：公元1159年-1162年\n- **停留时间**：约3年\n- **地点**：永州零陵县（今湖南省永州市零陵区）\n- **事件**：调任永州零陵县丞。期间曾因公务至长沙，拜访谪居于此的主战派名臣张浚，深受其“正心诚意”之教诲（具体年份存疑）。\n- **意义**：张浚的教诲对他一生为人为官产生了深远影响，他自名书斋为“诚斋”即源于此。\n\n### 📍 重要地点：奉新县\n- **时间**：公元1170年-1172年\n- **停留时间**：约2年\n- **地点**：隆兴府奉新县（今江西省宜春市奉新县）\n- **事件**：任奉新县知县。整顿吏治，减轻赋税，不扰民生。\n- **意义**：展现了其爱民如子的治理理念，政绩显著，受到百姓爱戴。\n\n### 📍 重要地点：临安（京城）\n- **时间**：公元1173年-1180年代（断续）\n- **停留时间**：累计数年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：历任国子博士、太常博士、广东提点刑狱、枢密院检详官兼太子侍读等京职与外任。多次上书谏言，反对派系斗争，主张抗金。\n- **意义**：文学创作与政治生涯的高峰时期，与陆游、范成大等诗人交游唱和，诗名日盛。\n\n### 📍 重要地点：江东转运副使辖区\n- **时间**：公元1186年-1187年\n- **停留时间**：约1年\n- **地点**：主要驻地建康府（今江苏省南京市）\n- **事件**：任江东转运副使，总领淮西、江东军马钱粮。期间巡视辖区，体察民情。\n- **意义**：官至较高职位，但因朝廷腐败，难有更大作为，后因朝廷行铁钱于江南，他上疏反对不被采纳，遂请辞归乡。\n\n### 🔴 去世地：吉州吉水县\n- **时间**：公元1206年\n- **停留时间**：约15年（晚年归隐）\n- **地点**：吉州吉水县湴塘村（今江西省吉安市吉水县黄桥镇湴塘村）\n- **事件**：因反对权臣韩侂胄专权、轻率北伐而辞官归里，隐居湴塘，直至逝世。\n- **意义**：完成了从官员到纯粹诗人的最终回归，在故乡的宁静中走完一生，留下大量脍炙人口的诗篇。\n- **名篇名句**：《小池》：小荷才露尖尖角，早有蜻蜓立上头；《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红；《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1127年 | 1岁 | 出生于吉州吉水县（今江西吉水）。 |\n| 1154年 | 28岁 | 登进士第，授赣州司户参军。 |\n| 1159年 | 33岁 | 调任永州零陵县丞，拜访张浚，受“诚”字教诲（具体年份存疑）。 |\n| 1170年 | 44岁 | 任奉新县知县，有政声。 |\n| 1173年 | 47岁 | 应召入京，任国子博士。 |\n| 1179年 | 53岁 | 任广东提点刑狱。 |\n| 1186年 | 60岁 | 任江东转运副使，驻建康。 |\n| 1187年 | 61岁 | 因反对铁钱政策，辞官归乡。 |\n| 1190年 | 64岁 | 复出任官，后因党争及反对侂胄，再度归隐。 |\n| 1206年 | 80岁 | 在故乡吉水湴塘逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 江西省吉安市吉水县 | 27.2300 | 115.1300 |\n| 江西省吉安市吉水县湴塘村 | 27.2500 | 115.1000 |\n| 浙江省杭州市 | 30.2700 | 120.1500 |\n| 湖南省永州市零陵区 | 26.2200 | 111.6300 |\n| 江西省宜春市奉新县 | 28.6800 | 115.1800 |\n| 江西省赣州市 | 25.8300 | 114.9300 |\n| 江苏省南京市 | 32.0600 | 118.8000 |", "relatedGraph": {"center": {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "小荷才露尖尖角，早有蜻蜓立上头", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "小荷才露尖尖角，早有蜻蜓立上头", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "杨万里", "target": "陆游", "label": "好友", "confidence": null}, {"source": "杨万里", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "李清照", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "朱熹", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "赵师秀", "label": "同朝共现", "confidence": 0.25}, {"source": "杨万里", "target": "李商隐", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "杨万里", "title": "中兴四大诗人", "description": "杨万里生于南宋初年，历经高宗、孝宗、光宗、宁宗四朝。他于绍兴二十四年（1154年）中进士，步入仕途，历任赣州司户、零陵县丞、奉新知县、国子博士、江东转运副使等职。他为人清正，力主抗金，因反对权臣韩侂胄专权而辞官归乡，辞官后主要归隐故乡，期间可能短暂复出，最终在湴塘去世。在文学上，他初学江西诗派，后跳出窠臼，师法自然，形成独具特色的“诚斋体”，与陆游、范成大、尤袤齐名，对后世影响深远。", "quote": "小荷才露尖尖角，早有蜻蜓立上头", "shortReview": "小荷才露尖尖角，早有蜻蜓立上头", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉州吉水县（今江西省吉安市吉水县）", "avatar": "", "birth": {"date": "1127年", "location": "吉州吉水县（今江西省吉安市吉水县）", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84"}, "death": {"date": "1206年", "location": "吉州吉水县（今江西省吉安市吉水县）", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84"}, "lifespan": "约80岁（虚岁）", "highlights": {"honor": "中兴四大诗人", "status": "南宋“中兴四大诗人”之一，创立了活泼自然的“诚斋体”。", "identities": "诗人、官员", "achievements": "1. 创立“诚斋体”，以自然景物和日常生活入诗，风格清新活泼；2. 诗歌作品数量丰富，现存诗四千二百余首；3. 忠诚正直，为官清廉，关心民生疾苦；4. 爱国情怀深厚，诗作中常流露对家国命运的关切。", "works": [], "reviews": []}}, "locations": [{"name": "吉州吉水县", "ancientName": "吉州吉水县", "modernName": "江西省吉安市吉水县", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个清寒的读书人家庭。", "time": "公元1127年", "duration": "幼年及青少年时期", "significance": "其人生起点与最终归宿，故乡的山水风物是其诗歌创作的重要源泉。", "works": [], "quoteLines": []}, {"name": "临安（杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "参加礼部试，登进士第。", "time": "公元1154年", "duration": "科考期间", "significance": "正式开启仕途，人生进入新阶段。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "虔州/赣州", "modernName": "江西省赣州市", "lat": 25.83, "lng": 114.93, "coordSystem": "WGS84", "type": "normal", "event": "初授赣州司户参军，负责户籍、赋税等事务。", "time": "公元1155年-1159年", "duration": "约4年", "significance": "首次担任地方官职，积累了基层行政经验。", "works": [], "quoteLines": []}, {"name": "零陵县", "ancientName": "永州零陵县", "modernName": "湖南省永州市零陵区", "lat": 26.22, "lng": 111.63, "coordSystem": "WGS84", "type": "normal", "event": "调任永州零陵县丞。期间曾因公务至长沙，拜访谪居于此的主战派名臣张浚，深受其“正心诚意”之教诲（具体年份存疑）。", "time": "公元1159年-1162年", "duration": "约3年", "significance": "张浚的教诲对他一生为人为官产生了深远影响，他自名书斋为“诚斋”即源于此。", "works": [], "quoteLines": []}, {"name": "奉新县", "ancientName": "隆兴府奉新县", "modernName": "江西省宜春市奉新县", "lat": 28.68, "lng": 115.18, "coordSystem": "WGS84", "type": "normal", "event": "任奉新县知县。整顿吏治，减轻赋税，不扰民生。", "time": "公元1170年-1172年", "duration": "约2年", "significance": "展现了其爱民如子的治理理念，政绩显著，受到百姓爱戴。", "works": [], "quoteLines": []}, {"name": "临安（京城）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "历任国子博士、太常博士、广东提点刑狱、枢密院检详官兼太子侍读等京职与外任。多次上书谏言，反对派系斗争，主张抗金。", "time": "公元1173年-1180年代（断续）", "duration": "累计数年", "significance": "文学创作与政治生涯的高峰时期，与陆游、范成大等诗人交游唱和，诗名日盛。", "works": [], "quoteLines": []}, {"name": "江东转运副使辖区", "ancientName": "主要驻地建康府", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "coordSystem": "WGS84", "type": "normal", "event": "任江东转运副使，总领淮西、江东军马钱粮。期间巡视辖区，体察民情。", "time": "公元1186年-1187年", "duration": "约1年", "significance": "官至较高职位，但因朝廷腐败，难有更大作为，后因朝廷行铁钱于江南，他上疏反对不被采纳，遂请辞归乡。", "works": [], "quoteLines": []}, {"name": "吉州吉水县", "ancientName": "吉州吉水县湴塘村", "modernName": "江西省吉安市吉水县黄桥镇湴塘村", "lat": 27.23, "lng": 115.13, "coordSystem": "WGS84", "type": "death", "event": "因反对权臣韩侂胄专权、轻率北伐而辞官归里，隐居湴塘，直至逝世。", "time": "公元1206年", "duration": "约15年（晚年归隐）", "significance": "完成了从官员到纯粹诗人的最终回归，在故乡的宁静中走完一生，留下大量脍炙人口的诗篇。", "works": [], "quoteLines": ["《小池》：小荷才露尖尖角，早有蜻蜓立上头", "《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红", "《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。"]}, {"name": "湴塘", "ancientName": "吉州吉水县湴塘村", "modernName": "江西省吉安市吉水县黄桥镇湴塘村", "lat": 27.25, "lng": 115.1, "coordSystem": "WGS84", "type": "normal", "event": "在家乡湴塘读书启蒙，接受早期教育。", "time": "青少年时期", "duration": "多年", "significance": "奠定了其文学基础，故乡的田园生活成为其日后诗歌创作的底色。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---", "workTexts": {"小池": "名篇名句：《小池》：小荷才露尖尖角，早有蜻蜓立上头", "晓出净慈寺送林子方": "《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红", "宿新市徐公店": "《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 杨万里\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨万里\n- **时代**：南宋\n- **出生**：公元1127年，吉州吉水县（今江西省吉安市吉水县）\n- **去世**：公元1206年，吉州吉水县（今江西省吉安市吉水县）\n- **享年**：约80岁（虚岁）\n- **主要身份**：诗人、官员\n- **历史地位**：南宋“中兴四大诗人”之一，创立了活泼自然的“诚斋体”。\n- **主要成就**：1. 创立“诚斋体”，以自然景物和日常生活入诗，风格清新活泼；2. 诗歌作品数量丰富，现存诗四千二百余首；3. 忠诚正直，为官清廉，关心民生疾苦；4. 爱国情怀深厚，诗作中常流露对家国命运的关切。\n\n### 生平概述\n杨万里生于南宋初年，历经高宗、孝宗、光宗、宁宗四朝。他于绍兴二十四年（1154年）中进士，步入仕途，历任赣州司户、零陵县丞、奉新知县、国子博士、江东转运副使等职。他为人清正，力主抗金，因反对权臣韩侂胄专权而辞官归乡，辞官后主要归隐故乡，期间可能短暂复出，最终在湴塘去世。在文学上，他初学江西诗派，后跳出窠臼，师法自然，形成独具特色的“诚斋体”，与陆游、范成大、尤袤齐名，对后世影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于江西、浙江、湖南、广东等地，晚年归隐故乡。\n- ⏱️ **时间跨度**：约公元1127年 - 1206年，总跨度约80年。\n- 📍 **地理范围**：覆盖今江西省、浙江省、湖南省、广东省等区域。\n- 🌟 **重要节点数量**：11个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：吉州吉水县\n- **时间**：公元1127年\n- **停留时间**：幼年及青少年时期\n- **地点**：吉州吉水县（今江西省吉安市吉水县）\n- **事件**：出生于一个清寒的读书人家庭。\n- **意义**：其人生起点与最终归宿，故乡的山水风物是其诗歌创作的重要源泉。\n\n### 📍 重要地点：湴塘\n- **时间**：青少年时期\n- **停留时间**：多年\n- **地点**：吉州吉水县湴塘村（今江西省吉安市吉水县黄桥镇湴塘村）\n- **事件**：在家乡湴塘读书启蒙，接受早期教育。\n- **意义**：奠定了其文学基础，故乡的田园生活成为其日后诗歌创作的底色。\n\n### 📍 重要地点：临安（杭州）\n- **时间**：公元1154年\n- **停留时间**：科考期间\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：参加礼部试，登进士第。\n- **意义**：正式开启仕途，人生进入新阶段。\n\n### 📍 重要地点：赣州\n- **时间**：公元1155年-1159年\n- **停留时间**：约4年\n- **地点**：虔州/赣州（今江西省赣州市）\n- **事件**：初授赣州司户参军，负责户籍、赋税等事务。\n- **意义**：首次担任地方官职，积累了基层行政经验。\n\n### 📍 重要地点：零陵县\n- **时间**：公元1159年-1162年\n- **停留时间**：约3年\n- **地点**：永州零陵县（今湖南省永州市零陵区）\n- **事件**：调任永州零陵县丞。期间曾因公务至长沙，拜访谪居于此的主战派名臣张浚，深受其“正心诚意”之教诲（具体年份存疑）。\n- **意义**：张浚的教诲对他一生为人为官产生了深远影响，他自名书斋为“诚斋”即源于此。\n\n### 📍 重要地点：奉新县\n- **时间**：公元1170年-1172年\n- **停留时间**：约2年\n- **地点**：隆兴府奉新县（今江西省宜春市奉新县）\n- **事件**：任奉新县知县。整顿吏治，减轻赋税，不扰民生。\n- **意义**：展现了其爱民如子的治理理念，政绩显著，受到百姓爱戴。\n\n### 📍 重要地点：临安（京城）\n- **时间**：公元1173年-1180年代（断续）\n- **停留时间**：累计数年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：历任国子博士、太常博士、广东提点刑狱、枢密院检详官兼太子侍读等京职与外任。多次上书谏言，反对派系斗争，主张抗金。\n- **意义**：文学创作与政治生涯的高峰时期，与陆游、范成大等诗人交游唱和，诗名日盛。\n\n### 📍 重要地点：江东转运副使辖区\n- **时间**：公元1186年-1187年\n- **停留时间**：约1年\n- **地点**：主要驻地建康府（今江苏省南京市）\n- **事件**：任江东转运副使，总领淮西、江东军马钱粮。期间巡视辖区，体察民情。\n- **意义**：官至较高职位，但因朝廷腐败，难有更大作为，后因朝廷行铁钱于江南，他上疏反对不被采纳，遂请辞归乡。\n\n### 🔴 去世地：吉州吉水县\n- **时间**：公元1206年\n- **停留时间**：约15年（晚年归隐）\n- **地点**：吉州吉水县湴塘村（今江西省吉安市吉水县黄桥镇湴塘村）\n- **事件**：因反对权臣韩侂胄专权、轻率北伐而辞官归里，隐居湴塘，直至逝世。\n- **意义**：完成了从官员到纯粹诗人的最终回归，在故乡的宁静中走完一生，留下大量脍炙人口的诗篇。\n- **名篇名句**：《小池》：小荷才露尖尖角，早有蜻蜓立上头；《晓出净慈寺送林子方》：接天莲叶无穷碧，映日荷花别样红；《宿新市徐公店》：儿童急走追黄蝶，飞入菜花无处寻。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1127年 | 1岁 | 出生于吉州吉水县（今江西吉水）。 |\n| 1154年 | 28岁 | 登进士第，授赣州司户参军。 |\n| 1159年 | 33岁 | 调任永州零陵县丞，拜访张浚，受“诚”字教诲（具体年份存疑）。 |\n| 1170年 | 44岁 | 任奉新县知县，有政声。 |\n| 1173年 | 47岁 | 应召入京，任国子博士。 |\n| 1179年 | 53岁 | 任广东提点刑狱。 |\n| 1186年 | 60岁 | 任江东转运副使，驻建康。 |\n| 1187年 | 61岁 | 因反对铁钱政策，辞官归乡。 |\n| 1190年 | 64岁 | 复出任官，后因党争及反对侂胄，再度归隐。 |\n| 1206年 | 80岁 | 在故乡吉水湴塘逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《小池》**、**《晓出净慈寺送林子方》**、**《宿新市徐公店》**、**《舟过安仁》**。\n- 核心要点：\n    - **重点**：**诚斋体**的典型风格，善于捕捉自然与生活中稍纵即逝的**意象**（如“小荷”、“蜻蜓”、“黄蝶”），并赋予其灵动的情趣。\n    - **重点**：诗歌语言**浅近明白**，清新自然，富有**童趣**和**生活气息**，如“儿童急走追黄蝶”。\n    - 描写景物时，常运用**白描**手法，画面感极强，如“接天莲叶无穷碧，映日荷花别样红”。\n    - **重点**：诗中常蕴含对生命力的赞美与对平凡生活的热爱，体现了诗人**热爱自然**、**乐观豁达**的人生态度。\n    - 在写景中巧妙地融入**哲理**或**理趣**，如“小荷才露尖尖角”暗含新生事物的勃发。\n    - 部分作品（如《晓出净慈寺送林子方》）在写景中寄托了深沉的**情感**，景色壮丽，惜别之情含蓄隽永。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：南宋**中兴四大诗人**（或“南宋四大家”）之一，与**陆游**、**范成大**、**尤袤**齐名。\n    - 绍兴二十四年（1154年）**进士**，历仕高宗、孝宗、光宗、宁宗四朝。\n    - 为官清正，曾因反对**韩侂胄**专权及轻率北伐而辞官归隐。\n    - 文学上初学**江西诗派**，后突破藩篱，自成一家。\n- 核心要点：\n    - **重点**：其创立的**诚斋体**，是南宋诗歌**突破江西诗派**影响、走向创新的重要标志。\n    - 生活在**宋金对峙**的时代，其诗作与仕宦经历都体现了深厚的**爱国情怀**与对国事的关切。\n    - **重点**：其人生选择（辞官归隐）体现了宋代士大夫在**政治高压**与**个人操守**之间的典型困境与抉择。\n    - **重点**：在文学史上，他以描写**自然景物**和**田园生活**见长，其诗风对后世，尤其是**性灵派**诗人产生了积极影响。\n    - 其“**正心诚意**”的立身之本，源自名臣**张浚**的教诲，并贯穿其一生。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 江西省吉安市吉水县 | 27.2300 | 115.1300 |\n| 江西省吉安市吉水县湴塘村 | 27.2500 | 115.1000 |\n| 浙江省杭州市 | 30.2700 | 120.1500 |\n| 湖南省永州市零陵区 | 26.2200 | 111.6300 |\n| 江西省宜春市奉新县 | 28.6800 | 115.1800 |\n| 江西省赣州市 | 25.8300 | 114.9300 |\n| 江苏省南京市 | 32.0600 | 118.8000 |", "relatedGraph": {"center": {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "小荷才露尖尖角，早有蜻蜓立上头", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "小荷才露尖尖角，早有蜻蜓立上头", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "杨万里", "target": "陆游", "label": "好友", "confidence": null}, {"source": "杨万里", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "李清照", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "朱熹", "label": "同时代人物", "confidence": null}, {"source": "杨万里", "target": "赵师秀", "label": "同朝共现", "confidence": 0.25}, {"source": "杨万里", "target": "李商隐", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

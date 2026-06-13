@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "温儒敏", "title": "部编本", "description": "温儒敏，1946年生于广东，1969年毕业于中国人民大学语文系（系名按当时习惯），1978年考入北京大学中文系攻读研究生，1981年获文学硕士学位后留校任教。他长期致力于中国现当代文学史、文学批评及语文教育研究，曾任北京大学中文系主任、北京大学语文教育研究所所长。21世纪以来，他将主要精力投入基础教育语文课程改革，于2012年起受聘主持教育部义务教育语文教科书（“部编本”）的编写工作，该教材于2016年起在全国统一使用，深刻影响了当代中国的语文教育生态。其学术与教育实践，体现了将高深学术研究与基础教育普及相结合的不懈努力。", "quote": "系统梳理现代文学批评脉络", "shortReview": "系统梳理现代文学批评脉络", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "广东紫金", "avatar": "", "birth": {"date": "1946年", "location": "广东紫金", "lat": 23.6392, "lng": 115.1847, "coordSystem": "WGS84"}, "death": {"date": "", "location": "世", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "—", "highlights": {"honor": "部编本", "status": "中国现当代文学研究重要学者，国家语文教育改革的核心推动者与“部编本”中小学语文统编教材总主编。", "identities": "文学史家、教育家、北京大学教授、语文教育家", "achievements": "主持编写“部编本”中小学语文统编教材；提出“语文核心素养”等重要教育理念；在中国现代文学研究领域，特别是在鲁迅、茅盾研究及文学史编写方面有突出建树；长期关注并推动语文高考改革。", "works": [], "reviews": ["**教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "**学术界评价**：在中国现代文学研究领域是重要的文学史家；在语文教育领域，是承前启后的“首席设计师”和“总工程师”。", "**争议性评价**：其主导的教材改革和某些高考言论也引发部分讨论，被一些人认为增加了学生负担或过于理想化，但其改革的初衷和整体方向获得广泛认可。"]}}, "locations": [{"name": "广东紫金", "ancientName": "紫金县", "modernName": "广东省河源市紫金县", "lat": 23.6392, "lng": 115.1847, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年与少年时代，接受早期教育。", "time": "1946年", "duration": "童年及少年时期（约1946-1960年代初）", "significance": "人生起点，形成其最初的乡土文化背景。", "works": [], "quoteLines": []}, {"name": "北京（中国人民大学）", "ancientName": "中国人民大学", "modernName": "北京市海淀区", "lat": 39.9705, "lng": 116.3176, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国人民大学语文系，接受系统的语言文学教育。", "time": "1964年 - 1969年", "duration": "大学本科阶段（5年）", "significance": "奠定了其文学研究与学术生涯的基础。", "works": [], "quoteLines": []}, {"name": "北京（北京大学）", "ancientName": "北京大学", "modernName": "北京市海淀区", "lat": 39.9929, "lng": 116.3065, "coordSystem": "WGS84", "type": "normal", "event": "1. 1978-1981年攻读硕士研究生；2. 1981年留校任教，历任讲师、副教授、教授；3. 曾任中文系主任、北大语文教育研究所所长；4. 在此完成大量学术著作，并策划、主持语文教材编写工作。", "time": "1978年 - 至今", "duration": "研究生学习及此后长期工作生活地（46年及以上）", "significance": "学术生涯的核心舞台与精神家园，在此实现了从文学研究者到教育改革家的转变。", "works": [], "quoteLines": ["《中国现代文学批评史》：系统梳理现代文学批评脉络", "《温儒敏论语文教育》：汇集其语文教育思想的核心文集。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"中国现代文学批评史": "名篇名句：《中国现代文学批评史》：系统梳理现代文学批评脉络", "温儒敏论语文教育": "《温儒敏论语文教育》：汇集其语文教育思想的核心文集。", "义务教育教科书语文": "“读书为要，强调经典，专治不读书”", "普通高中教科书语文": "“以学习任务群为导向，整合阅读与鉴赏、表达与交流”", "新文学现实主义的流变": "| 1987年 | 41岁 | 出版专著《新文学现实主义的流变》。", "中国现代文学课程学习指导": "| 1999年 | 53岁 | 出版《中国现代文学课程学习指导》。", "文学课堂：温儒敏现代文学史论集": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "文学课堂": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "温儒敏现代文学史论集": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 温儒敏\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：温儒敏\n- **时代**：当代\n- **出生**：1946年，广东紫金\n- **去世**：在世\n- **享年**：—\n- **主要身份**：文学史家、教育家、北京大学教授、语文教育家\n- **历史地位**：中国现当代文学研究重要学者，国家语文教育改革的核心推动者与“部编本”中小学语文统编教材总主编。\n- **主要成就**：主持编写“部编本”中小学语文统编教材；提出“语文核心素养”等重要教育理念；在中国现代文学研究领域，特别是在鲁迅、茅盾研究及文学史编写方面有突出建树；长期关注并推动语文高考改革。\n\n### 生平概述\n温儒敏，1946年生于广东，1969年毕业于中国人民大学语文系（系名按当时习惯），1978年考入北京大学中文系攻读研究生，1981年获文学硕士学位后留校任教。他长期致力于中国现当代文学史、文学批评及语文教育研究，曾任北京大学中文系主任、北京大学语文教育研究所所长。21世纪以来，他将主要精力投入基础教育语文课程改革，于2012年起受聘主持教育部义务教育语文教科书（“部编本”）的编写工作，该教材于2016年起在全国统一使用，深刻影响了当代中国的语文教育生态。其学术与教育实践，体现了将高深学术研究与基础教育普及相结合的不懈努力。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从广东紫金出发，辗转山东、北京等地求学与工作，最终在北京大学及全国语文教育领域产生深远影响。\n- ⏱️ **时间跨度**：1946年至今（数据截至2024年），约78年。\n- 📍 **地理范围**：主要覆盖广东、山东、北京等地。\n- 🌟 **重要节点数量**：6个核心地点（含出生地、求学工作地及全国性影响范围）。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：广东紫金\n- **公元纪年**：1946年\n- **停留时间**：童年及少年时期（约1946-1960年代初）\n- **位置**：紫金县（今广东省河源市紫金县）\n- **事迹**：在此度过童年与少年时代，接受早期教育。\n- **意义**：人生起点，形成其最初的乡土文化背景。\n\n### 📍 重要地点：山东\n- **公元纪年**：1969年（具体时间存疑）\n- **停留时间**：短暂工作时期\n- **位置**：山东省（具体城市存疑）\n- **事迹**：大学毕业后曾被分配至山东工作（具体工作地点待考）。\n- **意义**：人生早期的一段工作经历，是其从学校走向社会的过渡阶段。\n\n### 📍 重要地点：北京（中国人民大学）\n- **公元纪年**：1964年 - 1969年\n- **停留时间**：大学本科阶段（5年）\n- **位置**：中国人民大学（今北京市海淀区）\n- **事迹**：就读于中国人民大学语文系，接受系统的语言文学教育。\n- **意义**：奠定了其文学研究与学术生涯的基础。\n\n### 📍 重要地点：北京（北京大学）\n- **公元纪年**：1978年 - 至今\n- **停留时间**：研究生学习及此后长期工作生活地（46年及以上）\n- **位置**：北京大学（今北京市海淀区）\n- **事迹**：1. 1978-1981年攻读硕士研究生；2. 1981年留校任教，历任讲师、副教授、教授；3. 曾任中文系主任、北大语文教育研究所所长；4. 在此完成大量学术著作，并策划、主持语文教材编写工作。\n- **意义**：学术生涯的核心舞台与精神家园，在此实现了从文学研究者到教育改革家的转变。\n- **名篇名句**：《中国现代文学批评史》：系统梳理现代文学批评脉络；《温儒敏论语文教育》：汇集其语文教育思想的核心文集。\n\n### 📍 重要地点：全国（“部编本”教材使用地区）\n- **公元纪年**：2016年 - 至今\n- **停留时间**：持续影响中\n- **位置**：中华人民共和国境内所有使用统编语文教材的中小学校\n- **事迹**：主持编写的“部编本”语文教材在全国范围内统一使用，其教育理念（如“语文核心素养”、“三位一体”阅读教学、“整本书阅读”等）通过教材和教师培训影响亿万师生。\n- **意义**：其教育思想的实践场域与影响力最大化的体现，重塑了国家语文教育的基础面貌。\n- **名篇名句**：《义务教育教科书语文》（七年级上）：“读书为要，强调经典，专治不读书”；《普通高中教科书语文》（必修上册）：“以学习任务群为导向，整合阅读与鉴赏、表达与交流”。\n\n### 🔴 去世地：在世\n- **公元纪年**：—\n- **停留时间**：—\n- **位置**：—\n- **经过**：—\n- **意义**：—\n- **名篇名句**：—\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1946年 | 0岁 | 出生于广东紫金。 |\n| 1964年 | 18岁 | 考入中国人民大学语文系学习。 |\n| 1969年 | 23岁 | 大学毕业，曾赴山东工作（具体时间存疑）。 |\n| 1978年 | 32岁 | 考取北京大学中文系硕士研究生。 |\n| 1981年 | 35岁 | 获北京大学文学硕士学位，留校任教。 |\n| 1987年 | 41岁 | 出版专著《新文学现实主义的流变》。 |\n| 1990年代 | 44-53岁 | 陆续出版《中国现代文学批评史》《中国现代文学三十年》（合著）等重要著作。 |\n| 1999年 | 53岁 | 出版《中国现代文学课程学习指导》。 |\n| 2000年代初 | 54-58岁 | 开始深度介入语文教育研究，发表大量相关文章。 |\n| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。 |\n| 2005年 | 59岁 | 任北京大学中文系主任（至2008年）。 |\n| 2012年 | 66岁 | 受教育部聘任，担任义务教育语文教科书（“部编本”）总主编。 |\n| 2016年 | 70岁 | 主持编写的“部编本”小学一年级和初中一年级语文教材开始在全国投入使用。 |\n| 2018年 | 72岁 | 主持编写的普通高中语文统编教材开始在全国投入使用。 |\n| 2019年至今 | 73岁+ | 持续参与教材修订、教师培训及语文教育理念推广工作。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n温儒敏主导的“部编本”语文教材改革，是21世纪以来中国基础教育领域最重大的变革之一。它结束了长期以来教材编写“一纲多本”、质量参差的局面，通过强调“读书为要”、增加传统文化分量、构建“教读-自读-课外阅读”三位一体体系等设计，直接且深刻地影响了全国中小学的语文教学实践、课堂形态以及中考、高考的命题方向。其关于“语文高考要让15%的人做不完”等言论，虽引发争议，但切实推动了语文考试对阅读速度与深度的考查转向。\n\n### 对后世的影响\n1.  **教材编写范式**：确立了以“人文主题”与“语文要素”双线组织单元的教材编写新范式，为未来教材修订提供了基本框架。\n2.  **教育理念普及**：将“语文核心素养”、“整本书阅读”、“学习任务群”等专业概念转化为一线教师可理解、可操作的教学要求，深刻影响了一代语文教师的教育观念。\n3.  **学术研究与普及结合**：树立了顶尖学者投身基础教育、将学术资源转化为公共教育资源的典范，激励更多学术界人士关注中小学教育。\n4.  **阅读风气引导**：通过教材和倡导，强力推动“全民阅读”在校园内的落地，尤其强调经典阅读与深度阅读，对青少年阅读习惯的培养具有长远影响。\n\n### 历史评价\n1.  **教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。\n2.  **学术界评价**：在中国现代文学研究领域是重要的文学史家；在语文教育领域，是承前启后的“首席设计师”和“总工程师”。\n3.  **争议性评价**：其主导的教材改革和某些高考言论也引发部分讨论，被一些人认为增加了学生负担或过于理想化，但其改革的初衷和整体方向获得广泛认可。\n\n---\n\n## 附录：语文教育理念与教材要点（整合自原‘人教版教材知识点’及‘初高中阶段考点’）\n\n### 核心教育理念\n- **“读书为要”**：强调阅读，尤其是整本书阅读，是语文教育的“牛鼻子”。\n- **“三位一体”阅读教学**：构建教读、自读、课外阅读相结合的体系。\n- **“语文核心素养”**：包含语言建构与运用、思维发展与提升、审美鉴赏与创造、文化传承与理解四个维度。\n- **“学习任务群”**：以人文主题和学习任务群双线组织高中教材单元，以真实情境下的学习任务为驱动。\n- **“守正创新”**：在尊重语文教育规律的基础上进行改革。\n\n### “部编本”教材关键变化\n- **单元组织**：采用“人文主题”与“语文要素”双线组织。\n- **传统文化**：古诗文篇目大幅增加。\n- **整本书阅读**：高中必修教材指定《乡土中国》《红楼梦》。\n- **知识补白**：系统安排语法修辞、文学常识等基础知识。\n\n### 相关争议与讨论\n- **高考言论**：关于“语文高考要让15%的考生做不完”的言论，意图强调提高阅读速度与效率，但具体表述和影响存在不同解读。\n- **改革评价**：其主导的教材改革对高考的影响，一方面理念深刻影响了命题方向，另一方面也有观点认为教材改革与高考评价体系需进一步协同。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 广东紫金 | 广东省河源市紫金县 | 23.6392 | 115.1847 |\n| 中国人民大学 | 北京市海淀区 | 39.9705 | 116.3176 |\n| 北京大学 | 北京市海淀区 | 39.9929 | 116.3065 |", "relatedGraph": {"center": {"id": "温儒敏", "name": "温儒敏", "file": "温儒敏.html", "dynasty": "当代", "aliases": [], "birth_year": 1946, "death_year": null, "quote": "“语文核心素养”", "review": "*教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "广东紫金", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "温儒敏", "name": "温儒敏", "file": "温儒敏.html", "dynasty": "当代", "aliases": [], "birth_year": 1946, "death_year": null, "quote": "“语文核心素养”", "review": "*教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "广东紫金", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "舒婷", "name": "舒婷", "file": "舒婷.html", "dynasty": "现代", "aliases": [], "birth_year": 1952, "death_year": null, "quote": "“破旧的老水车”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福建泉州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "近代", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "“不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "温儒敏", "target": "舒婷", "label": "同朝共现", "confidence": 0.25}, {"source": "温儒敏", "target": "鲁迅", "label": "同册共现", "confidence": 0.15}, {"source": "温儒敏", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "温儒敏", "target": "齐世荣", "label": "相关人物", "confidence": null}, {"source": "温儒敏", "target": "黄继光", "label": "相关人物", "confidence": null}, {"source": "温儒敏", "target": "黄大年", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "温儒敏", "title": "部编本", "description": "温儒敏，1946年生于广东，1969年毕业于中国人民大学语文系（系名按当时习惯），1978年考入北京大学中文系攻读研究生，1981年获文学硕士学位后留校任教。他长期致力于中国现当代文学史、文学批评及语文教育研究，曾任北京大学中文系主任、北京大学语文教育研究所所长。21世纪以来，他将主要精力投入基础教育语文课程改革，于2012年起受聘主持教育部义务教育语文教科书（“部编本”）的编写工作，该教材于2016年起在全国统一使用，深刻影响了当代中国的语文教育生态。其学术与教育实践，体现了将高深学术研究与基础教育普及相结合的不懈努力。", "quote": "系统梳理现代文学批评脉络", "shortReview": "系统梳理现代文学批评脉络", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "广东紫金", "avatar": "", "birth": {"date": "1946年", "location": "广东紫金", "lat": 23.6392, "lng": 115.1847, "coordSystem": "WGS84"}, "death": {"date": "", "location": "世", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "—", "highlights": {"honor": "部编本", "status": "中国现当代文学研究重要学者，国家语文教育改革的核心推动者与“部编本”中小学语文统编教材总主编。", "identities": "文学史家、教育家、北京大学教授、语文教育家", "achievements": "主持编写“部编本”中小学语文统编教材；提出“语文核心素养”等重要教育理念；在中国现代文学研究领域，特别是在鲁迅、茅盾研究及文学史编写方面有突出建树；长期关注并推动语文高考改革。", "works": [], "reviews": ["**教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "**学术界评价**：在中国现代文学研究领域是重要的文学史家；在语文教育领域，是承前启后的“首席设计师”和“总工程师”。", "**争议性评价**：其主导的教材改革和某些高考言论也引发部分讨论，被一些人认为增加了学生负担或过于理想化，但其改革的初衷和整体方向获得广泛认可。"]}}, "locations": [{"name": "广东紫金", "ancientName": "紫金县", "modernName": "广东省河源市紫金县", "lat": 23.6392, "lng": 115.1847, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年与少年时代，接受早期教育。", "time": "1946年", "duration": "童年及少年时期（约1946-1960年代初）", "significance": "人生起点，形成其最初的乡土文化背景。", "works": [], "quoteLines": []}, {"name": "北京（中国人民大学）", "ancientName": "中国人民大学", "modernName": "北京市海淀区", "lat": 39.9705, "lng": 116.3176, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国人民大学语文系，接受系统的语言文学教育。", "time": "1964年 - 1969年", "duration": "大学本科阶段（5年）", "significance": "奠定了其文学研究与学术生涯的基础。", "works": [], "quoteLines": []}, {"name": "北京（北京大学）", "ancientName": "北京大学", "modernName": "北京市海淀区", "lat": 39.9929, "lng": 116.3065, "coordSystem": "WGS84", "type": "normal", "event": "1. 1978-1981年攻读硕士研究生；2. 1981年留校任教，历任讲师、副教授、教授；3. 曾任中文系主任、北大语文教育研究所所长；4. 在此完成大量学术著作，并策划、主持语文教材编写工作。", "time": "1978年 - 至今", "duration": "研究生学习及此后长期工作生活地（46年及以上）", "significance": "学术生涯的核心舞台与精神家园，在此实现了从文学研究者到教育改革家的转变。", "works": [], "quoteLines": ["《中国现代文学批评史》：系统梳理现代文学批评脉络", "《温儒敏论语文教育》：汇集其语文教育思想的核心文集。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"中国现代文学批评史": "名篇名句：《中国现代文学批评史》：系统梳理现代文学批评脉络", "温儒敏论语文教育": "《温儒敏论语文教育》：汇集其语文教育思想的核心文集。", "义务教育教科书语文": "“读书为要，强调经典，专治不读书”", "普通高中教科书语文": "“以学习任务群为导向，整合阅读与鉴赏、表达与交流”", "新文学现实主义的流变": "| 1987年 | 41岁 | 出版专著《新文学现实主义的流变》。", "中国现代文学课程学习指导": "| 1999年 | 53岁 | 出版《中国现代文学课程学习指导》。", "文学课堂：温儒敏现代文学史论集": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "文学课堂": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "温儒敏现代文学史论集": "| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 温儒敏\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：温儒敏\n- **时代**：当代\n- **出生**：1946年，广东紫金\n- **去世**：在世\n- **享年**：—\n- **主要身份**：文学史家、教育家、北京大学教授、语文教育家\n- **历史地位**：中国现当代文学研究重要学者，国家语文教育改革的核心推动者与“部编本”中小学语文统编教材总主编。\n- **主要成就**：主持编写“部编本”中小学语文统编教材；提出“语文核心素养”等重要教育理念；在中国现代文学研究领域，特别是在鲁迅、茅盾研究及文学史编写方面有突出建树；长期关注并推动语文高考改革。\n\n### 生平概述\n温儒敏，1946年生于广东，1969年毕业于中国人民大学语文系（系名按当时习惯），1978年考入北京大学中文系攻读研究生，1981年获文学硕士学位后留校任教。他长期致力于中国现当代文学史、文学批评及语文教育研究，曾任北京大学中文系主任、北京大学语文教育研究所所长。21世纪以来，他将主要精力投入基础教育语文课程改革，于2012年起受聘主持教育部义务教育语文教科书（“部编本”）的编写工作，该教材于2016年起在全国统一使用，深刻影响了当代中国的语文教育生态。其学术与教育实践，体现了将高深学术研究与基础教育普及相结合的不懈努力。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从广东紫金出发，辗转山东、北京等地求学与工作，最终在北京大学及全国语文教育领域产生深远影响。\n- ⏱️ **时间跨度**：1946年至今（数据截至2024年），约78年。\n- 📍 **地理范围**：主要覆盖广东、山东、北京等地。\n- 🌟 **重要节点数量**：6个核心地点（含出生地、求学工作地及全国性影响范围）。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：广东紫金\n- **公元纪年**：1946年\n- **停留时间**：童年及少年时期（约1946-1960年代初）\n- **位置**：紫金县（今广东省河源市紫金县）\n- **事迹**：在此度过童年与少年时代，接受早期教育。\n- **意义**：人生起点，形成其最初的乡土文化背景。\n\n### 📍 重要地点：山东\n- **公元纪年**：1969年（具体时间存疑）\n- **停留时间**：短暂工作时期\n- **位置**：山东省（具体城市存疑）\n- **事迹**：大学毕业后曾被分配至山东工作（具体工作地点待考）。\n- **意义**：人生早期的一段工作经历，是其从学校走向社会的过渡阶段。\n\n### 📍 重要地点：北京（中国人民大学）\n- **公元纪年**：1964年 - 1969年\n- **停留时间**：大学本科阶段（5年）\n- **位置**：中国人民大学（今北京市海淀区）\n- **事迹**：就读于中国人民大学语文系，接受系统的语言文学教育。\n- **意义**：奠定了其文学研究与学术生涯的基础。\n\n### 📍 重要地点：北京（北京大学）\n- **公元纪年**：1978年 - 至今\n- **停留时间**：研究生学习及此后长期工作生活地（46年及以上）\n- **位置**：北京大学（今北京市海淀区）\n- **事迹**：1. 1978-1981年攻读硕士研究生；2. 1981年留校任教，历任讲师、副教授、教授；3. 曾任中文系主任、北大语文教育研究所所长；4. 在此完成大量学术著作，并策划、主持语文教材编写工作。\n- **意义**：学术生涯的核心舞台与精神家园，在此实现了从文学研究者到教育改革家的转变。\n- **名篇名句**：《中国现代文学批评史》：系统梳理现代文学批评脉络；《温儒敏论语文教育》：汇集其语文教育思想的核心文集。\n\n### 📍 重要地点：全国（“部编本”教材使用地区）\n- **公元纪年**：2016年 - 至今\n- **停留时间**：持续影响中\n- **位置**：中华人民共和国境内所有使用统编语文教材的中小学校\n- **事迹**：主持编写的“部编本”语文教材在全国范围内统一使用，其教育理念（如“语文核心素养”、“三位一体”阅读教学、“整本书阅读”等）通过教材和教师培训影响亿万师生。\n- **意义**：其教育思想的实践场域与影响力最大化的体现，重塑了国家语文教育的基础面貌。\n- **名篇名句**：《义务教育教科书语文》（七年级上）：“读书为要，强调经典，专治不读书”；《普通高中教科书语文》（必修上册）：“以学习任务群为导向，整合阅读与鉴赏、表达与交流”。\n\n### 🔴 去世地：在世\n- **公元纪年**：—\n- **停留时间**：—\n- **位置**：—\n- **经过**：—\n- **意义**：—\n- **名篇名句**：—\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1946年 | 0岁 | 出生于广东紫金。 |\n| 1964年 | 18岁 | 考入中国人民大学语文系学习。 |\n| 1969年 | 23岁 | 大学毕业，曾赴山东工作（具体时间存疑）。 |\n| 1978年 | 32岁 | 考取北京大学中文系硕士研究生。 |\n| 1981年 | 35岁 | 获北京大学文学硕士学位，留校任教。 |\n| 1987年 | 41岁 | 出版专著《新文学现实主义的流变》。 |\n| 1990年代 | 44-53岁 | 陆续出版《中国现代文学批评史》《中国现代文学三十年》（合著）等重要著作。 |\n| 1999年 | 53岁 | 出版《中国现代文学课程学习指导》。 |\n| 2000年代初 | 54-58岁 | 开始深度介入语文教育研究，发表大量相关文章。 |\n| 2004年 | 58岁 | 出版《文学课堂：温儒敏现代文学史论集》。 |\n| 2005年 | 59岁 | 任北京大学中文系主任（至2008年）。 |\n| 2012年 | 66岁 | 受教育部聘任，担任义务教育语文教科书（“部编本”）总主编。 |\n| 2016年 | 70岁 | 主持编写的“部编本”小学一年级和初中一年级语文教材开始在全国投入使用。 |\n| 2018年 | 72岁 | 主持编写的普通高中语文统编教材开始在全国投入使用。 |\n| 2019年至今 | 73岁+ | 持续参与教材修订、教师培训及语文教育理念推广工作。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n温儒敏主导的“部编本”语文教材改革，是21世纪以来中国基础教育领域最重大的变革之一。它结束了长期以来教材编写“一纲多本”、质量参差的局面，通过强调“读书为要”、增加传统文化分量、构建“教读-自读-课外阅读”三位一体体系等设计，直接且深刻地影响了全国中小学的语文教学实践、课堂形态以及中考、高考的命题方向。其关于“语文高考要让15%的人做不完”等言论，虽引发争议，但切实推动了语文考试对阅读速度与深度的考查转向。\n\n### 对后世的影响\n1.  **教材编写范式**：确立了以“人文主题”与“语文要素”双线组织单元的教材编写新范式，为未来教材修订提供了基本框架。\n2.  **教育理念普及**：将“语文核心素养”、“整本书阅读”、“学习任务群”等专业概念转化为一线教师可理解、可操作的教学要求，深刻影响了一代语文教师的教育观念。\n3.  **学术研究与普及结合**：树立了顶尖学者投身基础教育、将学术资源转化为公共教育资源的典范，激励更多学术界人士关注中小学教育。\n4.  **阅读风气引导**：通过教材和倡导，强力推动“全民阅读”在校园内的落地，尤其强调经典阅读与深度阅读，对青少年阅读习惯的培养具有长远影响。\n\n### 历史评价\n1.  **教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。\n2.  **学术界评价**：在中国现代文学研究领域是重要的文学史家；在语文教育领域，是承前启后的“首席设计师”和“总工程师”。\n3.  **争议性评价**：其主导的教材改革和某些高考言论也引发部分讨论，被一些人认为增加了学生负担或过于理想化，但其改革的初衷和整体方向获得广泛认可。\n\n---\n\n## 附录：语文教育理念与教材要点（整合自原‘人教版教材知识点’及‘初高中阶段考点’）\n\n### 核心教育理念\n- **“读书为要”**：强调阅读，尤其是整本书阅读，是语文教育的“牛鼻子”。\n- **“三位一体”阅读教学**：构建教读、自读、课外阅读相结合的体系。\n- **“语文核心素养”**：包含语言建构与运用、思维发展与提升、审美鉴赏与创造、文化传承与理解四个维度。\n- **“学习任务群”**：以人文主题和学习任务群双线组织高中教材单元，以真实情境下的学习任务为驱动。\n- **“守正创新”**：在尊重语文教育规律的基础上进行改革。\n\n### “部编本”教材关键变化\n- **单元组织**：采用“人文主题”与“语文要素”双线组织。\n- **传统文化**：古诗文篇目大幅增加。\n- **整本书阅读**：高中必修教材指定《乡土中国》《红楼梦》。\n- **知识补白**：系统安排语法修辞、文学常识等基础知识。\n\n### 相关争议与讨论\n- **高考言论**：关于“语文高考要让15%的考生做不完”的言论，意图强调提高阅读速度与效率，但具体表述和影响存在不同解读。\n- **改革评价**：其主导的教材改革对高考的影响，一方面理念深刻影响了命题方向，另一方面也有观点认为教材改革与高考评价体系需进一步协同。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 广东紫金 | 广东省河源市紫金县 | 23.6392 | 115.1847 |\n| 中国人民大学 | 北京市海淀区 | 39.9705 | 116.3176 |\n| 北京大学 | 北京市海淀区 | 39.9929 | 116.3065 |", "relatedGraph": {"center": {"id": "温儒敏", "name": "温儒敏", "file": "温儒敏.html", "dynasty": "当代", "aliases": [], "birth_year": 1946, "death_year": null, "quote": "“语文核心素养”", "review": "*教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "广东紫金", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "温儒敏", "name": "温儒敏", "file": "温儒敏.html", "dynasty": "当代", "aliases": [], "birth_year": 1946, "death_year": null, "quote": "“语文核心素养”", "review": "*教育界评价**：被誉为“撬动中国语文教育改革的关键人物”，其工作“功在当代，利在千秋”。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "广东紫金", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "舒婷", "name": "舒婷", "file": "舒婷.html", "dynasty": "现代", "aliases": [], "birth_year": 1952, "death_year": null, "quote": "“破旧的老水车”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福建泉州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "近代", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "“不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "温儒敏", "target": "舒婷", "label": "同朝共现", "confidence": 0.25}, {"source": "温儒敏", "target": "鲁迅", "label": "同册共现", "confidence": 0.15}, {"source": "温儒敏", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "温儒敏", "target": "齐世荣", "label": "相关人物", "confidence": null}, {"source": "温儒敏", "target": "黄继光", "label": "相关人物", "confidence": null}, {"source": "温儒敏", "target": "黄大年", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

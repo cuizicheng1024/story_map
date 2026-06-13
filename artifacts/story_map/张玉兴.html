@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "张玉兴", "title": "", "description": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究。他长期在辽宁社会科学院历史研究所工作，专注于清初历史，特别是明清鼎革之际复杂的人物关系、政治生态与社会变迁。其研究以史料扎实、考辨精审、立论公允著称，对清初“贰臣”、东北流人群体等课题有开创性贡献，其学术成果为清史研究的深化提供了重要支撑。", "quote": "参与《清史》纂修工程，贡献了重要的学术成果。", "shortReview": "参与《清史》纂修工程，贡献了重要的学术成果。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "奉天（今辽宁省沈阳市）", "avatar": "", "birth": {"date": "1939年", "location": "奉天（今辽宁省沈阳市）", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84"}, "death": {"date": "2022年", "location": "北京（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "83岁（周岁）（虚岁约84岁，存疑）", "highlights": {"honor": "", "status": "中国当代著名的清史、特别是清初历史与人物研究专家。", "identities": "历史学家、清史研究专家、研究员", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "沈阳（出生地）", "ancientName": "奉天", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于沈阳，接受早期教育。", "time": "公元1939年", "duration": "青少年时期", "significance": "东北的地域文化及历史氛围为其日后研究清史，特别是东北地方史与流人史埋下伏笔。", "works": [], "quoteLines": []}, {"name": "沈阳（工作地）", "ancientName": "沈阳", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "毕业后进入辽宁省哲学社会科学研究所（后为辽宁社会科学院）工作，历任助理研究员、副研究员、研究员。", "time": "约1960年代中期-2000年代", "duration": "约40年", "significance": "在此完成了绝大部分学术研究，发表了系列重要论著，成为其学术生涯的核心舞台。", "works": [], "quoteLines": []}, {"name": "长春", "ancientName": "长春", "modernName": "吉林省长春市", "lat": 43.8171, "lng": 125.3235, "coordSystem": "WGS84", "type": "normal", "event": "考入东北师范大学历史系学习。", "time": "约1958-1962年", "duration": "约4年", "significance": "接受了系统的历史学专业训练，为其学术生涯奠定了坚实基础。", "works": [], "quoteLines": []}, {"name": "北京（学术交流）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁赴京参加清史学术研讨会、查阅档案资料，后期参与《清史》纂修相关工作。", "time": "1980年代-2010年代", "duration": "多次短期访问", "significance": "与全国清史学界交流的核心节点，接触核心档案与前沿学术动态。", "works": ["清史"], "quoteLines": []}, {"name": "沈阳（晚年居所）", "ancientName": "沈阳", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "退休后仍笔耕不辍，整理旧作，指导后学。", "time": "2000年代-2022年去世前", "duration": "约20年", "significance": "学术生涯的总结与传承阶段。", "works": [], "quoteLines": []}, {"name": "北京（去世地）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "病逝于北京。", "time": "公元2022年", "duration": "晚年部分时间", "significance": "学术生命的终点。", "works": [], "quoteLines": []}, {"name": "沈阳故宫", "ancientName": "沈阳故宫", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "实地考察清初历史建筑与文物，收集研究素材。", "time": "研究期间多次", "duration": "短期考察", "significance": "将文献研究与实地考察相结合，深化对清初宫廷历史与文化的理解。", "works": [], "quoteLines": []}, {"name": "北京故宫（中国第一历史档案馆）", "ancientName": "北京故宫", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "系统查阅清宫档案，尤其是与清初人物、事件相关的奏折、上谕等。", "time": "研究期间多次", "duration": "短期查阅", "significance": "获取了大量第一手档案史料，是其研究得以深入的关键。", "works": [], "quoteLines": []}, {"name": "承德", "ancientName": "承德", "modernName": "河北省承德市", "lat": 40.951, "lng": 117.9634, "coordSystem": "WGS84", "type": "normal", "event": "考察避暑山庄及外八庙，研究清帝北巡与民族政策。", "time": "研究期间", "duration": "短期考察", "significance": "实地理解清朝处理民族关系与边疆政策的重要场所。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。", "time": "研究期间", "duration": "短期考察与调研", "significance": "补充了清初江南地区复杂历史图景的感性认识与地方史料。", "works": [], "quoteLines": []}, {"name": "苏州", "ancientName": "苏州", "modernName": "江苏省苏州市", "lat": 31.299, "lng": 120.5853, "coordSystem": "WGS84", "type": "normal", "event": "考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。", "time": "研究期间", "duration": "短期考察与调研", "significance": "补充了清初江南地区复杂历史图景的感性认识与地方史料。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---", "examPoints": "### 考点\n张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---", "workTexts": {"清史": "参与《清史》纂修工程，贡献了重要的学术成果。", "清代东北流人诗选注": "| 1983年 | 44岁 | 参与注释的《清代东北流人诗选注》出版。", "清初人物论稿": "| 1993年 | 54岁 | 代表作《清初人物论稿》出版。", "**清史**": "参与了21世纪重大文化工程《清史》的纂修工作。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 张玉兴\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张玉兴\n- **时代**：中华人民共和国\n- **出生**：公元1939年，奉天（今辽宁省沈阳市）\n- **去世**：公元2022年，北京（今北京市）\n- **享年**：83岁（周岁）（虚岁约84岁，存疑）\n- **主要身份**：历史学家、清史研究专家、研究员\n- **历史地位**：中国当代著名的清史、特别是清初历史与人物研究专家。\n- **主要成就**：\n    - 深入研究清初历史，尤其专注于明清易代之际的人物与事件。\n    - 著有《清初人物论稿》、《清代东北流人诗选注》（合作）等重要学术著作。\n    - 对清初贰臣、遗民、流人等群体进行了系统性研究，填补了相关领域空白。\n    - 参与《清史》纂修工程，贡献了重要的学术成果。\n\n### 生平概述\n张玉兴先生生于东北，成长于新中国，毕生致力于清史研究。他长期在辽宁社会科学院历史研究所工作，专注于清初历史，特别是明清鼎革之际复杂的人物关系、政治生态与社会变迁。其研究以史料扎实、考辨精审、立论公允著称，对清初“贰臣”、东北流人群体等课题有开创性贡献，其学术成果为清史研究的深化提供了重要支撑。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国东北（辽宁）为学术基地，足迹遍及北京、河北、江南等与清史研究相关的核心区域。\n- ⏱️ **时间跨度**：公元1939年 - 公元2022年，共计83年。\n- 📍 **地理范围**：主要覆盖今辽宁省、吉林省、北京市、河北省、江苏省等地。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 地点名称：沈阳（出生地）\n- **时间**：公元1939年\n- **停留时间**：青少年时期\n- **地点**：奉天（今辽宁省沈阳市）\n- **事件**：出生并成长于沈阳，接受早期教育。\n- **意义**：东北的地域文化及历史氛围为其日后研究清史，特别是东北地方史与流人史埋下伏笔。\n\n### 📍 地点名称：长春\n- **时间**：约1958-1962年\n- **停留时间**：约4年\n- **地点**：长春（今吉林省长春市）\n- **事件**：考入东北师范大学历史系学习。\n- **意义**：接受了系统的历史学专业训练，为其学术生涯奠定了坚实基础。\n\n### 📍 地点名称：沈阳（工作地）\n- **时间**：约1960年代中期-2000年代\n- **停留时间**：约40年\n- **地点**：沈阳（今辽宁省沈阳市）\n- **事件**：毕业后进入辽宁省哲学社会科学研究所（后为辽宁社会科学院）工作，历任助理研究员、副研究员、研究员。\n- **意义**：在此完成了绝大部分学术研究，发表了系列重要论著，成为其学术生涯的核心舞台。\n\n### 📍 地点名称：北京（学术交流）\n- **时间**：1980年代-2010年代\n- **停留时间**：多次短期访问\n- **地点**：北京（今北京市）\n- **事件**：频繁赴京参加清史学术研讨会、查阅档案资料，后期参与《清史》纂修相关工作。\n- **意义**：与全国清史学界交流的核心节点，接触核心档案与前沿学术动态。\n\n### 📍 地点名称：沈阳故宫\n- **时间**：研究期间多次\n- **停留时间**：短期考察\n- **地点**：沈阳故宫（今辽宁省沈阳市）\n- **事件**：实地考察清初历史建筑与文物，收集研究素材。\n- **意义**：将文献研究与实地考察相结合，深化对清初宫廷历史与文化的理解。\n\n### 📍 地点名称：北京故宫（中国第一历史档案馆）\n- **时间**：研究期间多次\n- **停留时间**：短期查阅\n- **地点**：北京故宫（今北京市）\n- **事件**：系统查阅清宫档案，尤其是与清初人物、事件相关的奏折、上谕等。\n- **意义**：获取了大量第一手档案史料，是其研究得以深入的关键。\n\n### 📍 地点名称：承德\n- **时间**：研究期间\n- **停留时间**：短期考察\n- **地点**：承德（今河北省承德市）\n- **事件**：考察避暑山庄及外八庙，研究清帝北巡与民族政策。\n- **意义**：实地理解清朝处理民族关系与边疆政策的重要场所。\n\n### 📍 地点名称：南京\n- **时间**：研究期间\n- **停留时间**：短期考察与调研\n- **地点**：南京（今江苏省南京市）\n- **事件**：考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。\n- **意义**：补充了清初江南地区复杂历史图景的感性认识与地方史料。\n\n### 📍 地点名称：苏州\n- **时间**：研究期间\n- **停留时间**：短期考察与调研\n- **地点**：苏州（今江苏省苏州市）\n- **事件**：考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。\n- **意义**：补充了清初江南地区复杂历史图景的感性认识与地方史料。\n\n### 📍 地点名称：沈阳（晚年居所）\n- **时间**：2000年代-2022年去世前\n- **停留时间**：约20年\n- **地点**：沈阳（今辽宁省沈阳市）\n- **事件**：退休后仍笔耕不辍，整理旧作，指导后学。\n- **意义**：学术生涯的总结与传承阶段。\n\n### 📍 地点名称：北京（去世地）\n- **时间**：公元2022年\n- **停留时间**：晚年部分时间\n- **地点**：北京（今北京市）\n- **事件**：病逝于北京。\n- **意义**：学术生命的终点。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1939年 | 0岁 | 出生于奉天（今辽宁沈阳）。 |\n| 约1958-1962年 | 约19-23岁 | 就读于东北师范大学历史系。 |\n| 约1965年 | 约26岁 | 进入辽宁省哲学社会科学研究所（辽宁社会科学院前身）工作。 |\n| 1980年代 | 40余岁 | 学术成果进入高产期，发表多篇关于清初人物的重要论文。 |\n| 1983年 | 44岁 | 参与注释的《清代东北流人诗选注》出版。 |\n| 1993年 | 54岁 | 代表作《清初人物论稿》出版。 |\n| 2000年代初 | 60余岁 | 退休，但仍从事学术研究。 |\n| 2004年 | 65岁 | 受聘参与国家清史纂修工程。 |\n| 2022年 | 83岁 | 病逝于北京。 |\n\n---\n\n## 人教版教材知识点\n张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 辽宁省沈阳市 | 41.7969 | 123.4396 |\n| 吉林省长春市 | 43.8171 | 125.3235 |\n| 北京市 | 39.9042 | 116.4074 |\n| 河北省承德市 | 40.9510 | 117.9634 |\n| 辽宁省沈阳市（沈阳故宫） | 41.7906 | 123.4468 |\n| 北京市（故宫/第一历史档案馆） | 39.9163 | 116.3972 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 江苏省苏州市 | 31.2990 | 120.5853 |", "relatedGraph": {"center": {"id": "张玉兴", "name": "张玉兴", "file": "张玉兴.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1939, "death_year": 2022, "quote": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究", "review": "参与《清史》纂修工程，贡献了重要的学术成果。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "奉天", "birthplace_modern": "辽宁省沈阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张玉兴", "name": "张玉兴", "file": "张玉兴.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1939, "death_year": 2022, "quote": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究", "review": "参与《清史》纂修工程，贡献了重要的学术成果。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "奉天", "birthplace_modern": "辽宁省沈阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵文君", "name": "赵文君", "file": "赵文君.html", "dynasty": "存疑", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**存疑/说法不一**”", "review": "暂无权威史家或后世名家对其进行评价。", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "张葳", "name": "张葳", "file": "张葳.html", "dynasty": "存疑/说法不一/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于张葳的生平，现存可靠史料极为有限", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "张玉兴", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "赵文君", "label": "同册共现", "confidence": 0.15}, {"source": "张玉兴", "target": "张葳", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "张玉兴", "title": "", "description": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究。他长期在辽宁社会科学院历史研究所工作，专注于清初历史，特别是明清鼎革之际复杂的人物关系、政治生态与社会变迁。其研究以史料扎实、考辨精审、立论公允著称，对清初“贰臣”、东北流人群体等课题有开创性贡献，其学术成果为清史研究的深化提供了重要支撑。", "quote": "参与《清史》纂修工程，贡献了重要的学术成果。", "shortReview": "参与《清史》纂修工程，贡献了重要的学术成果。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "奉天（今辽宁省沈阳市）", "avatar": "", "birth": {"date": "1939年", "location": "奉天（今辽宁省沈阳市）", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84"}, "death": {"date": "2022年", "location": "北京（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "83岁（周岁）（虚岁约84岁，存疑）", "highlights": {"honor": "", "status": "中国当代著名的清史、特别是清初历史与人物研究专家。", "identities": "历史学家、清史研究专家、研究员", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "沈阳（出生地）", "ancientName": "奉天", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于沈阳，接受早期教育。", "time": "公元1939年", "duration": "青少年时期", "significance": "东北的地域文化及历史氛围为其日后研究清史，特别是东北地方史与流人史埋下伏笔。", "works": [], "quoteLines": []}, {"name": "沈阳（工作地）", "ancientName": "沈阳", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "毕业后进入辽宁省哲学社会科学研究所（后为辽宁社会科学院）工作，历任助理研究员、副研究员、研究员。", "time": "约1960年代中期-2000年代", "duration": "约40年", "significance": "在此完成了绝大部分学术研究，发表了系列重要论著，成为其学术生涯的核心舞台。", "works": [], "quoteLines": []}, {"name": "长春", "ancientName": "长春", "modernName": "吉林省长春市", "lat": 43.8171, "lng": 125.3235, "coordSystem": "WGS84", "type": "normal", "event": "考入东北师范大学历史系学习。", "time": "约1958-1962年", "duration": "约4年", "significance": "接受了系统的历史学专业训练，为其学术生涯奠定了坚实基础。", "works": [], "quoteLines": []}, {"name": "北京（学术交流）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁赴京参加清史学术研讨会、查阅档案资料，后期参与《清史》纂修相关工作。", "time": "1980年代-2010年代", "duration": "多次短期访问", "significance": "与全国清史学界交流的核心节点，接触核心档案与前沿学术动态。", "works": ["清史"], "quoteLines": []}, {"name": "沈阳（晚年居所）", "ancientName": "沈阳", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "退休后仍笔耕不辍，整理旧作，指导后学。", "time": "2000年代-2022年去世前", "duration": "约20年", "significance": "学术生涯的总结与传承阶段。", "works": [], "quoteLines": []}, {"name": "北京（去世地）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "病逝于北京。", "time": "公元2022年", "duration": "晚年部分时间", "significance": "学术生命的终点。", "works": [], "quoteLines": []}, {"name": "沈阳故宫", "ancientName": "沈阳故宫", "modernName": "辽宁省沈阳市", "lat": 41.7906, "lng": 123.4468, "coordSystem": "WGS84", "type": "normal", "event": "实地考察清初历史建筑与文物，收集研究素材。", "time": "研究期间多次", "duration": "短期考察", "significance": "将文献研究与实地考察相结合，深化对清初宫廷历史与文化的理解。", "works": [], "quoteLines": []}, {"name": "北京故宫（中国第一历史档案馆）", "ancientName": "北京故宫", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "系统查阅清宫档案，尤其是与清初人物、事件相关的奏折、上谕等。", "time": "研究期间多次", "duration": "短期查阅", "significance": "获取了大量第一手档案史料，是其研究得以深入的关键。", "works": [], "quoteLines": []}, {"name": "承德", "ancientName": "承德", "modernName": "河北省承德市", "lat": 40.951, "lng": 117.9634, "coordSystem": "WGS84", "type": "normal", "event": "考察避暑山庄及外八庙，研究清帝北巡与民族政策。", "time": "研究期间", "duration": "短期考察", "significance": "实地理解清朝处理民族关系与边疆政策的重要场所。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。", "time": "研究期间", "duration": "短期考察与调研", "significance": "补充了清初江南地区复杂历史图景的感性认识与地方史料。", "works": [], "quoteLines": []}, {"name": "苏州", "ancientName": "苏州", "modernName": "江苏省苏州市", "lat": 31.299, "lng": 120.5853, "coordSystem": "WGS84", "type": "normal", "event": "考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。", "time": "研究期间", "duration": "短期考察与调研", "significance": "补充了清初江南地区复杂历史图景的感性认识与地方史料。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---", "examPoints": "### 考点\n张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---", "workTexts": {"清史": "参与《清史》纂修工程，贡献了重要的学术成果。", "清代东北流人诗选注": "| 1983年 | 44岁 | 参与注释的《清代东北流人诗选注》出版。", "清初人物论稿": "| 1993年 | 54岁 | 代表作《清初人物论稿》出版。", "**清史**": "参与了21世纪重大文化工程《清史》的纂修工作。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 张玉兴\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张玉兴\n- **时代**：中华人民共和国\n- **出生**：公元1939年，奉天（今辽宁省沈阳市）\n- **去世**：公元2022年，北京（今北京市）\n- **享年**：83岁（周岁）（虚岁约84岁，存疑）\n- **主要身份**：历史学家、清史研究专家、研究员\n- **历史地位**：中国当代著名的清史、特别是清初历史与人物研究专家。\n- **主要成就**：\n    - 深入研究清初历史，尤其专注于明清易代之际的人物与事件。\n    - 著有《清初人物论稿》、《清代东北流人诗选注》（合作）等重要学术著作。\n    - 对清初贰臣、遗民、流人等群体进行了系统性研究，填补了相关领域空白。\n    - 参与《清史》纂修工程，贡献了重要的学术成果。\n\n### 生平概述\n张玉兴先生生于东北，成长于新中国，毕生致力于清史研究。他长期在辽宁社会科学院历史研究所工作，专注于清初历史，特别是明清鼎革之际复杂的人物关系、政治生态与社会变迁。其研究以史料扎实、考辨精审、立论公允著称，对清初“贰臣”、东北流人群体等课题有开创性贡献，其学术成果为清史研究的深化提供了重要支撑。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国东北（辽宁）为学术基地，足迹遍及北京、河北、江南等与清史研究相关的核心区域。\n- ⏱️ **时间跨度**：公元1939年 - 公元2022年，共计83年。\n- 📍 **地理范围**：主要覆盖今辽宁省、吉林省、北京市、河北省、江苏省等地。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 地点名称：沈阳（出生地）\n- **时间**：公元1939年\n- **停留时间**：青少年时期\n- **地点**：奉天（今辽宁省沈阳市）\n- **事件**：出生并成长于沈阳，接受早期教育。\n- **意义**：东北的地域文化及历史氛围为其日后研究清史，特别是东北地方史与流人史埋下伏笔。\n\n### 📍 地点名称：长春\n- **时间**：约1958-1962年\n- **停留时间**：约4年\n- **地点**：长春（今吉林省长春市）\n- **事件**：考入东北师范大学历史系学习。\n- **意义**：接受了系统的历史学专业训练，为其学术生涯奠定了坚实基础。\n\n### 📍 地点名称：沈阳（工作地）\n- **时间**：约1960年代中期-2000年代\n- **停留时间**：约40年\n- **地点**：沈阳（今辽宁省沈阳市）\n- **事件**：毕业后进入辽宁省哲学社会科学研究所（后为辽宁社会科学院）工作，历任助理研究员、副研究员、研究员。\n- **意义**：在此完成了绝大部分学术研究，发表了系列重要论著，成为其学术生涯的核心舞台。\n\n### 📍 地点名称：北京（学术交流）\n- **时间**：1980年代-2010年代\n- **停留时间**：多次短期访问\n- **地点**：北京（今北京市）\n- **事件**：频繁赴京参加清史学术研讨会、查阅档案资料，后期参与《清史》纂修相关工作。\n- **意义**：与全国清史学界交流的核心节点，接触核心档案与前沿学术动态。\n\n### 📍 地点名称：沈阳故宫\n- **时间**：研究期间多次\n- **停留时间**：短期考察\n- **地点**：沈阳故宫（今辽宁省沈阳市）\n- **事件**：实地考察清初历史建筑与文物，收集研究素材。\n- **意义**：将文献研究与实地考察相结合，深化对清初宫廷历史与文化的理解。\n\n### 📍 地点名称：北京故宫（中国第一历史档案馆）\n- **时间**：研究期间多次\n- **停留时间**：短期查阅\n- **地点**：北京故宫（今北京市）\n- **事件**：系统查阅清宫档案，尤其是与清初人物、事件相关的奏折、上谕等。\n- **意义**：获取了大量第一手档案史料，是其研究得以深入的关键。\n\n### 📍 地点名称：承德\n- **时间**：研究期间\n- **停留时间**：短期考察\n- **地点**：承德（今河北省承德市）\n- **事件**：考察避暑山庄及外八庙，研究清帝北巡与民族政策。\n- **意义**：实地理解清朝处理民族关系与边疆政策的重要场所。\n\n### 📍 地点名称：南京\n- **时间**：研究期间\n- **停留时间**：短期考察与调研\n- **地点**：南京（今江苏省南京市）\n- **事件**：考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。\n- **意义**：补充了清初江南地区复杂历史图景的感性认识与地方史料。\n\n### 📍 地点名称：苏州\n- **时间**：研究期间\n- **停留时间**：短期考察与调研\n- **地点**：苏州（今江苏省苏州市）\n- **事件**：考察清初江南士人活动遗迹，收集地方文献中关于遗民、贰臣的记载。\n- **意义**：补充了清初江南地区复杂历史图景的感性认识与地方史料。\n\n### 📍 地点名称：沈阳（晚年居所）\n- **时间**：2000年代-2022年去世前\n- **停留时间**：约20年\n- **地点**：沈阳（今辽宁省沈阳市）\n- **事件**：退休后仍笔耕不辍，整理旧作，指导后学。\n- **意义**：学术生涯的总结与传承阶段。\n\n### 📍 地点名称：北京（去世地）\n- **时间**：公元2022年\n- **停留时间**：晚年部分时间\n- **地点**：北京（今北京市）\n- **事件**：病逝于北京。\n- **意义**：学术生命的终点。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1939年 | 0岁 | 出生于奉天（今辽宁沈阳）。 |\n| 约1958-1962年 | 约19-23岁 | 就读于东北师范大学历史系。 |\n| 约1965年 | 约26岁 | 进入辽宁省哲学社会科学研究所（辽宁社会科学院前身）工作。 |\n| 1980年代 | 40余岁 | 学术成果进入高产期，发表多篇关于清初人物的重要论文。 |\n| 1983年 | 44岁 | 参与注释的《清代东北流人诗选注》出版。 |\n| 1993年 | 54岁 | 代表作《清初人物论稿》出版。 |\n| 2000年代初 | 60余岁 | 退休，但仍从事学术研究。 |\n| 2004年 | 65岁 | 受聘参与国家清史纂修工程。 |\n| 2022年 | 83岁 | 病逝于北京。 |\n\n---\n\n## 人教版教材知识点\n张玉兴先生作为当代历史学者，其本人及其学术观点通常不直接出现在中学人教版语文或历史教材中。其学术贡献主要体现在专业清史研究领域，为学术界提供了关于清初历史人物的深入解读和史料整理。以下内容基于其学术研究领域与教材可能涉及的宏观背景的关联进行梳理。\n\n### 语文（课文/词作）\n- 课文/词作：无直接关联课文。其研究的**清初历史背景**与部分涉及明清易代的文学作品（如孔尚任《桃花扇》）的时代背景相关。\n- 核心要点：\n    - **重点**：其研究有助于理解明清之际文学作品中**遗民情怀**与**历史沧桑感**的深层历史根源。\n    - 对**贰臣**群体的分析，为理解当时文人在**忠君**与**生存**之间的复杂心态提供了历史注脚。\n    - 其关于**东北流人**的研究，揭示了清初文字狱及政治迫害对文人命运的摧残，可与相关文学作品的背景知识相联系。\n    - **重点**：强调历史研究中的**史料辨析**与**同情之理解**，这种方法论对文学作品的背景分析具有借鉴意义。\n    - **重点**：其学术成果丰富了我们对**清初社会**这一特定历史时期的整体认知，为文学鉴赏提供了更广阔的历史视野。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：长期致力于**清初史**研究，是**明清易代**研究领域的代表性学者之一。\n    - 系统研究了**清初贰臣**（如洪承畴、钱谦益等）群体，重新评价其历史作用与处境。\n    - 开创性地整理和研究了**清代东北流人**这一特殊群体的历史。\n    - 参与了21世纪重大文化工程《**清史**》的纂修工作。\n- 核心要点：\n    - **重点**：其研究深化了对**清朝建立初期**政治整合、民族政策及社会矛盾复杂性的认识。\n    - **重点**：主张对历史人物进行**具体分析**，避免简单化的“忠奸”二元评价，强调历史情境。\n    - 其工作体现了**地方社科研究机构**学者在深耕专业领域、形成学术特色方面的重要作用。\n    - **重点**：作为**当代历史学家**，其学术生涯与成果是中国**马克思主义史学**在清史研究领域实践与发展的组成部分。\n    - 其研究注重**档案**与**地方文献**的结合，是实证史学方法的典范。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 辽宁省沈阳市 | 41.7969 | 123.4396 |\n| 吉林省长春市 | 43.8171 | 125.3235 |\n| 北京市 | 39.9042 | 116.4074 |\n| 河北省承德市 | 40.9510 | 117.9634 |\n| 辽宁省沈阳市（沈阳故宫） | 41.7906 | 123.4468 |\n| 北京市（故宫/第一历史档案馆） | 39.9163 | 116.3972 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 江苏省苏州市 | 31.2990 | 120.5853 |", "relatedGraph": {"center": {"id": "张玉兴", "name": "张玉兴", "file": "张玉兴.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1939, "death_year": 2022, "quote": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究", "review": "参与《清史》纂修工程，贡献了重要的学术成果。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "奉天", "birthplace_modern": "辽宁省沈阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张玉兴", "name": "张玉兴", "file": "张玉兴.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1939, "death_year": 2022, "quote": "张玉兴先生生于东北，成长于新中国，毕生致力于清史研究", "review": "参与《清史》纂修工程，贡献了重要的学术成果。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "奉天", "birthplace_modern": "辽宁省沈阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵文君", "name": "赵文君", "file": "赵文君.html", "dynasty": "存疑", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**存疑/说法不一**”", "review": "暂无权威史家或后世名家对其进行评价。", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "张葳", "name": "张葳", "file": "张葳.html", "dynasty": "存疑/说法不一/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于张葳的生平，现存可靠史料极为有限", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "张玉兴", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "张玉兴", "target": "赵文君", "label": "同册共现", "confidence": 0.15}, {"source": "张玉兴", "target": "张葳", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

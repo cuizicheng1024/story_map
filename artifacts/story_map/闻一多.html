@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "闻一多", "title": "", "description": "闻一多生于清末，成长于民国初年。早年就读于清华学校，后赴美留学学习美术与文学。归国后，他先后在多所大学任教，致力于古典文学研究与新诗创作，是新月诗派的理论奠基人之一。抗战爆发后，随校南迁至昆明，在艰苦的环境中坚持学术研究与教学。后期，面对国民党的独裁统治，他毅然走出书斋，投身争取民主与和平的斗争，最终在1946年于昆明遭国民党特务暗杀，以身殉国，其牺牲深刻激励了国统区的民主运动。", "quote": "太阳啊，刺得我心痛的太阳！", "shortReview": "太阳啊，刺得我心痛的太阳！", "dynasty": "清末至中华民国", "courtesyName": "", "artName": "", "aliases": ["闻家骅", "闻友三", "闻亦多", "闻骅", "家骅"], "birthplace": "湖北省黄州府蕲水县（今湖北省黄冈市浠水县）", "avatar": "", "birth": {"date": "1899年", "location": "湖北省黄州府蕲水县（今湖北省黄冈市浠水县）", "lat": 30.4518, "lng": 115.2622, "coordSystem": "WGS84"}, "death": {"date": "1946年", "location": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84"}, "lifespan": "46岁（周岁）", "highlights": {"honor": "", "status": "中国现代伟大的爱国主义者，新月派代表诗人和学者，坚定的民主革命烈士。", "identities": "诗人、学者、民主战士", "achievements": "1. 提出诗歌“三美”（音乐美、绘画美、建筑美）理论；2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；3. 创作《红烛》、《死水》等经典诗集；4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "works": ["周易", "诗经", "庄子", "楚辞", "红烛", "死水"], "reviews": []}}, "locations": [{"name": "浠水", "ancientName": "湖北省黄州府蕲水县", "modernName": "湖北省黄冈市浠水县", "lat": 30.4518, "lng": 115.2622, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，幼年在家乡接受传统启蒙教育。", "time": "1899年", "duration": "约13年", "significance": "奠定了其传统文化的根基。", "works": [], "quoteLines": []}, {"name": "北京（清华学校）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "考入清华学校（清华大学前身），开始接受现代教育，积极参与文学社团活动，发表诗文，展现领导才能。", "time": "1912年 - 1922年", "duration": "约10年", "significance": "完成了从传统到现代的思想转变，初步展露文学才华与爱国热忱。", "works": [], "quoteLines": []}, {"name": "美国（芝加哥、科罗拉多、纽约）", "ancientName": "美利坚合众国", "modernName": "美国伊利诺伊州芝加哥市、科罗拉多州、纽约州纽约市等地", "lat": 41.8781, "lng": -87.6298, "coordSystem": "WGS84", "type": "normal", "event": "先后在芝加哥艺术学院、科罗拉多大学、纽约艺术学院学习美术与文学，深受西方文化影响，同时感受到民族歧视，激发强烈民族情感。", "time": "1922年 - 1925年", "duration": "约3年", "significance": "艺术视野得到开拓，民族意识被强烈唤醒，诗风开始转变。", "works": [], "quoteLines": ["《太阳吟》：太阳啊，刺得我心痛的太阳！", "《忆菊》：我要赞美我祖国的花！我要赞美我如花的祖国！"]}, {"name": "南京（国立第四中山大学）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。", "time": "1927年 - 1928年", "duration": "约1年", "significance": "正式踏入国内高等教育界，与徐志摩等新月派同仁汇合。", "works": ["新月"], "quoteLines": []}, {"name": "青岛（国立青岛大学）", "ancientName": "胶澳商埠", "modernName": "山东省青岛市", "lat": 36.0671, "lng": 120.3826, "coordSystem": "WGS84", "type": "normal", "event": "任国立青岛大学（今山东大学前身）文学院院长兼中文系主任，潜心学术研究，创作进入高峰期。", "time": "1930年 - 1932年", "duration": "约2年", "significance": "学术与诗歌创作并重的时期，奠定了其古典文学研究的基础。", "works": [], "quoteLines": ["《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。"]}, {"name": "北京（清华大学）", "ancientName": "北平", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "回到母校清华大学任中文系教授，全力投入《周易》、《诗经》等古籍研究，过着“何妨一下楼”的学者生活。", "time": "1932年 - 1937年", "duration": "约5年", "significance": "学术研究的黄金时期，完成了大量开创性研究。", "works": ["周易", "诗经"], "quoteLines": []}, {"name": "长沙（临时大学）", "ancientName": "长沙府", "modernName": "湖南省长沙市", "lat": 28.228, "lng": 112.9388, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后，随清华大学南迁至长沙，参与组建国立临时大学（西南联大前身）。", "time": "1937年 - 1938年", "duration": "约半年", "significance": "亲历战火，目睹国家危难，思想开始发生深刻转变。", "works": [], "quoteLines": []}, {"name": "昆明（西南联合大学）", "ancientName": "云南府", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "normal", "event": "随校迁至昆明，在西南联合大学任教。前期埋首学术，后期因现实刺激，积极投身民主运动，发表大量抨击时政的演说。", "time": "1938年 - 1946年", "duration": "约8年", "significance": "从学者转变为民主斗士的最终阶段，其人格与思想得到升华。", "works": [], "quoteLines": ["《最后一次讲演》：我们不怕死，我们有牺牲的精神！我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！"]}, {"name": "昆明（西仓坡）", "ancientName": "云南府", "modernName": "云南省昆明市五华区西仓坡", "lat": 25.0565, "lng": 102.7083, "coordSystem": "WGS84", "type": "death", "event": "在参加李公朴追悼会并发表著名讲演后，于返家途中遭国民党特务暗杀，壮烈牺牲。", "time": "1946年7月15日", "duration": "殉难地", "significance": "以生命践行了民主与正义的誓言，成为激励后人的不朽丰碑。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---", "workTexts": {"太阳吟": "名篇名句：《太阳吟》：太阳啊，刺得我心痛的太阳！", "忆菊": "《忆菊》：我要赞美我祖国的花！", "新月": "事件：短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。", "死水": "名篇名句：《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。", "最后一次讲演": "名篇名句：《最后一次讲演》：我们不怕死，我们有牺牲的精神！", "红烛": "“蜡炬成灰泪始干”", "别了，司徒雷登": "“拍案而起，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 闻一多\n\n## 人物档案\n\n### 基本信息\n- **姓名**：闻一多\n- **别名**：闻家骅、闻友三、闻亦多、闻骅、家骅\n- **时代**：清末至中华民国\n- **出生**：公元1899年11月24日，湖北省黄州府蕲水县（今湖北省黄冈市浠水县）\n- **去世**：公元1946年7月15日，云南省昆明市\n- **享年**：46岁（周岁）\n- **主要身份**：诗人、学者、民主战士\n- **历史地位**：中国现代伟大的爱国主义者，新月派代表诗人和学者，坚定的民主革命烈士。\n- **主要成就**：1. 提出诗歌“三美”（音乐美、绘画美、建筑美）理论；2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；3. 创作《红烛》、《死水》等经典诗集；4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。\n\n### 生平概述\n闻一多生于清末，成长于民国初年。早年就读于清华学校，后赴美留学学习美术与文学。归国后，他先后在多所大学任教，致力于古典文学研究与新诗创作，是新月诗派的理论奠基人之一。抗战爆发后，随校南迁至昆明，在艰苦的环境中坚持学术研究与教学。后期，面对国民党的独裁统治，他毅然走出书斋，投身争取民主与和平的斗争，最终在1946年于昆明遭国民党特务暗杀，以身殉国，其牺牲深刻激励了国统区的民主运动。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从湖北浠水出发，求学于北京，留学美国，执教于青岛、清华，最终南迁至昆明并在此殉难。\n- ⏱️ **时间跨度**：公元1899年 - 公元1946年（约47年）\n- 📍 **地理范围**：中国湖北、北京、山东、江苏、云南等地，以及美国。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浠水\n- **时间**：1899年\n- **停留时间**：约13年\n- **地点**：湖北省黄州府蕲水县（今湖北省黄冈市浠水县）\n- **事件**：出生于书香门第，幼年在家乡接受传统启蒙教育。\n- **意义**：奠定了其传统文化的根基。\n\n### 📍 重要地点：北京（清华学校）\n- **时间**：1912年 - 1922年\n- **停留时间**：约10年\n- **地点**：京师（今北京市）\n- **事件**：考入清华学校（清华大学前身），开始接受现代教育，积极参与文学社团活动，发表诗文，展现领导才能。\n- **意义**：完成了从传统到现代的思想转变，初步展露文学才华与爱国热忱。\n\n### 📍 重要地点：美国（芝加哥、科罗拉多、纽约）\n- **时间**：1922年 - 1925年\n- **停留时间**：约3年\n- **地点**：美利坚合众国（今美国伊利诺伊州芝加哥市、科罗拉多州、纽约州纽约市等地）\n- **事件**：先后在芝加哥艺术学院、科罗拉多大学、纽约艺术学院学习美术与文学，深受西方文化影响，同时感受到民族歧视，激发强烈民族情感。\n- **意义**：艺术视野得到开拓，民族意识被强烈唤醒，诗风开始转变。\n- **名篇名句**：《太阳吟》：太阳啊，刺得我心痛的太阳！；《忆菊》：我要赞美我祖国的花！我要赞美我如花的祖国！\n\n### 📍 重要地点：南京（国立第四中山大学）\n- **时间**：1927年 - 1928年\n- **停留时间**：约1年\n- **地点**：南京（今江苏省南京市）\n- **事件**：短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。\n- **意义**：正式踏入国内高等教育界，与徐志摩等新月派同仁汇合。\n\n### 📍 重要地点：青岛（国立青岛大学）\n- **时间**：1930年 - 1932年\n- **停留时间**：约2年\n- **地点**：胶澳商埠（今山东省青岛市）\n- **事件**：任国立青岛大学（今山东大学前身）文学院院长兼中文系主任，潜心学术研究，创作进入高峰期。\n- **意义**：学术与诗歌创作并重的时期，奠定了其古典文学研究的基础。\n- **名篇名句**：《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。\n\n### 📍 重要地点：北京（清华大学）\n- **时间**：1932年 - 1937年\n- **停留时间**：约5年\n- **地点**：北平（今北京市）\n- **事件**：回到母校清华大学任中文系教授，全力投入《周易》、《诗经》等古籍研究，过着“何妨一下楼”的学者生活。\n- **意义**：学术研究的黄金时期，完成了大量开创性研究。\n\n### 📍 重要地点：长沙（临时大学）\n- **时间**：1937年 - 1938年\n- **停留时间**：约半年\n- **地点**：长沙府（今湖南省长沙市）\n- **事件**：抗战爆发后，随清华大学南迁至长沙，参与组建国立临时大学（西南联大前身）。\n- **意义**：亲历战火，目睹国家危难，思想开始发生深刻转变。\n\n### 📍 重要地点：昆明（西南联合大学）\n- **时间**：1938年 - 1946年\n- **停留时间**：约8年\n- **地点**：云南府（今云南省昆明市）\n- **事件**：随校迁至昆明，在西南联合大学任教。前期埋首学术，后期因现实刺激，积极投身民主运动，发表大量抨击时政的演说。\n- **意义**：从学者转变为民主斗士的最终阶段，其人格与思想得到升华。\n- **名篇名句**：《最后一次讲演》：我们不怕死，我们有牺牲的精神！我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！\n\n### 🔴 去世地：昆明（西仓坡）\n- **时间**：1946年7月15日\n- **停留时间**：殉难地\n- **地点**：云南府（今云南省昆明市五华区西仓坡）\n- **事件**：在参加李公朴追悼会并发表著名讲演后，于返家途中遭国民党特务暗杀，壮烈牺牲。\n- **意义**：以生命践行了民主与正义的誓言，成为激励后人的不朽丰碑。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1899 | 0 | 出生于湖北浠水。 |\n| 1912 | 13 | 考入北京清华学校。 |\n| 1919 | 20 | 参与五四运动，开始新诗创作。 |\n| 1922 | 23 | 赴美留学，先后入芝加哥艺术学院等校。 |\n| 1925 | 26 | 回国，经历求职与适应期（具体地点待考）。 |\n| 1928 | 29 | 诗集《死水》出版。 |\n| 1930 | 31 | 任国立青岛大学文学院院长。 |\n| 1932 | 33 | 任清华大学中文系教授，潜心古籍研究。 |\n| 1937 | 38 | 抗战爆发，南迁至长沙临时大学。 |\n| 1938 | 39 | 抵达昆明，任教于西南联合大学。 |\n| 1944 | 45 | 加入中国民主同盟，投身民主运动。 |\n| 1946 | 46 | 在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖北省黄冈市浠水县 | 30.4518 | 115.2622 |\n| 北京市海淀区清华大学 | 40.0033 | 116.3267 |\n| 美国伊利诺伊州芝加哥市 | 41.8781 | -87.6298 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 山东省青岛市 | 36.0671 | 120.3826 |\n| 北京市 | 39.9042 | 116.4074 |\n| 湖南省长沙市 | 28.2280 | 112.9388 |\n| 云南省昆明市西南联大旧址 | 25.0565 | 102.7083 |\n| 云南省昆明市西仓坡（殉难地） | 25.0453 | 102.7005 |\n| 云南省昆明市 | 25.0389 | 102.7183 |", "relatedGraph": {"center": {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "“一沟绝望的死水”", "review": "太阳啊，刺得我心痛的太阳！", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "“一沟绝望的死水”", "review": "太阳啊，刺得我心痛的太阳！", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "臧克家", "name": "臧克家", "file": "臧克家.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 2004, "quote": "“总得叫大车装个够，它横竖不说一句话，背上的压力往肉里扣，它把头沉重地垂下！”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "山东诸城", "birthplace_modern": "山东省潍坊市诸城市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "奥本海默", "name": "奥本海默", "file": "奥本海默.html", "dynasty": "20世纪", "aliases": [], "birth_year": 1904, "death_year": 1967, "quote": "“现在我成了死神，世界的毁灭者”", "review": "", "foreign_name": "", "main_role_label": "理论物理学家", "birthplace": "美国纽约州纽约市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "闻一多", "target": "臧克家", "label": "同朝共现", "confidence": 0.25}, {"source": "闻一多", "target": "奥本海默", "label": "同册共现", "confidence": 0.15}, {"source": "闻一多", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "牛顿", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "齐世荣", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "闻一多", "title": "", "description": "闻一多生于清末，成长于民国初年。早年就读于清华学校，后赴美留学学习美术与文学。归国后，他先后在多所大学任教，致力于古典文学研究与新诗创作，是新月诗派的理论奠基人之一。抗战爆发后，随校南迁至昆明，在艰苦的环境中坚持学术研究与教学。后期，面对国民党的独裁统治，他毅然走出书斋，投身争取民主与和平的斗争，最终在1946年于昆明遭国民党特务暗杀，以身殉国，其牺牲深刻激励了国统区的民主运动。", "quote": "太阳啊，刺得我心痛的太阳！", "shortReview": "太阳啊，刺得我心痛的太阳！", "dynasty": "清末至中华民国", "courtesyName": "", "artName": "", "aliases": ["闻家骅", "闻友三", "闻亦多", "闻骅", "家骅"], "birthplace": "湖北省黄州府蕲水县（今湖北省黄冈市浠水县）", "avatar": "", "birth": {"date": "1899年", "location": "湖北省黄州府蕲水县（今湖北省黄冈市浠水县）", "lat": 30.4518, "lng": 115.2622, "coordSystem": "WGS84"}, "death": {"date": "1946年", "location": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84"}, "lifespan": "46岁（周岁）", "highlights": {"honor": "", "status": "中国现代伟大的爱国主义者，新月派代表诗人和学者，坚定的民主革命烈士。", "identities": "诗人、学者、民主战士", "achievements": "1. 提出诗歌“三美”（音乐美、绘画美、建筑美）理论；2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；3. 创作《红烛》、《死水》等经典诗集；4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "works": ["周易", "诗经", "庄子", "楚辞", "红烛", "死水"], "reviews": []}}, "locations": [{"name": "浠水", "ancientName": "湖北省黄州府蕲水县", "modernName": "湖北省黄冈市浠水县", "lat": 30.4518, "lng": 115.2622, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，幼年在家乡接受传统启蒙教育。", "time": "1899年", "duration": "约13年", "significance": "奠定了其传统文化的根基。", "works": [], "quoteLines": []}, {"name": "北京（清华学校）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "考入清华学校（清华大学前身），开始接受现代教育，积极参与文学社团活动，发表诗文，展现领导才能。", "time": "1912年 - 1922年", "duration": "约10年", "significance": "完成了从传统到现代的思想转变，初步展露文学才华与爱国热忱。", "works": [], "quoteLines": []}, {"name": "美国（芝加哥、科罗拉多、纽约）", "ancientName": "美利坚合众国", "modernName": "美国伊利诺伊州芝加哥市、科罗拉多州、纽约州纽约市等地", "lat": 41.8781, "lng": -87.6298, "coordSystem": "WGS84", "type": "normal", "event": "先后在芝加哥艺术学院、科罗拉多大学、纽约艺术学院学习美术与文学，深受西方文化影响，同时感受到民族歧视，激发强烈民族情感。", "time": "1922年 - 1925年", "duration": "约3年", "significance": "艺术视野得到开拓，民族意识被强烈唤醒，诗风开始转变。", "works": [], "quoteLines": ["《太阳吟》：太阳啊，刺得我心痛的太阳！", "《忆菊》：我要赞美我祖国的花！我要赞美我如花的祖国！"]}, {"name": "南京（国立第四中山大学）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。", "time": "1927年 - 1928年", "duration": "约1年", "significance": "正式踏入国内高等教育界，与徐志摩等新月派同仁汇合。", "works": ["新月"], "quoteLines": []}, {"name": "青岛（国立青岛大学）", "ancientName": "胶澳商埠", "modernName": "山东省青岛市", "lat": 36.0671, "lng": 120.3826, "coordSystem": "WGS84", "type": "normal", "event": "任国立青岛大学（今山东大学前身）文学院院长兼中文系主任，潜心学术研究，创作进入高峰期。", "time": "1930年 - 1932年", "duration": "约2年", "significance": "学术与诗歌创作并重的时期，奠定了其古典文学研究的基础。", "works": [], "quoteLines": ["《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。"]}, {"name": "北京（清华大学）", "ancientName": "北平", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "回到母校清华大学任中文系教授，全力投入《周易》、《诗经》等古籍研究，过着“何妨一下楼”的学者生活。", "time": "1932年 - 1937年", "duration": "约5年", "significance": "学术研究的黄金时期，完成了大量开创性研究。", "works": ["周易", "诗经"], "quoteLines": []}, {"name": "长沙（临时大学）", "ancientName": "长沙府", "modernName": "湖南省长沙市", "lat": 28.228, "lng": 112.9388, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后，随清华大学南迁至长沙，参与组建国立临时大学（西南联大前身）。", "time": "1937年 - 1938年", "duration": "约半年", "significance": "亲历战火，目睹国家危难，思想开始发生深刻转变。", "works": [], "quoteLines": []}, {"name": "昆明（西南联合大学）", "ancientName": "云南府", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "normal", "event": "随校迁至昆明，在西南联合大学任教。前期埋首学术，后期因现实刺激，积极投身民主运动，发表大量抨击时政的演说。", "time": "1938年 - 1946年", "duration": "约8年", "significance": "从学者转变为民主斗士的最终阶段，其人格与思想得到升华。", "works": [], "quoteLines": ["《最后一次讲演》：我们不怕死，我们有牺牲的精神！我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！"]}, {"name": "昆明（西仓坡）", "ancientName": "云南府", "modernName": "云南省昆明市五华区西仓坡", "lat": 25.0565, "lng": 102.7083, "coordSystem": "WGS84", "type": "death", "event": "在参加李公朴追悼会并发表著名讲演后，于返家途中遭国民党特务暗杀，壮烈牺牲。", "time": "1946年7月15日", "duration": "殉难地", "significance": "以生命践行了民主与正义的誓言，成为激励后人的不朽丰碑。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---", "workTexts": {"太阳吟": "名篇名句：《太阳吟》：太阳啊，刺得我心痛的太阳！", "忆菊": "《忆菊》：我要赞美我祖国的花！", "新月": "事件：短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。", "死水": "名篇名句：《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。", "最后一次讲演": "名篇名句：《最后一次讲演》：我们不怕死，我们有牺牲的精神！", "红烛": "“蜡炬成灰泪始干”", "别了，司徒雷登": "“拍案而起，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 闻一多\n\n## 人物档案\n\n### 基本信息\n- **姓名**：闻一多\n- **别名**：闻家骅、闻友三、闻亦多、闻骅、家骅\n- **时代**：清末至中华民国\n- **出生**：公元1899年11月24日，湖北省黄州府蕲水县（今湖北省黄冈市浠水县）\n- **去世**：公元1946年7月15日，云南省昆明市\n- **享年**：46岁（周岁）\n- **主要身份**：诗人、学者、民主战士\n- **历史地位**：中国现代伟大的爱国主义者，新月派代表诗人和学者，坚定的民主革命烈士。\n- **主要成就**：1. 提出诗歌“三美”（音乐美、绘画美、建筑美）理论；2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；3. 创作《红烛》、《死水》等经典诗集；4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。\n\n### 生平概述\n闻一多生于清末，成长于民国初年。早年就读于清华学校，后赴美留学学习美术与文学。归国后，他先后在多所大学任教，致力于古典文学研究与新诗创作，是新月诗派的理论奠基人之一。抗战爆发后，随校南迁至昆明，在艰苦的环境中坚持学术研究与教学。后期，面对国民党的独裁统治，他毅然走出书斋，投身争取民主与和平的斗争，最终在1946年于昆明遭国民党特务暗杀，以身殉国，其牺牲深刻激励了国统区的民主运动。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从湖北浠水出发，求学于北京，留学美国，执教于青岛、清华，最终南迁至昆明并在此殉难。\n- ⏱️ **时间跨度**：公元1899年 - 公元1946年（约47年）\n- 📍 **地理范围**：中国湖北、北京、山东、江苏、云南等地，以及美国。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浠水\n- **时间**：1899年\n- **停留时间**：约13年\n- **地点**：湖北省黄州府蕲水县（今湖北省黄冈市浠水县）\n- **事件**：出生于书香门第，幼年在家乡接受传统启蒙教育。\n- **意义**：奠定了其传统文化的根基。\n\n### 📍 重要地点：北京（清华学校）\n- **时间**：1912年 - 1922年\n- **停留时间**：约10年\n- **地点**：京师（今北京市）\n- **事件**：考入清华学校（清华大学前身），开始接受现代教育，积极参与文学社团活动，发表诗文，展现领导才能。\n- **意义**：完成了从传统到现代的思想转变，初步展露文学才华与爱国热忱。\n\n### 📍 重要地点：美国（芝加哥、科罗拉多、纽约）\n- **时间**：1922年 - 1925年\n- **停留时间**：约3年\n- **地点**：美利坚合众国（今美国伊利诺伊州芝加哥市、科罗拉多州、纽约州纽约市等地）\n- **事件**：先后在芝加哥艺术学院、科罗拉多大学、纽约艺术学院学习美术与文学，深受西方文化影响，同时感受到民族歧视，激发强烈民族情感。\n- **意义**：艺术视野得到开拓，民族意识被强烈唤醒，诗风开始转变。\n- **名篇名句**：《太阳吟》：太阳啊，刺得我心痛的太阳！；《忆菊》：我要赞美我祖国的花！我要赞美我如花的祖国！\n\n### 📍 重要地点：南京（国立第四中山大学）\n- **时间**：1927年 - 1928年\n- **停留时间**：约1年\n- **地点**：南京（今江苏省南京市）\n- **事件**：短暂任职于国立第四中山大学（后更名为中央大学），并参与编辑《新月》杂志。\n- **意义**：正式踏入国内高等教育界，与徐志摩等新月派同仁汇合。\n\n### 📍 重要地点：青岛（国立青岛大学）\n- **时间**：1930年 - 1932年\n- **停留时间**：约2年\n- **地点**：胶澳商埠（今山东省青岛市）\n- **事件**：任国立青岛大学（今山东大学前身）文学院院长兼中文系主任，潜心学术研究，创作进入高峰期。\n- **意义**：学术与诗歌创作并重的时期，奠定了其古典文学研究的基础。\n- **名篇名句**：《死水》：这是一沟绝望的死水，清风吹不起半点漪沦。\n\n### 📍 重要地点：北京（清华大学）\n- **时间**：1932年 - 1937年\n- **停留时间**：约5年\n- **地点**：北平（今北京市）\n- **事件**：回到母校清华大学任中文系教授，全力投入《周易》、《诗经》等古籍研究，过着“何妨一下楼”的学者生活。\n- **意义**：学术研究的黄金时期，完成了大量开创性研究。\n\n### 📍 重要地点：长沙（临时大学）\n- **时间**：1937年 - 1938年\n- **停留时间**：约半年\n- **地点**：长沙府（今湖南省长沙市）\n- **事件**：抗战爆发后，随清华大学南迁至长沙，参与组建国立临时大学（西南联大前身）。\n- **意义**：亲历战火，目睹国家危难，思想开始发生深刻转变。\n\n### 📍 重要地点：昆明（西南联合大学）\n- **时间**：1938年 - 1946年\n- **停留时间**：约8年\n- **地点**：云南府（今云南省昆明市）\n- **事件**：随校迁至昆明，在西南联合大学任教。前期埋首学术，后期因现实刺激，积极投身民主运动，发表大量抨击时政的演说。\n- **意义**：从学者转变为民主斗士的最终阶段，其人格与思想得到升华。\n- **名篇名句**：《最后一次讲演》：我们不怕死，我们有牺牲的精神！我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！\n\n### 🔴 去世地：昆明（西仓坡）\n- **时间**：1946年7月15日\n- **停留时间**：殉难地\n- **地点**：云南府（今云南省昆明市五华区西仓坡）\n- **事件**：在参加李公朴追悼会并发表著名讲演后，于返家途中遭国民党特务暗杀，壮烈牺牲。\n- **意义**：以生命践行了民主与正义的誓言，成为激励后人的不朽丰碑。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1899 | 0 | 出生于湖北浠水。 |\n| 1912 | 13 | 考入北京清华学校。 |\n| 1919 | 20 | 参与五四运动，开始新诗创作。 |\n| 1922 | 23 | 赴美留学，先后入芝加哥艺术学院等校。 |\n| 1925 | 26 | 回国，经历求职与适应期（具体地点待考）。 |\n| 1928 | 29 | 诗集《死水》出版。 |\n| 1930 | 31 | 任国立青岛大学文学院院长。 |\n| 1932 | 33 | 任清华大学中文系教授，潜心古籍研究。 |\n| 1937 | 38 | 抗战爆发，南迁至长沙临时大学。 |\n| 1938 | 39 | 抵达昆明，任教于西南联合大学。 |\n| 1944 | 45 | 加入中国民主同盟，投身民主运动。 |\n| 1946 | 46 | 在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《最后一次讲演》**、**《死水》**、《红烛》（序诗）\n- 核心要点：\n    - **重点**：**《最后一次讲演》** 以强烈的爱憎情感和口语化的语言，展现了其**拍案而起**的斗士形象，是**演讲词**的典范。\n    - **重点**：**《死水》** 运用**象征**手法，以“一沟绝望的死水”象征腐败的旧中国，体现了其**“三美”**（音乐美、绘画美、建筑美）诗歌主张。\n    - **《红烛》** 序诗化用“蜡炬成灰泪始干”的**典故**，歌颂奉献精神，奠定了其诗集**爱国主义**的情感基调。\n    - **重点**：其诗歌风格经历了从**浪漫主义**的直抒胸臆到**象征主义**的含蓄深沉的转变。\n    - 作品中充满强烈的**爱国主义**情感和对黑暗现实的**批判**精神。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**西南联大**时期，从专注学术的学者转变为**民主同盟**的领导人，是**昆明民主运动**的核心人物。\n    - **李公朴、闻一多血案**（**“李闻惨案**”）是国民党镇压民主运动的标志性事件，震惊全国。\n    - **重点**：其牺牲发生于**国共内战**全面爆发前夕，极大地教育了民众，推动了**第二条战线**的形成。\n- 核心要点：\n    - **重点**：闻一多是**中国现代知识分子**的典范，体现了从“学者”到“**民主战士**”的转变历程。\n    - 其人生轨迹反映了**抗日战争**与**解放战争**时期中国知识分子的道路选择与命运。\n    - **重点**：毛泽东曾高度赞扬闻一多“**拍案而起**，横眉怒对国民党的手枪，宁可倒下去，不愿屈服”的**骨气**（出自毛泽东《别了，司徒雷登》）。\n    - 他兼具**诗人**的激情、**学者**的严谨与**革命者**的勇气，是**爱国主义**精神的杰出代表。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖北省黄冈市浠水县 | 30.4518 | 115.2622 |\n| 北京市海淀区清华大学 | 40.0033 | 116.3267 |\n| 美国伊利诺伊州芝加哥市 | 41.8781 | -87.6298 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 山东省青岛市 | 36.0671 | 120.3826 |\n| 北京市 | 39.9042 | 116.4074 |\n| 湖南省长沙市 | 28.2280 | 112.9388 |\n| 云南省昆明市西南联大旧址 | 25.0565 | 102.7083 |\n| 云南省昆明市西仓坡（殉难地） | 25.0453 | 102.7005 |\n| 云南省昆明市 | 25.0389 | 102.7183 |", "relatedGraph": {"center": {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "“一沟绝望的死水”", "review": "太阳啊，刺得我心痛的太阳！", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "“一沟绝望的死水”", "review": "太阳啊，刺得我心痛的太阳！", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "臧克家", "name": "臧克家", "file": "臧克家.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 2004, "quote": "“总得叫大车装个够，它横竖不说一句话，背上的压力往肉里扣，它把头沉重地垂下！”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "山东诸城", "birthplace_modern": "山东省潍坊市诸城市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "奥本海默", "name": "奥本海默", "file": "奥本海默.html", "dynasty": "20世纪", "aliases": [], "birth_year": 1904, "death_year": 1967, "quote": "“现在我成了死神，世界的毁灭者”", "review": "", "foreign_name": "", "main_role_label": "理论物理学家", "birthplace": "美国纽约州纽约市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "闻一多", "target": "臧克家", "label": "同朝共现", "confidence": 0.25}, {"source": "闻一多", "target": "奥本海默", "label": "同册共现", "confidence": 0.15}, {"source": "闻一多", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "牛顿", "label": "同时代人物", "confidence": null}, {"source": "闻一多", "target": "齐世荣", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

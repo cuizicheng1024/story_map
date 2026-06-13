@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "莱昂哈德·欧拉", "title": "", "description": "莱昂哈德·欧拉出生于瑞士巴塞尔，早年受教于数学家约翰·伯努利。他一生大部分时间在圣彼得堡科学院和柏林科学院度过，经历了启蒙时代的科学繁荣。尽管晚年双目失明，他仍以惊人的毅力通过心算和助手笔录继续产出大量研究成果。欧拉的工作几乎触及了当时数学的每一个领域，其著作和符号系统深刻塑造了现代数学的面貌，被誉为“数学家之王”。", "quote": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "shortReview": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "dynasty": "18世纪（启蒙运动时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "巴塞尔（今瑞士巴塞尔）", "avatar": "", "birth": {"date": "1707年", "location": "巴塞尔（今瑞士巴塞尔）", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84"}, "death": {"date": "1783年", "location": "圣彼得堡（今俄罗斯圣彼得堡）", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "", "status": "历史上最多产的数学家之一，对数学和物理学的众多分支做出了奠基性贡献。", "identities": "数学家、物理学家、天文学家、逻辑学家、工程师", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "巴塞尔", "ancientName": "巴塞尔", "modernName": "瑞士巴塞尔", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个加尔文教牧师家庭，自幼展现出数学天赋。", "time": "公元1707年", "duration": "约13年（至1720年入大学）", "significance": "成长与早期教育之地，为其奠定了学术基础。", "works": [], "quoteLines": []}, {"name": "巴塞尔大学", "ancientName": "巴塞尔", "modernName": "瑞士巴塞尔", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84", "type": "normal", "event": "13岁入读大学，师从约翰·伯努利学习数学，并结识其子丹尼尔·伯努利。", "time": "公元1720年 - 1727年", "duration": "约7年", "significance": "接受了系统的数学训练，为其日后研究打下坚实基础。", "works": [], "quoteLines": []}, {"name": "圣彼得堡（第一次）", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "在丹尼尔·伯努利等人推荐下加入圣彼得堡科学院，从医学部转向数学研究，迅速崭露头角，发表大量论文。", "time": "公元1727年 - 1741年", "duration": "约14年", "significance": "开始了其辉煌的学术生涯，在分析学和力学领域取得早期重大突破。", "works": [], "quoteLines": []}, {"name": "柏林", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。期间完成了大量著作，包括《无穷小分析引论》等，并与伏尔泰等启蒙思想家交往。", "time": "公元1741年 - 1766年", "duration": "约25年", "significance": "学术产出的黄金时期，其工作覆盖数学、物理、天文等多个领域，成为欧洲学术界的核心人物之一。", "works": ["无穷小分析引论"], "quoteLines": []}, {"name": "圣彼得堡（第二次）", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "重返圣彼得堡科学院。1771年完全失明，但凭借强大的心算和记忆力，在助手帮助下继续产出大量研究成果，直至去世。", "time": "公元1766年 - 1783年", "duration": "约17年", "significance": "学术生涯的最后阶段，展现了惊人的毅力和创造力，完成了许多总结性著作。", "works": [], "quoteLines": []}, {"name": "圣彼得堡", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "death", "event": "因脑溢血去世，葬于当地。", "time": "公元1783年9月18日", "duration": "终老于此", "significance": "一代数学大师陨落之地。", "works": [], "quoteLines": []}, {"name": "彼得保罗要塞教堂墓地", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "遗体安葬于此。", "time": "公元1783年", "duration": "永久", "significance": "其最终安息地，后成为纪念地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---", "workTexts": {"无穷小分析引论": "事件：应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "致一位德国公主的信": "| 1768 | 61 | 出版《致一位德国公主的信》，普及科学知识。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 欧拉\n\n## 人物档案\n\n### 基本信息\n- **姓名**：莱昂哈德·欧拉\n- **时代**：18世纪（启蒙运动时期）\n- **出生**：公元1707年4月15日，巴塞尔（今瑞士巴塞尔）\n- **去世**：公元1783年9月18日，圣彼得堡（今俄罗斯圣彼得堡）\n- **享年**：76岁\n- **主要身份**：数学家、物理学家、天文学家、逻辑学家、工程师\n- **历史地位**：历史上最多产的数学家之一，对数学和物理学的众多分支做出了奠基性贡献。\n- **主要成就**：\n    1. 创立并推广了大量现代数学符号（如函数f(x)、求和符号Σ、虚数单位i等）。\n    2. 在图论中解决柯尼斯堡七桥问题，开创拓扑学研究。\n    3. 在分析学、数论、力学、光学和天体力学等领域取得卓越成果。\n    4. 发表了超过800篇论文与著作，其全集预计超过80卷。\n\n### 生平概述\n莱昂哈德·欧拉出生于瑞士巴塞尔，早年受教于数学家约翰·伯努利。他一生大部分时间在圣彼得堡科学院和柏林科学院度过，经历了启蒙时代的科学繁荣。尽管晚年双目失明，他仍以惊人的毅力通过心算和助手笔录继续产出大量研究成果。欧拉的工作几乎触及了当时数学的每一个领域，其著作和符号系统深刻塑造了现代数学的面貌，被誉为“数学家之王”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从瑞士巴塞尔出发，主要活动于俄罗斯圣彼得堡与普鲁士柏林之间，最后终老于圣彼得堡。\n- ⏱️ **时间跨度**：公元1707年 - 公元1783年，共约76年。\n- 📍 **地理范围**：主要覆盖今瑞士、俄罗斯、德国地区。\n- 🌟 **重要节点数量**：核心地点数量 9 个（注：巴塞尔与巴塞尔大学视为同一地理位置）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：巴塞尔\n- **时间**：公元1707年\n- **停留时间**：约13年（至1720年入大学）\n- **地点**：巴塞尔（今瑞士巴塞尔）\n- **事件**：出生于一个加尔文教牧师家庭，自幼展现出数学天赋。\n- **意义**：成长与早期教育之地，为其奠定了学术基础。\n\n### 📍 重要地点：巴塞尔大学\n- **时间**：公元1720年 - 1727年\n- **停留时间**：约7年\n- **地点**：巴塞尔（今瑞士巴塞尔）\n- **事件**：13岁入读大学，师从约翰·伯努利学习数学，并结识其子丹尼尔·伯努利。\n- **意义**：接受了系统的数学训练，为其日后研究打下坚实基础。\n\n### 📍 重要地点：圣彼得堡（第一次）\n- **时间**：公元1727年 - 1741年\n- **停留时间**：约14年\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：在丹尼尔·伯努利等人推荐下加入圣彼得堡科学院，从医学部转向数学研究，迅速崭露头角，发表大量论文。\n- **意义**：开始了其辉煌的学术生涯，在分析学和力学领域取得早期重大突破。\n\n### 📍 重要地点：柏林\n- **时间**：公元1741年 - 1766年\n- **停留时间**：约25年\n- **地点**：柏林（今德国柏林）\n- **事件**：应腓特烈大帝邀请加入柏林科学院，负责数学部门。期间完成了大量著作，包括《无穷小分析引论》等，并与伏尔泰等启蒙思想家交往。\n- **意义**：学术产出的黄金时期，其工作覆盖数学、物理、天文等多个领域，成为欧洲学术界的核心人物之一。\n\n### 📍 重要地点：柯尼斯堡\n- **时间**：公元1736年（主要在此年前后）\n- **停留时间**：短期访问或通信研究（具体时间待考）\n- **地点**：柯尼斯堡（今俄罗斯加里宁格勒，坐标见‘地点坐标’表格）\n- **事件**：研究并最终解决“柯尼斯堡七桥问题”，发表相关论文。\n- **意义**：开创了图论与拓扑学研究的先河。\n\n### 📍 重要地点：雷瓦尔（塔林）\n- **时间**：约公元1740年 - 1741年\n- **停留时间**：具体停留时间待考\n- **地点**：雷瓦尔（今爱沙尼亚塔林，坐标见‘地点坐标’表格）\n- **事件**：在圣彼得堡科学院任职期间，曾在此地进行学术访问或休养。\n- **意义**：反映了其早期在俄罗斯帝国境内的活动范围。\n\n### 📍 重要地点：圣彼得堡（第二次）\n- **时间**：公元1766年 - 1783年\n- **停留时间**：约17年\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：重返圣彼得堡科学院。1771年完全失明，但凭借强大的心算和记忆力，在助手帮助下继续产出大量研究成果，直至去世。\n- **意义**：学术生涯的最后阶段，展现了惊人的毅力和创造力，完成了许多总结性著作。\n\n### 🔴 去世地：圣彼得堡\n- **时间**：公元1783年9月18日\n- **停留时间**：终老于此\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：因脑溢血去世，葬于当地。\n- **意义**：一代数学大师陨落之地。\n\n### 📍 安葬地：彼得保罗要塞教堂墓地\n- **时间**：公元1783年\n- **停留时间**：永久\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：遗体安葬于此。\n- **意义**：其最终安息地，后成为纪念地。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1707 | 0 | 出生于瑞士巴塞尔。 |\n| 1720 | 13 | 进入巴塞尔大学学习。 |\n| 1727 | 20 | 离开瑞士，前往俄国圣彼得堡科学院任职。 |\n| 1736 | 29 | 解决柯尼斯堡七桥问题，开创图论。 |\n| 1741 | 34 | 离开圣彼得堡，前往柏林科学院任职。 |\n| 1748 | 41 | 出版《无穷小分析引论》，系统建立函数概念与分析学基础。 |\n| 1766 | 59 | 重返圣彼得堡科学院。 |\n| 1768 | 61 | 出版《致一位德国公主的信》，普及科学知识。 |\n| 1771 | 64 | 双目完全失明，但学术工作未停。 |\n| 1783 | 76 | 在圣彼得堡逝世。 |\n\n---\n\n## 人教版教材知识点（基于其生平成就的典型教学要点归纳）\n### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 巴塞尔（瑞士） | 47.5596 | 7.5886 |\n| 圣彼得堡（俄罗斯） | 59.9343 | 30.3351 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 加里宁格勒（俄罗斯，原柯尼斯堡） | 54.7104 | 20.5107 |\n| 塔林（爱沙尼亚，原雷瓦尔） | 59.4370 | 24.7536 |", "relatedGraph": {"center": {"id": "欧拉", "name": "欧拉", "file": "欧拉.html", "dynasty": "18世纪（启蒙运动时期）", "aliases": [], "birth_year": 1707, "death_year": 1783, "quote": "“柯尼斯堡七桥问题”", "review": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "巴塞尔", "birthplace_modern": "瑞士巴塞尔", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "欧拉", "name": "欧拉", "file": "欧拉.html", "dynasty": "18世纪（启蒙运动时期）", "aliases": [], "birth_year": 1707, "death_year": 1783, "quote": "“柯尼斯堡七桥问题”", "review": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "巴塞尔", "birthplace_modern": "瑞士巴塞尔", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "瓦特", "name": "瓦特", "file": "瓦特.html", "dynasty": "18世纪英国工业革命时期", "aliases": [], "birth_year": 1736, "death_year": 1819, "quote": "“博尔顿-瓦特公司”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "苏格兰格里诺克", "birthplace_modern": "英国苏格兰格里诺克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "玻利瓦尔", "name": "玻利瓦尔", "file": "玻利瓦尔.html", "dynasty": "18世纪末至19世纪初（拉丁美洲独立运动时期）", "aliases": [], "birth_year": 1783, "death_year": 1830, "quote": "“我曾渴望美洲的自由与繁荣，我为之战斗，但我的努力徒劳无功……我的死至少能证明我对祖国的忠诚。”", "review": "*委内瑞拉史学家吉列尔莫·莫隆**：“玻利瓦尔是美洲历史上最伟大的人物，他的梦想超越了他的时代。”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "西班牙帝国新格拉纳达总督辖区加拉加斯", "birthplace_modern": "委内瑞拉加拉加斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "歌德", "name": "歌德", "file": "歌德.html", "dynasty": "18-19世纪（德国启蒙运动、狂飙突进运动、古典主义与浪漫主义时期）", "aliases": [], "birth_year": 1749, "death_year": 1832, "quote": "“哪个少年不钟情，哪个少女不怀春。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "美因河畔法兰克福", "birthplace_modern": "德国法兰克福", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "圣马丁", "name": "圣马丁", "file": "圣马丁.html", "dynasty": "18世纪末至19世纪上半叶（拉丁美洲独立运动时期）", "aliases": [], "birth_year": 1778, "death_year": 1850, "quote": "“劳塔罗共济会”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "亚佩尤", "birthplace_modern": "阿根廷科连特斯省亚佩尤", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "叶卡捷琳娜二世", "name": "叶卡捷琳娜二世", "file": "叶卡捷琳娜二世.html", "dynasty": "18世纪中后期（俄罗斯帝国）", "aliases": [], "birth_year": 1729, "death_year": 1796, "quote": "“新法典编纂委员会”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "普鲁士王国斯德丁", "birthplace_modern": "波兰什切青", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "欧拉", "target": "瓦特", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "玻利瓦尔", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "歌德", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "圣马丁", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "叶卡捷琳娜二世", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "莱昂哈德·欧拉", "title": "", "description": "莱昂哈德·欧拉出生于瑞士巴塞尔，早年受教于数学家约翰·伯努利。他一生大部分时间在圣彼得堡科学院和柏林科学院度过，经历了启蒙时代的科学繁荣。尽管晚年双目失明，他仍以惊人的毅力通过心算和助手笔录继续产出大量研究成果。欧拉的工作几乎触及了当时数学的每一个领域，其著作和符号系统深刻塑造了现代数学的面貌，被誉为“数学家之王”。", "quote": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "shortReview": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "dynasty": "18世纪（启蒙运动时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "巴塞尔（今瑞士巴塞尔）", "avatar": "", "birth": {"date": "1707年", "location": "巴塞尔（今瑞士巴塞尔）", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84"}, "death": {"date": "1783年", "location": "圣彼得堡（今俄罗斯圣彼得堡）", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "", "status": "历史上最多产的数学家之一，对数学和物理学的众多分支做出了奠基性贡献。", "identities": "数学家、物理学家、天文学家、逻辑学家、工程师", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "巴塞尔", "ancientName": "巴塞尔", "modernName": "瑞士巴塞尔", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个加尔文教牧师家庭，自幼展现出数学天赋。", "time": "公元1707年", "duration": "约13年（至1720年入大学）", "significance": "成长与早期教育之地，为其奠定了学术基础。", "works": [], "quoteLines": []}, {"name": "巴塞尔大学", "ancientName": "巴塞尔", "modernName": "瑞士巴塞尔", "lat": 47.5596, "lng": 7.5886, "coordSystem": "WGS84", "type": "normal", "event": "13岁入读大学，师从约翰·伯努利学习数学，并结识其子丹尼尔·伯努利。", "time": "公元1720年 - 1727年", "duration": "约7年", "significance": "接受了系统的数学训练，为其日后研究打下坚实基础。", "works": [], "quoteLines": []}, {"name": "圣彼得堡（第一次）", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "在丹尼尔·伯努利等人推荐下加入圣彼得堡科学院，从医学部转向数学研究，迅速崭露头角，发表大量论文。", "time": "公元1727年 - 1741年", "duration": "约14年", "significance": "开始了其辉煌的学术生涯，在分析学和力学领域取得早期重大突破。", "works": [], "quoteLines": []}, {"name": "柏林", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。期间完成了大量著作，包括《无穷小分析引论》等，并与伏尔泰等启蒙思想家交往。", "time": "公元1741年 - 1766年", "duration": "约25年", "significance": "学术产出的黄金时期，其工作覆盖数学、物理、天文等多个领域，成为欧洲学术界的核心人物之一。", "works": ["无穷小分析引论"], "quoteLines": []}, {"name": "圣彼得堡（第二次）", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "重返圣彼得堡科学院。1771年完全失明，但凭借强大的心算和记忆力，在助手帮助下继续产出大量研究成果，直至去世。", "time": "公元1766年 - 1783年", "duration": "约17年", "significance": "学术生涯的最后阶段，展现了惊人的毅力和创造力，完成了许多总结性著作。", "works": [], "quoteLines": []}, {"name": "圣彼得堡", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "death", "event": "因脑溢血去世，葬于当地。", "time": "公元1783年9月18日", "duration": "终老于此", "significance": "一代数学大师陨落之地。", "works": [], "quoteLines": []}, {"name": "彼得保罗要塞教堂墓地", "ancientName": "圣彼得堡", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "遗体安葬于此。", "time": "公元1783年", "duration": "永久", "significance": "其最终安息地，后成为纪念地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---", "workTexts": {"无穷小分析引论": "事件：应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "致一位德国公主的信": "| 1768 | 61 | 出版《致一位德国公主的信》，普及科学知识。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 欧拉\n\n## 人物档案\n\n### 基本信息\n- **姓名**：莱昂哈德·欧拉\n- **时代**：18世纪（启蒙运动时期）\n- **出生**：公元1707年4月15日，巴塞尔（今瑞士巴塞尔）\n- **去世**：公元1783年9月18日，圣彼得堡（今俄罗斯圣彼得堡）\n- **享年**：76岁\n- **主要身份**：数学家、物理学家、天文学家、逻辑学家、工程师\n- **历史地位**：历史上最多产的数学家之一，对数学和物理学的众多分支做出了奠基性贡献。\n- **主要成就**：\n    1. 创立并推广了大量现代数学符号（如函数f(x)、求和符号Σ、虚数单位i等）。\n    2. 在图论中解决柯尼斯堡七桥问题，开创拓扑学研究。\n    3. 在分析学、数论、力学、光学和天体力学等领域取得卓越成果。\n    4. 发表了超过800篇论文与著作，其全集预计超过80卷。\n\n### 生平概述\n莱昂哈德·欧拉出生于瑞士巴塞尔，早年受教于数学家约翰·伯努利。他一生大部分时间在圣彼得堡科学院和柏林科学院度过，经历了启蒙时代的科学繁荣。尽管晚年双目失明，他仍以惊人的毅力通过心算和助手笔录继续产出大量研究成果。欧拉的工作几乎触及了当时数学的每一个领域，其著作和符号系统深刻塑造了现代数学的面貌，被誉为“数学家之王”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从瑞士巴塞尔出发，主要活动于俄罗斯圣彼得堡与普鲁士柏林之间，最后终老于圣彼得堡。\n- ⏱️ **时间跨度**：公元1707年 - 公元1783年，共约76年。\n- 📍 **地理范围**：主要覆盖今瑞士、俄罗斯、德国地区。\n- 🌟 **重要节点数量**：核心地点数量 9 个（注：巴塞尔与巴塞尔大学视为同一地理位置）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：巴塞尔\n- **时间**：公元1707年\n- **停留时间**：约13年（至1720年入大学）\n- **地点**：巴塞尔（今瑞士巴塞尔）\n- **事件**：出生于一个加尔文教牧师家庭，自幼展现出数学天赋。\n- **意义**：成长与早期教育之地，为其奠定了学术基础。\n\n### 📍 重要地点：巴塞尔大学\n- **时间**：公元1720年 - 1727年\n- **停留时间**：约7年\n- **地点**：巴塞尔（今瑞士巴塞尔）\n- **事件**：13岁入读大学，师从约翰·伯努利学习数学，并结识其子丹尼尔·伯努利。\n- **意义**：接受了系统的数学训练，为其日后研究打下坚实基础。\n\n### 📍 重要地点：圣彼得堡（第一次）\n- **时间**：公元1727年 - 1741年\n- **停留时间**：约14年\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：在丹尼尔·伯努利等人推荐下加入圣彼得堡科学院，从医学部转向数学研究，迅速崭露头角，发表大量论文。\n- **意义**：开始了其辉煌的学术生涯，在分析学和力学领域取得早期重大突破。\n\n### 📍 重要地点：柏林\n- **时间**：公元1741年 - 1766年\n- **停留时间**：约25年\n- **地点**：柏林（今德国柏林）\n- **事件**：应腓特烈大帝邀请加入柏林科学院，负责数学部门。期间完成了大量著作，包括《无穷小分析引论》等，并与伏尔泰等启蒙思想家交往。\n- **意义**：学术产出的黄金时期，其工作覆盖数学、物理、天文等多个领域，成为欧洲学术界的核心人物之一。\n\n### 📍 重要地点：柯尼斯堡\n- **时间**：公元1736年（主要在此年前后）\n- **停留时间**：短期访问或通信研究（具体时间待考）\n- **地点**：柯尼斯堡（今俄罗斯加里宁格勒，坐标见‘地点坐标’表格）\n- **事件**：研究并最终解决“柯尼斯堡七桥问题”，发表相关论文。\n- **意义**：开创了图论与拓扑学研究的先河。\n\n### 📍 重要地点：雷瓦尔（塔林）\n- **时间**：约公元1740年 - 1741年\n- **停留时间**：具体停留时间待考\n- **地点**：雷瓦尔（今爱沙尼亚塔林，坐标见‘地点坐标’表格）\n- **事件**：在圣彼得堡科学院任职期间，曾在此地进行学术访问或休养。\n- **意义**：反映了其早期在俄罗斯帝国境内的活动范围。\n\n### 📍 重要地点：圣彼得堡（第二次）\n- **时间**：公元1766年 - 1783年\n- **停留时间**：约17年\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：重返圣彼得堡科学院。1771年完全失明，但凭借强大的心算和记忆力，在助手帮助下继续产出大量研究成果，直至去世。\n- **意义**：学术生涯的最后阶段，展现了惊人的毅力和创造力，完成了许多总结性著作。\n\n### 🔴 去世地：圣彼得堡\n- **时间**：公元1783年9月18日\n- **停留时间**：终老于此\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：因脑溢血去世，葬于当地。\n- **意义**：一代数学大师陨落之地。\n\n### 📍 安葬地：彼得保罗要塞教堂墓地\n- **时间**：公元1783年\n- **停留时间**：永久\n- **地点**：圣彼得堡（今俄罗斯圣彼得堡）\n- **事件**：遗体安葬于此。\n- **意义**：其最终安息地，后成为纪念地。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1707 | 0 | 出生于瑞士巴塞尔。 |\n| 1720 | 13 | 进入巴塞尔大学学习。 |\n| 1727 | 20 | 离开瑞士，前往俄国圣彼得堡科学院任职。 |\n| 1736 | 29 | 解决柯尼斯堡七桥问题，开创图论。 |\n| 1741 | 34 | 离开圣彼得堡，前往柏林科学院任职。 |\n| 1748 | 41 | 出版《无穷小分析引论》，系统建立函数概念与分析学基础。 |\n| 1766 | 59 | 重返圣彼得堡科学院。 |\n| 1768 | 61 | 出版《致一位德国公主的信》，普及科学知识。 |\n| 1771 | 64 | 双目完全失明，但学术工作未停。 |\n| 1783 | 76 | 在圣彼得堡逝世。 |\n\n---\n\n## 人教版教材知识点（基于其生平成就的典型教学要点归纳）\n### 语文（课文/词作）\n- 课文/词作：欧拉并非文学家，其作品主要为科学论著。在教材中，其形象与成就常作为**科学精神**与**理性思维**的典范出现在相关课文或阅读材料中。\n- 核心要点：\n    - **重点**：其著作（如《致一位德国公主的信》）体现了将深奥科学知识进行**清晰表述**与**普及传播**的能力。\n    - **重点**：失明后坚持研究的事迹，是诠释**坚韧不拔**、**意志力**与**对科学的热爱**的经典案例。\n    - **重点**：在数学中引入并规范 **函数符号f(x)**、**求和符号Σ** 等，体现了**符号化**与**标准化**对科学发展的关键作用。\n    - 其解决**柯尼斯堡七桥问题**的思路，展示了如何将实际问题**抽象化**为数学模型。\n    - 作为**多产学者**的代表，其生平说明了专注与勤奋的价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：18世纪**欧洲科学中心转移**的亲历者与推动者，其职业生涯串联起瑞士、俄国、普鲁士的科学院。\n    - **重点**：**启蒙运动**时期的代表性科学家，其工作体现了那个时代对**理性**与**知识**的推崇。\n    - 在**圣彼得堡科学院**与**柏林科学院**的任职经历，反映了当时欧洲君主（如腓特烈大帝、俄国沙皇）赞助科学以提升国家声望的风气。\n- 核心要点：\n    - **重点**：被誉为继牛顿之后最重要的数学家之一，是**分析学**、**变分法**、**图论**等领域的奠基人。\n    - **重点**：其学术产出（800+论文/著作）的**数量**与**广度**在科学史上几乎无人能及，定义了“**数学全才**”的形象。\n    - **重点**：其确立的**数学符号体系**（如e, i, π, sin, cos, f(x)）成为全球通用语言，极大促进了数学的交流与发展。\n    - 个人命运与**俄国罗曼诺夫王朝**、**普鲁士霍亨索伦王朝**的宫廷政治与科学政策紧密相连。\n    - 其成就标志着数学从几何主导转向**分析学**主导的现代阶段。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 巴塞尔（瑞士） | 47.5596 | 7.5886 |\n| 圣彼得堡（俄罗斯） | 59.9343 | 30.3351 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 加里宁格勒（俄罗斯，原柯尼斯堡） | 54.7104 | 20.5107 |\n| 塔林（爱沙尼亚，原雷瓦尔） | 59.4370 | 24.7536 |", "relatedGraph": {"center": {"id": "欧拉", "name": "欧拉", "file": "欧拉.html", "dynasty": "18世纪（启蒙运动时期）", "aliases": [], "birth_year": 1707, "death_year": 1783, "quote": "“柯尼斯堡七桥问题”", "review": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "巴塞尔", "birthplace_modern": "瑞士巴塞尔", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "欧拉", "name": "欧拉", "file": "欧拉.html", "dynasty": "18世纪（启蒙运动时期）", "aliases": [], "birth_year": 1707, "death_year": 1783, "quote": "“柯尼斯堡七桥问题”", "review": "应腓特烈大帝邀请加入柏林科学院，负责数学部门。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "巴塞尔", "birthplace_modern": "瑞士巴塞尔", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "瓦特", "name": "瓦特", "file": "瓦特.html", "dynasty": "18世纪英国工业革命时期", "aliases": [], "birth_year": 1736, "death_year": 1819, "quote": "“博尔顿-瓦特公司”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "苏格兰格里诺克", "birthplace_modern": "英国苏格兰格里诺克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "玻利瓦尔", "name": "玻利瓦尔", "file": "玻利瓦尔.html", "dynasty": "18世纪末至19世纪初（拉丁美洲独立运动时期）", "aliases": [], "birth_year": 1783, "death_year": 1830, "quote": "“我曾渴望美洲的自由与繁荣，我为之战斗，但我的努力徒劳无功……我的死至少能证明我对祖国的忠诚。”", "review": "*委内瑞拉史学家吉列尔莫·莫隆**：“玻利瓦尔是美洲历史上最伟大的人物，他的梦想超越了他的时代。”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "西班牙帝国新格拉纳达总督辖区加拉加斯", "birthplace_modern": "委内瑞拉加拉加斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "歌德", "name": "歌德", "file": "歌德.html", "dynasty": "18-19世纪（德国启蒙运动、狂飙突进运动、古典主义与浪漫主义时期）", "aliases": [], "birth_year": 1749, "death_year": 1832, "quote": "“哪个少年不钟情，哪个少女不怀春。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "美因河畔法兰克福", "birthplace_modern": "德国法兰克福", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "圣马丁", "name": "圣马丁", "file": "圣马丁.html", "dynasty": "18世纪末至19世纪上半叶（拉丁美洲独立运动时期）", "aliases": [], "birth_year": 1778, "death_year": 1850, "quote": "“劳塔罗共济会”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "亚佩尤", "birthplace_modern": "阿根廷科连特斯省亚佩尤", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "叶卡捷琳娜二世", "name": "叶卡捷琳娜二世", "file": "叶卡捷琳娜二世.html", "dynasty": "18世纪中后期（俄罗斯帝国）", "aliases": [], "birth_year": 1729, "death_year": 1796, "quote": "“新法典编纂委员会”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "普鲁士王国斯德丁", "birthplace_modern": "波兰什切青", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "欧拉", "target": "瓦特", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "玻利瓦尔", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "歌德", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "圣马丁", "label": "同时代人物", "confidence": null}, {"source": "欧拉", "target": "叶卡捷琳娜二世", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

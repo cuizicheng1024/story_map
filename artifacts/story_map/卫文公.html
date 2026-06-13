@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "姬辟疆", "title": "", "description": "卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。", "quote": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "shortReview": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "卫国", "avatar": "", "birth": {"date": "公元前670年", "location": "卫国", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前635年", "location": "卫国楚丘（今河南省安阳市滑县东）", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84"}, "lifespan": "存疑（因出生年份不确定，故享年无法准确计算）", "highlights": {"honor": "", "status": "卫国的中兴之主，在亡国后成功复国并使国家重新强盛。", "identities": "卫国国君", "achievements": "在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。", "works": [], "reviews": []}}, "locations": [{"name": "齐国都城临淄", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.86, "lng": 118.34, "coordSystem": "WGS84", "type": "normal", "event": "继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。", "time": "约公元前660年-前659年", "duration": "短期访问", "significance": "获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。", "works": [], "quoteLines": []}, {"name": "漕邑", "ancientName": "漕邑", "modernName": "河南省安阳市滑县西南", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。", "time": "公元前660年", "duration": "数月", "significance": "是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84", "type": "normal", "event": "在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。", "time": "公元前658年-前635年", "duration": "约23年（在位主要时期）", "significance": "卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。", "works": [], "quoteLines": []}, {"name": "邢国", "ancientName": "邢国", "modernName": "河北省邢台市", "lat": 37.07, "lng": 114.5, "coordSystem": "WGS84", "type": "normal", "event": "参与诸侯联军对抗狄人，救援邢国。", "time": "约公元前658年-前635年间", "duration": "军事行动期间", "significance": "体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84", "type": "death", "event": "在位二十五年后去世，其子卫成公继位。", "time": "公元前635年", "duration": "在位最后时光", "significance": "在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "workTexts": {"诗经": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "左传": "重点：他的统治策略（务材训农，敬教劝学）符合儒家对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了高度评价。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 卫文公\n\n## 人物档案\n\n### 基本信息\n- **姓名**：姬辟疆（后改名姬毁）\n- **时代**：春秋时期\n- **出生**：存疑，约公元前670年代，卫国（今河南省北部，具体地点存疑）\n- **去世**：公元前635年，卫国楚丘（今河南省安阳市滑县东）\n- **享年**：存疑（因出生年份不确定，故享年无法准确计算）\n- **主要身份**：卫国国君\n- **历史地位**：卫国的中兴之主，在亡国后成功复国并使国家重新强盛。\n- **主要成就**：在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。\n\n### 生平概述\n卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于卫国旧地（朝歌）及复国新都（楚丘）一带，并与齐国等邻国有外交往来。\n- ⏱️ **时间跨度**：约公元前660年（继位）至公元前635年（去世），约25年。\n- 📍 **地理范围**：主要在今河南省北部（安阳、鹤壁、新乡地区）及山东省中西部（淄博地区）。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：卫国（具体地点存疑）\n- **时间**：存疑，约公元前670年代\n- **停留时间**：青年时期\n- **地点**：卫国（今河南省北部，具体地点存疑）\n- **事件**：出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。\n- **意义**：其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。\n\n### 📍 重要地点：漕邑\n- **时间**：公元前660年\n- **停留时间**：数月\n- **地点**：漕邑（今河南省安阳市滑县西南）\n- **事件**：狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。\n- **意义**：是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。\n\n### 📍 重要地点：齐国都城临淄\n- **时间**：约公元前660年-前659年\n- **停留时间**：短期访问\n- **地点**：齐国都城临淄（今山东省淄博市临淄区）\n- **事件**：继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。\n- **意义**：获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。\n\n### 📍 重要地点：楚丘\n- **时间**：公元前658年-前635年\n- **停留时间**：约23年（在位主要时期）\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。\n- **意义**：卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。\n\n### 📍 重要地点：邢国\n- **时间**：约公元前658年-前635年间\n- **停留时间**：军事行动期间\n- **地点**：邢国（今河北省邢台市）\n- **事件**：参与诸侯联军对抗狄人，救援邢国。\n- **意义**：体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。\n\n### 📍 重要地点：訾娄（古地名，今址待考）\n- **时间**：公元前645年\n- **停留时间**：军事行动期间\n- **地点**：卫国边境（古地名，今址待考，约在今河南省北部或周边）\n- **事件**：邢国联合狄人伐卫，率军抵抗于訾娄（古地名）。\n- **意义**：卫国复国后军事力量增强，能够抵御外敌入侵的例证。\n\n### 🔴 去世地：楚丘\n- **时间**：公元前635年\n- **停留时间**：在位最后时光\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在位二十五年后去世，其子卫成公继位。\n- **意义**：在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。\n\n---\n\n## 生平时间线\n| 年份 | 备注 | 关键事件 |\n| :--- | :--- | :--- |\n| 约前670年代 | 出生年份存疑 | 出生于卫国（今河南省北部，具体地点存疑）。 |\n| 前660 | 青年时期 | 狄人灭卫，卫懿公死。随遗民渡河至漕邑。兄戴公卒，继位为君。 |\n| 约公元前660年-前659年 | 继位初期 | 赴齐国求援，获齐桓公支持。 |\n| 前658 | 在位第3年 | 在诸侯帮助下，率民迁都于楚丘，开始实施复兴政策。 |\n| 前658-前635 | 在位期间 | 务材训农，通商惠工，敬教劝学，授方任能。国力增强。 |\n| 前645 | 在位第16年 | 邢国联合狄人伐卫，率军抵抗于訾娄（古地名，今址待考）。 |\n| 前635 | 在位约25年 | 卒于楚丘，子成公继位。 |\n\n---\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省安阳市滑县东（楚丘故址） | 35.5750 | 114.5210 |\n| 山东省淄博市临淄区（齐国故城） | 36.8600 | 118.3400 |\n| 河北省邢台市（邢国故地） | 37.0700 | 114.5000 |\n| 河南省安阳市滑县西南（古漕邑故址） | 35.5400 | 114.4800 |", "relatedGraph": {"center": {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "“务材训农，通商惠工”", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "“务材训农，通商惠工”", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "“（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……”", "review": "*《左传》**：评价其“文而有礼”，善于纳谏，能成就大事。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": null, "quote": "“不战而屈人之兵”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "“不鸣则已，一鸣惊人”", "review": "*司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "“不迁怒，不贰过”", "review": "*孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "释迦牟尼", "name": "释迦牟尼", "file": "释迦牟尼.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -563, "death_year": -483, "quote": "“释迦族的圣人”", "review": "*古代评价**：被信徒尊为“世尊”、“天人师”，视为真理的发现者与宣说者。", "foreign_name": "", "main_role_label": "宗教家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "卫文公", "target": "重耳", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "狐偃", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "楚庄王", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "颜回", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "释迦牟尼", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "姬辟疆", "title": "", "description": "卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。", "quote": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "shortReview": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "卫国", "avatar": "", "birth": {"date": "公元前670年", "location": "卫国", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前635年", "location": "卫国楚丘（今河南省安阳市滑县东）", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84"}, "lifespan": "存疑（因出生年份不确定，故享年无法准确计算）", "highlights": {"honor": "", "status": "卫国的中兴之主，在亡国后成功复国并使国家重新强盛。", "identities": "卫国国君", "achievements": "在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。", "works": [], "reviews": []}}, "locations": [{"name": "齐国都城临淄", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.86, "lng": 118.34, "coordSystem": "WGS84", "type": "normal", "event": "继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。", "time": "约公元前660年-前659年", "duration": "短期访问", "significance": "获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。", "works": [], "quoteLines": []}, {"name": "漕邑", "ancientName": "漕邑", "modernName": "河南省安阳市滑县西南", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。", "time": "公元前660年", "duration": "数月", "significance": "是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84", "type": "normal", "event": "在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。", "time": "公元前658年-前635年", "duration": "约23年（在位主要时期）", "significance": "卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。", "works": [], "quoteLines": []}, {"name": "邢国", "ancientName": "邢国", "modernName": "河北省邢台市", "lat": 37.07, "lng": 114.5, "coordSystem": "WGS84", "type": "normal", "event": "参与诸侯联军对抗狄人，救援邢国。", "time": "约公元前658年-前635年间", "duration": "军事行动期间", "significance": "体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.575, "lng": 114.521, "coordSystem": "WGS84", "type": "death", "event": "在位二十五年后去世，其子卫成公继位。", "time": "公元前635年", "duration": "在位最后时光", "significance": "在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "workTexts": {"诗经": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "左传": "重点：他的统治策略（务材训农，敬教劝学）符合儒家对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了高度评价。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 卫文公\n\n## 人物档案\n\n### 基本信息\n- **姓名**：姬辟疆（后改名姬毁）\n- **时代**：春秋时期\n- **出生**：存疑，约公元前670年代，卫国（今河南省北部，具体地点存疑）\n- **去世**：公元前635年，卫国楚丘（今河南省安阳市滑县东）\n- **享年**：存疑（因出生年份不确定，故享年无法准确计算）\n- **主要身份**：卫国国君\n- **历史地位**：卫国的中兴之主，在亡国后成功复国并使国家重新强盛。\n- **主要成就**：在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。\n\n### 生平概述\n卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于卫国旧地（朝歌）及复国新都（楚丘）一带，并与齐国等邻国有外交往来。\n- ⏱️ **时间跨度**：约公元前660年（继位）至公元前635年（去世），约25年。\n- 📍 **地理范围**：主要在今河南省北部（安阳、鹤壁、新乡地区）及山东省中西部（淄博地区）。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：卫国（具体地点存疑）\n- **时间**：存疑，约公元前670年代\n- **停留时间**：青年时期\n- **地点**：卫国（今河南省北部，具体地点存疑）\n- **事件**：出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。\n- **意义**：其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。\n\n### 📍 重要地点：漕邑\n- **时间**：公元前660年\n- **停留时间**：数月\n- **地点**：漕邑（今河南省安阳市滑县西南）\n- **事件**：狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。\n- **意义**：是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。\n\n### 📍 重要地点：齐国都城临淄\n- **时间**：约公元前660年-前659年\n- **停留时间**：短期访问\n- **地点**：齐国都城临淄（今山东省淄博市临淄区）\n- **事件**：继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。\n- **意义**：获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。\n\n### 📍 重要地点：楚丘\n- **时间**：公元前658年-前635年\n- **停留时间**：约23年（在位主要时期）\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。\n- **意义**：卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。\n\n### 📍 重要地点：邢国\n- **时间**：约公元前658年-前635年间\n- **停留时间**：军事行动期间\n- **地点**：邢国（今河北省邢台市）\n- **事件**：参与诸侯联军对抗狄人，救援邢国。\n- **意义**：体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。\n\n### 📍 重要地点：訾娄（古地名，今址待考）\n- **时间**：公元前645年\n- **停留时间**：军事行动期间\n- **地点**：卫国边境（古地名，今址待考，约在今河南省北部或周边）\n- **事件**：邢国联合狄人伐卫，率军抵抗于訾娄（古地名）。\n- **意义**：卫国复国后军事力量增强，能够抵御外敌入侵的例证。\n\n### 🔴 去世地：楚丘\n- **时间**：公元前635年\n- **停留时间**：在位最后时光\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在位二十五年后去世，其子卫成公继位。\n- **意义**：在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。\n\n---\n\n## 生平时间线\n| 年份 | 备注 | 关键事件 |\n| :--- | :--- | :--- |\n| 约前670年代 | 出生年份存疑 | 出生于卫国（今河南省北部，具体地点存疑）。 |\n| 前660 | 青年时期 | 狄人灭卫，卫懿公死。随遗民渡河至漕邑。兄戴公卒，继位为君。 |\n| 约公元前660年-前659年 | 继位初期 | 赴齐国求援，获齐桓公支持。 |\n| 前658 | 在位第3年 | 在诸侯帮助下，率民迁都于楚丘，开始实施复兴政策。 |\n| 前658-前635 | 在位期间 | 务材训农，通商惠工，敬教劝学，授方任能。国力增强。 |\n| 前645 | 在位第16年 | 邢国联合狄人伐卫，率军抵抗于訾娄（古地名，今址待考）。 |\n| 前635 | 在位约25年 | 卒于楚丘，子成公继位。 |\n\n---\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省安阳市滑县东（楚丘故址） | 35.5750 | 114.5210 |\n| 山东省淄博市临淄区（齐国故城） | 36.8600 | 118.3400 |\n| 河北省邢台市（邢国故地） | 37.0700 | 114.5000 |\n| 河南省安阳市滑县西南（古漕邑故址） | 35.5400 | 114.4800 |", "relatedGraph": {"center": {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "“务材训农，通商惠工”", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "“务材训农，通商惠工”", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "“（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……”", "review": "*《左传》**：评价其“文而有礼”，善于纳谏，能成就大事。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": null, "quote": "“不战而屈人之兵”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "“不鸣则已，一鸣惊人”", "review": "*司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "“不迁怒，不贰过”", "review": "*孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "释迦牟尼", "name": "释迦牟尼", "file": "释迦牟尼.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -563, "death_year": -483, "quote": "“释迦族的圣人”", "review": "*古代评价**：被信徒尊为“世尊”、“天人师”，视为真理的发现者与宣说者。", "foreign_name": "", "main_role_label": "宗教家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "卫文公", "target": "重耳", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "狐偃", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "楚庄王", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "颜回", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "释迦牟尼", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

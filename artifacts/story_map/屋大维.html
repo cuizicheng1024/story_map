@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "盖乌斯·屋大维·图里努斯", "title": "元首制", "description": "屋大维是凯撒的甥孙与养子。凯撒遇刺后，年仅18岁的他迅速卷入政治漩涡，与安东尼、雷必达组成“后三头同盟”，清除了刺杀凯撒的势力。在权力斗争中，他于亚克兴海战击败安东尼与克利奥帕特拉七世，最终统一罗马世界。公元前27年，他巧妙地将权力交还元老院，被授予“奥古斯都”尊号，创立“元首制”，在保留共和制表象下集大权于一身。在其长达四十余年的统治下，罗马进入稳定繁荣的“罗马和平”时代，他也成为西方历史上最具影响力的统治者之一。", "quote": "我将共和国从我的权力下交还给元老院和罗马人民。", "shortReview": "我将共和国从我的权力下交还给元老院和罗马人民。", "dynasty": "罗马共和国末期至罗马帝国初期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "罗马（今意大利罗马市）", "avatar": "", "birth": {"date": "公元前63年", "location": "罗马（今意大利罗马市）", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84"}, "death": {"date": "14年", "location": "诺拉（今意大利坎帕尼亚大区诺拉）", "lat": 40.9167, "lng": 14.5333, "coordSystem": "WGS84"}, "lifespan": "约76岁（按周岁计算）", "highlights": {"honor": "元首制", "status": "罗马帝国的开创者，结束罗马长期内战，建立“元首制”，开启长达两百年的“罗马和平”时期。", "identities": "政治家、军事统帅、罗马帝国开国君主", "achievements": "结束罗马共和国末期内战；建立罗马帝国（元首制）；获得“奥古斯都”称号；大规模建设罗马城；推动罗马法与文化的繁荣。", "works": [], "reviews": []}}, "locations": [{"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马市", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的骑士家庭，原名盖乌斯·屋大维。幼年丧父，由继父抚养，后因其舅公凯撒的赏识而进入罗马权力核心视野。", "time": "公元前63年", "duration": "青少年时期", "significance": "罗马城是他政治生涯的起点与最终权力的象征。", "works": [], "quoteLines": []}, {"name": "阿波罗尼亚", "ancientName": "阿波罗尼亚", "modernName": "阿尔巴尼亚费里区阿波罗尼亚遗址", "lat": 40.7167, "lng": 19.5667, "coordSystem": "WGS84", "type": "normal", "event": "正在此接受教育并准备随凯撒出征帕提亚时，传来凯撒遇刺的噩耗。他在此决定返回罗马，继承凯撒的政治遗产。", "time": "公元前45年 - 前44年", "duration": "约数月", "significance": "人生重大转折点，从一名被培养的继承人转变为争夺最高权力的行动者。", "works": [], "quoteLines": []}, {"name": "腓立比", "ancientName": "腓立比", "modernName": "希腊中马其顿大区卡瓦拉州菲利皮考古遗址", "lat": 41.0167, "lng": 24.2833, "coordSystem": "WGS84", "type": "normal", "event": "与安东尼联手，在此地两次战役中击败以布鲁图斯和卡西乌斯为首的共和派军队，为凯撒复仇。", "time": "公元前42年", "duration": "战役期间", "significance": "军事上彻底消灭了共和派主力，巩固了“后三头同盟”的统治，但战功主要归于安东尼。", "works": [], "quoteLines": []}, {"name": "亚克兴", "ancientName": "亚克兴", "modernName": "希腊伊庇鲁斯大区普雷韦扎省普雷韦扎附近", "lat": 38.95, "lng": 20.7667, "coordSystem": "WGS84", "type": "normal", "event": "指挥海军与安东尼-克利奥帕特拉七世的联军展开决定性海战，并取得胜利。", "time": "公元前31年", "duration": "战役期间", "significance": "决定性的胜利，扫清了其独揽罗马大权的最后障碍，直接导致托勒密埃及的灭亡。", "works": [], "quoteLines": []}, {"name": "亚历山大里亚", "ancientName": "亚历山大里亚", "modernName": "埃及亚历山大港", "lat": 31.2, "lng": 29.9167, "coordSystem": "WGS84", "type": "normal", "event": "进军埃及，安东尼与克利奥帕特拉七世相继自杀，托勒密王国并入罗马，成为行省。", "time": "公元前30年", "duration": "短暂", "significance": "征服埃及，获得巨大财富，并彻底终结了希腊化时代最后一个大国，罗马地中海霸权完全确立。", "works": [], "quoteLines": []}, {"name": "罗马（“奥古斯都的罗马”）", "ancientName": "罗马", "modernName": "意大利罗马市", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "normal", "event": "举行盛大的凯旋式；进行政治改革，建立“元首制”；大规模兴建神庙、广场、剧院（如奥古斯都广场、马尔切鲁斯剧场）；被授予“奥古斯都”、“祖国之父”等称号。", "time": "公元前29年 - 公元14年", "duration": "大部分统治时期", "significance": "帝国统治的核心，他将一座砖城的罗马变成了大理石城，奠定了罗马帝国首都的辉煌面貌。", "works": [], "quoteLines": ["据其自传《功业录》意译：“我将共和国从我的权力下交还给元老院和罗马人民。”"]}, {"name": "塔拉科（塔拉戈纳）", "ancientName": "塔拉科", "modernName": "西班牙加泰罗尼亚塔拉戈纳省塔拉戈纳市", "lat": 41.1167, "lng": 1.25, "coordSystem": "WGS84", "type": "normal", "event": "亲临西班牙指挥对坎塔布连人的战争，因病将指挥权交给阿格里帕。", "time": "公元前26年 - 前25年", "duration": "约一年", "significance": "体现了其统治前期仍需亲临前线巩固边疆，也显示了高卢-西班牙地区的重要性。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "在巡行东方行省期间驻跸雅典，调解当地事务。获得终身保民官权力（具体年份有不同说法）。", "time": "公元前19年", "duration": "数月", "significance": "展示对希腊文化的尊重，巩固帝国东部行省的统治。", "works": [], "quoteLines": []}, {"name": "诺拉", "ancientName": "诺拉", "modernName": "意大利坎帕尼亚大区诺拉", "lat": 40.9167, "lng": 14.5333, "coordSystem": "WGS84", "type": "death", "event": "在前往贝内文托途中病逝于此。临终前询问是否“演好了人生的喜剧”，并要求朋友们为他鼓掌。", "time": "公元14年8月19日", "duration": "临终前", "significance": "生命的终点，其养子提比略顺利继位，标志着罗马帝国皇位继承制度的首次平稳过渡。", "works": [], "quoteLines": []}, {"name": "梅塞纳斯庄园（蒂沃利）", "ancientName": "蒂沃利", "modernName": "意大利拉齐奥大区蒂沃利", "lat": 41.9667, "lng": 12.8, "coordSystem": "WGS84", "type": "normal", "event": "在此地的庄园与挚友兼政治顾问梅塞纳斯以及维吉尔、贺拉斯等文学家交往。", "time": "统治期间多次", "duration": "不定期休养", "significance": "体现了其庇护文艺的政策，推动了罗马文学的“黄金时代”。", "works": [], "quoteLines": ["贺拉斯《书札》：“被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。”（反映奥古斯都时代对希腊文化的吸收）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---", "workTexts": {"书札": "被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。", "功业录": "“我将共和国从我的权力下交还给元老院和罗马人民。”", "埃涅阿斯纪": "重点：《埃涅阿斯纪》 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，神化尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供神话依据和合法性。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 屋大维\n\n## 人物档案\n\n### 基本信息\n- **姓名**：盖乌斯·屋大维·图里努斯（后获名盖乌斯·尤利乌斯·凯撒·屋大维安努斯）\n- **时代**：罗马共和国末期至罗马帝国初期\n- **出生**：公元前63年9月23日，罗马（今意大利罗马市）\n- **去世**：公元14年8月19日，诺拉（今意大利坎帕尼亚大区诺拉）\n- **享年**：约76岁（按周岁计算）\n- **主要身份**：政治家、军事统帅、罗马帝国开国君主\n- **历史地位**：罗马帝国的开创者，结束罗马长期内战，建立“元首制”，开启长达两百年的“罗马和平”时期。\n- **主要成就**：结束罗马共和国末期内战；建立罗马帝国（元首制）；获得“奥古斯都”称号；大规模建设罗马城；推动罗马法与文化的繁荣。\n\n### 生平概述\n屋大维是凯撒的甥孙与养子。凯撒遇刺后，年仅18岁的他迅速卷入政治漩涡，与安东尼、雷必达组成“后三头同盟”，清除了刺杀凯撒的势力。在权力斗争中，他于亚克兴海战击败安东尼与克利奥帕特拉七世，最终统一罗马世界。公元前27年，他巧妙地将权力交还元老院，被授予“奥古斯都”尊号，创立“元首制”，在保留共和制表象下集大权于一身。在其长达四十余年的统治下，罗马进入稳定繁荣的“罗马和平”时代，他也成为西方历史上最具影响力的统治者之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹以罗马为中心，辐射至希腊、埃及、西班牙等环地中海地区。\n- ⏱️ **时间跨度**：公元前63年 - 公元14年，共计约76年（跨年份计算）。\n- 📍 **地理范围**：主要覆盖今意大利、希腊、埃及、西班牙等地中海沿岸地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：罗马\n- **时间**：公元前63年\n- **停留时间**：青少年时期\n- **地点**：罗马（今意大利罗马市）\n- **事件**：出生于一个富裕的骑士家庭，原名盖乌斯·屋大维。幼年丧父，由继父抚养，后因其舅公凯撒的赏识而进入罗马权力核心视野。\n- **意义**：罗马城是他政治生涯的起点与最终权力的象征。\n\n### 📍 重要地点：阿波罗尼亚\n- **时间**：公元前45年 - 前44年\n- **停留时间**：约数月\n- **地点**：阿波罗尼亚（今阿尔巴尼亚费里区阿波罗尼亚遗址）\n- **事件**：正在此接受教育并准备随凯撒出征帕提亚时，传来凯撒遇刺的噩耗。他在此决定返回罗马，继承凯撒的政治遗产。\n- **意义**：人生重大转折点，从一名被培养的继承人转变为争夺最高权力的行动者。\n\n### 📍 重要地点：腓立比\n- **时间**：公元前42年\n- **停留时间**：战役期间\n- **地点**：腓立比（今希腊中马其顿大区卡瓦拉州菲利皮考古遗址）\n- **事件**：与安东尼联手，在此地两次战役中击败以布鲁图斯和卡西乌斯为首的共和派军队，为凯撒复仇。\n- **意义**：军事上彻底消灭了共和派主力，巩固了“后三头同盟”的统治，但战功主要归于安东尼。\n\n### 📍 重要地点：亚克兴\n- **时间**：公元前31年\n- **停留时间**：战役期间\n- **地点**：亚克兴（今希腊伊庇鲁斯大区普雷韦扎省普雷韦扎附近）\n- **事件**：指挥海军与安东尼-克利奥帕特拉七世的联军展开决定性海战，并取得胜利。\n- **意义**：决定性的胜利，扫清了其独揽罗马大权的最后障碍，直接导致托勒密埃及的灭亡。\n\n### 📍 重要地点：亚历山大里亚\n- **时间**：公元前30年\n- **停留时间**：短暂\n- **地点**：亚历山大里亚（今埃及亚历山大港）\n- **事件**：进军埃及，安东尼与克利奥帕特拉七世相继自杀，托勒密王国并入罗马，成为行省。\n- **意义**：征服埃及，获得巨大财富，并彻底终结了希腊化时代最后一个大国，罗马地中海霸权完全确立。\n\n### 📍 重要地点：罗马（“奥古斯都的罗马”）\n- **时间**：公元前29年 - 公元14年\n- **停留时间**：大部分统治时期\n- **地点**：罗马（今意大利罗马市）\n- **事件**：举行盛大的凯旋式；进行政治改革，建立“元首制”；大规模兴建神庙、广场、剧院（如奥古斯都广场、马尔切鲁斯剧场）；被授予“奥古斯都”、“祖国之父”等称号。\n- **意义**：帝国统治的核心，他将一座砖城的罗马变成了大理石城，奠定了罗马帝国首都的辉煌面貌。\n- **名篇名句**：据其自传《功业录》意译：“我将共和国从我的权力下交还给元老院和罗马人民。”\n\n### 📍 重要地点：梅塞纳斯庄园（蒂沃利）\n- **时间**：统治期间多次\n- **停留时间**：不定期休养\n- **地点**：蒂沃利（今意大利拉齐奥大区蒂沃利）\n- **事件**：在此地的庄园与挚友兼政治顾问梅塞纳斯以及维吉尔、贺拉斯等文学家交往。\n- **意义**：体现了其庇护文艺的政策，推动了罗马文学的“黄金时代”。\n- **名篇名句**：贺拉斯《书札》：“被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。”（反映奥古斯都时代对希腊文化的吸收）\n\n### 📍 重要地点：雅典\n- **时间**：公元前19年\n- **停留时间**：数月\n- **地点**：雅典（今希腊雅典）\n- **事件**：在巡行东方行省期间驻跸雅典，调解当地事务。获得终身保民官权力（具体年份有不同说法）。\n- **意义**：展示对希腊文化的尊重，巩固帝国东部行省的统治。\n\n### 📍 重要地点：塔拉科（塔拉戈纳）\n- **时间**：公元前26年 - 前25年\n- **停留时间**：约一年\n- **地点**：塔拉科（今西班牙加泰罗尼亚塔拉戈纳省塔拉戈纳市）\n- **事件**：亲临西班牙指挥对坎塔布连人的战争，因病将指挥权交给阿格里帕。\n- **意义**：体现了其统治前期仍需亲临前线巩固边疆，也显示了高卢-西班牙地区的重要性。\n\n### 🔴 去世地：诺拉\n- **时间**：公元14年8月19日\n- **停留时间**：临终前\n- **地点**：诺拉（今意大利坎帕尼亚大区诺拉）\n- **事件**：在前往贝内文托途中病逝于此。临终前询问是否“演好了人生的喜剧”，并要求朋友们为他鼓掌。\n- **意义**：生命的终点，其养子提比略顺利继位，标志着罗马帝国皇位继承制度的首次平稳过渡。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元前63年 | 0岁 | 出生于罗马。 |\n| 公元前44年 | 19岁 | 凯撒遇刺，被指定为养子和继承人，返回罗马争夺权力。 |\n| 公元前43年 | 20岁 | 与安东尼、雷必达组成“后三头同盟”。 |\n| 公元前42年 | 21岁 | 腓立比战役击败共和派。 |\n| 公元前36年 | 27岁 | 剥夺雷必达军权，与安东尼形成东西对峙。 |\n| 公元前31年 | 32岁 | 亚克兴海战击败安东尼。 |\n| 公元前30年 | 33岁 | 征服埃及，安东尼与克利奥帕特拉七世死亡。 |\n| 公元前27年 | 36岁 | 获得“奥古斯都”称号，建立“元首制”。 |\n| 公元前19年 | 44岁 | 获得终身保民官权力（具体年份有不同说法）。 |\n| 公元前2年 | 61岁 | 获得“祖国之父”称号。 |\n| 公元14年 | 76岁 | 逝世于诺拉，养子提比略继位。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 罗马 | 41.9028 | 12.4964 |\n| 阿波罗尼亚 | 40.7167 | 19.5667 |\n| 腓立比 | 41.0167 | 24.2833 |\n| 亚克兴 | 38.9500 | 20.7667 |\n| 亚历山大里亚 | 31.2000 | 29.9167 |\n| 蒂沃利 | 41.9667 | 12.8000 |\n| 雅典 | 37.9838 | 23.7275 |\n| 塔拉科 | 41.1167 | 1.2500 |\n| 诺拉 | 40.9167 | 14.5333 |", "relatedGraph": {"center": {"id": "屋大维", "name": "屋大维", "file": "屋大维.html", "dynasty": "罗马共和国末期至罗马帝国初期", "aliases": [], "birth_year": -63, "death_year": 14, "quote": "“奥古斯都的罗马”", "review": "我将共和国从我的权力下交还给元老院和罗马人民。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "屋大维", "name": "屋大维", "file": "屋大维.html", "dynasty": "罗马共和国末期至罗马帝国初期", "aliases": [], "birth_year": -63, "death_year": 14, "quote": "“奥古斯都的罗马”", "review": "我将共和国从我的权力下交还给元老院和罗马人民。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "凯撒", "name": "凯撒", "file": "凯撒.html", "dynasty": "罗马共和国末期", "aliases": [], "birth_year": -100, "death_year": -44, "quote": "“高卢全境分为三部分”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏武", "name": "苏武", "file": "苏武.html", "dynasty": "西汉", "aliases": [], "birth_year": -140, "death_year": -60, "quote": "“武字子卿，少以父任，兄弟并为郎。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "籍贯杜陵", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王昭君", "name": "王昭君", "file": "王昭君.html", "dynasty": "西汉", "aliases": [], "birth_year": -52, "death_year": -15, "quote": "杜甫《咏怀古迹》之三：\"画图省识春风面，环佩空归月夜魂。\"——表达对昭君远嫁的深切同情。", "review": "杜甫《咏怀古迹》之三：\"画图省识春风面，环佩空归月夜魂。\"——表达对昭君远嫁的深切同情。", "foreign_name": "", "main_role_label": "其他", "birthplace": "西汉南郡秭归", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "霍去病", "name": "霍去病", "file": "霍去病.html", "dynasty": "西汉", "aliases": [], "birth_year": -140, "death_year": -117, "quote": "霍去病出身外戚之家，少年即随卫青参与对匈奴作战，以勇猛果决著称", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "古称平阳县", "birthplace_modern": "山西南部临汾一带", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张骞", "name": "张骞", "file": "张骞.html", "dynasty": "西汉", "aliases": [], "birth_year": null, "death_year": -114, "quote": "“第一个睁开眼睛看世界的中国人”", "review": "*司马迁（西汉史学家）**：“《禹本纪》言：‘河出昆仑……’今自张骞使大夏之后也，穷河源，恶睹本纪所谓昆仑者乎？……至《禹本纪》、《山海经》所有怪物，余不敢言之也。”（肯定其亲身…", "foreign_name": "", "main_role_label": "外交家", "birthplace": "汉中郡城固县", "birthplace_modern": "陕西城固县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "贾谊", "name": "贾谊", "file": "贾谊.html", "dynasty": "西汉", "aliases": [], "birth_year": -200, "death_year": -168, "quote": "“众建诸侯而少其力”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "屋大维", "target": "凯撒", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "苏武", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "王昭君", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "霍去病", "label": "相关人物", "confidence": null}, {"source": "屋大维", "target": "张骞", "label": "相关人物", "confidence": null}, {"source": "屋大维", "target": "贾谊", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "盖乌斯·屋大维·图里努斯", "title": "元首制", "description": "屋大维是凯撒的甥孙与养子。凯撒遇刺后，年仅18岁的他迅速卷入政治漩涡，与安东尼、雷必达组成“后三头同盟”，清除了刺杀凯撒的势力。在权力斗争中，他于亚克兴海战击败安东尼与克利奥帕特拉七世，最终统一罗马世界。公元前27年，他巧妙地将权力交还元老院，被授予“奥古斯都”尊号，创立“元首制”，在保留共和制表象下集大权于一身。在其长达四十余年的统治下，罗马进入稳定繁荣的“罗马和平”时代，他也成为西方历史上最具影响力的统治者之一。", "quote": "我将共和国从我的权力下交还给元老院和罗马人民。", "shortReview": "我将共和国从我的权力下交还给元老院和罗马人民。", "dynasty": "罗马共和国末期至罗马帝国初期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "罗马（今意大利罗马市）", "avatar": "", "birth": {"date": "公元前63年", "location": "罗马（今意大利罗马市）", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84"}, "death": {"date": "14年", "location": "诺拉（今意大利坎帕尼亚大区诺拉）", "lat": 40.9167, "lng": 14.5333, "coordSystem": "WGS84"}, "lifespan": "约76岁（按周岁计算）", "highlights": {"honor": "元首制", "status": "罗马帝国的开创者，结束罗马长期内战，建立“元首制”，开启长达两百年的“罗马和平”时期。", "identities": "政治家、军事统帅、罗马帝国开国君主", "achievements": "结束罗马共和国末期内战；建立罗马帝国（元首制）；获得“奥古斯都”称号；大规模建设罗马城；推动罗马法与文化的繁荣。", "works": [], "reviews": []}}, "locations": [{"name": "罗马", "ancientName": "罗马", "modernName": "意大利罗马市", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的骑士家庭，原名盖乌斯·屋大维。幼年丧父，由继父抚养，后因其舅公凯撒的赏识而进入罗马权力核心视野。", "time": "公元前63年", "duration": "青少年时期", "significance": "罗马城是他政治生涯的起点与最终权力的象征。", "works": [], "quoteLines": []}, {"name": "阿波罗尼亚", "ancientName": "阿波罗尼亚", "modernName": "阿尔巴尼亚费里区阿波罗尼亚遗址", "lat": 40.7167, "lng": 19.5667, "coordSystem": "WGS84", "type": "normal", "event": "正在此接受教育并准备随凯撒出征帕提亚时，传来凯撒遇刺的噩耗。他在此决定返回罗马，继承凯撒的政治遗产。", "time": "公元前45年 - 前44年", "duration": "约数月", "significance": "人生重大转折点，从一名被培养的继承人转变为争夺最高权力的行动者。", "works": [], "quoteLines": []}, {"name": "腓立比", "ancientName": "腓立比", "modernName": "希腊中马其顿大区卡瓦拉州菲利皮考古遗址", "lat": 41.0167, "lng": 24.2833, "coordSystem": "WGS84", "type": "normal", "event": "与安东尼联手，在此地两次战役中击败以布鲁图斯和卡西乌斯为首的共和派军队，为凯撒复仇。", "time": "公元前42年", "duration": "战役期间", "significance": "军事上彻底消灭了共和派主力，巩固了“后三头同盟”的统治，但战功主要归于安东尼。", "works": [], "quoteLines": []}, {"name": "亚克兴", "ancientName": "亚克兴", "modernName": "希腊伊庇鲁斯大区普雷韦扎省普雷韦扎附近", "lat": 38.95, "lng": 20.7667, "coordSystem": "WGS84", "type": "normal", "event": "指挥海军与安东尼-克利奥帕特拉七世的联军展开决定性海战，并取得胜利。", "time": "公元前31年", "duration": "战役期间", "significance": "决定性的胜利，扫清了其独揽罗马大权的最后障碍，直接导致托勒密埃及的灭亡。", "works": [], "quoteLines": []}, {"name": "亚历山大里亚", "ancientName": "亚历山大里亚", "modernName": "埃及亚历山大港", "lat": 31.2, "lng": 29.9167, "coordSystem": "WGS84", "type": "normal", "event": "进军埃及，安东尼与克利奥帕特拉七世相继自杀，托勒密王国并入罗马，成为行省。", "time": "公元前30年", "duration": "短暂", "significance": "征服埃及，获得巨大财富，并彻底终结了希腊化时代最后一个大国，罗马地中海霸权完全确立。", "works": [], "quoteLines": []}, {"name": "罗马（“奥古斯都的罗马”）", "ancientName": "罗马", "modernName": "意大利罗马市", "lat": 41.9028, "lng": 12.4964, "coordSystem": "WGS84", "type": "normal", "event": "举行盛大的凯旋式；进行政治改革，建立“元首制”；大规模兴建神庙、广场、剧院（如奥古斯都广场、马尔切鲁斯剧场）；被授予“奥古斯都”、“祖国之父”等称号。", "time": "公元前29年 - 公元14年", "duration": "大部分统治时期", "significance": "帝国统治的核心，他将一座砖城的罗马变成了大理石城，奠定了罗马帝国首都的辉煌面貌。", "works": [], "quoteLines": ["据其自传《功业录》意译：“我将共和国从我的权力下交还给元老院和罗马人民。”"]}, {"name": "塔拉科（塔拉戈纳）", "ancientName": "塔拉科", "modernName": "西班牙加泰罗尼亚塔拉戈纳省塔拉戈纳市", "lat": 41.1167, "lng": 1.25, "coordSystem": "WGS84", "type": "normal", "event": "亲临西班牙指挥对坎塔布连人的战争，因病将指挥权交给阿格里帕。", "time": "公元前26年 - 前25年", "duration": "约一年", "significance": "体现了其统治前期仍需亲临前线巩固边疆，也显示了高卢-西班牙地区的重要性。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "在巡行东方行省期间驻跸雅典，调解当地事务。获得终身保民官权力（具体年份有不同说法）。", "time": "公元前19年", "duration": "数月", "significance": "展示对希腊文化的尊重，巩固帝国东部行省的统治。", "works": [], "quoteLines": []}, {"name": "诺拉", "ancientName": "诺拉", "modernName": "意大利坎帕尼亚大区诺拉", "lat": 40.9167, "lng": 14.5333, "coordSystem": "WGS84", "type": "death", "event": "在前往贝内文托途中病逝于此。临终前询问是否“演好了人生的喜剧”，并要求朋友们为他鼓掌。", "time": "公元14年8月19日", "duration": "临终前", "significance": "生命的终点，其养子提比略顺利继位，标志着罗马帝国皇位继承制度的首次平稳过渡。", "works": [], "quoteLines": []}, {"name": "梅塞纳斯庄园（蒂沃利）", "ancientName": "蒂沃利", "modernName": "意大利拉齐奥大区蒂沃利", "lat": 41.9667, "lng": 12.8, "coordSystem": "WGS84", "type": "normal", "event": "在此地的庄园与挚友兼政治顾问梅塞纳斯以及维吉尔、贺拉斯等文学家交往。", "time": "统治期间多次", "duration": "不定期休养", "significance": "体现了其庇护文艺的政策，推动了罗马文学的“黄金时代”。", "works": [], "quoteLines": ["贺拉斯《书札》：“被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。”（反映奥古斯都时代对希腊文化的吸收）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---", "workTexts": {"书札": "被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。", "功业录": "“我将共和国从我的权力下交还给元老院和罗马人民。”", "埃涅阿斯纪": "重点：《埃涅阿斯纪》 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，神化尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供神话依据和合法性。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 屋大维\n\n## 人物档案\n\n### 基本信息\n- **姓名**：盖乌斯·屋大维·图里努斯（后获名盖乌斯·尤利乌斯·凯撒·屋大维安努斯）\n- **时代**：罗马共和国末期至罗马帝国初期\n- **出生**：公元前63年9月23日，罗马（今意大利罗马市）\n- **去世**：公元14年8月19日，诺拉（今意大利坎帕尼亚大区诺拉）\n- **享年**：约76岁（按周岁计算）\n- **主要身份**：政治家、军事统帅、罗马帝国开国君主\n- **历史地位**：罗马帝国的开创者，结束罗马长期内战，建立“元首制”，开启长达两百年的“罗马和平”时期。\n- **主要成就**：结束罗马共和国末期内战；建立罗马帝国（元首制）；获得“奥古斯都”称号；大规模建设罗马城；推动罗马法与文化的繁荣。\n\n### 生平概述\n屋大维是凯撒的甥孙与养子。凯撒遇刺后，年仅18岁的他迅速卷入政治漩涡，与安东尼、雷必达组成“后三头同盟”，清除了刺杀凯撒的势力。在权力斗争中，他于亚克兴海战击败安东尼与克利奥帕特拉七世，最终统一罗马世界。公元前27年，他巧妙地将权力交还元老院，被授予“奥古斯都”尊号，创立“元首制”，在保留共和制表象下集大权于一身。在其长达四十余年的统治下，罗马进入稳定繁荣的“罗马和平”时代，他也成为西方历史上最具影响力的统治者之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹以罗马为中心，辐射至希腊、埃及、西班牙等环地中海地区。\n- ⏱️ **时间跨度**：公元前63年 - 公元14年，共计约76年（跨年份计算）。\n- 📍 **地理范围**：主要覆盖今意大利、希腊、埃及、西班牙等地中海沿岸地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：罗马\n- **时间**：公元前63年\n- **停留时间**：青少年时期\n- **地点**：罗马（今意大利罗马市）\n- **事件**：出生于一个富裕的骑士家庭，原名盖乌斯·屋大维。幼年丧父，由继父抚养，后因其舅公凯撒的赏识而进入罗马权力核心视野。\n- **意义**：罗马城是他政治生涯的起点与最终权力的象征。\n\n### 📍 重要地点：阿波罗尼亚\n- **时间**：公元前45年 - 前44年\n- **停留时间**：约数月\n- **地点**：阿波罗尼亚（今阿尔巴尼亚费里区阿波罗尼亚遗址）\n- **事件**：正在此接受教育并准备随凯撒出征帕提亚时，传来凯撒遇刺的噩耗。他在此决定返回罗马，继承凯撒的政治遗产。\n- **意义**：人生重大转折点，从一名被培养的继承人转变为争夺最高权力的行动者。\n\n### 📍 重要地点：腓立比\n- **时间**：公元前42年\n- **停留时间**：战役期间\n- **地点**：腓立比（今希腊中马其顿大区卡瓦拉州菲利皮考古遗址）\n- **事件**：与安东尼联手，在此地两次战役中击败以布鲁图斯和卡西乌斯为首的共和派军队，为凯撒复仇。\n- **意义**：军事上彻底消灭了共和派主力，巩固了“后三头同盟”的统治，但战功主要归于安东尼。\n\n### 📍 重要地点：亚克兴\n- **时间**：公元前31年\n- **停留时间**：战役期间\n- **地点**：亚克兴（今希腊伊庇鲁斯大区普雷韦扎省普雷韦扎附近）\n- **事件**：指挥海军与安东尼-克利奥帕特拉七世的联军展开决定性海战，并取得胜利。\n- **意义**：决定性的胜利，扫清了其独揽罗马大权的最后障碍，直接导致托勒密埃及的灭亡。\n\n### 📍 重要地点：亚历山大里亚\n- **时间**：公元前30年\n- **停留时间**：短暂\n- **地点**：亚历山大里亚（今埃及亚历山大港）\n- **事件**：进军埃及，安东尼与克利奥帕特拉七世相继自杀，托勒密王国并入罗马，成为行省。\n- **意义**：征服埃及，获得巨大财富，并彻底终结了希腊化时代最后一个大国，罗马地中海霸权完全确立。\n\n### 📍 重要地点：罗马（“奥古斯都的罗马”）\n- **时间**：公元前29年 - 公元14年\n- **停留时间**：大部分统治时期\n- **地点**：罗马（今意大利罗马市）\n- **事件**：举行盛大的凯旋式；进行政治改革，建立“元首制”；大规模兴建神庙、广场、剧院（如奥古斯都广场、马尔切鲁斯剧场）；被授予“奥古斯都”、“祖国之父”等称号。\n- **意义**：帝国统治的核心，他将一座砖城的罗马变成了大理石城，奠定了罗马帝国首都的辉煌面貌。\n- **名篇名句**：据其自传《功业录》意译：“我将共和国从我的权力下交还给元老院和罗马人民。”\n\n### 📍 重要地点：梅塞纳斯庄园（蒂沃利）\n- **时间**：统治期间多次\n- **停留时间**：不定期休养\n- **地点**：蒂沃利（今意大利拉齐奥大区蒂沃利）\n- **事件**：在此地的庄园与挚友兼政治顾问梅塞纳斯以及维吉尔、贺拉斯等文学家交往。\n- **意义**：体现了其庇护文艺的政策，推动了罗马文学的“黄金时代”。\n- **名篇名句**：贺拉斯《书札》：“被征服的希腊征服了她粗野的征服者，将艺术带给了拉丁姆。”（反映奥古斯都时代对希腊文化的吸收）\n\n### 📍 重要地点：雅典\n- **时间**：公元前19年\n- **停留时间**：数月\n- **地点**：雅典（今希腊雅典）\n- **事件**：在巡行东方行省期间驻跸雅典，调解当地事务。获得终身保民官权力（具体年份有不同说法）。\n- **意义**：展示对希腊文化的尊重，巩固帝国东部行省的统治。\n\n### 📍 重要地点：塔拉科（塔拉戈纳）\n- **时间**：公元前26年 - 前25年\n- **停留时间**：约一年\n- **地点**：塔拉科（今西班牙加泰罗尼亚塔拉戈纳省塔拉戈纳市）\n- **事件**：亲临西班牙指挥对坎塔布连人的战争，因病将指挥权交给阿格里帕。\n- **意义**：体现了其统治前期仍需亲临前线巩固边疆，也显示了高卢-西班牙地区的重要性。\n\n### 🔴 去世地：诺拉\n- **时间**：公元14年8月19日\n- **停留时间**：临终前\n- **地点**：诺拉（今意大利坎帕尼亚大区诺拉）\n- **事件**：在前往贝内文托途中病逝于此。临终前询问是否“演好了人生的喜剧”，并要求朋友们为他鼓掌。\n- **意义**：生命的终点，其养子提比略顺利继位，标志着罗马帝国皇位继承制度的首次平稳过渡。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元前63年 | 0岁 | 出生于罗马。 |\n| 公元前44年 | 19岁 | 凯撒遇刺，被指定为养子和继承人，返回罗马争夺权力。 |\n| 公元前43年 | 20岁 | 与安东尼、雷必达组成“后三头同盟”。 |\n| 公元前42年 | 21岁 | 腓立比战役击败共和派。 |\n| 公元前36年 | 27岁 | 剥夺雷必达军权，与安东尼形成东西对峙。 |\n| 公元前31年 | 32岁 | 亚克兴海战击败安东尼。 |\n| 公元前30年 | 33岁 | 征服埃及，安东尼与克利奥帕特拉七世死亡。 |\n| 公元前27年 | 36岁 | 获得“奥古斯都”称号，建立“元首制”。 |\n| 公元前19年 | 44岁 | 获得终身保民官权力（具体年份有不同说法）。 |\n| 公元前2年 | 61岁 | 获得“祖国之父”称号。 |\n| 公元14年 | 76岁 | 逝世于诺拉，养子提比略继位。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：屋大维本人无文学作品传世，但他是罗马文学“黄金时代”的核心庇护者。相关作品包括维吉尔的史诗 **《埃涅阿斯纪》**、贺拉斯的 **《颂歌集》**、李维的 **《罗马史》** 等，这些作品均创作于奥古斯都时代，或歌颂其统治，或反思罗马历史。\n- 核心要点：\n    - **重点**：**《埃涅阿斯纪》** 是罗马的民族史诗，通过特洛伊英雄埃涅阿斯的建国历程，**神化**尤利乌斯家族（凯撒与屋大维所属家族）的血统，为奥古斯都的统治提供**神话依据**和**合法性**。\n    - **重点**：贺拉斯的诗歌体现了奥古斯都时代的**道德复兴**政策，歌颂**责任、质朴、虔诚**等传统罗马美德。\n    - **重点**：奥古斯都时代的文学具有强烈的**政治宣传**与**文化建构**色彩，旨在重塑罗马的民族认同，巩固新政权。\n    - 这一时期的文学标志着拉丁文学的巅峰，其**典雅、庄重、和谐**的风格被称为“奥古斯都风格”。\n    - 作品中常出现对 **“罗马和平”** 的赞颂，以及对内战创伤的反思。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：公元前27年，屋大维获得 **“奥古斯都”** 称号，建立 **“元首制”**，标志着罗马从共和国转变为**帝国**。\n    - **重点**：结束长达一个世纪的罗马内战（从同盟者战争、苏拉内战到后三头同盟战争），开启 **“罗马和平”** 时期。\n    - 征服埃及（托勒密王国），将其变为罗马的粮仓和行省。\n    - 进行大规模行政、军事和财政改革，建立常备军和官僚体系。\n    - 主持建设罗马城，留下 **“一座砖城的罗马，在我手中变成了大理石城”** 的名言。\n- 核心要点：\n    - **重点**：奥古斯都的政治智慧在于保留了**共和制的外壳**（如元老院、选举），而将**军权、财权、司法权**等实权集中于“元首”一身，是一种**隐蔽的君主制**。\n    - **重点**：其统治奠定了罗马帝国此后约两百年（至公元180年）稳定与繁荣的基础，史称 **“罗马和平”**，地中海成为帝国的内湖。\n    - **重点**：他建立了有效的**皇位继承制度**（收养制），确保了权力平稳过渡，避免了共和国末期因继承问题引发的内战。\n    - 奥古斯都的形象塑造是成功的政治宣传典范，他自称 **“第一公民”**，强调其权力的合法性来源于元老院与人民的授予，而非武力。\n    - 历史评价上，他被视为罗马帝国的**奠基者**，其统治结束了混乱，带来了秩序，但也埋下了**个人专制**的种子。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 罗马 | 41.9028 | 12.4964 |\n| 阿波罗尼亚 | 40.7167 | 19.5667 |\n| 腓立比 | 41.0167 | 24.2833 |\n| 亚克兴 | 38.9500 | 20.7667 |\n| 亚历山大里亚 | 31.2000 | 29.9167 |\n| 蒂沃利 | 41.9667 | 12.8000 |\n| 雅典 | 37.9838 | 23.7275 |\n| 塔拉科 | 41.1167 | 1.2500 |\n| 诺拉 | 40.9167 | 14.5333 |", "relatedGraph": {"center": {"id": "屋大维", "name": "屋大维", "file": "屋大维.html", "dynasty": "罗马共和国末期至罗马帝国初期", "aliases": [], "birth_year": -63, "death_year": 14, "quote": "“奥古斯都的罗马”", "review": "我将共和国从我的权力下交还给元老院和罗马人民。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "屋大维", "name": "屋大维", "file": "屋大维.html", "dynasty": "罗马共和国末期至罗马帝国初期", "aliases": [], "birth_year": -63, "death_year": 14, "quote": "“奥古斯都的罗马”", "review": "我将共和国从我的权力下交还给元老院和罗马人民。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "凯撒", "name": "凯撒", "file": "凯撒.html", "dynasty": "罗马共和国末期", "aliases": [], "birth_year": -100, "death_year": -44, "quote": "“高卢全境分为三部分”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "罗马", "birthplace_modern": "意大利罗马市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏武", "name": "苏武", "file": "苏武.html", "dynasty": "西汉", "aliases": [], "birth_year": -140, "death_year": -60, "quote": "“武字子卿，少以父任，兄弟并为郎。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "籍贯杜陵", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王昭君", "name": "王昭君", "file": "王昭君.html", "dynasty": "西汉", "aliases": [], "birth_year": -52, "death_year": -15, "quote": "杜甫《咏怀古迹》之三：\"画图省识春风面，环佩空归月夜魂。\"——表达对昭君远嫁的深切同情。", "review": "杜甫《咏怀古迹》之三：\"画图省识春风面，环佩空归月夜魂。\"——表达对昭君远嫁的深切同情。", "foreign_name": "", "main_role_label": "其他", "birthplace": "西汉南郡秭归", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "霍去病", "name": "霍去病", "file": "霍去病.html", "dynasty": "西汉", "aliases": [], "birth_year": -140, "death_year": -117, "quote": "霍去病出身外戚之家，少年即随卫青参与对匈奴作战，以勇猛果决著称", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "古称平阳县", "birthplace_modern": "山西南部临汾一带", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张骞", "name": "张骞", "file": "张骞.html", "dynasty": "西汉", "aliases": [], "birth_year": null, "death_year": -114, "quote": "“第一个睁开眼睛看世界的中国人”", "review": "*司马迁（西汉史学家）**：“《禹本纪》言：‘河出昆仑……’今自张骞使大夏之后也，穷河源，恶睹本纪所谓昆仑者乎？……至《禹本纪》、《山海经》所有怪物，余不敢言之也。”（肯定其亲身…", "foreign_name": "", "main_role_label": "外交家", "birthplace": "汉中郡城固县", "birthplace_modern": "陕西城固县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "贾谊", "name": "贾谊", "file": "贾谊.html", "dynasty": "西汉", "aliases": [], "birth_year": -200, "death_year": -168, "quote": "“众建诸侯而少其力”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "屋大维", "target": "凯撒", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "苏武", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "王昭君", "label": "同时代人物", "confidence": null}, {"source": "屋大维", "target": "霍去病", "label": "相关人物", "confidence": null}, {"source": "屋大维", "target": "张骞", "label": "相关人物", "confidence": null}, {"source": "屋大维", "target": "贾谊", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

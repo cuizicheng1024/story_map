@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "朱熹", "title": "", "description": "朱熹生于南宋初年，祖籍徽州婺源（今江西婺源）。他自幼聪颖，师从李侗，继承并发展了程颢、程颐的理学思想，构建了以“理”为核心的哲学体系。他一生仕途坎坷，多次担任地方官，致力于兴办教育、整顿吏治、推行教化。晚年因“庆元党禁”被斥为“伪学”，境遇凄凉，但其学说在他身后被官方确立为正统思想，深刻影响了元、明、清三代的东亚思想与文化格局。", "quote": "编撰《四书章句集注》，成为后世科举考试的官方教材", "shortReview": "编撰《四书章句集注》，成为后世科举考试的官方教材", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（学界普遍采用此说）", "avatar": "", "birth": {"date": "1130年", "location": "（学界普遍采用此说）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1200年", "location": "建阳考亭（今福建省南平市建阳区）", "lat": 27.33, "lng": 118.12, "coordSystem": "WGS84"}, "lifespan": "71岁（虚岁，按1130年出生，1200年去世计算）", "highlights": {"honor": "", "status": "程朱理学的集大成者，宋以后儒家思想的主要代表人物。", "identities": "思想家、哲学家、教育家、诗人", "achievements": "建立了庞大的理学体系（“理一元论”）；编撰《四书章句集注》，成为后世科举考试的官方教材；修复白鹿洞书院、岳麓书院，制定学规，推动书院教育发展；在文学、史学、经学等领域均有深厚造诣。", "works": ["四书章句集注"], "reviews": []}}, "locations": [{"name": "尤溪", "ancientName": "尤溪", "modernName": "福建省三明市尤溪县", "lat": 26.17, "lng": 118.18, "coordSystem": "WGS84", "type": "birth", "event": "出生于其父朱松任尤溪县尉的官舍中。", "time": "公元1130年", "duration": "幼年（约至5岁）", "significance": "生命与思想的起点，其父早期的教育对他影响深远。", "works": [], "quoteLines": []}, {"name": "建州（建瓯）", "ancientName": "建州", "modernName": "福建省南平市建瓯市", "lat": 27.04, "lng": 118.32, "coordSystem": "WGS84", "type": "normal", "event": "父亲朱松去世前，将家事托付给好友刘子羽，并命朱熹师从武夷三先生（刘子翚、刘勉之、胡宪）。", "time": "约公元1135年 - 1143年", "duration": "童年至少年", "significance": "接受了系统的儒学启蒙教育，奠定了学问基础。", "works": [], "quoteLines": []}, {"name": "婺源", "ancientName": "婺源", "modernName": "江西省上饶市婺源县", "lat": 29.25, "lng": 117.86, "coordSystem": "WGS84", "type": "normal", "event": "回祖籍地祭扫先墓，与当地学者交流。", "time": "约公元1150年、1176年等多次", "duration": "短期祭祖、访学", "significance": "强化了家族与文化认同，寻根之旅。", "works": [], "quoteLines": []}, {"name": "同安", "ancientName": "同安县", "modernName": "福建省厦门市同安区", "lat": 24.72, "lng": 118.15, "coordSystem": "WGS84", "type": "normal", "event": "任同安县主簿，兼领学事。整顿县学，亲自授课，首次实践其教育理念。", "time": "公元1153年 - 1157年", "duration": "4年", "significance": "初仕之地，也是其教育实践与地方治理思想的开端。", "works": [], "quoteLines": []}, {"name": "南剑州（延平）", "ancientName": "南剑州", "modernName": "福建省南平市延平区", "lat": 26.64, "lng": 118.18, "coordSystem": "WGS84", "type": "normal", "event": "正式拜程颐的三传弟子李侗为师，思想发生关键转折，确立了“理一分殊”的哲学方向。", "time": "公元1158年 - 1160年间多次往返", "duration": "数次求学，每次数月", "significance": "学术道路上最重要的转折点，得洛学真传。", "works": [], "quoteLines": []}, {"name": "武夷山（五夫里、武夷精舍）", "ancientName": "崇安县五夫里", "modernName": "福建省南平市武夷山市五夫镇", "lat": 27.76, "lng": 118.03, "coordSystem": "WGS84", "type": "normal", "event": "在此奉母、著述、讲学。创建武夷精舍，完成《四书章句集注》等核心著作。", "time": "公元1160年 - 1194年间的主要居住地", "duration": "断续居住约四十年", "significance": "学术生涯的大本营与思想成熟、著述最丰之地。", "works": ["四书章句集注"], "quoteLines": []}, {"name": "临安（杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "多次向皇帝上书，陈述“格物致知”、“正心诚意”的治国之道，但未被重用。", "time": "公元1162年、1178年、1188年等多次", "duration": "数次应诏入朝奏对，每次数月", "significance": "政治主张的集中表达地，虽未获采纳，但扩大了其学说的影响力。", "works": [], "quoteLines": []}, {"name": "信州（鹅湖寺）", "ancientName": "信州铅山县鹅湖寺", "modernName": "江西省上饶市铅山县", "lat": 28.45, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "与陆九渊、陆九龄兄弟进行“鹅湖之会”，就“理”与“心”、“道问学”与“尊德性”等哲学根本问题展开辩论。", "time": "公元1175年", "duration": "短期", "significance": "中国哲学史上著名的辩论会，标志着理学与心学分歧的公开化，影响深远。", "works": [], "quoteLines": []}, {"name": "南康军（星子）", "ancientName": "南康军星子县", "modernName": "江西省九江市庐山市", "lat": 29.45, "lng": 116.04, "coordSystem": "WGS84", "type": "normal", "event": "任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。", "time": "公元1179年 - 1181年", "duration": "2年", "significance": "确立了其教育制度化的典范，白鹿洞书院成为理学教育的圣地。", "works": ["白鹿洞书院揭示"], "quoteLines": []}, {"name": "台州（天台）", "ancientName": "台州", "modernName": "浙江省台州市天台县", "lat": 28.66, "lng": 121.42, "coordSystem": "WGS84", "type": "normal", "event": "任提举浙东常平茶盐公事，弹劾前知州唐仲友，引发政治风波。", "time": "公元1182年 - 1183年", "duration": "约1年", "significance": "展现了其刚正不阿的为官风格，也因此卷入更复杂的党争。", "works": [], "quoteLines": []}, {"name": "漳州", "ancientName": "漳州", "modernName": "福建省漳州市", "lat": 24.51, "lng": 117.65, "coordSystem": "WGS84", "type": "normal", "event": "任知州，推行“经界法”清丈田亩，整顿赋税，移风易俗。", "time": "公元1190年 - 1191年", "duration": "1年", "significance": "将其社会改革理念付诸实践，但因触动豪强利益而受阻。", "works": [], "quoteLines": []}, {"name": "长沙（潭州）", "ancientName": "潭州", "modernName": "湖南省长沙市", "lat": 28.23, "lng": 112.94, "coordSystem": "WGS84", "type": "normal", "event": "任荆湖南路安抚使，修复并扩建岳麓书院，亲自讲学，史称“朱张会讲”的延续。", "time": "公元1194年", "duration": "约数月", "significance": "将岳麓书院推向鼎盛，成为理学传播的南方重镇。", "works": [], "quoteLines": []}, {"name": "建阳考亭", "ancientName": "建阳县考亭", "modernName": "福建省南平市建阳区考亭村", "lat": 27.33, "lng": 118.12, "coordSystem": "WGS84", "type": "death", "event": "在此创建考亭书院，进行晚年讲学与著述。在“庆元党禁”的政治压力下病逝。", "time": "公元1200年", "duration": "晚年（约1192年 - 1200年）", "significance": "最终的讲学地与安息之所，其学派被称为“考亭学派”。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---", "workTexts": {"四书章句集注": "编撰《四书章句集注》，成为后世科举考试的官方教材", "白鹿洞书院揭示": "事件：任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。", "观书有感": "“方塘”\n“源头活水”", "春日": "“泗水滨”\n“理趣”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 朱熹\n\n## 人物档案\n\n### 基本信息\n- **姓名**：朱熹\n- **时代**：南宋\n- **出生**：公元1130年（学界普遍采用此说），尤溪（今福建省三明市尤溪县）\n- **去世**：公元1200年，建阳考亭（今福建省南平市建阳区）\n- **享年**：71岁（虚岁，按1130年出生，1200年去世计算）\n- **主要身份**：思想家、哲学家、教育家、诗人\n- **历史地位**：程朱理学的集大成者，宋以后儒家思想的主要代表人物。\n- **主要成就**：建立了庞大的理学体系（“理一元论”）；编撰《四书章句集注》，成为后世科举考试的官方教材；修复白鹿洞书院、岳麓书院，制定学规，推动书院教育发展；在文学、史学、经学等领域均有深厚造诣。\n\n### 生平概述\n朱熹生于南宋初年，祖籍徽州婺源（今江西婺源）。他自幼聪颖，师从李侗，继承并发展了程颢、程颐的理学思想，构建了以“理”为核心的哲学体系。他一生仕途坎坷，多次担任地方官，致力于兴办教育、整顿吏治、推行教化。晚年因“庆元党禁”被斥为“伪学”，境遇凄凉，但其学说在他身后被官方确立为正统思想，深刻影响了元、明、清三代的东亚思想与文化格局。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于福建、江西、浙江、湖南等东南及江南地区，足迹遍布官署、书院与山水之间。\n- ⏱️ **时间跨度**：约公元1130年 - 1200年，总跨度约70年。\n- 📍 **地理范围**：以福建为根据地，北抵浙江、江苏，西至湖南、江西。\n- 🌟 **重要节点数量**：13个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：尤溪\n- **时间**：公元1130年\n- **停留时间**：幼年（约至5岁）\n- **地点**：尤溪（今福建省三明市尤溪县）\n- **事件**：出生于其父朱松任尤溪县尉的官舍中。\n- **意义**：生命与思想的起点，其父早期的教育对他影响深远。\n\n### 📍 重要地点：建州（建瓯）\n- **时间**：约公元1135年 - 1143年\n- **停留时间**：童年至少年\n- **地点**：建州（今福建省南平市建瓯市）\n- **事件**：父亲朱松去世前，将家事托付给好友刘子羽，并命朱熹师从武夷三先生（刘子翚、刘勉之、胡宪）。\n- **意义**：接受了系统的儒学启蒙教育，奠定了学问基础。\n\n### 📍 重要地点：婺源\n- **时间**：约公元1150年、1176年等多次\n- **停留时间**：短期祭祖、访学\n- **地点**：婺源（今江西省上饶市婺源县）\n- **事件**：回祖籍地祭扫先墓，与当地学者交流。\n- **意义**：强化了家族与文化认同，寻根之旅。\n\n### 📍 重要地点：同安\n- **时间**：公元1153年 - 1157年\n- **停留时间**：4年\n- **地点**：同安县（今福建省厦门市同安区）\n- **事件**：任同安县主簿，兼领学事。整顿县学，亲自授课，首次实践其教育理念。\n- **意义**：初仕之地，也是其教育实践与地方治理思想的开端。\n\n### 📍 重要地点：南剑州（延平）\n- **时间**：公元1158年 - 1160年间多次往返\n- **停留时间**：数次求学，每次数月\n- **地点**：南剑州（今福建省南平市延平区）\n- **事件**：正式拜程颐的三传弟子李侗为师，思想发生关键转折，确立了“理一分殊”的哲学方向。\n- **意义**：学术道路上最重要的转折点，得洛学真传。\n\n### 📍 重要地点：临安（杭州）\n- **时间**：公元1162年、1178年、1188年等多次\n- **停留时间**：数次应诏入朝奏对，每次数月\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：多次向皇帝上书，陈述“格物致知”、“正心诚意”的治国之道，但未被重用。\n- **意义**：政治主张的集中表达地，虽未获采纳，但扩大了其学说的影响力。\n\n### 📍 重要地点：信州（鹅湖寺）\n- **时间**：公元1175年\n- **停留时间**：短期\n- **地点**：信州铅山县（今江西省上饶市铅山县）鹅湖寺\n- **事件**：与陆九渊、陆九龄兄弟进行“鹅湖之会”，就“理”与“心”、“道问学”与“尊德性”等哲学根本问题展开辩论。\n- **意义**：中国哲学史上著名的辩论会，标志着理学与心学分歧的公开化，影响深远。\n\n### 📍 重要地点：长沙（潭州）\n- **时间**：公元1194年\n- **停留时间**：约数月\n- **地点**：潭州（今湖南省长沙市）\n- **事件**：任荆湖南路安抚使，修复并扩建岳麓书院，亲自讲学，史称“朱张会讲”的延续。\n- **意义**：将岳麓书院推向鼎盛，成为理学传播的南方重镇。\n\n### 📍 重要地点：武夷山（五夫里、武夷精舍）\n- **时间**：公元1160年 - 1194年间的主要居住地\n- **停留时间**：断续居住约四十年\n- **地点**：崇安县五夫里（今福建省南平市武夷山市五夫镇）\n- **事件**：在此奉母、著述、讲学。创建武夷精舍，完成《四书章句集注》等核心著作。\n- **意义**：学术生涯的大本营与思想成熟、著述最丰之地。\n\n### 📍 重要地点：南康军（星子）\n- **时间**：公元1179年 - 1181年\n- **停留时间**：2年\n- **地点**：南康军星子县（今江西省九江市庐山市）\n- **事件**：任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。\n- **意义**：确立了其教育制度化的典范，白鹿洞书院成为理学教育的圣地。\n\n### 📍 重要地点：台州（天台）\n- **时间**：公元1182年 - 1183年\n- **停留时间**：约1年\n- **地点**：台州（今浙江省台州市天台县）\n- **事件**：任提举浙东常平茶盐公事，弹劾前知州唐仲友，引发政治风波。\n- **意义**：展现了其刚正不阿的为官风格，也因此卷入更复杂的党争。\n\n### 📍 重要地点：漳州\n- **时间**：公元1190年 - 1191年\n- **停留时间**：1年\n- **地点**：漳州（今福建省漳州市）\n- **事件**：任知州，推行“经界法”清丈田亩，整顿赋税，移风易俗。\n- **意义**：将其社会改革理念付诸实践，但因触动豪强利益而受阻。\n\n### 🔴 去世地：建阳考亭\n- **时间**：公元1200年\n- **停留时间**：晚年（约1192年 - 1200年）\n- **地点**：建阳县考亭（今福建省南平市建阳区考亭村）\n- **事件**：在此创建考亭书院，进行晚年讲学与著述。在“庆元党禁”的政治压力下病逝。\n- **意义**：最终的讲学地与安息之所，其学派被称为“考亭学派”。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1130 | 1岁 | 生于福建尤溪。 |\n| 1143 | 14岁 | 父亲朱松去世，遵父命师从武夷三先生。 |\n| 1148 | 19岁 | 中进士（绍兴十八年）。 |\n| 1153 | 24岁 | 任同安县主簿，开始仕宦与教育实践。 |\n| 1158 | 29岁 | 正式拜李侗为师，思想转向理学。 |\n| 1175 | 46岁 | 与陆九渊在信州鹅湖寺进行“鹅湖之会”，辩论理学与心学。 |\n| 1179 | 50岁 | 知南康军，修复白鹿洞书院，制定学规。 |\n| 1182 | 53岁 | 任提举浙东常平茶盐公事，弹劾唐仲友。 |\n| 1188 | 59岁 | 入朝奏对，向孝宗面陈“正心诚意”之说。 |\n| 1190 | 61岁 | 知漳州，推行“经界法”。 |\n| 1194 | 65岁 | 知潭州，修复岳麓书院。入朝任焕章阁待制，因“庆元党禁”被罢免。 |\n| 1196 | 67岁 | “庆元党禁”加剧，其学被斥为“伪学”，遭落职罢祠。 |\n| 1200 | 71岁 | 于建阳考亭病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 福建省三明市尤溪县 | 26.17 | 118.18 |\n| 福建省南平市建瓯市 | 27.04 | 118.32 |\n| 江西省上饶市婺源县 | 29.25 | 117.86 |\n| 福建省厦门市同安区 | 24.72 | 118.15 |\n| 福建省南平市延平区 | 26.64 | 118.18 |\n| 浙江省杭州市 | 30.27 | 120.15 |\n| 湖南省长沙市 | 28.23 | 112.94 |\n| 福建省南平市武夷山市 | 27.76 | 118.03 |\n| 江西省九江市庐山市 | 29.45 | 116.04 |\n| 浙江省台州市天台县 | 28.66 | 121.42 |\n| 福建省漳州市 | 24.51 | 117.65 |\n| 福建省南平市建阳区 | 27.33 | 118.12 |\n| 江西省上饶市铅山县 | 28.45 | 117.97 |", "relatedGraph": {"center": {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "编撰《四书章句集注》，成为后世科举考试的官方教材", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "编撰《四书章句集注》，成为后世科举考试的官方教材", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "程颐", "name": "程颐", "file": "程颐.html", "dynasty": "北宋", "aliases": [], "birth_year": 1033, "death_year": 1107, "quote": "“**格物致知**”", "review": "", "foreign_name": "", "main_role_label": "理学家", "birthplace": "黄州黄陂", "birthplace_modern": "湖北省武汉市黄陂区", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "程颢", "name": "程颢", "file": "程颢.html", "dynasty": "北宋", "aliases": [], "birth_year": 1032, "death_year": 1085, "quote": "“仁者浑然与物同体”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "出生地说法不一", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "老舍", "name": "老舍", "file": "老舍.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1899, "death_year": 1966, "quote": "“中国现代戏剧史上的瑰宝”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "京师", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "朱熹", "target": "王阳明", "label": "并称", "confidence": 0.55}, {"source": "朱熹", "target": "程颐", "label": "师生", "confidence": null}, {"source": "朱熹", "target": "程颢", "label": "师生", "confidence": null}, {"source": "朱熹", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "朱熹", "target": "苏舜钦", "label": "同册共现", "confidence": 0.15}, {"source": "朱熹", "target": "老舍", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "朱熹", "title": "", "description": "朱熹生于南宋初年，祖籍徽州婺源（今江西婺源）。他自幼聪颖，师从李侗，继承并发展了程颢、程颐的理学思想，构建了以“理”为核心的哲学体系。他一生仕途坎坷，多次担任地方官，致力于兴办教育、整顿吏治、推行教化。晚年因“庆元党禁”被斥为“伪学”，境遇凄凉，但其学说在他身后被官方确立为正统思想，深刻影响了元、明、清三代的东亚思想与文化格局。", "quote": "编撰《四书章句集注》，成为后世科举考试的官方教材", "shortReview": "编撰《四书章句集注》，成为后世科举考试的官方教材", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（学界普遍采用此说）", "avatar": "", "birth": {"date": "1130年", "location": "（学界普遍采用此说）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1200年", "location": "建阳考亭（今福建省南平市建阳区）", "lat": 27.33, "lng": 118.12, "coordSystem": "WGS84"}, "lifespan": "71岁（虚岁，按1130年出生，1200年去世计算）", "highlights": {"honor": "", "status": "程朱理学的集大成者，宋以后儒家思想的主要代表人物。", "identities": "思想家、哲学家、教育家、诗人", "achievements": "建立了庞大的理学体系（“理一元论”）；编撰《四书章句集注》，成为后世科举考试的官方教材；修复白鹿洞书院、岳麓书院，制定学规，推动书院教育发展；在文学、史学、经学等领域均有深厚造诣。", "works": ["四书章句集注"], "reviews": []}}, "locations": [{"name": "尤溪", "ancientName": "尤溪", "modernName": "福建省三明市尤溪县", "lat": 26.17, "lng": 118.18, "coordSystem": "WGS84", "type": "birth", "event": "出生于其父朱松任尤溪县尉的官舍中。", "time": "公元1130年", "duration": "幼年（约至5岁）", "significance": "生命与思想的起点，其父早期的教育对他影响深远。", "works": [], "quoteLines": []}, {"name": "建州（建瓯）", "ancientName": "建州", "modernName": "福建省南平市建瓯市", "lat": 27.04, "lng": 118.32, "coordSystem": "WGS84", "type": "normal", "event": "父亲朱松去世前，将家事托付给好友刘子羽，并命朱熹师从武夷三先生（刘子翚、刘勉之、胡宪）。", "time": "约公元1135年 - 1143年", "duration": "童年至少年", "significance": "接受了系统的儒学启蒙教育，奠定了学问基础。", "works": [], "quoteLines": []}, {"name": "婺源", "ancientName": "婺源", "modernName": "江西省上饶市婺源县", "lat": 29.25, "lng": 117.86, "coordSystem": "WGS84", "type": "normal", "event": "回祖籍地祭扫先墓，与当地学者交流。", "time": "约公元1150年、1176年等多次", "duration": "短期祭祖、访学", "significance": "强化了家族与文化认同，寻根之旅。", "works": [], "quoteLines": []}, {"name": "同安", "ancientName": "同安县", "modernName": "福建省厦门市同安区", "lat": 24.72, "lng": 118.15, "coordSystem": "WGS84", "type": "normal", "event": "任同安县主簿，兼领学事。整顿县学，亲自授课，首次实践其教育理念。", "time": "公元1153年 - 1157年", "duration": "4年", "significance": "初仕之地，也是其教育实践与地方治理思想的开端。", "works": [], "quoteLines": []}, {"name": "南剑州（延平）", "ancientName": "南剑州", "modernName": "福建省南平市延平区", "lat": 26.64, "lng": 118.18, "coordSystem": "WGS84", "type": "normal", "event": "正式拜程颐的三传弟子李侗为师，思想发生关键转折，确立了“理一分殊”的哲学方向。", "time": "公元1158年 - 1160年间多次往返", "duration": "数次求学，每次数月", "significance": "学术道路上最重要的转折点，得洛学真传。", "works": [], "quoteLines": []}, {"name": "武夷山（五夫里、武夷精舍）", "ancientName": "崇安县五夫里", "modernName": "福建省南平市武夷山市五夫镇", "lat": 27.76, "lng": 118.03, "coordSystem": "WGS84", "type": "normal", "event": "在此奉母、著述、讲学。创建武夷精舍，完成《四书章句集注》等核心著作。", "time": "公元1160年 - 1194年间的主要居住地", "duration": "断续居住约四十年", "significance": "学术生涯的大本营与思想成熟、著述最丰之地。", "works": ["四书章句集注"], "quoteLines": []}, {"name": "临安（杭州）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.27, "lng": 120.15, "coordSystem": "WGS84", "type": "normal", "event": "多次向皇帝上书，陈述“格物致知”、“正心诚意”的治国之道，但未被重用。", "time": "公元1162年、1178年、1188年等多次", "duration": "数次应诏入朝奏对，每次数月", "significance": "政治主张的集中表达地，虽未获采纳，但扩大了其学说的影响力。", "works": [], "quoteLines": []}, {"name": "信州（鹅湖寺）", "ancientName": "信州铅山县鹅湖寺", "modernName": "江西省上饶市铅山县", "lat": 28.45, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "与陆九渊、陆九龄兄弟进行“鹅湖之会”，就“理”与“心”、“道问学”与“尊德性”等哲学根本问题展开辩论。", "time": "公元1175年", "duration": "短期", "significance": "中国哲学史上著名的辩论会，标志着理学与心学分歧的公开化，影响深远。", "works": [], "quoteLines": []}, {"name": "南康军（星子）", "ancientName": "南康军星子县", "modernName": "江西省九江市庐山市", "lat": 29.45, "lng": 116.04, "coordSystem": "WGS84", "type": "normal", "event": "任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。", "time": "公元1179年 - 1181年", "duration": "2年", "significance": "确立了其教育制度化的典范，白鹿洞书院成为理学教育的圣地。", "works": ["白鹿洞书院揭示"], "quoteLines": []}, {"name": "台州（天台）", "ancientName": "台州", "modernName": "浙江省台州市天台县", "lat": 28.66, "lng": 121.42, "coordSystem": "WGS84", "type": "normal", "event": "任提举浙东常平茶盐公事，弹劾前知州唐仲友，引发政治风波。", "time": "公元1182年 - 1183年", "duration": "约1年", "significance": "展现了其刚正不阿的为官风格，也因此卷入更复杂的党争。", "works": [], "quoteLines": []}, {"name": "漳州", "ancientName": "漳州", "modernName": "福建省漳州市", "lat": 24.51, "lng": 117.65, "coordSystem": "WGS84", "type": "normal", "event": "任知州，推行“经界法”清丈田亩，整顿赋税，移风易俗。", "time": "公元1190年 - 1191年", "duration": "1年", "significance": "将其社会改革理念付诸实践，但因触动豪强利益而受阻。", "works": [], "quoteLines": []}, {"name": "长沙（潭州）", "ancientName": "潭州", "modernName": "湖南省长沙市", "lat": 28.23, "lng": 112.94, "coordSystem": "WGS84", "type": "normal", "event": "任荆湖南路安抚使，修复并扩建岳麓书院，亲自讲学，史称“朱张会讲”的延续。", "time": "公元1194年", "duration": "约数月", "significance": "将岳麓书院推向鼎盛，成为理学传播的南方重镇。", "works": [], "quoteLines": []}, {"name": "建阳考亭", "ancientName": "建阳县考亭", "modernName": "福建省南平市建阳区考亭村", "lat": 27.33, "lng": 118.12, "coordSystem": "WGS84", "type": "death", "event": "在此创建考亭书院，进行晚年讲学与著述。在“庆元党禁”的政治压力下病逝。", "time": "公元1200年", "duration": "晚年（约1192年 - 1200年）", "significance": "最终的讲学地与安息之所，其学派被称为“考亭学派”。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---", "workTexts": {"四书章句集注": "编撰《四书章句集注》，成为后世科举考试的官方教材", "白鹿洞书院揭示": "事件：任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。", "观书有感": "“方塘”\n“源头活水”", "春日": "“泗水滨”\n“理趣”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 朱熹\n\n## 人物档案\n\n### 基本信息\n- **姓名**：朱熹\n- **时代**：南宋\n- **出生**：公元1130年（学界普遍采用此说），尤溪（今福建省三明市尤溪县）\n- **去世**：公元1200年，建阳考亭（今福建省南平市建阳区）\n- **享年**：71岁（虚岁，按1130年出生，1200年去世计算）\n- **主要身份**：思想家、哲学家、教育家、诗人\n- **历史地位**：程朱理学的集大成者，宋以后儒家思想的主要代表人物。\n- **主要成就**：建立了庞大的理学体系（“理一元论”）；编撰《四书章句集注》，成为后世科举考试的官方教材；修复白鹿洞书院、岳麓书院，制定学规，推动书院教育发展；在文学、史学、经学等领域均有深厚造诣。\n\n### 生平概述\n朱熹生于南宋初年，祖籍徽州婺源（今江西婺源）。他自幼聪颖，师从李侗，继承并发展了程颢、程颐的理学思想，构建了以“理”为核心的哲学体系。他一生仕途坎坷，多次担任地方官，致力于兴办教育、整顿吏治、推行教化。晚年因“庆元党禁”被斥为“伪学”，境遇凄凉，但其学说在他身后被官方确立为正统思想，深刻影响了元、明、清三代的东亚思想与文化格局。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于福建、江西、浙江、湖南等东南及江南地区，足迹遍布官署、书院与山水之间。\n- ⏱️ **时间跨度**：约公元1130年 - 1200年，总跨度约70年。\n- 📍 **地理范围**：以福建为根据地，北抵浙江、江苏，西至湖南、江西。\n- 🌟 **重要节点数量**：13个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：尤溪\n- **时间**：公元1130年\n- **停留时间**：幼年（约至5岁）\n- **地点**：尤溪（今福建省三明市尤溪县）\n- **事件**：出生于其父朱松任尤溪县尉的官舍中。\n- **意义**：生命与思想的起点，其父早期的教育对他影响深远。\n\n### 📍 重要地点：建州（建瓯）\n- **时间**：约公元1135年 - 1143年\n- **停留时间**：童年至少年\n- **地点**：建州（今福建省南平市建瓯市）\n- **事件**：父亲朱松去世前，将家事托付给好友刘子羽，并命朱熹师从武夷三先生（刘子翚、刘勉之、胡宪）。\n- **意义**：接受了系统的儒学启蒙教育，奠定了学问基础。\n\n### 📍 重要地点：婺源\n- **时间**：约公元1150年、1176年等多次\n- **停留时间**：短期祭祖、访学\n- **地点**：婺源（今江西省上饶市婺源县）\n- **事件**：回祖籍地祭扫先墓，与当地学者交流。\n- **意义**：强化了家族与文化认同，寻根之旅。\n\n### 📍 重要地点：同安\n- **时间**：公元1153年 - 1157年\n- **停留时间**：4年\n- **地点**：同安县（今福建省厦门市同安区）\n- **事件**：任同安县主簿，兼领学事。整顿县学，亲自授课，首次实践其教育理念。\n- **意义**：初仕之地，也是其教育实践与地方治理思想的开端。\n\n### 📍 重要地点：南剑州（延平）\n- **时间**：公元1158年 - 1160年间多次往返\n- **停留时间**：数次求学，每次数月\n- **地点**：南剑州（今福建省南平市延平区）\n- **事件**：正式拜程颐的三传弟子李侗为师，思想发生关键转折，确立了“理一分殊”的哲学方向。\n- **意义**：学术道路上最重要的转折点，得洛学真传。\n\n### 📍 重要地点：临安（杭州）\n- **时间**：公元1162年、1178年、1188年等多次\n- **停留时间**：数次应诏入朝奏对，每次数月\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：多次向皇帝上书，陈述“格物致知”、“正心诚意”的治国之道，但未被重用。\n- **意义**：政治主张的集中表达地，虽未获采纳，但扩大了其学说的影响力。\n\n### 📍 重要地点：信州（鹅湖寺）\n- **时间**：公元1175年\n- **停留时间**：短期\n- **地点**：信州铅山县（今江西省上饶市铅山县）鹅湖寺\n- **事件**：与陆九渊、陆九龄兄弟进行“鹅湖之会”，就“理”与“心”、“道问学”与“尊德性”等哲学根本问题展开辩论。\n- **意义**：中国哲学史上著名的辩论会，标志着理学与心学分歧的公开化，影响深远。\n\n### 📍 重要地点：长沙（潭州）\n- **时间**：公元1194年\n- **停留时间**：约数月\n- **地点**：潭州（今湖南省长沙市）\n- **事件**：任荆湖南路安抚使，修复并扩建岳麓书院，亲自讲学，史称“朱张会讲”的延续。\n- **意义**：将岳麓书院推向鼎盛，成为理学传播的南方重镇。\n\n### 📍 重要地点：武夷山（五夫里、武夷精舍）\n- **时间**：公元1160年 - 1194年间的主要居住地\n- **停留时间**：断续居住约四十年\n- **地点**：崇安县五夫里（今福建省南平市武夷山市五夫镇）\n- **事件**：在此奉母、著述、讲学。创建武夷精舍，完成《四书章句集注》等核心著作。\n- **意义**：学术生涯的大本营与思想成熟、著述最丰之地。\n\n### 📍 重要地点：南康军（星子）\n- **时间**：公元1179年 - 1181年\n- **停留时间**：2年\n- **地点**：南康军星子县（今江西省九江市庐山市）\n- **事件**：任知军，修复白鹿洞书院，亲自制定《白鹿洞书院揭示》（学规），成为后世书院规范。\n- **意义**：确立了其教育制度化的典范，白鹿洞书院成为理学教育的圣地。\n\n### 📍 重要地点：台州（天台）\n- **时间**：公元1182年 - 1183年\n- **停留时间**：约1年\n- **地点**：台州（今浙江省台州市天台县）\n- **事件**：任提举浙东常平茶盐公事，弹劾前知州唐仲友，引发政治风波。\n- **意义**：展现了其刚正不阿的为官风格，也因此卷入更复杂的党争。\n\n### 📍 重要地点：漳州\n- **时间**：公元1190年 - 1191年\n- **停留时间**：1年\n- **地点**：漳州（今福建省漳州市）\n- **事件**：任知州，推行“经界法”清丈田亩，整顿赋税，移风易俗。\n- **意义**：将其社会改革理念付诸实践，但因触动豪强利益而受阻。\n\n### 🔴 去世地：建阳考亭\n- **时间**：公元1200年\n- **停留时间**：晚年（约1192年 - 1200年）\n- **地点**：建阳县考亭（今福建省南平市建阳区考亭村）\n- **事件**：在此创建考亭书院，进行晚年讲学与著述。在“庆元党禁”的政治压力下病逝。\n- **意义**：最终的讲学地与安息之所，其学派被称为“考亭学派”。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1130 | 1岁 | 生于福建尤溪。 |\n| 1143 | 14岁 | 父亲朱松去世，遵父命师从武夷三先生。 |\n| 1148 | 19岁 | 中进士（绍兴十八年）。 |\n| 1153 | 24岁 | 任同安县主簿，开始仕宦与教育实践。 |\n| 1158 | 29岁 | 正式拜李侗为师，思想转向理学。 |\n| 1175 | 46岁 | 与陆九渊在信州鹅湖寺进行“鹅湖之会”，辩论理学与心学。 |\n| 1179 | 50岁 | 知南康军，修复白鹿洞书院，制定学规。 |\n| 1182 | 53岁 | 任提举浙东常平茶盐公事，弹劾唐仲友。 |\n| 1188 | 59岁 | 入朝奏对，向孝宗面陈“正心诚意”之说。 |\n| 1190 | 61岁 | 知漳州，推行“经界法”。 |\n| 1194 | 65岁 | 知潭州，修复岳麓书院。入朝任焕章阁待制，因“庆元党禁”被罢免。 |\n| 1196 | 67岁 | “庆元党禁”加剧，其学被斥为“伪学”，遭落职罢祠。 |\n| 1200 | 71岁 | 于建阳考亭病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《观书有感二首》**、**《春日》**、《朱子家训》（节选）\n- 核心要点：\n    - **重点**：**《观书有感》** 以“方塘”为喻，形象阐述了“**源头活水**”（不断学习新知识）对于保持思想清澈与活力的重要性，是**哲理诗**的典范。\n    - **重点**：诗中“**半亩方塘一鉴开，天光云影共徘徊**”的意象，生动描绘了读书时豁然开朗、融会贯通的心境。\n    - **重点**：**《春日》** 表面写游春踏青，实则蕴含对圣人之道（“**泗水滨**”暗指孔门）的追寻与领悟，体现了“**理趣**”。\n    - 诗歌语言清新明快，善于从日常景物中提炼深刻哲理，将**说理**与**形象**完美结合。\n    - 其家训格言如“**勿以善小而不为，勿以恶小而为之**”体现了儒家修身律己的伦理要求，流传广泛。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：他是**程朱理学**的集大成者，其思想体系以“**理**”（或“天理”）为宇宙万物的本源和最高范畴。\n    - **重点**：所著**《四书章句集注》** 被元、明、清三代定为科举考试的**官方教科书**和标准答案，深刻影响了后世数百年的思想与教育。\n    - 曾修复**白鹿洞书院**与**岳麓书院**，并制定**《白鹿洞书院揭示》**，成为后世书院教育的圭臬。\n    - 晚年遭遇“**庆元党禁**”，其学说被禁，本人被斥为“伪学逆党”，直至去世后才逐步平反。\n- 核心要点：\n    - **重点**：朱熹的学说构建了一个以“**理**”为核心，贯通天、地、人的庞大哲学体系，完成了儒学的**哲学化**与**系统化**。\n    - **重点**：他强调“**格物致知**”和“**居敬穷理**”的修养方法，主张通过研究外物来体认内心的“天理”。\n    - 其思想成为**元、明、清**三朝的**官方意识形态**，塑造了后期帝制中国的基本思想框架与社会伦理规范。\n    - **重点**：他不仅是思想家，也是杰出的**教育家**，其教育理念与实践（如书院制度、学规）影响深远。\n    - 后世对其评价存在分歧，近代以来常被视为**保守**、**禁锢思想**的代表，但其在儒学史上的核心地位无可争议。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 福建省三明市尤溪县 | 26.17 | 118.18 |\n| 福建省南平市建瓯市 | 27.04 | 118.32 |\n| 江西省上饶市婺源县 | 29.25 | 117.86 |\n| 福建省厦门市同安区 | 24.72 | 118.15 |\n| 福建省南平市延平区 | 26.64 | 118.18 |\n| 浙江省杭州市 | 30.27 | 120.15 |\n| 湖南省长沙市 | 28.23 | 112.94 |\n| 福建省南平市武夷山市 | 27.76 | 118.03 |\n| 江西省九江市庐山市 | 29.45 | 116.04 |\n| 浙江省台州市天台县 | 28.66 | 121.42 |\n| 福建省漳州市 | 24.51 | 117.65 |\n| 福建省南平市建阳区 | 27.33 | 118.12 |\n| 江西省上饶市铅山县 | 28.45 | 117.97 |", "relatedGraph": {"center": {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "编撰《四书章句集注》，成为后世科举考试的官方教材", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "编撰《四书章句集注》，成为后世科举考试的官方教材", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "程颐", "name": "程颐", "file": "程颐.html", "dynasty": "北宋", "aliases": [], "birth_year": 1033, "death_year": 1107, "quote": "“**格物致知**”", "review": "", "foreign_name": "", "main_role_label": "理学家", "birthplace": "黄州黄陂", "birthplace_modern": "湖北省武汉市黄陂区", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "程颢", "name": "程颢", "file": "程颢.html", "dynasty": "北宋", "aliases": [], "birth_year": 1032, "death_year": 1085, "quote": "“仁者浑然与物同体”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "出生地说法不一", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "老舍", "name": "老舍", "file": "老舍.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1899, "death_year": 1966, "quote": "“中国现代戏剧史上的瑰宝”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "京师", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "朱熹", "target": "王阳明", "label": "并称", "confidence": 0.55}, {"source": "朱熹", "target": "程颐", "label": "师生", "confidence": null}, {"source": "朱熹", "target": "程颢", "label": "师生", "confidence": null}, {"source": "朱熹", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "朱熹", "target": "苏舜钦", "label": "同册共现", "confidence": 0.15}, {"source": "朱熹", "target": "老舍", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

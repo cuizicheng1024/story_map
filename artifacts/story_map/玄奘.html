@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "玄奘", "title": "", "description": "玄奘生于隋末，自幼聪慧，早年出家。他深感当时佛典不全、义理分歧，于唐贞观年间（一说贞观元年627年，一说贞观三年629年）从长安出发，孤身西行。历经艰险，穿越中亚，抵达印度那烂陀寺，师从戒贤大师，精研佛法，声誉鹊起。贞观十九年（645年），他携带大量佛经、佛像返回长安，受到唐太宗礼遇。此后二十余年，他倾注全部心血于译经事业，并创立了法相唯识宗，对中国佛教发展影响深远。", "quote": "临终前默念弥勒，愿生睹史多天。", "shortReview": "临终前默念弥勒，愿生睹史多天。", "dynasty": "唐代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（说法不一", "avatar": "", "birth": {"date": "602年", "location": "（说法不一", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "664年", "location": "长安玉华宫（今陕西省铜川市）", "lat": 35.393, "lng": 108.879, "coordSystem": "WGS84"}, "lifespan": "约62岁（按602-664年计算，出生年份存疑）", "highlights": {"honor": "", "status": "中国佛教法相宗创始人，古代西行求法贡献最巨者，中印文化交流的杰出使者。", "identities": "佛学家、翻译家、旅行家", "achievements": "西行求法十七年，行程五万里；带回并翻译大量佛经，主持译出《大般若经》、《瑜伽师地论》等75部1335卷；口述《大唐西域记》，成为研究中亚、南亚古代史地的重要文献。", "works": ["大般若经", "瑜伽师地论", "大唐西域记"], "reviews": []}}, "locations": [{"name": "洛州缑氏", "ancientName": "洛州缑氏", "modernName": "河南省洛阳市偃师区", "lat": 34.728, "lng": 112.789, "coordSystem": "WGS84", "type": "birth", "event": "出生于陈氏家族，自幼聪颖，随兄长在洛阳净土寺学习佛经。", "time": "公元602年（说法不一）", "duration": "少年时期", "significance": "佛教信仰的启蒙之地，为其一生事业奠定基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州成都", "modernName": "四川省成都市", "lat": 30.572, "lng": 104.066, "coordSystem": "WGS84", "type": "normal", "event": "隋末战乱中随兄入蜀，在成都受具足戒，系统学习佛教经论。", "time": "约614年-618年", "duration": "约4年", "significance": "在相对安定的环境中完成佛学基础训练，崭露头角。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.341, "lng": 108.939, "coordSystem": "WGS84", "type": "normal", "event": "前期遍访名师，深感经义分歧，萌生西行求法之志；后期于弘福寺、大慈恩寺等处主持国家译场，翻译佛经。", "time": "约618年-627年；645年-664年", "duration": "前期（约618-627年）游历求学；后期（645-664年）主持译经", "significance": "西行求法的起点与终点，译经事业的核心基地，其学术成就与政治影响的主要舞台。", "works": [], "quoteLines": ["《大唐西域记》：“亲践者一百一十国，传闻者二十八国”", "《还至于阗国进表》：“宣皇风于殊俗，被圣泽于遐荒”。"]}, {"name": "高昌国", "ancientName": "高昌", "modernName": "新疆吐鲁番市高昌区", "lat": 42.853, "lng": 89.207, "coordSystem": "WGS84", "type": "normal", "event": "受到国王麹文泰的盛情款待与强力挽留，结为兄弟，获得大量物资、人员资助及给西域各国的介绍信。", "time": "约627年-628年", "duration": "约一月", "significance": "获得西行最重要的物质与政治支持，是行程由绝境转向顺利的转折点。", "works": [], "quoteLines": []}, {"name": "凉州", "ancientName": "凉州武威", "modernName": "甘肃省武威市", "lat": 37.928, "lng": 102.634, "coordSystem": "WGS84", "type": "normal", "event": "讲经说法，声名远播，但因朝廷禁边令，西行受阻。", "time": "627年（按贞观元年出发说，一说629年）", "duration": "约一个月", "significance": "西行途中第一个重要城市，其声望为其后续获得帮助埋下伏笔。", "works": [], "quoteLines": []}, {"name": "瓜州", "ancientName": "瓜州晋昌", "modernName": "甘肃省酒泉市瓜州县", "lat": 40.52, "lng": 95.782, "coordSystem": "WGS84", "type": "normal", "event": "得到州吏李昌协助，偷渡玉门关，并收胡人石槃陀为向导（存疑）。", "time": "627年（按贞观元年出发说，一说629年）", "duration": "月余", "significance": "正式踏出大唐国境的关键节点，面临最直接的生存挑战。", "works": [], "quoteLines": ["《大唐西域记》：“上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》”。"]}, {"name": "碎叶城", "ancientName": "碎叶", "modernName": "吉尔吉斯斯坦托克马克市附近", "lat": 42.76, "lng": 75.301, "coordSystem": "WGS84", "type": "normal", "event": "途经西突厥可汗牙帐，获得统叶护可汗的保护与通行许可。", "time": "约628年", "duration": "短暂经过", "significance": "获得突厥势力的庇护，保障了穿越中亚的安全。", "works": [], "quoteLines": []}, {"name": "迦湿弥罗国", "ancientName": "迦湿弥罗", "modernName": "克什米尔地区", "lat": 34.083, "lng": 74.797, "coordSystem": "WGS84", "type": "normal", "event": "学习梵文、佛教因明学（逻辑学）及各类经典。", "time": "约629年-631年", "duration": "约两年", "significance": "进入南亚次大陆后的第一个重要学术中心，为深入印度腹地学习做好语言和知识准备。", "works": [], "quoteLines": []}, {"name": "曲女城", "ancientName": "曲女城", "modernName": "印度北方邦根瑙杰", "lat": 27.054, "lng": 79.919, "coordSystem": "WGS84", "type": "normal", "event": "参加戒日王举办的无遮大会，宣讲大乘教义，立“真唯识量”论，十八日无人能破，名震五印。", "time": "约643年", "duration": "数月", "significance": "学术声望达到顶峰，获得“大乘天”与“解脱天”的尊称。", "works": [], "quoteLines": []}, {"name": "钵罗耶伽国", "ancientName": "钵罗耶伽", "modernName": "印度北方邦安拉阿巴德", "lat": 25.435, "lng": 81.846, "coordSystem": "WGS84", "type": "normal", "event": "在戒日王陪同下参加大施舍会。", "time": "约643年", "duration": "短暂", "significance": "见证了当时印度最盛大的宗教活动之一。", "works": [], "quoteLines": []}, {"name": "长安玉华宫", "ancientName": "长安玉华宫", "modernName": "陕西省铜川市", "lat": 35.393, "lng": 108.879, "coordSystem": "WGS84", "type": "death", "event": "在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。", "time": "公元664年", "duration": "约4年（译经期间）", "significance": "译经事业的终点与人生归宿，其葬礼规格极高，送葬者百万，葬于白鹿原。", "works": ["大般若波罗蜜多经"], "quoteLines": ["临终前默念弥勒，愿生睹史多天。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---", "workTexts": {"大唐西域记": "上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》", "还至于阗国进表": "宣皇风于殊俗，被圣泽于遐荒", "瑜伽师地论": "事件：师从戒贤大师学习《瑜伽师地论》等，通晓经藏、论藏、声明（语言学）等，成为寺内精通三藏的十德之一，并代表那烂陀寺参与多次佛学辩论。", "大般若波罗蜜多经": "事件：在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。", "西游记": "重点：其文风严谨详实，与小说《西游记》的浪漫想象形成鲜明对比，体现了历史人物与文学形象的差异。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 玄奘\n\n## 人物档案\n\n### 基本信息\n- **姓名**：玄奘\n- **时代**：唐代\n- **出生**：公元602年（说法不一，另有600年等说法），洛州缑氏（今河南省洛阳市偃师区）\n- **去世**：公元664年，长安玉华宫（今陕西省铜川市）\n- **享年**：约62岁（按602-664年计算，出生年份存疑）\n- **主要身份**：佛学家、翻译家、旅行家\n- **历史地位**：中国佛教法相宗创始人，古代西行求法贡献最巨者，中印文化交流的杰出使者。\n- **主要成就**：西行求法十七年，行程五万里；带回并翻译大量佛经，主持译出《大般若经》、《瑜伽师地论》等75部1335卷；口述《大唐西域记》，成为研究中亚、南亚古代史地的重要文献。\n\n### 生平概述\n玄奘生于隋末，自幼聪慧，早年出家。他深感当时佛典不全、义理分歧，于唐贞观年间（一说贞观元年627年，一说贞观三年629年）从长安出发，孤身西行。历经艰险，穿越中亚，抵达印度那烂陀寺，师从戒贤大师，精研佛法，声誉鹊起。贞观十九年（645年），他携带大量佛经、佛像返回长安，受到唐太宗礼遇。此后二十余年，他倾注全部心血于译经事业，并创立了法相唯识宗，对中国佛教发展影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从大唐长安出发，经中亚，抵达印度那烂陀寺求学，再携经返回长安。\n- ⏱️ **时间跨度**：西行求法约627年-645年（出发时间存疑，另有629年一说），共约18年；生平总跨度约602年-664年。\n- 📍 **地理范围**：中国西北、中亚五国、阿富汗、巴基斯坦、印度及孟加拉国等地区。\n- 🌟 **重要节点数量**：12个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：洛州缑氏\n- **时间**：公元602年（说法不一）\n- **停留时间**：少年时期\n- **地点**：洛州缑氏（今河南省洛阳市偃师区）\n- **事件**：出生于陈氏家族，自幼聪颖，随兄长在洛阳净土寺学习佛经。\n- **意义**：佛教信仰的启蒙之地，为其一生事业奠定基础。\n\n### 📍 重要地点：成都\n- **时间**：约614年-618年\n- **停留时间**：约4年\n- **地点**：益州成都（今四川省成都市）\n- **事件**：隋末战乱中随兄入蜀，在成都受具足戒，系统学习佛教经论。\n- **意义**：在相对安定的环境中完成佛学基础训练，崭露头角。\n\n### 📍 重要地点：长安\n- **时间**：约618年-627年；645年-664年\n- **停留时间**：前期（约618-627年）游历求学；后期（645-664年）主持译经\n- **地点**：长安（今陕西省西安市）\n- **事件**：前期遍访名师，深感经义分歧，萌生西行求法之志；后期于弘福寺、大慈恩寺等处主持国家译场，翻译佛经。\n- **意义**：西行求法的起点与终点，译经事业的核心基地，其学术成就与政治影响的主要舞台。\n- **名篇名句**：《大唐西域记》：“亲践者一百一十国，传闻者二十八国”；《还至于阗国进表》：“宣皇风于殊俗，被圣泽于遐荒”。\n\n### 📍 重要地点：凉州\n- **时间**：627年（按贞观元年出发说，一说629年）\n- **停留时间**：约一个月\n- **地点**：凉州武威（今甘肃省武威市）\n- **事件**：讲经说法，声名远播，但因朝廷禁边令，西行受阻。\n- **意义**：西行途中第一个重要城市，其声望为其后续获得帮助埋下伏笔。\n\n### 📍 重要地点：瓜州\n- **时间**：627年（按贞观元年出发说，一说629年）\n- **停留时间**：月余\n- **地点**：瓜州晋昌（今甘肃省酒泉市瓜州县）\n- **事件**：得到州吏李昌协助，偷渡玉门关，并收胡人石槃陀为向导（存疑）。\n- **意义**：正式踏出大唐国境的关键节点，面临最直接的生存挑战。\n- **名篇名句**：《大唐西域记》：“上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》”。\n\n### 📍 重要地点：高昌国\n- **时间**：约627年-628年\n- **停留时间**：约一月\n- **地点**：高昌（今新疆吐鲁番市高昌区）\n- **事件**：受到国王麹文泰的盛情款待与强力挽留，结为兄弟，获得大量物资、人员资助及给西域各国的介绍信。\n- **意义**：获得西行最重要的物质与政治支持，是行程由绝境转向顺利的转折点。\n\n### 📍 重要地点：碎叶城\n- **时间**：约628年\n- **停留时间**：短暂经过\n- **地点**：碎叶（今吉尔吉斯斯坦托克马克市附近）\n- **事件**：途经西突厥可汗牙帐，获得统叶护可汗的保护与通行许可。\n- **意义**：获得突厥势力的庇护，保障了穿越中亚的安全。\n\n### 📍 重要地点：迦湿弥罗国\n- **时间**：约629年-631年\n- **停留时间**：约两年\n- **地点**：迦湿弥罗（今克什米尔地区）\n- **事件**：学习梵文、佛教因明学（逻辑学）及各类经典。\n- **意义**：进入南亚次大陆后的第一个重要学术中心，为深入印度腹地学习做好语言和知识准备。\n\n### 📍 重要地点：曲女城\n- **时间**：约643年\n- **停留时间**：数月\n- **地点**：曲女城（今印度北方邦根瑙杰）\n- **事件**：参加戒日王举办的无遮大会，宣讲大乘教义，立“真唯识量”论，十八日无人能破，名震五印。\n- **意义**：学术声望达到顶峰，获得“大乘天”与“解脱天”的尊称。\n\n### 📍 重要地点：那烂陀寺\n- **时间**：约631年-643年\n- **停留时间**：约12年\n- **地点**：那烂陀寺（今印度比哈尔邦巴特那东南）\n- **事件**：师从戒贤大师学习《瑜伽师地论》等，通晓经藏、论藏、声明（语言学）等，成为寺内精通三藏的十德之一，并代表那烂陀寺参与多次佛学辩论。\n- **意义**：西行求法的核心目的地与学术巅峰时期，系统掌握了印度大乘佛教瑜伽行派的全部学说。\n- **名篇名句**：《大唐西域记》：“僧徒数千，并俊才高学也……请益谈玄，竭日不足”。\n\n### 📍 重要地点：钵罗耶伽国\n- **时间**：约643年\n- **停留时间**：短暂\n- **地点**：钵罗耶伽（今印度北方邦安拉阿巴德）\n- **事件**：在戒日王陪同下参加大施舍会。\n- **意义**：见证了当时印度最盛大的宗教活动之一。\n\n### 🔴 去世地：长安玉华宫\n- **时间**：公元664年\n- **停留时间**：约4年（译经期间）\n- **地点**：长安玉华宫（今陕西省铜川市）\n- **事件**：在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。\n- **意义**：译经事业的终点与人生归宿，其葬礼规格极高，送葬者百万，葬于白鹿原。\n- **名篇名句**：临终前默念弥勒，愿生睹史多天。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 602年（说法不一） | 0岁 | 生于洛州缑氏。 |\n| 约614年 | 约12岁 | 于洛阳净土寺出家，后随兄入蜀。 |\n| 618年 | 约16岁 | 在成都受具足戒。 |\n| 约618-627年 | 约16-25岁 | 游历荆州、相州、赵州等地，遍访名师，学问大增，抵达长安。 |\n| 627年（一说629年） | 25岁（一说27岁） | 违禁西行，经凉州、瓜州，偷渡玉门关，涉五烽。 |\n| 约627-628年 | 约25-26岁 | 抵高昌国，得国王麹文泰鼎力资助。 |\n| 约628年 | 约26岁 | 经碎叶城，得西突厥统叶护可汗护送。 |\n| 约629年 | 约27岁 | 进入北印度，在迦湿弥罗国学习。 |\n| 631年 | 约29岁 | 抵达那烂陀寺，师从戒贤大师。 |\n| 约631-643年 | 约29-41岁 | 在那烂陀寺学习并讲学，游历五印，学问精深。 |\n| 643年 | 约41岁 | 于曲女城无遮大会辩经获胜，名震印度。 |\n| 645年 | 约43岁 | 携带657部佛经及佛像、舍利等返回长安，受到盛大欢迎。 |\n| 645-664年 | 约43-63岁 | 于长安弘福寺、大慈恩寺、玉华宫等处主持译经，共译出75部1335卷。 |\n| 664年 | 约63岁 | 于玉华宫圆寂。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省洛阳市偃师区 | 34.728 | 112.789 |\n| 四川省成都市 | 30.572 | 104.066 |\n| 陕西省西安市 | 34.341 | 108.939 |\n| 甘肃省武威市 | 37.928 | 102.634 |\n| 甘肃省酒泉市瓜州县 | 40.520 | 95.782 |\n| 新疆吐鲁番市高昌区 | 42.853 | 89.207 |\n| 吉尔吉斯斯坦托克马克市 | 42.760 | 75.301 |\n| 克什米尔地区 | 34.083 | 74.797 |\n| 印度北方邦根瑙杰 | 27.054 | 79.919 |\n| 印度比哈尔邦那烂陀 | 25.135 | 85.454 |\n| 印度北方邦安拉阿巴德 | 25.435 | 81.846 |\n| 陕西省铜川市玉华宫 | 35.393 | 108.879 |", "relatedGraph": {"center": {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "临终前默念弥勒，愿生睹史多天。", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "临终前默念弥勒，愿生睹史多天。", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王勃", "name": "王勃", "file": "王勃.html", "dynasty": "唐代（初唐）", "aliases": [], "birth_year": 650, "death_year": 676, "quote": "《旧唐书·文苑传》评其\"聪警勃发，一时之俊\"，肯定其少年才气。", "review": "《旧唐书·文苑传》评其\"聪警勃发，一时之俊\"，肯定其少年才气。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "绛州龙门", "birthplace_modern": "山西河津市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "崔致远", "name": "崔致远", "file": "崔致远.html", "dynasty": "新罗、唐朝", "aliases": [], "birth_year": 857, "death_year": 908, "quote": "“东国文学之祖”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "新罗沙梁部", "birthplace_modern": "韩国庆尚北道庆州市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "玄奘", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "王勃", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "鉴真", "label": "同朝共现", "confidence": 0.25}, {"source": "玄奘", "target": "隋炀帝", "label": "同册共现", "confidence": 0.15}, {"source": "玄奘", "target": "崔致远", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "玄奘", "title": "", "description": "玄奘生于隋末，自幼聪慧，早年出家。他深感当时佛典不全、义理分歧，于唐贞观年间（一说贞观元年627年，一说贞观三年629年）从长安出发，孤身西行。历经艰险，穿越中亚，抵达印度那烂陀寺，师从戒贤大师，精研佛法，声誉鹊起。贞观十九年（645年），他携带大量佛经、佛像返回长安，受到唐太宗礼遇。此后二十余年，他倾注全部心血于译经事业，并创立了法相唯识宗，对中国佛教发展影响深远。", "quote": "临终前默念弥勒，愿生睹史多天。", "shortReview": "临终前默念弥勒，愿生睹史多天。", "dynasty": "唐代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（说法不一", "avatar": "", "birth": {"date": "602年", "location": "（说法不一", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "664年", "location": "长安玉华宫（今陕西省铜川市）", "lat": 35.393, "lng": 108.879, "coordSystem": "WGS84"}, "lifespan": "约62岁（按602-664年计算，出生年份存疑）", "highlights": {"honor": "", "status": "中国佛教法相宗创始人，古代西行求法贡献最巨者，中印文化交流的杰出使者。", "identities": "佛学家、翻译家、旅行家", "achievements": "西行求法十七年，行程五万里；带回并翻译大量佛经，主持译出《大般若经》、《瑜伽师地论》等75部1335卷；口述《大唐西域记》，成为研究中亚、南亚古代史地的重要文献。", "works": ["大般若经", "瑜伽师地论", "大唐西域记"], "reviews": []}}, "locations": [{"name": "洛州缑氏", "ancientName": "洛州缑氏", "modernName": "河南省洛阳市偃师区", "lat": 34.728, "lng": 112.789, "coordSystem": "WGS84", "type": "birth", "event": "出生于陈氏家族，自幼聪颖，随兄长在洛阳净土寺学习佛经。", "time": "公元602年（说法不一）", "duration": "少年时期", "significance": "佛教信仰的启蒙之地，为其一生事业奠定基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州成都", "modernName": "四川省成都市", "lat": 30.572, "lng": 104.066, "coordSystem": "WGS84", "type": "normal", "event": "隋末战乱中随兄入蜀，在成都受具足戒，系统学习佛教经论。", "time": "约614年-618年", "duration": "约4年", "significance": "在相对安定的环境中完成佛学基础训练，崭露头角。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.341, "lng": 108.939, "coordSystem": "WGS84", "type": "normal", "event": "前期遍访名师，深感经义分歧，萌生西行求法之志；后期于弘福寺、大慈恩寺等处主持国家译场，翻译佛经。", "time": "约618年-627年；645年-664年", "duration": "前期（约618-627年）游历求学；后期（645-664年）主持译经", "significance": "西行求法的起点与终点，译经事业的核心基地，其学术成就与政治影响的主要舞台。", "works": [], "quoteLines": ["《大唐西域记》：“亲践者一百一十国，传闻者二十八国”", "《还至于阗国进表》：“宣皇风于殊俗，被圣泽于遐荒”。"]}, {"name": "高昌国", "ancientName": "高昌", "modernName": "新疆吐鲁番市高昌区", "lat": 42.853, "lng": 89.207, "coordSystem": "WGS84", "type": "normal", "event": "受到国王麹文泰的盛情款待与强力挽留，结为兄弟，获得大量物资、人员资助及给西域各国的介绍信。", "time": "约627年-628年", "duration": "约一月", "significance": "获得西行最重要的物质与政治支持，是行程由绝境转向顺利的转折点。", "works": [], "quoteLines": []}, {"name": "凉州", "ancientName": "凉州武威", "modernName": "甘肃省武威市", "lat": 37.928, "lng": 102.634, "coordSystem": "WGS84", "type": "normal", "event": "讲经说法，声名远播，但因朝廷禁边令，西行受阻。", "time": "627年（按贞观元年出发说，一说629年）", "duration": "约一个月", "significance": "西行途中第一个重要城市，其声望为其后续获得帮助埋下伏笔。", "works": [], "quoteLines": []}, {"name": "瓜州", "ancientName": "瓜州晋昌", "modernName": "甘肃省酒泉市瓜州县", "lat": 40.52, "lng": 95.782, "coordSystem": "WGS84", "type": "normal", "event": "得到州吏李昌协助，偷渡玉门关，并收胡人石槃陀为向导（存疑）。", "time": "627年（按贞观元年出发说，一说629年）", "duration": "月余", "significance": "正式踏出大唐国境的关键节点，面临最直接的生存挑战。", "works": [], "quoteLines": ["《大唐西域记》：“上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》”。"]}, {"name": "碎叶城", "ancientName": "碎叶", "modernName": "吉尔吉斯斯坦托克马克市附近", "lat": 42.76, "lng": 75.301, "coordSystem": "WGS84", "type": "normal", "event": "途经西突厥可汗牙帐，获得统叶护可汗的保护与通行许可。", "time": "约628年", "duration": "短暂经过", "significance": "获得突厥势力的庇护，保障了穿越中亚的安全。", "works": [], "quoteLines": []}, {"name": "迦湿弥罗国", "ancientName": "迦湿弥罗", "modernName": "克什米尔地区", "lat": 34.083, "lng": 74.797, "coordSystem": "WGS84", "type": "normal", "event": "学习梵文、佛教因明学（逻辑学）及各类经典。", "time": "约629年-631年", "duration": "约两年", "significance": "进入南亚次大陆后的第一个重要学术中心，为深入印度腹地学习做好语言和知识准备。", "works": [], "quoteLines": []}, {"name": "曲女城", "ancientName": "曲女城", "modernName": "印度北方邦根瑙杰", "lat": 27.054, "lng": 79.919, "coordSystem": "WGS84", "type": "normal", "event": "参加戒日王举办的无遮大会，宣讲大乘教义，立“真唯识量”论，十八日无人能破，名震五印。", "time": "约643年", "duration": "数月", "significance": "学术声望达到顶峰，获得“大乘天”与“解脱天”的尊称。", "works": [], "quoteLines": []}, {"name": "钵罗耶伽国", "ancientName": "钵罗耶伽", "modernName": "印度北方邦安拉阿巴德", "lat": 25.435, "lng": 81.846, "coordSystem": "WGS84", "type": "normal", "event": "在戒日王陪同下参加大施舍会。", "time": "约643年", "duration": "短暂", "significance": "见证了当时印度最盛大的宗教活动之一。", "works": [], "quoteLines": []}, {"name": "长安玉华宫", "ancientName": "长安玉华宫", "modernName": "陕西省铜川市", "lat": 35.393, "lng": 108.879, "coordSystem": "WGS84", "type": "death", "event": "在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。", "time": "公元664年", "duration": "约4年（译经期间）", "significance": "译经事业的终点与人生归宿，其葬礼规格极高，送葬者百万，葬于白鹿原。", "works": ["大般若波罗蜜多经"], "quoteLines": ["临终前默念弥勒，愿生睹史多天。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---", "workTexts": {"大唐西域记": "上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》", "还至于阗国进表": "宣皇风于殊俗，被圣泽于遐荒", "瑜伽师地论": "事件：师从戒贤大师学习《瑜伽师地论》等，通晓经藏、论藏、声明（语言学）等，成为寺内精通三藏的十德之一，并代表那烂陀寺参与多次佛学辩论。", "大般若波罗蜜多经": "事件：在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。", "西游记": "重点：其文风严谨详实，与小说《西游记》的浪漫想象形成鲜明对比，体现了历史人物与文学形象的差异。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 玄奘\n\n## 人物档案\n\n### 基本信息\n- **姓名**：玄奘\n- **时代**：唐代\n- **出生**：公元602年（说法不一，另有600年等说法），洛州缑氏（今河南省洛阳市偃师区）\n- **去世**：公元664年，长安玉华宫（今陕西省铜川市）\n- **享年**：约62岁（按602-664年计算，出生年份存疑）\n- **主要身份**：佛学家、翻译家、旅行家\n- **历史地位**：中国佛教法相宗创始人，古代西行求法贡献最巨者，中印文化交流的杰出使者。\n- **主要成就**：西行求法十七年，行程五万里；带回并翻译大量佛经，主持译出《大般若经》、《瑜伽师地论》等75部1335卷；口述《大唐西域记》，成为研究中亚、南亚古代史地的重要文献。\n\n### 生平概述\n玄奘生于隋末，自幼聪慧，早年出家。他深感当时佛典不全、义理分歧，于唐贞观年间（一说贞观元年627年，一说贞观三年629年）从长安出发，孤身西行。历经艰险，穿越中亚，抵达印度那烂陀寺，师从戒贤大师，精研佛法，声誉鹊起。贞观十九年（645年），他携带大量佛经、佛像返回长安，受到唐太宗礼遇。此后二十余年，他倾注全部心血于译经事业，并创立了法相唯识宗，对中国佛教发展影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从大唐长安出发，经中亚，抵达印度那烂陀寺求学，再携经返回长安。\n- ⏱️ **时间跨度**：西行求法约627年-645年（出发时间存疑，另有629年一说），共约18年；生平总跨度约602年-664年。\n- 📍 **地理范围**：中国西北、中亚五国、阿富汗、巴基斯坦、印度及孟加拉国等地区。\n- 🌟 **重要节点数量**：12个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：洛州缑氏\n- **时间**：公元602年（说法不一）\n- **停留时间**：少年时期\n- **地点**：洛州缑氏（今河南省洛阳市偃师区）\n- **事件**：出生于陈氏家族，自幼聪颖，随兄长在洛阳净土寺学习佛经。\n- **意义**：佛教信仰的启蒙之地，为其一生事业奠定基础。\n\n### 📍 重要地点：成都\n- **时间**：约614年-618年\n- **停留时间**：约4年\n- **地点**：益州成都（今四川省成都市）\n- **事件**：隋末战乱中随兄入蜀，在成都受具足戒，系统学习佛教经论。\n- **意义**：在相对安定的环境中完成佛学基础训练，崭露头角。\n\n### 📍 重要地点：长安\n- **时间**：约618年-627年；645年-664年\n- **停留时间**：前期（约618-627年）游历求学；后期（645-664年）主持译经\n- **地点**：长安（今陕西省西安市）\n- **事件**：前期遍访名师，深感经义分歧，萌生西行求法之志；后期于弘福寺、大慈恩寺等处主持国家译场，翻译佛经。\n- **意义**：西行求法的起点与终点，译经事业的核心基地，其学术成就与政治影响的主要舞台。\n- **名篇名句**：《大唐西域记》：“亲践者一百一十国，传闻者二十八国”；《还至于阗国进表》：“宣皇风于殊俗，被圣泽于遐荒”。\n\n### 📍 重要地点：凉州\n- **时间**：627年（按贞观元年出发说，一说629年）\n- **停留时间**：约一个月\n- **地点**：凉州武威（今甘肃省武威市）\n- **事件**：讲经说法，声名远播，但因朝廷禁边令，西行受阻。\n- **意义**：西行途中第一个重要城市，其声望为其后续获得帮助埋下伏笔。\n\n### 📍 重要地点：瓜州\n- **时间**：627年（按贞观元年出发说，一说629年）\n- **停留时间**：月余\n- **地点**：瓜州晋昌（今甘肃省酒泉市瓜州县）\n- **事件**：得到州吏李昌协助，偷渡玉门关，并收胡人石槃陀为向导（存疑）。\n- **意义**：正式踏出大唐国境的关键节点，面临最直接的生存挑战。\n- **名篇名句**：《大唐西域记》：“上无飞鸟，下无走兽，复无水草……是时顾影唯一，心但念观音菩萨及《般若心经》”。\n\n### 📍 重要地点：高昌国\n- **时间**：约627年-628年\n- **停留时间**：约一月\n- **地点**：高昌（今新疆吐鲁番市高昌区）\n- **事件**：受到国王麹文泰的盛情款待与强力挽留，结为兄弟，获得大量物资、人员资助及给西域各国的介绍信。\n- **意义**：获得西行最重要的物质与政治支持，是行程由绝境转向顺利的转折点。\n\n### 📍 重要地点：碎叶城\n- **时间**：约628年\n- **停留时间**：短暂经过\n- **地点**：碎叶（今吉尔吉斯斯坦托克马克市附近）\n- **事件**：途经西突厥可汗牙帐，获得统叶护可汗的保护与通行许可。\n- **意义**：获得突厥势力的庇护，保障了穿越中亚的安全。\n\n### 📍 重要地点：迦湿弥罗国\n- **时间**：约629年-631年\n- **停留时间**：约两年\n- **地点**：迦湿弥罗（今克什米尔地区）\n- **事件**：学习梵文、佛教因明学（逻辑学）及各类经典。\n- **意义**：进入南亚次大陆后的第一个重要学术中心，为深入印度腹地学习做好语言和知识准备。\n\n### 📍 重要地点：曲女城\n- **时间**：约643年\n- **停留时间**：数月\n- **地点**：曲女城（今印度北方邦根瑙杰）\n- **事件**：参加戒日王举办的无遮大会，宣讲大乘教义，立“真唯识量”论，十八日无人能破，名震五印。\n- **意义**：学术声望达到顶峰，获得“大乘天”与“解脱天”的尊称。\n\n### 📍 重要地点：那烂陀寺\n- **时间**：约631年-643年\n- **停留时间**：约12年\n- **地点**：那烂陀寺（今印度比哈尔邦巴特那东南）\n- **事件**：师从戒贤大师学习《瑜伽师地论》等，通晓经藏、论藏、声明（语言学）等，成为寺内精通三藏的十德之一，并代表那烂陀寺参与多次佛学辩论。\n- **意义**：西行求法的核心目的地与学术巅峰时期，系统掌握了印度大乘佛教瑜伽行派的全部学说。\n- **名篇名句**：《大唐西域记》：“僧徒数千，并俊才高学也……请益谈玄，竭日不足”。\n\n### 📍 重要地点：钵罗耶伽国\n- **时间**：约643年\n- **停留时间**：短暂\n- **地点**：钵罗耶伽（今印度北方邦安拉阿巴德）\n- **事件**：在戒日王陪同下参加大施舍会。\n- **意义**：见证了当时印度最盛大的宗教活动之一。\n\n### 🔴 去世地：长安玉华宫\n- **时间**：公元664年\n- **停留时间**：约4年（译经期间）\n- **地点**：长安玉华宫（今陕西省铜川市）\n- **事件**：在此地玉华寺译成《大般若波罗蜜多经》，随后圆寂。\n- **意义**：译经事业的终点与人生归宿，其葬礼规格极高，送葬者百万，葬于白鹿原。\n- **名篇名句**：临终前默念弥勒，愿生睹史多天。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 602年（说法不一） | 0岁 | 生于洛州缑氏。 |\n| 约614年 | 约12岁 | 于洛阳净土寺出家，后随兄入蜀。 |\n| 618年 | 约16岁 | 在成都受具足戒。 |\n| 约618-627年 | 约16-25岁 | 游历荆州、相州、赵州等地，遍访名师，学问大增，抵达长安。 |\n| 627年（一说629年） | 25岁（一说27岁） | 违禁西行，经凉州、瓜州，偷渡玉门关，涉五烽。 |\n| 约627-628年 | 约25-26岁 | 抵高昌国，得国王麹文泰鼎力资助。 |\n| 约628年 | 约26岁 | 经碎叶城，得西突厥统叶护可汗护送。 |\n| 约629年 | 约27岁 | 进入北印度，在迦湿弥罗国学习。 |\n| 631年 | 约29岁 | 抵达那烂陀寺，师从戒贤大师。 |\n| 约631-643年 | 约29-41岁 | 在那烂陀寺学习并讲学，游历五印，学问精深。 |\n| 643年 | 约41岁 | 于曲女城无遮大会辩经获胜，名震印度。 |\n| 645年 | 约43岁 | 携带657部佛经及佛像、舍利等返回长安，受到盛大欢迎。 |\n| 645-664年 | 约43-63岁 | 于长安弘福寺、大慈恩寺、玉华宫等处主持译经，共译出75部1335卷。 |\n| 664年 | 约63岁 | 于玉华宫圆寂。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《大唐西域记》**（节选）、相关课文《西游记》背景知识介绍。\n- 核心要点：\n    - **重点**：**《大唐西域记》** 是玄奘西行见闻的实录，具有极高的**地理学**、**历史学**和**民俗学**价值，是研究7世纪中亚、印度历史的核心文献。\n    - **重点**：其文风**严谨详实**，与小说《西游记》的**浪漫想象**形成鲜明对比，体现了历史人物与文学形象的差异。\n    - **重点**：作品中对**那烂陀寺**的描述，展现了当时世界顶级佛教学府的盛况。\n    - 文本常作为**古代中外文化交流**的典范材料，体现**坚韧不拔**的求学精神。\n    - 语言精炼，善于用白描手法勾勒异域山川风物。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：玄奘西行发生在**唐太宗贞观**年间，其成功与**丝绸之路**的畅通及**唐初国力强盛**的背景密不可分。\n    - **重点**：回国后受到**唐太宗**、**唐高宗**两代皇帝的礼遇与支持，其译经事业属于**国家文化工程**。\n    - 他创立了**法相宗（唯识宗）**，是中国佛教重要宗派之一。\n    - 其西行路线和见闻被记录在**《大唐西域记》**中，为唐朝经营西域提供了宝贵情报。\n- 核心要点：\n    - **重点**：玄奘是**佛教中国化**进程中的关键人物，其翻译的佛经质量极高，被称为“新译”，影响了后世佛教发展。\n    - **重点**：他的旅程是**古代中国与南亚次大陆**最直接、最深入的一次文化交流，其个人是**和平的文化使者**，而非《西游记》中的神话角色。\n    - **重点**：从历史评价看，玄奘体现了**追求真理、不畏艰险、严谨治学**的精神，是**中古时期世界文化交流史**上的杰出代表。\n    - 其活动客观上促进了**丝绸之路**的繁荣，增进了唐朝对世界的了解。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省洛阳市偃师区 | 34.728 | 112.789 |\n| 四川省成都市 | 30.572 | 104.066 |\n| 陕西省西安市 | 34.341 | 108.939 |\n| 甘肃省武威市 | 37.928 | 102.634 |\n| 甘肃省酒泉市瓜州县 | 40.520 | 95.782 |\n| 新疆吐鲁番市高昌区 | 42.853 | 89.207 |\n| 吉尔吉斯斯坦托克马克市 | 42.760 | 75.301 |\n| 克什米尔地区 | 34.083 | 74.797 |\n| 印度北方邦根瑙杰 | 27.054 | 79.919 |\n| 印度比哈尔邦那烂陀 | 25.135 | 85.454 |\n| 印度北方邦安拉阿巴德 | 25.435 | 81.846 |\n| 陕西省铜川市玉华宫 | 35.393 | 108.879 |", "relatedGraph": {"center": {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "临终前默念弥勒，愿生睹史多天。", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "临终前默念弥勒，愿生睹史多天。", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王勃", "name": "王勃", "file": "王勃.html", "dynasty": "唐代（初唐）", "aliases": [], "birth_year": 650, "death_year": 676, "quote": "《旧唐书·文苑传》评其\"聪警勃发，一时之俊\"，肯定其少年才气。", "review": "《旧唐书·文苑传》评其\"聪警勃发，一时之俊\"，肯定其少年才气。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "绛州龙门", "birthplace_modern": "山西河津市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "崔致远", "name": "崔致远", "file": "崔致远.html", "dynasty": "新罗、唐朝", "aliases": [], "birth_year": 857, "death_year": 908, "quote": "“东国文学之祖”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "新罗沙梁部", "birthplace_modern": "韩国庆尚北道庆州市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "玄奘", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "王勃", "label": "同时代人物", "confidence": null}, {"source": "玄奘", "target": "鉴真", "label": "同朝共现", "confidence": 0.25}, {"source": "玄奘", "target": "隋炀帝", "label": "同册共现", "confidence": 0.15}, {"source": "玄奘", "target": "崔致远", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

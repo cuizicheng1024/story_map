@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "曹鎏", "title": "", "description": "曹鎏，南直隶句容人，明朝嘉靖年间官员。他于嘉靖年间考中进士（具体年份存疑），后被授予御史之职，负责监察百官。在任期间，他以刚直闻名，最为人所知的事迹是上疏弹劾当时深受世宗宠信的武定侯郭勋，指控其不法行为。此外，他也深度参与了嘉靖朝前期的重大政治案件——“李福达案”的审理过程。曹鎏的宦海沉浮，折射出嘉靖朝皇权强化、阁权争斗与言官群体活跃交织的复杂政治图景。其生卒年及详细履历在史籍中记载不全，部分经历存疑。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "明朝（嘉靖年间）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "明弘治年间", "avatar": "", "birth": {"date": "", "location": "明弘治年间", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "明嘉靖年间", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "明朝中期以直言敢谏、不畏权贵著称的监察官员。", "identities": "官员、御史", "achievements": "1. 以御史身份弹劾权倾一时的武定侯郭勋；2. 参与审理轰动一时的“李福达案”；3. 在监察任上恪尽职守，是嘉靖前期“大礼议”后政治生态中的一位代表性言官。", "works": [], "reviews": []}}, "locations": [{"name": "北京（关注/参与李福达案）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "作为言官，在京关注、参与或争论“李福达案”的审理。", "time": "嘉靖六年（1527年）前后", "duration": "案件审理期间", "significance": "卷入高层政治斗争，案件结果导致许多官员被贬黜，曹鎏本人也可能受到牵连。", "works": [], "quoteLines": []}, {"name": "太原（李福达案发生地）", "ancientName": "山西太原府", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "“李福达案”最初发生地及部分审理过程所在地。", "time": "嘉靖六年（1527年）前后", "duration": "", "significance": "此案是嘉靖朝前期一场牵连甚广的政治大案，曹鎏作为参与者与此地产生间接关联。", "works": [], "quoteLines": []}, {"name": "北京（国子监/备考）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加会试、殿试，考中进士。", "time": "约嘉靖初年", "duration": "数月或数年（备考期间）", "significance": "完成科举关键一步，获得进入仕途的资格。", "works": [], "quoteLines": []}, {"name": "北京（初授官职）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "被授予官职（具体初授官职存疑）。", "time": "嘉靖初年（中进士后）", "duration": "存疑", "significance": "正式开启官宦生涯。", "works": [], "quoteLines": []}, {"name": "南京（任御史）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "升任南京都察院御史，履行监察职责。", "time": "嘉靖前期", "duration": "数年", "significance": "在明朝的留都担任重要监察职务，积累了政治资本与声望。", "works": [], "quoteLines": []}, {"name": "北京（弹劾郭勋）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "上疏弹劾武定侯郭勋，指控其骄纵不法。此举震动朝野。", "time": "嘉靖年间（具体时间存疑）", "duration": "短期（因上奏事由赴京或在京任职）", "significance": "其政治生涯的高光时刻，体现了不畏权贵的风骨，但也因此可能埋下政治风险。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 曹鎏\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹鎏\n- **时代**：明朝（嘉靖年间）\n- **出生**：存疑，约明弘治年间，南直隶句容（今江苏省镇江市句容市）\n- **去世**：存疑，约明嘉靖年间，地点存疑（待考）\n- **享年**：不详\n- **主要身份**：官员、御史\n- **历史地位**：明朝中期以直言敢谏、不畏权贵著称的监察官员。\n- **主要成就**：1. 以御史身份弹劾权倾一时的武定侯郭勋；2. 参与审理轰动一时的“李福达案”；3. 在监察任上恪尽职守，是嘉靖前期“大礼议”后政治生态中的一位代表性言官。\n\n### 生平概述\n曹鎏，南直隶句容人，明朝嘉靖年间官员。他于嘉靖年间考中进士（具体年份存疑），后被授予御史之职，负责监察百官。在任期间，他以刚直闻名，最为人所知的事迹是上疏弹劾当时深受世宗宠信的武定侯郭勋，指控其不法行为。此外，他也深度参与了嘉靖朝前期的重大政治案件——“李福达案”的审理过程。曹鎏的宦海沉浮，折射出嘉靖朝皇权强化、阁权争斗与言官群体活跃交织的复杂政治图景。其生卒年及详细履历在史籍中记载不全，部分经历存疑。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：句容\n- **时间**：约明弘治年间（存疑）\n- **停留时间**：青少年时期\n- **地点**：南直隶句容（今江苏省镇江市句容市）\n- **事件**：出生、成长并接受基础教育。\n- **意义**：其人生起点与籍贯所在地，奠定了其士人的出身基础。\n\n### 📍 重要地点：北京（国子监/备考）\n- **时间**：约嘉靖初年\n- **停留时间**：数月或数年（备考期间）\n- **地点**：京师（今北京市）\n- **事件**：参加会试、殿试，考中进士。\n- **意义**：完成科举关键一步，获得进入仕途的资格。\n\n### 📍 重要地点：北京（初授官职）\n- **时间**：嘉靖初年（中进士后）\n- **停留时间**：存疑\n- **地点**：京师（今北京市）\n- **事件**：被授予官职（具体初授官职存疑）。\n- **意义**：正式开启官宦生涯。\n\n### 📍 重要地点：南京（任御史）\n- **时间**：嘉靖前期\n- **停留时间**：数年\n- **地点**：南京（今江苏省南京市）\n- **事件**：升任南京都察院御史，履行监察职责。\n- **意义**：在明朝的留都担任重要监察职务，积累了政治资本与声望。\n\n### 📍 重要地点：北京（弹劾郭勋）\n- **时间**：嘉靖年间（具体时间存疑）\n- **停留时间**：短期（因上奏事由赴京或在京任职）\n- **地点**：京师（今北京市）\n- **事件**：上疏弹劾武定侯郭勋，指控其骄纵不法。此举震动朝野。\n- **意义**：其政治生涯的高光时刻，体现了不畏权贵的风骨，但也因此可能埋下政治风险。\n\n### 📍 重要地点：北京（关注/参与李福达案）\n- **时间**：嘉靖六年（1527年）前后\n- **停留时间**：案件审理期间\n- **地点**：京师（今北京市）\n- **事件**：作为言官，在京关注、参与或争论“李福达案”的审理。\n- **意义**：卷入高层政治斗争，案件结果导致许多官员被贬黜，曹鎏本人也可能受到牵连。\n\n### 📍 重要地点：太原（李福达案发生地）\n- **时间**：嘉靖六年（1527年）前后\n- **关联性质**：案件发生地（人物可能未亲临）\n- **地点**：山西太原府（今山西省太原市）\n- **事件**：“李福达案”最初发生地及部分审理过程所在地。\n- **意义**：此案是嘉靖朝前期一场牵连甚广的政治大案，曹鎏作为参与者与此地产生间接关联。\n\n---\n\n## 生平时间线\n| 年份 | 关键事件 |\n| :--- | :--- |\n| 约弘治年间 | 出生于南直隶句容（今江苏句容）。（存疑） |\n| 嘉靖年间 | 考中进士，获得功名（具体年份存疑）。 |\n| 嘉靖初年 | 初授官职，步入仕途（具体官职存疑）。 |\n| 嘉靖前期 | 升任南京都察院御史。 |\n| 嘉靖六年（1527）前后 | “李福达案”爆发，作为言官参与其中。 |\n| 嘉靖年间 | 上疏弹劾武定侯郭勋（具体时间存疑）。 |\n| 嘉靖中后期 | 去世（地点、时间均存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 北京市（明清京师） | 39.9042 | 116.4074 |\n| 江苏省南京市（明南京） | 32.0603 | 118.7969 |\n| 山西省太原市 | 37.8706 | 112.5489 |", "relatedGraph": {"center": {"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": 1506, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "官员", "birthplace": "约明弘治年间", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": 1506, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "官员", "birthplace": "约明弘治年间", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "唐银平", "name": "唐银平", "file": "唐银平.html", "dynasty": "存疑（公开可查的权威历史与文学资料中未见明确记载）", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于“唐银平”这一人物，在公开的权威历史文献、文学典籍及主流传记资料中均未见明确、系统的记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "王坤", "name": "王坤", "file": "王坤.html", "dynasty": "明朝（嘉靖、万历年间）", "aliases": [], "birth_year": 1534, "death_year": 1614, "quote": "“达则兼济天下，穷则独善其身”", "review": "《明史》评价：“锡爵性刚负气，不能屈人……然其请建储，争三王并封，固侃侃有大臣风。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "南直隶太仓州", "birthplace_modern": "江苏省太仓市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "戚继光", "name": "戚继光", "file": "戚继光.html", "dynasty": "明朝", "aliases": [], "birth_year": 1528, "death_year": 1588, "quote": "“封侯非我意，但愿海波平。”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "古称济宁州鲁桥", "birthplace_modern": "山东省济宁市微山县鲁桥镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐光启", "name": "徐光启", "file": "徐光启.html", "dynasty": "明朝", "aliases": ["徐子先", "文定公"], "birth_year": 1562, "death_year": 1633, "quote": "“**务求实用**”", "review": "", "foreign_name": "Paul Hsu (Xu Guangqi)", "main_role_label": "科学家", "birthplace": "松江府上海县", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹鎏", "target": "唐银平", "label": "同册共现", "confidence": 0.15}, {"source": "曹鎏", "target": "王坤", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "戚继光", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "徐光启", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "曹鎏", "title": "", "description": "曹鎏，南直隶句容人，明朝嘉靖年间官员。他于嘉靖年间考中进士（具体年份存疑），后被授予御史之职，负责监察百官。在任期间，他以刚直闻名，最为人所知的事迹是上疏弹劾当时深受世宗宠信的武定侯郭勋，指控其不法行为。此外，他也深度参与了嘉靖朝前期的重大政治案件——“李福达案”的审理过程。曹鎏的宦海沉浮，折射出嘉靖朝皇权强化、阁权争斗与言官群体活跃交织的复杂政治图景。其生卒年及详细履历在史籍中记载不全，部分经历存疑。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "明朝（嘉靖年间）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "明弘治年间", "avatar": "", "birth": {"date": "", "location": "明弘治年间", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "明嘉靖年间", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "明朝中期以直言敢谏、不畏权贵著称的监察官员。", "identities": "官员、御史", "achievements": "1. 以御史身份弹劾权倾一时的武定侯郭勋；2. 参与审理轰动一时的“李福达案”；3. 在监察任上恪尽职守，是嘉靖前期“大礼议”后政治生态中的一位代表性言官。", "works": [], "reviews": []}}, "locations": [{"name": "北京（关注/参与李福达案）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "作为言官，在京关注、参与或争论“李福达案”的审理。", "time": "嘉靖六年（1527年）前后", "duration": "案件审理期间", "significance": "卷入高层政治斗争，案件结果导致许多官员被贬黜，曹鎏本人也可能受到牵连。", "works": [], "quoteLines": []}, {"name": "太原（李福达案发生地）", "ancientName": "山西太原府", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "“李福达案”最初发生地及部分审理过程所在地。", "time": "嘉靖六年（1527年）前后", "duration": "", "significance": "此案是嘉靖朝前期一场牵连甚广的政治大案，曹鎏作为参与者与此地产生间接关联。", "works": [], "quoteLines": []}, {"name": "北京（国子监/备考）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加会试、殿试，考中进士。", "time": "约嘉靖初年", "duration": "数月或数年（备考期间）", "significance": "完成科举关键一步，获得进入仕途的资格。", "works": [], "quoteLines": []}, {"name": "北京（初授官职）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "被授予官职（具体初授官职存疑）。", "time": "嘉靖初年（中进士后）", "duration": "存疑", "significance": "正式开启官宦生涯。", "works": [], "quoteLines": []}, {"name": "南京（任御史）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "升任南京都察院御史，履行监察职责。", "time": "嘉靖前期", "duration": "数年", "significance": "在明朝的留都担任重要监察职务，积累了政治资本与声望。", "works": [], "quoteLines": []}, {"name": "北京（弹劾郭勋）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "上疏弹劾武定侯郭勋，指控其骄纵不法。此举震动朝野。", "time": "嘉靖年间（具体时间存疑）", "duration": "短期（因上奏事由赴京或在京任职）", "significance": "其政治生涯的高光时刻，体现了不畏权贵的风骨，但也因此可能埋下政治风险。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 曹鎏\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹鎏\n- **时代**：明朝（嘉靖年间）\n- **出生**：存疑，约明弘治年间，南直隶句容（今江苏省镇江市句容市）\n- **去世**：存疑，约明嘉靖年间，地点存疑（待考）\n- **享年**：不详\n- **主要身份**：官员、御史\n- **历史地位**：明朝中期以直言敢谏、不畏权贵著称的监察官员。\n- **主要成就**：1. 以御史身份弹劾权倾一时的武定侯郭勋；2. 参与审理轰动一时的“李福达案”；3. 在监察任上恪尽职守，是嘉靖前期“大礼议”后政治生态中的一位代表性言官。\n\n### 生平概述\n曹鎏，南直隶句容人，明朝嘉靖年间官员。他于嘉靖年间考中进士（具体年份存疑），后被授予御史之职，负责监察百官。在任期间，他以刚直闻名，最为人所知的事迹是上疏弹劾当时深受世宗宠信的武定侯郭勋，指控其不法行为。此外，他也深度参与了嘉靖朝前期的重大政治案件——“李福达案”的审理过程。曹鎏的宦海沉浮，折射出嘉靖朝皇权强化、阁权争斗与言官群体活跃交织的复杂政治图景。其生卒年及详细履历在史籍中记载不全，部分经历存疑。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：句容\n- **时间**：约明弘治年间（存疑）\n- **停留时间**：青少年时期\n- **地点**：南直隶句容（今江苏省镇江市句容市）\n- **事件**：出生、成长并接受基础教育。\n- **意义**：其人生起点与籍贯所在地，奠定了其士人的出身基础。\n\n### 📍 重要地点：北京（国子监/备考）\n- **时间**：约嘉靖初年\n- **停留时间**：数月或数年（备考期间）\n- **地点**：京师（今北京市）\n- **事件**：参加会试、殿试，考中进士。\n- **意义**：完成科举关键一步，获得进入仕途的资格。\n\n### 📍 重要地点：北京（初授官职）\n- **时间**：嘉靖初年（中进士后）\n- **停留时间**：存疑\n- **地点**：京师（今北京市）\n- **事件**：被授予官职（具体初授官职存疑）。\n- **意义**：正式开启官宦生涯。\n\n### 📍 重要地点：南京（任御史）\n- **时间**：嘉靖前期\n- **停留时间**：数年\n- **地点**：南京（今江苏省南京市）\n- **事件**：升任南京都察院御史，履行监察职责。\n- **意义**：在明朝的留都担任重要监察职务，积累了政治资本与声望。\n\n### 📍 重要地点：北京（弹劾郭勋）\n- **时间**：嘉靖年间（具体时间存疑）\n- **停留时间**：短期（因上奏事由赴京或在京任职）\n- **地点**：京师（今北京市）\n- **事件**：上疏弹劾武定侯郭勋，指控其骄纵不法。此举震动朝野。\n- **意义**：其政治生涯的高光时刻，体现了不畏权贵的风骨，但也因此可能埋下政治风险。\n\n### 📍 重要地点：北京（关注/参与李福达案）\n- **时间**：嘉靖六年（1527年）前后\n- **停留时间**：案件审理期间\n- **地点**：京师（今北京市）\n- **事件**：作为言官，在京关注、参与或争论“李福达案”的审理。\n- **意义**：卷入高层政治斗争，案件结果导致许多官员被贬黜，曹鎏本人也可能受到牵连。\n\n### 📍 重要地点：太原（李福达案发生地）\n- **时间**：嘉靖六年（1527年）前后\n- **关联性质**：案件发生地（人物可能未亲临）\n- **地点**：山西太原府（今山西省太原市）\n- **事件**：“李福达案”最初发生地及部分审理过程所在地。\n- **意义**：此案是嘉靖朝前期一场牵连甚广的政治大案，曹鎏作为参与者与此地产生间接关联。\n\n---\n\n## 生平时间线\n| 年份 | 关键事件 |\n| :--- | :--- |\n| 约弘治年间 | 出生于南直隶句容（今江苏句容）。（存疑） |\n| 嘉靖年间 | 考中进士，获得功名（具体年份存疑）。 |\n| 嘉靖初年 | 初授官职，步入仕途（具体官职存疑）。 |\n| 嘉靖前期 | 升任南京都察院御史。 |\n| 嘉靖六年（1527）前后 | “李福达案”爆发，作为言官参与其中。 |\n| 嘉靖年间 | 上疏弹劾武定侯郭勋（具体时间存疑）。 |\n| 嘉靖中后期 | 去世（地点、时间均存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：曹鎏并非以文学家著称，无知名文学作品传世，未见于语文教材。\n- 核心要点：不适用。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**弹劾郭勋**事件，是嘉靖朝前期皇权、勋贵与文官集团矛盾的一个缩影。\n    - **重点**：**李福达案**，此案是嘉靖朝一场标志性政治清洗，深刻影响了当时的司法与官场生态，曹鎏是该案的参与者之一。\n    - 作为**南京御史**，其职责反映了明朝两京制度的监察体系特点。\n- 核心要点：\n    - **重点**：曹鎏是**嘉靖朝言官**群体的代表之一，其行为体现了该时期部分官员不畏权势、敢于谏言的风气。\n    - **重点**：其个人命运与**“大礼议”** 后嘉靖皇帝强化皇权、打压异己的政治大背景紧密相连。\n    - **重点**：通过曹鎏参与的事件，可以侧面了解**嘉靖前期政局**的动荡与复杂性，特别是阁臣（如张璁）与勋贵、言官之间的权力博弈。\n    - 其生平记载的**模糊性**，也反映了明代许多中低级官员在正史中记录不详的普遍状况。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 北京市（明清京师） | 39.9042 | 116.4074 |\n| 江苏省南京市（明南京） | 32.0603 | 118.7969 |\n| 山西省太原市 | 37.8706 | 112.5489 |", "relatedGraph": {"center": {"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": 1506, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "官员", "birthplace": "约明弘治年间", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": 1506, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "官员", "birthplace": "约明弘治年间", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "唐银平", "name": "唐银平", "file": "唐银平.html", "dynasty": "存疑（公开可查的权威历史与文学资料中未见明确记载）", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于“唐银平”这一人物，在公开的权威历史文献、文学典籍及主流传记资料中均未见明确、系统的记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "王坤", "name": "王坤", "file": "王坤.html", "dynasty": "明朝（嘉靖、万历年间）", "aliases": [], "birth_year": 1534, "death_year": 1614, "quote": "“达则兼济天下，穷则独善其身”", "review": "《明史》评价：“锡爵性刚负气，不能屈人……然其请建储，争三王并封，固侃侃有大臣风。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "南直隶太仓州", "birthplace_modern": "江苏省太仓市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "戚继光", "name": "戚继光", "file": "戚继光.html", "dynasty": "明朝", "aliases": [], "birth_year": 1528, "death_year": 1588, "quote": "“封侯非我意，但愿海波平。”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "古称济宁州鲁桥", "birthplace_modern": "山东省济宁市微山县鲁桥镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐光启", "name": "徐光启", "file": "徐光启.html", "dynasty": "明朝", "aliases": ["徐子先", "文定公"], "birth_year": 1562, "death_year": 1633, "quote": "“**务求实用**”", "review": "", "foreign_name": "Paul Hsu (Xu Guangqi)", "main_role_label": "科学家", "birthplace": "松江府上海县", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹鎏", "target": "唐银平", "label": "同册共现", "confidence": 0.15}, {"source": "曹鎏", "target": "王坤", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "戚继光", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "徐光启", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "曹鎏", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

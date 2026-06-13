@@ -268,6 +268,60 @@ def _is_usable_export_profile(data: object) -> bool:
     return isinstance(person, dict) and bool(str(person.get("name") or "").strip())
 
 
+def _write_runtime_map_configs(
+    html_path: str,
+    *,
+    write_text: Callable[[str, str], None],
+    build_amap_config_js: Optional[Callable[[], bytes]] = None,
+    build_geovis_config_js: Optional[Callable[[], bytes]] = None,
+) -> None:
+    if not html_path:
+        return
+    output_dir = os.path.dirname(os.path.abspath(html_path))
+    writers = (
+        ("amap-config.js", build_amap_config_js),
+        ("geovis-config.js", build_geovis_config_js),
+    )
+    for filename, builder in writers:
+        if not callable(builder):
+            continue
+        content = builder()
+        if isinstance(content, bytes):
+            text = content.decode("utf-8")
+        else:
+            text = str(content or "")
+        write_text(os.path.join(output_dir, filename), text)
+
+
+def _try_write_runtime_map_configs(
+    html_path: str,
+    *,
+    write_text: Callable[[str, str], None],
+    logger: object,
+    build_amap_config_js: Optional[Callable[[], bytes]] = None,
+    build_geovis_config_js: Optional[Callable[[], bytes]] = None,
+) -> None:
+    try:
+        _write_runtime_map_configs(
+            html_path,
+            write_text=write_text,
+            build_amap_config_js=build_amap_config_js,
+            build_geovis_config_js=build_geovis_config_js,
+        )
+    except Exception as exc:
+        logger.warning("runtime_map_config_write_failed html_path=%s error=%s", html_path, exc)
+
+
+def _runtime_map_configs_missing(html_path: str) -> bool:
+    if not html_path:
+        return True
+    output_dir = os.path.dirname(os.path.abspath(html_path))
+    return not (
+        os.path.exists(os.path.join(output_dir, "amap-config.js"))
+        and os.path.exists(os.path.join(output_dir, "geovis-config.js"))
+    )
+
+
 def generate_for_person(
     client: object,
     person: str,
@@ -297,6 +351,8 @@ def generate_for_person(
     cache_dependency_paths: Optional[List[str]],
     logger: object,
     current_profile_signature: Optional[Callable[[], str]] = None,
+    build_amap_config_js: Optional[Callable[[], bytes]] = None,
+    build_geovis_config_js: Optional[Callable[[], bytes]] = None,
 ) -> Dict[str, object]:
     md_path, html_path = story_paths(person)
     if allow_cache and os.path.exists(html_path):
@@ -331,6 +387,14 @@ def generate_for_person(
                     export_data["markdown"] = md
                     validation = validate_story_markdown_tool(md)
             if _is_usable_export_profile(export_data):
+                if _runtime_map_configs_missing(html_path):
+                    _try_write_runtime_map_configs(
+                        html_path,
+                        write_text=write_text,
+                        logger=logger,
+                        build_amap_config_js=build_amap_config_js,
+                        build_geovis_config_js=build_geovis_config_js,
+                    )
                 if _validation_issues(validation):
                     return _build_quality_degraded_result(
                         person=person,
@@ -359,6 +423,13 @@ def generate_for_person(
                 export_data["markdown"] = md
             html = render_profile_html(export_data)
             write_text(html_path, html)
+            _try_write_runtime_map_configs(
+                html_path,
+                write_text=write_text,
+                logger=logger,
+                build_amap_config_js=build_amap_config_js,
+                build_geovis_config_js=build_geovis_config_js,
+            )
             validation = validate_story_markdown_tool(md) if md else {"metrics": {}, "issues": []}
             if _validation_issues(validation):
                 return _build_quality_degraded_result(
@@ -389,6 +460,13 @@ def generate_for_person(
                 profile["markdown"] = md
                 html = render_profile_html(profile)
                 write_text(html_path, html)
+                _try_write_runtime_map_configs(
+                    html_path,
+                    write_text=write_text,
+                    logger=logger,
+                    build_amap_config_js=build_amap_config_js,
+                    build_geovis_config_js=build_geovis_config_js,
+                )
                 validation = validate_story_markdown_tool(md)
                 if _validation_issues(validation):
                     return _build_quality_degraded_result(
@@ -451,6 +529,13 @@ def generate_for_person(
             progress(f"{person} 文件写入")
         t_step = time.perf_counter()
         out = save_html(person, html)
+        _try_write_runtime_map_configs(
+            out,
+            write_text=write_text,
+            logger=logger,
+            build_amap_config_js=build_amap_config_js,
+            build_geovis_config_js=build_geovis_config_js,
+        )
         t_save = time.perf_counter() - t_step
         steps.append({"label": "文件写入", "duration": format_seconds(t_save)})
         total = time.perf_counter() - t0
@@ -541,6 +626,13 @@ def generate_for_person(
         progress(f"{person} 保存分析产物")
     t_step = time.perf_counter()
     out = save_html(person, html)
+    _try_write_runtime_map_configs(
+        out,
+        write_text=write_text,
+        logger=logger,
+        build_amap_config_js=build_amap_config_js,
+        build_geovis_config_js=build_geovis_config_js,
+    )
     t_save = time.perf_counter() - t_step
     total = time.perf_counter() - t0
     profile = load_profile_from_md(md, event_callback=event_callback, fallback_person=person)

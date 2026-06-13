@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "陈寔", "title": "", "description": "陈寔生活在东汉中后期，时值宦官与外戚交替专权，政治日趋黑暗，社会矛盾尖锐，最终爆发“党锢之祸”。他出身颍川陈氏，勤奋好学，品德高尚。初为县吏，后任太丘（今河南永城西北）长，故世称“陈太丘”。在任期间政简刑清，百姓安居。党锢之祸起，被牵连免官归乡。归乡后，他率乡人耕读传家，以德行感化乡里，其“梁上君子”的故事广为流传。他多次拒绝朝廷征召，在乡间享有极高声望，去世时赴丧者达三万余人，谥号“文范先生”。", "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "shortReview": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "dynasty": "东汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "颍川许县（今河南许昌市建安区）", "avatar": "", "birth": {"date": "104年", "location": "颍川许县（今河南许昌市建安区）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84"}, "death": {"date": "187年", "location": "颍川许县（今河南许昌市建安区）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84"}, "lifespan": "84岁（虚岁，按传统算法）", "highlights": {"honor": "", "status": "东汉末年德高望重的士人领袖，颍川陈氏的代表人物，以清高德行著称，为当时及后世士人楷模。", "identities": "官员、名士", "achievements": "治理太丘，德化乡里；身处乱世而持身以正，成为士林精神象征；留下“梁上君子”等典故，影响深远。", "works": [], "reviews": ["《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。”", "后世尊其为“文范先生”，“文”与“范”二字高度概括了其文章德行堪为世范的一生。", "与同郡荀淑、钟皓、韩韶并称“颍川四长”，共同被视为汉末德政与清流的代表。"]}}, "locations": [{"name": "颍川许县", "ancientName": "颍川郡许县", "modernName": "河南许昌市建安区", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "birth", "event": "出身颍川陈氏，家境贫寒但志于学。青少年时期在乡里以德行闻名，为日后成为乡里楷模奠定基础。", "time": "公元104年", "duration": "青少年时期及晚年大部分时间居于此", "significance": "家族根基与人生起点，也是其晚年归隐和最终去世之地，是其精神与道德影响力的中心。", "works": [], "quoteLines": []}, {"name": "太丘县", "ancientName": "沛国太丘县", "modernName": "河南永城市西北", "lat": 33.93, "lng": 116.45, "coordSystem": "WGS84", "type": "normal", "event": "担任太丘长，施政以德化为主，刑罚为辅，使得境内安定，百姓感念其恩德。", "time": "约公元150年代中期 - 公元166年", "duration": "任太丘长约数年", "significance": "这是陈寔一生中最重要的仕宦经历，“陈太丘”之名即源于此，是其政治理念与治理能力的实践地。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“（寔）除太丘长。修德清静，百姓以安。”"]}, {"name": "洛阳", "ancientName": "司隶河南尹洛阳", "modernName": "河南洛阳市", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84", "type": "normal", "event": "作为名士，曾至洛阳游学或参与士人活动。党锢之祸爆发后，在此被牵连免官。", "time": "约公元160年代", "duration": "断续停留，具体时长不详", "significance": "东汉都城，政治与文化中心。陈寔在此经历了其人生的重大转折——党锢之祸，标志着其政治生涯的结束和归隐生活的开始。", "works": [], "quoteLines": []}, {"name": "颍川郡乡里", "ancientName": "颍川郡许县乡间", "modernName": "河南许昌市建安区", "lat": 34.15, "lng": 113.48, "coordSystem": "WGS84", "type": "normal", "event": "党锢免官后归乡。期间率子弟躬耕，调解乡里纠纷，以德行感化乡人。发生“梁上君子”典故，训诫入室小偷，并赠绢放归，使其改过自新。", "time": "公元166年 - 公元187年", "duration": "约21年", "significance": "归隐之地，也是其道德影响力达到顶峰的时期。他在此塑造了颍川乡党的淳朴风气，成为天下士人仰慕的“德行”典范。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“（寔）在乡闾，平心率物。其有争讼，辄求判正，晓譬曲直，退无怨者。”", "“梁上君子”典故出自此。"]}, {"name": "颍川许县", "ancientName": "颍川许县", "modernName": "河南许昌市建安区", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "death", "event": "在家乡平静去世。因德高望重，海内赴丧者三万余人，车乘千余，共刊石立碑，谥为“文范先生”。", "time": "公元187年", "duration": "晚年直至去世", "significance": "人生终点，其盛大的葬礼是其一生德行感召力的最终体现，标志着汉末一位民间士人精神领袖的陨落。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。”"]}, {"name": "颍川（郡内活动）", "ancientName": "颍川郡（治所阳翟，", "modernName": "河南禹州市）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "normal", "event": "与同郡荀淑、钟皓、韩韶等并称“颍川四长”，共同引领了颍川地区的士风与文化，使颍川成为汉末人才渊薮。", "time": "贯穿一生", "duration": "长期", "significance": "其社会网络与影响力辐射的核心区域，其家族（颍川陈氏）与荀氏、钟氏等家族的交往，深刻影响了汉魏之际的政治格局。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**东汉中后期**，外戚宦官交替专权，政治腐败。\n- **关键事件/贡献**：以**德行**著称的地方官员和名士代表。**“梁上君子”** 典故的主人公，体现了**宽容与教化**的儒家伦理。\n- **代表作品/思想**：无个人著作传世，其思想体现在**德治**与**教化**的实践中。\n- **常见易混点/对比点**：与同时代的**党锢之祸**中激烈抗争的士人（如李膺、范滂）不同，陈寔更侧重于**归隐乡里、以德化人**的处世方式。\n\n### 高中阶段\n- **时代背景**：**东汉末年的社会危机与清议运动**。士人集团与宦官势力斗争激烈，**党锢之祸**是重要政治事件。\n- **关键事件/贡献**：**颍川陈氏**家族的奠基人。其生平是观察**汉末士人地方化、家族化**趋势的典型案例。他的归隐与德化，反映了部分士人在政治高压下转向**经营地方、培育家族**的生存策略。\n- **代表作品/思想**：其人生实践体现了**儒家名教**思想在乱世中的坚守，以及**“穷则独善其身”** 的处世哲学。\n- **常见易混点/对比点**：对比**陈寔**与**郭泰**（同为不就官职、品评人物的名士）。对比颍川陈氏（陈寔）与颍川荀氏（荀淑）在家风传承与后世发展上的异同。\n\n---", "examPoints": "### 初中阶段\n1.  **陈寔**是**东汉**时期的著名**名士**。\n2.  他最著名的故事是 **“梁上君子”** ，体现了以德感化人的教育方式。\n3.  他曾担任**太丘长**，因此被称为 **“陈太丘”**。\n4.  他生活在**东汉中后期**，当时**宦官专权**，政治黑暗。\n5.  他因品德高尚，在当时和后世享有很高声誉。\n\n### 高中阶段\n1.  陈寔是**颍川陈氏**家族的关键人物，其家族在**魏晋**时期成为显赫门阀。\n2.  他的生平与 **“党锢之祸”** 这一重大政治事件有关，曾因此被免官。\n3.  他与**荀淑、钟皓、韩韶**并称 **“颍川四长”**，是汉末颍川士人群体的代表。\n4.  他的处世方式（归隐德化）与**李膺、范滂**等党人（激烈抗争）形成对比，反映了汉末士人的不同选择。\n5.  **存疑/说法一**：关于其早年具体任职经历，史料记载较为简略。\n6.  **存疑/说法一**：“梁上君子”故事的具体发生时间，史书未明确记载。", "workTexts": {"后汉书·陈寔传": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "后汉书": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "陈寔传": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈寔（陈实）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈寔（又作陈实），字仲弓\n- **时代**：东汉\n- **出生**：公元104年，颍川许县（今河南许昌市建安区）\n- **去世**：公元187年，颍川许县（今河南许昌市建安区）\n- **享年**：84岁（虚岁，按传统算法）\n- **主要身份**：官员、名士\n- **历史地位**：东汉末年德高望重的士人领袖，颍川陈氏的代表人物，以清高德行著称，为当时及后世士人楷模。\n- **主要成就**：治理太丘，德化乡里；身处乱世而持身以正，成为士林精神象征；留下“梁上君子”等典故，影响深远。\n\n### 生平概述\n陈寔生活在东汉中后期，时值宦官与外戚交替专权，政治日趋黑暗，社会矛盾尖锐，最终爆发“党锢之祸”。他出身颍川陈氏，勤奋好学，品德高尚。初为县吏，后任太丘（今河南永城西北）长，故世称“陈太丘”。在任期间政简刑清，百姓安居。党锢之祸起，被牵连免官归乡。归乡后，他率乡人耕读传家，以德行感化乡里，其“梁上君子”的故事广为流传。他多次拒绝朝廷征召，在乡间享有极高声望，去世时赴丧者达三万余人，谥号“文范先生”。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于颍川郡（今河南中部）及周边地区，足迹未出中原。\n- ⏱️ **时间跨度**：公元104年 - 公元187年，共计83年。\n- 📍 **地理范围**：以颍川郡许县为中心，东至沛国，西至洛阳，南至汝南，北至河内。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：颍川许县\n- **公元纪年**：公元104年\n- **停留时间**：青少年时期及晚年大部分时间居于此\n- **位置**：颍川郡许县（今河南许昌市建安区）\n- **事迹**：出身颍川陈氏，家境贫寒但志于学。青少年时期在乡里以德行闻名，为日后成为乡里楷模奠定基础。\n- **意义**：家族根基与人生起点，也是其晚年归隐和最终去世之地，是其精神与道德影响力的中心。\n\n### 📍 重要地点：太丘县\n- **公元纪年**：约公元150年代中期 - 公元166年\n- **停留时间**：任太丘长约数年\n- **位置**：沛国太丘县（今河南永城市西北）\n- **事迹**：担任太丘长，施政以德化为主，刑罚为辅，使得境内安定，百姓感念其恩德。\n- **意义**：这是陈寔一生中最重要的仕宦经历，“陈太丘”之名即源于此，是其政治理念与治理能力的实践地。\n- **名篇名句**：《后汉书·陈寔传》：“（寔）除太丘长。修德清静，百姓以安。”\n\n### 📍 重要地点：洛阳\n- **公元纪年**：约公元160年代\n- **停留时间**：断续停留，具体时长不详\n- **位置**：司隶河南尹洛阳（今河南洛阳市）\n- **事迹**：作为名士，曾至洛阳游学或参与士人活动。党锢之祸爆发后，在此被牵连免官。\n- **意义**：东汉都城，政治与文化中心。陈寔在此经历了其人生的重大转折——党锢之祸，标志着其政治生涯的结束和归隐生活的开始。\n\n### 📍 重要地点：颍川郡乡里\n- **公元纪年**：公元166年 - 公元187年\n- **停留时间**：约21年\n- **位置**：颍川郡许县乡间（今河南许昌市建安区）\n- **事迹**：党锢免官后归乡。期间率子弟躬耕，调解乡里纠纷，以德行感化乡人。发生“梁上君子”典故，训诫入室小偷，并赠绢放归，使其改过自新。\n- **意义**：归隐之地，也是其道德影响力达到顶峰的时期。他在此塑造了颍川乡党的淳朴风气，成为天下士人仰慕的“德行”典范。\n- **名篇名句**：《后汉书·陈寔传》：“（寔）在乡闾，平心率物。其有争讼，辄求判正，晓譬曲直，退无怨者。”；“梁上君子”典故出自此。\n\n### 📍 重要地点：颍川（郡内活动）\n- **公元纪年**：贯穿一生\n- **停留时间**：长期\n- **位置**：颍川郡（治所阳翟，今河南禹州市）\n- **事迹**：与同郡荀淑、钟皓、韩韶等并称“颍川四长”，共同引领了颍川地区的士风与文化，使颍川成为汉末人才渊薮。\n- **意义**：其社会网络与影响力辐射的核心区域，其家族（颍川陈氏）与荀氏、钟氏等家族的交往，深刻影响了汉魏之际的政治格局。\n\n### 🔴 去世地：颍川许县\n- **公元纪年**：公元187年\n- **停留时间**：晚年直至去世\n- **位置**：颍川许县（今河南许昌市建安区）\n- **经过**：在家乡平静去世。因德高望重，海内赴丧者三万余人，车乘千余，共刊石立碑，谥为“文范先生”。\n- **意义**：人生终点，其盛大的葬礼是其一生德行感召力的最终体现，标志着汉末一位民间士人精神领袖的陨落。\n- **名篇名句**：《后汉书·陈寔传》：“中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 公元104年 | 1岁 | 出生于颍川许县。 |\n| 约120-140年代 | 青年 | 在乡里勤奋好学，以德行闻名，初为县吏。 |\n| 约150年代中期 | 约50岁 | 出任太丘长，治理有方，百姓安居。 |\n| 公元166年 | 约63岁 | 第一次党锢之祸爆发，受牵连被免官，归隐颍川乡里。 |\n| 公元166-184年 | 63-81岁 | 在乡间耕读传家，德化乡里，发生“梁上君子”等事迹，声望日隆。 |\n| 公元184年 | 81岁 | 黄巾起义爆发，党禁解除，朝廷多次征召，皆不就。 |\n| 公元187年 | 84岁 | 在颍川许县家中去世，葬礼隆重，谥号“文范先生”。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈寔在汉末清议之风与党锢之祸的背景下，以其卓越的个人德行和乡里治理实践，成为与黑暗政治相对立的道德标杆。他虽官位不高，但通过经营乡里、教化宗族，维系了地方社会的稳定与伦理秩序，其影响力从地方延伸至全国士林，成为许多士人在政治失意后的精神归宿和行为榜样，对颍川地区人才群体的形成起到了关键作用。\n\n### 对后世的影响\n1.  **道德典范**：“梁上君子”等故事成为后世儒家道德教育的经典案例，其宽容与教化并重的处世方式被广泛传颂。\n2.  **家族兴盛之基**：陈寔品德高尚，教子有方，其子侄辈（如陈纪、陈谌）皆成栋梁，为颍川陈氏在魏晋时期成为顶级门阀士族奠定了坚实的道德与声望基础。\n3.  **文化符号**：成为“德行”的代名词，后世文学、艺术作品中常以其作为贤臣、良吏、乡贤的典型形象出现。\n\n### 历史评价\n1.  《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。”\n2.  后世尊其为“文范先生”，“文”与“范”二字高度概括了其文章德行堪为世范的一生。\n3.  与同郡荀淑、钟皓、韩韶并称“颍川四长”，共同被视为汉末德政与清流的代表。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**东汉中后期**，外戚宦官交替专权，政治腐败。\n- **关键事件/贡献**：以**德行**著称的地方官员和名士代表。**“梁上君子”** 典故的主人公，体现了**宽容与教化**的儒家伦理。\n- **代表作品/思想**：无个人著作传世，其思想体现在**德治**与**教化**的实践中。\n- **常见易混点/对比点**：与同时代的**党锢之祸**中激烈抗争的士人（如李膺、范滂）不同，陈寔更侧重于**归隐乡里、以德化人**的处世方式。\n\n### 高中阶段\n- **时代背景**：**东汉末年的社会危机与清议运动**。士人集团与宦官势力斗争激烈，**党锢之祸**是重要政治事件。\n- **关键事件/贡献**：**颍川陈氏**家族的奠基人。其生平是观察**汉末士人地方化、家族化**趋势的典型案例。他的归隐与德化，反映了部分士人在政治高压下转向**经营地方、培育家族**的生存策略。\n- **代表作品/思想**：其人生实践体现了**儒家名教**思想在乱世中的坚守，以及**“穷则独善其身”** 的处世哲学。\n- **常见易混点/对比点**：对比**陈寔**与**郭泰**（同为不就官职、品评人物的名士）。对比颍川陈氏（陈寔）与颍川荀氏（荀淑）在家风传承与后世发展上的异同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n1.  **陈寔**是**东汉**时期的著名**名士**。\n2.  他最著名的故事是 **“梁上君子”** ，体现了以德感化人的教育方式。\n3.  他曾担任**太丘长**，因此被称为 **“陈太丘”**。\n4.  他生活在**东汉中后期**，当时**宦官专权**，政治黑暗。\n5.  他因品德高尚，在当时和后世享有很高声誉。\n\n### 高中阶段\n1.  陈寔是**颍川陈氏**家族的关键人物，其家族在**魏晋**时期成为显赫门阀。\n2.  他的生平与 **“党锢之祸”** 这一重大政治事件有关，曾因此被免官。\n3.  他与**荀淑、钟皓、韩韶**并称 **“颍川四长”**，是汉末颍川士人群体的代表。\n4.  他的处世方式（归隐德化）与**李膺、范滂**等党人（激烈抗争）形成对比，反映了汉末士人的不同选择。\n5.  **存疑/说法一**：关于其早年具体任职经历，史料记载较为简略。\n6.  **存疑/说法一**：“梁上君子”故事的具体发生时间，史书未明确记载。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 颍川许县 | 河南许昌市建安区 | 34.12 | 113.85 |\n| 太丘县 | 河南永城市西北 | 33.93 | 116.45 |\n| 洛阳 | 河南洛阳市 | 34.62 | 112.45 |\n| 颍川郡 | 河南禹州市 | 34.15 | 113.48 |", "relatedGraph": {"center": {"id": "陈寔（陈实）", "name": "陈寔（陈实）", "file": "陈寔（陈实）.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "review": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "foreign_name": "", "main_role_label": "", "birthplace": "颍川许县（今河南许昌市建安区）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈寔（陈实）", "name": "陈寔（陈实）", "file": "陈寔（陈实）.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "review": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "foreign_name": "", "main_role_label": "", "birthplace": "颍川许县（今河南许昌市建安区）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "汉", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "“才策谋略，世之奇士”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "“鞠躬尽瘁，死而后已”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蔡伦", "name": "蔡伦", "file": "蔡伦.html", "dynasty": "东汉", "aliases": ["龙亭侯"], "birth_year": 63, "death_year": 121, "quote": "“**蔡伦造纸**”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "桂阳郡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀彧", "name": "荀彧", "file": "荀彧.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 163, "death_year": 212, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "颍川颍阴", "birthplace_modern": "河南省许昌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈寔（陈实）", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "郭嘉", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "蔡伦", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "荀彧", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "陈寔", "title": "", "description": "陈寔生活在东汉中后期，时值宦官与外戚交替专权，政治日趋黑暗，社会矛盾尖锐，最终爆发“党锢之祸”。他出身颍川陈氏，勤奋好学，品德高尚。初为县吏，后任太丘（今河南永城西北）长，故世称“陈太丘”。在任期间政简刑清，百姓安居。党锢之祸起，被牵连免官归乡。归乡后，他率乡人耕读传家，以德行感化乡里，其“梁上君子”的故事广为流传。他多次拒绝朝廷征召，在乡间享有极高声望，去世时赴丧者达三万余人，谥号“文范先生”。", "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "shortReview": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "dynasty": "东汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "颍川许县（今河南许昌市建安区）", "avatar": "", "birth": {"date": "104年", "location": "颍川许县（今河南许昌市建安区）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84"}, "death": {"date": "187年", "location": "颍川许县（今河南许昌市建安区）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84"}, "lifespan": "84岁（虚岁，按传统算法）", "highlights": {"honor": "", "status": "东汉末年德高望重的士人领袖，颍川陈氏的代表人物，以清高德行著称，为当时及后世士人楷模。", "identities": "官员、名士", "achievements": "治理太丘，德化乡里；身处乱世而持身以正，成为士林精神象征；留下“梁上君子”等典故，影响深远。", "works": [], "reviews": ["《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。”", "后世尊其为“文范先生”，“文”与“范”二字高度概括了其文章德行堪为世范的一生。", "与同郡荀淑、钟皓、韩韶并称“颍川四长”，共同被视为汉末德政与清流的代表。"]}}, "locations": [{"name": "颍川许县", "ancientName": "颍川郡许县", "modernName": "河南许昌市建安区", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "birth", "event": "出身颍川陈氏，家境贫寒但志于学。青少年时期在乡里以德行闻名，为日后成为乡里楷模奠定基础。", "time": "公元104年", "duration": "青少年时期及晚年大部分时间居于此", "significance": "家族根基与人生起点，也是其晚年归隐和最终去世之地，是其精神与道德影响力的中心。", "works": [], "quoteLines": []}, {"name": "太丘县", "ancientName": "沛国太丘县", "modernName": "河南永城市西北", "lat": 33.93, "lng": 116.45, "coordSystem": "WGS84", "type": "normal", "event": "担任太丘长，施政以德化为主，刑罚为辅，使得境内安定，百姓感念其恩德。", "time": "约公元150年代中期 - 公元166年", "duration": "任太丘长约数年", "significance": "这是陈寔一生中最重要的仕宦经历，“陈太丘”之名即源于此，是其政治理念与治理能力的实践地。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“（寔）除太丘长。修德清静，百姓以安。”"]}, {"name": "洛阳", "ancientName": "司隶河南尹洛阳", "modernName": "河南洛阳市", "lat": 34.62, "lng": 112.45, "coordSystem": "WGS84", "type": "normal", "event": "作为名士，曾至洛阳游学或参与士人活动。党锢之祸爆发后，在此被牵连免官。", "time": "约公元160年代", "duration": "断续停留，具体时长不详", "significance": "东汉都城，政治与文化中心。陈寔在此经历了其人生的重大转折——党锢之祸，标志着其政治生涯的结束和归隐生活的开始。", "works": [], "quoteLines": []}, {"name": "颍川郡乡里", "ancientName": "颍川郡许县乡间", "modernName": "河南许昌市建安区", "lat": 34.15, "lng": 113.48, "coordSystem": "WGS84", "type": "normal", "event": "党锢免官后归乡。期间率子弟躬耕，调解乡里纠纷，以德行感化乡人。发生“梁上君子”典故，训诫入室小偷，并赠绢放归，使其改过自新。", "time": "公元166年 - 公元187年", "duration": "约21年", "significance": "归隐之地，也是其道德影响力达到顶峰的时期。他在此塑造了颍川乡党的淳朴风气，成为天下士人仰慕的“德行”典范。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“（寔）在乡闾，平心率物。其有争讼，辄求判正，晓譬曲直，退无怨者。”", "“梁上君子”典故出自此。"]}, {"name": "颍川许县", "ancientName": "颍川许县", "modernName": "河南许昌市建安区", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "death", "event": "在家乡平静去世。因德高望重，海内赴丧者三万余人，车乘千余，共刊石立碑，谥为“文范先生”。", "time": "公元187年", "duration": "晚年直至去世", "significance": "人生终点，其盛大的葬礼是其一生德行感召力的最终体现，标志着汉末一位民间士人精神领袖的陨落。", "works": [], "quoteLines": ["《后汉书·陈寔传》：“中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。”"]}, {"name": "颍川（郡内活动）", "ancientName": "颍川郡（治所阳翟，", "modernName": "河南禹州市）", "lat": 34.12, "lng": 113.85, "coordSystem": "WGS84", "type": "normal", "event": "与同郡荀淑、钟皓、韩韶等并称“颍川四长”，共同引领了颍川地区的士风与文化，使颍川成为汉末人才渊薮。", "time": "贯穿一生", "duration": "长期", "significance": "其社会网络与影响力辐射的核心区域，其家族（颍川陈氏）与荀氏、钟氏等家族的交往，深刻影响了汉魏之际的政治格局。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**东汉中后期**，外戚宦官交替专权，政治腐败。\n- **关键事件/贡献**：以**德行**著称的地方官员和名士代表。**“梁上君子”** 典故的主人公，体现了**宽容与教化**的儒家伦理。\n- **代表作品/思想**：无个人著作传世，其思想体现在**德治**与**教化**的实践中。\n- **常见易混点/对比点**：与同时代的**党锢之祸**中激烈抗争的士人（如李膺、范滂）不同，陈寔更侧重于**归隐乡里、以德化人**的处世方式。\n\n### 高中阶段\n- **时代背景**：**东汉末年的社会危机与清议运动**。士人集团与宦官势力斗争激烈，**党锢之祸**是重要政治事件。\n- **关键事件/贡献**：**颍川陈氏**家族的奠基人。其生平是观察**汉末士人地方化、家族化**趋势的典型案例。他的归隐与德化，反映了部分士人在政治高压下转向**经营地方、培育家族**的生存策略。\n- **代表作品/思想**：其人生实践体现了**儒家名教**思想在乱世中的坚守，以及**“穷则独善其身”** 的处世哲学。\n- **常见易混点/对比点**：对比**陈寔**与**郭泰**（同为不就官职、品评人物的名士）。对比颍川陈氏（陈寔）与颍川荀氏（荀淑）在家风传承与后世发展上的异同。\n\n---", "examPoints": "### 初中阶段\n1.  **陈寔**是**东汉**时期的著名**名士**。\n2.  他最著名的故事是 **“梁上君子”** ，体现了以德感化人的教育方式。\n3.  他曾担任**太丘长**，因此被称为 **“陈太丘”**。\n4.  他生活在**东汉中后期**，当时**宦官专权**，政治黑暗。\n5.  他因品德高尚，在当时和后世享有很高声誉。\n\n### 高中阶段\n1.  陈寔是**颍川陈氏**家族的关键人物，其家族在**魏晋**时期成为显赫门阀。\n2.  他的生平与 **“党锢之祸”** 这一重大政治事件有关，曾因此被免官。\n3.  他与**荀淑、钟皓、韩韶**并称 **“颍川四长”**，是汉末颍川士人群体的代表。\n4.  他的处世方式（归隐德化）与**李膺、范滂**等党人（激烈抗争）形成对比，反映了汉末士人的不同选择。\n5.  **存疑/说法一**：关于其早年具体任职经历，史料记载较为简略。\n6.  **存疑/说法一**：“梁上君子”故事的具体发生时间，史书未明确记载。", "workTexts": {"后汉书·陈寔传": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "后汉书": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "陈寔传": "中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈寔（陈实）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈寔（又作陈实），字仲弓\n- **时代**：东汉\n- **出生**：公元104年，颍川许县（今河南许昌市建安区）\n- **去世**：公元187年，颍川许县（今河南许昌市建安区）\n- **享年**：84岁（虚岁，按传统算法）\n- **主要身份**：官员、名士\n- **历史地位**：东汉末年德高望重的士人领袖，颍川陈氏的代表人物，以清高德行著称，为当时及后世士人楷模。\n- **主要成就**：治理太丘，德化乡里；身处乱世而持身以正，成为士林精神象征；留下“梁上君子”等典故，影响深远。\n\n### 生平概述\n陈寔生活在东汉中后期，时值宦官与外戚交替专权，政治日趋黑暗，社会矛盾尖锐，最终爆发“党锢之祸”。他出身颍川陈氏，勤奋好学，品德高尚。初为县吏，后任太丘（今河南永城西北）长，故世称“陈太丘”。在任期间政简刑清，百姓安居。党锢之祸起，被牵连免官归乡。归乡后，他率乡人耕读传家，以德行感化乡里，其“梁上君子”的故事广为流传。他多次拒绝朝廷征召，在乡间享有极高声望，去世时赴丧者达三万余人，谥号“文范先生”。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于颍川郡（今河南中部）及周边地区，足迹未出中原。\n- ⏱️ **时间跨度**：公元104年 - 公元187年，共计83年。\n- 📍 **地理范围**：以颍川郡许县为中心，东至沛国，西至洛阳，南至汝南，北至河内。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：颍川许县\n- **公元纪年**：公元104年\n- **停留时间**：青少年时期及晚年大部分时间居于此\n- **位置**：颍川郡许县（今河南许昌市建安区）\n- **事迹**：出身颍川陈氏，家境贫寒但志于学。青少年时期在乡里以德行闻名，为日后成为乡里楷模奠定基础。\n- **意义**：家族根基与人生起点，也是其晚年归隐和最终去世之地，是其精神与道德影响力的中心。\n\n### 📍 重要地点：太丘县\n- **公元纪年**：约公元150年代中期 - 公元166年\n- **停留时间**：任太丘长约数年\n- **位置**：沛国太丘县（今河南永城市西北）\n- **事迹**：担任太丘长，施政以德化为主，刑罚为辅，使得境内安定，百姓感念其恩德。\n- **意义**：这是陈寔一生中最重要的仕宦经历，“陈太丘”之名即源于此，是其政治理念与治理能力的实践地。\n- **名篇名句**：《后汉书·陈寔传》：“（寔）除太丘长。修德清静，百姓以安。”\n\n### 📍 重要地点：洛阳\n- **公元纪年**：约公元160年代\n- **停留时间**：断续停留，具体时长不详\n- **位置**：司隶河南尹洛阳（今河南洛阳市）\n- **事迹**：作为名士，曾至洛阳游学或参与士人活动。党锢之祸爆发后，在此被牵连免官。\n- **意义**：东汉都城，政治与文化中心。陈寔在此经历了其人生的重大转折——党锢之祸，标志着其政治生涯的结束和归隐生活的开始。\n\n### 📍 重要地点：颍川郡乡里\n- **公元纪年**：公元166年 - 公元187年\n- **停留时间**：约21年\n- **位置**：颍川郡许县乡间（今河南许昌市建安区）\n- **事迹**：党锢免官后归乡。期间率子弟躬耕，调解乡里纠纷，以德行感化乡人。发生“梁上君子”典故，训诫入室小偷，并赠绢放归，使其改过自新。\n- **意义**：归隐之地，也是其道德影响力达到顶峰的时期。他在此塑造了颍川乡党的淳朴风气，成为天下士人仰慕的“德行”典范。\n- **名篇名句**：《后汉书·陈寔传》：“（寔）在乡闾，平心率物。其有争讼，辄求判正，晓譬曲直，退无怨者。”；“梁上君子”典故出自此。\n\n### 📍 重要地点：颍川（郡内活动）\n- **公元纪年**：贯穿一生\n- **停留时间**：长期\n- **位置**：颍川郡（治所阳翟，今河南禹州市）\n- **事迹**：与同郡荀淑、钟皓、韩韶等并称“颍川四长”，共同引领了颍川地区的士风与文化，使颍川成为汉末人才渊薮。\n- **意义**：其社会网络与影响力辐射的核心区域，其家族（颍川陈氏）与荀氏、钟氏等家族的交往，深刻影响了汉魏之际的政治格局。\n\n### 🔴 去世地：颍川许县\n- **公元纪年**：公元187年\n- **停留时间**：晚年直至去世\n- **位置**：颍川许县（今河南许昌市建安区）\n- **经过**：在家乡平静去世。因德高望重，海内赴丧者三万余人，车乘千余，共刊石立碑，谥为“文范先生”。\n- **意义**：人生终点，其盛大的葬礼是其一生德行感召力的最终体现，标志着汉末一位民间士人精神领袖的陨落。\n- **名篇名句**：《后汉书·陈寔传》：“中平四年，年八十四，卒于家。何进遣使吊祭，海内赴者三万余人，制衰麻者以百数。共刊石立碑，谥为文范先生。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 公元104年 | 1岁 | 出生于颍川许县。 |\n| 约120-140年代 | 青年 | 在乡里勤奋好学，以德行闻名，初为县吏。 |\n| 约150年代中期 | 约50岁 | 出任太丘长，治理有方，百姓安居。 |\n| 公元166年 | 约63岁 | 第一次党锢之祸爆发，受牵连被免官，归隐颍川乡里。 |\n| 公元166-184年 | 63-81岁 | 在乡间耕读传家，德化乡里，发生“梁上君子”等事迹，声望日隆。 |\n| 公元184年 | 81岁 | 黄巾起义爆发，党禁解除，朝廷多次征召，皆不就。 |\n| 公元187年 | 84岁 | 在颍川许县家中去世，葬礼隆重，谥号“文范先生”。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈寔在汉末清议之风与党锢之祸的背景下，以其卓越的个人德行和乡里治理实践，成为与黑暗政治相对立的道德标杆。他虽官位不高，但通过经营乡里、教化宗族，维系了地方社会的稳定与伦理秩序，其影响力从地方延伸至全国士林，成为许多士人在政治失意后的精神归宿和行为榜样，对颍川地区人才群体的形成起到了关键作用。\n\n### 对后世的影响\n1.  **道德典范**：“梁上君子”等故事成为后世儒家道德教育的经典案例，其宽容与教化并重的处世方式被广泛传颂。\n2.  **家族兴盛之基**：陈寔品德高尚，教子有方，其子侄辈（如陈纪、陈谌）皆成栋梁，为颍川陈氏在魏晋时期成为顶级门阀士族奠定了坚实的道德与声望基础。\n3.  **文化符号**：成为“德行”的代名词，后世文学、艺术作品中常以其作为贤臣、良吏、乡贤的典型形象出现。\n\n### 历史评价\n1.  《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。”\n2.  后世尊其为“文范先生”，“文”与“范”二字高度概括了其文章德行堪为世范的一生。\n3.  与同郡荀淑、钟皓、韩韶并称“颍川四长”，共同被视为汉末德政与清流的代表。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**东汉中后期**，外戚宦官交替专权，政治腐败。\n- **关键事件/贡献**：以**德行**著称的地方官员和名士代表。**“梁上君子”** 典故的主人公，体现了**宽容与教化**的儒家伦理。\n- **代表作品/思想**：无个人著作传世，其思想体现在**德治**与**教化**的实践中。\n- **常见易混点/对比点**：与同时代的**党锢之祸**中激烈抗争的士人（如李膺、范滂）不同，陈寔更侧重于**归隐乡里、以德化人**的处世方式。\n\n### 高中阶段\n- **时代背景**：**东汉末年的社会危机与清议运动**。士人集团与宦官势力斗争激烈，**党锢之祸**是重要政治事件。\n- **关键事件/贡献**：**颍川陈氏**家族的奠基人。其生平是观察**汉末士人地方化、家族化**趋势的典型案例。他的归隐与德化，反映了部分士人在政治高压下转向**经营地方、培育家族**的生存策略。\n- **代表作品/思想**：其人生实践体现了**儒家名教**思想在乱世中的坚守，以及**“穷则独善其身”** 的处世哲学。\n- **常见易混点/对比点**：对比**陈寔**与**郭泰**（同为不就官职、品评人物的名士）。对比颍川陈氏（陈寔）与颍川荀氏（荀淑）在家风传承与后世发展上的异同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n1.  **陈寔**是**东汉**时期的著名**名士**。\n2.  他最著名的故事是 **“梁上君子”** ，体现了以德感化人的教育方式。\n3.  他曾担任**太丘长**，因此被称为 **“陈太丘”**。\n4.  他生活在**东汉中后期**，当时**宦官专权**，政治黑暗。\n5.  他因品德高尚，在当时和后世享有很高声誉。\n\n### 高中阶段\n1.  陈寔是**颍川陈氏**家族的关键人物，其家族在**魏晋**时期成为显赫门阀。\n2.  他的生平与 **“党锢之祸”** 这一重大政治事件有关，曾因此被免官。\n3.  他与**荀淑、钟皓、韩韶**并称 **“颍川四长”**，是汉末颍川士人群体的代表。\n4.  他的处世方式（归隐德化）与**李膺、范滂**等党人（激烈抗争）形成对比，反映了汉末士人的不同选择。\n5.  **存疑/说法一**：关于其早年具体任职经历，史料记载较为简略。\n6.  **存疑/说法一**：“梁上君子”故事的具体发生时间，史书未明确记载。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 颍川许县 | 河南许昌市建安区 | 34.12 | 113.85 |\n| 太丘县 | 河南永城市西北 | 33.93 | 116.45 |\n| 洛阳 | 河南洛阳市 | 34.62 | 112.45 |\n| 颍川郡 | 河南禹州市 | 34.15 | 113.48 |", "relatedGraph": {"center": {"id": "陈寔（陈实）", "name": "陈寔（陈实）", "file": "陈寔（陈实）.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "review": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "foreign_name": "", "main_role_label": "", "birthplace": "颍川许县（今河南许昌市建安区）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈寔（陈实）", "name": "陈寔（陈实）", "file": "陈寔（陈实）.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "review": "汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故不离群，行成乎身而道训天下，故凶邪不能以权夺，王公不能以贵骄，所以声教废于上，而风俗清乎下也。", "foreign_name": "", "main_role_label": "", "birthplace": "颍川许县（今河南许昌市建安区）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "汉", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "“才策谋略，世之奇士”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "“鞠躬尽瘁，死而后已”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蔡伦", "name": "蔡伦", "file": "蔡伦.html", "dynasty": "东汉", "aliases": ["龙亭侯"], "birth_year": 63, "death_year": 121, "quote": "“**蔡伦造纸**”", "review": "", "foreign_name": "", "main_role_label": "发明家", "birthplace": "桂阳郡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀彧", "name": "荀彧", "file": "荀彧.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 163, "death_year": 212, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "颍川颍阴", "birthplace_modern": "河南省许昌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈寔（陈实）", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "郭嘉", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "蔡伦", "label": "同时代人物", "confidence": null}, {"source": "陈寔（陈实）", "target": "荀彧", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -670,6 +670,42 @@ def test_story_map_wrapper_preserves_quality_degraded_result_as_usable(tmp_path,
     assert refreshed == [person]
 
 
+def test_should_refresh_stellar_home_when_homepage_artifacts_are_missing(tmp_path):
+    html_path = tmp_path / "霍去病.html"
+    html_path.write_text("<html></html>", encoding="utf-8")
+
+    result = sm._GENERATION_API["should_refresh_stellar_home"](
+        {
+            "ok": True,
+            "person": "霍去病",
+            "html_path": str(html_path),
+            "cached": True,
+            "refreshed": False,
+        }
+    )
+
+    assert result is True
+
+
+def test_should_skip_refresh_when_cached_result_has_homepage_artifacts(tmp_path):
+    html_path = tmp_path / "霍去病.html"
+    html_path.write_text("<html></html>", encoding="utf-8")
+    (tmp_path / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (tmp_path / "stellar_home_data.json").write_text("{}", encoding="utf-8")
+
+    result = sm._GENERATION_API["should_refresh_stellar_home"](
+        {
+            "ok": True,
+            "person": "霍去病",
+            "html_path": str(html_path),
+            "cached": True,
+            "refreshed": False,
+        }
+    )
+
+    assert result is False
+
+
 def test_run_person_generation_treats_degraded_output_as_usable(capsys):
     story_cli.run_person_generation(
         person_text="霍去病",
@@ -936,6 +972,152 @@ def test_generate_for_person_refreshes_cached_html_when_template_signature_is_st
     assert result["cached"] is True
     assert result["refreshed"] is True
     assert result["_profile"]["person"]["name"] == "新诸葛亮"
+
+
+def test_generate_for_person_writes_runtime_map_config_files_next_to_html(tmp_path):
+    md_path = tmp_path / "关羽.md"
+    html_path = tmp_path / "关羽.html"
+    md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person="关羽",
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {"person": {"name": "旧关羽"}},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": "关羽"}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: str(html_path),
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+        build_amap_config_js=lambda: b'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";',
+        build_geovis_config_js=lambda: b'window.GEOVIS_TOKEN="geo";',
+    )
+
+    assert result["ok"] is True
+    assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";'
+    assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
+
+
+def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(tmp_path):
+    md_path = tmp_path / "关羽.md"
+    html_path = tmp_path / "关羽.html"
+    md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
+    html_path.write_text(
+        '<script>const data = {"person":{"name":"关羽"}};\nwindow.__EXPORT_DATA__ = data;</script>\n'
+        '<script src="./amap-config.js"></script>\n'
+        '<script src="./geovis-config.js"></script>',
+        encoding="utf-8",
+    )
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person="关羽",
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {"person": {"name": "关羽"}},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": "关羽"}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: str(html_path),
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+        build_amap_config_js=lambda: b'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";',
+        build_geovis_config_js=lambda: b'window.GEOVIS_TOKEN="geo";',
+    )
+
+    assert result["ok"] is True
+    assert result["cached"] is True
+    assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";'
+    assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
+
+
+def test_generate_for_person_cache_hit_keeps_cached_result_when_runtime_config_write_fails(tmp_path):
+    md_path = tmp_path / "关羽.md"
+    html_path = tmp_path / "关羽.html"
+    md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
+    html_path.write_text(
+        '<script>const data = {"person":{"name":"关羽"}};\nwindow.__EXPORT_DATA__ = data;</script>\n'
+        '<script src="/amap-config.js"></script>\n'
+        '<script src="/geovis-config.js"></script>',
+        encoding="utf-8",
+    )
+
+    warnings = []
+
+    def _write_text(path, content):
+        target = Path(path)
+        if target.name in {"amap-config.js", "geovis-config.js"}:
+            raise PermissionError(f"readonly: {target.name}")
+        target.write_text(content, encoding="utf-8")
+
+    logger = type("Logger", (), {"warning": lambda *args, **kwargs: warnings.append((args, kwargs))})()
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person="关羽",
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {"person": {"name": "关羽"}},
+        write_text=_write_text,
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": "关羽"}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: str(html_path),
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=logger,
+        build_amap_config_js=lambda: b'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";',
+        build_geovis_config_js=lambda: b'window.GEOVIS_TOKEN="geo";',
+    )
+
+    assert result["ok"] is True
+    assert result["cached"] is True
+    assert result["html_path"] == str(html_path)
+    assert warnings
+    assert not (tmp_path / "amap-config.js").exists()
+    assert not (tmp_path / "geovis-config.js").exists()
 
 
 def test_cli_target_resolution_does_not_fallback_to_question_sentence():

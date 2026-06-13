@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "阎振三", "title": "", "description": "阎振三的身份存在重大疑问。现有信息矛盾且缺乏可靠史料来源，其真实生平、活动时代及具体事迹均无法确定，有待进一步考证。", "quote": "无直接相关作品。", "shortReview": "无直接相关作品。", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "存疑。因身份无法确认，具体历史地位无从谈起。", "identities": "存疑。身份无法确认，缺乏可靠史料证实。需注意区分同名人物。", "achievements": "无考。", "works": [], "reviews": ["无考。"]}}, "locations": [], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "> **说明**：阎振三并非初高中历史教材中的核心或重点人物。教材在讲述“明末农民起义”与“李自成”时，通常不会具体提及阎振三。以下知识点基于教材对相关背景的叙述进行关联梳理，**并非阎振三本人的确切事迹，也非其与这些事件存在直接关联的证据**。\n\n### 初中阶段\n- **时代背景**：明朝末年，**政治腐败**，**天灾频繁**，社会矛盾尖锐。\n- **关键事件**：**李自成**领导的农民起义提出“**均田免粮**”口号，得到农民拥护。\n- **代表作品/思想**：无直接关联。\n- **常见易混点/对比点**：区分李自成（闯王）与张献忠等其他农民起义领袖；理解农民起义是明朝灭亡的重要原因之一。\n\n### 高中阶段\n- **时代背景**：明末**小冰期**气候灾害、**白银流入减少**导致的经济危机、**三饷加派**激化矛盾。\n- **关键事件**：李自成起义军从**陕北**发源，经**河南**、**湖北**发展壮大，1644年在**西安**建立**大顺**政权，后攻占**北京**，推翻明朝。\n- **代表作品/思想**：起义军口号“均田免粮”反映了**平均主义**诉求。\n- **常见易混点/对比点**：分析明末农民起义与**清军入关**、**明朝灭亡**三者间的复杂关系；对比李自成政权与朱元璋政权在建立过程上的异同。\n\n---", "examPoints": "> **说明**：阎振三本人基本不作为独立考点出现。以下考点围绕其所属的历史事件与群体（如果其身份为明末人物成立）。\n\n### 初中阶段\n- 明朝灭亡的时间（**1644年**）和直接原因（**李自成起义军攻入北京**）。\n- 李自成起义的口号（**均田免粮**）及其影响。\n- 大顺政权的建立者（**李自成**）和都城（**西安**）。\n\n### 高中阶段\n- 明末农民起义爆发的深层社会经济原因（土地兼并、赋役沉重、自然灾害等）。\n- 李自成起义军从流寇主义到建立政权的转变过程。\n- **山海关之战**的经过及其对中国历史走向（清军入关、明清易代）的决定性影响。\n- （存疑/说法不一）关于李自成失败原因的分析（如战略失误、腐化过快、未能妥善处理与吴三桂及清军的关系等）。", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阎振三（身份存疑）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：阎振三\n- **时代**：存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。\n- **出生**：存疑/说法不一/待考\n- **去世**：不详\n- **享年**：不详\n- **主要身份**：存疑。身份无法确认，缺乏可靠史料证实。需注意区分同名人物。\n- **历史地位**：存疑。因身份无法确认，具体历史地位无从谈起。\n- **主要成就**：无考。\n\n### 生平概述\n阎振三的身份存在重大疑问。现有信息矛盾且缺乏可靠史料来源，其真实生平、活动时代及具体事迹均无法确定，有待进一步考证。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：不详。因人物身份存疑，无法确定具体活动范围。\n- ⏱️ **时间跨度**：不详。\n- 📍 **地理范围**：不详。因人物身份存疑，无法确定。\n- 🌟 **重要节点数量**：无考。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n> **说明**：由于阎振三的真实身份存疑，以下内容仅为基于一种说法的推测，不具备可靠性。\n\n### 🟢 出生地：存疑/说法不一/待考\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：存疑/说法不一/待考\n- **事迹**：无考。\n- **意义**：无考。\n\n### 📍 重要地点：不详\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：不详\n- **事迹**：无考。\n- **意义**：无考。\n- **名篇名句**：无直接相关作品。\n\n### 🔴 去世地：不详\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：不详\n- **经过**：无考。\n- **意义**：无考。\n- **名篇名句**：无直接相关作品。\n\n---\n\n## 四、生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 不详 | 不详 | 无可靠时间线信息。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n无考。\n\n### 对后世的影响\n无考。\n\n### 历史评价\n无考。\n\n---\n\n## 六、地点坐标\n> **说明**：因人物身份及所有活动地点均存疑，无可靠地理坐标信息。\n\n---\n\n## 人教版教材知识点\n> **说明**：阎振三并非初高中历史教材中的核心或重点人物。教材在讲述“明末农民起义”与“李自成”时，通常不会具体提及阎振三。以下知识点基于教材对相关背景的叙述进行关联梳理，**并非阎振三本人的确切事迹，也非其与这些事件存在直接关联的证据**。\n\n### 初中阶段\n- **时代背景**：明朝末年，**政治腐败**，**天灾频繁**，社会矛盾尖锐。\n- **关键事件**：**李自成**领导的农民起义提出“**均田免粮**”口号，得到农民拥护。\n- **代表作品/思想**：无直接关联。\n- **常见易混点/对比点**：区分李自成（闯王）与张献忠等其他农民起义领袖；理解农民起义是明朝灭亡的重要原因之一。\n\n### 高中阶段\n- **时代背景**：明末**小冰期**气候灾害、**白银流入减少**导致的经济危机、**三饷加派**激化矛盾。\n- **关键事件**：李自成起义军从**陕北**发源，经**河南**、**湖北**发展壮大，1644年在**西安**建立**大顺**政权，后攻占**北京**，推翻明朝。\n- **代表作品/思想**：起义军口号“均田免粮”反映了**平均主义**诉求。\n- **常见易混点/对比点**：分析明末农民起义与**清军入关**、**明朝灭亡**三者间的复杂关系；对比李自成政权与朱元璋政权在建立过程上的异同。\n\n---\n\n## 初高中阶段考点\n> **说明**：阎振三本人基本不作为独立考点出现。以下考点围绕其所属的历史事件与群体（如果其身份为明末人物成立）。\n\n### 初中阶段\n- 明朝灭亡的时间（**1644年**）和直接原因（**李自成起义军攻入北京**）。\n- 李自成起义的口号（**均田免粮**）及其影响。\n- 大顺政权的建立者（**李自成**）和都城（**西安**）。\n\n### 高中阶段\n- 明末农民起义爆发的深层社会经济原因（土地兼并、赋役沉重、自然灾害等）。\n- 李自成起义军从流寇主义到建立政权的转变过程。\n- **山海关之战**的经过及其对中国历史走向（清军入关、明清易代）的决定性影响。\n- （存疑/说法不一）关于李自成失败原因的分析（如战略失误、腐化过快、未能妥善处理与吴三桂及清军的关系等）。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "阎振三（身份存疑）", "name": "阎振三（身份存疑）", "file": "阎振三.html", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "aliases": ["阎振三"], "birth_year": 1506, "death_year": null, "quote": "“明末农民起义”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阎振三（身份存疑）", "name": "阎振三（身份存疑）", "file": "阎振三.html", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "aliases": ["阎振三"], "birth_year": 1506, "death_year": null, "quote": "“明末农民起义”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "明", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "“高筑墙、广积粮、缓称王”", "review": "*明太祖实录**：称其“崛起布衣，奄奠海宇，西汉以后所未有也”。", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李大钊", "name": "李大钊", "file": "李大钊.html", "dynasty": "近代", "aliases": [], "birth_year": 1889, "death_year": 1927, "quote": "“南陈北李，相约建党”", "review": "", "foreign_name": "", "main_role_label": "学者", "birthplace": "直隶省乐亭县大黑坨村", "birthplace_modern": "河北省唐山市乐亭县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "张作霖", "name": "张作霖", "file": "张作霖.html", "dynasty": "近代", "aliases": ["张雨亭", "张老疙瘩"], "birth_year": 1875, "death_year": 1928, "quote": "“清末民初社会动荡”", "review": "", "foreign_name": "", "main_role_label": "奉系军阀首领", "birthplace": "奉天省海城县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "贾玮", "name": "贾玮", "file": "贾玮.html", "dynasty": "存疑（有说法归于明代，但无确证，且无可靠史料支持）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“被历史湮没的个体”", "review": "*无主流史家评价**：在正史及重要私家史著中，未见对其的专门评价。", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐银平", "name": "唐银平", "file": "唐银平.html", "dynasty": "存疑（公开可查的权威历史与文学资料中未见明确记载）", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于“唐银平”这一人物，在公开的权威历史文献、文学典籍及主流传记资料中均未见明确、系统的记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马晨明", "name": "马晨明", "file": "马晨明.html", "dynasty": "存疑/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "“无法确定的信息明确标注‘不详’或‘存疑’”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阎振三（身份存疑）", "target": "朱元璋", "label": "君臣", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "李大钊", "label": "同册共现", "confidence": 0.15}, {"source": "阎振三（身份存疑）", "target": "张作霖", "label": "同册共现", "confidence": 0.15}, {"source": "阎振三（身份存疑）", "target": "贾玮", "label": "同时代人物", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "唐银平", "label": "同时代人物", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "马晨明", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "阎振三", "title": "", "description": "阎振三的身份存在重大疑问。现有信息矛盾且缺乏可靠史料来源，其真实生平、活动时代及具体事迹均无法确定，有待进一步考证。", "quote": "无直接相关作品。", "shortReview": "无直接相关作品。", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "存疑。因身份无法确认，具体历史地位无从谈起。", "identities": "存疑。身份无法确认，缺乏可靠史料证实。需注意区分同名人物。", "achievements": "无考。", "works": [], "reviews": ["无考。"]}}, "locations": [], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "> **说明**：阎振三并非初高中历史教材中的核心或重点人物。教材在讲述“明末农民起义”与“李自成”时，通常不会具体提及阎振三。以下知识点基于教材对相关背景的叙述进行关联梳理，**并非阎振三本人的确切事迹，也非其与这些事件存在直接关联的证据**。\n\n### 初中阶段\n- **时代背景**：明朝末年，**政治腐败**，**天灾频繁**，社会矛盾尖锐。\n- **关键事件**：**李自成**领导的农民起义提出“**均田免粮**”口号，得到农民拥护。\n- **代表作品/思想**：无直接关联。\n- **常见易混点/对比点**：区分李自成（闯王）与张献忠等其他农民起义领袖；理解农民起义是明朝灭亡的重要原因之一。\n\n### 高中阶段\n- **时代背景**：明末**小冰期**气候灾害、**白银流入减少**导致的经济危机、**三饷加派**激化矛盾。\n- **关键事件**：李自成起义军从**陕北**发源，经**河南**、**湖北**发展壮大，1644年在**西安**建立**大顺**政权，后攻占**北京**，推翻明朝。\n- **代表作品/思想**：起义军口号“均田免粮”反映了**平均主义**诉求。\n- **常见易混点/对比点**：分析明末农民起义与**清军入关**、**明朝灭亡**三者间的复杂关系；对比李自成政权与朱元璋政权在建立过程上的异同。\n\n---", "examPoints": "> **说明**：阎振三本人基本不作为独立考点出现。以下考点围绕其所属的历史事件与群体（如果其身份为明末人物成立）。\n\n### 初中阶段\n- 明朝灭亡的时间（**1644年**）和直接原因（**李自成起义军攻入北京**）。\n- 李自成起义的口号（**均田免粮**）及其影响。\n- 大顺政权的建立者（**李自成**）和都城（**西安**）。\n\n### 高中阶段\n- 明末农民起义爆发的深层社会经济原因（土地兼并、赋役沉重、自然灾害等）。\n- 李自成起义军从流寇主义到建立政权的转变过程。\n- **山海关之战**的经过及其对中国历史走向（清军入关、明清易代）的决定性影响。\n- （存疑/说法不一）关于李自成失败原因的分析（如战略失误、腐化过快、未能妥善处理与吴三桂及清军的关系等）。", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阎振三（身份存疑）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：阎振三\n- **时代**：存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。\n- **出生**：存疑/说法不一/待考\n- **去世**：不详\n- **享年**：不详\n- **主要身份**：存疑。身份无法确认，缺乏可靠史料证实。需注意区分同名人物。\n- **历史地位**：存疑。因身份无法确认，具体历史地位无从谈起。\n- **主要成就**：无考。\n\n### 生平概述\n阎振三的身份存在重大疑问。现有信息矛盾且缺乏可靠史料来源，其真实生平、活动时代及具体事迹均无法确定，有待进一步考证。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：不详。因人物身份存疑，无法确定具体活动范围。\n- ⏱️ **时间跨度**：不详。\n- 📍 **地理范围**：不详。因人物身份存疑，无法确定。\n- 🌟 **重要节点数量**：无考。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n> **说明**：由于阎振三的真实身份存疑，以下内容仅为基于一种说法的推测，不具备可靠性。\n\n### 🟢 出生地：存疑/说法不一/待考\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：存疑/说法不一/待考\n- **事迹**：无考。\n- **意义**：无考。\n\n### 📍 重要地点：不详\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：不详\n- **事迹**：无考。\n- **意义**：无考。\n- **名篇名句**：无直接相关作品。\n\n### 🔴 去世地：不详\n- **公元纪年**：不详\n- **停留时间**：不详\n- **位置**：不详\n- **经过**：无考。\n- **意义**：无考。\n- **名篇名句**：无直接相关作品。\n\n---\n\n## 四、生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 不详 | 不详 | 无可靠时间线信息。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n无考。\n\n### 对后世的影响\n无考。\n\n### 历史评价\n无考。\n\n---\n\n## 六、地点坐标\n> **说明**：因人物身份及所有活动地点均存疑，无可靠地理坐标信息。\n\n---\n\n## 人教版教材知识点\n> **说明**：阎振三并非初高中历史教材中的核心或重点人物。教材在讲述“明末农民起义”与“李自成”时，通常不会具体提及阎振三。以下知识点基于教材对相关背景的叙述进行关联梳理，**并非阎振三本人的确切事迹，也非其与这些事件存在直接关联的证据**。\n\n### 初中阶段\n- **时代背景**：明朝末年，**政治腐败**，**天灾频繁**，社会矛盾尖锐。\n- **关键事件**：**李自成**领导的农民起义提出“**均田免粮**”口号，得到农民拥护。\n- **代表作品/思想**：无直接关联。\n- **常见易混点/对比点**：区分李自成（闯王）与张献忠等其他农民起义领袖；理解农民起义是明朝灭亡的重要原因之一。\n\n### 高中阶段\n- **时代背景**：明末**小冰期**气候灾害、**白银流入减少**导致的经济危机、**三饷加派**激化矛盾。\n- **关键事件**：李自成起义军从**陕北**发源，经**河南**、**湖北**发展壮大，1644年在**西安**建立**大顺**政权，后攻占**北京**，推翻明朝。\n- **代表作品/思想**：起义军口号“均田免粮”反映了**平均主义**诉求。\n- **常见易混点/对比点**：分析明末农民起义与**清军入关**、**明朝灭亡**三者间的复杂关系；对比李自成政权与朱元璋政权在建立过程上的异同。\n\n---\n\n## 初高中阶段考点\n> **说明**：阎振三本人基本不作为独立考点出现。以下考点围绕其所属的历史事件与群体（如果其身份为明末人物成立）。\n\n### 初中阶段\n- 明朝灭亡的时间（**1644年**）和直接原因（**李自成起义军攻入北京**）。\n- 李自成起义的口号（**均田免粮**）及其影响。\n- 大顺政权的建立者（**李自成**）和都城（**西安**）。\n\n### 高中阶段\n- 明末农民起义爆发的深层社会经济原因（土地兼并、赋役沉重、自然灾害等）。\n- 李自成起义军从流寇主义到建立政权的转变过程。\n- **山海关之战**的经过及其对中国历史走向（清军入关、明清易代）的决定性影响。\n- （存疑/说法不一）关于李自成失败原因的分析（如战略失误、腐化过快、未能妥善处理与吴三桂及清军的关系等）。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "阎振三（身份存疑）", "name": "阎振三（身份存疑）", "file": "阎振三.html", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "aliases": ["阎振三"], "birth_year": 1506, "death_year": null, "quote": "“明末农民起义”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阎振三（身份存疑）", "name": "阎振三（身份存疑）", "file": "阎振三.html", "dynasty": "存疑。现有信息矛盾，无法确定具体时代（有说法指向明末，亦有信息关联民国）。此矛盾表明可能存在同名不同人的情况。", "aliases": ["阎振三"], "birth_year": 1506, "death_year": null, "quote": "“明末农民起义”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "明", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "“高筑墙、广积粮、缓称王”", "review": "*明太祖实录**：称其“崛起布衣，奄奠海宇，西汉以后所未有也”。", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李大钊", "name": "李大钊", "file": "李大钊.html", "dynasty": "近代", "aliases": [], "birth_year": 1889, "death_year": 1927, "quote": "“南陈北李，相约建党”", "review": "", "foreign_name": "", "main_role_label": "学者", "birthplace": "直隶省乐亭县大黑坨村", "birthplace_modern": "河北省唐山市乐亭县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "张作霖", "name": "张作霖", "file": "张作霖.html", "dynasty": "近代", "aliases": ["张雨亭", "张老疙瘩"], "birth_year": 1875, "death_year": 1928, "quote": "“清末民初社会动荡”", "review": "", "foreign_name": "", "main_role_label": "奉系军阀首领", "birthplace": "奉天省海城县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "贾玮", "name": "贾玮", "file": "贾玮.html", "dynasty": "存疑（有说法归于明代，但无确证，且无可靠史料支持）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“被历史湮没的个体”", "review": "*无主流史家评价**：在正史及重要私家史著中，未见对其的专门评价。", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐银平", "name": "唐银平", "file": "唐银平.html", "dynasty": "存疑（公开可查的权威历史与文学资料中未见明确记载）", "aliases": [], "birth_year": null, "death_year": null, "quote": "关于“唐银平”这一人物，在公开的权威历史文献、文学典籍及主流传记资料中均未见明确、系统的记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马晨明", "name": "马晨明", "file": "马晨明.html", "dynasty": "存疑/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "“无法确定的信息明确标注‘不详’或‘存疑’”", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阎振三（身份存疑）", "target": "朱元璋", "label": "君臣", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "李大钊", "label": "同册共现", "confidence": 0.15}, {"source": "阎振三（身份存疑）", "target": "张作霖", "label": "同册共现", "confidence": 0.15}, {"source": "阎振三（身份存疑）", "target": "贾玮", "label": "同时代人物", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "唐银平", "label": "同时代人物", "confidence": null}, {"source": "阎振三（身份存疑）", "target": "马晨明", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

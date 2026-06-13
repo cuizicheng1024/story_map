@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "王建", "title": "", "description": "王建生于唐末乱世，早年以屠牛、盗驴、贩私盐为业，后投身忠武军，因骁勇多谋崭露头角。黄巢起义时保驾唐僖宗入蜀，获得皇帝赏识与信任，逐步升迁。他利用唐末藩镇割据的局势，于大顺二年（891年）攻取成都，占据西川，后陆续兼并东川、山南西道等地。天复七年（907年）唐朝灭亡后，王建在成都称帝，建立前蜀。他在位期间，妥善安置唐朝入蜀的士人，推行保境息民的政策，使蜀地在五代乱世中保持了相对的安定与繁荣，为后来的文化兴盛奠定了基础。", "quote": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "shortReview": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "dynasty": "五代十国（前蜀）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "许州舞阳（今河南漯河市舞阳县西北）", "avatar": "", "birth": {"date": "847年", "location": "许州舞阳（今河南漯河市舞阳县西北）", "lat": 33.4383, "lng": 113.6028, "coordSystem": "WGS84"}, "death": {"date": "918年", "location": "成都（今四川成都）", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84"}, "lifespan": "约71-72岁（因出生年份存疑，享年亦存疑）", "highlights": {"honor": "", "status": "五代十国时期前蜀政权的建立者，在唐末乱世中割据一方，保境安民。", "identities": "前蜀开国皇帝、军事统帅、政治家", "achievements": "建立前蜀政权；结束蜀地混战，恢复稳定；发展生产，礼遇文士，使蜀地成为当时经济文化较为繁荣的地区。", "works": [], "reviews": ["《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "《十国春秋》：“高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。”", "后世史家多认为，王建出身草莽而能建立政权，在五代十国的开国君主中，其统治对内相对宽厚，注重文治，使前蜀成为乱世中的一方乐土。"]}}, "locations": [{"name": "许州舞阳", "ancientName": "唐许州舞阳县", "modernName": "河南省漯河市舞阳县西北", "lat": 33.4383, "lng": 113.6028, "coordSystem": "WGS84", "type": "birth", "event": "出身寒微，早年无赖，以屠牛、盗驴、贩私盐为业，乡人谓之“贼王八”。", "time": "约公元847年", "duration": "青少年时期", "significance": "其早年底层与边缘化的经历，塑造了他坚韧、机变与善于把握机会的性格。", "works": [], "quoteLines": []}, {"name": "许州/忠武军", "ancientName": "唐忠武军治所许州", "modernName": "河南许昌", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "加入忠武军，成为一名士兵。因作战勇敢，被提拔为队将（基层军官）。", "time": "约870年代", "duration": "数年", "significance": "正式踏入军旅生涯的起点，为其日后崛起积累了最初的军事资本。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "唐都城长安", "modernName": "陕西西安", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "黄巢攻占长安后，王建随忠武军参与勤王。后成为神策军将领，负责护卫唐僖宗。在僖宗避难兴元、入蜀途中，王建担任“随驾五都”都头之一，负责传令护卫，深得僖宗信任。", "time": "880年—885年", "duration": "断续数年", "significance": "获得了“忠君护驾”的政治资本和皇帝的直接赏识，为其日后经营蜀地提供了重要的政治合法性。", "works": [], "quoteLines": []}, {"name": "利州", "ancientName": "唐利州", "modernName": "四川广元", "lat": 32.4354, "lng": 105.8402, "coordSystem": "WGS84", "type": "normal", "event": "被权宦田令孜收为养子，后被排挤出朝廷，出任利州刺史。以此为基地，招兵买马，扩张势力。", "time": "887年—891年", "duration": "约4年", "significance": "这是王建独立经营地盘的开始，利州成为他夺取整个蜀地的战略跳板。", "works": [], "quoteLines": []}, {"name": "成都（攻占）", "ancientName": "唐西川节度使治所成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "率军攻克成都，消灭西川节度使陈敬瑄、权宦田令孜势力，自任西川节度使。", "time": "891年", "duration": "攻占后长期驻守", "significance": "夺取了蜀地的核心，奠定了其割据一方的根基。", "works": [], "quoteLines": []}, {"name": "梓州", "ancientName": "唐东川节度使治所梓州", "modernName": "四川三台", "lat": 31.0958, "lng": 105.0946, "coordSystem": "WGS84", "type": "normal", "event": "经过长期征战，最终攻克梓州，兼并东川，完成对蜀地核心区域的统一。", "time": "902年", "duration": "攻克后", "significance": "标志着王建完全控制了“两川”之地，为其称帝建国扫清了最后障碍。", "works": [], "quoteLines": []}, {"name": "成都（称帝）", "ancientName": "前蜀都城成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "唐朝灭亡后，王建在成都称帝，国号大蜀，史称前蜀。在位期间，优待唐末入蜀的士族文人，委以重任；劝课农桑，发展生产；与民休息，较少大规模战争。", "time": "907年—918年", "duration": "11年（在位期间）", "significance": "前蜀政权的政治、经济、文化中心。王建在此实现了从藩镇到帝王的转变，并创造了相对安定的统治局面。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "前蜀都城成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "death", "event": "永平三年（913年）太子王元膺之乱后，改立幼子王衍为太子。光天元年六月（918年7月），王建病逝于成都，庙号高祖。", "time": "918年", "duration": "晚年直至去世", "significance": "其人生终点与政治事业的顶峰所在。他的去世也标志着前蜀政权由盛转衰的开始。", "works": [], "quoteLines": ["（注：前蜀高祖王建以武功立国，无著名文学作品传世。此处常与唐代诗人王建混淆，唐代诗人王建有《宫词》百首闻名。）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐末藩镇割据**、**黄巢起义**、**五代十国**更迭。\n- **关键事件**：**王建称帝**、**建立前蜀**（十国之一）。\n- **代表作品/思想**：无直接关联的文学作品，但涉及**五代十国**政权并立的基本格局。\n- **常见易混点/对比点**：与**后蜀**（孟知祥建立）混淆；区分**前蜀**与**后蜀**的先后顺序和建立者。\n\n### 高中阶段\n- **时代背景**：**唐末至五代的政治格局**、**藩镇势力向独立王国转化**的过程。\n- **关键事件/贡献**：从**藩镇节度使**到**开国皇帝**的路径；**保境安民**政策的具体表现（如安置唐朝士人、发展生产）。\n- **代表作品/思想**：其统治体现了**乱世中地方政权的生存智慧**与**文武并用的统治策略**。\n- **常见易混点/对比点**：对比五代（中原王朝）与十国（地方政权）的关系；对比前蜀王建与吴越钱镠、南唐李昪等南方建国者的异同。\n\n---", "examPoints": "### 初中阶段考点\n1.  **五代十国**：知道“十国”中包括**前蜀**，其建立者是**王建**。\n2.  **政权更迭**：了解前蜀是唐朝灭亡后，在**蜀地**（今四川）出现的一个地方政权。\n3.  **历史阶段**：明确王建及其前蜀政权处于**唐末至北宋统一**之间的过渡阶段。\n\n### 高中阶段考点\n1.  **藩镇割据的深化**：王建的经历是**唐末藩镇势力坐大并最终独立**的典型案例。\n2.  **前蜀的政治特点**：了解王建**重用唐朝旧臣**、**发展经济**的政策，分析其政权得以稳定的原因。\n3.  **历史地位**：评价王建在**五代十国历史**及**四川地区开发史**上的作用。\n4.  **存疑/说法不一**：关于其**早年具体经历**（如贩私盐细节）、**出生年份**等，史料记载有出入。", "workTexts": {"旧五代史": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "十国春秋": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "宫词": "名篇名句：（注：前蜀高祖王建以武功立国，无著名文学作品传世。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王建\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王建（字光图）\n- **时代**：五代十国（前蜀）\n- **出生**：约公元847年（一说846年，存疑），许州舞阳（今河南漯河市舞阳县西北）\n- **去世**：公元918年7月11日，成都（今四川成都）\n- **享年**：约71-72岁（因出生年份存疑，享年亦存疑）\n- **主要身份**：前蜀开国皇帝、军事统帅、政治家\n- **历史地位**：五代十国时期前蜀政权的建立者，在唐末乱世中割据一方，保境安民。\n- **主要成就**：建立前蜀政权；结束蜀地混战，恢复稳定；发展生产，礼遇文士，使蜀地成为当时经济文化较为繁荣的地区。\n\n### 生平概述\n王建生于唐末乱世，早年以屠牛、盗驴、贩私盐为业，后投身忠武军，因骁勇多谋崭露头角。黄巢起义时保驾唐僖宗入蜀，获得皇帝赏识与信任，逐步升迁。他利用唐末藩镇割据的局势，于大顺二年（891年）攻取成都，占据西川，后陆续兼并东川、山南西道等地。天复七年（907年）唐朝灭亡后，王建在成都称帝，建立前蜀。他在位期间，妥善安置唐朝入蜀的士人，推行保境息民的政策，使蜀地在五代乱世中保持了相对的安定与繁荣，为后来的文化兴盛奠定了基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从中原腹地（河南）至西北（陕西），最终奠基并终老于西南（四川）。\n- ⏱️ **时间跨度**：约公元847年—918年，总跨度约71年。\n- 📍 **地理范围**：大致覆盖今河南省、陕西省、四川省、重庆市等地区。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：许州舞阳\n- **公元纪年**：约公元847年\n- **停留时间**：青少年时期\n- **位置**：唐许州舞阳县（今河南省漯河市舞阳县西北）\n- **事迹**：出身寒微，早年无赖，以屠牛、盗驴、贩私盐为业，乡人谓之“贼王八”。\n- **意义**：其早年底层与边缘化的经历，塑造了他坚韧、机变与善于把握机会的性格。\n\n### 📍 重要地点：许州/忠武军\n- **公元纪年**：约870年代\n- **停留时间**：数年\n- **位置**：唐忠武军治所许州（今河南许昌）\n- **事迹**：加入忠武军，成为一名士兵。因作战勇敢，被提拔为队将（基层军官）。\n- **意义**：正式踏入军旅生涯的起点，为其日后崛起积累了最初的军事资本。\n\n### 📍 重要地点：长安\n- **公元纪年**：880年—885年\n- **停留时间**：断续数年\n- **位置**：唐都城长安（今陕西西安）\n- **事迹**：黄巢攻占长安后，王建随忠武军参与勤王。后成为神策军将领，负责护卫唐僖宗。在僖宗避难兴元、入蜀途中，王建担任“随驾五都”都头之一，负责传令护卫，深得僖宗信任。\n- **意义**：获得了“忠君护驾”的政治资本和皇帝的直接赏识，为其日后经营蜀地提供了重要的政治合法性。\n\n### 📍 重要地点：利州\n- **公元纪年**：887年—891年\n- **停留时间**：约4年\n- **位置**：唐利州（今四川广元）\n- **事迹**：被权宦田令孜收为养子，后被排挤出朝廷，出任利州刺史。以此为基地，招兵买马，扩张势力。\n- **意义**：这是王建独立经营地盘的开始，利州成为他夺取整个蜀地的战略跳板。\n\n### 📍 重要地点：成都（攻占）\n- **公元纪年**：891年\n- **停留时间**：攻占后长期驻守\n- **位置**：唐西川节度使治所成都（今四川成都）\n- **事迹**：率军攻克成都，消灭西川节度使陈敬瑄、权宦田令孜势力，自任西川节度使。\n- **意义**：夺取了蜀地的核心，奠定了其割据一方的根基。\n\n### 📍 重要地点：梓州\n- **公元纪年**：902年\n- **停留时间**：攻克后\n- **位置**：唐东川节度使治所梓州（今四川三台）\n- **事迹**：经过长期征战，最终攻克梓州，兼并东川，完成对蜀地核心区域的统一。\n- **意义**：标志着王建完全控制了“两川”之地，为其称帝建国扫清了最后障碍。\n\n### 📍 重要地点：成都（称帝）\n- **公元纪年**：907年—918年\n- **停留时间**：11年（在位期间）\n- **位置**：前蜀都城成都（今四川成都）\n- **事迹**：唐朝灭亡后，王建在成都称帝，国号大蜀，史称前蜀。在位期间，优待唐末入蜀的士族文人，委以重任；劝课农桑，发展生产；与民休息，较少大规模战争。\n- **意义**：前蜀政权的政治、经济、文化中心。王建在此实现了从藩镇到帝王的转变，并创造了相对安定的统治局面。\n\n### 🔴 去世地：成都\n- **公元纪年**：918年\n- **停留时间**：晚年直至去世\n- **位置**：前蜀都城成都（今四川成都）\n- **经过**：永平三年（913年）太子王元膺之乱后，改立幼子王衍为太子。光天元年六月（918年7月），王建病逝于成都，庙号高祖。\n- **意义**：其人生终点与政治事业的顶峰所在。他的去世也标志着前蜀政权由盛转衰的开始。\n- **名篇名句**：（注：前蜀高祖王建以武功立国，无著名文学作品传世。此处常与唐代诗人王建混淆，唐代诗人王建有《宫词》百首闻名。）\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约847年 | 约0岁 | 出生于许州舞阳（今河南舞阳）。 |\n| 约870年代 | 约20余岁 | 加入忠武军，开始军旅生涯。 |\n| 880年 | 约33岁 | 随军参与对黄巢的作战，保驾唐僖宗。 |\n| 881年-885年 | 约34-38岁 | 担任神策军将领，护卫僖宗，成为“随驾五都”都头之一，获赐“忠勇”之称。 |\n| 887年 | 约40岁 | 被排挤出中央，出任利州刺史，开始独立发展势力。 |\n| 891年 | 约44岁 | 攻克成都，占据西川，自任西川节度使。 |\n| 902年 | 约55岁 | 攻占梓州，兼并东川，统一蜀地核心区域。 |\n| 907年 | 约60岁 | 唐朝灭亡，王建在成都称帝，建立前蜀。 |\n| 913年 | 约66岁 | 平定太子王元膺之乱，改立王衍为太子。 |\n| 918年 | 约72岁 | 病逝于成都，庙号高祖。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王建在唐末五代初期的乱世中，成功割据并统一蜀地，建立前蜀政权。他有效抵御了北方政权（如后梁）的威胁，使蜀地避免了中原频繁的战乱，为当地百姓提供了数十年的相对和平环境。他大量接纳唐朝流亡的士人、官僚，保存了中原文化的火种，使前蜀成为当时重要的文化中心之一。\n\n### 对后世的影响\n1.  **区域治理典范**：其“保境安民”的政策，为后世在乱世中经营地方、发展区域经济提供了借鉴。\n2.  **文化传承**：对唐末文士的庇护与任用，使得唐代的文化、典章制度在蜀地得以延续和发展，为五代乃至宋代蜀地文化的繁荣奠定了基础。\n3.  **历史地位**：作为五代十国中“十国”之一的创建者，是研究该时期历史不可或缺的关键人物。\n\n### 历史评价\n1.  《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”\n2.  《十国春秋》：“高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。”\n3.  后世史家多认为，王建出身草莽而能建立政权，在五代十国的开国君主中，其统治对内相对宽厚，注重文治，使前蜀成为乱世中的一方乐土。\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐末藩镇割据**、**黄巢起义**、**五代十国**更迭。\n- **关键事件**：**王建称帝**、**建立前蜀**（十国之一）。\n- **代表作品/思想**：无直接关联的文学作品，但涉及**五代十国**政权并立的基本格局。\n- **常见易混点/对比点**：与**后蜀**（孟知祥建立）混淆；区分**前蜀**与**后蜀**的先后顺序和建立者。\n\n### 高中阶段\n- **时代背景**：**唐末至五代的政治格局**、**藩镇势力向独立王国转化**的过程。\n- **关键事件/贡献**：从**藩镇节度使**到**开国皇帝**的路径；**保境安民**政策的具体表现（如安置唐朝士人、发展生产）。\n- **代表作品/思想**：其统治体现了**乱世中地方政权的生存智慧**与**文武并用的统治策略**。\n- **常见易混点/对比点**：对比五代（中原王朝）与十国（地方政权）的关系；对比前蜀王建与吴越钱镠、南唐李昪等南方建国者的异同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **五代十国**：知道“十国”中包括**前蜀**，其建立者是**王建**。\n2.  **政权更迭**：了解前蜀是唐朝灭亡后，在**蜀地**（今四川）出现的一个地方政权。\n3.  **历史阶段**：明确王建及其前蜀政权处于**唐末至北宋统一**之间的过渡阶段。\n\n### 高中阶段考点\n1.  **藩镇割据的深化**：王建的经历是**唐末藩镇势力坐大并最终独立**的典型案例。\n2.  **前蜀的政治特点**：了解王建**重用唐朝旧臣**、**发展经济**的政策，分析其政权得以稳定的原因。\n3.  **历史地位**：评价王建在**五代十国历史**及**四川地区开发史**上的作用。\n4.  **存疑/说法不一**：关于其**早年具体经历**（如贩私盐细节）、**出生年份**等，史料记载有出入。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 舞阳县 | 河南省漯河市舞阳县 | 33.4383 | 113.6028 |\n| 许昌市 | 河南省许昌市 | 34.0358 | 113.8527 |\n| 西安市 | 陕西省西安市 | 34.3416 | 108.9398 |\n| 广元市 | 四川省广元市 | 32.4354 | 105.8402 |\n| 成都市 | 四川省成都市 | 30.5728 | 104.0668 |\n| 三台县 | 四川省绵阳市三台县 | 31.0958 | 105.0946 |", "relatedGraph": {"center": {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "review": "《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "review": "《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "钱镠", "name": "钱镠", "file": "钱镠.html", "dynasty": "五代十国（吴越国）", "aliases": [], "birth_year": 852, "death_year": 932, "quote": "“善事中国，保境安民”", "review": "*欧阳修《新五代史》**：“镠世常重敛其民以事奢僭，下至鸡鱼卵鷇，必家至而日取…然其人犹至于今好淫祀，多讹谬之俗，镠之遗风也。”（指出其统治的剥削性及对民俗的负面影响）", "foreign_name": "", "main_role_label": "政治家", "birthplace": "杭州临安县石镜乡", "birthplace_modern": "浙江省杭州市临安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“春城无处不飞花”", "review": "*唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "review": "《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "沈从文", "name": "沈从文", "file": "沈从文.html", "dynasty": "现代", "aliases": ["沈岳焕"], "birth_year": 1902, "death_year": 1988, "quote": "“这个人也许永远不回来了，也许‘明天’回来！”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "湘西镇筸", "birthplace_modern": "湖南省湘西土家族苗族自治州凤凰县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "元稹", "name": "元稹", "file": "元稹.html", "dynasty": "唐代", "aliases": [], "birth_year": 779, "death_year": 831, "quote": "“不是花中偏爱菊，此花开尽更无花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "出生地存疑/说法不一", "birthplace_modern": "一说长安今陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王建", "target": "钱镠", "label": "同时代人物", "confidence": null}, {"source": "王建", "target": "韩翃", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "皮逻阁", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "沈从文", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "元稹", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "黄巢", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "王建", "title": "", "description": "王建生于唐末乱世，早年以屠牛、盗驴、贩私盐为业，后投身忠武军，因骁勇多谋崭露头角。黄巢起义时保驾唐僖宗入蜀，获得皇帝赏识与信任，逐步升迁。他利用唐末藩镇割据的局势，于大顺二年（891年）攻取成都，占据西川，后陆续兼并东川、山南西道等地。天复七年（907年）唐朝灭亡后，王建在成都称帝，建立前蜀。他在位期间，妥善安置唐朝入蜀的士人，推行保境息民的政策，使蜀地在五代乱世中保持了相对的安定与繁荣，为后来的文化兴盛奠定了基础。", "quote": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "shortReview": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "dynasty": "五代十国（前蜀）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "许州舞阳（今河南漯河市舞阳县西北）", "avatar": "", "birth": {"date": "847年", "location": "许州舞阳（今河南漯河市舞阳县西北）", "lat": 33.4383, "lng": 113.6028, "coordSystem": "WGS84"}, "death": {"date": "918年", "location": "成都（今四川成都）", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84"}, "lifespan": "约71-72岁（因出生年份存疑，享年亦存疑）", "highlights": {"honor": "", "status": "五代十国时期前蜀政权的建立者，在唐末乱世中割据一方，保境安民。", "identities": "前蜀开国皇帝、军事统帅、政治家", "achievements": "建立前蜀政权；结束蜀地混战，恢复稳定；发展生产，礼遇文士，使蜀地成为当时经济文化较为繁荣的地区。", "works": [], "reviews": ["《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "《十国春秋》：“高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。”", "后世史家多认为，王建出身草莽而能建立政权，在五代十国的开国君主中，其统治对内相对宽厚，注重文治，使前蜀成为乱世中的一方乐土。"]}}, "locations": [{"name": "许州舞阳", "ancientName": "唐许州舞阳县", "modernName": "河南省漯河市舞阳县西北", "lat": 33.4383, "lng": 113.6028, "coordSystem": "WGS84", "type": "birth", "event": "出身寒微，早年无赖，以屠牛、盗驴、贩私盐为业，乡人谓之“贼王八”。", "time": "约公元847年", "duration": "青少年时期", "significance": "其早年底层与边缘化的经历，塑造了他坚韧、机变与善于把握机会的性格。", "works": [], "quoteLines": []}, {"name": "许州/忠武军", "ancientName": "唐忠武军治所许州", "modernName": "河南许昌", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "加入忠武军，成为一名士兵。因作战勇敢，被提拔为队将（基层军官）。", "time": "约870年代", "duration": "数年", "significance": "正式踏入军旅生涯的起点，为其日后崛起积累了最初的军事资本。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "唐都城长安", "modernName": "陕西西安", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "黄巢攻占长安后，王建随忠武军参与勤王。后成为神策军将领，负责护卫唐僖宗。在僖宗避难兴元、入蜀途中，王建担任“随驾五都”都头之一，负责传令护卫，深得僖宗信任。", "time": "880年—885年", "duration": "断续数年", "significance": "获得了“忠君护驾”的政治资本和皇帝的直接赏识，为其日后经营蜀地提供了重要的政治合法性。", "works": [], "quoteLines": []}, {"name": "利州", "ancientName": "唐利州", "modernName": "四川广元", "lat": 32.4354, "lng": 105.8402, "coordSystem": "WGS84", "type": "normal", "event": "被权宦田令孜收为养子，后被排挤出朝廷，出任利州刺史。以此为基地，招兵买马，扩张势力。", "time": "887年—891年", "duration": "约4年", "significance": "这是王建独立经营地盘的开始，利州成为他夺取整个蜀地的战略跳板。", "works": [], "quoteLines": []}, {"name": "成都（攻占）", "ancientName": "唐西川节度使治所成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "率军攻克成都，消灭西川节度使陈敬瑄、权宦田令孜势力，自任西川节度使。", "time": "891年", "duration": "攻占后长期驻守", "significance": "夺取了蜀地的核心，奠定了其割据一方的根基。", "works": [], "quoteLines": []}, {"name": "梓州", "ancientName": "唐东川节度使治所梓州", "modernName": "四川三台", "lat": 31.0958, "lng": 105.0946, "coordSystem": "WGS84", "type": "normal", "event": "经过长期征战，最终攻克梓州，兼并东川，完成对蜀地核心区域的统一。", "time": "902年", "duration": "攻克后", "significance": "标志着王建完全控制了“两川”之地，为其称帝建国扫清了最后障碍。", "works": [], "quoteLines": []}, {"name": "成都（称帝）", "ancientName": "前蜀都城成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "唐朝灭亡后，王建在成都称帝，国号大蜀，史称前蜀。在位期间，优待唐末入蜀的士族文人，委以重任；劝课农桑，发展生产；与民休息，较少大规模战争。", "time": "907年—918年", "duration": "11年（在位期间）", "significance": "前蜀政权的政治、经济、文化中心。王建在此实现了从藩镇到帝王的转变，并创造了相对安定的统治局面。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "前蜀都城成都", "modernName": "四川成都", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "death", "event": "永平三年（913年）太子王元膺之乱后，改立幼子王衍为太子。光天元年六月（918年7月），王建病逝于成都，庙号高祖。", "time": "918年", "duration": "晚年直至去世", "significance": "其人生终点与政治事业的顶峰所在。他的去世也标志着前蜀政权由盛转衰的开始。", "works": [], "quoteLines": ["（注：前蜀高祖王建以武功立国，无著名文学作品传世。此处常与唐代诗人王建混淆，唐代诗人王建有《宫词》百首闻名。）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐末藩镇割据**、**黄巢起义**、**五代十国**更迭。\n- **关键事件**：**王建称帝**、**建立前蜀**（十国之一）。\n- **代表作品/思想**：无直接关联的文学作品，但涉及**五代十国**政权并立的基本格局。\n- **常见易混点/对比点**：与**后蜀**（孟知祥建立）混淆；区分**前蜀**与**后蜀**的先后顺序和建立者。\n\n### 高中阶段\n- **时代背景**：**唐末至五代的政治格局**、**藩镇势力向独立王国转化**的过程。\n- **关键事件/贡献**：从**藩镇节度使**到**开国皇帝**的路径；**保境安民**政策的具体表现（如安置唐朝士人、发展生产）。\n- **代表作品/思想**：其统治体现了**乱世中地方政权的生存智慧**与**文武并用的统治策略**。\n- **常见易混点/对比点**：对比五代（中原王朝）与十国（地方政权）的关系；对比前蜀王建与吴越钱镠、南唐李昪等南方建国者的异同。\n\n---", "examPoints": "### 初中阶段考点\n1.  **五代十国**：知道“十国”中包括**前蜀**，其建立者是**王建**。\n2.  **政权更迭**：了解前蜀是唐朝灭亡后，在**蜀地**（今四川）出现的一个地方政权。\n3.  **历史阶段**：明确王建及其前蜀政权处于**唐末至北宋统一**之间的过渡阶段。\n\n### 高中阶段考点\n1.  **藩镇割据的深化**：王建的经历是**唐末藩镇势力坐大并最终独立**的典型案例。\n2.  **前蜀的政治特点**：了解王建**重用唐朝旧臣**、**发展经济**的政策，分析其政权得以稳定的原因。\n3.  **历史地位**：评价王建在**五代十国历史**及**四川地区开发史**上的作用。\n4.  **存疑/说法不一**：关于其**早年具体经历**（如贩私盐细节）、**出生年份**等，史料记载有出入。", "workTexts": {"旧五代史": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "十国春秋": "高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。", "宫词": "名篇名句：（注：前蜀高祖王建以武功立国，无著名文学作品传世。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王建\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王建（字光图）\n- **时代**：五代十国（前蜀）\n- **出生**：约公元847年（一说846年，存疑），许州舞阳（今河南漯河市舞阳县西北）\n- **去世**：公元918年7月11日，成都（今四川成都）\n- **享年**：约71-72岁（因出生年份存疑，享年亦存疑）\n- **主要身份**：前蜀开国皇帝、军事统帅、政治家\n- **历史地位**：五代十国时期前蜀政权的建立者，在唐末乱世中割据一方，保境安民。\n- **主要成就**：建立前蜀政权；结束蜀地混战，恢复稳定；发展生产，礼遇文士，使蜀地成为当时经济文化较为繁荣的地区。\n\n### 生平概述\n王建生于唐末乱世，早年以屠牛、盗驴、贩私盐为业，后投身忠武军，因骁勇多谋崭露头角。黄巢起义时保驾唐僖宗入蜀，获得皇帝赏识与信任，逐步升迁。他利用唐末藩镇割据的局势，于大顺二年（891年）攻取成都，占据西川，后陆续兼并东川、山南西道等地。天复七年（907年）唐朝灭亡后，王建在成都称帝，建立前蜀。他在位期间，妥善安置唐朝入蜀的士人，推行保境息民的政策，使蜀地在五代乱世中保持了相对的安定与繁荣，为后来的文化兴盛奠定了基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从中原腹地（河南）至西北（陕西），最终奠基并终老于西南（四川）。\n- ⏱️ **时间跨度**：约公元847年—918年，总跨度约71年。\n- 📍 **地理范围**：大致覆盖今河南省、陕西省、四川省、重庆市等地区。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：许州舞阳\n- **公元纪年**：约公元847年\n- **停留时间**：青少年时期\n- **位置**：唐许州舞阳县（今河南省漯河市舞阳县西北）\n- **事迹**：出身寒微，早年无赖，以屠牛、盗驴、贩私盐为业，乡人谓之“贼王八”。\n- **意义**：其早年底层与边缘化的经历，塑造了他坚韧、机变与善于把握机会的性格。\n\n### 📍 重要地点：许州/忠武军\n- **公元纪年**：约870年代\n- **停留时间**：数年\n- **位置**：唐忠武军治所许州（今河南许昌）\n- **事迹**：加入忠武军，成为一名士兵。因作战勇敢，被提拔为队将（基层军官）。\n- **意义**：正式踏入军旅生涯的起点，为其日后崛起积累了最初的军事资本。\n\n### 📍 重要地点：长安\n- **公元纪年**：880年—885年\n- **停留时间**：断续数年\n- **位置**：唐都城长安（今陕西西安）\n- **事迹**：黄巢攻占长安后，王建随忠武军参与勤王。后成为神策军将领，负责护卫唐僖宗。在僖宗避难兴元、入蜀途中，王建担任“随驾五都”都头之一，负责传令护卫，深得僖宗信任。\n- **意义**：获得了“忠君护驾”的政治资本和皇帝的直接赏识，为其日后经营蜀地提供了重要的政治合法性。\n\n### 📍 重要地点：利州\n- **公元纪年**：887年—891年\n- **停留时间**：约4年\n- **位置**：唐利州（今四川广元）\n- **事迹**：被权宦田令孜收为养子，后被排挤出朝廷，出任利州刺史。以此为基地，招兵买马，扩张势力。\n- **意义**：这是王建独立经营地盘的开始，利州成为他夺取整个蜀地的战略跳板。\n\n### 📍 重要地点：成都（攻占）\n- **公元纪年**：891年\n- **停留时间**：攻占后长期驻守\n- **位置**：唐西川节度使治所成都（今四川成都）\n- **事迹**：率军攻克成都，消灭西川节度使陈敬瑄、权宦田令孜势力，自任西川节度使。\n- **意义**：夺取了蜀地的核心，奠定了其割据一方的根基。\n\n### 📍 重要地点：梓州\n- **公元纪年**：902年\n- **停留时间**：攻克后\n- **位置**：唐东川节度使治所梓州（今四川三台）\n- **事迹**：经过长期征战，最终攻克梓州，兼并东川，完成对蜀地核心区域的统一。\n- **意义**：标志着王建完全控制了“两川”之地，为其称帝建国扫清了最后障碍。\n\n### 📍 重要地点：成都（称帝）\n- **公元纪年**：907年—918年\n- **停留时间**：11年（在位期间）\n- **位置**：前蜀都城成都（今四川成都）\n- **事迹**：唐朝灭亡后，王建在成都称帝，国号大蜀，史称前蜀。在位期间，优待唐末入蜀的士族文人，委以重任；劝课农桑，发展生产；与民休息，较少大规模战争。\n- **意义**：前蜀政权的政治、经济、文化中心。王建在此实现了从藩镇到帝王的转变，并创造了相对安定的统治局面。\n\n### 🔴 去世地：成都\n- **公元纪年**：918年\n- **停留时间**：晚年直至去世\n- **位置**：前蜀都城成都（今四川成都）\n- **经过**：永平三年（913年）太子王元膺之乱后，改立幼子王衍为太子。光天元年六月（918年7月），王建病逝于成都，庙号高祖。\n- **意义**：其人生终点与政治事业的顶峰所在。他的去世也标志着前蜀政权由盛转衰的开始。\n- **名篇名句**：（注：前蜀高祖王建以武功立国，无著名文学作品传世。此处常与唐代诗人王建混淆，唐代诗人王建有《宫词》百首闻名。）\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约847年 | 约0岁 | 出生于许州舞阳（今河南舞阳）。 |\n| 约870年代 | 约20余岁 | 加入忠武军，开始军旅生涯。 |\n| 880年 | 约33岁 | 随军参与对黄巢的作战，保驾唐僖宗。 |\n| 881年-885年 | 约34-38岁 | 担任神策军将领，护卫僖宗，成为“随驾五都”都头之一，获赐“忠勇”之称。 |\n| 887年 | 约40岁 | 被排挤出中央，出任利州刺史，开始独立发展势力。 |\n| 891年 | 约44岁 | 攻克成都，占据西川，自任西川节度使。 |\n| 902年 | 约55岁 | 攻占梓州，兼并东川，统一蜀地核心区域。 |\n| 907年 | 约60岁 | 唐朝灭亡，王建在成都称帝，建立前蜀。 |\n| 913年 | 约66岁 | 平定太子王元膺之乱，改立王衍为太子。 |\n| 918年 | 约72岁 | 病逝于成都，庙号高祖。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王建在唐末五代初期的乱世中，成功割据并统一蜀地，建立前蜀政权。他有效抵御了北方政权（如后梁）的威胁，使蜀地避免了中原频繁的战乱，为当地百姓提供了数十年的相对和平环境。他大量接纳唐朝流亡的士人、官僚，保存了中原文化的火种，使前蜀成为当时重要的文化中心之一。\n\n### 对后世的影响\n1.  **区域治理典范**：其“保境安民”的政策，为后世在乱世中经营地方、发展区域经济提供了借鉴。\n2.  **文化传承**：对唐末文士的庇护与任用，使得唐代的文化、典章制度在蜀地得以延续和发展，为五代乃至宋代蜀地文化的繁荣奠定了基础。\n3.  **历史地位**：作为五代十国中“十国”之一的创建者，是研究该时期历史不可或缺的关键人物。\n\n### 历史评价\n1.  《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”\n2.  《十国春秋》：“高祖（王建）虽目不知书，而好与儒生谈论，颇有治理。……蜀人安之。”\n3.  后世史家多认为，王建出身草莽而能建立政权，在五代十国的开国君主中，其统治对内相对宽厚，注重文治，使前蜀成为乱世中的一方乐土。\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐末藩镇割据**、**黄巢起义**、**五代十国**更迭。\n- **关键事件**：**王建称帝**、**建立前蜀**（十国之一）。\n- **代表作品/思想**：无直接关联的文学作品，但涉及**五代十国**政权并立的基本格局。\n- **常见易混点/对比点**：与**后蜀**（孟知祥建立）混淆；区分**前蜀**与**后蜀**的先后顺序和建立者。\n\n### 高中阶段\n- **时代背景**：**唐末至五代的政治格局**、**藩镇势力向独立王国转化**的过程。\n- **关键事件/贡献**：从**藩镇节度使**到**开国皇帝**的路径；**保境安民**政策的具体表现（如安置唐朝士人、发展生产）。\n- **代表作品/思想**：其统治体现了**乱世中地方政权的生存智慧**与**文武并用的统治策略**。\n- **常见易混点/对比点**：对比五代（中原王朝）与十国（地方政权）的关系；对比前蜀王建与吴越钱镠、南唐李昪等南方建国者的异同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **五代十国**：知道“十国”中包括**前蜀**，其建立者是**王建**。\n2.  **政权更迭**：了解前蜀是唐朝灭亡后，在**蜀地**（今四川）出现的一个地方政权。\n3.  **历史阶段**：明确王建及其前蜀政权处于**唐末至北宋统一**之间的过渡阶段。\n\n### 高中阶段考点\n1.  **藩镇割据的深化**：王建的经历是**唐末藩镇势力坐大并最终独立**的典型案例。\n2.  **前蜀的政治特点**：了解王建**重用唐朝旧臣**、**发展经济**的政策，分析其政权得以稳定的原因。\n3.  **历史地位**：评价王建在**五代十国历史**及**四川地区开发史**上的作用。\n4.  **存疑/说法不一**：关于其**早年具体经历**（如贩私盐细节）、**出生年份**等，史料记载有出入。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 舞阳县 | 河南省漯河市舞阳县 | 33.4383 | 113.6028 |\n| 许昌市 | 河南省许昌市 | 34.0358 | 113.8527 |\n| 西安市 | 陕西省西安市 | 34.3416 | 108.9398 |\n| 广元市 | 四川省广元市 | 32.4354 | 105.8402 |\n| 成都市 | 四川省成都市 | 30.5728 | 104.0668 |\n| 三台县 | 四川省绵阳市三台县 | 31.0958 | 105.0946 |", "relatedGraph": {"center": {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "review": "《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "review": "《旧五代史》：“建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。”", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "钱镠", "name": "钱镠", "file": "钱镠.html", "dynasty": "五代十国（吴越国）", "aliases": [], "birth_year": 852, "death_year": 932, "quote": "“善事中国，保境安民”", "review": "*欧阳修《新五代史》**：“镠世常重敛其民以事奢僭，下至鸡鱼卵鷇，必家至而日取…然其人犹至于今好淫祀，多讹谬之俗，镠之遗风也。”（指出其统治的剥削性及对民俗的负面影响）", "foreign_name": "", "main_role_label": "政治家", "birthplace": "杭州临安县石镜乡", "birthplace_modern": "浙江省杭州市临安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "“春城无处不飞花”", "review": "*唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "review": "《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "沈从文", "name": "沈从文", "file": "沈从文.html", "dynasty": "现代", "aliases": ["沈岳焕"], "birth_year": 1902, "death_year": 1988, "quote": "“这个人也许永远不回来了，也许‘明天’回来！”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "湘西镇筸", "birthplace_modern": "湖南省湘西土家族苗族自治州凤凰县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "元稹", "name": "元稹", "file": "元稹.html", "dynasty": "唐代", "aliases": [], "birth_year": 779, "death_year": 831, "quote": "“不是花中偏爱菊，此花开尽更无花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "出生地存疑/说法不一", "birthplace_modern": "一说长安今陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王建", "target": "钱镠", "label": "同时代人物", "confidence": null}, {"source": "王建", "target": "韩翃", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "皮逻阁", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "沈从文", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "元稹", "label": "同册共现", "confidence": 0.15}, {"source": "王建", "target": "黄巢", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

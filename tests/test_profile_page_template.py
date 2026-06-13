@@ -126,13 +126,50 @@ def test_timeline_card_click_uses_strict_map_focus():
     assert "applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });" in html
 
 
+def test_profile_template_declares_curved_segment_builder_before_usage():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "function buildCurvedSegmentPath(from, to, idx, prev, next) {" in html
+    assert html.index("function buildCurvedSegmentPath(from, to, idx, prev, next) {") < html.index("const buildRenderedSegmentPath = (idx) => {")
+
+
+def test_profile_template_marks_posthumous_events_instead_of_fake_age():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const deathYear = useMemo(() => extractYear(deathDate), [deathDate]);" in html
+    assert "if (deathYear && year > deathYear) return null;" in html
+    assert "if (isPosthumousEvent(loc)) return '身后';" in html
+    assert "return badgeText && name ? `${badgeText}\\n${name}` : (badgeText || name);" in html
+    assert 'class="map-point-label-badge"' in html
+    assert 'class="map-point-label-name"' in html
+
+
+def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_arrows():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const getPersistentLabelIndexes = () => {" in html
+    assert "const stageRatios = total >= 10 ? [0.2, 0.4, 0.6, 0.8] : [0.25, 0.5, 0.75];" in html
+    assert "const essential = getPersistentLabelIndexes();" in html
+    assert "const stride = totalSegments >= 12 ? 3 : (totalSegments >= 7 ? 2 : 1);" in html
+    assert "if (item.distance >= 80 && order % stride === 0) keep.add(item.idx);" in html
+    assert "showArrow: true," in html
+
+
 def test_static_site_notice_hides_on_localhost(monkeypatch):
     monkeypatch.setenv("MAP_STORY_STATIC_SITE", "1")
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert 'id="site-mode-notice"' in html
     assert "const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');" in html
+    assert "const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);" in html
     assert "if (notice) notice.style.display = 'none';" in html
+
+
+def test_runtime_map_config_loaders_treat_private_network_hosts_as_dev_hosts():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');" in html
+    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
 
 
 def test_static_profile_page_tries_local_ai_proxy_on_localhost():
@@ -256,6 +293,49 @@ def test_related_people_graph_matches_markdown_mentions_with_middle_dot_names(mo
     assert "马丁·路德·金" in names
 
 
+def test_related_people_graph_handles_sparse_raw_node_indexes(monkeypatch):
+    renderer._load_stellar_home_data.cache_clear()
+    payload = {
+        "nodes": [
+            {
+                "person": "王安石",
+                "file": "王安石.html",
+                "dynasty": "北宋",
+            },
+            "invalid-node",
+            {
+                "person": "苏轼",
+                "file": "苏轼.html",
+                "dynasty": "北宋",
+            },
+            {
+                "person": "曾巩",
+                "file": "曾巩.html",
+                "dynasty": "北宋",
+            },
+        ],
+        "edges": [
+            {"a": 0, "b": 2, "type": "manual", "label": "政坛交游", "confidence": 0.9, "weight": 3},
+        ],
+    }
+    monkeypatch.setattr(renderer, "_load_stellar_home_data", lambda: payload)
+
+    related = renderer._build_related_people_graph(
+        {
+            "person": {"name": "王安石", "dynasty": "北宋"},
+            "markdown": "# 王安石\n\n王安石与苏轼同朝。",
+        }
+    )
+
+    names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
+    links = related.get("links") or []
+    assert "苏轼" in names
+    assert any(
+        str(link.get("target") or "") == "苏轼" and str(link.get("label") or "") == "政坛交游"
+        for link in links
+    )
+
+
 def test_load_profile_prefers_work_quote_for_literary_person():
     md = (REPO_ROOT / "storymap" / "examples" / "story" / "李斯.md").read_text(encoding="utf-8")
 
@@ -376,16 +456,29 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
 
     assert "journeyShellRef" in html
     assert "toggleJourneyFullscreen" in html
+    assert "exportJourneySnapshot" in html
+    assert "const captureCurrentTabFrame = async () => {" in html
+    assert "navigator.mediaDevices.getDisplayMedia" in html
     assert "terrain3DControls" in html
     assert "adjustCesiumView(control.id)" in html
     assert 'data-testid="journey-shell"' in html
+    assert 'className="journey-shell-content"' in html
+    assert "const [isJourneyExportFullscreenLayout, setIsJourneyExportFullscreenLayout] = useState(false);" in html
+    assert "const journeyFullscreenActive = isJourneyFullscreen || isJourneyExportFullscreenLayout;" in html
+    assert "setIsJourneyExportFullscreenLayout(true);" in html
+    assert "restoreSteps.push(() => setIsJourneyExportFullscreenLayout(false));" in html
+    assert 'className={`journey-chat-section glass-panel theme-card p-6 rounded-xl shadow-sm ${journeyFullscreenActive ? \'min-h-0\' : \'\'}' in html
     assert "全屏查看" in html
     assert "退出全屏" in html
+    assert "生成图片" in html
+    assert "fullscreenChatRestoreRef" in html
     assert ".map-compact-action-button {" in html
-    assert "width: 60px;" in html
+    assert "width: 52px;" in html
+    assert ".map-bottom-button.is-accent-export {" in html
     assert 'className="h-6 w-6 shrink-0"' in html
     assert 'viewBox="0 0 24 24"' in html
     assert 'absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2' in html
+    assert 'data-export-ignore="true"' in html
     assert 'label="底图"' in html
     assert 'className="map-layer-trigger map-bottom-button text-sm inline-flex items-center gap-2 hover:bg-white transition-colors"' in html
     assert 'className={`map-layer-tray ${open ? \'is-open\' : \'\'}' in html
@@ -406,6 +499,20 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
     assert "adjustCesiumView('reset-bearing')" in html
     assert "const buildSelectedPinDataUrl = (color) => {" in html
     assert "className = 'selected-point-pin'" in html
+    assert "const waitForMs = (ms) => new Promise((resolve) => window.setTimeout(resolve, Math.max(0, Number(ms || 0))));" in html
+    assert "SCREEN_CAPTURE_UNSUPPORTED" in html
+    assert "background: rgba(255, 255, 255, 0.98);" in html
+    assert "grid-template-rows: minmax(0, var(--journey-top-pane, 64%)) 10px minmax(0, 1fr);" in html
+    assert "const freezeScrollableElementForExport = (element) => {" in html
+    assert "restoreSteps.push(freezeScrollableElementForExport(chatListRef.current));" in html
+    assert "const [topPanePct, setTopPanePct] = useState(64);" in html
+    assert "ref={shellContentRef}" in html
+    assert "const canvas = await captureCurrentTabFrame();" in html
+    assert "link.download = `${safePersonName}-当前视图截图.png`;" in html
+    assert ".journey-map-column {" in html
+    assert ".journey-timeline-column {" in html
+    assert ".journey-pane-resizer.is-horizontal" in html
+    assert ".journey-pane-resizer.is-vertical" in html
 
 
 def test_profile_page_template_contains_2d_map_control_hooks():
@@ -427,6 +534,30 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "map-control-stack" in html
     assert "map-control-button" in html
     assert "map-2d-control-button" in html
+    assert "const getRenderedLngLat = (idx) => {" in html
+    assert "const buildRenderedSegmentPath = (idx) => {" in html
+    assert "const buildLabelCollisionBox = (screenPoint, detailLevel) => {" in html
+    assert "const isLabelCollision = (a, b) => {" in html
+    assert "const getPreferredLabelIndexes = ({ activeIdx, detailLevel = 6, isVisible, projectToScreen }) => {" in html
+    assert "const getMapPointLabelText = (loc, idx) => {" in html
+    assert "const getMapPointLabelVisualState = (loc, idx, activeIdx) => {" in html
+    assert "const updateAmapLabelVisibility = (activeIdx) => {" in html
+    assert "const updateMapLibreLabelVisibility = (activeIdx) => {" in html
+    assert "const updateCesiumLabelVisibility = (activeIdx) => {" in html
+    assert "projectToScreen: (lng, lat) => {" in html
+    assert "const buildMapPointLabelShell = (loc, idx, activeIdx) => {" in html
+    assert "shell.setAttribute('data-story-idx', String(idx));" in html
+    assert "const setMapPointLabelMarkerVisibility = (marker, shouldShow) => {" in html
+    assert "element: buildMapPointLabelShell(loc, idx, activeIndexRef.current)," in html
+    assert "rootEl.classList.contains('map-point-label-shell')" in html
+    assert "const scheduleMapLibreOverlayRebuild = (reason = 'unknown') => {" in html
+    assert "const healMapLibreOverlaysIfMissing = (reason = 'integrity-check') => {" in html
+    assert "const ensureFallbackOverlay = () => {" in html
+    assert "const scheduleFallbackOverlayRender = (reason = 'map-change') => {" in html
+    assert ".map-fallback-overlay {" in html
+    assert "map.on('styledata', () => healMapLibreOverlaysIfMissing('styledata'))" in html
+    assert "map.on('idle', () => healMapLibreOverlaysIfMissing('idle'))" in html
+    assert "rebuildOverlaysRef.current();" in html
     assert "{ id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' }" in html
     assert "{ id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' }" in html
     assert "{ id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' }" in html
@@ -442,11 +573,38 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "const getAmapBoundsPadding = (containerWidth) => {" in html
     assert "const getAmapFocusPadding = (containerWidth) => {" in html
     assert "const getMapPointLabelOffset = (idx) => {" in html
-    assert "maplibre: [0, isEndpoint ? -14 : -10]," in html
-    assert "amap: [0, isEndpoint ? -24 : -18]," in html
-    assert "offset: labelOffset.maplibre" in html
+    assert "maplibre: [0, isEndpoint ? -20 : -16]," in html
+    assert "amap: [0, isEndpoint ? -30 : -24]," in html
     assert "offset: new AMap.Pixel(labelOffset.amap[0], labelOffset.amap[1])," in html
+    assert "const amapEl = document.getElementById('map-amap');" in html
+    assert "map = new AMap.Map('map-amap', {" in html
+    assert '<div id="map-amap" className="map-canvas is-hidden"></div>' in html
+    assert "const [mapStatusNotice, setMapStatusNotice] = useState(null);" in html
+    assert "const retryPreferredMapProvider = (targetLayerType) => {" in html
+    assert "const handleMapNoticeAction = (action) => {" in html
+    assert "当前: {describeProviderType(mapStatusNotice.provider)} · {describeLayerType(mapStatusNotice.layerType)}" in html
+    assert 'aria-label="关闭底图提示"' in html
+    assert "我知道了" in html
     assert '>→</button>\n                  </div>' in html
+    assert "related-graph-edge-line" in html
+    assert "getRelatedGraphEdgeLabel(node)" in html
+    assert 'className="journey-map-column relative flex-1 min-w-0"' in html
+    assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
+    assert 'className="flex min-h-full flex-col justify-end gap-3"' in html
+    assert "draggingRef.current = 'horizontal';" in html
+    assert "draggingRef.current = 'vertical';" in html
+
+
+def test_profile_page_template_prefers_geovis_without_vector_probe_preflight():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "await ((window.__MAP_STORY_GEOVIS__ && window.__MAP_STORY_GEOVIS__.ensureMapLibre) || _ensureMapLibre)();" in html
+    assert "probeGeoVisLayerType(geovis, 'vector')" not in html
+    assert "if (mode === 'vector') {" in html
+    assert "fallbackToMapLibreMode(`${label} 暂不可用，已保留当前 GeoVis 底图。`, mapLayerType);" in html
+    assert "title: '已切换到高德备用底图'" in html
+    assert "label: '恢复 GeoVis'" in html
+    assert "label: `重试${describeLayerType(attemptedLayerType)}`" in html
 
 
 def test_profile_page_template_uses_colon_for_ancient_and_modern_place_names():
@@ -481,7 +639,7 @@ def test_profile_page_template_work_tooltip_avoids_duplicate_title_and_escapes_p
     assert "style={{ maxWidth: 'min(420px, calc(100vw - 2rem))' }}" in html
     assert "bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]" in html
     assert '<span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>' not in html
-    assert 'className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
+    assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
     assert 'className="glass-panel theme-card rounded-xl overflow-hidden flex flex-col"' not in html
 
 
@@ -498,7 +656,7 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert ".related-graph-dot::after {" in html
     assert "width: 18px;" in html
     assert ".related-graph-card.center .related-graph-dot {" in html
-    assert "width: 24px;" in html
+    assert "width: 22px;" in html
     assert "悬浮查看详情，点击人物名跳转" in html
     assert "return getCanonicalPersonName(rawName) !== getCanonicalPersonName(data.person?.name);" in html
     assert "'苏东坡'" not in html.split("const centerPersonAliases = useMemo", 1)[1].split("const relatedCenterNode = useMemo", 1)[0]
@@ -508,16 +666,16 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert "纵向位置仅用于排版避让，不代表年代、亲疏或地理方向" not in html
     assert "radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%)" in html
     assert "linear-gradient(140deg, #0f172a 0%, #14213d 56%, #10253f 100%)" in html
-    assert "strokeDasharray=\"0.6 1.2\"" in html
-    assert "strokeWidth=\"0.18\"" in html
+    assert "related-graph-edge-line" in html
+    assert "getRelatedGraphEdgeLabel(node)" in html
     assert ".related-graph-stage::after {" in html
-    assert "width: 152px;" in html
+    assert "width: 118px;" in html
     assert "<RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />" in html
     assert "<RelatedGraphTooltip node={node} />" in html
     assert '<div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>' in html
     assert '<div className="related-graph-label">{node.name}</div>' in html
     assert "related-graph-avatar" not in html
-    assert "related-graph-relation" not in html
+    assert "related-graph-edge-label-text" in html
     assert "related-graph-meta" not in html
 
 
@@ -548,7 +706,7 @@ def test_profile_page_template_uses_context_aware_war_badge_rule():
 def test_profile_page_template_avoids_repeated_map_reactivation_on_ready_tick():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
-    assert "}, [mapLayerType]);" in html
+    assert "}, [mapLayerType, mapRecoveryTick]);" in html
     assert "}, [mapLayerType, mapReadyTick]);" not in html
     assert "[0, 120, 320, 700].forEach((delay) => {" not in html
     assert "[180, 900, 2200].forEach((delay) => {" not in html
@@ -604,8 +762,7 @@ def test_profile_page_template_distinguishes_terrain_palette_and_uniform_line_wi
     assert "glowPower: segmentVisual.isCurrent ? 0.4 : 0.3" in html
     assert "const buildCesiumSegmentHaloMaterial = (segmentVisual) => (" in html
     assert "width: initialVisual.haloLineWidth + 2.4," in html
-    assert "showArrow: isCurrent," in html
-    assert "showArrow: layerType === 'terrain-3d' ? isCurrent : true," not in html
+    assert html.count("showArrow: true,") >= 2
     assert "controller.fitAll(false);" in html
     assert "heading: 0," in html
     assert "Math.max(sphere.radius * 5.2, 1100000)" in html
@@ -637,9 +794,12 @@ def test_profile_page_template_shows_age_and_city_name_on_map_node_labels():
 
     assert "const getMapPointLabelName = (loc, idx) => (" in html
     assert "const buildMapPointLabelElement = (loc, idx, activeIdx) => {" in html
-    assert "`${getMarkerBadgeText(loc, idx)}\\n${getMapPointLabelName(loc, idx)}`" in html
+    assert "return badgeText && name ? `${badgeText}\\n${name}` : (badgeText || name);" in html
+    assert "const getMapPointLabelText = (loc, idx) => {" in html
+    assert "const buildMapPointLabelShell = (loc, idx, activeIdx) => {" in html
+    assert "element: buildMapPointLabelShell(loc, idx, activeIndexRef.current)," in html
+    assert "setMapPointLabelMarkerVisibility(marker, shouldShow);" in html
     assert "const getRenderedPointLoc = (idx) => {" in html
-    assert ".setLngLat([Number(renderLoc.renderLng), Number(renderLoc.renderLat)])" in html
     assert 'class="map-point-label-text"' in html
-    assert 'class="map-point-label-badge"' not in html
-    assert 'class="map-point-label-name"' not in html
+    assert 'class="map-point-label-badge"' in html
+    assert 'class="map-point-label-name"' in html

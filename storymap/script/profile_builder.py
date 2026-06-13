@@ -64,7 +64,6 @@ _SPECULATIVE_LOCATION_PATTERNS = (
     r"古称不详",
     r"地点不详",
     r"某地",
-    r"一带",
     r"周边区域",
     r"可能",
 )
@@ -283,6 +282,34 @@ def _looks_like_death_location(item: Dict[str, object]) -> bool:
     return bool(re.search(r"(?:^|[，。；;、,\s])卒(?:于|地|处)?(?:$|[，。；;、,\s])", text))
 
 
+def _infer_location_significance(
+    item: Dict[str, object],
+    *,
+    person_name: str = "",
+) -> str:
+    existing = str(item.get("significance") or "").strip()
+    if existing:
+        return existing
+    event = str(item.get("event") or "").strip()
+    name = str(item.get("name") or item.get("modernName") or item.get("ancientName") or "此地").strip() or "此地"
+    kind = str(item.get("type") or "").strip().lower()
+    if kind == "birth":
+        return f"{name}是{person_name or '该人物'}人生起点的重要地点，也为理解其出身背景与后世纪念提供线索。"
+    if kind == "death" or _looks_like_death_location(item):
+        return f"{name}对应{person_name or '该人物'}人生终章，是观察其命运转折与历史结局的重要节点。"
+    if not event:
+        return f"{name}是{person_name or '该人物'}人生轨迹中的关键停驻点，可据此串联其生平阶段变化。"
+    if any(token in event for token in ("起兵", "结义", "投军", "出仕", "赴京", "登第", "受命", "入朝")):
+        return f"{name}标志着{person_name or '该人物'}人生阶段的开启或身份转折，是其后续经历的重要起点。"
+    if any(token in event for token in ("镇守", "驻守", "坐镇", "长期", "居于", "讲学", "任职")):
+        return f"{name}是{person_name or '该人物'}展开核心活动的重要舞台，体现其在这一阶段的主要职责与影响。"
+    if any(token in event for token in ("大败", "击败", "斩", "北伐", "凯旋", "封", "称帝", "建功", "水淹")):
+        return f"{name}见证了{person_name or '该人物'}的重要功业节点，也是其历史声望形成的关键场域。"
+    if any(token in event for token in ("败走", "失守", "被贬", "流放", "遇害", "擒杀", "失荆州", "兵败")):
+        return f"{name}对应{person_name or '该人物'}命运转折甚至失势阶段，对理解其人生起伏具有关键意义。"
+    return f"{name}与“{event}”这一事件紧密相关，是理解{person_name or '该人物'}生平轨迹的重要地点。"
+
+
 def _sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str, object]]:
     if len(loc_items) <= 1:
         return loc_items
@@ -480,7 +507,18 @@ def split_quote_lines(text: str) -> List[str]:
 
 
 def extract_title_from_text(text: str) -> str:
-    m = re.search(r"“([^”]+)”", text)
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    honor_patterns = [
+        r"(?:后世)?(?:被|为|并)?(?:尊为|誉为|奉为|称为|尊称为)[“\"「『]([^”\"」』]+)[”\"」』]",
+        r"[，,]\s*([^，。；、]{1,12})\s*[，。；、]?(?:与|并与).{0,20}(?:并列|齐名)",
+    ]
+    for pattern in honor_patterns:
+        m = re.search(pattern, raw)
+        if m and str(m.group(1) or "").strip():
+            return str(m.group(1) or "").strip()
+    m = re.search(r"“([^”]+)”", raw)
     if m:
         return m.group(1).strip()
     return ""
@@ -964,6 +1002,10 @@ def build_profile_data(
             continue
         works = extract_works(" ".join([loc.get("event", ""), loc.get("significance", "")]))
         quote_lines = split_quote_lines(loc.get("quotes", ""))
+        inferred_significance = _infer_location_significance(
+            loc,
+            person_name=name or fallback_person,
+        )
         loc_items.append(
             {
                 "name": loc.get("name") or geo_name,
@@ -976,7 +1018,7 @@ def build_profile_data(
                 "event": loc.get("event", ""),
                 "time": loc.get("time", ""),
                 "duration": loc.get("duration", ""),
-                "significance": loc.get("significance", ""),
+                "significance": inferred_significance,
                 "works": works,
                 "quoteLines": quote_lines,
             }

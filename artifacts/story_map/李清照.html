@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李清照", "title": "千古第一才女", "description": "李清照生于书香门第，早年生活优裕，与丈夫赵明诚共同致力于书画金石的收藏与研究，词作多写闺中闲趣与相思。金兵南侵，北宋灭亡，她被迫南渡，经历了丈夫病故、珍藏文物散失的巨大打击。晚年漂泊江南，境遇孤苦，词风转为沉郁悲凉，深刻抒发了国破家亡之痛与身世飘零之悲。其一生见证了两宋之交的动荡，个人命运与时代洪流紧密相连。", "quote": "争渡，争渡，惊起一滩鸥鹭。", "shortReview": "争渡，争渡，惊起一滩鸥鹭。", "dynasty": "北宋末至南宋初", "courtesyName": "", "artName": "易安居士", "aliases": ["易安居士"], "birthplace": "齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法", "avatar": "", "birth": {"date": "1084年", "location": "齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法", "lat": 36.708, "lng": 117.527, "coordSystem": "WGS84"}, "death": {"date": "1155年", "location": "年与地点为学界普遍接受的说法", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约71-72岁", "highlights": {"honor": "千古第一才女", "status": "宋代婉约派代表词人，被誉为“千古第一才女”。", "identities": "词人、文学家", "achievements": "1. 开创“易安体”，词作语言清丽典雅，情感真挚深沉；2. 提出“词别是一家”的词学理论；3. 在诗、文方面亦有建树，留存《金石录后序》等名篇；4. 其作品是宋词南渡前后历史变迁与个人命运交织的珍贵记录。", "works": ["金石录后序"], "reviews": []}}, "locations": [{"name": "章丘", "ancientName": "齐州章丘", "modernName": "山东省济南市章丘区", "lat": 36.708, "lng": 117.527, "coordSystem": "WGS84", "type": "birth", "event": "出生于士大夫家庭，父亲李格非为“苏门后四学士”之一，家学渊源深厚。", "time": "公元1084年", "duration": "童年时期", "significance": "奠定了其深厚的文学修养与艺术品味。", "works": [], "quoteLines": []}, {"name": "汴京", "ancientName": "汴京", "modernName": "河南省开封市", "lat": 34.797, "lng": 114.307, "coordSystem": "WGS84", "type": "normal", "event": "与太学生赵明诚成婚。婚后共同校勘古籍，鉴赏金石书画，生活高雅和谐。", "time": "约公元1101年前后", "duration": "数年", "significance": "婚姻与学术伴侣关系的起点，早期创作的重要背景。", "works": [], "quoteLines": ["《如梦令·常记溪亭日暮》：“争渡，争渡，惊起一滩鸥鹭。”", "《点绛唇·蹴罢秋千》：“和羞走，倚门回首，却把青梅嗅。”"]}, {"name": "青州", "ancientName": "青州", "modernName": "山东省潍坊市青州市", "lat": 36.685, "lng": 118.479, "coordSystem": "WGS84", "type": "normal", "event": "因党争，随赵明诚屏居乡里。夫妇二人将居所命名为“归来堂”，致力于搜集、校勘金石文物，完成《金石录》初稿。此时期生活相对宁静。", "time": "约公元1107年 - 公元1127年", "duration": "约20年", "significance": "学术研究与文学创作的黄金时期，积累了大量珍贵文物与文稿。", "works": ["金石录"], "quoteLines": ["《一剪梅·红藕香残玉簟秋》：“此情无计可消除，才下眉头，却上心头。”", "《醉花阴·薄雾浓云愁永昼》：“莫道不销魂，帘卷西风，人比黄花瘦。”"]}, {"name": "莱州", "ancientName": "莱州", "modernName": "山东省烟台莱州市", "lat": 37.178, "lng": 119.942, "coordSystem": "WGS84", "type": "normal", "event": "赵明诚任莱州知府，李清照前往相聚。", "time": "约公元1121年", "duration": "短暂", "significance": "夫妻团聚，但亦有对丈夫蓄妾的忧虑，情感复杂。", "works": [], "quoteLines": ["《蝶恋花·泪湿罗衣脂粉满》：“惜别伤离方寸乱，忘了临行，酒盏深和浅。”"]}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "coordSystem": "WGS84", "type": "normal", "event": "赵明诚于赴任湖州途中病逝于此。李清照悲痛欲绝，大病一场。时值金兵南下，局势危急。", "time": "公元1129年", "duration": "数月", "significance": "人生重大转折点，从相对安定的生活彻底陷入孤苦与动荡。", "works": [], "quoteLines": ["《夏日绝句》：“生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。”"]}, {"name": "越州", "ancientName": "越州", "modernName": "浙江省绍兴市", "lat": 30.002, "lng": 120.581, "coordSystem": "WGS84", "type": "normal", "event": "为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾居于越州。", "time": "约公元1130年 - 公元1131年", "duration": "流寓期间", "significance": "南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。", "works": [], "quoteLines": []}, {"name": "台州", "ancientName": "台州", "modernName": "浙江省台州市", "lat": 28.656, "lng": 121.421, "coordSystem": "WGS84", "type": "normal", "event": "为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾经过或暂居台州。", "time": "约公元1130年 - 公元1131年", "duration": "流寓期间", "significance": "南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。", "works": [], "quoteLines": []}, {"name": "杭州（再嫁风波）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.274, "lng": 120.155, "coordSystem": "WGS84", "type": "normal", "event": "暂居杭州，曾再嫁张汝舟，后因发现其品行不端而迅速离异，并因此事入狱（后获释）。此事在当时引起非议。", "time": "约公元1132年", "duration": "短暂", "significance": "个人生活遭遇重大挫折与社会舆论压力。", "works": [], "quoteLines": []}, {"name": "金华", "ancientName": "婺州金华", "modernName": "浙江省金华市", "lat": 29.079, "lng": 119.647, "coordSystem": "WGS84", "type": "normal", "event": "避乱居金华，常登“八咏楼”眺望。写下记录生平与文物散失经过的《金石录后序》。", "time": "约公元1134年 - 公元1135年", "duration": "约一年", "significance": "晚年相对安定的创作期，对一生进行回顾与总结。", "works": ["金石录后序"], "quoteLines": ["《武陵春·春晚》：“只恐双溪舴艋舟，载不动许多愁。”", "《题八咏楼》：“千古风流八咏楼，江山留与后人愁。”"]}, {"name": "杭州（晚年定居）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.274, "lng": 120.155, "coordSystem": "WGS84", "type": "death", "event": "在孤寂中度过晚年，具体事迹不详。应卒于杭州。", "time": "约公元1155年", "duration": "晚年约二十年", "significance": "生命终点，一代词宗在异乡落幕。", "works": [], "quoteLines": ["《声声慢·寻寻觅觅》：“寻寻觅觅，冷冷清清，凄凄惨惨戚戚。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---", "workTexts": {"如梦令·常记溪亭日暮": "争渡，争渡，惊起一滩鸥鹭。", "如梦令": "争渡，争渡，惊起一滩鸥鹭。", "常记溪亭日暮": "争渡，争渡，惊起一滩鸥鹭。", "点绛唇·蹴罢秋千": "和羞走，倚门回首，却把青梅嗅。", "点绛唇": "和羞走，倚门回首，却把青梅嗅。", "蹴罢秋千": "和羞走，倚门回首，却把青梅嗅。", "一剪梅·红藕香残玉簟秋": "此情无计可消除，才下眉头，却上心头。", "一剪梅": "此情无计可消除，才下眉头，却上心头。", "红藕香残玉簟秋": "此情无计可消除，才下眉头，却上心头。", "醉花阴·薄雾浓云愁永昼": "莫道不销魂，帘卷西风，人比黄花瘦。", "醉花阴": "莫道不销魂，帘卷西风，人比黄花瘦。", "薄雾浓云愁永昼": "莫道不销魂，帘卷西风，人比黄花瘦。", "蝶恋花·泪湿罗衣脂粉满": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "蝶恋花": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "泪湿罗衣脂粉满": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "夏日绝句": "生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。", "武陵春·春晚": "只恐双溪舴艋舟，载不动许多愁。", "武陵春": "只恐双溪舴艋舟，载不动许多愁。", "春晚": "只恐双溪舴艋舟，载不动许多愁。", "题八咏楼": "千古风流八咏楼，江山留与后人愁。", "声声慢·寻寻觅觅": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "声声慢": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "寻寻觅觅": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "金石录后序": "3. 在诗、文方面亦有建树，留存《金石录后序》等名篇", "金石录": "“归来堂”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李清照\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李清照\n- **号**：易安居士\n- **时代**：北宋末至南宋初\n- **出生**：公元1084年，齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法，但章丘是主流且可考的说法。\n- **去世**：约公元1155年，临安府（今浙江省杭州市）。卒年与地点为学界普遍接受的说法，但具体细节存疑（另有1156年等说法）。\n- **享年**：约71-72岁\n- **主要身份**：词人、文学家\n- **历史地位**：宋代婉约派代表词人，被誉为“千古第一才女”。\n- **主要成就**：1. 开创“易安体”，词作语言清丽典雅，情感真挚深沉；2. 提出“词别是一家”的词学理论；3. 在诗、文方面亦有建树，留存《金石录后序》等名篇；4. 其作品是宋词南渡前后历史变迁与个人命运交织的珍贵记录。\n\n### 生平概述\n李清照生于书香门第，早年生活优裕，与丈夫赵明诚共同致力于书画金石的收藏与研究，词作多写闺中闲趣与相思。金兵南侵，北宋灭亡，她被迫南渡，经历了丈夫病故、珍藏文物散失的巨大打击。晚年漂泊江南，境遇孤苦，词风转为沉郁悲凉，深刻抒发了国破家亡之痛与身世飘零之悲。其一生见证了两宋之交的动荡，个人命运与时代洪流紧密相连。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从山东故乡出发，南渡至江浙地区，最终定居临安（今杭州），足迹主要覆盖今山东、河南、江苏、浙江等省。\n- ⏱️ **时间跨度**：约公元1084年 - 约公元1155年，总跨度约71-72年。\n- 📍 **地理范围**：主要覆盖今山东省、河南省、江苏省、浙江省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：章丘\n- **时间**：公元1084年\n- **停留时间**：童年时期\n- **地点**：齐州章丘（今山东省济南市章丘区）\n- **事件**：出生于士大夫家庭，父亲李格非为“苏门后四学士”之一，家学渊源深厚。\n- **意义**：奠定了其深厚的文学修养与艺术品味。\n\n### 📍 重要地点：汴京\n- **时间**：约公元1101年前后\n- **停留时间**：数年\n- **地点**：汴京（今河南省开封市）\n- **事件**：与太学生赵明诚成婚。婚后共同校勘古籍，鉴赏金石书画，生活高雅和谐。\n- **意义**：婚姻与学术伴侣关系的起点，早期创作的重要背景。\n- **名篇名句**：《如梦令·常记溪亭日暮》：“争渡，争渡，惊起一滩鸥鹭。”；《点绛唇·蹴罢秋千》：“和羞走，倚门回首，却把青梅嗅。”\n\n### 📍 重要地点：青州\n- **时间**：约公元1107年 - 公元1127年\n- **停留时间**：约20年\n- **地点**：青州（今山东省潍坊市青州市）\n- **事件**：因党争，随赵明诚屏居乡里。夫妇二人将居所命名为“归来堂”，致力于搜集、校勘金石文物，完成《金石录》初稿。此时期生活相对宁静。\n- **意义**：学术研究与文学创作的黄金时期，积累了大量珍贵文物与文稿。\n- **名篇名句**：《一剪梅·红藕香残玉簟秋》：“此情无计可消除，才下眉头，却上心头。”；《醉花阴·薄雾浓云愁永昼》：“莫道不销魂，帘卷西风，人比黄花瘦。”\n\n### 📍 重要地点：莱州\n- **时间**：约公元1121年\n- **停留时间**：短暂\n- **地点**：莱州（今山东省烟台莱州市）\n- **事件**：赵明诚任莱州知府，李清照前往相聚。\n- **意义**：夫妻团聚，但亦有对丈夫蓄妾的忧虑，情感复杂。\n- **名篇名句**：《蝶恋花·泪湿罗衣脂粉满》：“惜别伤离方寸乱，忘了临行，酒盏深和浅。”\n\n### 📍 重要地点：建康\n- **时间**：公元1129年\n- **停留时间**：数月\n- **地点**：建康（今江苏省南京市）\n- **事件**：赵明诚于赴任湖州途中病逝于此。李清照悲痛欲绝，大病一场。时值金兵南下，局势危急。\n- **意义**：人生重大转折点，从相对安定的生活彻底陷入孤苦与动荡。\n- **名篇名句**：《夏日绝句》：“生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。”\n\n### 📍 重要地点：越州\n- **时间**：约公元1130年 - 公元1131年\n- **停留时间**：流寓期间\n- **地点**：越州（今浙江省绍兴市）\n- **事件**：为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾居于越州。\n- **意义**：南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。\n\n### 📍 重要地点：台州\n- **时间**：约公元1130年 - 公元1131年\n- **停留时间**：流寓期间\n- **地点**：台州（今浙江省台州市）\n- **事件**：为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾经过或暂居台州。\n- **意义**：南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。\n\n### 📍 重要地点：杭州（再嫁风波）\n- **时间**：约公元1132年\n- **停留时间**：短暂\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：暂居杭州，曾再嫁张汝舟，后因发现其品行不端而迅速离异，并因此事入狱（后获释）。此事在当时引起非议。\n- **意义**：个人生活遭遇重大挫折与社会舆论压力。\n\n### 📍 重要地点：金华\n- **时间**：约公元1134年 - 公元1135年\n- **停留时间**：约一年\n- **地点**：婺州金华（今浙江省金华市）\n- **事件**：避乱居金华，常登“八咏楼”眺望。写下记录生平与文物散失经过的《金石录后序》。\n- **意义**：晚年相对安定的创作期，对一生进行回顾与总结。\n- **名篇名句**：《武陵春·春晚》：“只恐双溪舴艋舟，载不动许多愁。”；《题八咏楼》：“千古风流八咏楼，江山留与后人愁。”\n\n### 🔴 去世地：杭州（晚年定居）\n- **时间**：约公元1155年\n- **停留时间**：晚年约二十年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：在孤寂中度过晚年，具体事迹不详。应卒于杭州。\n- **意义**：生命终点，一代词宗在异乡落幕。\n- **名篇名句**：《声声慢·寻寻觅觅》：“寻寻觅觅，冷冷清清，凄凄惨惨戚戚。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1084年 | 1岁 | 生于齐州章丘。 |\n| 约1101年 | 约18岁 | 嫁与赵明诚，居汴京。 |\n| 约1107年 | 约24岁 | 随夫屏居青州，开始“归来堂”生活。 |\n| 1127年 | 43岁 | 靖康之变，北宋灭亡。开始南渡。 |\n| 1129年 | 46岁 | 丈夫赵明诚病逝于建康。 |\n| 1130-1131年 | 47-48岁 | 流寓越州、台州，文物散失严重。 |\n| 1132年 | 49岁 | 再嫁张汝舟，旋即离异并入狱。 |\n| 1134年 | 51岁 | 避乱居金华，作《金石录后序》。 |\n| 约1155年 | 约71-72岁 | 约卒于临安。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 济南市章丘区 | 36.708 | 117.527 |\n| 开封市 | 34.797 | 114.307 |\n| 青州市 | 36.685 | 118.479 |\n| 莱州市 | 37.178 | 119.942 |\n| 南京市 | 32.060 | 118.797 |\n| 绍兴市 | 30.002 | 120.581 |\n| 台州市 | 28.656 | 121.421 |\n| 杭州市 | 30.274 | 120.155 |\n| 金华市 | 29.079 | 119.647 |", "relatedGraph": {"center": {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "争渡，争渡，惊起一滩鸥鹭。", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "争渡，争渡，惊起一滩鸥鹭。", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏东坡", "name": "苏东坡", "file": "苏东坡.html", "dynasty": "北宋（仁宗至徽宗年间）", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "苏轼出生于四川眉山一个书香之家，自幼聪颖，在父亲苏洵的悉心教导下，与弟弟苏辙一起饱读诗书", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "宋仁宗景祐四年生于眉州眉山", "birthplace_modern": "四川省眉山市东坡区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李清照", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏轼", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏东坡", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李清照", "title": "千古第一才女", "description": "李清照生于书香门第，早年生活优裕，与丈夫赵明诚共同致力于书画金石的收藏与研究，词作多写闺中闲趣与相思。金兵南侵，北宋灭亡，她被迫南渡，经历了丈夫病故、珍藏文物散失的巨大打击。晚年漂泊江南，境遇孤苦，词风转为沉郁悲凉，深刻抒发了国破家亡之痛与身世飘零之悲。其一生见证了两宋之交的动荡，个人命运与时代洪流紧密相连。", "quote": "争渡，争渡，惊起一滩鸥鹭。", "shortReview": "争渡，争渡，惊起一滩鸥鹭。", "dynasty": "北宋末至南宋初", "courtesyName": "", "artName": "易安居士", "aliases": ["易安居士"], "birthplace": "齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法", "avatar": "", "birth": {"date": "1084年", "location": "齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法", "lat": 36.708, "lng": 117.527, "coordSystem": "WGS84"}, "death": {"date": "1155年", "location": "年与地点为学界普遍接受的说法", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约71-72岁", "highlights": {"honor": "千古第一才女", "status": "宋代婉约派代表词人，被誉为“千古第一才女”。", "identities": "词人、文学家", "achievements": "1. 开创“易安体”，词作语言清丽典雅，情感真挚深沉；2. 提出“词别是一家”的词学理论；3. 在诗、文方面亦有建树，留存《金石录后序》等名篇；4. 其作品是宋词南渡前后历史变迁与个人命运交织的珍贵记录。", "works": ["金石录后序"], "reviews": []}}, "locations": [{"name": "章丘", "ancientName": "齐州章丘", "modernName": "山东省济南市章丘区", "lat": 36.708, "lng": 117.527, "coordSystem": "WGS84", "type": "birth", "event": "出生于士大夫家庭，父亲李格非为“苏门后四学士”之一，家学渊源深厚。", "time": "公元1084年", "duration": "童年时期", "significance": "奠定了其深厚的文学修养与艺术品味。", "works": [], "quoteLines": []}, {"name": "汴京", "ancientName": "汴京", "modernName": "河南省开封市", "lat": 34.797, "lng": 114.307, "coordSystem": "WGS84", "type": "normal", "event": "与太学生赵明诚成婚。婚后共同校勘古籍，鉴赏金石书画，生活高雅和谐。", "time": "约公元1101年前后", "duration": "数年", "significance": "婚姻与学术伴侣关系的起点，早期创作的重要背景。", "works": [], "quoteLines": ["《如梦令·常记溪亭日暮》：“争渡，争渡，惊起一滩鸥鹭。”", "《点绛唇·蹴罢秋千》：“和羞走，倚门回首，却把青梅嗅。”"]}, {"name": "青州", "ancientName": "青州", "modernName": "山东省潍坊市青州市", "lat": 36.685, "lng": 118.479, "coordSystem": "WGS84", "type": "normal", "event": "因党争，随赵明诚屏居乡里。夫妇二人将居所命名为“归来堂”，致力于搜集、校勘金石文物，完成《金石录》初稿。此时期生活相对宁静。", "time": "约公元1107年 - 公元1127年", "duration": "约20年", "significance": "学术研究与文学创作的黄金时期，积累了大量珍贵文物与文稿。", "works": ["金石录"], "quoteLines": ["《一剪梅·红藕香残玉簟秋》：“此情无计可消除，才下眉头，却上心头。”", "《醉花阴·薄雾浓云愁永昼》：“莫道不销魂，帘卷西风，人比黄花瘦。”"]}, {"name": "莱州", "ancientName": "莱州", "modernName": "山东省烟台莱州市", "lat": 37.178, "lng": 119.942, "coordSystem": "WGS84", "type": "normal", "event": "赵明诚任莱州知府，李清照前往相聚。", "time": "约公元1121年", "duration": "短暂", "significance": "夫妻团聚，但亦有对丈夫蓄妾的忧虑，情感复杂。", "works": [], "quoteLines": ["《蝶恋花·泪湿罗衣脂粉满》：“惜别伤离方寸乱，忘了临行，酒盏深和浅。”"]}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.797, "coordSystem": "WGS84", "type": "normal", "event": "赵明诚于赴任湖州途中病逝于此。李清照悲痛欲绝，大病一场。时值金兵南下，局势危急。", "time": "公元1129年", "duration": "数月", "significance": "人生重大转折点，从相对安定的生活彻底陷入孤苦与动荡。", "works": [], "quoteLines": ["《夏日绝句》：“生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。”"]}, {"name": "越州", "ancientName": "越州", "modernName": "浙江省绍兴市", "lat": 30.002, "lng": 120.581, "coordSystem": "WGS84", "type": "normal", "event": "为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾居于越州。", "time": "约公元1130年 - 公元1131年", "duration": "流寓期间", "significance": "南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。", "works": [], "quoteLines": []}, {"name": "台州", "ancientName": "台州", "modernName": "浙江省台州市", "lat": 28.656, "lng": 121.421, "coordSystem": "WGS84", "type": "normal", "event": "为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾经过或暂居台州。", "time": "约公元1130年 - 公元1131年", "duration": "流寓期间", "significance": "南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。", "works": [], "quoteLines": []}, {"name": "杭州（再嫁风波）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.274, "lng": 120.155, "coordSystem": "WGS84", "type": "normal", "event": "暂居杭州，曾再嫁张汝舟，后因发现其品行不端而迅速离异，并因此事入狱（后获释）。此事在当时引起非议。", "time": "约公元1132年", "duration": "短暂", "significance": "个人生活遭遇重大挫折与社会舆论压力。", "works": [], "quoteLines": []}, {"name": "金华", "ancientName": "婺州金华", "modernName": "浙江省金华市", "lat": 29.079, "lng": 119.647, "coordSystem": "WGS84", "type": "normal", "event": "避乱居金华，常登“八咏楼”眺望。写下记录生平与文物散失经过的《金石录后序》。", "time": "约公元1134年 - 公元1135年", "duration": "约一年", "significance": "晚年相对安定的创作期，对一生进行回顾与总结。", "works": ["金石录后序"], "quoteLines": ["《武陵春·春晚》：“只恐双溪舴艋舟，载不动许多愁。”", "《题八咏楼》：“千古风流八咏楼，江山留与后人愁。”"]}, {"name": "杭州（晚年定居）", "ancientName": "临安府", "modernName": "浙江省杭州市", "lat": 30.274, "lng": 120.155, "coordSystem": "WGS84", "type": "death", "event": "在孤寂中度过晚年，具体事迹不详。应卒于杭州。", "time": "约公元1155年", "duration": "晚年约二十年", "significance": "生命终点，一代词宗在异乡落幕。", "works": [], "quoteLines": ["《声声慢·寻寻觅觅》：“寻寻觅觅，冷冷清清，凄凄惨惨戚戚。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---", "workTexts": {"如梦令·常记溪亭日暮": "争渡，争渡，惊起一滩鸥鹭。", "如梦令": "争渡，争渡，惊起一滩鸥鹭。", "常记溪亭日暮": "争渡，争渡，惊起一滩鸥鹭。", "点绛唇·蹴罢秋千": "和羞走，倚门回首，却把青梅嗅。", "点绛唇": "和羞走，倚门回首，却把青梅嗅。", "蹴罢秋千": "和羞走，倚门回首，却把青梅嗅。", "一剪梅·红藕香残玉簟秋": "此情无计可消除，才下眉头，却上心头。", "一剪梅": "此情无计可消除，才下眉头，却上心头。", "红藕香残玉簟秋": "此情无计可消除，才下眉头，却上心头。", "醉花阴·薄雾浓云愁永昼": "莫道不销魂，帘卷西风，人比黄花瘦。", "醉花阴": "莫道不销魂，帘卷西风，人比黄花瘦。", "薄雾浓云愁永昼": "莫道不销魂，帘卷西风，人比黄花瘦。", "蝶恋花·泪湿罗衣脂粉满": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "蝶恋花": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "泪湿罗衣脂粉满": "惜别伤离方寸乱，忘了临行，酒盏深和浅。", "夏日绝句": "生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。", "武陵春·春晚": "只恐双溪舴艋舟，载不动许多愁。", "武陵春": "只恐双溪舴艋舟，载不动许多愁。", "春晚": "只恐双溪舴艋舟，载不动许多愁。", "题八咏楼": "千古风流八咏楼，江山留与后人愁。", "声声慢·寻寻觅觅": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "声声慢": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "寻寻觅觅": "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "金石录后序": "3. 在诗、文方面亦有建树，留存《金石录后序》等名篇", "金石录": "“归来堂”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李清照\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李清照\n- **号**：易安居士\n- **时代**：北宋末至南宋初\n- **出生**：公元1084年，齐州章丘（今山东省济南市章丘区）。学界对其具体出生地有不同看法，但章丘是主流且可考的说法。\n- **去世**：约公元1155年，临安府（今浙江省杭州市）。卒年与地点为学界普遍接受的说法，但具体细节存疑（另有1156年等说法）。\n- **享年**：约71-72岁\n- **主要身份**：词人、文学家\n- **历史地位**：宋代婉约派代表词人，被誉为“千古第一才女”。\n- **主要成就**：1. 开创“易安体”，词作语言清丽典雅，情感真挚深沉；2. 提出“词别是一家”的词学理论；3. 在诗、文方面亦有建树，留存《金石录后序》等名篇；4. 其作品是宋词南渡前后历史变迁与个人命运交织的珍贵记录。\n\n### 生平概述\n李清照生于书香门第，早年生活优裕，与丈夫赵明诚共同致力于书画金石的收藏与研究，词作多写闺中闲趣与相思。金兵南侵，北宋灭亡，她被迫南渡，经历了丈夫病故、珍藏文物散失的巨大打击。晚年漂泊江南，境遇孤苦，词风转为沉郁悲凉，深刻抒发了国破家亡之痛与身世飘零之悲。其一生见证了两宋之交的动荡，个人命运与时代洪流紧密相连。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从山东故乡出发，南渡至江浙地区，最终定居临安（今杭州），足迹主要覆盖今山东、河南、江苏、浙江等省。\n- ⏱️ **时间跨度**：约公元1084年 - 约公元1155年，总跨度约71-72年。\n- 📍 **地理范围**：主要覆盖今山东省、河南省、江苏省、浙江省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：章丘\n- **时间**：公元1084年\n- **停留时间**：童年时期\n- **地点**：齐州章丘（今山东省济南市章丘区）\n- **事件**：出生于士大夫家庭，父亲李格非为“苏门后四学士”之一，家学渊源深厚。\n- **意义**：奠定了其深厚的文学修养与艺术品味。\n\n### 📍 重要地点：汴京\n- **时间**：约公元1101年前后\n- **停留时间**：数年\n- **地点**：汴京（今河南省开封市）\n- **事件**：与太学生赵明诚成婚。婚后共同校勘古籍，鉴赏金石书画，生活高雅和谐。\n- **意义**：婚姻与学术伴侣关系的起点，早期创作的重要背景。\n- **名篇名句**：《如梦令·常记溪亭日暮》：“争渡，争渡，惊起一滩鸥鹭。”；《点绛唇·蹴罢秋千》：“和羞走，倚门回首，却把青梅嗅。”\n\n### 📍 重要地点：青州\n- **时间**：约公元1107年 - 公元1127年\n- **停留时间**：约20年\n- **地点**：青州（今山东省潍坊市青州市）\n- **事件**：因党争，随赵明诚屏居乡里。夫妇二人将居所命名为“归来堂”，致力于搜集、校勘金石文物，完成《金石录》初稿。此时期生活相对宁静。\n- **意义**：学术研究与文学创作的黄金时期，积累了大量珍贵文物与文稿。\n- **名篇名句**：《一剪梅·红藕香残玉簟秋》：“此情无计可消除，才下眉头，却上心头。”；《醉花阴·薄雾浓云愁永昼》：“莫道不销魂，帘卷西风，人比黄花瘦。”\n\n### 📍 重要地点：莱州\n- **时间**：约公元1121年\n- **停留时间**：短暂\n- **地点**：莱州（今山东省烟台莱州市）\n- **事件**：赵明诚任莱州知府，李清照前往相聚。\n- **意义**：夫妻团聚，但亦有对丈夫蓄妾的忧虑，情感复杂。\n- **名篇名句**：《蝶恋花·泪湿罗衣脂粉满》：“惜别伤离方寸乱，忘了临行，酒盏深和浅。”\n\n### 📍 重要地点：建康\n- **时间**：公元1129年\n- **停留时间**：数月\n- **地点**：建康（今江苏省南京市）\n- **事件**：赵明诚于赴任湖州途中病逝于此。李清照悲痛欲绝，大病一场。时值金兵南下，局势危急。\n- **意义**：人生重大转折点，从相对安定的生活彻底陷入孤苦与动荡。\n- **名篇名句**：《夏日绝句》：“生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。”\n\n### 📍 重要地点：越州\n- **时间**：约公元1130年 - 公元1131年\n- **停留时间**：流寓期间\n- **地点**：越州（今浙江省绍兴市）\n- **事件**：为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾居于越州。\n- **意义**：南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。\n\n### 📍 重要地点：台州\n- **时间**：约公元1130年 - 公元1131年\n- **停留时间**：流寓期间\n- **地点**：台州（今浙江省台州市）\n- **事件**：为躲避战乱和追查，携带部分文物颠沛流离于浙东地区，曾经过或暂居台州。\n- **意义**：南渡后艰难逃亡生活的典型阶段，文物与精神的双重损失。\n\n### 📍 重要地点：杭州（再嫁风波）\n- **时间**：约公元1132年\n- **停留时间**：短暂\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：暂居杭州，曾再嫁张汝舟，后因发现其品行不端而迅速离异，并因此事入狱（后获释）。此事在当时引起非议。\n- **意义**：个人生活遭遇重大挫折与社会舆论压力。\n\n### 📍 重要地点：金华\n- **时间**：约公元1134年 - 公元1135年\n- **停留时间**：约一年\n- **地点**：婺州金华（今浙江省金华市）\n- **事件**：避乱居金华，常登“八咏楼”眺望。写下记录生平与文物散失经过的《金石录后序》。\n- **意义**：晚年相对安定的创作期，对一生进行回顾与总结。\n- **名篇名句**：《武陵春·春晚》：“只恐双溪舴艋舟，载不动许多愁。”；《题八咏楼》：“千古风流八咏楼，江山留与后人愁。”\n\n### 🔴 去世地：杭州（晚年定居）\n- **时间**：约公元1155年\n- **停留时间**：晚年约二十年\n- **地点**：临安府（今浙江省杭州市）\n- **事件**：在孤寂中度过晚年，具体事迹不详。应卒于杭州。\n- **意义**：生命终点，一代词宗在异乡落幕。\n- **名篇名句**：《声声慢·寻寻觅觅》：“寻寻觅觅，冷冷清清，凄凄惨惨戚戚。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1084年 | 1岁 | 生于齐州章丘。 |\n| 约1101年 | 约18岁 | 嫁与赵明诚，居汴京。 |\n| 约1107年 | 约24岁 | 随夫屏居青州，开始“归来堂”生活。 |\n| 1127年 | 43岁 | 靖康之变，北宋灭亡。开始南渡。 |\n| 1129年 | 46岁 | 丈夫赵明诚病逝于建康。 |\n| 1130-1131年 | 47-48岁 | 流寓越州、台州，文物散失严重。 |\n| 1132年 | 49岁 | 再嫁张汝舟，旋即离异并入狱。 |\n| 1134年 | 51岁 | 避乱居金华，作《金石录后序》。 |\n| 约1155年 | 约71-72岁 | 约卒于临安。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《如梦令》（常记溪亭日暮）**、**《声声慢》（寻寻觅觅）**、《醉花阴》（薄雾浓云愁永昼）、《武陵春》（风住尘香花已尽）\n- 核心要点：\n    - **重点**：**《声声慢》** 开篇连用七组叠字，被誉为“公孙大娘舞剑手”，极写**孤寂凄惶**之情，是**婉约词**的典范。\n    - **重点**：**《如梦令》** 通过“争渡”的生动场景，展现早期**生活情趣**与**清新活泼**的词风。\n    - **重点**：**《醉花阴》** 中“人比黄花瘦”以**黄花**自喻，将**相思之苦**写得含蓄深沉，是“**易安体**”的代表。\n    - **意象**：善用**酒**、**黄花**、**梧桐**、**细雨**等意象营造**愁绪**氛围。\n    - **风格**：前期词风**清丽婉转**，后期词风**沉郁悲怆**，体现**时代巨变**对个人创作的影响。\n    - **手法**：擅长**白描**，语言**浅俗清新**而意境深远。\n    - **情感**：作品贯穿着对**故国**、**往事**的深切怀念与**身世飘零**的悲慨。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活于**两宋之交**，亲身经历**靖康之变**，是**南渡词人**群体的杰出代表。\n    - **重点**：与丈夫赵明诚共同致力于**金石学**研究，所著**《金石录》** 是重要的学术著作。\n    - **南渡**：其人生与创作以**南渡**为界，分为截然不同的两个时期。\n- 核心要点：\n    - **重点**：其生平是**宋代士大夫家庭文化生活**与**女性文学创作**的珍贵个案。\n    - **重点**：词作深刻反映了**宋室南渡**前后**社会动荡**与**文人心态**的变化。\n    - **重点**：提出“**词别是一家**”的观点，强调词的**独立文体地位**与**协律**特性。\n    - **评价**：在**男性主导**的古代文坛中，以其卓越才华获得“**千古第一才女**”的崇高声誉。\n    - **关系**：其父**李格非**属旧党，公公**赵挺之**属新党，家庭背景使其对**北宋党争**有切身感受。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 济南市章丘区 | 36.708 | 117.527 |\n| 开封市 | 34.797 | 114.307 |\n| 青州市 | 36.685 | 118.479 |\n| 莱州市 | 37.178 | 119.942 |\n| 南京市 | 32.060 | 118.797 |\n| 绍兴市 | 30.002 | 120.581 |\n| 台州市 | 28.656 | 121.421 |\n| 杭州市 | 30.274 | 120.155 |\n| 金华市 | 29.079 | 119.647 |", "relatedGraph": {"center": {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "争渡，争渡，惊起一滩鸥鹭。", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "“千古第一才女”", "review": "争渡，争渡，惊起一滩鸥鹭。", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏东坡", "name": "苏东坡", "file": "苏东坡.html", "dynasty": "北宋（仁宗至徽宗年间）", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "苏轼出生于四川眉山一个书香之家，自幼聪颖，在父亲苏洵的悉心教导下，与弟弟苏辙一起饱读诗书", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "宋仁宗景祐四年生于眉州眉山", "birthplace_modern": "四川省眉山市东坡区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李清照", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏轼", "label": "同时代人物", "confidence": null}, {"source": "李清照", "target": "苏东坡", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -213,6 +213,8 @@ _GENERATION_API = story_generation_api_utils.create_generation_api(
         for path in map_html_renderer_utils.profile_render_dependency_paths()
     ],
     current_profile_signature=lambda: map_html_renderer_utils.profile_template_signature(),
+    build_amap_config_js=lambda: runtime_support_utils.build_amap_config_js(),
+    build_geovis_config_js=lambda: runtime_support_utils.build_geovis_config_js(),
     refresh_stellar_homepage=lambda person: refresh_stellar_homepage(person),
     available_story_names=lambda: story_person_names(story_md_dir_path()),
     logger=_LOGGER,

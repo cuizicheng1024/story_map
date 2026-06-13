@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "蒲松龄", "title": "世界短篇小说之王", "description": "蒲松龄生于明末，成长于清初。他少有文才，但在科举道路上屡试不第，仅在71岁时援例成为贡生。一生为生活所迫，除三十余岁时在江苏宝应、高邮做幕宾外，长期在家乡同邑毕际有家设帐教书，历时近四十年。他将满腔孤愤与才华倾注于《聊斋志异》的创作中，以谈狐说鬼的方式，揭露社会黑暗，歌颂纯真情感，最终成就了这部不朽的文学巨著。", "quote": "魂从知己，竟忘死耶？", "shortReview": "魂从知己，竟忘死耶？", "dynasty": "清代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）", "avatar": "", "birth": {"date": "1640年", "location": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84"}, "death": {"date": "1715年", "location": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "世界短篇小说之王", "status": "中国文言短篇小说的巅峰代表，被誉为“世界短篇小说之王”。", "identities": "文学家、小说家", "achievements": "", "works": ["聊斋志异"], "reviews": []}}, "locations": [{"name": "蒲家庄", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个渐趋没落的书香家庭。", "time": "公元1640年", "duration": "童年及青少年时期（约1640-1658年）", "significance": "其故乡，一生大部分时间生活与创作的地方，也是《聊斋志异》故事的重要发源地。", "works": ["聊斋志异"], "quoteLines": []}, {"name": "济南", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "首次参加童子试，以县、府、道三第一考中秀才，深得学使施闰章赏识。此后多次赴济南参加乡试，皆铩羽而归。", "time": "公元1658年起，多次往返", "duration": "断续停留，每次数日至数月不等", "significance": "科举得意与失意交织之地，见证了他人生最大的希望与最深的挫败。", "works": [], "quoteLines": ["《聊斋志异·叶生》：“魂从知己，竟忘死耶？”"]}, {"name": "宝应县", "ancientName": "宝应", "modernName": "江苏省扬州市宝应县", "lat": 33.24, "lng": 119.36, "coordSystem": "WGS84", "type": "normal", "event": "应同邑友人、时任宝应知县孙蕙之邀，南下做幕宾，代拟书启、文告。", "time": "公元1670年 - 公元1671年", "duration": "约一年", "significance": "唯一一次远游，开阔了眼界，亲身接触了官场生态与民间疾苦，为其创作积累了素材。", "works": [], "quoteLines": ["《聊斋志异·梦狼》：“窃叹天下之官虎而吏狼者，比比也。”"]}, {"name": "高邮州", "ancientName": "高邮", "modernName": "江苏省扬州市高邮市", "lat": 32.78, "lng": 119.45, "coordSystem": "WGS84", "type": "normal", "event": "随孙蕙调任，继续其幕宾生涯。", "time": "公元1671年", "duration": "数月", "significance": "南游经历的延续，进一步体察江南风物与社会情状。", "works": [], "quoteLines": ["《聊斋志异·王桂庵》：“闺中人望眼欲穿矣。”"]}, {"name": "归乡（结束南游）", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "辞幕归乡，结束南游。", "time": "公元1672年", "duration": "（此后长期居住）", "significance": "返回故乡，为后续长期在家乡生活与创作做准备。", "works": [], "quoteLines": []}, {"name": "济南（闲居）", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "应友人之邀，短暂客居济南，进行诗文唱和与创作。", "time": "公元1678年", "duration": "数月", "significance": "文人交游的重要节点，可能在此整理部分《聊斋》篇目。", "works": ["聊斋"], "quoteLines": []}, {"name": "西铺村（毕家坐馆）", "ancientName": "西铺", "modernName": "山东省淄博市周村区王村镇西铺村", "lat": 36.77, "lng": 117.73, "coordSystem": "WGS84", "type": "normal", "event": "受同邑名士毕际有之聘，设帐于其家“绰然堂”，教授毕家子弟。在此期间，创作并持续修订《聊斋志异》，同时撰写大量诗文俚曲。", "time": "约公元1679年 - 公元1710年", "duration": "约三十年", "significance": "人生最重要的阶段，提供了稳定的生活来源和创作环境，《聊斋志异》在此基本定型。", "works": ["聊斋志异"], "quoteLines": ["《聊斋志异·促织》：“天子一跬步，皆关民命，不可忽也。”"]}, {"name": "济南（再游）", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "晚年数次重游济南，访友、观景、参加诗社活动。", "time": "公元1690年、1704年等", "duration": "断续停留", "significance": "晚年交游与情感寄托之所，留下众多描绘济南风物的诗篇。", "works": [], "quoteLines": ["《重建古历亭》诗：“大明湖上一徘徊，两岸垂柳荫绿苔。”"]}, {"name": "蒲家庄（晚年归居）", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "结束在毕家的教书生涯，回归故里。71岁援例成为岁贡生。", "time": "公元1711年 - 公元1715年", "duration": "晚年最后几年", "significance": "叶落归根，在故乡度过人生最后时光，整理毕生著作。", "works": [], "quoteLines": ["《聊斋自志》：“集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。”"]}, {"name": "蒲家庄", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "death", "event": "在故乡病逝。", "time": "公元1715年正月二十二日", "duration": "终老", "significance": "生命终点，其故居“聊斋”及墓园今已成为重要纪念地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---", "workTexts": {"聊斋志异·叶生": "魂从知己，竟忘死耶？", "聊斋志异": "窃叹天下之官虎而吏狼者，比比也。", "叶生": "魂从知己，竟忘死耶？", "聊斋志异·梦狼": "窃叹天下之官虎而吏狼者，比比也。", "梦狼": "窃叹天下之官虎而吏狼者，比比也。", "聊斋志异·王桂庵": "闺中人望眼欲穿矣。", "王桂庵": "闺中人望眼欲穿矣。", "聊斋志异·促织": "天子一跬步，皆关民命，不可忽也。", "促织": "天子一跬步，皆关民命，不可忽也。", "聊斋自志": "集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。", "聊斋": "意义：文人交游的重要节点，可能在此整理部分《聊斋》篇目。", "重建古历亭": "“大明湖上一徘徊，两岸垂柳荫绿苔。”", "狼": "重点：《狼》 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。", "山市": "“山中蜃景”", "红楼梦": "文学地位：在中国文学史上，与曹雪芹（《红楼梦》）分别代表了古典小说文言与白话的最高成就。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 蒲松龄\n\n## 人物档案\n\n### 基本信息\n- **姓名**：蒲松龄\n- **时代**：清代\n- **出生**：明崇祯十三年（公元1640年），古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）\n- **去世**：清康熙五十四年（公元1715年），古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **享年**：76岁\n- **主要身份**：文学家、小说家\n- **历史地位**：中国文言短篇小说的巅峰代表，被誉为“世界短篇小说之王”。\n- **主要成就**：\n    - 创作文言短篇小说集《聊斋志异》。\n    - 创作大量诗、词、文、赋、俚曲等，作品汇为《蒲松龄集》。\n    - 其作品以奇幻的叙事深刻反映社会现实，具有极高的文学与思想价值。\n\n### 生平概述\n蒲松龄生于明末，成长于清初。他少有文才，但在科举道路上屡试不第，仅在71岁时援例成为贡生。一生为生活所迫，除三十余岁时在江苏宝应、高邮做幕宾外，长期在家乡同邑毕际有家设帐教书，历时近四十年。他将满腔孤愤与才华倾注于《聊斋志异》的创作中，以谈狐说鬼的方式，揭露社会黑暗，歌颂纯真情感，最终成就了这部不朽的文学巨著。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于山东淄川、济南一带，青年时期曾南下江苏做幕宾。\n- ⏱️ **时间跨度**：公元1640年 - 公元1715年，共76年。\n- 📍 **地理范围**：主要覆盖今山东省中北部，一度延伸至江苏省中部。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蒲家庄\n- **时间**：公元1640年\n- **停留时间**：童年及青少年时期（约1640-1658年）\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：出生于一个渐趋没落的书香家庭。\n- **意义**：其故乡，一生大部分时间生活与创作的地方，也是《聊斋志异》故事的重要发源地。\n\n### 📍 重要地点：济南\n- **时间**：公元1658年起，多次往返\n- **停留时间**：断续停留，每次数日至数月不等\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：首次参加童子试，以县、府、道三第一考中秀才，深得学使施闰章赏识。此后多次赴济南参加乡试，皆铩羽而归。\n- **意义**：科举得意与失意交织之地，见证了他人生最大的希望与最深的挫败。\n- **名篇名句**：《聊斋志异·叶生》：“魂从知己，竟忘死耶？”\n\n### 📍 重要地点：宝应县\n- **时间**：公元1670年 - 公元1671年\n- **停留时间**：约一年\n- **地点**：古称宝应（今江苏省扬州市宝应县）\n- **事件**：应同邑友人、时任宝应知县孙蕙之邀，南下做幕宾，代拟书启、文告。\n- **意义**：唯一一次远游，开阔了眼界，亲身接触了官场生态与民间疾苦，为其创作积累了素材。\n- **名篇名句**：《聊斋志异·梦狼》：“窃叹天下之官虎而吏狼者，比比也。”\n\n### 📍 重要地点：高邮州\n- **时间**：公元1671年\n- **停留时间**：数月\n- **地点**：古称高邮（今江苏省扬州市高邮市）\n- **事件**：随孙蕙调任，继续其幕宾生涯。\n- **意义**：南游经历的延续，进一步体察江南风物与社会情状。\n- **名篇名句**：《聊斋志异·王桂庵》：“闺中人望眼欲穿矣。”\n\n### 📍 重要地点：归乡（结束南游）\n- **时间**：公元1672年\n- **停留时间**：（此后长期居住）\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：辞幕归乡，结束南游。\n- **意义**：返回故乡，为后续长期在家乡生活与创作做准备。\n\n### 📍 重要地点：济南（闲居）\n- **时间**：公元1678年\n- **停留时间**：数月\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：应友人之邀，短暂客居济南，进行诗文唱和与创作。\n- **意义**：文人交游的重要节点，可能在此整理部分《聊斋》篇目。\n\n### 📍 重要地点：西铺村（毕家坐馆）\n- **时间**：约公元1679年 - 公元1710年\n- **停留时间**：约三十年\n- **地点**：古称西铺（今山东省淄博市周村区王村镇西铺村）\n- **事件**：受同邑名士毕际有之聘，设帐于其家“绰然堂”，教授毕家子弟。在此期间，创作并持续修订《聊斋志异》，同时撰写大量诗文俚曲。\n- **意义**：人生最重要的阶段，提供了稳定的生活来源和创作环境，《聊斋志异》在此基本定型。\n- **名篇名句**：《聊斋志异·促织》：“天子一跬步，皆关民命，不可忽也。”\n\n### 📍 重要地点：济南（再游）\n- **时间**：公元1690年、1704年等\n- **停留时间**：断续停留\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：晚年数次重游济南，访友、观景、参加诗社活动。\n- **意义**：晚年交游与情感寄托之所，留下众多描绘济南风物的诗篇。\n- **名篇名句**：《重建古历亭》诗：“大明湖上一徘徊，两岸垂柳荫绿苔。”\n\n### 📍 重要地点：蒲家庄（晚年归居）\n- **时间**：公元1711年 - 公元1715年\n- **停留时间**：晚年最后几年\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：结束在毕家的教书生涯，回归故里。71岁援例成为岁贡生。\n- **意义**：叶落归根，在故乡度过人生最后时光，整理毕生著作。\n- **名篇名句**：《聊斋自志》：“集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。”\n\n### 🔴 去世地：蒲家庄\n- **时间**：公元1715年正月二十二日\n- **停留时间**：终老\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：在故乡病逝。\n- **意义**：生命终点，其故居“聊斋”及墓园今已成为重要纪念地。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1640年 | 1岁 | 出生于山东淄川蒲家庄。 |\n| 1658年 | 19岁 | 参加童子试，以县、府、道三第一考中秀才，名动一时。 |\n| 1670年 | 31岁 | 南下江苏宝应，做知县孙蕙的幕宾。 |\n| 1672年 | 33岁 | 辞幕归乡，结束南游。 |\n| 约1679年 | 约40岁 | 开始在同邑毕际有家设帐教书，历时近四十年。 |\n| 1679年 | 40岁 | 在毕家坐馆期间，《聊斋志异》创作已具规模，撰写《聊斋自志》序言。 |\n| 1711年 | 72岁 | 援例成为岁贡生。 |\n| 1715年 | 76岁 | 正月，病逝于蒲家庄。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省淄博市淄川区蒲家庄 | 36.65 | 117.97 |\n| 山东省济南市 | 36.65 | 116.99 |\n| 江苏省扬州市宝应县 | 33.24 | 119.36 |\n| 江苏省扬州市高邮市 | 32.78 | 119.45 |\n| 山东省淄博市周村区王村镇西铺村 | 36.77 | 117.73 |", "relatedGraph": {"center": {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "魂从知己，竟忘死耶？", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "魂从知己，竟忘死耶？", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纳兰性德", "name": "纳兰性德", "file": "纳兰性德.html", "dynasty": "清代（康熙年间）", "aliases": [], "birth_year": 1655, "death_year": 1685, "quote": "“山一程，水一程，身向榆关那畔行，夜深千帐灯。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "今北京市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "吴敬梓", "name": "吴敬梓", "file": "吴敬梓.html", "dynasty": "清代", "aliases": [], "birth_year": 1701, "death_year": 1754, "quote": "“科第仕宦多显者”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "全椒", "birthplace_modern": "安徽省滁州市全椒县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "蒲松龄", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "纳兰性德", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "牛顿", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "曹雪芹", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "吴敬梓", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "蒲松龄", "title": "世界短篇小说之王", "description": "蒲松龄生于明末，成长于清初。他少有文才，但在科举道路上屡试不第，仅在71岁时援例成为贡生。一生为生活所迫，除三十余岁时在江苏宝应、高邮做幕宾外，长期在家乡同邑毕际有家设帐教书，历时近四十年。他将满腔孤愤与才华倾注于《聊斋志异》的创作中，以谈狐说鬼的方式，揭露社会黑暗，歌颂纯真情感，最终成就了这部不朽的文学巨著。", "quote": "魂从知己，竟忘死耶？", "shortReview": "魂从知己，竟忘死耶？", "dynasty": "清代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）", "avatar": "", "birth": {"date": "1640年", "location": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84"}, "death": {"date": "1715年", "location": "古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "世界短篇小说之王", "status": "中国文言短篇小说的巅峰代表，被誉为“世界短篇小说之王”。", "identities": "文学家、小说家", "achievements": "", "works": ["聊斋志异"], "reviews": []}}, "locations": [{"name": "蒲家庄", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个渐趋没落的书香家庭。", "time": "公元1640年", "duration": "童年及青少年时期（约1640-1658年）", "significance": "其故乡，一生大部分时间生活与创作的地方，也是《聊斋志异》故事的重要发源地。", "works": ["聊斋志异"], "quoteLines": []}, {"name": "济南", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "首次参加童子试，以县、府、道三第一考中秀才，深得学使施闰章赏识。此后多次赴济南参加乡试，皆铩羽而归。", "time": "公元1658年起，多次往返", "duration": "断续停留，每次数日至数月不等", "significance": "科举得意与失意交织之地，见证了他人生最大的希望与最深的挫败。", "works": [], "quoteLines": ["《聊斋志异·叶生》：“魂从知己，竟忘死耶？”"]}, {"name": "宝应县", "ancientName": "宝应", "modernName": "江苏省扬州市宝应县", "lat": 33.24, "lng": 119.36, "coordSystem": "WGS84", "type": "normal", "event": "应同邑友人、时任宝应知县孙蕙之邀，南下做幕宾，代拟书启、文告。", "time": "公元1670年 - 公元1671年", "duration": "约一年", "significance": "唯一一次远游，开阔了眼界，亲身接触了官场生态与民间疾苦，为其创作积累了素材。", "works": [], "quoteLines": ["《聊斋志异·梦狼》：“窃叹天下之官虎而吏狼者，比比也。”"]}, {"name": "高邮州", "ancientName": "高邮", "modernName": "江苏省扬州市高邮市", "lat": 32.78, "lng": 119.45, "coordSystem": "WGS84", "type": "normal", "event": "随孙蕙调任，继续其幕宾生涯。", "time": "公元1671年", "duration": "数月", "significance": "南游经历的延续，进一步体察江南风物与社会情状。", "works": [], "quoteLines": ["《聊斋志异·王桂庵》：“闺中人望眼欲穿矣。”"]}, {"name": "归乡（结束南游）", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "辞幕归乡，结束南游。", "time": "公元1672年", "duration": "（此后长期居住）", "significance": "返回故乡，为后续长期在家乡生活与创作做准备。", "works": [], "quoteLines": []}, {"name": "济南（闲居）", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "应友人之邀，短暂客居济南，进行诗文唱和与创作。", "time": "公元1678年", "duration": "数月", "significance": "文人交游的重要节点，可能在此整理部分《聊斋》篇目。", "works": ["聊斋"], "quoteLines": []}, {"name": "西铺村（毕家坐馆）", "ancientName": "西铺", "modernName": "山东省淄博市周村区王村镇西铺村", "lat": 36.77, "lng": 117.73, "coordSystem": "WGS84", "type": "normal", "event": "受同邑名士毕际有之聘，设帐于其家“绰然堂”，教授毕家子弟。在此期间，创作并持续修订《聊斋志异》，同时撰写大量诗文俚曲。", "time": "约公元1679年 - 公元1710年", "duration": "约三十年", "significance": "人生最重要的阶段，提供了稳定的生活来源和创作环境，《聊斋志异》在此基本定型。", "works": ["聊斋志异"], "quoteLines": ["《聊斋志异·促织》：“天子一跬步，皆关民命，不可忽也。”"]}, {"name": "济南（再游）", "ancientName": "济南府", "modernName": "山东省济南市", "lat": 36.65, "lng": 116.99, "coordSystem": "WGS84", "type": "normal", "event": "晚年数次重游济南，访友、观景、参加诗社活动。", "time": "公元1690年、1704年等", "duration": "断续停留", "significance": "晚年交游与情感寄托之所，留下众多描绘济南风物的诗篇。", "works": [], "quoteLines": ["《重建古历亭》诗：“大明湖上一徘徊，两岸垂柳荫绿苔。”"]}, {"name": "蒲家庄（晚年归居）", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "normal", "event": "结束在毕家的教书生涯，回归故里。71岁援例成为岁贡生。", "time": "公元1711年 - 公元1715年", "duration": "晚年最后几年", "significance": "叶落归根，在故乡度过人生最后时光，整理毕生著作。", "works": [], "quoteLines": ["《聊斋自志》：“集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。”"]}, {"name": "蒲家庄", "ancientName": "般阳蒲家庄", "modernName": "山东省淄博市淄川区蒲家庄", "lat": 36.65, "lng": 117.97, "coordSystem": "WGS84", "type": "death", "event": "在故乡病逝。", "time": "公元1715年正月二十二日", "duration": "终老", "significance": "生命终点，其故居“聊斋”及墓园今已成为重要纪念地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---", "workTexts": {"聊斋志异·叶生": "魂从知己，竟忘死耶？", "聊斋志异": "窃叹天下之官虎而吏狼者，比比也。", "叶生": "魂从知己，竟忘死耶？", "聊斋志异·梦狼": "窃叹天下之官虎而吏狼者，比比也。", "梦狼": "窃叹天下之官虎而吏狼者，比比也。", "聊斋志异·王桂庵": "闺中人望眼欲穿矣。", "王桂庵": "闺中人望眼欲穿矣。", "聊斋志异·促织": "天子一跬步，皆关民命，不可忽也。", "促织": "天子一跬步，皆关民命，不可忽也。", "聊斋自志": "集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。", "聊斋": "意义：文人交游的重要节点，可能在此整理部分《聊斋》篇目。", "重建古历亭": "“大明湖上一徘徊，两岸垂柳荫绿苔。”", "狼": "重点：《狼》 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。", "山市": "“山中蜃景”", "红楼梦": "文学地位：在中国文学史上，与曹雪芹（《红楼梦》）分别代表了古典小说文言与白话的最高成就。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 蒲松龄\n\n## 人物档案\n\n### 基本信息\n- **姓名**：蒲松龄\n- **时代**：清代\n- **出生**：明崇祯十三年（公元1640年），古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）（出生具体日期说法不一）\n- **去世**：清康熙五十四年（公元1715年），古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **享年**：76岁\n- **主要身份**：文学家、小说家\n- **历史地位**：中国文言短篇小说的巅峰代表，被誉为“世界短篇小说之王”。\n- **主要成就**：\n    - 创作文言短篇小说集《聊斋志异》。\n    - 创作大量诗、词、文、赋、俚曲等，作品汇为《蒲松龄集》。\n    - 其作品以奇幻的叙事深刻反映社会现实，具有极高的文学与思想价值。\n\n### 生平概述\n蒲松龄生于明末，成长于清初。他少有文才，但在科举道路上屡试不第，仅在71岁时援例成为贡生。一生为生活所迫，除三十余岁时在江苏宝应、高邮做幕宾外，长期在家乡同邑毕际有家设帐教书，历时近四十年。他将满腔孤愤与才华倾注于《聊斋志异》的创作中，以谈狐说鬼的方式，揭露社会黑暗，歌颂纯真情感，最终成就了这部不朽的文学巨著。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于山东淄川、济南一带，青年时期曾南下江苏做幕宾。\n- ⏱️ **时间跨度**：公元1640年 - 公元1715年，共76年。\n- 📍 **地理范围**：主要覆盖今山东省中北部，一度延伸至江苏省中部。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蒲家庄\n- **时间**：公元1640年\n- **停留时间**：童年及青少年时期（约1640-1658年）\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：出生于一个渐趋没落的书香家庭。\n- **意义**：其故乡，一生大部分时间生活与创作的地方，也是《聊斋志异》故事的重要发源地。\n\n### 📍 重要地点：济南\n- **时间**：公元1658年起，多次往返\n- **停留时间**：断续停留，每次数日至数月不等\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：首次参加童子试，以县、府、道三第一考中秀才，深得学使施闰章赏识。此后多次赴济南参加乡试，皆铩羽而归。\n- **意义**：科举得意与失意交织之地，见证了他人生最大的希望与最深的挫败。\n- **名篇名句**：《聊斋志异·叶生》：“魂从知己，竟忘死耶？”\n\n### 📍 重要地点：宝应县\n- **时间**：公元1670年 - 公元1671年\n- **停留时间**：约一年\n- **地点**：古称宝应（今江苏省扬州市宝应县）\n- **事件**：应同邑友人、时任宝应知县孙蕙之邀，南下做幕宾，代拟书启、文告。\n- **意义**：唯一一次远游，开阔了眼界，亲身接触了官场生态与民间疾苦，为其创作积累了素材。\n- **名篇名句**：《聊斋志异·梦狼》：“窃叹天下之官虎而吏狼者，比比也。”\n\n### 📍 重要地点：高邮州\n- **时间**：公元1671年\n- **停留时间**：数月\n- **地点**：古称高邮（今江苏省扬州市高邮市）\n- **事件**：随孙蕙调任，继续其幕宾生涯。\n- **意义**：南游经历的延续，进一步体察江南风物与社会情状。\n- **名篇名句**：《聊斋志异·王桂庵》：“闺中人望眼欲穿矣。”\n\n### 📍 重要地点：归乡（结束南游）\n- **时间**：公元1672年\n- **停留时间**：（此后长期居住）\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：辞幕归乡，结束南游。\n- **意义**：返回故乡，为后续长期在家乡生活与创作做准备。\n\n### 📍 重要地点：济南（闲居）\n- **时间**：公元1678年\n- **停留时间**：数月\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：应友人之邀，短暂客居济南，进行诗文唱和与创作。\n- **意义**：文人交游的重要节点，可能在此整理部分《聊斋》篇目。\n\n### 📍 重要地点：西铺村（毕家坐馆）\n- **时间**：约公元1679年 - 公元1710年\n- **停留时间**：约三十年\n- **地点**：古称西铺（今山东省淄博市周村区王村镇西铺村）\n- **事件**：受同邑名士毕际有之聘，设帐于其家“绰然堂”，教授毕家子弟。在此期间，创作并持续修订《聊斋志异》，同时撰写大量诗文俚曲。\n- **意义**：人生最重要的阶段，提供了稳定的生活来源和创作环境，《聊斋志异》在此基本定型。\n- **名篇名句**：《聊斋志异·促织》：“天子一跬步，皆关民命，不可忽也。”\n\n### 📍 重要地点：济南（再游）\n- **时间**：公元1690年、1704年等\n- **停留时间**：断续停留\n- **地点**：古称济南府（今山东省济南市）\n- **事件**：晚年数次重游济南，访友、观景、参加诗社活动。\n- **意义**：晚年交游与情感寄托之所，留下众多描绘济南风物的诗篇。\n- **名篇名句**：《重建古历亭》诗：“大明湖上一徘徊，两岸垂柳荫绿苔。”\n\n### 📍 重要地点：蒲家庄（晚年归居）\n- **时间**：公元1711年 - 公元1715年\n- **停留时间**：晚年最后几年\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：结束在毕家的教书生涯，回归故里。71岁援例成为岁贡生。\n- **意义**：叶落归根，在故乡度过人生最后时光，整理毕生著作。\n- **名篇名句**：《聊斋自志》：“集腋为裘，妄续幽冥之录；浮白载笔，仅成孤愤之书。”\n\n### 🔴 去世地：蒲家庄\n- **时间**：公元1715年正月二十二日\n- **停留时间**：终老\n- **地点**：古称般阳蒲家庄（今山东省淄博市淄川区蒲家庄）\n- **事件**：在故乡病逝。\n- **意义**：生命终点，其故居“聊斋”及墓园今已成为重要纪念地。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1640年 | 1岁 | 出生于山东淄川蒲家庄。 |\n| 1658年 | 19岁 | 参加童子试，以县、府、道三第一考中秀才，名动一时。 |\n| 1670年 | 31岁 | 南下江苏宝应，做知县孙蕙的幕宾。 |\n| 1672年 | 33岁 | 辞幕归乡，结束南游。 |\n| 约1679年 | 约40岁 | 开始在同邑毕际有家设帐教书，历时近四十年。 |\n| 1679年 | 40岁 | 在毕家坐馆期间，《聊斋志异》创作已具规模，撰写《聊斋自志》序言。 |\n| 1711年 | 72岁 | 援例成为岁贡生。 |\n| 1715年 | 76岁 | 正月，病逝于蒲家庄。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《狼》**（选自《聊斋志异》）、**《山市》**（选自《聊斋志异》）\n- 核心要点：\n    - **重点**：**《狼》** 通过屠夫与两只狼斗智斗勇的故事，告诫人们对待像狼一样的恶势力，不能存有幻想，必须敢于斗争、善于斗争。\n    - **重点**：**《山市》** 生动描绘了“山中蜃景”这一奇妙的自然现象，展现了作者细致的观察力和丰富的想象力。\n    - **志怪小说**：作品多以狐鬼花妖为题材，借非现实的故事反映现实社会。\n    - **讽刺艺术**：故事往往蕴含对**科举制度**、**官场腐败**、**社会不公**的深刻讽刺。\n    - **人物塑造**：笔下的**花妖狐魅**大多具有人的性情，形象鲜活，感情真挚。\n    - **情节曲折**：故事结构精巧，**情节**跌宕起伏，引人入胜。\n    - **语言精炼**：文言**语言**简洁典雅，又生动传神，富有表现力。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**清代康熙**年间，亲身经历了**科举制度**的僵化与弊端，一生科场失意。\n    - 长期担任**私塾教师**（坐馆），属于下层知识分子，生活清贫。\n    - 其代表作**《聊斋志异》** 是中国古代文言短篇小说的最高峰。\n- 核心要点：\n    - **重点**：其人生经历是理解**清代知识分子**在**科举**与**仕途**困境中的典型样本。\n    - **重点**：**《聊斋志异》** 的创作动机源于“**孤愤**”，是个人怀才不遇与社会批判相结合的产物。\n    - **文学地位**：在中国文学史上，与**曹雪芹**（《红楼梦》）分别代表了古典小说文言与白话的最高成就。\n    - **时代背景**：其创作处于**清初**社会秩序恢复但矛盾依然尖锐的时期，作品反映了**底层民众**的苦难与愿望。\n    - **作品影响**：对后世小说、戏曲、影视创作产生了深远影响，是**世界文学宝库**中的瑰宝。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省淄博市淄川区蒲家庄 | 36.65 | 117.97 |\n| 山东省济南市 | 36.65 | 116.99 |\n| 江苏省扬州市宝应县 | 33.24 | 119.36 |\n| 江苏省扬州市高邮市 | 32.78 | 119.45 |\n| 山东省淄博市周村区王村镇西铺村 | 36.77 | 117.73 |", "relatedGraph": {"center": {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "魂从知己，竟忘死耶？", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "“世界短篇小说之王”", "review": "魂从知己，竟忘死耶？", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纳兰性德", "name": "纳兰性德", "file": "纳兰性德.html", "dynasty": "清代（康熙年间）", "aliases": [], "birth_year": 1655, "death_year": 1685, "quote": "“山一程，水一程，身向榆关那畔行，夜深千帐灯。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "今北京市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“锦衣纨绔、饫甘餍肥”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "吴敬梓", "name": "吴敬梓", "file": "吴敬梓.html", "dynasty": "清代", "aliases": [], "birth_year": 1701, "death_year": 1754, "quote": "“科第仕宦多显者”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "全椒", "birthplace_modern": "安徽省滁州市全椒县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "蒲松龄", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "纳兰性德", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "牛顿", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "曹雪芹", "label": "同时代人物", "confidence": null}, {"source": "蒲松龄", "target": "吴敬梓", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

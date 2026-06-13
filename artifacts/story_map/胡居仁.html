@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "胡居仁，字叔心，号敬斋", "title": "崇仁学派", "description": "胡居仁生于明宣德年间，活动于正统、景泰、成化年间。他自幼颖异，早年师从吴与弼（康斋先生），得程朱理学正传。学成后绝意仕进，回乡致力于理学研究与教育事业。他一生清贫自守，以“主敬”为修养核心，强调在日用伦常中体认天理，反对空谈。其学风笃实，对纠正当时学界浮躁之气有积极作用，是明代心学兴起前程朱理学阵营的重要代表。", "quote": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "shortReview": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江西余干县（今江西省上饶市余干县）", "avatar": "", "birth": {"date": "1434年", "location": "江西余干县（今江西省上饶市余干县）", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84"}, "death": {"date": "1484年", "location": "江西余干县（今江西省上饶市余干县）", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84"}, "lifespan": "50岁（虚岁51岁）", "highlights": {"honor": "崇仁学派", "status": "明初程朱理学的重要传承者与实践者，明代“崇仁学派”核心人物之一，以主敬穷理、躬行实践著称。", "identities": "理学家、教育家", "achievements": "继承并发展程朱理学，尤其强调“主敬”工夫；终身不仕，专注讲学与著述；创办礼吾书院、南谷书院等，培养众多弟子；著有《居业录》等。", "works": ["居业录"], "reviews": ["《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "黄宗羲《明儒学案》：“先生（胡居仁）一生得力于敬，故其持守可观。”", "后世学者认为，胡居仁的“主敬”之学，是程朱理学在明代的重要实践与发展，其笃实学风与阳明心学的兴起形成了某种对比与张力。"]}}, "locations": [{"name": "余干县", "ancientName": "余干县", "modernName": "江西省上饶市余干县", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "birth", "event": "出生于普通家庭，自幼在家乡接受教育，展现出对学问的浓厚兴趣。晚年讲学、著述及去世均在此地。", "time": "1434年", "duration": "少年时期及晚年归隐终老之地", "significance": "生命的起点与终点，是其学术思想萌芽与成熟后实践的主要基地。", "works": [], "quoteLines": []}, {"name": "崇仁县", "ancientName": "崇仁县", "modernName": "江西省抚州市崇仁县", "lat": 27.7603, "lng": 116.0663, "coordSystem": "WGS84", "type": "normal", "event": "赴崇仁拜著名理学家吴与弼为师，系统学习程朱理学，深受其“静观涵养”、“洗心内省”治学方法的影响，奠定了终身学术根基。", "time": "约1450年代", "duration": "青年求学时期，约数年", "significance": "学术生涯的关键转折点，确立了其理学思想的师承与方向。", "works": [], "quoteLines": ["《居业录》：“学问之道，以敬为本。”"]}, {"name": "安仁县（今江西省鹰潭市余江区）讲学地", "ancientName": "安仁县", "modernName": "江西省鹰潭市余江区", "lat": 28.2, "lng": 116.82, "coordSystem": "WGS84", "type": "normal", "event": "曾在此地短期讲学，传播理学思想，与当地学者交流。", "time": "成化年间（1465-1487）", "duration": "讲学游历期间", "significance": "扩大其学术影响力的地点之一。", "works": [], "quoteLines": []}, {"name": "礼吾书院 / 南谷书院", "ancientName": "均位于余干县境内", "modernName": "江西省上饶市余干县，具体位置存疑", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "normal", "event": "亲自创建或主持书院，聚徒讲学，系统传授程朱理学，尤其强调“主敬”与“力行”。制定了严格的学规，培养了余祐、胡全等一批弟子。", "time": "成化年间（1465-1487）", "duration": "长期讲学之所", "significance": "其教育思想与实践的核心场所，是传播其学术、形成学派影响力的关键。", "works": [], "quoteLines": ["《续白鹿洞书院学规》：“正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。”"]}, {"name": "余干县", "ancientName": "余干县", "modernName": "江西省上饶市余干县", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "death", "event": "在家乡讲学、著述期间病逝。", "time": "1484年", "duration": "生命最后阶段", "significance": "生命的终点，其一生清贫治学、躬行实践精神的最终归宿。", "works": [], "quoteLines": ["《居业录》：“心常主敬，无一时放纵。”"]}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "曾赴南京参加乡试（一说为游学），但未中举，亦无意于功名，不久即归。", "time": "成化年间（具体年份存疑）", "duration": "短暂", "significance": "体现了其无意科举仕途，志在学术的人生选择。", "works": [], "quoteLines": ["《居业录》：“举业非能坏人，人自坏举业耳。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"居业录": "举业非能坏人，人自坏举业耳。", "续白鹿洞书院学规": "正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。", "明史·儒林传": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "明史": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "儒林传": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "明儒学案": "先生（胡居仁）一生得力于敬，故其持守可观。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 胡居仁\n\n## 人物档案\n\n### 基本信息\n- **姓名**：胡居仁，字叔心，号敬斋\n- **时代**：明代\n- **出生**：1434年，江西余干县（今江西省上饶市余干县）\n- **去世**：1484年，江西余干县（今江西省上饶市余干县）\n- **享年**：50岁（虚岁51岁）\n- **主要身份**：理学家、教育家\n- **历史地位**：明初程朱理学的重要传承者与实践者，明代“崇仁学派”核心人物之一，以主敬穷理、躬行实践著称。\n- **主要成就**：继承并发展程朱理学，尤其强调“主敬”工夫；终身不仕，专注讲学与著述；创办礼吾书院、南谷书院等，培养众多弟子；著有《居业录》等。\n\n### 生平概述\n胡居仁生于明宣德年间，活动于正统、景泰、成化年间。他自幼颖异，早年师从吴与弼（康斋先生），得程朱理学正传。学成后绝意仕进，回乡致力于理学研究与教育事业。他一生清贫自守，以“主敬”为修养核心，强调在日用伦常中体认天理，反对空谈。其学风笃实，对纠正当时学界浮躁之气有积极作用，是明代心学兴起前程朱理学阵营的重要代表。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：余干县\n- **公元纪年**：1434年\n- **停留时间**：少年时期及晚年归隐终老之地\n- **位置**：余干县（今江西省上饶市余干县）\n- **事迹**：出生于普通家庭，自幼在家乡接受教育，展现出对学问的浓厚兴趣。晚年讲学、著述及去世均在此地。\n- **意义**：生命的起点与终点，是其学术思想萌芽与成熟后实践的主要基地。\n\n### 📍 重要地点：崇仁县\n- **公元纪年**：约1450年代\n- **停留时间**：青年求学时期，约数年\n- **位置**：崇仁县（今江西省抚州市崇仁县）\n- **事迹**：赴崇仁拜著名理学家吴与弼为师，系统学习程朱理学，深受其“静观涵养”、“洗心内省”治学方法的影响，奠定了终身学术根基。\n- **意义**：学术生涯的关键转折点，确立了其理学思想的师承与方向。\n- **名篇名句**：《居业录》：“学问之道，以敬为本。”\n\n### 📍 重要地点：安仁县（今江西省鹰潭市余江区）讲学地\n- **公元纪年**：成化年间（1465-1487）\n- **停留时间**：讲学游历期间\n- **位置**：安仁县（今江西省鹰潭市余江区）\n- **事迹**：曾在此地短期讲学，传播理学思想，与当地学者交流。\n- **意义**：扩大其学术影响力的地点之一。\n\n### 📍 重要地点：南京\n- **公元纪年**：成化年间（具体年份存疑）\n- **停留时间**：短暂\n- **位置**：南京（今江苏省南京市）\n- **事迹**：曾赴南京参加乡试（一说为游学），但未中举，亦无意于功名，不久即归。\n- **意义**：体现了其无意科举仕途，志在学术的人生选择。\n- **名篇名句**：《居业录》：“举业非能坏人，人自坏举业耳。”\n\n### 📍 重要地点：礼吾书院 / 南谷书院\n- **公元纪年**：成化年间（1465-1487）\n- **停留时间**：长期讲学之所\n- **位置**：均位于余干县境内（今江西省上饶市余干县，具体位置存疑）\n- **事迹**：亲自创建或主持书院，聚徒讲学，系统传授程朱理学，尤其强调“主敬”与“力行”。制定了严格的学规，培养了余祐、胡全等一批弟子。\n- **意义**：其教育思想与实践的核心场所，是传播其学术、形成学派影响力的关键。\n- **名篇名句**：《续白鹿洞书院学规》：“正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。”\n\n### 🔴 去世地：余干县\n- **公元纪年**：1484年\n- **停留时间**：生命最后阶段\n- **位置**：余干县（今江西省上饶市余干县）\n- **经过**：在家乡讲学、著述期间病逝。\n- **意义**：生命的终点，其一生清贫治学、躬行实践精神的最终归宿。\n- **名篇名句**：《居业录》：“心常主敬，无一时放纵。”\n\n---\n\n## 地点坐标\n\n| 地点 | 今地 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- | :--- |\n| 余干县 | 江西省上饶市余干县 | 28.7007 | 116.6962 | 出生地、主要活动地、去世地 |\n| 崇仁县 | 江西省抚州市崇仁县 | 27.7603 | 116.0663 | 求学地（师从吴与弼） |\n| 安仁县（余江区） | 江西省鹰潭市余江区 | 28.2000 | 116.8200 | 讲学地 |\n| 南京 | 江苏省南京市 | 32.0603 | 118.7969 | 参加乡试或游学地（存疑） |\n\n---\n\n## 生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1434年 | 0岁 | 出生于江西余干县。 |\n| 约1450年代 | 约20岁 | 师从吴与弼于崇仁，奠定理学根基。 |\n| 成化年间（1465-1487） | 中年 | 学成归乡，绝意科举，开始在余干、安仁等地讲学。 |\n| 成化年间（1465-1487） | 中年 | 创建礼吾书院、南谷书院，聚徒讲学，著述《居业录》。 |\n| 1484年 | 50岁 | 病逝于家乡余干县。 |\n\n---\n\n## 历史影响\n\n### 对当时的影响\n胡居仁是明代前期坚守程朱理学正统的重要学者。在陈献章心学、王阳明心学兴起之前，他通过严谨的“主敬穷理”工夫和笃实的躬行实践，维护了程朱理学的纯粹性，对矫正当时部分学者空谈性理、追逐功名的风气起到了一定作用。其讲学活动培养了一批弟子，形成了“余干之学”的雏形，是明代“崇仁学派”的重要组成部分。\n\n### 对后世的影响\n1.  **学术传承**：其学说通过弟子余祐等人传承，对后世江西地区的理学发展有持续影响。\n2.  **著作传世**：其主要著作《居业录》成为后世研究明初程朱理学的重要文献。\n3.  **教育典范**：其不慕荣利、专注教育、严于律己的生平，成为后世儒者推崇的道德实践典范。\n4.  **学派地位**：在《明史·儒林传》及后世学术史中，被视为明代程朱理学脉络中的关键人物之一。\n\n### 历史评价\n1.  《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”\n2.  黄宗羲《明儒学案》：“先生（胡居仁）一生得力于敬，故其持守可观。”\n3.  后世学者认为，胡居仁的“主敬”之学，是程朱理学在明代的重要实践与发展，其笃实学风与阳明心学的兴起形成了某种对比与张力。", "relatedGraph": {"center": {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "明", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "“**官逼民反**”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐滨", "name": "徐滨", "file": "徐滨.html", "dynasty": "明代（具体时期存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "徐滨是明代一位生平模糊的人物，正史与主流文集鲜有记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "“庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "胡居仁", "target": "王阳明", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "狐偃", "label": "同册共现", "confidence": 0.15}, {"source": "胡居仁", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "徐滨", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "汤显祖", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "胡居仁，字叔心，号敬斋", "title": "崇仁学派", "description": "胡居仁生于明宣德年间，活动于正统、景泰、成化年间。他自幼颖异，早年师从吴与弼（康斋先生），得程朱理学正传。学成后绝意仕进，回乡致力于理学研究与教育事业。他一生清贫自守，以“主敬”为修养核心，强调在日用伦常中体认天理，反对空谈。其学风笃实，对纠正当时学界浮躁之气有积极作用，是明代心学兴起前程朱理学阵营的重要代表。", "quote": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "shortReview": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江西余干县（今江西省上饶市余干县）", "avatar": "", "birth": {"date": "1434年", "location": "江西余干县（今江西省上饶市余干县）", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84"}, "death": {"date": "1484年", "location": "江西余干县（今江西省上饶市余干县）", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84"}, "lifespan": "50岁（虚岁51岁）", "highlights": {"honor": "崇仁学派", "status": "明初程朱理学的重要传承者与实践者，明代“崇仁学派”核心人物之一，以主敬穷理、躬行实践著称。", "identities": "理学家、教育家", "achievements": "继承并发展程朱理学，尤其强调“主敬”工夫；终身不仕，专注讲学与著述；创办礼吾书院、南谷书院等，培养众多弟子；著有《居业录》等。", "works": ["居业录"], "reviews": ["《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "黄宗羲《明儒学案》：“先生（胡居仁）一生得力于敬，故其持守可观。”", "后世学者认为，胡居仁的“主敬”之学，是程朱理学在明代的重要实践与发展，其笃实学风与阳明心学的兴起形成了某种对比与张力。"]}}, "locations": [{"name": "余干县", "ancientName": "余干县", "modernName": "江西省上饶市余干县", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "birth", "event": "出生于普通家庭，自幼在家乡接受教育，展现出对学问的浓厚兴趣。晚年讲学、著述及去世均在此地。", "time": "1434年", "duration": "少年时期及晚年归隐终老之地", "significance": "生命的起点与终点，是其学术思想萌芽与成熟后实践的主要基地。", "works": [], "quoteLines": []}, {"name": "崇仁县", "ancientName": "崇仁县", "modernName": "江西省抚州市崇仁县", "lat": 27.7603, "lng": 116.0663, "coordSystem": "WGS84", "type": "normal", "event": "赴崇仁拜著名理学家吴与弼为师，系统学习程朱理学，深受其“静观涵养”、“洗心内省”治学方法的影响，奠定了终身学术根基。", "time": "约1450年代", "duration": "青年求学时期，约数年", "significance": "学术生涯的关键转折点，确立了其理学思想的师承与方向。", "works": [], "quoteLines": ["《居业录》：“学问之道，以敬为本。”"]}, {"name": "安仁县（今江西省鹰潭市余江区）讲学地", "ancientName": "安仁县", "modernName": "江西省鹰潭市余江区", "lat": 28.2, "lng": 116.82, "coordSystem": "WGS84", "type": "normal", "event": "曾在此地短期讲学，传播理学思想，与当地学者交流。", "time": "成化年间（1465-1487）", "duration": "讲学游历期间", "significance": "扩大其学术影响力的地点之一。", "works": [], "quoteLines": []}, {"name": "礼吾书院 / 南谷书院", "ancientName": "均位于余干县境内", "modernName": "江西省上饶市余干县，具体位置存疑", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "normal", "event": "亲自创建或主持书院，聚徒讲学，系统传授程朱理学，尤其强调“主敬”与“力行”。制定了严格的学规，培养了余祐、胡全等一批弟子。", "time": "成化年间（1465-1487）", "duration": "长期讲学之所", "significance": "其教育思想与实践的核心场所，是传播其学术、形成学派影响力的关键。", "works": [], "quoteLines": ["《续白鹿洞书院学规》：“正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。”"]}, {"name": "余干县", "ancientName": "余干县", "modernName": "江西省上饶市余干县", "lat": 28.7007, "lng": 116.6962, "coordSystem": "WGS84", "type": "death", "event": "在家乡讲学、著述期间病逝。", "time": "1484年", "duration": "生命最后阶段", "significance": "生命的终点，其一生清贫治学、躬行实践精神的最终归宿。", "works": [], "quoteLines": ["《居业录》：“心常主敬，无一时放纵。”"]}, {"name": "南京", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "曾赴南京参加乡试（一说为游学），但未中举，亦无意于功名，不久即归。", "time": "成化年间（具体年份存疑）", "duration": "短暂", "significance": "体现了其无意科举仕途，志在学术的人生选择。", "works": [], "quoteLines": ["《居业录》：“举业非能坏人，人自坏举业耳。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"居业录": "举业非能坏人，人自坏举业耳。", "续白鹿洞书院学规": "正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。", "明史·儒林传": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "明史": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "儒林传": "居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。", "明儒学案": "先生（胡居仁）一生得力于敬，故其持守可观。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 胡居仁\n\n## 人物档案\n\n### 基本信息\n- **姓名**：胡居仁，字叔心，号敬斋\n- **时代**：明代\n- **出生**：1434年，江西余干县（今江西省上饶市余干县）\n- **去世**：1484年，江西余干县（今江西省上饶市余干县）\n- **享年**：50岁（虚岁51岁）\n- **主要身份**：理学家、教育家\n- **历史地位**：明初程朱理学的重要传承者与实践者，明代“崇仁学派”核心人物之一，以主敬穷理、躬行实践著称。\n- **主要成就**：继承并发展程朱理学，尤其强调“主敬”工夫；终身不仕，专注讲学与著述；创办礼吾书院、南谷书院等，培养众多弟子；著有《居业录》等。\n\n### 生平概述\n胡居仁生于明宣德年间，活动于正统、景泰、成化年间。他自幼颖异，早年师从吴与弼（康斋先生），得程朱理学正传。学成后绝意仕进，回乡致力于理学研究与教育事业。他一生清贫自守，以“主敬”为修养核心，强调在日用伦常中体认天理，反对空谈。其学风笃实，对纠正当时学界浮躁之气有积极作用，是明代心学兴起前程朱理学阵营的重要代表。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：余干县\n- **公元纪年**：1434年\n- **停留时间**：少年时期及晚年归隐终老之地\n- **位置**：余干县（今江西省上饶市余干县）\n- **事迹**：出生于普通家庭，自幼在家乡接受教育，展现出对学问的浓厚兴趣。晚年讲学、著述及去世均在此地。\n- **意义**：生命的起点与终点，是其学术思想萌芽与成熟后实践的主要基地。\n\n### 📍 重要地点：崇仁县\n- **公元纪年**：约1450年代\n- **停留时间**：青年求学时期，约数年\n- **位置**：崇仁县（今江西省抚州市崇仁县）\n- **事迹**：赴崇仁拜著名理学家吴与弼为师，系统学习程朱理学，深受其“静观涵养”、“洗心内省”治学方法的影响，奠定了终身学术根基。\n- **意义**：学术生涯的关键转折点，确立了其理学思想的师承与方向。\n- **名篇名句**：《居业录》：“学问之道，以敬为本。”\n\n### 📍 重要地点：安仁县（今江西省鹰潭市余江区）讲学地\n- **公元纪年**：成化年间（1465-1487）\n- **停留时间**：讲学游历期间\n- **位置**：安仁县（今江西省鹰潭市余江区）\n- **事迹**：曾在此地短期讲学，传播理学思想，与当地学者交流。\n- **意义**：扩大其学术影响力的地点之一。\n\n### 📍 重要地点：南京\n- **公元纪年**：成化年间（具体年份存疑）\n- **停留时间**：短暂\n- **位置**：南京（今江苏省南京市）\n- **事迹**：曾赴南京参加乡试（一说为游学），但未中举，亦无意于功名，不久即归。\n- **意义**：体现了其无意科举仕途，志在学术的人生选择。\n- **名篇名句**：《居业录》：“举业非能坏人，人自坏举业耳。”\n\n### 📍 重要地点：礼吾书院 / 南谷书院\n- **公元纪年**：成化年间（1465-1487）\n- **停留时间**：长期讲学之所\n- **位置**：均位于余干县境内（今江西省上饶市余干县，具体位置存疑）\n- **事迹**：亲自创建或主持书院，聚徒讲学，系统传授程朱理学，尤其强调“主敬”与“力行”。制定了严格的学规，培养了余祐、胡全等一批弟子。\n- **意义**：其教育思想与实践的核心场所，是传播其学术、形成学派影响力的关键。\n- **名篇名句**：《续白鹿洞书院学规》：“正趋向以立其志；主诚敬以存其心；博穷事理以尽致知之方；审察几微以为应事之要。”\n\n### 🔴 去世地：余干县\n- **公元纪年**：1484年\n- **停留时间**：生命最后阶段\n- **位置**：余干县（今江西省上饶市余干县）\n- **经过**：在家乡讲学、著述期间病逝。\n- **意义**：生命的终点，其一生清贫治学、躬行实践精神的最终归宿。\n- **名篇名句**：《居业录》：“心常主敬，无一时放纵。”\n\n---\n\n## 地点坐标\n\n| 地点 | 今地 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- | :--- |\n| 余干县 | 江西省上饶市余干县 | 28.7007 | 116.6962 | 出生地、主要活动地、去世地 |\n| 崇仁县 | 江西省抚州市崇仁县 | 27.7603 | 116.0663 | 求学地（师从吴与弼） |\n| 安仁县（余江区） | 江西省鹰潭市余江区 | 28.2000 | 116.8200 | 讲学地 |\n| 南京 | 江苏省南京市 | 32.0603 | 118.7969 | 参加乡试或游学地（存疑） |\n\n---\n\n## 生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1434年 | 0岁 | 出生于江西余干县。 |\n| 约1450年代 | 约20岁 | 师从吴与弼于崇仁，奠定理学根基。 |\n| 成化年间（1465-1487） | 中年 | 学成归乡，绝意科举，开始在余干、安仁等地讲学。 |\n| 成化年间（1465-1487） | 中年 | 创建礼吾书院、南谷书院，聚徒讲学，著述《居业录》。 |\n| 1484年 | 50岁 | 病逝于家乡余干县。 |\n\n---\n\n## 历史影响\n\n### 对当时的影响\n胡居仁是明代前期坚守程朱理学正统的重要学者。在陈献章心学、王阳明心学兴起之前，他通过严谨的“主敬穷理”工夫和笃实的躬行实践，维护了程朱理学的纯粹性，对矫正当时部分学者空谈性理、追逐功名的风气起到了一定作用。其讲学活动培养了一批弟子，形成了“余干之学”的雏形，是明代“崇仁学派”的重要组成部分。\n\n### 对后世的影响\n1.  **学术传承**：其学说通过弟子余祐等人传承，对后世江西地区的理学发展有持续影响。\n2.  **著作传世**：其主要著作《居业录》成为后世研究明初程朱理学的重要文献。\n3.  **教育典范**：其不慕荣利、专注教育、严于律己的生平，成为后世儒者推崇的道德实践典范。\n4.  **学派地位**：在《明史·儒林传》及后世学术史中，被视为明代程朱理学脉络中的关键人物之一。\n\n### 历史评价\n1.  《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”\n2.  黄宗羲《明儒学案》：“先生（胡居仁）一生得力于敬，故其持守可观。”\n3.  后世学者认为，胡居仁的“主敬”之学，是程朱理学在明代的重要实践与发展，其笃实学风与阳明心学的兴起形成了某种对比与张力。", "relatedGraph": {"center": {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "“学问之道，以敬为本。”", "review": "《明史·儒林传》：“居仁性行淳笃，居丧骨立，非杖不能起，三年不入寝门。……其学以主忠信为本，以求放心为要。”", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "明", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "“**官逼民反**”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐滨", "name": "徐滨", "file": "徐滨.html", "dynasty": "明代（具体时期存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "徐滨是明代一位生平模糊的人物，正史与主流文集鲜有记载", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/说法不一/待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "“庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "胡居仁", "target": "王阳明", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "狐偃", "label": "同册共现", "confidence": 0.15}, {"source": "胡居仁", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "徐滨", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "胡居仁", "target": "汤显祖", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

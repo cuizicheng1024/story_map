@@ -1149,6 +1149,12 @@ def _render_index_html(title: str, data_file: str) -> str:
             <button id="go" class="theme-button-primary px-5 py-2.5 rounded-xl text-sm font-bold">开始分析</button>
           </div>
           <div id="searchHint" class="home-title-sub mt-2">内置人教版教材500+历史人物</div>
+          <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <span class="theme-subtitle">快速体验：</span>
+            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
+            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./苏轼.html">苏轼</a>
+            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./关羽.html">关羽</a>
+          </div>
           <div id="searchSuggest" class="theme-card hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>

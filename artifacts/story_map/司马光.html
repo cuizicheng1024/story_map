@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "司马光", "title": "", "description": "司马光，字君实，号迂叟，世称涑水先生。他历经北宋仁宗、英宗、神宗、哲宗四朝，是反对王安石变法的保守派领袖。早年以孝闻名，中进士后长期在地方和中央任职。因与王安石政见不合，退居洛阳约十五年，潜心编纂《资治通鉴》。哲宗即位后被召回执政，尽废新法，约一年后病逝。他一生著述宏富，尤以史学成就彪炳千秋。", "quote": "鉴于往事，有资于治道", "shortReview": "鉴于往事，有资于治道", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "光州光山（今河南省信阳市光山县）", "avatar": "", "birth": {"date": "1019年", "location": "光州光山（今河南省信阳市光山县）", "lat": 32.0106, "lng": 114.9136, "coordSystem": "WGS84"}, "death": {"date": "1086年", "location": "东京开封府（今河南省开封市）", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84"}, "lifespan": "68岁", "highlights": {"honor": "", "status": "北宋杰出的史学家与保守派政治领袖，其主编的《资治通鉴》是中国古代史学的里程碑。", "identities": "政治家、史学家、文学家", "achievements": "", "works": ["资治通鉴"], "reviews": []}}, "locations": [{"name": "光州光山", "ancientName": "光州光山", "modernName": "河南省信阳市光山县", "lat": 32.0106, "lng": 114.9136, "coordSystem": "WGS84", "type": "birth", "event": "出生于其父司马池的官舍。", "time": "公元1019年", "duration": "幼年（约数年）", "significance": "司马光的籍贯与出生地，其家族为当地望族。", "works": [], "quoteLines": []}, {"name": "随父宦游各地", "ancientName": "随父宦游各地", "modernName": "主要在今山西、陕西等地（如并州、耀州）", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "童年及少年时期跟随父亲司马池在各地任职，增长见闻。", "time": "约1025-1030年", "duration": "数年", "significance": "早期教育阶段，接触地方政务与社会现实，培养了务实精神。", "works": [], "quoteLines": []}, {"name": "东京开封府", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "参加科举，中进士甲科，步入仕途。", "time": "约1038年", "duration": "备考及短期居留", "significance": "人生重大转折点，从此在北宋政治中心展开其政治与学术生涯。", "works": [], "quoteLines": []}, {"name": "华州", "ancientName": "华州", "modernName": "陕西省渭南市华州区", "lat": 34.4996, "lng": 109.7716, "coordSystem": "WGS84", "type": "normal", "event": "初任地方官，担任华州判官。", "time": "约1039-1041年", "duration": "约两年", "significance": "积累地方治理经验的起点。", "works": [], "quoteLines": []}, {"name": "并州", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "任并州通判，辅佐庞籍处理军政事务。", "time": "约1041-1044年", "duration": "约三年", "significance": "在北方边防重镇任职，对国防与边患有了深刻认识。", "works": [], "quoteLines": []}, {"name": "开封府（任职）", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "历任开封府推官、起居注、知谏院等职，直言进谏。", "time": "约1050年代", "duration": "断续数年", "significance": "在中央权力核心崭露头角，成为重要谏臣，政治影响力大增。", "works": [], "quoteLines": []}, {"name": "洛阳（退居编书）", "ancientName": "西京河南府", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "因反对王安石变法，自请离京，任西京留司御史台闲职。在此期间，全力主持编纂《**资治通鉴**》。", "time": "1071年 - 1085年", "duration": "约15年", "significance": "人生最重要的学术创作期，完成了史学巨著，同时形成了反对新法的政治集团核心。", "works": ["**资治通鉴**"], "quoteLines": ["《资治通鉴》：“鉴于往事，有资于治道”", "《训俭示康》：“由俭入奢易，由奢入俭难”。"]}, {"name": "开封府（执政）", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "神宗去世后，高太后垂帘听政，司马光被召回京，任门下侍郎（副宰相），旋即升任尚书左仆射（宰相），主持“**元祐更化**”，全面废除新法。", "time": "1085年 - 1086年", "duration": "约一年", "significance": "政治生涯的顶峰，但其激进废法的举措也引发争议。", "works": [], "quoteLines": ["《乞开言路札子》：“为政之要，在于用人、赏善、罚恶而已”。"]}, {"name": "东京开封府", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "death", "event": "在宰相任上积劳成疾，病逝。", "time": "公元1086年", "duration": "执政期间直至去世", "significance": "身后获赠太师、温国公，谥号“文正”。其去世标志着北宋旧党失去核心领袖，政局再起波澜。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---", "workTexts": {"资治通鉴": "鉴于往事，有资于治道", "训俭示康": "由俭入奢易，由奢入俭难", "乞开言路札子": "为政之要，在于用人、赏善、罚恶而已", "**资治通鉴**": "事件：因反对王安石变法，自请离京，任西京留司御史台闲职。", "赤壁之战": "重点：在叙事上善于描写战争与政治谋略，如《赤壁之战》中对战略决策过程的生动刻画。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 司马光\n\n## 人物档案\n\n### 基本信息\n- **姓名**：司马光\n- **时代**：北宋\n- **出生**：公元1019年，光州光山（今河南省信阳市光山县）\n- **去世**：公元1086年，东京开封府（今河南省开封市）\n- **享年**：68岁\n- **主要身份**：政治家、史学家、文学家\n- **历史地位**：北宋杰出的史学家与保守派政治领袖，其主编的《资治通鉴》是中国古代史学的里程碑。\n- **主要成就**：\n    1. 主编中国第一部编年体通史《**资治通鉴**》。\n    2. 北宋**元祐更化**时期的核心执政者，废除王安石新法。\n    3. 为官清廉，政绩卓著，以“**俭素**”著称。\n    4. 文学上著有《**司马文正公集**》、《**涑水记闻**》等。\n\n### 生平概述\n司马光，字君实，号迂叟，世称涑水先生。他历经北宋仁宗、英宗、神宗、哲宗四朝，是反对王安石变法的保守派领袖。早年以孝闻名，中进士后长期在地方和中央任职。因与王安石政见不合，退居洛阳约十五年，潜心编纂《资治通鉴》。哲宗即位后被召回执政，尽废新法，约一年后病逝。他一生著述宏富，尤以史学成就彪炳千秋。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于北宋核心区域，足迹遍及今河南、山西、陕西等地。\n- ⏱️ **时间跨度**：公元1019年 - 1086年，共约68年。\n- 📍 **地理范围**：以东京开封府（今河南开封）和西京河南府（今河南洛阳）为中心，北至并州（今山西太原），西至陕州（今河南三门峡），南至光州（今河南信阳）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：光州光山\n- **时间**：公元1019年\n- **停留时间**：幼年（约数年）\n- **地点**：光州光山（今河南省信阳市光山县）\n- **事件**：出生于其父司马池的官舍。\n- **意义**：司马光的籍贯与出生地，其家族为当地望族。\n\n### 📍 重要地点：随父宦游各地\n- **时间**：约1025-1030年\n- **停留时间**：数年\n- **地点**：主要在今山西、陕西等地（如并州、耀州）\n- **事件**：童年及少年时期跟随父亲司马池在各地任职，增长见闻。\n- **意义**：早期教育阶段，接触地方政务与社会现实，培养了务实精神。\n\n### 📍 重要地点：东京开封府\n- **时间**：约1038年\n- **停留时间**：备考及短期居留\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：参加科举，中进士甲科，步入仕途。\n- **意义**：人生重大转折点，从此在北宋政治中心展开其政治与学术生涯。\n\n### 📍 重要地点：华州\n- **时间**：约1039-1041年\n- **停留时间**：约两年\n- **地点**：华州（今陕西省渭南市华州区）\n- **事件**：初任地方官，担任华州判官。\n- **意义**：积累地方治理经验的起点。\n\n### 📍 重要地点：并州\n- **时间**：约1041-1044年\n- **停留时间**：约三年\n- **地点**：并州（今山西省太原市）\n- **事件**：任并州通判，辅佐庞籍处理军政事务。\n- **意义**：在北方边防重镇任职，对国防与边患有了深刻认识。\n\n### 📍 重要地点：开封府（任职）\n- **时间**：约1050年代\n- **停留时间**：断续数年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：历任开封府推官、起居注、知谏院等职，直言进谏。\n- **意义**：在中央权力核心崭露头角，成为重要谏臣，政治影响力大增。\n\n### 📍 重要地点：洛阳（退居编书）\n- **时间**：1071年 - 1085年\n- **停留时间**：约15年\n- **地点**：西京河南府（今河南省洛阳市）\n- **事件**：因反对王安石变法，自请离京，任西京留司御史台闲职。在此期间，全力主持编纂《**资治通鉴**》。\n- **意义**：人生最重要的学术创作期，完成了史学巨著，同时形成了反对新法的政治集团核心。\n- **名篇名句**：《资治通鉴》：“鉴于往事，有资于治道”；《训俭示康》：“由俭入奢易，由奢入俭难”。\n\n### 📍 重要地点：开封府（执政）\n- **时间**：1085年 - 1086年\n- **停留时间**：约一年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：神宗去世后，高太后垂帘听政，司马光被召回京，任门下侍郎（副宰相），旋即升任尚书左仆射（宰相），主持“**元祐更化**”，全面废除新法。\n- **意义**：政治生涯的顶峰，但其激进废法的举措也引发争议。\n- **名篇名句**：《乞开言路札子》：“为政之要，在于用人、赏善、罚恶而已”。\n\n### 🔴 去世地：东京开封府\n- **时间**：公元1086年\n- **停留时间**：执政期间直至去世\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：在宰相任上积劳成疾，病逝。\n- **意义**：身后获赠太师、温国公，谥号“文正”。其去世标志着北宋旧党失去核心领袖，政局再起波澜。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1019 | 1岁 | 出生于光州光山。 |\n| 1038 | 20岁 | 中进士甲科，授华州判官，正式入仕。 |\n| 1041 | 23岁 | 任并州通判，接触边防事务。 |\n| 1057 | 39岁 | 任知谏院，以直言敢谏闻名。 |\n| 1066 | 48岁 | 奉命设局编修《资治通鉴》。 |\n| 1069 | 51岁 | 王安石变法开始，司马光持激烈反对态度。 |\n| 1071 | 53岁 | 自请离京，退居洛阳，专注编书。 |\n| 1084 | 66岁 | 《资治通鉴》全书编成，奏上。 |\n| 1085 | 67岁 | 神宗驾崩，被召回京任宰相，主持“元祐更化”。 |\n| 1086 | 68岁 | 病逝于宰相任上。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省信阳市光山县 | 32.0106 | 114.9136 |\n| 河南省开封市 | 34.7986 | 114.3075 |\n| 河南省洛阳市 | 34.6201 | 112.4540 |\n| 陕西省渭南市华州区 | 34.4996 | 109.7716 |\n| 山西省太原市 | 37.8706 | 112.5489 |\n| 河南省三门峡市（古陕州） | 34.7726 | 111.1984 |", "relatedGraph": {"center": {"id": "司马光", "name": "司马光", "file": "司马光.html", "dynasty": "北宋", "aliases": [], "birth_year": 1019, "death_year": 1086, "quote": "“**俭素**”", "review": "鉴于往事，有资于治道", "foreign_name": "", "main_role_label": "政治家", "birthplace": "光州光山", "birthplace_modern": "河南省信阳市光山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "司马光", "name": "司马光", "file": "司马光.html", "dynasty": "北宋", "aliases": [], "birth_year": 1019, "death_year": 1086, "quote": "“**俭素**”", "review": "鉴于往事，有资于治道", "foreign_name": "", "main_role_label": "政治家", "birthplace": "光州光山", "birthplace_modern": "河南省信阳市光山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "司马光", "target": "王安石", "label": "君臣", "confidence": null}, {"source": "司马光", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏轼", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏舜钦", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "司马光", "title": "", "description": "司马光，字君实，号迂叟，世称涑水先生。他历经北宋仁宗、英宗、神宗、哲宗四朝，是反对王安石变法的保守派领袖。早年以孝闻名，中进士后长期在地方和中央任职。因与王安石政见不合，退居洛阳约十五年，潜心编纂《资治通鉴》。哲宗即位后被召回执政，尽废新法，约一年后病逝。他一生著述宏富，尤以史学成就彪炳千秋。", "quote": "鉴于往事，有资于治道", "shortReview": "鉴于往事，有资于治道", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "光州光山（今河南省信阳市光山县）", "avatar": "", "birth": {"date": "1019年", "location": "光州光山（今河南省信阳市光山县）", "lat": 32.0106, "lng": 114.9136, "coordSystem": "WGS84"}, "death": {"date": "1086年", "location": "东京开封府（今河南省开封市）", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84"}, "lifespan": "68岁", "highlights": {"honor": "", "status": "北宋杰出的史学家与保守派政治领袖，其主编的《资治通鉴》是中国古代史学的里程碑。", "identities": "政治家、史学家、文学家", "achievements": "", "works": ["资治通鉴"], "reviews": []}}, "locations": [{"name": "光州光山", "ancientName": "光州光山", "modernName": "河南省信阳市光山县", "lat": 32.0106, "lng": 114.9136, "coordSystem": "WGS84", "type": "birth", "event": "出生于其父司马池的官舍。", "time": "公元1019年", "duration": "幼年（约数年）", "significance": "司马光的籍贯与出生地，其家族为当地望族。", "works": [], "quoteLines": []}, {"name": "随父宦游各地", "ancientName": "随父宦游各地", "modernName": "主要在今山西、陕西等地（如并州、耀州）", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "童年及少年时期跟随父亲司马池在各地任职，增长见闻。", "time": "约1025-1030年", "duration": "数年", "significance": "早期教育阶段，接触地方政务与社会现实，培养了务实精神。", "works": [], "quoteLines": []}, {"name": "东京开封府", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "参加科举，中进士甲科，步入仕途。", "time": "约1038年", "duration": "备考及短期居留", "significance": "人生重大转折点，从此在北宋政治中心展开其政治与学术生涯。", "works": [], "quoteLines": []}, {"name": "华州", "ancientName": "华州", "modernName": "陕西省渭南市华州区", "lat": 34.4996, "lng": 109.7716, "coordSystem": "WGS84", "type": "normal", "event": "初任地方官，担任华州判官。", "time": "约1039-1041年", "duration": "约两年", "significance": "积累地方治理经验的起点。", "works": [], "quoteLines": []}, {"name": "并州", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "任并州通判，辅佐庞籍处理军政事务。", "time": "约1041-1044年", "duration": "约三年", "significance": "在北方边防重镇任职，对国防与边患有了深刻认识。", "works": [], "quoteLines": []}, {"name": "开封府（任职）", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "历任开封府推官、起居注、知谏院等职，直言进谏。", "time": "约1050年代", "duration": "断续数年", "significance": "在中央权力核心崭露头角，成为重要谏臣，政治影响力大增。", "works": [], "quoteLines": []}, {"name": "洛阳（退居编书）", "ancientName": "西京河南府", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "因反对王安石变法，自请离京，任西京留司御史台闲职。在此期间，全力主持编纂《**资治通鉴**》。", "time": "1071年 - 1085年", "duration": "约15年", "significance": "人生最重要的学术创作期，完成了史学巨著，同时形成了反对新法的政治集团核心。", "works": ["**资治通鉴**"], "quoteLines": ["《资治通鉴》：“鉴于往事，有资于治道”", "《训俭示康》：“由俭入奢易，由奢入俭难”。"]}, {"name": "开封府（执政）", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "神宗去世后，高太后垂帘听政，司马光被召回京，任门下侍郎（副宰相），旋即升任尚书左仆射（宰相），主持“**元祐更化**”，全面废除新法。", "time": "1085年 - 1086年", "duration": "约一年", "significance": "政治生涯的顶峰，但其激进废法的举措也引发争议。", "works": [], "quoteLines": ["《乞开言路札子》：“为政之要，在于用人、赏善、罚恶而已”。"]}, {"name": "东京开封府", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7986, "lng": 114.3075, "coordSystem": "WGS84", "type": "death", "event": "在宰相任上积劳成疾，病逝。", "time": "公元1086年", "duration": "执政期间直至去世", "significance": "身后获赠太师、温国公，谥号“文正”。其去世标志着北宋旧党失去核心领袖，政局再起波澜。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---", "workTexts": {"资治通鉴": "鉴于往事，有资于治道", "训俭示康": "由俭入奢易，由奢入俭难", "乞开言路札子": "为政之要，在于用人、赏善、罚恶而已", "**资治通鉴**": "事件：因反对王安石变法，自请离京，任西京留司御史台闲职。", "赤壁之战": "重点：在叙事上善于描写战争与政治谋略，如《赤壁之战》中对战略决策过程的生动刻画。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 司马光\n\n## 人物档案\n\n### 基本信息\n- **姓名**：司马光\n- **时代**：北宋\n- **出生**：公元1019年，光州光山（今河南省信阳市光山县）\n- **去世**：公元1086年，东京开封府（今河南省开封市）\n- **享年**：68岁\n- **主要身份**：政治家、史学家、文学家\n- **历史地位**：北宋杰出的史学家与保守派政治领袖，其主编的《资治通鉴》是中国古代史学的里程碑。\n- **主要成就**：\n    1. 主编中国第一部编年体通史《**资治通鉴**》。\n    2. 北宋**元祐更化**时期的核心执政者，废除王安石新法。\n    3. 为官清廉，政绩卓著，以“**俭素**”著称。\n    4. 文学上著有《**司马文正公集**》、《**涑水记闻**》等。\n\n### 生平概述\n司马光，字君实，号迂叟，世称涑水先生。他历经北宋仁宗、英宗、神宗、哲宗四朝，是反对王安石变法的保守派领袖。早年以孝闻名，中进士后长期在地方和中央任职。因与王安石政见不合，退居洛阳约十五年，潜心编纂《资治通鉴》。哲宗即位后被召回执政，尽废新法，约一年后病逝。他一生著述宏富，尤以史学成就彪炳千秋。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于北宋核心区域，足迹遍及今河南、山西、陕西等地。\n- ⏱️ **时间跨度**：公元1019年 - 1086年，共约68年。\n- 📍 **地理范围**：以东京开封府（今河南开封）和西京河南府（今河南洛阳）为中心，北至并州（今山西太原），西至陕州（今河南三门峡），南至光州（今河南信阳）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：光州光山\n- **时间**：公元1019年\n- **停留时间**：幼年（约数年）\n- **地点**：光州光山（今河南省信阳市光山县）\n- **事件**：出生于其父司马池的官舍。\n- **意义**：司马光的籍贯与出生地，其家族为当地望族。\n\n### 📍 重要地点：随父宦游各地\n- **时间**：约1025-1030年\n- **停留时间**：数年\n- **地点**：主要在今山西、陕西等地（如并州、耀州）\n- **事件**：童年及少年时期跟随父亲司马池在各地任职，增长见闻。\n- **意义**：早期教育阶段，接触地方政务与社会现实，培养了务实精神。\n\n### 📍 重要地点：东京开封府\n- **时间**：约1038年\n- **停留时间**：备考及短期居留\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：参加科举，中进士甲科，步入仕途。\n- **意义**：人生重大转折点，从此在北宋政治中心展开其政治与学术生涯。\n\n### 📍 重要地点：华州\n- **时间**：约1039-1041年\n- **停留时间**：约两年\n- **地点**：华州（今陕西省渭南市华州区）\n- **事件**：初任地方官，担任华州判官。\n- **意义**：积累地方治理经验的起点。\n\n### 📍 重要地点：并州\n- **时间**：约1041-1044年\n- **停留时间**：约三年\n- **地点**：并州（今山西省太原市）\n- **事件**：任并州通判，辅佐庞籍处理军政事务。\n- **意义**：在北方边防重镇任职，对国防与边患有了深刻认识。\n\n### 📍 重要地点：开封府（任职）\n- **时间**：约1050年代\n- **停留时间**：断续数年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：历任开封府推官、起居注、知谏院等职，直言进谏。\n- **意义**：在中央权力核心崭露头角，成为重要谏臣，政治影响力大增。\n\n### 📍 重要地点：洛阳（退居编书）\n- **时间**：1071年 - 1085年\n- **停留时间**：约15年\n- **地点**：西京河南府（今河南省洛阳市）\n- **事件**：因反对王安石变法，自请离京，任西京留司御史台闲职。在此期间，全力主持编纂《**资治通鉴**》。\n- **意义**：人生最重要的学术创作期，完成了史学巨著，同时形成了反对新法的政治集团核心。\n- **名篇名句**：《资治通鉴》：“鉴于往事，有资于治道”；《训俭示康》：“由俭入奢易，由奢入俭难”。\n\n### 📍 重要地点：开封府（执政）\n- **时间**：1085年 - 1086年\n- **停留时间**：约一年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：神宗去世后，高太后垂帘听政，司马光被召回京，任门下侍郎（副宰相），旋即升任尚书左仆射（宰相），主持“**元祐更化**”，全面废除新法。\n- **意义**：政治生涯的顶峰，但其激进废法的举措也引发争议。\n- **名篇名句**：《乞开言路札子》：“为政之要，在于用人、赏善、罚恶而已”。\n\n### 🔴 去世地：东京开封府\n- **时间**：公元1086年\n- **停留时间**：执政期间直至去世\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：在宰相任上积劳成疾，病逝。\n- **意义**：身后获赠太师、温国公，谥号“文正”。其去世标志着北宋旧党失去核心领袖，政局再起波澜。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1019 | 1岁 | 出生于光州光山。 |\n| 1038 | 20岁 | 中进士甲科，授华州判官，正式入仕。 |\n| 1041 | 23岁 | 任并州通判，接触边防事务。 |\n| 1057 | 39岁 | 任知谏院，以直言敢谏闻名。 |\n| 1066 | 48岁 | 奉命设局编修《资治通鉴》。 |\n| 1069 | 51岁 | 王安石变法开始，司马光持激烈反对态度。 |\n| 1071 | 53岁 | 自请离京，退居洛阳，专注编书。 |\n| 1084 | 66岁 | 《资治通鉴》全书编成，奏上。 |\n| 1085 | 67岁 | 神宗驾崩，被召回京任宰相，主持“元祐更化”。 |\n| 1086 | 68岁 | 病逝于宰相任上。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《资治通鉴》**（选段，如《赤壁之战》）、**《训俭示康》**。\n- 核心要点：\n    - **重点**：**《资治通鉴》** 是中国第一部**编年体通史**，书名意为“鉴于往事，有资于治道”，以历史为帝王提供政治借鉴。\n    - **重点**：**《训俭示康》** 以家训形式阐述“**俭，德之共也；侈，恶之大也**”的观点，论证严密，情真意切。\n    - 司马光的散文风格**质朴严谨**，逻辑性强，不尚浮华。\n    - 其史笔注重**考异**，对史料进行辨析，开创了历史考据的先例。\n    - **重点**：在叙事上善于描写**战争与政治谋略**，如《赤壁之战》中对战略决策过程的生动刻画。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：北宋中期**王安石变法**的主要反对者，与王安石在神宗面前激烈辩论。\n    - 主持编纂**《资治通鉴》**，历时19年，上起战国，下迄五代，共294卷。\n    - **重点**：哲宗初年**元祐更化**的实际主持者，尽废新法，罢黜新党官员。\n    - 与**苏轼**等人有复杂的政治与私人关系，同属旧党但亦有分歧。\n- 核心要点：\n    - **重点**：司马光代表了北宋**士大夫阶层**中保守、稳健的政治理念，强调“**守成**”与“**祖宗之法**”。\n    - 其政治立场根植于对**社会变革风险**的担忧，认为变法扰民、生事。\n    - **重点**：作为史学家，其历史观强调**政治伦理**与**秩序稳定**，对后世官方史学影响深远。\n    - **重点**：其个人品德（如孝、俭、诚）被后世儒家树立为**道德楷模**，与史学成就并称。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省信阳市光山县 | 32.0106 | 114.9136 |\n| 河南省开封市 | 34.7986 | 114.3075 |\n| 河南省洛阳市 | 34.6201 | 112.4540 |\n| 陕西省渭南市华州区 | 34.4996 | 109.7716 |\n| 山西省太原市 | 37.8706 | 112.5489 |\n| 河南省三门峡市（古陕州） | 34.7726 | 111.1984 |", "relatedGraph": {"center": {"id": "司马光", "name": "司马光", "file": "司马光.html", "dynasty": "北宋", "aliases": [], "birth_year": 1019, "death_year": 1086, "quote": "“**俭素**”", "review": "鉴于往事，有资于治道", "foreign_name": "", "main_role_label": "政治家", "birthplace": "光州光山", "birthplace_modern": "河南省信阳市光山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "司马光", "name": "司马光", "file": "司马光.html", "dynasty": "北宋", "aliases": [], "birth_year": 1019, "death_year": 1086, "quote": "“**俭素**”", "review": "鉴于往事，有资于治道", "foreign_name": "", "main_role_label": "政治家", "birthplace": "光州光山", "birthplace_modern": "河南省信阳市光山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "司马光", "target": "王安石", "label": "君臣", "confidence": null}, {"source": "司马光", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏轼", "label": "同时代人物", "confidence": null}, {"source": "司马光", "target": "苏舜钦", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

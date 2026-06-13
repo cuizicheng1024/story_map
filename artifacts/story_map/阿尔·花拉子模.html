@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "阿尔·花拉子模", "title": "", "description": "阿尔·花拉子模生于中亚花拉子模地区，后前往阿拔斯王朝的学术中心巴格达。他活跃于哈里发马蒙创建的“智慧宫”，是当时最杰出的学者之一。他广泛吸收希腊、印度等地的数学与天文学知识，并用阿拉伯语进行系统性著述与创新。其著作，尤其是《代数学》，在12世纪被翻译成拉丁文，成为欧洲大学的主要数学教材，为文艺复兴时期的科学革命奠定了基础。他被誉为“代数之父”，其工作极大地推动了数学符号化和系统化进程。", "quote": "还原", "shortReview": "还原", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（说法不一）", "avatar": "", "birth": {"date": "780年", "location": "（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "850年", "location": "（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "代数学的奠基人之一，其著作对东西方数学发展影响深远。", "identities": "数学家、天文学家、地理学家", "achievements": "", "works": ["代数学"], "reviews": []}}, "locations": [{"name": "巴格达（智慧宫）", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "normal", "event": "在哈里发马蒙支持的“智慧宫”从事学术研究、翻译与著述。完成《代数学》、《印度计算法》等核心著作。", "time": "约公元800年 - 约公元850年（主要学术生涯）", "duration": "约数十年", "significance": "其学术成就的巅峰之地，也是当时世界学术中心。他的工作在此被系统化并传播开来。", "works": ["代数学", "印度计算法"], "quoteLines": ["《代数学》：阐述“还原”（al-jabr）与“对消”（al-muqabala）的基本运算原则", "《印度计算法》：推广使用9个印度数字和零的十进制计算系统。"]}, {"name": "天文观测地：巴格达天文台", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "normal", "event": "参与马蒙组织的天文观测项目，测定子午线长度，编制更精确的天文表。", "time": "哈里发马蒙时期（约813-833年）", "duration": "断续参与", "significance": "实践其天文学知识，为《兹吉表》的编纂提供数据支持。", "works": ["兹吉表"], "quoteLines": []}, {"name": "巴格达", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "death", "event": "在此度过晚年并去世。", "time": "约公元850年", "duration": "晚年", "significance": "其一生学术活动的归宿，著作在此流传后世。", "works": [], "quoteLines": []}, {"name": "可能求学或游历地：布哈拉", "ancientName": "布哈拉", "modernName": "乌兹别克斯坦布哈拉", "lat": 39.7681, "lng": 64.4556, "coordSystem": "WGS84", "type": "normal", "event": "可能在此求学，接触更广泛的学术资源。", "time": "存疑", "duration": "不详", "significance": "作为中亚重要学术城市，可能为其后续发展打下基础。", "works": [], "quoteLines": []}, {"name": "可能游历地：大马士革", "ancientName": "大马士革", "modernName": "叙利亚大马士革", "lat": 33.5138, "lng": 36.2765, "coordSystem": "WGS84", "type": "normal", "event": "可能进行学术交流或观测。", "time": "存疑", "duration": "不详", "significance": "阿拔斯王朝的重要城市，学术活动频繁。", "works": [], "quoteLines": []}, {"name": "可能游历地：设拉子", "ancientName": "设拉子", "modernName": "伊朗设拉子", "lat": 29.5918, "lng": 52.5836, "coordSystem": "WGS84", "type": "normal", "event": "可能进行天文观测或地理考察。", "time": "存疑", "duration": "不详", "significance": "波斯文化中心之一，有助于其知识融合。", "works": [], "quoteLines": []}, {"name": "地理学研究关联地：雷伊", "ancientName": "雷伊", "modernName": "伊朗德黑兰南郊，古雷伊城遗址", "lat": 35.601, "lng": 51.436, "coordSystem": "WGS84", "type": "normal", "event": "可能在此收集地理信息，用于修订托勒密的《地理学》。", "time": "存疑", "duration": "不详", "significance": "其地理学著作参考了实际旅行者的报告，此地或是信息汇集点之一。", "works": ["地理学"], "quoteLines": []}, {"name": "知识传播节点：撒马尔罕", "ancientName": "撒马尔罕", "modernName": "乌兹别克斯坦撒马尔罕", "lat": 39.6542, "lng": 66.9597, "coordSystem": "WGS84", "type": "normal", "event": "其著作和思想通过中亚的学术网络向东传播。", "time": "身后影响", "duration": "不适用", "significance": "作为丝绸之路上的枢纽，是其学术遗产向东方（包括中国）传播的关键节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---", "workTexts": {"代数学": "“代数”", "兹吉表": "3. 编制天文表《兹吉表》，修订并传播托勒密的地理学。", "印度计算法": "《印度计算法》：推广使用9个印度数字和零的十进制计算系统。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阿尔·花拉子模\n\n## 人物档案\n\n### 基本信息\n- **姓名**：阿尔·花拉子模（又译花拉子米、花拉子密）\n- **外文名**：Muḥammad ibn Mūsā al-Khwārizmī\n- **时代**：阿拔斯王朝（伊斯兰黄金时代）\n- **出生**：约公元780年（说法不一），花拉子模地区（今分属乌兹别克斯坦与土库曼斯坦，具体出生地点存疑）\n- **去世**：约公元850年（说法不一），巴格达（今伊拉克巴格达）\n- **享年**：约70岁\n- **主要身份**：数学家、天文学家、地理学家\n- **历史地位**：代数学的奠基人之一，其著作对东西方数学发展影响深远。\n- **主要成就**：\n    1. 撰写《代数学》（*Al-Kitāb al-mukhtaṣar fī ḥisāb al-jabr wal-muqābala*），首次系统阐述解一次、二次方程的通用方法，“代数”（Algebra）一词即源于此书名。\n    2. 编写《印度计算法》（后被译为《花拉子模算术》），向伊斯兰世界及欧洲系统介绍印度-阿拉伯数字及十进制。\n    3. 编制天文表《兹吉表》，修订并传播托勒密的地理学。\n\n### 生平概述\n阿尔·花拉子模生于中亚花拉子模地区，后前往阿拔斯王朝的学术中心巴格达。他活跃于哈里发马蒙创建的“智慧宫”，是当时最杰出的学者之一。他广泛吸收希腊、印度等地的数学与天文学知识，并用阿拉伯语进行系统性著述与创新。其著作，尤其是《代数学》，在12世纪被翻译成拉丁文，成为欧洲大学的主要数学教材，为文艺复兴时期的科学革命奠定了基础。他被誉为“代数之父”，其工作极大地推动了数学符号化和系统化进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于阿拔斯王朝的核心区域，从中亚故乡前往巴格达，并可能游历于叙利亚、波斯等地。\n- ⏱️ **时间跨度**：约公元780年 至 约公元850年（约70年）\n- 📍 **地理范围**：中亚（花拉子模）、两河流域（巴格达）、波斯、叙利亚。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：花拉子模地区\n- **时间**：约公元780年\n- **停留时间**：青年时期\n- **地点**：花拉子模地区（今分属乌兹别克斯坦与土库曼斯坦，具体出生地点存疑）\n- **事件**：出生并成长于此，接受早期教育。\n- **意义**：其名“阿尔·花拉子模”即意为“来自花拉子模的人”，奠定了其文化背景。\n\n### 📍 重要地点：巴格达（智慧宫）\n- **时间**：约公元800年 - 约公元850年（主要学术生涯）\n- **停留时间**：约数十年\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：在哈里发马蒙支持的“智慧宫”从事学术研究、翻译与著述。完成《代数学》、《印度计算法》等核心著作。\n- **意义**：其学术成就的巅峰之地，也是当时世界学术中心。他的工作在此被系统化并传播开来。\n- **名篇名句**：《代数学》：阐述“还原”（al-jabr）与“对消”（al-muqabala）的基本运算原则；《印度计算法》：推广使用9个印度数字和零的十进制计算系统。\n\n### 📍 重要地点：可能求学或游历地：布哈拉\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：布哈拉（今乌兹别克斯坦布哈拉）\n- **事件**：可能在此求学，接触更广泛的学术资源。\n- **意义**：作为中亚重要学术城市，可能为其后续发展打下基础。\n\n### 📍 重要地点：可能游历地：大马士革\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：大马士革（今叙利亚大马士革）\n- **事件**：可能进行学术交流或观测。\n- **意义**：阿拔斯王朝的重要城市，学术活动频繁。\n\n### 📍 重要地点：可能游历地：设拉子\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：设拉子（今伊朗设拉子）\n- **事件**：可能进行天文观测或地理考察。\n- **意义**：波斯文化中心之一，有助于其知识融合。\n\n### 📍 重要地点：天文观测地：巴格达天文台\n- **时间**：哈里发马蒙时期（约813-833年）\n- **停留时间**：断续参与\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：参与马蒙组织的天文观测项目，测定子午线长度，编制更精确的天文表。\n- **意义**：实践其天文学知识，为《兹吉表》的编纂提供数据支持。\n\n### 📍 重要地点：地理学研究关联地：雷伊\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：雷伊（今伊朗德黑兰南郊，古雷伊城遗址）\n- **事件**：可能在此收集地理信息，用于修订托勒密的《地理学》。\n- **意义**：其地理学著作参考了实际旅行者的报告，此地或是信息汇集点之一。\n\n### 📍 重要地点：知识传播节点：撒马尔罕\n- **时间**：身后影响\n- **停留时间**：不适用\n- **地点**：撒马尔罕（今乌兹别克斯坦撒马尔罕）\n- **事件**：其著作和思想通过中亚的学术网络向东传播。\n- **意义**：作为丝绸之路上的枢纽，是其学术遗产向东方（包括中国）传播的关键节点。\n\n### 🔴 去世地：巴格达\n- **时间**：约公元850年\n- **停留时间**：晚年\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：在此度过晚年并去世。\n- **意义**：其一生学术活动的归宿，著作在此流传后世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约780年 | 0岁 | 生于中亚花拉子模地区。 |\n| 约800年 | 约20岁 | 前往巴格达，进入“智慧宫”学术圈。 |\n| 约813-833年 | 约33-53岁 | 参与哈里发马蒙主持的天文观测与地理项目。 |\n| 约820年 | 约40岁 | 完成划时代著作《代数学》。 |\n| 约825年 | 约45岁 | 完成《印度计算法》，系统推广印度-阿拉伯数字。 |\n| 约830年 | 约50岁 | 编纂《兹吉表》等天文表。 |\n| 约847年 | 约67岁 | 完成地理学著作（说法不一），修订托勒密体系。 |\n| 约850年 | 约70岁 | 于巴格达去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 布哈拉 | 39.7681 | 64.4556 |\n| 巴格达 | 33.3128 | 44.3615 |\n| 大马士革 | 33.5138 | 36.2765 |\n| 设拉子 | 29.5918 | 52.5836 |\n| 雷伊（古雷伊城遗址） | 35.6010 | 51.4360 |\n| 撒马尔罕 | 39.6542 | 66.9597 |", "relatedGraph": {"center": {"id": "阿尔·花拉子模", "name": "阿尔·花拉子模", "file": "阿尔·花拉子模.html", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "aliases": [], "birth_year": 780, "death_year": 850, "quote": "“阿尔·花拉子模”", "review": "还原", "foreign_name": "Muḥammad ibn Mūsā al-Khwārizmī", "main_role_label": "数学家", "birthplace": "花拉子模地区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阿尔·花拉子模", "name": "阿尔·花拉子模", "file": "阿尔·花拉子模.html", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "aliases": [], "birth_year": 780, "death_year": 850, "quote": "“阿尔·花拉子模”", "review": "还原", "foreign_name": "Muḥammad ibn Mūsā al-Khwārizmī", "main_role_label": "数学家", "birthplace": "花拉子模地区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "颜真卿", "name": "颜真卿", "file": "颜真卿.html", "dynasty": "唐朝", "aliases": [], "birth_year": 709, "death_year": 785, "quote": "“点如坠石，画如夏云，钩如屈金，戈如发弩。”", "review": "*《旧唐书》**：“富于学，守其正，全其节，是文之杰也……然则君子之殉义，虽千载而犹生。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "京兆府万年县", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "“**师者，所以传道受业解惑也**”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "“缁素忘年之交”", "review": "*《新唐书·陆羽传》**：“羽嗜茶，著经三篇，言茶之原、之法、之具尤备，天下益知饮茶矣。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭子仪", "name": "郭子仪", "file": "郭子仪.html", "dynasty": "唐朝", "aliases": [], "birth_year": 697, "death_year": 781, "quote": "“再造王室，勋高一代”", "review": "《旧唐书》：“再造王室，勋高一代。”“天下以其身为安危者殆二十年。”", "foreign_name": "", "main_role_label": "军事家", "birthplace": "华州郑县", "birthplace_modern": "陕西渭南华州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "罗隐", "name": "罗隐", "file": "罗隐.html", "dynasty": "晚唐至五代（吴越国）", "aliases": [], "birth_year": 833, "death_year": 910, "quote": "“十二三年就试期，五湖烟月奈相违。何如买取胡孙弄，一笑君王便著绯。”", "review": "*鲁迅评价**：“《谗书》几乎全部是抗争和愤激之谈。”（《小品文的危机》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "杭州新城", "birthplace_modern": "浙江省杭州市富阳区新登镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阿尔·花拉子模", "target": "黄巢", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "颜真卿", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "郭子仪", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "罗隐", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "阿尔·花拉子模", "title": "", "description": "阿尔·花拉子模生于中亚花拉子模地区，后前往阿拔斯王朝的学术中心巴格达。他活跃于哈里发马蒙创建的“智慧宫”，是当时最杰出的学者之一。他广泛吸收希腊、印度等地的数学与天文学知识，并用阿拉伯语进行系统性著述与创新。其著作，尤其是《代数学》，在12世纪被翻译成拉丁文，成为欧洲大学的主要数学教材，为文艺复兴时期的科学革命奠定了基础。他被誉为“代数之父”，其工作极大地推动了数学符号化和系统化进程。", "quote": "还原", "shortReview": "还原", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（说法不一）", "avatar": "", "birth": {"date": "780年", "location": "（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "850年", "location": "（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "代数学的奠基人之一，其著作对东西方数学发展影响深远。", "identities": "数学家、天文学家、地理学家", "achievements": "", "works": ["代数学"], "reviews": []}}, "locations": [{"name": "巴格达（智慧宫）", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "normal", "event": "在哈里发马蒙支持的“智慧宫”从事学术研究、翻译与著述。完成《代数学》、《印度计算法》等核心著作。", "time": "约公元800年 - 约公元850年（主要学术生涯）", "duration": "约数十年", "significance": "其学术成就的巅峰之地，也是当时世界学术中心。他的工作在此被系统化并传播开来。", "works": ["代数学", "印度计算法"], "quoteLines": ["《代数学》：阐述“还原”（al-jabr）与“对消”（al-muqabala）的基本运算原则", "《印度计算法》：推广使用9个印度数字和零的十进制计算系统。"]}, {"name": "天文观测地：巴格达天文台", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "normal", "event": "参与马蒙组织的天文观测项目，测定子午线长度，编制更精确的天文表。", "time": "哈里发马蒙时期（约813-833年）", "duration": "断续参与", "significance": "实践其天文学知识，为《兹吉表》的编纂提供数据支持。", "works": ["兹吉表"], "quoteLines": []}, {"name": "巴格达", "ancientName": "巴格达", "modernName": "伊拉克巴格达", "lat": 33.3128, "lng": 44.3615, "coordSystem": "WGS84", "type": "death", "event": "在此度过晚年并去世。", "time": "约公元850年", "duration": "晚年", "significance": "其一生学术活动的归宿，著作在此流传后世。", "works": [], "quoteLines": []}, {"name": "可能求学或游历地：布哈拉", "ancientName": "布哈拉", "modernName": "乌兹别克斯坦布哈拉", "lat": 39.7681, "lng": 64.4556, "coordSystem": "WGS84", "type": "normal", "event": "可能在此求学，接触更广泛的学术资源。", "time": "存疑", "duration": "不详", "significance": "作为中亚重要学术城市，可能为其后续发展打下基础。", "works": [], "quoteLines": []}, {"name": "可能游历地：大马士革", "ancientName": "大马士革", "modernName": "叙利亚大马士革", "lat": 33.5138, "lng": 36.2765, "coordSystem": "WGS84", "type": "normal", "event": "可能进行学术交流或观测。", "time": "存疑", "duration": "不详", "significance": "阿拔斯王朝的重要城市，学术活动频繁。", "works": [], "quoteLines": []}, {"name": "可能游历地：设拉子", "ancientName": "设拉子", "modernName": "伊朗设拉子", "lat": 29.5918, "lng": 52.5836, "coordSystem": "WGS84", "type": "normal", "event": "可能进行天文观测或地理考察。", "time": "存疑", "duration": "不详", "significance": "波斯文化中心之一，有助于其知识融合。", "works": [], "quoteLines": []}, {"name": "地理学研究关联地：雷伊", "ancientName": "雷伊", "modernName": "伊朗德黑兰南郊，古雷伊城遗址", "lat": 35.601, "lng": 51.436, "coordSystem": "WGS84", "type": "normal", "event": "可能在此收集地理信息，用于修订托勒密的《地理学》。", "time": "存疑", "duration": "不详", "significance": "其地理学著作参考了实际旅行者的报告，此地或是信息汇集点之一。", "works": ["地理学"], "quoteLines": []}, {"name": "知识传播节点：撒马尔罕", "ancientName": "撒马尔罕", "modernName": "乌兹别克斯坦撒马尔罕", "lat": 39.6542, "lng": 66.9597, "coordSystem": "WGS84", "type": "normal", "event": "其著作和思想通过中亚的学术网络向东传播。", "time": "身后影响", "duration": "不适用", "significance": "作为丝绸之路上的枢纽，是其学术遗产向东方（包括中国）传播的关键节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---", "workTexts": {"代数学": "“代数”", "兹吉表": "3. 编制天文表《兹吉表》，修订并传播托勒密的地理学。", "印度计算法": "《印度计算法》：推广使用9个印度数字和零的十进制计算系统。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阿尔·花拉子模\n\n## 人物档案\n\n### 基本信息\n- **姓名**：阿尔·花拉子模（又译花拉子米、花拉子密）\n- **外文名**：Muḥammad ibn Mūsā al-Khwārizmī\n- **时代**：阿拔斯王朝（伊斯兰黄金时代）\n- **出生**：约公元780年（说法不一），花拉子模地区（今分属乌兹别克斯坦与土库曼斯坦，具体出生地点存疑）\n- **去世**：约公元850年（说法不一），巴格达（今伊拉克巴格达）\n- **享年**：约70岁\n- **主要身份**：数学家、天文学家、地理学家\n- **历史地位**：代数学的奠基人之一，其著作对东西方数学发展影响深远。\n- **主要成就**：\n    1. 撰写《代数学》（*Al-Kitāb al-mukhtaṣar fī ḥisāb al-jabr wal-muqābala*），首次系统阐述解一次、二次方程的通用方法，“代数”（Algebra）一词即源于此书名。\n    2. 编写《印度计算法》（后被译为《花拉子模算术》），向伊斯兰世界及欧洲系统介绍印度-阿拉伯数字及十进制。\n    3. 编制天文表《兹吉表》，修订并传播托勒密的地理学。\n\n### 生平概述\n阿尔·花拉子模生于中亚花拉子模地区，后前往阿拔斯王朝的学术中心巴格达。他活跃于哈里发马蒙创建的“智慧宫”，是当时最杰出的学者之一。他广泛吸收希腊、印度等地的数学与天文学知识，并用阿拉伯语进行系统性著述与创新。其著作，尤其是《代数学》，在12世纪被翻译成拉丁文，成为欧洲大学的主要数学教材，为文艺复兴时期的科学革命奠定了基础。他被誉为“代数之父”，其工作极大地推动了数学符号化和系统化进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于阿拔斯王朝的核心区域，从中亚故乡前往巴格达，并可能游历于叙利亚、波斯等地。\n- ⏱️ **时间跨度**：约公元780年 至 约公元850年（约70年）\n- 📍 **地理范围**：中亚（花拉子模）、两河流域（巴格达）、波斯、叙利亚。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：花拉子模地区\n- **时间**：约公元780年\n- **停留时间**：青年时期\n- **地点**：花拉子模地区（今分属乌兹别克斯坦与土库曼斯坦，具体出生地点存疑）\n- **事件**：出生并成长于此，接受早期教育。\n- **意义**：其名“阿尔·花拉子模”即意为“来自花拉子模的人”，奠定了其文化背景。\n\n### 📍 重要地点：巴格达（智慧宫）\n- **时间**：约公元800年 - 约公元850年（主要学术生涯）\n- **停留时间**：约数十年\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：在哈里发马蒙支持的“智慧宫”从事学术研究、翻译与著述。完成《代数学》、《印度计算法》等核心著作。\n- **意义**：其学术成就的巅峰之地，也是当时世界学术中心。他的工作在此被系统化并传播开来。\n- **名篇名句**：《代数学》：阐述“还原”（al-jabr）与“对消”（al-muqabala）的基本运算原则；《印度计算法》：推广使用9个印度数字和零的十进制计算系统。\n\n### 📍 重要地点：可能求学或游历地：布哈拉\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：布哈拉（今乌兹别克斯坦布哈拉）\n- **事件**：可能在此求学，接触更广泛的学术资源。\n- **意义**：作为中亚重要学术城市，可能为其后续发展打下基础。\n\n### 📍 重要地点：可能游历地：大马士革\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：大马士革（今叙利亚大马士革）\n- **事件**：可能进行学术交流或观测。\n- **意义**：阿拔斯王朝的重要城市，学术活动频繁。\n\n### 📍 重要地点：可能游历地：设拉子\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：设拉子（今伊朗设拉子）\n- **事件**：可能进行天文观测或地理考察。\n- **意义**：波斯文化中心之一，有助于其知识融合。\n\n### 📍 重要地点：天文观测地：巴格达天文台\n- **时间**：哈里发马蒙时期（约813-833年）\n- **停留时间**：断续参与\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：参与马蒙组织的天文观测项目，测定子午线长度，编制更精确的天文表。\n- **意义**：实践其天文学知识，为《兹吉表》的编纂提供数据支持。\n\n### 📍 重要地点：地理学研究关联地：雷伊\n- **时间**：存疑\n- **停留时间**：不详\n- **地点**：雷伊（今伊朗德黑兰南郊，古雷伊城遗址）\n- **事件**：可能在此收集地理信息，用于修订托勒密的《地理学》。\n- **意义**：其地理学著作参考了实际旅行者的报告，此地或是信息汇集点之一。\n\n### 📍 重要地点：知识传播节点：撒马尔罕\n- **时间**：身后影响\n- **停留时间**：不适用\n- **地点**：撒马尔罕（今乌兹别克斯坦撒马尔罕）\n- **事件**：其著作和思想通过中亚的学术网络向东传播。\n- **意义**：作为丝绸之路上的枢纽，是其学术遗产向东方（包括中国）传播的关键节点。\n\n### 🔴 去世地：巴格达\n- **时间**：约公元850年\n- **停留时间**：晚年\n- **地点**：巴格达（今伊拉克巴格达）\n- **事件**：在此度过晚年并去世。\n- **意义**：其一生学术活动的归宿，著作在此流传后世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约780年 | 0岁 | 生于中亚花拉子模地区。 |\n| 约800年 | 约20岁 | 前往巴格达，进入“智慧宫”学术圈。 |\n| 约813-833年 | 约33-53岁 | 参与哈里发马蒙主持的天文观测与地理项目。 |\n| 约820年 | 约40岁 | 完成划时代著作《代数学》。 |\n| 约825年 | 约45岁 | 完成《印度计算法》，系统推广印度-阿拉伯数字。 |\n| 约830年 | 约50岁 | 编纂《兹吉表》等天文表。 |\n| 约847年 | 约67岁 | 完成地理学著作（说法不一），修订托勒密体系。 |\n| 约850年 | 约70岁 | 于巴格达去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：通常不直接出现在语文课文，但其贡献（**阿拉伯数字**、**代数学**）是数学、科学史相关说明文或论述文的常见背景知识。\n- 核心要点：\n    - **重点**：其名著《代数学》的书名（*al-jabr*）演变为现代数学术语“**代数**”（Algebra），这是**学科命名**的经典案例。\n    - **重点**：他系统阐述的**解方程方法**（特别是二次方程）是代数学作为独立学科的**基石**。\n    - **重点**：通过《印度计算法》推广的**印度-阿拉伯数字系统**（包括**零**的概念），取代了繁琐的罗马数字，是**数学符号化**和**计算革命**的关键。\n    - 其著作体现了**知识整合**与**创新**的特点，融合了希腊、印度等多源学术成果。\n    - 其拉丁文译本成为欧洲几个世纪里的**标准教材**，影响了**文艺复兴**的学术基础。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于阿拔斯王朝的“**智慧宫**”，这是伊斯兰黄金时代**学术中心**和**翻译运动**的核心机构。\n    - 其学术活动是“**百年翻译运动**”的重要组成部分，该运动系统保存并发展了古希腊、波斯、印度的科学文化遗产。\n    - **重点**：其著作的**拉丁文翻译**（12世纪）是欧洲“**十二世纪文艺复兴**”获取古希腊与东方知识的关键渠道之一。\n- 核心要点：\n    - **重点**：他是**伊斯兰黄金时代**科学成就的杰出代表，证明了该时期文明在**数学**、**天文学**领域的领先地位。\n    - 其工作体现了**跨文明交流**（中亚、印度、希腊、波斯）对科技发展的巨大推动作用。\n    - **重点**：被誉为“**代数之父**”，其贡献具有**开创性**和**奠基性**，影响了全世界的数学发展进程。\n    - 其地理学工作修正了托勒密的错误，体现了**实证精神**和**科学进步**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 布哈拉 | 39.7681 | 64.4556 |\n| 巴格达 | 33.3128 | 44.3615 |\n| 大马士革 | 33.5138 | 36.2765 |\n| 设拉子 | 29.5918 | 52.5836 |\n| 雷伊（古雷伊城遗址） | 35.6010 | 51.4360 |\n| 撒马尔罕 | 39.6542 | 66.9597 |", "relatedGraph": {"center": {"id": "阿尔·花拉子模", "name": "阿尔·花拉子模", "file": "阿尔·花拉子模.html", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "aliases": [], "birth_year": 780, "death_year": 850, "quote": "“阿尔·花拉子模”", "review": "还原", "foreign_name": "Muḥammad ibn Mūsā al-Khwārizmī", "main_role_label": "数学家", "birthplace": "花拉子模地区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阿尔·花拉子模", "name": "阿尔·花拉子模", "file": "阿尔·花拉子模.html", "dynasty": "阿拔斯王朝（伊斯兰黄金时代）", "aliases": [], "birth_year": 780, "death_year": 850, "quote": "“阿尔·花拉子模”", "review": "还原", "foreign_name": "Muḥammad ibn Mūsā al-Khwārizmī", "main_role_label": "数学家", "birthplace": "花拉子模地区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "颜真卿", "name": "颜真卿", "file": "颜真卿.html", "dynasty": "唐朝", "aliases": [], "birth_year": 709, "death_year": 785, "quote": "“点如坠石，画如夏云，钩如屈金，戈如发弩。”", "review": "*《旧唐书》**：“富于学，守其正，全其节，是文之杰也……然则君子之殉义，虽千载而犹生。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "京兆府万年县", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "“**师者，所以传道受业解惑也**”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "“缁素忘年之交”", "review": "*《新唐书·陆羽传》**：“羽嗜茶，著经三篇，言茶之原、之法、之具尤备，天下益知饮茶矣。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭子仪", "name": "郭子仪", "file": "郭子仪.html", "dynasty": "唐朝", "aliases": [], "birth_year": 697, "death_year": 781, "quote": "“再造王室，勋高一代”", "review": "《旧唐书》：“再造王室，勋高一代。”“天下以其身为安危者殆二十年。”", "foreign_name": "", "main_role_label": "军事家", "birthplace": "华州郑县", "birthplace_modern": "陕西渭南华州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "罗隐", "name": "罗隐", "file": "罗隐.html", "dynasty": "晚唐至五代（吴越国）", "aliases": [], "birth_year": 833, "death_year": 910, "quote": "“十二三年就试期，五湖烟月奈相违。何如买取胡孙弄，一笑君王便著绯。”", "review": "*鲁迅评价**：“《谗书》几乎全部是抗争和愤激之谈。”（《小品文的危机》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "杭州新城", "birthplace_modern": "浙江省杭州市富阳区新登镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阿尔·花拉子模", "target": "黄巢", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "颜真卿", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "郭子仪", "label": "同时代人物", "confidence": null}, {"source": "阿尔·花拉子模", "target": "罗隐", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

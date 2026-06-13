@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "勒内·笛卡尔", "title": "近代哲学之父", "description": "笛卡尔生于法国一个贵族家庭，幼年丧母，身体孱弱但求知欲强。他早年接受耶稣会教育，后在普瓦捷大学学习法律。1618年，他投身荷兰奥兰治拿骚的莫里斯亲王军队，开始游历欧洲。1628年后，他主要定居于思想相对自由的荷兰，在那里完成了其大部分重要著作，包括《谈谈方法》、《第一哲学沉思集》和《哲学原理》。1649年，他应瑞典女王克里斯蒂娜之邀前往斯德哥尔摩宫廷讲学，终因不适应严寒气候与繁重课业，次年病逝。他的思想深刻影响了后世的科学与哲学发展。", "quote": "我思，故我在。", "shortReview": "我思，故我在。", "dynasty": "17世纪（欧洲近代早期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）", "avatar": "", "birth": {"date": "1596年", "location": "法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）", "lat": 47.2, "lng": 0.7, "coordSystem": "WGS84"}, "death": {"date": "1650年", "location": "瑞典斯德哥尔摩（今瑞典斯德哥尔摩）", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84"}, "lifespan": "53岁", "highlights": {"honor": "近代哲学之父", "status": "近代西方哲学与解析几何的奠基人之一，被誉为“近代哲学之父”。", "identities": "哲学家、数学家、物理学家", "achievements": "", "works": ["谈谈方法", "第一哲学沉思集", "哲学原理"], "reviews": []}}, "locations": [{"name": "拉艾（La Haye en Touraine）", "ancientName": "法兰西王国图赖讷省拉艾", "modernName": "法国安德尔-卢瓦尔省笛卡尔镇", "lat": 47.2, "lng": 0.7, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个地位较低的贵族家庭，母亲在他一岁多时因肺结核去世。", "time": "公元1596年", "duration": "童年早期（约至1604年左右）", "significance": "其出生地后更名为“笛卡尔镇”以纪念他。", "works": [], "quoteLines": []}, {"name": "拉弗莱什（La Flèche）", "ancientName": "法兰西王国拉弗莱什", "modernName": "法国卢瓦尔河地区大区萨尔特省拉弗莱什", "lat": 47.6967, "lng": -0.0761, "coordSystem": "WGS84", "type": "normal", "event": "进入由亨利四世创立的拉弗莱什耶稣会公学学习，接受了系统的古典学、数学和哲学教育。", "time": "约公元1604年 - 1612年", "duration": "约8年", "significance": "奠定了其深厚的学术基础，但也促使他后来对经院哲学产生普遍怀疑。", "works": [], "quoteLines": []}, {"name": "普瓦捷（Poitiers）", "ancientName": "法兰西王国普瓦捷", "modernName": "法国新阿基坦大区维埃纳省普瓦捷", "lat": 46.58, "lng": 0.34, "coordSystem": "WGS84", "type": "normal", "event": "在普瓦捷大学学习法律，于1616年获得法学学位。", "time": "约公元1612年 - 1616年", "duration": "约4年", "significance": "完成了正规的高等教育，但此后他并未从事法律职业，而是选择了探索世界与追求真理。", "works": [], "quoteLines": []}, {"name": "荷兰（军旅与游历）", "ancientName": "荷兰共和国布雷达等地", "modernName": "荷兰北布拉班特省布雷达", "lat": 51.5883, "lng": 4.7758, "coordSystem": "WGS84", "type": "normal", "event": "加入莫里斯亲王的军队。在布雷达结识了数学家贝克曼，激发了对数学和科学的强烈兴趣。1619年11月10日，在德国乌尔姆（今德国巴登-符腾堡州乌尔姆）的“火炉”梦境中，获得了关于“一门非凡新科学”的启示。开启了其学术生涯的关键转折点，确立了将数学的确定性方法应用于所有知识领域的志向。", "time": "公元1618年 - 1619年", "duration": "约1年", "significance": "", "works": [], "quoteLines": []}, {"name": "巴黎", "ancientName": "法兰西王国巴黎", "modernName": "法国巴黎", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "游历意大利后返回法国，在巴黎的学术圈中活动，与马兰·梅森、伽桑狄等学者交流，阐述自己的早期思想。", "time": "公元1622年 - 1628年（间歇居住）", "duration": "累计数年", "significance": "在学术中心检验和传播自己的思想，最终因觉得巴黎过于喧嚣，决定前往更安静的荷兰定居。", "works": [], "quoteLines": []}, {"name": "阿姆斯特丹（Amsterdam）", "ancientName": "荷兰共和国阿姆斯特丹", "modernName": "荷兰北荷兰省阿姆斯特丹", "lat": 52.3676, "lng": 4.9041, "coordSystem": "WGS84", "type": "normal", "event": "在荷兰的首个主要居住地，开始系统撰写《论世界》。", "time": "公元1629年 - 1630年（及后续多次短期居住）", "duration": "约1年（首次长期定居）", "significance": "开启了在荷兰长达约20年的隐居著述生涯。", "works": ["论世界"], "quoteLines": []}, {"name": "莱顿（Leiden）", "ancientName": "荷兰共和国莱顿", "modernName": "荷兰南荷兰省莱顿", "lat": 52.1601, "lng": 4.497, "coordSystem": "WGS84", "type": "normal", "event": "移居莱顿，与当地出版商埃尔泽维尔家族建立联系。1632年，完成了《谈谈方法》及其附录《几何学》的撰写，但出版推迟至1637年；同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。", "time": "公元1630年 - 1632年", "duration": "约2年", "significance": "《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。", "works": ["谈谈方法", "几何学", "世界"], "quoteLines": []}, {"name": "埃赫蒙德-宾嫩（Egmond-Binnen）", "ancientName": "荷兰共和国北荷兰省埃格蒙德", "modernName": "荷兰北荷兰省埃赫蒙德-宾嫩", "lat": 52.5953, "lng": 4.6556, "coordSystem": "WGS84", "type": "normal", "event": "在荷兰最宁静的居住地之一。期间与波希米亚的伊丽莎白公主通信，探讨哲学与伦理问题，出版了《哲学原理》。也卷入了与乌得勒支大学教授的激烈论战。", "time": "公元1643年 - 1649年", "duration": "约6年", "significance": "完成了其哲学体系的最终阐述，也经历了在荷兰最严重的学术与人身攻击。", "works": ["哲学原理"], "quoteLines": []}, {"name": "斯德哥尔摩（Stockholm）", "ancientName": "瑞典斯德哥尔摩", "modernName": "瑞典斯德哥尔摩", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84", "type": "death", "event": "应瑞典女王克里斯蒂娜之邀，前往宫廷担任哲学教师。每周三次在清晨五点为女王授课。", "time": "公元1649年10月 - 1650年2月", "duration": "约5个月", "significance": "不适应北欧严寒气候和凌晨授课的严苛作息，患上肺炎，于1650年2月11日病逝。", "works": [], "quoteLines": ["《谈谈方法》：“我思，故我在。”（Cogito, ergo sum.）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---", "workTexts": {"谈谈方法": "我思，故我在。", "世界": "同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。", "几何学": "意义：《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。", "哲学原理": "事件：在荷兰最宁静的居住地之一。", "第一哲学沉思集": "| 1641 | 45 | 出版《第一哲学沉思集》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 笛卡尔\n\n## 人物档案\n\n### 基本信息\n- **姓名**：勒内·笛卡尔\n- **时代**：17世纪（欧洲近代早期）\n- **出生**：公元1596年3月31日，法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）\n- **去世**：公元1650年2月11日，瑞典斯德哥尔摩（今瑞典斯德哥尔摩）\n- **享年**：53岁\n- **主要身份**：哲学家、数学家、物理学家\n- **历史地位**：近代西方哲学与解析几何的奠基人之一，被誉为“近代哲学之父”。\n- **主要成就**：\n    - 创立以“我思故我在”为核心的理性主义哲学体系。\n    - 发明解析几何，将代数与几何相结合（笛卡尔坐标系）。\n    - 提出“普遍怀疑”的方法论。\n    - 在物理学上发展了关于宇宙的漩涡理论。\n\n### 生平概述\n笛卡尔生于法国一个贵族家庭，幼年丧母，身体孱弱但求知欲强。他早年接受耶稣会教育，后在普瓦捷大学学习法律。1618年，他投身荷兰奥兰治拿骚的莫里斯亲王军队，开始游历欧洲。1628年后，他主要定居于思想相对自由的荷兰，在那里完成了其大部分重要著作，包括《谈谈方法》、《第一哲学沉思集》和《哲学原理》。1649年，他应瑞典女王克里斯蒂娜之邀前往斯德哥尔摩宫廷讲学，终因不适应严寒气候与繁重课业，次年病逝。他的思想深刻影响了后世的科学与哲学发展。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍布西欧，以法国为起点，荷兰为长期居所，终老于瑞典。\n- ⏱️ **时间跨度**：公元1596年 - 1650年，共53年。\n- 📍 **地理范围**：主要覆盖今法国、荷兰、瑞典，并游历过丹麦、德国、意大利等地。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：拉艾（La Haye en Touraine）\n- **时间**：公元1596年\n- **停留时间**：童年早期（约至1604年左右）\n- **地点**：法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）\n- **事件**：出生于一个地位较低的贵族家庭，母亲在他一岁多时因肺结核去世。\n- **意义**：其出生地后更名为“笛卡尔镇”以纪念他。\n\n### 📍 重要地点：拉弗莱什（La Flèche）\n- **时间**：约公元1604年 - 1612年\n- **停留时间**：约8年\n- **地点**：法兰西王国拉弗莱什（今法国卢瓦尔河地区大区萨尔特省拉弗莱什）\n- **事件**：进入由亨利四世创立的拉弗莱什耶稣会公学学习，接受了系统的古典学、数学和哲学教育。\n- **意义**：奠定了其深厚的学术基础，但也促使他后来对经院哲学产生普遍怀疑。\n\n### 📍 重要地点：普瓦捷（Poitiers）\n- **时间**：约公元1612年 - 1616年\n- **停留时间**：约4年\n- **地点**：法兰西王国普瓦捷（今法国新阿基坦大区维埃纳省普瓦捷）\n- **事件**：在普瓦捷大学学习法律，于1616年获得法学学位。\n- **意义**：完成了正规的高等教育，但此后他并未从事法律职业，而是选择了探索世界与追求真理。\n\n### 📍 重要地点：荷兰（军旅与游历）\n- **时间**：公元1618年 - 1619年\n- **停留时间**：约1年\n- **地点**：荷兰共和国布雷达等地（今荷兰北布拉班特省布雷达）\n- **事件**：加入莫里斯亲王的军队。在布雷达结识了数学家贝克曼，激发了对数学和科学的强烈兴趣。1619年11月10日，在德国乌尔姆（今德国巴登-符腾堡州乌尔姆）的“火炉”梦境中，获得了关于“一门非凡新科学”的启示。开启了其学术生涯的关键转折点，确立了将数学的确定性方法应用于所有知识领域的志向。\n\n### 📍 重要地点：巴黎\n- **时间**：公元1622年 - 1628年（间歇居住）\n- **停留时间**：累计数年\n- **地点**：法兰西王国巴黎（今法国巴黎）\n- **事件**：游历意大利后返回法国，在巴黎的学术圈中活动，与马兰·梅森、伽桑狄等学者交流，阐述自己的早期思想。\n- **意义**：在学术中心检验和传播自己的思想，最终因觉得巴黎过于喧嚣，决定前往更安静的荷兰定居。\n\n### 📍 重要地点：阿姆斯特丹（Amsterdam）\n- **时间**：公元1629年 - 1630年（及后续多次短期居住）\n- **停留时间**：约1年（首次长期定居）\n- **地点**：荷兰共和国阿姆斯特丹（今荷兰北荷兰省阿姆斯特丹）\n- **事件**：在荷兰的首个主要居住地，开始系统撰写《论世界》。\n- **意义**：开启了在荷兰长达约20年的隐居著述生涯。\n\n### 📍 重要地点：莱顿（Leiden）\n- **时间**：公元1630年 - 1632年\n- **停留时间**：约2年\n- **地点**：荷兰共和国莱顿（今荷兰南荷兰省莱顿）\n- **事件**：移居莱顿，与当地出版商埃尔泽维尔家族建立联系。1632年，完成了《谈谈方法》及其附录《几何学》的撰写，但出版推迟至1637年；同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。\n- **意义**：《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。\n\n### 📍 重要地点：埃赫蒙德-宾嫩（Egmond-Binnen）\n- **时间**：公元1643年 - 1649年\n- **停留时间**：约6年\n- **地点**：荷兰共和国北荷兰省埃格蒙德（今荷兰北荷兰省埃赫蒙德-宾嫩）\n- **事件**：在荷兰最宁静的居住地之一。期间与波希米亚的伊丽莎白公主通信，探讨哲学与伦理问题，出版了《哲学原理》。也卷入了与乌得勒支大学教授的激烈论战。\n- **意义**：完成了其哲学体系的最终阐述，也经历了在荷兰最严重的学术与人身攻击。\n\n### 🔴 去世地：斯德哥尔摩（Stockholm）\n- **时间**：公元1649年10月 - 1650年2月\n- **停留时间**：约5个月\n- **地点**：瑞典斯德哥尔摩（今瑞典斯德哥尔摩）\n- **事件**：应瑞典女王克里斯蒂娜之邀，前往宫廷担任哲学教师。每周三次在清晨五点为女王授课。\n- **意义**：不适应北欧严寒气候和凌晨授课的严苛作息，患上肺炎，于1650年2月11日病逝。\n- **名篇名句**：《谈谈方法》：“我思，故我在。”（Cogito, ergo sum.）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1596 | 0 | 出生于法国拉艾。 |\n| 1604 | 8 | 进入拉弗莱什耶稣会学校学习。 |\n| 1616 | 20 | 获普瓦捷大学法学学位。 |\n| 1618 | 22 | 加入荷兰军队，结识贝克曼，投身数学与科学研究。 |\n| 1619 | 23 | 经历“火炉”梦境，确立方法论志向。 |\n| 1628 | 32 | 离开巴黎，决定定居荷兰。 |\n| 1632 | 36 | 移居莱顿，完成《谈谈方法》及附录《几何学》撰写。 |\n| 1637 | 41 | 出版《谈谈方法》及附录《几何学》，发明解析几何，首次公开阐述其哲学方法。 |\n| 1641 | 45 | 出版《第一哲学沉思集》。 |\n| 1644 | 48 | 出版《哲学原理》，系统阐述其物理学和宇宙观。 |\n| 1649 | 53 | 应邀前往瑞典斯德哥尔摩。 |\n| 1650 | 53 | 在斯德哥尔摩病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 笛卡尔镇（原拉艾） | 47.2000 | 0.7000 |\n| 拉弗莱什 | 47.6967 | -0.0761 |\n| 普瓦捷 | 46.5800 | 0.3400 |\n| 布雷达 | 51.5883 | 4.7758 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 阿姆斯特丹 | 52.3676 | 4.9041 |\n| 莱顿 | 52.1601 | 4.4970 |\n| 埃赫蒙德-宾嫩 | 52.5953 | 4.6556 |\n| 斯德哥尔摩 | 59.3293 | 18.0686 |", "relatedGraph": {"center": {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "17世纪（欧洲近代早期）", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "我思，故我在。", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "17世纪（欧洲近代早期）", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "我思，故我在。", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "“业余数学家之王”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "莱布尼茨", "name": "莱布尼茨", "file": "莱布尼茨.html", "dynasty": "17世纪（神圣罗马帝国时期）", "aliases": [], "birth_year": 1646, "death_year": 1716, "quote": "“单子没有可供事物出入的窗户。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "莱比锡", "birthplace_modern": "德国萨克森州莱比锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "笛卡尔", "target": "费马", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "莱布尼茨", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "帕斯卡", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "勒内·笛卡尔", "title": "近代哲学之父", "description": "笛卡尔生于法国一个贵族家庭，幼年丧母，身体孱弱但求知欲强。他早年接受耶稣会教育，后在普瓦捷大学学习法律。1618年，他投身荷兰奥兰治拿骚的莫里斯亲王军队，开始游历欧洲。1628年后，他主要定居于思想相对自由的荷兰，在那里完成了其大部分重要著作，包括《谈谈方法》、《第一哲学沉思集》和《哲学原理》。1649年，他应瑞典女王克里斯蒂娜之邀前往斯德哥尔摩宫廷讲学，终因不适应严寒气候与繁重课业，次年病逝。他的思想深刻影响了后世的科学与哲学发展。", "quote": "我思，故我在。", "shortReview": "我思，故我在。", "dynasty": "17世纪（欧洲近代早期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）", "avatar": "", "birth": {"date": "1596年", "location": "法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）", "lat": 47.2, "lng": 0.7, "coordSystem": "WGS84"}, "death": {"date": "1650年", "location": "瑞典斯德哥尔摩（今瑞典斯德哥尔摩）", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84"}, "lifespan": "53岁", "highlights": {"honor": "近代哲学之父", "status": "近代西方哲学与解析几何的奠基人之一，被誉为“近代哲学之父”。", "identities": "哲学家、数学家、物理学家", "achievements": "", "works": ["谈谈方法", "第一哲学沉思集", "哲学原理"], "reviews": []}}, "locations": [{"name": "拉艾（La Haye en Touraine）", "ancientName": "法兰西王国图赖讷省拉艾", "modernName": "法国安德尔-卢瓦尔省笛卡尔镇", "lat": 47.2, "lng": 0.7, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个地位较低的贵族家庭，母亲在他一岁多时因肺结核去世。", "time": "公元1596年", "duration": "童年早期（约至1604年左右）", "significance": "其出生地后更名为“笛卡尔镇”以纪念他。", "works": [], "quoteLines": []}, {"name": "拉弗莱什（La Flèche）", "ancientName": "法兰西王国拉弗莱什", "modernName": "法国卢瓦尔河地区大区萨尔特省拉弗莱什", "lat": 47.6967, "lng": -0.0761, "coordSystem": "WGS84", "type": "normal", "event": "进入由亨利四世创立的拉弗莱什耶稣会公学学习，接受了系统的古典学、数学和哲学教育。", "time": "约公元1604年 - 1612年", "duration": "约8年", "significance": "奠定了其深厚的学术基础，但也促使他后来对经院哲学产生普遍怀疑。", "works": [], "quoteLines": []}, {"name": "普瓦捷（Poitiers）", "ancientName": "法兰西王国普瓦捷", "modernName": "法国新阿基坦大区维埃纳省普瓦捷", "lat": 46.58, "lng": 0.34, "coordSystem": "WGS84", "type": "normal", "event": "在普瓦捷大学学习法律，于1616年获得法学学位。", "time": "约公元1612年 - 1616年", "duration": "约4年", "significance": "完成了正规的高等教育，但此后他并未从事法律职业，而是选择了探索世界与追求真理。", "works": [], "quoteLines": []}, {"name": "荷兰（军旅与游历）", "ancientName": "荷兰共和国布雷达等地", "modernName": "荷兰北布拉班特省布雷达", "lat": 51.5883, "lng": 4.7758, "coordSystem": "WGS84", "type": "normal", "event": "加入莫里斯亲王的军队。在布雷达结识了数学家贝克曼，激发了对数学和科学的强烈兴趣。1619年11月10日，在德国乌尔姆（今德国巴登-符腾堡州乌尔姆）的“火炉”梦境中，获得了关于“一门非凡新科学”的启示。开启了其学术生涯的关键转折点，确立了将数学的确定性方法应用于所有知识领域的志向。", "time": "公元1618年 - 1619年", "duration": "约1年", "significance": "", "works": [], "quoteLines": []}, {"name": "巴黎", "ancientName": "法兰西王国巴黎", "modernName": "法国巴黎", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "游历意大利后返回法国，在巴黎的学术圈中活动，与马兰·梅森、伽桑狄等学者交流，阐述自己的早期思想。", "time": "公元1622年 - 1628年（间歇居住）", "duration": "累计数年", "significance": "在学术中心检验和传播自己的思想，最终因觉得巴黎过于喧嚣，决定前往更安静的荷兰定居。", "works": [], "quoteLines": []}, {"name": "阿姆斯特丹（Amsterdam）", "ancientName": "荷兰共和国阿姆斯特丹", "modernName": "荷兰北荷兰省阿姆斯特丹", "lat": 52.3676, "lng": 4.9041, "coordSystem": "WGS84", "type": "normal", "event": "在荷兰的首个主要居住地，开始系统撰写《论世界》。", "time": "公元1629年 - 1630年（及后续多次短期居住）", "duration": "约1年（首次长期定居）", "significance": "开启了在荷兰长达约20年的隐居著述生涯。", "works": ["论世界"], "quoteLines": []}, {"name": "莱顿（Leiden）", "ancientName": "荷兰共和国莱顿", "modernName": "荷兰南荷兰省莱顿", "lat": 52.1601, "lng": 4.497, "coordSystem": "WGS84", "type": "normal", "event": "移居莱顿，与当地出版商埃尔泽维尔家族建立联系。1632年，完成了《谈谈方法》及其附录《几何学》的撰写，但出版推迟至1637年；同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。", "time": "公元1630年 - 1632年", "duration": "约2年", "significance": "《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。", "works": ["谈谈方法", "几何学", "世界"], "quoteLines": []}, {"name": "埃赫蒙德-宾嫩（Egmond-Binnen）", "ancientName": "荷兰共和国北荷兰省埃格蒙德", "modernName": "荷兰北荷兰省埃赫蒙德-宾嫩", "lat": 52.5953, "lng": 4.6556, "coordSystem": "WGS84", "type": "normal", "event": "在荷兰最宁静的居住地之一。期间与波希米亚的伊丽莎白公主通信，探讨哲学与伦理问题，出版了《哲学原理》。也卷入了与乌得勒支大学教授的激烈论战。", "time": "公元1643年 - 1649年", "duration": "约6年", "significance": "完成了其哲学体系的最终阐述，也经历了在荷兰最严重的学术与人身攻击。", "works": ["哲学原理"], "quoteLines": []}, {"name": "斯德哥尔摩（Stockholm）", "ancientName": "瑞典斯德哥尔摩", "modernName": "瑞典斯德哥尔摩", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84", "type": "death", "event": "应瑞典女王克里斯蒂娜之邀，前往宫廷担任哲学教师。每周三次在清晨五点为女王授课。", "time": "公元1649年10月 - 1650年2月", "duration": "约5个月", "significance": "不适应北欧严寒气候和凌晨授课的严苛作息，患上肺炎，于1650年2月11日病逝。", "works": [], "quoteLines": ["《谈谈方法》：“我思，故我在。”（Cogito, ergo sum.）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---", "workTexts": {"谈谈方法": "我思，故我在。", "世界": "同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。", "几何学": "意义：《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。", "哲学原理": "事件：在荷兰最宁静的居住地之一。", "第一哲学沉思集": "| 1641 | 45 | 出版《第一哲学沉思集》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 笛卡尔\n\n## 人物档案\n\n### 基本信息\n- **姓名**：勒内·笛卡尔\n- **时代**：17世纪（欧洲近代早期）\n- **出生**：公元1596年3月31日，法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）\n- **去世**：公元1650年2月11日，瑞典斯德哥尔摩（今瑞典斯德哥尔摩）\n- **享年**：53岁\n- **主要身份**：哲学家、数学家、物理学家\n- **历史地位**：近代西方哲学与解析几何的奠基人之一，被誉为“近代哲学之父”。\n- **主要成就**：\n    - 创立以“我思故我在”为核心的理性主义哲学体系。\n    - 发明解析几何，将代数与几何相结合（笛卡尔坐标系）。\n    - 提出“普遍怀疑”的方法论。\n    - 在物理学上发展了关于宇宙的漩涡理论。\n\n### 生平概述\n笛卡尔生于法国一个贵族家庭，幼年丧母，身体孱弱但求知欲强。他早年接受耶稣会教育，后在普瓦捷大学学习法律。1618年，他投身荷兰奥兰治拿骚的莫里斯亲王军队，开始游历欧洲。1628年后，他主要定居于思想相对自由的荷兰，在那里完成了其大部分重要著作，包括《谈谈方法》、《第一哲学沉思集》和《哲学原理》。1649年，他应瑞典女王克里斯蒂娜之邀前往斯德哥尔摩宫廷讲学，终因不适应严寒气候与繁重课业，次年病逝。他的思想深刻影响了后世的科学与哲学发展。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍布西欧，以法国为起点，荷兰为长期居所，终老于瑞典。\n- ⏱️ **时间跨度**：公元1596年 - 1650年，共53年。\n- 📍 **地理范围**：主要覆盖今法国、荷兰、瑞典，并游历过丹麦、德国、意大利等地。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：拉艾（La Haye en Touraine）\n- **时间**：公元1596年\n- **停留时间**：童年早期（约至1604年左右）\n- **地点**：法兰西王国图赖讷省拉艾（今法国安德尔-卢瓦尔省笛卡尔镇）\n- **事件**：出生于一个地位较低的贵族家庭，母亲在他一岁多时因肺结核去世。\n- **意义**：其出生地后更名为“笛卡尔镇”以纪念他。\n\n### 📍 重要地点：拉弗莱什（La Flèche）\n- **时间**：约公元1604年 - 1612年\n- **停留时间**：约8年\n- **地点**：法兰西王国拉弗莱什（今法国卢瓦尔河地区大区萨尔特省拉弗莱什）\n- **事件**：进入由亨利四世创立的拉弗莱什耶稣会公学学习，接受了系统的古典学、数学和哲学教育。\n- **意义**：奠定了其深厚的学术基础，但也促使他后来对经院哲学产生普遍怀疑。\n\n### 📍 重要地点：普瓦捷（Poitiers）\n- **时间**：约公元1612年 - 1616年\n- **停留时间**：约4年\n- **地点**：法兰西王国普瓦捷（今法国新阿基坦大区维埃纳省普瓦捷）\n- **事件**：在普瓦捷大学学习法律，于1616年获得法学学位。\n- **意义**：完成了正规的高等教育，但此后他并未从事法律职业，而是选择了探索世界与追求真理。\n\n### 📍 重要地点：荷兰（军旅与游历）\n- **时间**：公元1618年 - 1619年\n- **停留时间**：约1年\n- **地点**：荷兰共和国布雷达等地（今荷兰北布拉班特省布雷达）\n- **事件**：加入莫里斯亲王的军队。在布雷达结识了数学家贝克曼，激发了对数学和科学的强烈兴趣。1619年11月10日，在德国乌尔姆（今德国巴登-符腾堡州乌尔姆）的“火炉”梦境中，获得了关于“一门非凡新科学”的启示。开启了其学术生涯的关键转折点，确立了将数学的确定性方法应用于所有知识领域的志向。\n\n### 📍 重要地点：巴黎\n- **时间**：公元1622年 - 1628年（间歇居住）\n- **停留时间**：累计数年\n- **地点**：法兰西王国巴黎（今法国巴黎）\n- **事件**：游历意大利后返回法国，在巴黎的学术圈中活动，与马兰·梅森、伽桑狄等学者交流，阐述自己的早期思想。\n- **意义**：在学术中心检验和传播自己的思想，最终因觉得巴黎过于喧嚣，决定前往更安静的荷兰定居。\n\n### 📍 重要地点：阿姆斯特丹（Amsterdam）\n- **时间**：公元1629年 - 1630年（及后续多次短期居住）\n- **停留时间**：约1年（首次长期定居）\n- **地点**：荷兰共和国阿姆斯特丹（今荷兰北荷兰省阿姆斯特丹）\n- **事件**：在荷兰的首个主要居住地，开始系统撰写《论世界》。\n- **意义**：开启了在荷兰长达约20年的隐居著述生涯。\n\n### 📍 重要地点：莱顿（Leiden）\n- **时间**：公元1630年 - 1632年\n- **停留时间**：约2年\n- **地点**：荷兰共和国莱顿（今荷兰南荷兰省莱顿）\n- **事件**：移居莱顿，与当地出版商埃尔泽维尔家族建立联系。1632年，完成了《谈谈方法》及其附录《几何学》的撰写，但出版推迟至1637年；同时，撰写了以哥白尼学说为基础的物理学著作《世界》（后因伽利略被审判而暂停出版）。\n- **意义**：《几何学》的完成标志着解析几何的诞生，是其科学成就的顶峰之一。\n\n### 📍 重要地点：埃赫蒙德-宾嫩（Egmond-Binnen）\n- **时间**：公元1643年 - 1649年\n- **停留时间**：约6年\n- **地点**：荷兰共和国北荷兰省埃格蒙德（今荷兰北荷兰省埃赫蒙德-宾嫩）\n- **事件**：在荷兰最宁静的居住地之一。期间与波希米亚的伊丽莎白公主通信，探讨哲学与伦理问题，出版了《哲学原理》。也卷入了与乌得勒支大学教授的激烈论战。\n- **意义**：完成了其哲学体系的最终阐述，也经历了在荷兰最严重的学术与人身攻击。\n\n### 🔴 去世地：斯德哥尔摩（Stockholm）\n- **时间**：公元1649年10月 - 1650年2月\n- **停留时间**：约5个月\n- **地点**：瑞典斯德哥尔摩（今瑞典斯德哥尔摩）\n- **事件**：应瑞典女王克里斯蒂娜之邀，前往宫廷担任哲学教师。每周三次在清晨五点为女王授课。\n- **意义**：不适应北欧严寒气候和凌晨授课的严苛作息，患上肺炎，于1650年2月11日病逝。\n- **名篇名句**：《谈谈方法》：“我思，故我在。”（Cogito, ergo sum.）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1596 | 0 | 出生于法国拉艾。 |\n| 1604 | 8 | 进入拉弗莱什耶稣会学校学习。 |\n| 1616 | 20 | 获普瓦捷大学法学学位。 |\n| 1618 | 22 | 加入荷兰军队，结识贝克曼，投身数学与科学研究。 |\n| 1619 | 23 | 经历“火炉”梦境，确立方法论志向。 |\n| 1628 | 32 | 离开巴黎，决定定居荷兰。 |\n| 1632 | 36 | 移居莱顿，完成《谈谈方法》及附录《几何学》撰写。 |\n| 1637 | 41 | 出版《谈谈方法》及附录《几何学》，发明解析几何，首次公开阐述其哲学方法。 |\n| 1641 | 45 | 出版《第一哲学沉思集》。 |\n| 1644 | 48 | 出版《哲学原理》，系统阐述其物理学和宇宙观。 |\n| 1649 | 53 | 应邀前往瑞典斯德哥尔摩。 |\n| 1650 | 53 | 在斯德哥尔摩病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：笛卡尔的作品较少作为独立课文出现，但其哲学思想（尤其是**理性主义**和**“我思故我在”**）常在哲学、文学理论或科学史相关课文的背景知识中被提及。\n- 核心要点：\n    - **重点**：**“我思故我在”**（Cogito, ergo sum）是其哲学体系的**第一原理**，确立了**自我意识**作为一切知识的确定性起点。\n    - 其**理性主义**哲学强调**天赋观念**和**理性演绎**，与**经验主义**形成对比，是西方哲学史上的核心争论之一。\n    - **普遍怀疑**的方法：主张通过怀疑一切可怀疑之物，来寻找不可怀疑的**阿基米德支点**。\n    - **心物二元论**：认为**心灵**（思维实体）与**身体**（广延实体）是两种截然不同的实体，这一观点深刻影响了后世哲学与心理学。\n    - **解析几何**（笛卡尔坐标系）的创立，实现了**几何**问题与**代数**问题的相互转化，是数学史上的革命。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**科学革命**时期，与**伽利略**、**开普勒**等科学家同时代，其哲学为新科学提供了认识论基础。\n    - 主要著作在**荷兰**完成并出版，得益于当时荷兰相对宽松的**出版审查**环境。\n    - **《谈谈方法》** 的出版标志着其独立哲学体系的公开面世。\n    - 晚年应**瑞典女王克里斯蒂娜**之邀前往宫廷，最终客死他乡。\n- 核心要点：\n    - **重点**：被誉为**“近代哲学之父”**，其哲学开启了从**本体论**向**认识论**转向的“**主体性**”时代。\n    - **重点**：其**机械论**自然观（将宇宙视为一部大机器）为近代**经典物理学**的发展扫清了思想障碍。\n    - 与**教会长期保持谨慎关系**，其著作《论世界》因伽利略事件而主动暂停出版，但《第一哲学沉思集》仍试图为上帝存在提供新的证明。\n    - **功过评价**：其思想极大地推动了**理性**与**科学**精神的张扬，但其**心物二元论**也留下了难以解决的“**身心交感**”问题。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 笛卡尔镇（原拉艾） | 47.2000 | 0.7000 |\n| 拉弗莱什 | 47.6967 | -0.0761 |\n| 普瓦捷 | 46.5800 | 0.3400 |\n| 布雷达 | 51.5883 | 4.7758 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 阿姆斯特丹 | 52.3676 | 4.9041 |\n| 莱顿 | 52.1601 | 4.4970 |\n| 埃赫蒙德-宾嫩 | 52.5953 | 4.6556 |\n| 斯德哥尔摩 | 59.3293 | 18.0686 |", "relatedGraph": {"center": {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "17世纪（欧洲近代早期）", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "我思，故我在。", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "17世纪（欧洲近代早期）", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "我思，故我在。", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "“业余数学家之王”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "莱布尼茨", "name": "莱布尼茨", "file": "莱布尼茨.html", "dynasty": "17世纪（神圣罗马帝国时期）", "aliases": [], "birth_year": 1646, "death_year": 1716, "quote": "“单子没有可供事物出入的窗户。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "莱比锡", "birthplace_modern": "德国萨克森州莱比锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "笛卡尔", "target": "费马", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "莱布尼茨", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "帕斯卡", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "笛卡尔", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

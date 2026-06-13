@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "魏征", "title": "贞观之治", "description": "魏征生于北周末年，历经隋朝兴亡。早年曾为道士，后参加瓦岗起义，辗转归唐。在唐初复杂的政治斗争中，他曾为太子李建成效力。玄武门之变后，因其才干与直率被唐太宗李世民重用，委以谏官之职。他敢于犯颜直谏，所言多被采纳，对太宗时期的政策制定、国家治理及文化修撰贡献卓著，成为历史上谏臣的典范，其政治智慧与人格魅力深刻影响了贞观年间的朝政风气。", "quote": "人生感意气，功名谁复论。", "shortReview": "人生感意气，功名谁复论。", "dynasty": "隋末唐初", "courtesyName": "", "artName": "", "aliases": ["魏徵", "魏玄成", "郑文贞公"], "birthplace": "今河北省晋州市", "avatar": "", "birth": {"date": "580年", "location": "今河北省晋州市", "lat": 38.0333, "lng": 115.0833, "coordSystem": "WGS84"}, "death": {"date": "643年", "location": "长安（今陕西省西安市）", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84"}, "lifespan": "64岁（虚岁）或63岁（周岁）", "highlights": {"honor": "贞观之治", "status": "唐代著名谏臣，辅佐唐太宗共创“贞观之治”的关键人物。", "identities": "政治家、思想家、文学家", "achievements": "以直言进谏闻名，前后陈谏二百余事；主持修撰《隋书》《群书治要》等史书典籍；提出“兼听则明，偏信则闇”等治国理念；其思想对“贞观之治”的形成有深远影响。", "works": ["隋书", "群书治要"], "reviews": []}}, "locations": [{"name": "巨鹿郡下曲阳（存疑）", "ancientName": "巨鹿郡下曲阳", "modernName": "河北省晋州市", "lat": 38.0333, "lng": 115.0833, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于隋朝初年，家境贫寒，但喜好读书，胸怀大志。", "time": "公元580年", "duration": "青少年时期", "significance": "奠定了其早年学识基础与坚韧性格的起点。", "works": [], "quoteLines": []}, {"name": "隋末乱世流寓之地", "ancientName": "武阳郡", "modernName": "河北省大名县东北", "lat": 36.2856, "lng": 115.1479, "coordSystem": "WGS84", "type": "normal", "event": "隋末天下大乱，魏征为避战乱出家为道士。后为生活所迫，曾短暂投奔武阳郡丞元宝藏，为其掌管文书。", "time": "约公元611年 - 617年", "duration": "数年", "significance": "亲历隋末动荡，积累了对社会现实的深刻认识。", "works": [], "quoteLines": []}, {"name": "瓦岗军营", "ancientName": "洛口仓", "modernName": "河南省巩义市东北", "lat": 34.7479, "lng": 112.9828, "coordSystem": "WGS84", "type": "normal", "event": "随元宝藏加入瓦岗军，被李密任命为文学参军，掌书记。曾向李密进献十策，但未被采纳。", "time": "公元617年 - 618年", "duration": "约一年", "significance": "初次展现其战略眼光与谋略，但未能在瓦岗寨获得重用。", "works": [], "quoteLines": []}, {"name": "第一次入唐（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "随李密降唐，久未被任用。后自请安抚山东（崤山以东），被派往黎阳（今河南省浚县）。", "time": "公元618年 - 619年", "duration": "约一年", "significance": "正式进入唐朝政治体系，但初期仕途并不顺利。", "works": [], "quoteLines": []}, {"name": "黎阳与窦建德军", "ancientName": "黎阳、洺州", "modernName": "河南省浚县", "lat": 35.6712, "lng": 114.5508, "coordSystem": "WGS84", "type": "normal", "event": "在黎阳被河北起义军领袖窦建德俘虏，被任命为起居舍人。", "time": "公元619年 - 621年", "duration": "约两年", "significance": "经历了第二次“从贼”的波折，丰富了其政治阅历。", "works": [], "quoteLines": []}, {"name": "第二次入唐与太子府（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "窦建德败亡后再次归唐，被太子李建成招为洗马（具体年份存疑，另有622年之说）。在“玄武门之变”前，曾多次建议李建成及早铲除秦王李世民。", "time": "约公元621年 - 626年", "duration": "约五年", "significance": "卷入唐朝最高权力斗争的核心漩涡，为其人生最大转折埋下伏笔。", "works": [], "quoteLines": []}, {"name": "谏臣生涯起点（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "玄武门之变后，被唐太宗李世民赦免并重用，历任谏议大夫、尚书左丞等职。开始其著名的谏诤生涯，多次直言批评太宗过失。", "time": "公元626年 - 632年", "duration": "约六年", "significance": "从敌对阵营成员转变为太宗心腹，开启了中国历史上最著名的君臣佳话。", "works": [], "quoteLines": []}, {"name": "侍中任上与《十渐疏》（洛阳）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "升任侍中（门下省长官，宰相），进爵郑国公。在太宗志得意满之时，上奏著名的《十渐不克终疏》，直陈太宗在十个方面未能善始善终。", "time": "公元632年 - 637年", "duration": "约五年", "significance": "达到其政治生涯的顶峰，其谏言对维持贞观中期的政治清明起到关键作用。", "works": ["十渐不克终疏"], "quoteLines": []}, {"name": "长安宅邸", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "晚年因病多次请求辞职，太宗改任其为特进，仍掌门下省事务，常询问其对国家大事的意见。其宅第简陋，没有正堂。", "time": "公元637年 - 643年", "duration": "约六年", "significance": "虽疾病缠身，但仍是太宗最重要的政治顾问，其影响力持续至生命终点。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "病逝。太宗亲临吊唁，废朝五日，陪葬昭陵。太宗感叹：“以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失。魏征殂逝，遂亡一镜矣！”", "time": "公元643年", "duration": "最终时刻", "significance": "标志着贞观时代一位重要政治家的陨落，其谏臣形象成为后世楷模。", "works": [], "quoteLines": ["《述怀》：人生感意气，功名谁复论。（此诗作于归唐初期，但常被引用来概括其重意气、轻功名的品格）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---", "workTexts": {"十渐疏": "### 📍 重要地点：侍中任上与《十渐疏》（洛阳）", "十渐不克终疏": "事件：升任侍中（门下省长官，宰相），进爵郑国公。", "述怀": "名篇名句：《述怀》：人生感意气，功名谁复论。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 魏征\n\n## 人物档案\n\n### 基本信息\n- **姓名**：魏征\n- **别名**：魏徵、魏玄成、郑文贞公\n- **时代**：隋末唐初\n- **出生**：公元580年，出生地存疑（一说巨鹿郡下曲阳，今河北省晋州市；一说邢州巨鹿，今河北省巨鹿县）\n- **去世**：公元643年，长安（今陕西省西安市）\n- **享年**：64岁（虚岁）或63岁（周岁）\n- **主要身份**：政治家、思想家、文学家\n- **领域标签**：政治、思想、文学、唐代谏臣\n- **历史地位**：唐代著名谏臣，辅佐唐太宗共创“贞观之治”的关键人物。\n- **主要成就**：以直言进谏闻名，前后陈谏二百余事；主持修撰《隋书》《群书治要》等史书典籍；提出“兼听则明，偏信则闇”等治国理念；其思想对“贞观之治”的形成有深远影响。\n\n### 生平概述\n魏征生于北周末年，历经隋朝兴亡。早年曾为道士，后参加瓦岗起义，辗转归唐。在唐初复杂的政治斗争中，他曾为太子李建成效力。玄武门之变后，因其才干与直率被唐太宗李世民重用，委以谏官之职。他敢于犯颜直谏，所言多被采纳，对太宗时期的政策制定、国家治理及文化修撰贡献卓著，成为历史上谏臣的典范，其政治智慧与人格魅力深刻影响了贞观年间的朝政风气。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从河北故乡到隋末乱世的颠沛流离，最终在唐都长安与洛阳实现政治抱负。\n- ⏱️ **时间跨度**：公元580年 - 公元643年，共64年。\n- 📍 **地理范围**：主要活动于今河北、河南、陕西等华北与关中地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：巨鹿郡下曲阳（存疑）\n- **时间**：公元580年\n- **停留时间**：青少年时期\n- **地点**：巨鹿郡下曲阳（今河北省晋州市）（另有说法为邢州巨鹿，今河北省巨鹿县，存疑）\n- **事件**：出生并成长于隋朝初年，家境贫寒，但喜好读书，胸怀大志。\n- **意义**：奠定了其早年学识基础与坚韧性格的起点。\n\n### 📍 重要地点：隋末乱世流寓之地\n- **时间**：约公元611年 - 617年\n- **停留时间**：数年\n- **地点**：武阳郡（今河北省大名县东北）\n- **事件**：隋末天下大乱，魏征为避战乱出家为道士。后为生活所迫，曾短暂投奔武阳郡丞元宝藏，为其掌管文书。\n- **意义**：亲历隋末动荡，积累了对社会现实的深刻认识。\n\n### 📍 重要地点：瓦岗军营\n- **时间**：公元617年 - 618年\n- **停留时间**：约一年\n- **地点**：洛口仓（今河南省巩义市东北）\n- **事件**：随元宝藏加入瓦岗军，被李密任命为文学参军，掌书记。曾向李密进献十策，但未被采纳。\n- **意义**：初次展现其战略眼光与谋略，但未能在瓦岗寨获得重用。\n\n### 📍 重要地点：第一次入唐（长安）\n- **时间**：公元618年 - 619年\n- **停留时间**：约一年\n- **地点**：长安（今陕西省西安市）\n- **事件**：随李密降唐，久未被任用。后自请安抚山东（崤山以东），被派往黎阳（今河南省浚县）。\n- **意义**：正式进入唐朝政治体系，但初期仕途并不顺利。\n\n### 📍 重要地点：黎阳与窦建德军\n- **时间**：公元619年 - 621年\n- **停留时间**：约两年\n- **地点**：黎阳（今河南省浚县）、洺州（今河北省邯郸市永年区）\n- **事件**：在黎阳被河北起义军领袖窦建德俘虏，被任命为起居舍人。\n- **意义**：经历了第二次“从贼”的波折，丰富了其政治阅历。\n\n### 📍 重要地点：第二次入唐与太子府（长安）\n- **时间**：约公元621年 - 626年\n- **停留时间**：约五年\n- **地点**：长安（今陕西省西安市）\n- **事件**：窦建德败亡后再次归唐，被太子李建成招为洗马（具体年份存疑，另有622年之说）。在“玄武门之变”前，曾多次建议李建成及早铲除秦王李世民。\n- **意义**：卷入唐朝最高权力斗争的核心漩涡，为其人生最大转折埋下伏笔。\n\n### 📍 重要地点：谏臣生涯起点（长安）\n- **时间**：公元626年 - 632年\n- **停留时间**：约六年\n- **地点**：长安（今陕西省西安市）\n- **事件**：玄武门之变后，被唐太宗李世民赦免并重用，历任谏议大夫、尚书左丞等职。开始其著名的谏诤生涯，多次直言批评太宗过失。\n- **意义**：从敌对阵营成员转变为太宗心腹，开启了中国历史上最著名的君臣佳话。\n\n### 📍 重要地点：侍中任上与《十渐疏》（洛阳）\n- **时间**：公元632年 - 637年\n- **停留时间**：约五年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：升任侍中（门下省长官，宰相），进爵郑国公。在太宗志得意满之时，上奏著名的《十渐不克终疏》，直陈太宗在十个方面未能善始善终。\n- **意义**：达到其政治生涯的顶峰，其谏言对维持贞观中期的政治清明起到关键作用。\n- **名篇名句**：\n  - 《十渐不克终疏》：千载休期，时难再得，明主可为而不为，臣所以郁结长叹者也！\n\n### 📍 重要晚年居所：长安宅邸\n- **时间**：公元637年 - 643年\n- **停留时间**：约六年\n- **地点**：长安（今陕西省西安市）\n- **事件**：晚年因病多次请求辞职，太宗改任其为特进，仍掌门下省事务，常询问其对国家大事的意见。其宅第简陋，没有正堂。\n- **意义**：虽疾病缠身，但仍是太宗最重要的政治顾问，其影响力持续至生命终点。\n\n### 🔴 去世地：长安\n- **时间**：公元643年\n- **停留时间**：最终时刻\n- **地点**：长安（今陕西省西安市）\n- **事件**：病逝。太宗亲临吊唁，废朝五日，陪葬昭陵。太宗感叹：“以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失。魏征殂逝，遂亡一镜矣！”\n- **意义**：标志着贞观时代一位重要政治家的陨落，其谏臣形象成为后世楷模。\n- **名篇名句**：《述怀》：人生感意气，功名谁复论。（此诗作于归唐初期，但常被引用来概括其重意气、轻功名的品格）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 580年 | 1岁 | 出生于巨鹿郡下曲阳（今河北晋州）（出生地存疑）。 |\n| 约611年 | 约32岁 | 隋末大乱，出家为道士避祸。 |\n| 617年 | 38岁 | 加入瓦岗军，任文学参军。 |\n| 618年 | 39岁 | 随李密降唐，未得重用。 |\n| 619年 | 40岁 | 被窦建德俘虏，任起居舍人。 |\n| 621年 | 42岁 | 窦建德败亡，再次归唐。 |\n| 约622年 | 约43岁 | 被太子李建成招为太子洗马（年份存疑）。 |\n| 626年 | 47岁 | 玄武门之变后，被太宗重用，任谏议大夫。 |\n| 629年 | 50岁 | 任秘书监，参与朝政，监修史书。 |\n| 632年 | 53岁 | 任侍中（宰相），进爵郑国公。 |\n| 637年 | 58岁 | 上《十渐不克终疏》。 |\n| 642年 | 63岁 | 因病辞职，改任特进。 |\n| 643年 | 64岁（虚岁） | 病逝于长安，陪葬昭陵。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省晋州市 | 38.0333 | 115.0833 |\n| 河北省巨鹿县 | 37.2211 | 115.0378 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 河南省巩义市 | 34.7479 | 112.9828 |\n| 河南省浚县 | 35.6712 | 114.5508 |\n| 河北省邯郸市永年区 | 36.7783 | 114.4823 |\n| 河北省大名县 | 36.2856 | 115.1479 |\n| 陕西省礼泉县 | 34.5833 | 108.4333 |", "relatedGraph": {"center": {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋末唐初", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "人生感意气，功名谁复论。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋末唐初", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "人生感意气，功名谁复论。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "唐", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "魏征", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "魏征", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "李渊", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "隋炀帝", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "魏征", "title": "贞观之治", "description": "魏征生于北周末年，历经隋朝兴亡。早年曾为道士，后参加瓦岗起义，辗转归唐。在唐初复杂的政治斗争中，他曾为太子李建成效力。玄武门之变后，因其才干与直率被唐太宗李世民重用，委以谏官之职。他敢于犯颜直谏，所言多被采纳，对太宗时期的政策制定、国家治理及文化修撰贡献卓著，成为历史上谏臣的典范，其政治智慧与人格魅力深刻影响了贞观年间的朝政风气。", "quote": "人生感意气，功名谁复论。", "shortReview": "人生感意气，功名谁复论。", "dynasty": "隋末唐初", "courtesyName": "", "artName": "", "aliases": ["魏徵", "魏玄成", "郑文贞公"], "birthplace": "今河北省晋州市", "avatar": "", "birth": {"date": "580年", "location": "今河北省晋州市", "lat": 38.0333, "lng": 115.0833, "coordSystem": "WGS84"}, "death": {"date": "643年", "location": "长安（今陕西省西安市）", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84"}, "lifespan": "64岁（虚岁）或63岁（周岁）", "highlights": {"honor": "贞观之治", "status": "唐代著名谏臣，辅佐唐太宗共创“贞观之治”的关键人物。", "identities": "政治家、思想家、文学家", "achievements": "以直言进谏闻名，前后陈谏二百余事；主持修撰《隋书》《群书治要》等史书典籍；提出“兼听则明，偏信则闇”等治国理念；其思想对“贞观之治”的形成有深远影响。", "works": ["隋书", "群书治要"], "reviews": []}}, "locations": [{"name": "巨鹿郡下曲阳（存疑）", "ancientName": "巨鹿郡下曲阳", "modernName": "河北省晋州市", "lat": 38.0333, "lng": 115.0833, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于隋朝初年，家境贫寒，但喜好读书，胸怀大志。", "time": "公元580年", "duration": "青少年时期", "significance": "奠定了其早年学识基础与坚韧性格的起点。", "works": [], "quoteLines": []}, {"name": "隋末乱世流寓之地", "ancientName": "武阳郡", "modernName": "河北省大名县东北", "lat": 36.2856, "lng": 115.1479, "coordSystem": "WGS84", "type": "normal", "event": "隋末天下大乱，魏征为避战乱出家为道士。后为生活所迫，曾短暂投奔武阳郡丞元宝藏，为其掌管文书。", "time": "约公元611年 - 617年", "duration": "数年", "significance": "亲历隋末动荡，积累了对社会现实的深刻认识。", "works": [], "quoteLines": []}, {"name": "瓦岗军营", "ancientName": "洛口仓", "modernName": "河南省巩义市东北", "lat": 34.7479, "lng": 112.9828, "coordSystem": "WGS84", "type": "normal", "event": "随元宝藏加入瓦岗军，被李密任命为文学参军，掌书记。曾向李密进献十策，但未被采纳。", "time": "公元617年 - 618年", "duration": "约一年", "significance": "初次展现其战略眼光与谋略，但未能在瓦岗寨获得重用。", "works": [], "quoteLines": []}, {"name": "第一次入唐（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "随李密降唐，久未被任用。后自请安抚山东（崤山以东），被派往黎阳（今河南省浚县）。", "time": "公元618年 - 619年", "duration": "约一年", "significance": "正式进入唐朝政治体系，但初期仕途并不顺利。", "works": [], "quoteLines": []}, {"name": "黎阳与窦建德军", "ancientName": "黎阳、洺州", "modernName": "河南省浚县", "lat": 35.6712, "lng": 114.5508, "coordSystem": "WGS84", "type": "normal", "event": "在黎阳被河北起义军领袖窦建德俘虏，被任命为起居舍人。", "time": "公元619年 - 621年", "duration": "约两年", "significance": "经历了第二次“从贼”的波折，丰富了其政治阅历。", "works": [], "quoteLines": []}, {"name": "第二次入唐与太子府（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "窦建德败亡后再次归唐，被太子李建成招为洗马（具体年份存疑，另有622年之说）。在“玄武门之变”前，曾多次建议李建成及早铲除秦王李世民。", "time": "约公元621年 - 626年", "duration": "约五年", "significance": "卷入唐朝最高权力斗争的核心漩涡，为其人生最大转折埋下伏笔。", "works": [], "quoteLines": []}, {"name": "谏臣生涯起点（长安）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "玄武门之变后，被唐太宗李世民赦免并重用，历任谏议大夫、尚书左丞等职。开始其著名的谏诤生涯，多次直言批评太宗过失。", "time": "公元626年 - 632年", "duration": "约六年", "significance": "从敌对阵营成员转变为太宗心腹，开启了中国历史上最著名的君臣佳话。", "works": [], "quoteLines": []}, {"name": "侍中任上与《十渐疏》（洛阳）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "升任侍中（门下省长官，宰相），进爵郑国公。在太宗志得意满之时，上奏著名的《十渐不克终疏》，直陈太宗在十个方面未能善始善终。", "time": "公元632年 - 637年", "duration": "约五年", "significance": "达到其政治生涯的顶峰，其谏言对维持贞观中期的政治清明起到关键作用。", "works": ["十渐不克终疏"], "quoteLines": []}, {"name": "长安宅邸", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "晚年因病多次请求辞职，太宗改任其为特进，仍掌门下省事务，常询问其对国家大事的意见。其宅第简陋，没有正堂。", "time": "公元637年 - 643年", "duration": "约六年", "significance": "虽疾病缠身，但仍是太宗最重要的政治顾问，其影响力持续至生命终点。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "病逝。太宗亲临吊唁，废朝五日，陪葬昭陵。太宗感叹：“以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失。魏征殂逝，遂亡一镜矣！”", "time": "公元643年", "duration": "最终时刻", "significance": "标志着贞观时代一位重要政治家的陨落，其谏臣形象成为后世楷模。", "works": [], "quoteLines": ["《述怀》：人生感意气，功名谁复论。（此诗作于归唐初期，但常被引用来概括其重意气、轻功名的品格）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---", "workTexts": {"十渐疏": "### 📍 重要地点：侍中任上与《十渐疏》（洛阳）", "十渐不克终疏": "事件：升任侍中（门下省长官，宰相），进爵郑国公。", "述怀": "名篇名句：《述怀》：人生感意气，功名谁复论。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 魏征\n\n## 人物档案\n\n### 基本信息\n- **姓名**：魏征\n- **别名**：魏徵、魏玄成、郑文贞公\n- **时代**：隋末唐初\n- **出生**：公元580年，出生地存疑（一说巨鹿郡下曲阳，今河北省晋州市；一说邢州巨鹿，今河北省巨鹿县）\n- **去世**：公元643年，长安（今陕西省西安市）\n- **享年**：64岁（虚岁）或63岁（周岁）\n- **主要身份**：政治家、思想家、文学家\n- **领域标签**：政治、思想、文学、唐代谏臣\n- **历史地位**：唐代著名谏臣，辅佐唐太宗共创“贞观之治”的关键人物。\n- **主要成就**：以直言进谏闻名，前后陈谏二百余事；主持修撰《隋书》《群书治要》等史书典籍；提出“兼听则明，偏信则闇”等治国理念；其思想对“贞观之治”的形成有深远影响。\n\n### 生平概述\n魏征生于北周末年，历经隋朝兴亡。早年曾为道士，后参加瓦岗起义，辗转归唐。在唐初复杂的政治斗争中，他曾为太子李建成效力。玄武门之变后，因其才干与直率被唐太宗李世民重用，委以谏官之职。他敢于犯颜直谏，所言多被采纳，对太宗时期的政策制定、国家治理及文化修撰贡献卓著，成为历史上谏臣的典范，其政治智慧与人格魅力深刻影响了贞观年间的朝政风气。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从河北故乡到隋末乱世的颠沛流离，最终在唐都长安与洛阳实现政治抱负。\n- ⏱️ **时间跨度**：公元580年 - 公元643年，共64年。\n- 📍 **地理范围**：主要活动于今河北、河南、陕西等华北与关中地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：巨鹿郡下曲阳（存疑）\n- **时间**：公元580年\n- **停留时间**：青少年时期\n- **地点**：巨鹿郡下曲阳（今河北省晋州市）（另有说法为邢州巨鹿，今河北省巨鹿县，存疑）\n- **事件**：出生并成长于隋朝初年，家境贫寒，但喜好读书，胸怀大志。\n- **意义**：奠定了其早年学识基础与坚韧性格的起点。\n\n### 📍 重要地点：隋末乱世流寓之地\n- **时间**：约公元611年 - 617年\n- **停留时间**：数年\n- **地点**：武阳郡（今河北省大名县东北）\n- **事件**：隋末天下大乱，魏征为避战乱出家为道士。后为生活所迫，曾短暂投奔武阳郡丞元宝藏，为其掌管文书。\n- **意义**：亲历隋末动荡，积累了对社会现实的深刻认识。\n\n### 📍 重要地点：瓦岗军营\n- **时间**：公元617年 - 618年\n- **停留时间**：约一年\n- **地点**：洛口仓（今河南省巩义市东北）\n- **事件**：随元宝藏加入瓦岗军，被李密任命为文学参军，掌书记。曾向李密进献十策，但未被采纳。\n- **意义**：初次展现其战略眼光与谋略，但未能在瓦岗寨获得重用。\n\n### 📍 重要地点：第一次入唐（长安）\n- **时间**：公元618年 - 619年\n- **停留时间**：约一年\n- **地点**：长安（今陕西省西安市）\n- **事件**：随李密降唐，久未被任用。后自请安抚山东（崤山以东），被派往黎阳（今河南省浚县）。\n- **意义**：正式进入唐朝政治体系，但初期仕途并不顺利。\n\n### 📍 重要地点：黎阳与窦建德军\n- **时间**：公元619年 - 621年\n- **停留时间**：约两年\n- **地点**：黎阳（今河南省浚县）、洺州（今河北省邯郸市永年区）\n- **事件**：在黎阳被河北起义军领袖窦建德俘虏，被任命为起居舍人。\n- **意义**：经历了第二次“从贼”的波折，丰富了其政治阅历。\n\n### 📍 重要地点：第二次入唐与太子府（长安）\n- **时间**：约公元621年 - 626年\n- **停留时间**：约五年\n- **地点**：长安（今陕西省西安市）\n- **事件**：窦建德败亡后再次归唐，被太子李建成招为洗马（具体年份存疑，另有622年之说）。在“玄武门之变”前，曾多次建议李建成及早铲除秦王李世民。\n- **意义**：卷入唐朝最高权力斗争的核心漩涡，为其人生最大转折埋下伏笔。\n\n### 📍 重要地点：谏臣生涯起点（长安）\n- **时间**：公元626年 - 632年\n- **停留时间**：约六年\n- **地点**：长安（今陕西省西安市）\n- **事件**：玄武门之变后，被唐太宗李世民赦免并重用，历任谏议大夫、尚书左丞等职。开始其著名的谏诤生涯，多次直言批评太宗过失。\n- **意义**：从敌对阵营成员转变为太宗心腹，开启了中国历史上最著名的君臣佳话。\n\n### 📍 重要地点：侍中任上与《十渐疏》（洛阳）\n- **时间**：公元632年 - 637年\n- **停留时间**：约五年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：升任侍中（门下省长官，宰相），进爵郑国公。在太宗志得意满之时，上奏著名的《十渐不克终疏》，直陈太宗在十个方面未能善始善终。\n- **意义**：达到其政治生涯的顶峰，其谏言对维持贞观中期的政治清明起到关键作用。\n- **名篇名句**：\n  - 《十渐不克终疏》：千载休期，时难再得，明主可为而不为，臣所以郁结长叹者也！\n\n### 📍 重要晚年居所：长安宅邸\n- **时间**：公元637年 - 643年\n- **停留时间**：约六年\n- **地点**：长安（今陕西省西安市）\n- **事件**：晚年因病多次请求辞职，太宗改任其为特进，仍掌门下省事务，常询问其对国家大事的意见。其宅第简陋，没有正堂。\n- **意义**：虽疾病缠身，但仍是太宗最重要的政治顾问，其影响力持续至生命终点。\n\n### 🔴 去世地：长安\n- **时间**：公元643年\n- **停留时间**：最终时刻\n- **地点**：长安（今陕西省西安市）\n- **事件**：病逝。太宗亲临吊唁，废朝五日，陪葬昭陵。太宗感叹：“以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失。魏征殂逝，遂亡一镜矣！”\n- **意义**：标志着贞观时代一位重要政治家的陨落，其谏臣形象成为后世楷模。\n- **名篇名句**：《述怀》：人生感意气，功名谁复论。（此诗作于归唐初期，但常被引用来概括其重意气、轻功名的品格）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 580年 | 1岁 | 出生于巨鹿郡下曲阳（今河北晋州）（出生地存疑）。 |\n| 约611年 | 约32岁 | 隋末大乱，出家为道士避祸。 |\n| 617年 | 38岁 | 加入瓦岗军，任文学参军。 |\n| 618年 | 39岁 | 随李密降唐，未得重用。 |\n| 619年 | 40岁 | 被窦建德俘虏，任起居舍人。 |\n| 621年 | 42岁 | 窦建德败亡，再次归唐。 |\n| 约622年 | 约43岁 | 被太子李建成招为太子洗马（年份存疑）。 |\n| 626年 | 47岁 | 玄武门之变后，被太宗重用，任谏议大夫。 |\n| 629年 | 50岁 | 任秘书监，参与朝政，监修史书。 |\n| 632年 | 53岁 | 任侍中（宰相），进爵郑国公。 |\n| 637年 | 58岁 | 上《十渐不克终疏》。 |\n| 642年 | 63岁 | 因病辞职，改任特进。 |\n| 643年 | 64岁（虚岁） | 病逝于长安，陪葬昭陵。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《谏太宗十思疏》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章的核心是劝谏唐太宗“**居安思危，戒奢以俭**”，巩固统治根基。\n    - 论证上运用了**比喻论证**（如“求木之长者，必固其根本”）和**对比论证**，逻辑严密，气势充沛。\n    - 提出了“**十思**”的具体治国方略，体现了儒家**仁政**与**民本**思想。\n    - 文风**恳切坦率**，既义正辞严，又情理交融，是古代奏疏的典范。\n    - **重点**：文中名句“**载舟覆舟，所宜深慎**”深刻揭示了君民关系，成为后世治国的重要警示。\n    - **重点**：其写作背景是贞观中期，太宗渐生骄逸之心，魏征敏锐察觉并及时进谏，体现了其**政治远见**与**责任感**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：原为太子**李建成**僚属，在**玄武门之变**后，因其才能与品格被唐太宗不计前嫌重用。\n    - 担任**谏议大夫**、**侍中**等职，以**直言敢谏**著称，一生进谏二百余事，多被太宗采纳。\n    - 主持修撰**《隋书》**、《群书治要》等，总结历史经验教训。\n    - **重点**：其与唐太宗的君臣关系，是“**贞观之治**”得以形成的重要因素，被传为历史佳话。\n- 核心要点：\n    - **重点**：魏征是**贞观之治**时期**谏臣集团**的杰出代表，他的存在有效制衡了皇权，减少了决策失误。\n    - 他的谏言内容广泛，涉及**民生**、**吏治**、**边防**、**君德**等各个方面，核心是儒家的**民本**与**德治**思想。\n    - **重点**：唐太宗将魏征比作“**人镜**”，高度肯定了其“**以铜为镜，可以正衣冠；以古为镜，可以知兴替；以人为镜，可以明得失**”的镜鉴价值。\n    - 魏征的形象在后世被符号化，成为**忠直谏诤**、**公而忘私**的官员典范，对中国古代政治文化影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省晋州市 | 38.0333 | 115.0833 |\n| 河北省巨鹿县 | 37.2211 | 115.0378 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 河南省巩义市 | 34.7479 | 112.9828 |\n| 河南省浚县 | 35.6712 | 114.5508 |\n| 河北省邯郸市永年区 | 36.7783 | 114.4823 |\n| 河北省大名县 | 36.2856 | 115.1479 |\n| 陕西省礼泉县 | 34.5833 | 108.4333 |", "relatedGraph": {"center": {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋末唐初", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "人生感意气，功名谁复论。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋末唐初", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "人生感意气，功名谁复论。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "唐", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "隋炀帝", "name": "隋炀帝", "file": "隋炀帝.html", "dynasty": "隋朝", "aliases": [], "birth_year": 569, "death_year": 618, "quote": "“暮江平不动，春花满正开。”", "review": "*《隋书·炀帝纪》**：“负其富强之资，思逞无厌之欲……骄怒之兵屡动，土木之功不息……海内骚然，无聊生矣。”", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "魏征", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "魏征", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "李渊", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "魏征", "target": "隋炀帝", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "昌耀", "title": "新边塞诗", "description": "昌耀，原名王昌耀，生于湖南桃源。1950年参加中国人民解放军，后入朝作战并负伤。1955年响应号召赴青海，开始了与青藏高原长达数十年的生命交融。1957年因诗作《林中试笛》被划为“右派”，此后在祁连山等地经历了长达二十余年的流放与劳役。1979年平反后重返诗坛，创作出一系列震撼人心的作品，将个体的苦难体验升华为对人类生存本质的哲学追问，被誉为“诗人中的诗人”。他的一生，是与西部土地血脉相连的受难与歌唱的一生。", "quote": "最初的诗作，充满战地青春气息。", "shortReview": "最初的诗作，充满战地青春气息。", "dynasty": "中国现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称桃源县（今湖南省常德市桃源县）", "avatar": "", "birth": {"date": "1936年", "location": "古称桃源县（今湖南省常德市桃源县）", "lat": 28.85, "lng": 111.49, "coordSystem": "WGS84"}, "death": {"date": "2000年", "location": "古称西宁（今青海省西宁市）", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84"}, "lifespan": "64岁（按中国传统虚岁计算）", "highlights": {"honor": "新边塞诗", "status": "中国当代诗歌史上具有重要地位的“新边塞诗”代表诗人，其诗歌以雄浑、深邃、悲怆的西部精神与生命意识著称。", "identities": "诗人", "achievements": "创作了《慈航》《斯人》《划呀，划呀，父亲们！》等大量经典诗篇；其诗歌将个人命运与青藏高原的地理、历史深度融合，开创了独特的诗歌美学；曾获全国优秀新诗奖（诗集）等奖项。", "works": ["林中试笛", "慈航", "斯人", "划呀，划呀，父亲们！"], "reviews": []}}, "locations": [{"name": "桃源县", "ancientName": "桃源县", "modernName": "湖南省常德市桃源县", "lat": 28.85, "lng": 111.49, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个乡村教师家庭。", "time": "1936年", "duration": "童年早期", "significance": "湖湘文化的滋养与南方水乡的童年记忆，成为其日后诗歌中遥远的精神原乡与对照。", "works": [], "quoteLines": []}, {"name": "常德", "ancientName": "常德", "modernName": "湖南省常德市", "lat": 29.03, "lng": 111.69, "coordSystem": "WGS84", "type": "normal", "event": "随家庭移居，在此度过小学时光。", "time": "1940年代", "duration": "数年", "significance": "接受了最初的正规教育，开始接触更广阔的世界。", "works": [], "quoteLines": []}, {"name": "长沙", "ancientName": "长沙", "modernName": "湖南省长沙市", "lat": 28.23, "lng": 112.94, "coordSystem": "WGS84", "type": "normal", "event": "参军入伍，加入中国人民解放军第38军。", "time": "1950年", "duration": "短暂", "significance": "人生轨迹发生根本性转折，从学生变为战士，走向北方。", "works": [], "quoteLines": []}, {"name": "西宁", "ancientName": "西宁", "modernName": "青海省西宁市", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84", "type": "normal", "event": "响应国家号召，调至青海省文联工作。创作并发表成名作《鹰·雪·牧人》等。", "time": "1955年-1957年", "duration": "约2年", "significance": "正式开启与青海高原的命运交织，早期诗歌展现了对西部自然风物的敏锐捕捉与浪漫歌颂。", "works": ["鹰·雪·牧人"], "quoteLines": []}, {"name": "祁连山等地（流放地）", "ancientName": "祁连山等地（流放地）", "modernName": "青海省海北藏族自治州祁连县（具体流放地点待考）", "lat": 37.38, "lng": 100.25, "coordSystem": "WGS84", "type": "normal", "event": "因诗获罪，被划为“右派”，辗转于祁连山深山中的劳改农场、砖瓦厂等地，经历繁重的体力劳动与精神磨难。", "time": "1957年-1979年", "duration": "约22年", "significance": "人生最黑暗的时期，也是其生命体验最深刻、最痛苦的积淀期。与底层民众、与土地的生死相依，为其后期诗歌的哲学深度与精神力量奠定了基石。", "works": [], "quoteLines": ["《慈航》：“爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！”", "《斯人》：“我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。”"]}, {"name": "西宁", "ancientName": "西宁", "modernName": "青海省西宁市", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84", "type": "death", "event": "平反后重返青海省文联，进入创作井喷期，写下大量杰作。晚年饱受疾病困扰，2000年3月23日因患肺癌在西宁去世。", "time": "1979年-2000年", "duration": "21年", "significance": "生命的最后阶段，完成了从受难者到诗歌圣徒的升华。其诗歌成就在此时期达到顶峰，而悲剧性的结局也为其一生画上了沉重的句号。", "works": [], "quoteLines": ["《划呀，划呀，父亲们！》", "《一十一支红玫瑰》。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---", "workTexts": {"慈航": "爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！", "斯人": "我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。", "林中试笛": "“右派”\n“诗人中的诗人”", "军帽下底眼睛": "名篇名句：《军帽下底眼睛》：最初的诗作，充满战地青春气息。", "鹰·雪·牧人": "事件：响应国家号召，调至青海省文联工作。", "鹰": "事件：响应国家号召，调至青海省文联工作。", "雪": "事件：响应国家号召，调至青海省文联工作。", "牧人": "事件：响应国家号召，调至青海省文联工作。", "昌耀抒情诗集": "| 1985 | 49岁 | 诗集《昌耀抒情诗集》出版，获广泛认可。", "命运之书——昌耀四十年诗作精品": "| 1994 | 58岁 | 《命运之书——昌耀四十年诗作精品》出版。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 昌耀\n\n## 人物档案\n\n### 基本信息\n- **姓名**：昌耀（原名王昌耀）\n- **时代**：中国现当代\n- **出生**：公元1936年，古称桃源县（今湖南省常德市桃源县）\n- **去世**：公元2000年3月23日，古称西宁（今青海省西宁市）\n- **享年**：64岁（按中国传统虚岁计算）\n- **主要身份**：诗人\n- **历史地位**：中国当代诗歌史上具有重要地位的“新边塞诗”代表诗人，其诗歌以雄浑、深邃、悲怆的西部精神与生命意识著称。\n- **主要成就**：创作了《慈航》《斯人》《划呀，划呀，父亲们！》等大量经典诗篇；其诗歌将个人命运与青藏高原的地理、历史深度融合，开创了独特的诗歌美学；曾获全国优秀新诗奖（诗集）等奖项。\n\n### 生平概述\n昌耀，原名王昌耀，生于湖南桃源。1950年参加中国人民解放军，后入朝作战并负伤。1955年响应号召赴青海，开始了与青藏高原长达数十年的生命交融。1957年因诗作《林中试笛》被划为“右派”，此后在祁连山等地经历了长达二十余年的流放与劳役。1979年平反后重返诗坛，创作出一系列震撼人心的作品，将个体的苦难体验升华为对人类生存本质的哲学追问，被誉为“诗人中的诗人”。他的一生，是与西部土地血脉相连的受难与歌唱的一生。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从中国南方（湖南）出发，北上至朝鲜战场，最终扎根于中国西北（青海）的高原大地，足迹贯穿中国南北。\n- ⏱️ **时间跨度**：1936年 - 2000年，共计约64年。\n- 📍 **地理范围**：主要覆盖湖南省、朝鲜半岛、青海省。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：桃源县\n- **时间**：1936年\n- **停留时间**：童年早期\n- **地点**：古称桃源县（今湖南省常德市桃源县）\n- **事件**：出生于一个乡村教师家庭。\n- **意义**：湖湘文化的滋养与南方水乡的童年记忆，成为其日后诗歌中遥远的精神原乡与对照。\n\n### 📍 重要地点：常德\n- **时间**：1940年代\n- **停留时间**：数年\n- **地点**：古称常德（今湖南省常德市）\n- **事件**：随家庭移居，在此度过小学时光。\n- **意义**：接受了最初的正规教育，开始接触更广阔的世界。\n\n### 📍 重要地点：长沙\n- **时间**：1950年\n- **停留时间**：短暂\n- **地点**：古称长沙（今湖南省长沙市）\n- **事件**：参军入伍，加入中国人民解放军第38军。\n- **意义**：人生轨迹发生根本性转折，从学生变为战士，走向北方。\n\n### 📍 重要地点：朝鲜战场\n- **时间**：1951年-1953年\n- **停留时间**：约2-3年\n- **地点**：朝鲜半岛（今朝鲜民主主义人民共和国，具体作战地点待考）\n- **事件**：以文工队员身份参加抗美援朝战争，在战斗中负伤。\n- **意义**：经历了战争的残酷与生死考验，锤炼了意志，为其诗歌注入了最初的悲壮底色。在朝鲜开始发表作品。\n- **名篇名句**：《军帽下底眼睛》：最初的诗作，充满战地青春气息。\n\n### 📍 重要地点：河北荣军学校\n- **时间**：1953年负伤后-1954年\n- **停留时间**：约1年\n- **地点**：河北省石家庄市（河北荣军学校旧址，具体位置待考）\n- **事件**：负伤后在此学习休养。\n- **意义**：战争创伤后的恢复期，也是其思考与沉淀的时期。\n\n### 📍 重要地点：西宁\n- **时间**：1955年-1957年\n- **停留时间**：约2年\n- **地点**：古称西宁（今青海省西宁市）\n- **事件**：响应国家号召，调至青海省文联工作。创作并发表成名作《鹰·雪·牧人》等。\n- **意义**：正式开启与青海高原的命运交织，早期诗歌展现了对西部自然风物的敏锐捕捉与浪漫歌颂。\n\n### 📍 重要地点：祁连山等地（流放地）\n- **时间**：1957年-1979年\n- **停留时间**：约22年\n- **地点**：今青海省海北藏族自治州祁连县（具体流放地点待考）\n- **事件**：因诗获罪，被划为“右派”，辗转于祁连山深山中的劳改农场、砖瓦厂等地，经历繁重的体力劳动与精神磨难。\n- **意义**：人生最黑暗的时期，也是其生命体验最深刻、最痛苦的积淀期。与底层民众、与土地的生死相依，为其后期诗歌的哲学深度与精神力量奠定了基石。\n- **名篇名句**：《慈航》：“爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！”；《斯人》：“我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。”\n\n### 🔴 去世地：西宁\n- **时间**：1979年-2000年\n- **停留时间**：21年\n- **地点**：古称西宁（今青海省西宁市）\n- **事件**：平反后重返青海省文联，进入创作井喷期，写下大量杰作。晚年饱受疾病困扰，2000年3月23日因患肺癌在西宁去世。\n- **意义**：生命的最后阶段，完成了从受难者到诗歌圣徒的升华。其诗歌成就在此时期达到顶峰，而悲剧性的结局也为其一生画上了沉重的句号。\n- **名篇名句**：《划呀，划呀，父亲们！》；《一十一支红玫瑰》。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1936 | 0岁 | 生于湖南桃源。 |\n| 1950 | 14岁 | 在长沙参军，加入解放军。 |\n| 1951 | 15岁 | 赴朝鲜参加抗美援朝战争。 |\n| 1953 | 17岁 | 在朝鲜战场负伤，回国治疗。 |\n| 1955 | 19岁 | 响应号召，赴青海省文联工作。 |\n| 1957 | 21岁 | 因诗歌《林中试笛》被划为“右派”，开始流放生涯。 |\n| 1979 | 43岁 | 获平反，重返青海省文联，创作进入高峰。 |\n| 1985 | 49岁 | 诗集《昌耀抒情诗集》出版，获广泛认可。 |\n| 1994 | 58岁 | 《命运之书——昌耀四十年诗作精品》出版。 |\n| 2000 | 64岁 | 3月23日，在西宁去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 湖南省常德市桃源县 | 28.85° N | 111.49° E |\n| 湖南省常德市 | 29.03° N | 111.69° E |\n| 湖南省长沙市 | 28.23° N | 112.94° E |\n| 青海省西宁市 | 36.62° N | 101.78° E |\n| 青海省海北藏族自治州祁连县 | 37.38° N | 100.25° E |", "relatedGraph": {"center": {"id": "昌耀", "name": "昌耀", "file": "昌耀.html", "dynasty": "中国现当代", "aliases": [], "birth_year": 1936, "death_year": 2000, "quote": "“诗人中的诗人”", "review": "最初的诗作，充满战地青春气息。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "古称桃源县", "birthplace_modern": "湖南省常德市桃源县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "昌耀", "name": "昌耀", "file": "昌耀.html", "dynasty": "中国现当代", "aliases": [], "birth_year": 1936, "death_year": 2000, "quote": "“诗人中的诗人”", "review": "最初的诗作，充满战地青春气息。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "古称桃源县", "birthplace_modern": "湖南省常德市桃源县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董希文", "name": "董希文", "file": "董希文.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1914, "death_year": 1973, "quote": "“革命现实主义与革命浪漫主义相结合”", "review": "*毛泽东**曾称赞《开国大典》：“是大国，是中国。”“我们的画，拿到国际间去，别人是比不过我们的，因为我们有独特的民族形式。”", "foreign_name": "", "main_role_label": "油画家", "birthplace": "出生地存疑一说今浙江省绍兴市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董存瑞", "name": "董存瑞", "file": "董存瑞.html", "dynasty": "中国现代（抗日战争、解放战争时期）", "aliases": [], "birth_year": 1929, "death_year": 1948, "quote": "“为了新中国，前进！”", "review": "", "foreign_name": "", "main_role_label": "革命军人", "birthplace": "直隶省怀来县南山堡村", "birthplace_modern": "河北省张家口市怀来县存瑞镇南山堡村", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老舍", "name": "老舍", "file": "老舍.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1899, "death_year": 1966, "quote": "“中国现代戏剧史上的瑰宝”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "京师", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汪曾祺", "name": "汪曾祺", "file": "汪曾祺.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1920, "death_year": 1997, "quote": "“抒情的人道主义者，中国最后一个纯粹的文人”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "高邮", "birthplace_modern": "江苏省扬州市高邮市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "昌耀", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "董希文", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "董存瑞", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "老舍", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "汪曾祺", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "昌耀", "title": "新边塞诗", "description": "昌耀，原名王昌耀，生于湖南桃源。1950年参加中国人民解放军，后入朝作战并负伤。1955年响应号召赴青海，开始了与青藏高原长达数十年的生命交融。1957年因诗作《林中试笛》被划为“右派”，此后在祁连山等地经历了长达二十余年的流放与劳役。1979年平反后重返诗坛，创作出一系列震撼人心的作品，将个体的苦难体验升华为对人类生存本质的哲学追问，被誉为“诗人中的诗人”。他的一生，是与西部土地血脉相连的受难与歌唱的一生。", "quote": "最初的诗作，充满战地青春气息。", "shortReview": "最初的诗作，充满战地青春气息。", "dynasty": "中国现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称桃源县（今湖南省常德市桃源县）", "avatar": "", "birth": {"date": "1936年", "location": "古称桃源县（今湖南省常德市桃源县）", "lat": 28.85, "lng": 111.49, "coordSystem": "WGS84"}, "death": {"date": "2000年", "location": "古称西宁（今青海省西宁市）", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84"}, "lifespan": "64岁（按中国传统虚岁计算）", "highlights": {"honor": "新边塞诗", "status": "中国当代诗歌史上具有重要地位的“新边塞诗”代表诗人，其诗歌以雄浑、深邃、悲怆的西部精神与生命意识著称。", "identities": "诗人", "achievements": "创作了《慈航》《斯人》《划呀，划呀，父亲们！》等大量经典诗篇；其诗歌将个人命运与青藏高原的地理、历史深度融合，开创了独特的诗歌美学；曾获全国优秀新诗奖（诗集）等奖项。", "works": ["林中试笛", "慈航", "斯人", "划呀，划呀，父亲们！"], "reviews": []}}, "locations": [{"name": "桃源县", "ancientName": "桃源县", "modernName": "湖南省常德市桃源县", "lat": 28.85, "lng": 111.49, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个乡村教师家庭。", "time": "1936年", "duration": "童年早期", "significance": "湖湘文化的滋养与南方水乡的童年记忆，成为其日后诗歌中遥远的精神原乡与对照。", "works": [], "quoteLines": []}, {"name": "常德", "ancientName": "常德", "modernName": "湖南省常德市", "lat": 29.03, "lng": 111.69, "coordSystem": "WGS84", "type": "normal", "event": "随家庭移居，在此度过小学时光。", "time": "1940年代", "duration": "数年", "significance": "接受了最初的正规教育，开始接触更广阔的世界。", "works": [], "quoteLines": []}, {"name": "长沙", "ancientName": "长沙", "modernName": "湖南省长沙市", "lat": 28.23, "lng": 112.94, "coordSystem": "WGS84", "type": "normal", "event": "参军入伍，加入中国人民解放军第38军。", "time": "1950年", "duration": "短暂", "significance": "人生轨迹发生根本性转折，从学生变为战士，走向北方。", "works": [], "quoteLines": []}, {"name": "西宁", "ancientName": "西宁", "modernName": "青海省西宁市", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84", "type": "normal", "event": "响应国家号召，调至青海省文联工作。创作并发表成名作《鹰·雪·牧人》等。", "time": "1955年-1957年", "duration": "约2年", "significance": "正式开启与青海高原的命运交织，早期诗歌展现了对西部自然风物的敏锐捕捉与浪漫歌颂。", "works": ["鹰·雪·牧人"], "quoteLines": []}, {"name": "祁连山等地（流放地）", "ancientName": "祁连山等地（流放地）", "modernName": "青海省海北藏族自治州祁连县（具体流放地点待考）", "lat": 37.38, "lng": 100.25, "coordSystem": "WGS84", "type": "normal", "event": "因诗获罪，被划为“右派”，辗转于祁连山深山中的劳改农场、砖瓦厂等地，经历繁重的体力劳动与精神磨难。", "time": "1957年-1979年", "duration": "约22年", "significance": "人生最黑暗的时期，也是其生命体验最深刻、最痛苦的积淀期。与底层民众、与土地的生死相依，为其后期诗歌的哲学深度与精神力量奠定了基石。", "works": [], "quoteLines": ["《慈航》：“爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！”", "《斯人》：“我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。”"]}, {"name": "西宁", "ancientName": "西宁", "modernName": "青海省西宁市", "lat": 36.62, "lng": 101.78, "coordSystem": "WGS84", "type": "death", "event": "平反后重返青海省文联，进入创作井喷期，写下大量杰作。晚年饱受疾病困扰，2000年3月23日因患肺癌在西宁去世。", "time": "1979年-2000年", "duration": "21年", "significance": "生命的最后阶段，完成了从受难者到诗歌圣徒的升华。其诗歌成就在此时期达到顶峰，而悲剧性的结局也为其一生画上了沉重的句号。", "works": [], "quoteLines": ["《划呀，划呀，父亲们！》", "《一十一支红玫瑰》。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---", "workTexts": {"慈航": "爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！", "斯人": "我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。", "林中试笛": "“右派”\n“诗人中的诗人”", "军帽下底眼睛": "名篇名句：《军帽下底眼睛》：最初的诗作，充满战地青春气息。", "鹰·雪·牧人": "事件：响应国家号召，调至青海省文联工作。", "鹰": "事件：响应国家号召，调至青海省文联工作。", "雪": "事件：响应国家号召，调至青海省文联工作。", "牧人": "事件：响应国家号召，调至青海省文联工作。", "昌耀抒情诗集": "| 1985 | 49岁 | 诗集《昌耀抒情诗集》出版，获广泛认可。", "命运之书——昌耀四十年诗作精品": "| 1994 | 58岁 | 《命运之书——昌耀四十年诗作精品》出版。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 昌耀\n\n## 人物档案\n\n### 基本信息\n- **姓名**：昌耀（原名王昌耀）\n- **时代**：中国现当代\n- **出生**：公元1936年，古称桃源县（今湖南省常德市桃源县）\n- **去世**：公元2000年3月23日，古称西宁（今青海省西宁市）\n- **享年**：64岁（按中国传统虚岁计算）\n- **主要身份**：诗人\n- **历史地位**：中国当代诗歌史上具有重要地位的“新边塞诗”代表诗人，其诗歌以雄浑、深邃、悲怆的西部精神与生命意识著称。\n- **主要成就**：创作了《慈航》《斯人》《划呀，划呀，父亲们！》等大量经典诗篇；其诗歌将个人命运与青藏高原的地理、历史深度融合，开创了独特的诗歌美学；曾获全国优秀新诗奖（诗集）等奖项。\n\n### 生平概述\n昌耀，原名王昌耀，生于湖南桃源。1950年参加中国人民解放军，后入朝作战并负伤。1955年响应号召赴青海，开始了与青藏高原长达数十年的生命交融。1957年因诗作《林中试笛》被划为“右派”，此后在祁连山等地经历了长达二十余年的流放与劳役。1979年平反后重返诗坛，创作出一系列震撼人心的作品，将个体的苦难体验升华为对人类生存本质的哲学追问，被誉为“诗人中的诗人”。他的一生，是与西部土地血脉相连的受难与歌唱的一生。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从中国南方（湖南）出发，北上至朝鲜战场，最终扎根于中国西北（青海）的高原大地，足迹贯穿中国南北。\n- ⏱️ **时间跨度**：1936年 - 2000年，共计约64年。\n- 📍 **地理范围**：主要覆盖湖南省、朝鲜半岛、青海省。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：桃源县\n- **时间**：1936年\n- **停留时间**：童年早期\n- **地点**：古称桃源县（今湖南省常德市桃源县）\n- **事件**：出生于一个乡村教师家庭。\n- **意义**：湖湘文化的滋养与南方水乡的童年记忆，成为其日后诗歌中遥远的精神原乡与对照。\n\n### 📍 重要地点：常德\n- **时间**：1940年代\n- **停留时间**：数年\n- **地点**：古称常德（今湖南省常德市）\n- **事件**：随家庭移居，在此度过小学时光。\n- **意义**：接受了最初的正规教育，开始接触更广阔的世界。\n\n### 📍 重要地点：长沙\n- **时间**：1950年\n- **停留时间**：短暂\n- **地点**：古称长沙（今湖南省长沙市）\n- **事件**：参军入伍，加入中国人民解放军第38军。\n- **意义**：人生轨迹发生根本性转折，从学生变为战士，走向北方。\n\n### 📍 重要地点：朝鲜战场\n- **时间**：1951年-1953年\n- **停留时间**：约2-3年\n- **地点**：朝鲜半岛（今朝鲜民主主义人民共和国，具体作战地点待考）\n- **事件**：以文工队员身份参加抗美援朝战争，在战斗中负伤。\n- **意义**：经历了战争的残酷与生死考验，锤炼了意志，为其诗歌注入了最初的悲壮底色。在朝鲜开始发表作品。\n- **名篇名句**：《军帽下底眼睛》：最初的诗作，充满战地青春气息。\n\n### 📍 重要地点：河北荣军学校\n- **时间**：1953年负伤后-1954年\n- **停留时间**：约1年\n- **地点**：河北省石家庄市（河北荣军学校旧址，具体位置待考）\n- **事件**：负伤后在此学习休养。\n- **意义**：战争创伤后的恢复期，也是其思考与沉淀的时期。\n\n### 📍 重要地点：西宁\n- **时间**：1955年-1957年\n- **停留时间**：约2年\n- **地点**：古称西宁（今青海省西宁市）\n- **事件**：响应国家号召，调至青海省文联工作。创作并发表成名作《鹰·雪·牧人》等。\n- **意义**：正式开启与青海高原的命运交织，早期诗歌展现了对西部自然风物的敏锐捕捉与浪漫歌颂。\n\n### 📍 重要地点：祁连山等地（流放地）\n- **时间**：1957年-1979年\n- **停留时间**：约22年\n- **地点**：今青海省海北藏族自治州祁连县（具体流放地点待考）\n- **事件**：因诗获罪，被划为“右派”，辗转于祁连山深山中的劳改农场、砖瓦厂等地，经历繁重的体力劳动与精神磨难。\n- **意义**：人生最黑暗的时期，也是其生命体验最深刻、最痛苦的积淀期。与底层民众、与土地的生死相依，为其后期诗歌的哲学深度与精神力量奠定了基石。\n- **名篇名句**：《慈航》：“爱的繁衍与生殖/比死亡的戕残更古老、更勇武百倍！”；《斯人》：“我恒闻/时间在高呼：/——跟我来！/——跟我来！/……/这就是那个人。”\n\n### 🔴 去世地：西宁\n- **时间**：1979年-2000年\n- **停留时间**：21年\n- **地点**：古称西宁（今青海省西宁市）\n- **事件**：平反后重返青海省文联，进入创作井喷期，写下大量杰作。晚年饱受疾病困扰，2000年3月23日因患肺癌在西宁去世。\n- **意义**：生命的最后阶段，完成了从受难者到诗歌圣徒的升华。其诗歌成就在此时期达到顶峰，而悲剧性的结局也为其一生画上了沉重的句号。\n- **名篇名句**：《划呀，划呀，父亲们！》；《一十一支红玫瑰》。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1936 | 0岁 | 生于湖南桃源。 |\n| 1950 | 14岁 | 在长沙参军，加入解放军。 |\n| 1951 | 15岁 | 赴朝鲜参加抗美援朝战争。 |\n| 1953 | 17岁 | 在朝鲜战场负伤，回国治疗。 |\n| 1955 | 19岁 | 响应号召，赴青海省文联工作。 |\n| 1957 | 21岁 | 因诗歌《林中试笛》被划为“右派”，开始流放生涯。 |\n| 1979 | 43岁 | 获平反，重返青海省文联，创作进入高峰。 |\n| 1985 | 49岁 | 诗集《昌耀抒情诗集》出版，获广泛认可。 |\n| 1994 | 58岁 | 《命运之书——昌耀四十年诗作精品》出版。 |\n| 2000 | 64岁 | 3月23日，在西宁去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《斯人》**、**《河床》**（节选）等诗作常被选入诗歌选修读本或作为拓展阅读材料。\n- 核心要点：\n    - **重点**：诗歌中塑造的 **抒情主人公形象**，是一个在 **西部荒原** 上沉思、抗争、与天地对话的孤独英雄或哲人。\n    - **重点**：**意象系统** 独特而宏大，如 **“河床”**、**“慈航”**、**“高车”**、**“斯人”** 等，承载着 **生命、历史、苦难** 的厚重主题。\n    - 语言风格 **凝重、奇崛、充满张力**，善用长句和密集的意象叠加，形成 **雕塑般的质感**。\n    - **重点**：诗歌精神内核体现为 **“受难”与“救赎”** 的母题，将个人苦难经历升华为对 **人类生存境遇** 的普遍性思考。\n    - 常运用 **象征** 和 **神话原型** 手法，赋予西部地理景观以 **哲学与史诗** 的维度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为 **“新边塞诗”** 的代表诗人之一，其创作与 **新中国建设边疆、开发西部** 的时代背景紧密相连。\n    - 人生经历是 **20世纪中国知识分子命运** 的一个缩影：参加 **抗美援朝**、响应号召 **赴边**、在 **反右运动** 中受难、**新时期** 复出并创作。\n    - **重点**：其长达二十余年的 **流放生涯**，是理解其诗歌中 **苦难意识** 和 **土地认同感** 的关键历史背景。\n- 核心要点：\n    - **重点**：昌耀的诗歌成就，标志着 **当代汉语诗歌** 在处理 **西部经验、历史反思与生命哲学** 方面所达到的深度。\n    - 他的创作超越了简单的 **“边塞风情”** 描写，深入到 **人与自然、个体与历史、生存与死亡** 的根本性问题的探索。\n    - **重点**：其悲剧性的个人结局（自杀），引发了文学界对 **诗人命运、精神困境与时代关系** 的持续讨论与反思。\n    - 在文学史上，被定位为 **“诗人中的诗人”**，其作品对后来的 **西部诗歌** 及 **知识分子写作** 产生了深远影响。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 湖南省常德市桃源县 | 28.85° N | 111.49° E |\n| 湖南省常德市 | 29.03° N | 111.69° E |\n| 湖南省长沙市 | 28.23° N | 112.94° E |\n| 青海省西宁市 | 36.62° N | 101.78° E |\n| 青海省海北藏族自治州祁连县 | 37.38° N | 100.25° E |", "relatedGraph": {"center": {"id": "昌耀", "name": "昌耀", "file": "昌耀.html", "dynasty": "中国现当代", "aliases": [], "birth_year": 1936, "death_year": 2000, "quote": "“诗人中的诗人”", "review": "最初的诗作，充满战地青春气息。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "古称桃源县", "birthplace_modern": "湖南省常德市桃源县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "昌耀", "name": "昌耀", "file": "昌耀.html", "dynasty": "中国现当代", "aliases": [], "birth_year": 1936, "death_year": 2000, "quote": "“诗人中的诗人”", "review": "最初的诗作，充满战地青春气息。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "古称桃源县", "birthplace_modern": "湖南省常德市桃源县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董希文", "name": "董希文", "file": "董希文.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1914, "death_year": 1973, "quote": "“革命现实主义与革命浪漫主义相结合”", "review": "*毛泽东**曾称赞《开国大典》：“是大国，是中国。”“我们的画，拿到国际间去，别人是比不过我们的，因为我们有独特的民族形式。”", "foreign_name": "", "main_role_label": "油画家", "birthplace": "出生地存疑一说今浙江省绍兴市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董存瑞", "name": "董存瑞", "file": "董存瑞.html", "dynasty": "中国现代（抗日战争、解放战争时期）", "aliases": [], "birth_year": 1929, "death_year": 1948, "quote": "“为了新中国，前进！”", "review": "", "foreign_name": "", "main_role_label": "革命军人", "birthplace": "直隶省怀来县南山堡村", "birthplace_modern": "河北省张家口市怀来县存瑞镇南山堡村", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老舍", "name": "老舍", "file": "老舍.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1899, "death_year": 1966, "quote": "“中国现代戏剧史上的瑰宝”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "京师", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汪曾祺", "name": "汪曾祺", "file": "汪曾祺.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1920, "death_year": 1997, "quote": "“抒情的人道主义者，中国最后一个纯粹的文人”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "高邮", "birthplace_modern": "江苏省扬州市高邮市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "昌耀", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "董希文", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "董存瑞", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "老舍", "label": "同时代人物", "confidence": null}, {"source": "昌耀", "target": "汪曾祺", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

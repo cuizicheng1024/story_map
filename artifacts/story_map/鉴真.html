@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "鉴真", "title": "", "description": "鉴真，俗姓淳于，唐代扬州人。十四岁于大云寺出家，后游学洛阳、长安，精研佛教律宗与诸子百家，成为江淮地区著名的授戒大师。公元742年，应日本留学僧荣叡、普照之请，决意东渡传法。此后十二年间，他不顾双目失明与惊涛骇浪，六次尝试，终于在公元753年成功抵达日本。他在奈良东大寺设坛授戒，正式创立日本律宗，并将盛唐的建筑、雕塑、医药、书法等文化精髓无私传授，对日本文化产生了深远影响，最终圆寂于唐招提寺。", "quote": "《鉴真东渡》", "shortReview": "《鉴真东渡》", "dynasty": "唐代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称扬州（今江苏省扬州市）", "avatar": "", "birth": {"date": "688年", "location": "古称扬州（今江苏省扬州市）", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84"}, "death": {"date": "763年", "location": "古称平城京（今日本奈良县奈良市）", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84"}, "lifespan": "75岁（虚岁76）", "highlights": {"honor": "", "status": "唐代高僧，中日文化交流的先驱与象征。", "identities": "僧人、医学家、中日文化交流使者", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "扬州", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "birth", "event": "出生于扬州，俗姓淳于。", "time": "公元688年", "duration": "约14年", "significance": "鉴真人生的起点，唐代重要的商业与文化中心，为其日后学习佛法提供了环境。", "works": [], "quoteLines": []}, {"name": "大云寺（扬州）", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "于大云寺随智满禅师出家，成为沙弥。", "time": "约公元701年", "duration": "约3年", "significance": "正式踏入佛门，开始其宗教生涯。", "works": [], "quoteLines": []}, {"name": "洛阳与长安", "ancientName": "东都洛阳、西京长安", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "游学两京，深入研习佛教律宗（南山律宗）及医学、建筑等学问，并在实际寺受具足戒。", "time": "约公元705年 - 713年", "duration": "约8年", "significance": "学识大成，为其日后成为一代宗师奠定了坚实的佛学与文化基础。", "works": [], "quoteLines": []}, {"name": "扬州大明寺", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "回到扬州，在大明寺讲律授戒，成为江淮地区首屈一指的授戒大师，声名远播。", "time": "约713年 - 742年", "duration": "约30年", "significance": "其佛学造诣与声望达到顶峰，为接受东渡邀请创造了条件。", "works": [], "quoteLines": []}, {"name": "东渡出发地（第一次）：扬州", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "应日僧荣叡、普照邀请，决心东渡，率弟子造船备粮，但因弟子内部举报“勾结海贼”而首次东渡失败。", "time": "公元742年", "duration": "筹备数月", "significance": "开启了长达十二年、历经六次尝试的东渡壮举。", "works": [], "quoteLines": []}, {"name": "东渡挫折地（第二、三次）：浙江沿海", "ancientName": "明州、舟山群岛", "modernName": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84", "type": "normal", "event": "第二次东渡遇大风船毁；第三次东渡因被官府拦截而失败。", "time": "公元743年 - 744年", "duration": "数月", "significance": "遭遇自然与人为的双重阻碍，行程受挫，但决心未改。", "works": [], "quoteLines": []}, {"name": "东渡中转与磨难地（第四、五次）：岭南", "ancientName": "振州、端州、韶州", "modernName": "海南省三亚市", "lat": 18.2528, "lng": 109.512, "coordSystem": "WGS84", "type": "normal", "event": "第四次东渡遇飓风漂流至海南岛；北返途中，日僧荣叡病逝于端州，鉴真本人因暑热双目失明；第五次东渡计划因故未能成行。", "time": "公元748年 - 750年", "duration": "约2年", "significance": "遭受最沉重的打击（失明、弟子亡故），但其东渡意志愈发坚定，体现了非凡的毅力。", "works": [], "quoteLines": []}, {"name": "传法中心：奈良东大寺", "ancientName": "平城京", "modernName": "日本奈良县奈良市", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84", "type": "normal", "event": "在东大寺大佛殿前设立戒坛，为日本圣武上皇、孝谦天皇及众多僧侣授戒，正式创立日本律宗；被尊为“大和上”。", "time": "公元754年 - 759年", "duration": "约5年", "significance": "在日本佛教界取得最高地位，开始系统传播戒律与盛唐文化。", "works": [], "quoteLines": []}, {"name": "唐招提寺", "ancientName": "平城京", "modernName": "日本奈良县奈良市", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84", "type": "death", "event": "于公元759年建成唐招提寺并定居于此，直至圆寂。", "time": "公元763年", "duration": "约4年", "significance": "鉴真在日本的最终归宿与精神象征，其坐像供奉于此，成为日本国宝。", "works": [], "quoteLines": ["（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---", "examPoints": "### 考点\n### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---", "workTexts": {"唐大和上东征传": "名篇名句：（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）", "鉴真东渡": "课文/读物：《鉴真东渡》（相关传记或故事节选）", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 鉴真\n\n## 人物档案\n\n### 基本信息\n- **姓名**：鉴真（俗姓淳于）\n- **时代**：唐代\n- **出生**：公元688年，古称扬州（今江苏省扬州市）（具体日期存疑）\n- **去世**：公元763年，古称平城京（今日本奈良县奈良市）\n- **享年**：75岁（虚岁76）\n- **主要身份**：僧人、医学家、中日文化交流使者\n- **历史地位**：唐代高僧，中日文化交流的先驱与象征。\n- **主要成就**：\n    - 历经磨难六次东渡，最终成功抵达日本。\n    - 在日本传播佛教律宗，成为日本律宗初祖。\n    - 将中国的建筑、雕塑、医药、书法等先进文化传播至日本。\n    - 主持修建唐招提寺，成为日本佛教艺术的瑰宝。\n\n### 生平概述\n鉴真，俗姓淳于，唐代扬州人。十四岁于大云寺出家，后游学洛阳、长安，精研佛教律宗与诸子百家，成为江淮地区著名的授戒大师。公元742年，应日本留学僧荣叡、普照之请，决意东渡传法。此后十二年间，他不顾双目失明与惊涛骇浪，六次尝试，终于在公元753年成功抵达日本。他在奈良东大寺设坛授戒，正式创立日本律宗，并将盛唐的建筑、雕塑、医药、书法等文化精髓无私传授，对日本文化产生了深远影响，最终圆寂于唐招提寺。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从中国扬州出发，跨越东海，最终抵达日本奈良。\n- ⏱️ **时间跨度**：公元688年 - 763年（共75年）\n- 📍 **地理范围**：中国江苏、广东及日本九州、奈良等地。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扬州\n- **时间**：公元688年\n- **停留时间**：约14年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：出生于扬州，俗姓淳于。\n- **意义**：鉴真人生的起点，唐代重要的商业与文化中心，为其日后学习佛法提供了环境。\n\n### 📍 重要地点：大云寺（扬州）\n- **时间**：约公元701年\n- **停留时间**：约3年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：于大云寺随智满禅师出家，成为沙弥。\n- **意义**：正式踏入佛门，开始其宗教生涯。\n\n### 📍 重要地点：洛阳与长安\n- **时间**：约公元705年 - 713年\n- **停留时间**：约8年\n- **地点**：古称东都洛阳（今河南省洛阳市）、西京长安（今陕西省西安市）\n- **事件**：游学两京，深入研习佛教律宗（南山律宗）及医学、建筑等学问，并在实际寺受具足戒。\n- **意义**：学识大成，为其日后成为一代宗师奠定了坚实的佛学与文化基础。\n\n### 📍 重要地点：扬州大明寺\n- **时间**：约713年 - 742年\n- **停留时间**：约30年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：回到扬州，在大明寺讲律授戒，成为江淮地区首屈一指的授戒大师，声名远播。\n- **意义**：其佛学造诣与声望达到顶峰，为接受东渡邀请创造了条件。\n\n### 📍 重要地点：东渡出发地（第一次）：扬州\n- **时间**：公元742年\n- **停留时间**：筹备数月\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：应日僧荣叡、普照邀请，决心东渡，率弟子造船备粮，但因弟子内部举报“勾结海贼”而首次东渡失败。\n- **意义**：开启了长达十二年、历经六次尝试的东渡壮举。\n\n### 📍 重要地点：东渡挫折地（第二、三次）：浙江沿海\n- **时间**：公元743年 - 744年\n- **停留时间**：数月\n- **地点**：古称明州（今浙江省宁波市）、舟山群岛\n- **事件**：第二次东渡遇大风船毁；第三次东渡因被官府拦截而失败。\n- **意义**：遭遇自然与人为的双重阻碍，行程受挫，但决心未改。\n\n### 📍 重要地点：东渡中转与磨难地（第四、五次）：岭南\n- **时间**：公元748年 - 750年\n- **停留时间**：约2年\n- **地点**：古称振州（今海南省三亚市）、端州（今广东省肇庆市）、韶州（今广东省韶关市）\n- **事件**：第四次东渡遇飓风漂流至海南岛；北返途中，日僧荣叡病逝于端州，鉴真本人因暑热双目失明；第五次东渡计划因故未能成行。\n- **意义**：遭受最沉重的打击（失明、弟子亡故），但其东渡意志愈发坚定，体现了非凡的毅力。\n\n### 📍 重要地点：东渡成功登陆地：萨摩国\n- **时间**：公元753年\n- **停留时间**：短暂停留\n- **地点**：古称萨摩国（今日本鹿儿岛县南部）\n- **事件**：第六次东渡，随日本遣唐使船队出发，终于成功抵达日本九州萨摩国。\n- **意义**：十二年磨难终得正果，踏上了日本的土地。\n\n### 📍 重要地点：传法中心：奈良东大寺\n- **时间**：公元754年 - 759年\n- **停留时间**：约5年\n- **地点**：古称平城京（今日本奈良县奈良市）\n- **事件**：在东大寺大佛殿前设立戒坛，为日本圣武上皇、孝谦天皇及众多僧侣授戒，正式创立日本律宗；被尊为“大和上”。\n- **意义**：在日本佛教界取得最高地位，开始系统传播戒律与盛唐文化。\n\n### 🔴 去世地：唐招提寺\n- **时间**：公元763年\n- **停留时间**：约4年\n- **地点**：古称平城京（今日本奈良县奈良市）\n- **事件**：于公元759年建成唐招提寺并定居于此，直至圆寂。\n- **意义**：鉴真在日本的最终归宿与精神象征，其坐像供奉于此，成为日本国宝。\n- **名篇名句**：（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 688 | 0 | 出生于扬州。 |\n| 701 | 14 | 于扬州大云寺出家为沙弥。 |\n| 705 | 18 | 赴洛阳、长安游学，深研律宗。 |\n| 708 | 21 | 于长安实际寺受具足戒。 |\n| 约713 | 约25（虚岁26） | 返回扬州，于大明寺讲律授戒，声名鹊起。 |\n| 742 | 55 | 应日僧请，决心东渡，首次尝试失败。 |\n| 743-750 | 56-63 | 第二、三、四、五次东渡均告失败，期间双目失明。 |\n| 753 | 66 | 第六次东渡成功，抵达日本萨摩国。 |\n| 754 | 67 | 于奈良东大寺设立戒坛，为日本皇室授戒。 |\n| 759 | 72 | 唐招提寺落成，移居于此。 |\n| 763 | 76 | 圆寂于唐招提寺。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江苏省扬州市 | 32.3942 | 119.4130 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 浙江省宁波市 | 29.8683 | 121.5440 |\n| 浙江省舟山市 | 30.0167 | 122.1000 |\n| 海南省三亚市 | 18.2528 | 109.5120 |\n| 广东省肇庆市 | 23.0510 | 112.4650 |\n| 广东省韶关市 | 24.8108 | 113.5970 |\n| 日本鹿儿岛县鹿儿岛市（萨摩国） | 31.5966 | 130.5571 |\n| 日本奈良县奈良市 | 34.6851 | 135.8048 |", "relatedGraph": {"center": {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "《鉴真东渡》", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "《鉴真东渡》", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王玠", "name": "王玠", "file": "王玠.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": null, "quote": "“至宝欣怀日，良兹岂可俦。神光非易鉴，夜色信难投。”", "review": "《全唐诗》将其诗作编录，是对其诗人身份的基本认可。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "郑和", "name": "郑和", "file": "郑和.html", "dynasty": "明朝", "aliases": [], "birth_year": 1371, "death_year": 1433, "quote": "“观夫海洋，洪涛接天，巨浪如山…而我之云帆高张，昼夜星驰。”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "古称昆阳", "birthplace_modern": "云南省昆明市晋宁区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "习近平", "name": "习近平", "file": "习近平.html", "dynasty": "现代", "aliases": [], "birth_year": 1953, "death_year": null, "quote": "“15岁来到黄土地时，我迷惘、彷徨；22岁离开黄土地时，我已经有着坚定的人生目标，充满自信。”", "review": "中国共产党中央委员会评价：“习近平同志是党中央的核心、全党的核心，是新时代中国特色社会主义国家的领路人、是中华民族伟大复兴的领路人。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "北京市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "鉴真", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "鉴真", "target": "王玠", "label": "同朝共现", "confidence": 0.25}, {"source": "鉴真", "target": "玄奘", "label": "同朝共现", "confidence": 0.25}, {"source": "鉴真", "target": "郑和", "label": "同册共现", "confidence": 0.15}, {"source": "鉴真", "target": "唐太宗", "label": "同册共现", "confidence": 0.15}, {"source": "鉴真", "target": "习近平", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "鉴真", "title": "", "description": "鉴真，俗姓淳于，唐代扬州人。十四岁于大云寺出家，后游学洛阳、长安，精研佛教律宗与诸子百家，成为江淮地区著名的授戒大师。公元742年，应日本留学僧荣叡、普照之请，决意东渡传法。此后十二年间，他不顾双目失明与惊涛骇浪，六次尝试，终于在公元753年成功抵达日本。他在奈良东大寺设坛授戒，正式创立日本律宗，并将盛唐的建筑、雕塑、医药、书法等文化精髓无私传授，对日本文化产生了深远影响，最终圆寂于唐招提寺。", "quote": "《鉴真东渡》", "shortReview": "《鉴真东渡》", "dynasty": "唐代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称扬州（今江苏省扬州市）", "avatar": "", "birth": {"date": "688年", "location": "古称扬州（今江苏省扬州市）", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84"}, "death": {"date": "763年", "location": "古称平城京（今日本奈良县奈良市）", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84"}, "lifespan": "75岁（虚岁76）", "highlights": {"honor": "", "status": "唐代高僧，中日文化交流的先驱与象征。", "identities": "僧人、医学家、中日文化交流使者", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "扬州", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "birth", "event": "出生于扬州，俗姓淳于。", "time": "公元688年", "duration": "约14年", "significance": "鉴真人生的起点，唐代重要的商业与文化中心，为其日后学习佛法提供了环境。", "works": [], "quoteLines": []}, {"name": "大云寺（扬州）", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "于大云寺随智满禅师出家，成为沙弥。", "time": "约公元701年", "duration": "约3年", "significance": "正式踏入佛门，开始其宗教生涯。", "works": [], "quoteLines": []}, {"name": "洛阳与长安", "ancientName": "东都洛阳、西京长安", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "游学两京，深入研习佛教律宗（南山律宗）及医学、建筑等学问，并在实际寺受具足戒。", "time": "约公元705年 - 713年", "duration": "约8年", "significance": "学识大成，为其日后成为一代宗师奠定了坚实的佛学与文化基础。", "works": [], "quoteLines": []}, {"name": "扬州大明寺", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "回到扬州，在大明寺讲律授戒，成为江淮地区首屈一指的授戒大师，声名远播。", "time": "约713年 - 742年", "duration": "约30年", "significance": "其佛学造诣与声望达到顶峰，为接受东渡邀请创造了条件。", "works": [], "quoteLines": []}, {"name": "东渡出发地（第一次）：扬州", "ancientName": "扬州", "modernName": "江苏省扬州市", "lat": 32.3942, "lng": 119.413, "coordSystem": "WGS84", "type": "normal", "event": "应日僧荣叡、普照邀请，决心东渡，率弟子造船备粮，但因弟子内部举报“勾结海贼”而首次东渡失败。", "time": "公元742年", "duration": "筹备数月", "significance": "开启了长达十二年、历经六次尝试的东渡壮举。", "works": [], "quoteLines": []}, {"name": "东渡挫折地（第二、三次）：浙江沿海", "ancientName": "明州、舟山群岛", "modernName": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84", "type": "normal", "event": "第二次东渡遇大风船毁；第三次东渡因被官府拦截而失败。", "time": "公元743年 - 744年", "duration": "数月", "significance": "遭遇自然与人为的双重阻碍，行程受挫，但决心未改。", "works": [], "quoteLines": []}, {"name": "东渡中转与磨难地（第四、五次）：岭南", "ancientName": "振州、端州、韶州", "modernName": "海南省三亚市", "lat": 18.2528, "lng": 109.512, "coordSystem": "WGS84", "type": "normal", "event": "第四次东渡遇飓风漂流至海南岛；北返途中，日僧荣叡病逝于端州，鉴真本人因暑热双目失明；第五次东渡计划因故未能成行。", "time": "公元748年 - 750年", "duration": "约2年", "significance": "遭受最沉重的打击（失明、弟子亡故），但其东渡意志愈发坚定，体现了非凡的毅力。", "works": [], "quoteLines": []}, {"name": "传法中心：奈良东大寺", "ancientName": "平城京", "modernName": "日本奈良县奈良市", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84", "type": "normal", "event": "在东大寺大佛殿前设立戒坛，为日本圣武上皇、孝谦天皇及众多僧侣授戒，正式创立日本律宗；被尊为“大和上”。", "time": "公元754年 - 759年", "duration": "约5年", "significance": "在日本佛教界取得最高地位，开始系统传播戒律与盛唐文化。", "works": [], "quoteLines": []}, {"name": "唐招提寺", "ancientName": "平城京", "modernName": "日本奈良县奈良市", "lat": 34.6851, "lng": 135.8048, "coordSystem": "WGS84", "type": "death", "event": "于公元759年建成唐招提寺并定居于此，直至圆寂。", "time": "公元763年", "duration": "约4年", "significance": "鉴真在日本的最终归宿与精神象征，其坐像供奉于此，成为日本国宝。", "works": [], "quoteLines": ["（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---", "examPoints": "### 考点\n### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---", "workTexts": {"唐大和上东征传": "名篇名句：（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）", "鉴真东渡": "课文/读物：《鉴真东渡》（相关传记或故事节选）", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 鉴真\n\n## 人物档案\n\n### 基本信息\n- **姓名**：鉴真（俗姓淳于）\n- **时代**：唐代\n- **出生**：公元688年，古称扬州（今江苏省扬州市）（具体日期存疑）\n- **去世**：公元763年，古称平城京（今日本奈良县奈良市）\n- **享年**：75岁（虚岁76）\n- **主要身份**：僧人、医学家、中日文化交流使者\n- **历史地位**：唐代高僧，中日文化交流的先驱与象征。\n- **主要成就**：\n    - 历经磨难六次东渡，最终成功抵达日本。\n    - 在日本传播佛教律宗，成为日本律宗初祖。\n    - 将中国的建筑、雕塑、医药、书法等先进文化传播至日本。\n    - 主持修建唐招提寺，成为日本佛教艺术的瑰宝。\n\n### 生平概述\n鉴真，俗姓淳于，唐代扬州人。十四岁于大云寺出家，后游学洛阳、长安，精研佛教律宗与诸子百家，成为江淮地区著名的授戒大师。公元742年，应日本留学僧荣叡、普照之请，决意东渡传法。此后十二年间，他不顾双目失明与惊涛骇浪，六次尝试，终于在公元753年成功抵达日本。他在奈良东大寺设坛授戒，正式创立日本律宗，并将盛唐的建筑、雕塑、医药、书法等文化精髓无私传授，对日本文化产生了深远影响，最终圆寂于唐招提寺。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从中国扬州出发，跨越东海，最终抵达日本奈良。\n- ⏱️ **时间跨度**：公元688年 - 763年（共75年）\n- 📍 **地理范围**：中国江苏、广东及日本九州、奈良等地。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：扬州\n- **时间**：公元688年\n- **停留时间**：约14年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：出生于扬州，俗姓淳于。\n- **意义**：鉴真人生的起点，唐代重要的商业与文化中心，为其日后学习佛法提供了环境。\n\n### 📍 重要地点：大云寺（扬州）\n- **时间**：约公元701年\n- **停留时间**：约3年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：于大云寺随智满禅师出家，成为沙弥。\n- **意义**：正式踏入佛门，开始其宗教生涯。\n\n### 📍 重要地点：洛阳与长安\n- **时间**：约公元705年 - 713年\n- **停留时间**：约8年\n- **地点**：古称东都洛阳（今河南省洛阳市）、西京长安（今陕西省西安市）\n- **事件**：游学两京，深入研习佛教律宗（南山律宗）及医学、建筑等学问，并在实际寺受具足戒。\n- **意义**：学识大成，为其日后成为一代宗师奠定了坚实的佛学与文化基础。\n\n### 📍 重要地点：扬州大明寺\n- **时间**：约713年 - 742年\n- **停留时间**：约30年\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：回到扬州，在大明寺讲律授戒，成为江淮地区首屈一指的授戒大师，声名远播。\n- **意义**：其佛学造诣与声望达到顶峰，为接受东渡邀请创造了条件。\n\n### 📍 重要地点：东渡出发地（第一次）：扬州\n- **时间**：公元742年\n- **停留时间**：筹备数月\n- **地点**：古称扬州（今江苏省扬州市）\n- **事件**：应日僧荣叡、普照邀请，决心东渡，率弟子造船备粮，但因弟子内部举报“勾结海贼”而首次东渡失败。\n- **意义**：开启了长达十二年、历经六次尝试的东渡壮举。\n\n### 📍 重要地点：东渡挫折地（第二、三次）：浙江沿海\n- **时间**：公元743年 - 744年\n- **停留时间**：数月\n- **地点**：古称明州（今浙江省宁波市）、舟山群岛\n- **事件**：第二次东渡遇大风船毁；第三次东渡因被官府拦截而失败。\n- **意义**：遭遇自然与人为的双重阻碍，行程受挫，但决心未改。\n\n### 📍 重要地点：东渡中转与磨难地（第四、五次）：岭南\n- **时间**：公元748年 - 750年\n- **停留时间**：约2年\n- **地点**：古称振州（今海南省三亚市）、端州（今广东省肇庆市）、韶州（今广东省韶关市）\n- **事件**：第四次东渡遇飓风漂流至海南岛；北返途中，日僧荣叡病逝于端州，鉴真本人因暑热双目失明；第五次东渡计划因故未能成行。\n- **意义**：遭受最沉重的打击（失明、弟子亡故），但其东渡意志愈发坚定，体现了非凡的毅力。\n\n### 📍 重要地点：东渡成功登陆地：萨摩国\n- **时间**：公元753年\n- **停留时间**：短暂停留\n- **地点**：古称萨摩国（今日本鹿儿岛县南部）\n- **事件**：第六次东渡，随日本遣唐使船队出发，终于成功抵达日本九州萨摩国。\n- **意义**：十二年磨难终得正果，踏上了日本的土地。\n\n### 📍 重要地点：传法中心：奈良东大寺\n- **时间**：公元754年 - 759年\n- **停留时间**：约5年\n- **地点**：古称平城京（今日本奈良县奈良市）\n- **事件**：在东大寺大佛殿前设立戒坛，为日本圣武上皇、孝谦天皇及众多僧侣授戒，正式创立日本律宗；被尊为“大和上”。\n- **意义**：在日本佛教界取得最高地位，开始系统传播戒律与盛唐文化。\n\n### 🔴 去世地：唐招提寺\n- **时间**：公元763年\n- **停留时间**：约4年\n- **地点**：古称平城京（今日本奈良县奈良市）\n- **事件**：于公元759年建成唐招提寺并定居于此，直至圆寂。\n- **意义**：鉴真在日本的最终归宿与精神象征，其坐像供奉于此，成为日本国宝。\n- **名篇名句**：（鉴真本人无文学作品传世，其事迹见于《唐大和上东征传》）\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 688 | 0 | 出生于扬州。 |\n| 701 | 14 | 于扬州大云寺出家为沙弥。 |\n| 705 | 18 | 赴洛阳、长安游学，深研律宗。 |\n| 708 | 21 | 于长安实际寺受具足戒。 |\n| 约713 | 约25（虚岁26） | 返回扬州，于大明寺讲律授戒，声名鹊起。 |\n| 742 | 55 | 应日僧请，决心东渡，首次尝试失败。 |\n| 743-750 | 56-63 | 第二、三、四、五次东渡均告失败，期间双目失明。 |\n| 753 | 66 | 第六次东渡成功，抵达日本萨摩国。 |\n| 754 | 67 | 于奈良东大寺设立戒坛，为日本皇室授戒。 |\n| 759 | 72 | 唐招提寺落成，移居于此。 |\n| 763 | 76 | 圆寂于唐招提寺。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/读物）\n- 课文/读物：**《鉴真东渡》**（相关传记或故事节选）\n- 核心要点：\n    - **重点**：**矢志不渝**的精神，历经**六次东渡**、**双目失明**仍不改初心，是课文歌颂的核心品质。\n    - **重点**：**文化传播**的使者形象，鉴真带去的不仅是**佛法戒律**，还有**建筑、雕塑、医药**等盛唐文明成果。\n    - **叙事手法**：常采用**时间顺序**，通过**对比**（自然艰险与人物决心）和**细节描写**（如失明后凭记忆校正佛经）来塑造人物。\n    - **象征意义**：鉴真东渡是**中日友好交流**的历史佳话，象征着**文化无国界**的奉献精神。\n    - **重点**：**《唐大和上东征传》** 是了解鉴真事迹的最重要文献，课文多取材于此。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**唐代**高僧，**律宗**大师，应日本僧人邀请东渡传法。\n    - **六次东渡**：公元742-753年间，历经五次失败，第六次方成功，过程极为艰险。\n    - **重点**：在日本**东大寺**设立戒坛，为**圣武天皇**等授戒，被尊为日本**律宗初祖**。\n    - 主持修建**唐招提寺**，该寺成为日本佛教建筑与艺术的典范。\n- 核心要点：\n    - **重点**：鉴真东渡发生在**唐代**，是**中日文化交流**史上的标志性事件，体现了盛唐文化的强大辐射力。\n    - **重点**：其行动具有**宗教传播**与**文化输出**的双重性质，对日本**奈良时代**的文化发展产生了**全方位**影响。\n    - **历史评价**：鉴真被中日两国人民共同纪念，是**和平使者**与**文化英雄**的典范。\n    - **重点**：东渡成功与当时**日本**积极学习唐朝的**遣唐使**政策密切相关，是双方互动的结果。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江苏省扬州市 | 32.3942 | 119.4130 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 浙江省宁波市 | 29.8683 | 121.5440 |\n| 浙江省舟山市 | 30.0167 | 122.1000 |\n| 海南省三亚市 | 18.2528 | 109.5120 |\n| 广东省肇庆市 | 23.0510 | 112.4650 |\n| 广东省韶关市 | 24.8108 | 113.5970 |\n| 日本鹿儿岛县鹿儿岛市（萨摩国） | 31.5966 | 130.5571 |\n| 日本奈良县奈良市 | 34.6851 | 135.8048 |", "relatedGraph": {"center": {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "《鉴真东渡》", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "《鉴真东渡》", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王玠", "name": "王玠", "file": "王玠.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": null, "quote": "“至宝欣怀日，良兹岂可俦。神光非易鉴，夜色信难投。”", "review": "《全唐诗》将其诗作编录，是对其诗人身份的基本认可。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "郑和", "name": "郑和", "file": "郑和.html", "dynasty": "明朝", "aliases": [], "birth_year": 1371, "death_year": 1433, "quote": "“观夫海洋，洪涛接天，巨浪如山…而我之云帆高张，昼夜星驰。”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "古称昆阳", "birthplace_modern": "云南省昆明市晋宁区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "习近平", "name": "习近平", "file": "习近平.html", "dynasty": "现代", "aliases": [], "birth_year": 1953, "death_year": null, "quote": "“15岁来到黄土地时，我迷惘、彷徨；22岁离开黄土地时，我已经有着坚定的人生目标，充满自信。”", "review": "中国共产党中央委员会评价：“习近平同志是党中央的核心、全党的核心，是新时代中国特色社会主义国家的领路人、是中华民族伟大复兴的领路人。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "北京市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "鉴真", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "鉴真", "target": "王玠", "label": "同朝共现", "confidence": 0.25}, {"source": "鉴真", "target": "玄奘", "label": "同朝共现", "confidence": 0.25}, {"source": "鉴真", "target": "郑和", "label": "同册共现", "confidence": 0.15}, {"source": "鉴真", "target": "唐太宗", "label": "同册共现", "confidence": 0.15}, {"source": "鉴真", "target": "习近平", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

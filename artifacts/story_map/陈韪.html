@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "陈韪", "title": "", "description": "陈韪，字季弼，广陵东阳人，东汉末年名士。他以善于品评人物而闻名于时，曾在名士聚会中高度评价陈登（陈元龙），留下“湖海之士，豪气不除”的著名评语。天下大乱后，他辗转归附曹操，历任魏郡太守、尚书令等职，在曹魏政权中以刚直不阿、恪尽职守著称。他的一生跨越了汉末动乱与曹魏政权初建的关键时期，是当时士人从汉臣转向魏臣的一个缩影，其言行主要见于《三国志》及裴注所引史料（如《先贤行状》）。", "quote": "可能提及（存疑，需核查原文）。", "shortReview": "可能提及（存疑，需核查原文）。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "广陵东阳", "avatar": "", "birth": {"date": "", "location": "广陵东阳", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "可能逝于魏国", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "汉魏之际的名士，以品评人物和刚直不阿著称。", "identities": "官员、名士", "achievements": "品评陈登，称其“湖海之士，豪气不除”；在曹魏政权中担任要职，以刚直闻名。", "works": ["三国志", "先贤行状"], "reviews": ["**《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "**《世说新语》**：可能提及（存疑，需核查原文）。", "**后世史家视角**：被视为汉魏之际“清流”士人的一员，其刚直的为官风格受到一定肯定。"]}}, "locations": [{"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.2633625, "lng": 114.5416626, "coordSystem": "WGS84", "type": "normal", "event": "担任魏郡太守、尚书令等要职，处理政务，以刚直著称。", "time": "约公元204年后", "duration": "较长（曹操封魏王后的都城时期）", "significance": "其政治生涯的主要舞台，在曹魏政权中发挥重要作用。", "works": [], "quoteLines": ["《三国志·魏书·徐宣传》：“（陈）韪与徐宣俱知名。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "> **说明**：陈韪并非初高中历史教材中的核心人物，其事迹通常作为背景知识或拓展阅读出现在对东汉末年社会风气、人物品评以及曹魏政权建立的叙述中。\n\n### 初中阶段\n- **时代背景**：**东汉末年**，社会动荡，**士族**与**名士**阶层兴起，流行**人物品评**（清议）。\n- **关键事件**：陈韪对**陈登**（陈元龙）的评价是理解当时名士交往与舆论风气的生动案例。\n- **代表思想**：体现了当时士人重视**名声**、**气质**与**社会评价**的价值观。\n- **常见易混点**：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。\n\n### 高中阶段\n- **时代背景**：**汉魏禅代**之际，政治制度与社会阶层发生深刻变化，**九品中正制**正在酝酿。\n- **关键贡献**：作为**汉魏名士**，其生平轨迹反映了士人从认同汉室到服务曹魏的**政治选择**与**心态转变**。\n- **代表思想**：其“刚直”的为官风格，是儒家**忠直**观念在乱世中的一种实践。\n- **对比点**：可与同时代其他选择归隐（如管宁）或激烈反对曹操的名士进行对比，理解汉魏之际士人的不同出路。\n\n---", "examPoints": "### 初中阶段考点\n- 东汉末年**社会动荡**与**地方豪强**、**名士**崛起的关系。\n- **人物品评**（清议）风气的表现与影响（以陈韪评陈登为例）。\n- 曹操“**唯才是举**”政策吸纳的人才类型（包括陈韪这样的名士）。\n- **陈登**的主要事迹与历史评价（陈韪的评价是重要组成部分）。\n\n### 高中阶段考点\n- **汉魏政治集团**的构成与演变（如“谯沛武人”、“汝颍谋士”，陈韪属于哪一类？说法不一，一般归为一般性名士官僚）。\n- **九品中正制**产生的社会基础（与汉末人物品评风气的关联）。\n- 从陈韪等人的经历看**汉魏禅代**过程中士人的**心态与抉择**。\n- 历史人物评价的方法：如何利用有限的、片段的史料（如陈韪的记载）分析其历史地位。", "workTexts": {"先贤行状": "元龙湖海之士，豪气不除。", "三国志·魏书·徐宣传": "（陈）韪与徐宣俱知名。", "三国志": "（陈）韪与徐宣俱知名。", "魏书": "（陈）韪与徐宣俱知名。", "徐宣传": "（陈）韪与徐宣俱知名。", "世说新语": "《世说新语》：可能提及（存疑，需核查原文）。", "三国演义": "常见易混点：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈韪\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈韪（字季弼）\n- **时代**：东汉末年\n- **出生**：不详，广陵东阳（今江苏省扬州市或淮安市一带，具体地点存疑）\n- **去世**：不详，可能逝于魏国\n- **享年**：不详\n- **主要身份**：官员、名士\n- **历史地位**：汉魏之际的名士，以品评人物和刚直不阿著称。\n- **主要成就**：品评陈登，称其“湖海之士，豪气不除”；在曹魏政权中担任要职，以刚直闻名。\n\n### 生平概述\n陈韪，字季弼，广陵东阳人，东汉末年名士。他以善于品评人物而闻名于时，曾在名士聚会中高度评价陈登（陈元龙），留下“湖海之士，豪气不除”的著名评语。天下大乱后，他辗转归附曹操，历任魏郡太守、尚书令等职，在曹魏政权中以刚直不阿、恪尽职守著称。他的一生跨越了汉末动乱与曹魏政权初建的关键时期，是当时士人从汉臣转向魏臣的一个缩影，其言行主要见于《三国志》及裴注所引史料（如《先贤行状》）。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于江淮与中原地区。\n- ⏱️ **时间跨度**：东汉末年至三国初（具体起止年份不详）。\n- 📍 **地理范围**：大致覆盖今江苏、安徽、河南、河北等地。\n- 🌟 **重要节点数量**：5个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：广陵东阳\n- **公元纪年**：不详\n- **停留时间**：早年\n- **位置**：古称广陵东阳（今江苏省扬州市或淮安市一带，具体地点存疑）\n- **事迹**：早年生活与成名之地，于此地积累声望，成为地方名士。\n- **意义**：故乡，其早期声望与“湖海之士”气质的形成地。\n\n### 📍 重要地点：下邳\n- **公元纪年**：约公元190年代\n- **停留时间**：不详（汉末群雄割据时期）\n- **位置**：古称下邳（今江苏省睢宁县北）\n- **事迹**：在此参与名士聚会，发表对陈登（陈元龙）的著名评价。\n- **意义**：其人物品评才能得以展现的关键场合，言论载入史册。\n- **名篇名句**：《三国志·魏书·陈登传》裴注引《先贤行状》：“元龙湖海之士，豪气不除。”\n\n### 📍 重要地点：许都/许县\n- **公元纪年**：约公元196年后\n- **停留时间**：不详（曹操“挟天子以令诸侯”时期）\n- **位置**：古称许县（今河南省许昌市东）\n- **事迹**：归附曹操集团后，可能在此担任官职，参与中央事务。\n- **意义**：进入曹魏政治核心圈的起点。\n\n### 📍 重要地点：邺城\n- **公元纪年**：约公元204年后\n- **停留时间**：较长（曹操封魏王后的都城时期）\n- **位置**：古称邺城（今河北省临漳县西南）\n- **事迹**：担任魏郡太守、尚书令等要职，处理政务，以刚直著称。\n- **意义**：其政治生涯的主要舞台，在曹魏政权中发挥重要作用。\n- **名篇名句**：《三国志·魏书·徐宣传》：“（陈）韪与徐宣俱知名。”\n\n### 📍 重要地点：洛阳\n- **公元纪年**：约公元220年后\n- **停留时间**：不详（曹丕代汉后）\n- **位置**：古称洛阳（今河南省洛阳市东）\n- **事迹**：曹魏代汉后，可能继续在中央朝廷任职。\n- **意义**：见证并参与了汉魏禅代后的政治运作。\n\n### 🔴 去世地：不详\n- **公元纪年**：不详（约在魏文帝、明帝时期）\n- **停留时间**：晚年\n- **位置**：不详（可能逝于洛阳或邺城，待考）\n- **经过**：具体去世经过史载不详，应为病逝或自然死亡。\n- **意义**：其政治生涯的终点。\n- **名篇名句**：无（陈韪无文学作品传世）。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 关键事件 |\n| :--- | :--- |\n| 不详 | 出生于广陵东阳。 |\n| 约公元190年代 | 在下邳参与名士聚会，评价陈登“湖海之士，豪气不除”。 |\n| 约公元196年后 | 归附曹操集团，可能于许都任职。 |\n| 约公元204年后 | 随曹操集团迁至邺城，历任魏郡太守、尚书令等职，以刚直闻名。 |\n| 约公元220年后 | 曹魏代汉，可能继续在洛阳朝廷任职。 |\n| 不详 | 于魏国去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈韪是汉魏之际具有一定影响力的名士与官员。他以精准的人物品评参与了当时的文化清议，其言论成为评价历史人物（如陈登）的重要依据。在政治上，他作为曹操、曹丕政权中的能臣，以刚直的作风参与了曹魏政权的制度建设与日常运作，是汉魏政治文化转型期士人的一个代表。\n\n### 对后世的影响\n- **人物品评典范**：他对陈登的评价成为典故，后世常用“湖海之士”形容豪放洒脱、有抱负的人。\n- **汉魏士人转型代表**：其生平是研究汉末士人如何在乱世中选择阵营、融入新政权的个案。\n- **历史记载价值**：其零星事迹保存在正史与笔记中，为研究汉魏社会、政治与文化提供了细节素材。\n\n### 历史评价\n- **《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。\n- **《世说新语》**：可能提及（存疑，需核查原文）。\n- **后世史家视角**：被视为汉魏之际“清流”士人的一员，其刚直的为官风格受到一定肯定。\n\n---\n\n## 人教版教材知识点\n> **说明**：陈韪并非初高中历史教材中的核心人物，其事迹通常作为背景知识或拓展阅读出现在对东汉末年社会风气、人物品评以及曹魏政权建立的叙述中。\n\n### 初中阶段\n- **时代背景**：**东汉末年**，社会动荡，**士族**与**名士**阶层兴起，流行**人物品评**（清议）。\n- **关键事件**：陈韪对**陈登**（陈元龙）的评价是理解当时名士交往与舆论风气的生动案例。\n- **代表思想**：体现了当时士人重视**名声**、**气质**与**社会评价**的价值观。\n- **常见易混点**：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。\n\n### 高中阶段\n- **时代背景**：**汉魏禅代**之际，政治制度与社会阶层发生深刻变化，**九品中正制**正在酝酿。\n- **关键贡献**：作为**汉魏名士**，其生平轨迹反映了士人从认同汉室到服务曹魏的**政治选择**与**心态转变**。\n- **代表思想**：其“刚直”的为官风格，是儒家**忠直**观念在乱世中的一种实践。\n- **对比点**：可与同时代其他选择归隐（如管宁）或激烈反对曹操的名士进行对比，理解汉魏之际士人的不同出路。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 东汉末年**社会动荡**与**地方豪强**、**名士**崛起的关系。\n- **人物品评**（清议）风气的表现与影响（以陈韪评陈登为例）。\n- 曹操“**唯才是举**”政策吸纳的人才类型（包括陈韪这样的名士）。\n- **陈登**的主要事迹与历史评价（陈韪的评价是重要组成部分）。\n\n### 高中阶段考点\n- **汉魏政治集团**的构成与演变（如“谯沛武人”、“汝颍谋士”，陈韪属于哪一类？说法不一，一般归为一般性名士官僚）。\n- **九品中正制**产生的社会基础（与汉末人物品评风气的关联）。\n- 从陈韪等人的经历看**汉魏禅代**过程中士人的**心态与抉择**。\n- 历史人物评价的方法：如何利用有限的、片段的史料（如陈韪的记载）分析其历史地位。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 122, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 122, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "汉", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "“秋风萧瑟天气凉，草木摇落露为霜。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈元方", "name": "陈元方", "file": "陈元方.html", "dynasty": "东汉", "aliases": [], "birth_year": null, "death_year": null, "quote": "“陈太丘与友期行”", "review": "*《后汉书》**：“（陈）纪字元方，亦以至德称。兄弟孝养，闺门雍和，后进之士皆推慕其风。”", "foreign_name": "", "main_role_label": "官员", "birthplace": "约活动于东汉桓帝、灵帝时期", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈韪", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "陈韪", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "陈韪", "target": "孔融", "label": "同朝共现", "confidence": 0.25}, {"source": "陈韪", "target": "钱钟书", "label": "同册共现", "confidence": 0.15}, {"source": "陈韪", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "陈韪", "target": "陈元方", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "陈韪", "title": "", "description": "陈韪，字季弼，广陵东阳人，东汉末年名士。他以善于品评人物而闻名于时，曾在名士聚会中高度评价陈登（陈元龙），留下“湖海之士，豪气不除”的著名评语。天下大乱后，他辗转归附曹操，历任魏郡太守、尚书令等职，在曹魏政权中以刚直不阿、恪尽职守著称。他的一生跨越了汉末动乱与曹魏政权初建的关键时期，是当时士人从汉臣转向魏臣的一个缩影，其言行主要见于《三国志》及裴注所引史料（如《先贤行状》）。", "quote": "可能提及（存疑，需核查原文）。", "shortReview": "可能提及（存疑，需核查原文）。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "广陵东阳", "avatar": "", "birth": {"date": "", "location": "广陵东阳", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "可能逝于魏国", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "汉魏之际的名士，以品评人物和刚直不阿著称。", "identities": "官员、名士", "achievements": "品评陈登，称其“湖海之士，豪气不除”；在曹魏政权中担任要职，以刚直闻名。", "works": ["三国志", "先贤行状"], "reviews": ["**《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "**《世说新语》**：可能提及（存疑，需核查原文）。", "**后世史家视角**：被视为汉魏之际“清流”士人的一员，其刚直的为官风格受到一定肯定。"]}}, "locations": [{"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.2633625, "lng": 114.5416626, "coordSystem": "WGS84", "type": "normal", "event": "担任魏郡太守、尚书令等要职，处理政务，以刚直著称。", "time": "约公元204年后", "duration": "较长（曹操封魏王后的都城时期）", "significance": "其政治生涯的主要舞台，在曹魏政权中发挥重要作用。", "works": [], "quoteLines": ["《三国志·魏书·徐宣传》：“（陈）韪与徐宣俱知名。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "> **说明**：陈韪并非初高中历史教材中的核心人物，其事迹通常作为背景知识或拓展阅读出现在对东汉末年社会风气、人物品评以及曹魏政权建立的叙述中。\n\n### 初中阶段\n- **时代背景**：**东汉末年**，社会动荡，**士族**与**名士**阶层兴起，流行**人物品评**（清议）。\n- **关键事件**：陈韪对**陈登**（陈元龙）的评价是理解当时名士交往与舆论风气的生动案例。\n- **代表思想**：体现了当时士人重视**名声**、**气质**与**社会评价**的价值观。\n- **常见易混点**：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。\n\n### 高中阶段\n- **时代背景**：**汉魏禅代**之际，政治制度与社会阶层发生深刻变化，**九品中正制**正在酝酿。\n- **关键贡献**：作为**汉魏名士**，其生平轨迹反映了士人从认同汉室到服务曹魏的**政治选择**与**心态转变**。\n- **代表思想**：其“刚直”的为官风格，是儒家**忠直**观念在乱世中的一种实践。\n- **对比点**：可与同时代其他选择归隐（如管宁）或激烈反对曹操的名士进行对比，理解汉魏之际士人的不同出路。\n\n---", "examPoints": "### 初中阶段考点\n- 东汉末年**社会动荡**与**地方豪强**、**名士**崛起的关系。\n- **人物品评**（清议）风气的表现与影响（以陈韪评陈登为例）。\n- 曹操“**唯才是举**”政策吸纳的人才类型（包括陈韪这样的名士）。\n- **陈登**的主要事迹与历史评价（陈韪的评价是重要组成部分）。\n\n### 高中阶段考点\n- **汉魏政治集团**的构成与演变（如“谯沛武人”、“汝颍谋士”，陈韪属于哪一类？说法不一，一般归为一般性名士官僚）。\n- **九品中正制**产生的社会基础（与汉末人物品评风气的关联）。\n- 从陈韪等人的经历看**汉魏禅代**过程中士人的**心态与抉择**。\n- 历史人物评价的方法：如何利用有限的、片段的史料（如陈韪的记载）分析其历史地位。", "workTexts": {"先贤行状": "元龙湖海之士，豪气不除。", "三国志·魏书·徐宣传": "（陈）韪与徐宣俱知名。", "三国志": "（陈）韪与徐宣俱知名。", "魏书": "（陈）韪与徐宣俱知名。", "徐宣传": "（陈）韪与徐宣俱知名。", "世说新语": "《世说新语》：可能提及（存疑，需核查原文）。", "三国演义": "常见易混点：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈韪\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈韪（字季弼）\n- **时代**：东汉末年\n- **出生**：不详，广陵东阳（今江苏省扬州市或淮安市一带，具体地点存疑）\n- **去世**：不详，可能逝于魏国\n- **享年**：不详\n- **主要身份**：官员、名士\n- **历史地位**：汉魏之际的名士，以品评人物和刚直不阿著称。\n- **主要成就**：品评陈登，称其“湖海之士，豪气不除”；在曹魏政权中担任要职，以刚直闻名。\n\n### 生平概述\n陈韪，字季弼，广陵东阳人，东汉末年名士。他以善于品评人物而闻名于时，曾在名士聚会中高度评价陈登（陈元龙），留下“湖海之士，豪气不除”的著名评语。天下大乱后，他辗转归附曹操，历任魏郡太守、尚书令等职，在曹魏政权中以刚直不阿、恪尽职守著称。他的一生跨越了汉末动乱与曹魏政权初建的关键时期，是当时士人从汉臣转向魏臣的一个缩影，其言行主要见于《三国志》及裴注所引史料（如《先贤行状》）。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于江淮与中原地区。\n- ⏱️ **时间跨度**：东汉末年至三国初（具体起止年份不详）。\n- 📍 **地理范围**：大致覆盖今江苏、安徽、河南、河北等地。\n- 🌟 **重要节点数量**：5个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：广陵东阳\n- **公元纪年**：不详\n- **停留时间**：早年\n- **位置**：古称广陵东阳（今江苏省扬州市或淮安市一带，具体地点存疑）\n- **事迹**：早年生活与成名之地，于此地积累声望，成为地方名士。\n- **意义**：故乡，其早期声望与“湖海之士”气质的形成地。\n\n### 📍 重要地点：下邳\n- **公元纪年**：约公元190年代\n- **停留时间**：不详（汉末群雄割据时期）\n- **位置**：古称下邳（今江苏省睢宁县北）\n- **事迹**：在此参与名士聚会，发表对陈登（陈元龙）的著名评价。\n- **意义**：其人物品评才能得以展现的关键场合，言论载入史册。\n- **名篇名句**：《三国志·魏书·陈登传》裴注引《先贤行状》：“元龙湖海之士，豪气不除。”\n\n### 📍 重要地点：许都/许县\n- **公元纪年**：约公元196年后\n- **停留时间**：不详（曹操“挟天子以令诸侯”时期）\n- **位置**：古称许县（今河南省许昌市东）\n- **事迹**：归附曹操集团后，可能在此担任官职，参与中央事务。\n- **意义**：进入曹魏政治核心圈的起点。\n\n### 📍 重要地点：邺城\n- **公元纪年**：约公元204年后\n- **停留时间**：较长（曹操封魏王后的都城时期）\n- **位置**：古称邺城（今河北省临漳县西南）\n- **事迹**：担任魏郡太守、尚书令等要职，处理政务，以刚直著称。\n- **意义**：其政治生涯的主要舞台，在曹魏政权中发挥重要作用。\n- **名篇名句**：《三国志·魏书·徐宣传》：“（陈）韪与徐宣俱知名。”\n\n### 📍 重要地点：洛阳\n- **公元纪年**：约公元220年后\n- **停留时间**：不详（曹丕代汉后）\n- **位置**：古称洛阳（今河南省洛阳市东）\n- **事迹**：曹魏代汉后，可能继续在中央朝廷任职。\n- **意义**：见证并参与了汉魏禅代后的政治运作。\n\n### 🔴 去世地：不详\n- **公元纪年**：不详（约在魏文帝、明帝时期）\n- **停留时间**：晚年\n- **位置**：不详（可能逝于洛阳或邺城，待考）\n- **经过**：具体去世经过史载不详，应为病逝或自然死亡。\n- **意义**：其政治生涯的终点。\n- **名篇名句**：无（陈韪无文学作品传世）。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 关键事件 |\n| :--- | :--- |\n| 不详 | 出生于广陵东阳。 |\n| 约公元190年代 | 在下邳参与名士聚会，评价陈登“湖海之士，豪气不除”。 |\n| 约公元196年后 | 归附曹操集团，可能于许都任职。 |\n| 约公元204年后 | 随曹操集团迁至邺城，历任魏郡太守、尚书令等职，以刚直闻名。 |\n| 约公元220年后 | 曹魏代汉，可能继续在洛阳朝廷任职。 |\n| 不详 | 于魏国去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈韪是汉魏之际具有一定影响力的名士与官员。他以精准的人物品评参与了当时的文化清议，其言论成为评价历史人物（如陈登）的重要依据。在政治上，他作为曹操、曹丕政权中的能臣，以刚直的作风参与了曹魏政权的制度建设与日常运作，是汉魏政治文化转型期士人的一个代表。\n\n### 对后世的影响\n- **人物品评典范**：他对陈登的评价成为典故，后世常用“湖海之士”形容豪放洒脱、有抱负的人。\n- **汉魏士人转型代表**：其生平是研究汉末士人如何在乱世中选择阵营、融入新政权的个案。\n- **历史记载价值**：其零星事迹保存在正史与笔记中，为研究汉魏社会、政治与文化提供了细节素材。\n\n### 历史评价\n- **《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。\n- **《世说新语》**：可能提及（存疑，需核查原文）。\n- **后世史家视角**：被视为汉魏之际“清流”士人的一员，其刚直的为官风格受到一定肯定。\n\n---\n\n## 人教版教材知识点\n> **说明**：陈韪并非初高中历史教材中的核心人物，其事迹通常作为背景知识或拓展阅读出现在对东汉末年社会风气、人物品评以及曹魏政权建立的叙述中。\n\n### 初中阶段\n- **时代背景**：**东汉末年**，社会动荡，**士族**与**名士**阶层兴起，流行**人物品评**（清议）。\n- **关键事件**：陈韪对**陈登**（陈元龙）的评价是理解当时名士交往与舆论风气的生动案例。\n- **代表思想**：体现了当时士人重视**名声**、**气质**与**社会评价**的价值观。\n- **常见易混点**：注意区分历史人物陈韪与小说《三国演义》中可能的艺术虚构情节。\n\n### 高中阶段\n- **时代背景**：**汉魏禅代**之际，政治制度与社会阶层发生深刻变化，**九品中正制**正在酝酿。\n- **关键贡献**：作为**汉魏名士**，其生平轨迹反映了士人从认同汉室到服务曹魏的**政治选择**与**心态转变**。\n- **代表思想**：其“刚直”的为官风格，是儒家**忠直**观念在乱世中的一种实践。\n- **对比点**：可与同时代其他选择归隐（如管宁）或激烈反对曹操的名士进行对比，理解汉魏之际士人的不同出路。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 东汉末年**社会动荡**与**地方豪强**、**名士**崛起的关系。\n- **人物品评**（清议）风气的表现与影响（以陈韪评陈登为例）。\n- 曹操“**唯才是举**”政策吸纳的人才类型（包括陈韪这样的名士）。\n- **陈登**的主要事迹与历史评价（陈韪的评价是重要组成部分）。\n\n### 高中阶段考点\n- **汉魏政治集团**的构成与演变（如“谯沛武人”、“汝颍谋士”，陈韪属于哪一类？说法不一，一般归为一般性名士官僚）。\n- **九品中正制**产生的社会基础（与汉末人物品评风气的关联）。\n- 从陈韪等人的经历看**汉魏禅代**过程中士人的**心态与抉择**。\n- 历史人物评价的方法：如何利用有限的、片段的史料（如陈韪的记载）分析其历史地位。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 122, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 122, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "汉", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "“秋风萧瑟天气凉，草木摇落露为霜。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈元方", "name": "陈元方", "file": "陈元方.html", "dynasty": "东汉", "aliases": [], "birth_year": null, "death_year": null, "quote": "“陈太丘与友期行”", "review": "*《后汉书》**：“（陈）纪字元方，亦以至德称。兄弟孝养，闺门雍和，后进之士皆推慕其风。”", "foreign_name": "", "main_role_label": "官员", "birthplace": "约活动于东汉桓帝、灵帝时期", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈韪", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "陈韪", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "陈韪", "target": "孔融", "label": "同朝共现", "confidence": 0.25}, {"source": "陈韪", "target": "钱钟书", "label": "同册共现", "confidence": 0.15}, {"source": "陈韪", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "陈韪", "target": "陈元方", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "孔融", "title": "建安七子", "description": "孔融，字文举，孔子二十世孙。他生于鲁国曲阜，幼有异才，因“孔融让梨”而闻名。汉灵帝时步入仕途，后任北海相，在黄巾乱中保境安民，颇有政声。汉末大乱，他南投曹操，任将作大匠、少府等职。孔融为人刚直，屡次讥讽曹操的政策与权威，尤其在政治理念与曹魏代汉的趋势上存在根本冲突，最终被曹操以“招合徒众”、“欲图不轨”等罪名杀害。其文学作品气扬采飞，体现了鲜明的建安风骨。", "quote": "言多令事败，器漏苦不密。", "shortReview": "言多令事败，器漏苦不密。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "鲁国（今山东省曲阜市）", "avatar": "", "birth": {"date": "153年", "location": "鲁国（今山东省曲阜市）", "lat": 35.5819, "lng": 116.9862, "coordSystem": "WGS84"}, "death": {"date": "208年", "location": "许都（今河南省许昌市）", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84"}, "lifespan": "55或56岁（因生年存疑）", "highlights": {"honor": "建安七子", "status": "东汉末年著名文学家与名士，“建安七子”之一，以刚直不阿与孝友之名传世。", "identities": "文学家、名士、官员", "achievements": "1. “建安七子”之一，文学成就卓著；2. 以“孔融让梨”等故事闻名，成为传统道德教育中的典范；3. 任北海相时兴办学校，宣扬儒术；4. 其政治立场与文学作品对后世产生深远影响。", "works": [], "reviews": []}}, "locations": [{"name": "鲁国曲阜", "ancientName": "鲁国曲阜", "modernName": "山东省曲阜市", "lat": 35.5819, "lng": 116.9862, "coordSystem": "WGS84", "type": "birth", "event": "出生于儒学世家，为孔子二十世孙。幼年即展现聪慧，留下“孔融让梨”的典故。", "time": "公元153年（存疑）", "duration": "幼年时期", "significance": "奠定了其深厚的儒学背景与家族荣誉感，成为其一生思想与行为的根基。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "司隶洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "年少时拜访名士李膺（一说陈韪），机智对答，名动京师。后辟司徒杨赐府，开始仕途。", "time": "约公元160年代 - 170年代", "duration": "青年求学与初入仕途时期", "significance": "在政治与文化中心崭露头角，获得极高声誉，为其后续的政治生涯与文坛地位打下基础。", "works": [], "quoteLines": []}, {"name": "北海国", "ancientName": "北海国剧县", "modernName": "山东省昌乐县", "lat": 36.707, "lng": 118.8299, "coordSystem": "WGS84", "type": "normal", "event": "任北海相，面对黄巾军围攻，曾遣太史慈求援于刘备。在任期间设立学校，举荐贤才，宣扬儒学。", "time": "公元189年 - 196年（存疑）", "duration": "约7年", "significance": "这是孔融独立主政、实践其政治理想的关键时期，虽军事上屡遭挫败，但文治方面颇有建树，“孔北海”之称由此而来。", "works": [], "quoteLines": []}, {"name": "青州（今山东省淄博市临淄区）", "ancientName": "青州", "modernName": "山东省淄博市临淄区", "lat": 36.8131, "lng": 118.0548, "coordSystem": "WGS84", "type": "normal", "event": "被袁谭攻击，城破弃家逃亡，妻子被俘。具体逃亡路线待考。", "time": "约公元196年", "duration": "短暂", "significance": "经历了其政治军事生涯中最惨重的失败，标志着其地方割据势力的终结。", "works": [], "quoteLines": []}, {"name": "许都", "ancientName": "许县，时为汉献帝都城。", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "被征为将作大匠，后迁少府、太中大夫。在朝中常发表议论，多侮慢之辞，对曹操的政策多有讥讽。", "time": "公元196年 - 208年", "duration": "12年", "significance": "进入曹操权力中心，生活相对安定，但其政治立场与性格为最终的悲剧埋下伏笔。此阶段是其文学创作的高峰期之一。", "works": [], "quoteLines": []}, {"name": "许都（曹操司空府）", "ancientName": "司空府", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "与曹操在政治、礼法等问题上多次发生冲突。曾反对曹操禁酒，写信嘲讽；对曹丕纳甄氏一事也加以讥讽。", "time": "约公元196年 - 208年", "duration": "多次往返", "significance": "这些冲突集中体现了孔融维护汉室、坚守儒家礼法与曹操务实集权路线的根本矛盾。", "works": [], "quoteLines": []}, {"name": "许都（少府官署）", "ancientName": "少府寺", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "任少府，掌管宫中御衣、宝货等。在此职位上，仍继续发表其政治见解。", "time": "约公元200年代", "duration": "任职期间", "significance": "官职虽尊荣，但远离核心决策层，其言论更多被视为名士的清谈，政治影响力下降。", "works": [], "quoteLines": []}, {"name": "许都（太中大夫宅邸）", "ancientName": "太中大夫府", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "任闲职太中大夫，家中宾客盈门。曾发表“父母于子女无恩”等惊世骇俗的言论。", "time": "约公元207年 - 208年", "duration": "晚年最后时光", "significance": "其言论被政敌郗虑、路粹等罗织为罪状，成为被杀的直接导火索。", "works": [], "quoteLines": []}, {"name": "许都刑场", "ancientName": "许都市曹", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "death", "event": "被曹操以“大逆不道”罪名处斩，妻子儿女同时遇害。", "time": "公元208年", "duration": "临刑", "significance": "标志着建安风骨中一位最具个性与反抗精神的文人陨落，是汉末政治清洗的典型案例。", "works": [], "quoteLines": ["《临终诗》：“言多令事败，器漏苦不密。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---", "workTexts": {"临终诗": "言多令事败，器漏苦不密。", "孔融让梨": "重点：《孔融让梨》 作为传统孝友、谦让美德的经典叙事，具有极高的道德教化意义。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 孔融\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孔融\n- **时代**：东汉末年\n- **出生**：公元153年（存疑，一说154年），鲁国（今山东省曲阜市）\n- **去世**：公元208年，许都（今河南省许昌市）\n- **享年**：55或56岁（因生年存疑）\n- **主要身份**：文学家、名士、官员\n- **历史地位**：东汉末年著名文学家与名士，“建安七子”之一，以刚直不阿与孝友之名传世。\n- **主要成就**：1. “建安七子”之一，文学成就卓著；2. 以“孔融让梨”等故事闻名，成为传统道德教育中的典范；3. 任北海相时兴办学校，宣扬儒术；4. 其政治立场与文学作品对后世产生深远影响。\n\n### 生平概述\n孔融，字文举，孔子二十世孙。他生于鲁国曲阜，幼有异才，因“孔融让梨”而闻名。汉灵帝时步入仕途，后任北海相，在黄巾乱中保境安民，颇有政声。汉末大乱，他南投曹操，任将作大匠、少府等职。孔融为人刚直，屡次讥讽曹操的政策与权威，尤其在政治理念与曹魏代汉的趋势上存在根本冲突，最终被曹操以“招合徒众”、“欲图不轨”等罪名杀害。其文学作品气扬采飞，体现了鲜明的建安风骨。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于今山东、河南一带，从故乡鲁国到京师洛阳，再到任职的北海国，最终南下许都并终老于此。\n- ⏱️ **时间跨度**：约公元153年 - 公元208年，总跨度约55年。\n- 📍 **地理范围**：主要覆盖今山东省中西部、河南省中北部。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：鲁国曲阜\n- **时间**：公元153年（存疑）\n- **停留时间**：幼年时期\n- **地点**：鲁国曲阜（今山东省曲阜市）\n- **事件**：出生于儒学世家，为孔子二十世孙。幼年即展现聪慧，留下“孔融让梨”的典故。\n- **意义**：奠定了其深厚的儒学背景与家族荣誉感，成为其一生思想与行为的根基。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元160年代 - 170年代\n- **停留时间**：青年求学与初入仕途时期\n- **地点**：司隶洛阳（今河南省洛阳市）\n- **事件**：年少时拜访名士李膺（一说陈韪），机智对答，名动京师。后辟司徒杨赐府，开始仕途。\n- **意义**：在政治与文化中心崭露头角，获得极高声誉，为其后续的政治生涯与文坛地位打下基础。\n\n### 📍 重要地点：北海国\n- **时间**：公元189年 - 196年（存疑）\n- **停留时间**：约7年\n- **地点**：北海国剧县（今山东省昌乐县）\n- **事件**：任北海相，面对黄巾军围攻，曾遣太史慈求援于刘备。在任期间设立学校，举荐贤才，宣扬儒学。\n- **意义**：这是孔融独立主政、实践其政治理想的关键时期，虽军事上屡遭挫败，但文治方面颇有建树，“孔北海”之称由此而来。\n\n### 📍 重要地点：青州（今山东省淄博市临淄区）\n- **时间**：约公元196年\n- **停留时间**：短暂\n- **地点**：青州（今山东省淄博市临淄区）\n- **事件**：被袁谭攻击，城破弃家逃亡，妻子被俘。具体逃亡路线待考。\n- **意义**：经历了其政治军事生涯中最惨重的失败，标志着其地方割据势力的终结。\n\n### 📍 重要地点：许都\n- **时间**：公元196年 - 208年\n- **停留时间**：12年\n- **地点**：许县（今河南省许昌市），时为汉献帝都城。\n- **事件**：被征为将作大匠，后迁少府、太中大夫。在朝中常发表议论，多侮慢之辞，对曹操的政策多有讥讽。\n- **意义**：进入曹操权力中心，生活相对安定，但其政治立场与性格为最终的悲剧埋下伏笔。此阶段是其文学创作的高峰期之一。\n\n### 📍 重要地点：许都（曹操司空府）\n- **时间**：约公元196年 - 208年\n- **停留时间**：多次往返\n- **地点**：司空府（今河南省许昌市）\n- **事件**：与曹操在政治、礼法等问题上多次发生冲突。曾反对曹操禁酒，写信嘲讽；对曹丕纳甄氏一事也加以讥讽。\n- **意义**：这些冲突集中体现了孔融维护汉室、坚守儒家礼法与曹操务实集权路线的根本矛盾。\n\n### 📍 重要地点：许都（少府官署）\n- **时间**：约公元200年代\n- **停留时间**：任职期间\n- **地点**：少府寺（今河南省许昌市）\n- **事件**：任少府，掌管宫中御衣、宝货等。在此职位上，仍继续发表其政治见解。\n- **意义**：官职虽尊荣，但远离核心决策层，其言论更多被视为名士的清谈，政治影响力下降。\n\n### 📍 重要地点：许都（太中大夫宅邸）\n- **时间**：约公元207年 - 208年\n- **停留时间**：晚年最后时光\n- **地点**：太中大夫府（今河南省许昌市）\n- **事件**：任闲职太中大夫，家中宾客盈门。曾发表“父母于子女无恩”等惊世骇俗的言论。\n- **意义**：其言论被政敌郗虑、路粹等罗织为罪状，成为被杀的直接导火索。\n\n### 🔴 去世地：许都刑场\n- **时间**：公元208年\n- **停留时间**：临刑\n- **地点**：许都市曹（今河南省许昌市）\n- **事件**：被曹操以“大逆不道”罪名处斩，妻子儿女同时遇害。\n- **意义**：标志着建安风骨中一位最具个性与反抗精神的文人陨落，是汉末政治清洗的典型案例。\n- **名篇名句**：《临终诗》：“言多令事败，器漏苦不密。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元153年（存疑） | 0岁 | 生于鲁国曲阜。 |\n| 约160年代 | 幼年 | “孔融让梨”故事发生。 |\n| 约160年代末 | 少年 | 随父至洛阳，拜访名士李膺（一说陈韪），名震京师。 |\n| 公元178年 | 约25岁 | 因得罪宦官侯览，被禁锢不得为官。 |\n| 公元184年 | 约31岁 | 禁锢解除，被司徒府征辟，后举高第，为侍御史。 |\n| 公元189年 | 约36岁 | 任北海国相，治理地方，抗击黄巾。 |\n| 公元196年 | 约43岁 | 被袁谭击败，弃城逃亡。随后被征召至许都，任将作大匠。 |\n| 公元197年 | 约44岁 | 迁任少府。 |\n| 公元200年代 | 约50岁后 | 转任太中大夫，与曹操矛盾日深。 |\n| 公元208年 | 55或56岁（因生年存疑） | 被曹操以罪名处死于许都。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省曲阜市 | 35.5819 | 116.9862 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省昌乐县 | 36.7070 | 118.8299 |\n| 山东省淄博市临淄区 | 36.8131 | 118.0548 |\n| 河南省许昌市 | 34.0358 | 113.8527 |", "relatedGraph": {"center": {"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "言多令事败，器漏苦不密。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "言多令事败，器漏苦不密。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "汉", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "汉", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "“秋风萧瑟天气凉，草木摇落露为霜。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "周恩来", "name": "周恩来", "file": "周恩来.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1898, "death_year": 1976, "quote": "“为中华之崛起而读书”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "淮安府山阳县", "birthplace_modern": "江苏省淮安市淮安区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "孔融", "target": "刘备", "label": "君臣", "confidence": null}, {"source": "孔融", "target": "曹操", "label": "对手", "confidence": null}, {"source": "孔融", "target": "曹丕", "label": "对手", "confidence": null}, {"source": "孔融", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "孔融", "target": "陈韪", "label": "同朝共现", "confidence": 0.25}, {"source": "孔融", "target": "周恩来", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "孔融", "title": "建安七子", "description": "孔融，字文举，孔子二十世孙。他生于鲁国曲阜，幼有异才，因“孔融让梨”而闻名。汉灵帝时步入仕途，后任北海相，在黄巾乱中保境安民，颇有政声。汉末大乱，他南投曹操，任将作大匠、少府等职。孔融为人刚直，屡次讥讽曹操的政策与权威，尤其在政治理念与曹魏代汉的趋势上存在根本冲突，最终被曹操以“招合徒众”、“欲图不轨”等罪名杀害。其文学作品气扬采飞，体现了鲜明的建安风骨。", "quote": "言多令事败，器漏苦不密。", "shortReview": "言多令事败，器漏苦不密。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "鲁国（今山东省曲阜市）", "avatar": "", "birth": {"date": "153年", "location": "鲁国（今山东省曲阜市）", "lat": 35.5819, "lng": 116.9862, "coordSystem": "WGS84"}, "death": {"date": "208年", "location": "许都（今河南省许昌市）", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84"}, "lifespan": "55或56岁（因生年存疑）", "highlights": {"honor": "建安七子", "status": "东汉末年著名文学家与名士，“建安七子”之一，以刚直不阿与孝友之名传世。", "identities": "文学家、名士、官员", "achievements": "1. “建安七子”之一，文学成就卓著；2. 以“孔融让梨”等故事闻名，成为传统道德教育中的典范；3. 任北海相时兴办学校，宣扬儒术；4. 其政治立场与文学作品对后世产生深远影响。", "works": [], "reviews": []}}, "locations": [{"name": "鲁国曲阜", "ancientName": "鲁国曲阜", "modernName": "山东省曲阜市", "lat": 35.5819, "lng": 116.9862, "coordSystem": "WGS84", "type": "birth", "event": "出生于儒学世家，为孔子二十世孙。幼年即展现聪慧，留下“孔融让梨”的典故。", "time": "公元153年（存疑）", "duration": "幼年时期", "significance": "奠定了其深厚的儒学背景与家族荣誉感，成为其一生思想与行为的根基。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "司隶洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "年少时拜访名士李膺（一说陈韪），机智对答，名动京师。后辟司徒杨赐府，开始仕途。", "time": "约公元160年代 - 170年代", "duration": "青年求学与初入仕途时期", "significance": "在政治与文化中心崭露头角，获得极高声誉，为其后续的政治生涯与文坛地位打下基础。", "works": [], "quoteLines": []}, {"name": "北海国", "ancientName": "北海国剧县", "modernName": "山东省昌乐县", "lat": 36.707, "lng": 118.8299, "coordSystem": "WGS84", "type": "normal", "event": "任北海相，面对黄巾军围攻，曾遣太史慈求援于刘备。在任期间设立学校，举荐贤才，宣扬儒学。", "time": "公元189年 - 196年（存疑）", "duration": "约7年", "significance": "这是孔融独立主政、实践其政治理想的关键时期，虽军事上屡遭挫败，但文治方面颇有建树，“孔北海”之称由此而来。", "works": [], "quoteLines": []}, {"name": "青州（今山东省淄博市临淄区）", "ancientName": "青州", "modernName": "山东省淄博市临淄区", "lat": 36.8131, "lng": 118.0548, "coordSystem": "WGS84", "type": "normal", "event": "被袁谭攻击，城破弃家逃亡，妻子被俘。具体逃亡路线待考。", "time": "约公元196年", "duration": "短暂", "significance": "经历了其政治军事生涯中最惨重的失败，标志着其地方割据势力的终结。", "works": [], "quoteLines": []}, {"name": "许都", "ancientName": "许县，时为汉献帝都城。", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "被征为将作大匠，后迁少府、太中大夫。在朝中常发表议论，多侮慢之辞，对曹操的政策多有讥讽。", "time": "公元196年 - 208年", "duration": "12年", "significance": "进入曹操权力中心，生活相对安定，但其政治立场与性格为最终的悲剧埋下伏笔。此阶段是其文学创作的高峰期之一。", "works": [], "quoteLines": []}, {"name": "许都（曹操司空府）", "ancientName": "司空府", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "与曹操在政治、礼法等问题上多次发生冲突。曾反对曹操禁酒，写信嘲讽；对曹丕纳甄氏一事也加以讥讽。", "time": "约公元196年 - 208年", "duration": "多次往返", "significance": "这些冲突集中体现了孔融维护汉室、坚守儒家礼法与曹操务实集权路线的根本矛盾。", "works": [], "quoteLines": []}, {"name": "许都（少府官署）", "ancientName": "少府寺", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "任少府，掌管宫中御衣、宝货等。在此职位上，仍继续发表其政治见解。", "time": "约公元200年代", "duration": "任职期间", "significance": "官职虽尊荣，但远离核心决策层，其言论更多被视为名士的清谈，政治影响力下降。", "works": [], "quoteLines": []}, {"name": "许都（太中大夫宅邸）", "ancientName": "太中大夫府", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "任闲职太中大夫，家中宾客盈门。曾发表“父母于子女无恩”等惊世骇俗的言论。", "time": "约公元207年 - 208年", "duration": "晚年最后时光", "significance": "其言论被政敌郗虑、路粹等罗织为罪状，成为被杀的直接导火索。", "works": [], "quoteLines": []}, {"name": "许都刑场", "ancientName": "许都市曹", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "death", "event": "被曹操以“大逆不道”罪名处斩，妻子儿女同时遇害。", "time": "公元208年", "duration": "临刑", "significance": "标志着建安风骨中一位最具个性与反抗精神的文人陨落，是汉末政治清洗的典型案例。", "works": [], "quoteLines": ["《临终诗》：“言多令事败，器漏苦不密。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---", "workTexts": {"临终诗": "言多令事败，器漏苦不密。", "孔融让梨": "重点：《孔融让梨》 作为传统孝友、谦让美德的经典叙事，具有极高的道德教化意义。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 孔融\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孔融\n- **时代**：东汉末年\n- **出生**：公元153年（存疑，一说154年），鲁国（今山东省曲阜市）\n- **去世**：公元208年，许都（今河南省许昌市）\n- **享年**：55或56岁（因生年存疑）\n- **主要身份**：文学家、名士、官员\n- **历史地位**：东汉末年著名文学家与名士，“建安七子”之一，以刚直不阿与孝友之名传世。\n- **主要成就**：1. “建安七子”之一，文学成就卓著；2. 以“孔融让梨”等故事闻名，成为传统道德教育中的典范；3. 任北海相时兴办学校，宣扬儒术；4. 其政治立场与文学作品对后世产生深远影响。\n\n### 生平概述\n孔融，字文举，孔子二十世孙。他生于鲁国曲阜，幼有异才，因“孔融让梨”而闻名。汉灵帝时步入仕途，后任北海相，在黄巾乱中保境安民，颇有政声。汉末大乱，他南投曹操，任将作大匠、少府等职。孔融为人刚直，屡次讥讽曹操的政策与权威，尤其在政治理念与曹魏代汉的趋势上存在根本冲突，最终被曹操以“招合徒众”、“欲图不轨”等罪名杀害。其文学作品气扬采飞，体现了鲜明的建安风骨。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于今山东、河南一带，从故乡鲁国到京师洛阳，再到任职的北海国，最终南下许都并终老于此。\n- ⏱️ **时间跨度**：约公元153年 - 公元208年，总跨度约55年。\n- 📍 **地理范围**：主要覆盖今山东省中西部、河南省中北部。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：鲁国曲阜\n- **时间**：公元153年（存疑）\n- **停留时间**：幼年时期\n- **地点**：鲁国曲阜（今山东省曲阜市）\n- **事件**：出生于儒学世家，为孔子二十世孙。幼年即展现聪慧，留下“孔融让梨”的典故。\n- **意义**：奠定了其深厚的儒学背景与家族荣誉感，成为其一生思想与行为的根基。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元160年代 - 170年代\n- **停留时间**：青年求学与初入仕途时期\n- **地点**：司隶洛阳（今河南省洛阳市）\n- **事件**：年少时拜访名士李膺（一说陈韪），机智对答，名动京师。后辟司徒杨赐府，开始仕途。\n- **意义**：在政治与文化中心崭露头角，获得极高声誉，为其后续的政治生涯与文坛地位打下基础。\n\n### 📍 重要地点：北海国\n- **时间**：公元189年 - 196年（存疑）\n- **停留时间**：约7年\n- **地点**：北海国剧县（今山东省昌乐县）\n- **事件**：任北海相，面对黄巾军围攻，曾遣太史慈求援于刘备。在任期间设立学校，举荐贤才，宣扬儒学。\n- **意义**：这是孔融独立主政、实践其政治理想的关键时期，虽军事上屡遭挫败，但文治方面颇有建树，“孔北海”之称由此而来。\n\n### 📍 重要地点：青州（今山东省淄博市临淄区）\n- **时间**：约公元196年\n- **停留时间**：短暂\n- **地点**：青州（今山东省淄博市临淄区）\n- **事件**：被袁谭攻击，城破弃家逃亡，妻子被俘。具体逃亡路线待考。\n- **意义**：经历了其政治军事生涯中最惨重的失败，标志着其地方割据势力的终结。\n\n### 📍 重要地点：许都\n- **时间**：公元196年 - 208年\n- **停留时间**：12年\n- **地点**：许县（今河南省许昌市），时为汉献帝都城。\n- **事件**：被征为将作大匠，后迁少府、太中大夫。在朝中常发表议论，多侮慢之辞，对曹操的政策多有讥讽。\n- **意义**：进入曹操权力中心，生活相对安定，但其政治立场与性格为最终的悲剧埋下伏笔。此阶段是其文学创作的高峰期之一。\n\n### 📍 重要地点：许都（曹操司空府）\n- **时间**：约公元196年 - 208年\n- **停留时间**：多次往返\n- **地点**：司空府（今河南省许昌市）\n- **事件**：与曹操在政治、礼法等问题上多次发生冲突。曾反对曹操禁酒，写信嘲讽；对曹丕纳甄氏一事也加以讥讽。\n- **意义**：这些冲突集中体现了孔融维护汉室、坚守儒家礼法与曹操务实集权路线的根本矛盾。\n\n### 📍 重要地点：许都（少府官署）\n- **时间**：约公元200年代\n- **停留时间**：任职期间\n- **地点**：少府寺（今河南省许昌市）\n- **事件**：任少府，掌管宫中御衣、宝货等。在此职位上，仍继续发表其政治见解。\n- **意义**：官职虽尊荣，但远离核心决策层，其言论更多被视为名士的清谈，政治影响力下降。\n\n### 📍 重要地点：许都（太中大夫宅邸）\n- **时间**：约公元207年 - 208年\n- **停留时间**：晚年最后时光\n- **地点**：太中大夫府（今河南省许昌市）\n- **事件**：任闲职太中大夫，家中宾客盈门。曾发表“父母于子女无恩”等惊世骇俗的言论。\n- **意义**：其言论被政敌郗虑、路粹等罗织为罪状，成为被杀的直接导火索。\n\n### 🔴 去世地：许都刑场\n- **时间**：公元208年\n- **停留时间**：临刑\n- **地点**：许都市曹（今河南省许昌市）\n- **事件**：被曹操以“大逆不道”罪名处斩，妻子儿女同时遇害。\n- **意义**：标志着建安风骨中一位最具个性与反抗精神的文人陨落，是汉末政治清洗的典型案例。\n- **名篇名句**：《临终诗》：“言多令事败，器漏苦不密。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 公元153年（存疑） | 0岁 | 生于鲁国曲阜。 |\n| 约160年代 | 幼年 | “孔融让梨”故事发生。 |\n| 约160年代末 | 少年 | 随父至洛阳，拜访名士李膺（一说陈韪），名震京师。 |\n| 公元178年 | 约25岁 | 因得罪宦官侯览，被禁锢不得为官。 |\n| 公元184年 | 约31岁 | 禁锢解除，被司徒府征辟，后举高第，为侍御史。 |\n| 公元189年 | 约36岁 | 任北海国相，治理地方，抗击黄巾。 |\n| 公元196年 | 约43岁 | 被袁谭击败，弃城逃亡。随后被征召至许都，任将作大匠。 |\n| 公元197年 | 约44岁 | 迁任少府。 |\n| 公元200年代 | 约50岁后 | 转任太中大夫，与曹操矛盾日深。 |\n| 公元208年 | 55或56岁（因生年存疑） | 被曹操以罪名处死于许都。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《孔融让梨》**（作为典故或启蒙故事出现）、**《临终诗》**（部分版本教材或读本收录）。\n- 核心要点：\n    - **重点**：**《孔融让梨》** 作为传统**孝友**、**谦让**美德的经典叙事，具有极高的道德教化意义。\n    - **重点**：**《临终诗》** 中“言多令事败”等句，深刻体现了**祸从口出**的生存困境与**悲凉**心境，是其性格与命运的写照。\n    - 孔融散文（如《论盛孝章书》、《荐祢衡表》）体现**建安文学**的**清峻**、**通脱**风格，善用**典故**，感情充沛。\n    - 其言论常具**讽刺**与**悖逆**色彩，如关于父母子女关系的论述，挑战了当时的主流**伦理**观念。\n    - 作为**“建安七子”** 之一，其文学地位在文学史上得到公认。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：孔融是**孔子后裔**，这一身份使其言行具有特殊的象征意义与社会影响力。\n    - **重点**：在**汉末群雄割据**的背景下，孔融曾据守**北海**，是当时一股重要的**士人势力**。\n    - 其最终被**曹操**所杀，是**建安年间**曹操巩固权力、清除异己的标志性事件之一。\n- 核心要点：\n    - **重点**：孔融之死，根源在于其**政治立场**（维护汉室）与**个人性格**（刚直傲慢）与**曹操**的集权路线不可调和。\n    - 他是**清议**名士的代表，其行为与言论体现了汉末**士人**与新兴**军阀**势力之间的紧张关系。\n    - **重点**：后世对其评价多元，既肯定其**文学成就**与**气节**，也对其**处世之道**（如过于迂腐、不切实际）有所批评。\n    - **“建安七子”** 的文学集团概念，是理解**建安文学**乃至**魏晋文学**开端的重要切入点。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省曲阜市 | 35.5819 | 116.9862 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省昌乐县 | 36.7070 | 118.8299 |\n| 山东省淄博市临淄区 | 36.8131 | 118.0548 |\n| 河南省许昌市 | 34.0358 | 113.8527 |", "relatedGraph": {"center": {"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "言多令事败，器漏苦不密。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "孔融", "name": "孔融", "file": "孔融.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 153, "death_year": 208, "quote": "“父母于子女无恩”", "review": "言多令事败，器漏苦不密。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "鲁国", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "汉", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "“挟天子以令诸侯”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "汉", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "“秋风萧瑟天气凉，草木摇落露为霜。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈韪", "name": "陈韪", "file": "陈韪.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": null, "quote": "“湖海之士，豪气不除”", "review": "*《三国志》注引《先贤行状》**：记载了其评价陈登的言论，侧面反映其在当时名士圈中的地位与见识。", "foreign_name": "", "main_role_label": "官员", "birthplace": "广陵东阳", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "周恩来", "name": "周恩来", "file": "周恩来.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1898, "death_year": 1976, "quote": "“为中华之崛起而读书”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "淮安府山阳县", "birthplace_modern": "江苏省淮安市淮安区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "孔融", "target": "刘备", "label": "君臣", "confidence": null}, {"source": "孔融", "target": "曹操", "label": "对手", "confidence": null}, {"source": "孔融", "target": "曹丕", "label": "对手", "confidence": null}, {"source": "孔融", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "孔融", "target": "陈韪", "label": "同朝共现", "confidence": 0.25}, {"source": "孔融", "target": "周恩来", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

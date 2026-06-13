@@ -47,6 +47,16 @@ def _resolve_stage(result: Dict[str, object]) -> str:
     return "done"
 
 
+def _stellar_home_artifacts_missing(html_path: str) -> bool:
+    base_dir = str(os.path.dirname(str(html_path or "").strip()) or "").strip()
+    if not base_dir:
+        return True
+    return not (
+        os.path.exists(os.path.join(base_dir, "index.html"))
+        and os.path.exists(os.path.join(base_dir, "stellar_home_data.json"))
+    )
+
+
 def create_generation_api(
     *,
     append_coords_section: Callable[[str], str],
@@ -75,6 +85,8 @@ def create_generation_api(
     generate_historical_markdown: Callable[[object, str], str],
     cache_dependency_paths: List[str],
     current_profile_signature: Callable[[], str],
+    build_amap_config_js: Callable[[], bytes],
+    build_geovis_config_js: Callable[[], bytes],
     refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
     available_story_names: Optional[Callable[[], List[str]]],
     logger: object,
@@ -141,9 +153,10 @@ def create_generation_api(
     def should_refresh_stellar_home(result: Dict[str, object]) -> bool:
         if not _is_usable_result(result):
             return False
-        if not str(result.get("html_path") or "").strip():
+        html_path = str(result.get("html_path") or "").strip()
+        if not html_path:
             return False
-        if result.get("cached") and not result.get("refreshed"):
+        if result.get("cached") and (not result.get("refreshed")) and (not _stellar_home_artifacts_missing(html_path)):
             return False
         return True
 
@@ -191,6 +204,8 @@ def create_generation_api(
             cache_dependency_paths=cache_dependency_paths,
             logger=logger,
             current_profile_signature=current_profile_signature,
+            build_amap_config_js=build_amap_config_js,
+            build_geovis_config_js=build_geovis_config_js,
         )
         result["requested_person"] = requested_person
         if refresh_homepage and refresh_stellar_homepage and should_refresh_stellar_home(result):

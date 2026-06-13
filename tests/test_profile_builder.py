@@ -29,14 +29,14 @@ def test_profile_map_bootstrap_uses_runtime_geovis_config_without_inlining_token
 
     assert "geovis-config.js" in html
     assert "window.GEOVIS_TOKEN=" not in html
-    assert "window.MAP_STORY_STATIC_SITE !== true || isLocalHost" in html
+    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
 
 
 def test_amap_bootstrap_allows_localhost_runtime_config_even_in_static_mode():
     html = map_html_renderer._amap_bootstrap_html()
 
     assert "amap-config.js" in html
-    assert "window.MAP_STORY_STATIC_SITE !== true || isLocalHost" in html
+    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
 
 
 def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():
@@ -161,6 +161,44 @@ def test_sparse_single_site_locations_collapse_merges_unique_quotes():
         "庭下如积水空明，水中藻、荇交横，盖竹柏影也。",
         "但少闲人如吾两人者耳。",
     ]
+
+
+def test_sparse_single_site_locations_does_not_collapse_distinct_precise_places_with_yidai_suffix():
+    loc_items = [
+        {
+            "name": "河东解县",
+            "ancientName": "河东郡解县",
+            "modernName": "山西省运城市盐湖区解州镇一带",
+            "lat": 35.0274,
+            "lng": 111.0012,
+            "type": "birth",
+            "event": "早年成长于此。",
+            "time": "约160年",
+            "duration": "",
+            "significance": "关羽的籍贯与文化根脉所在。",
+            "works": [],
+            "quoteLines": [],
+        },
+        {
+            "name": "涿郡",
+            "ancientName": "涿郡涿县",
+            "modernName": "河北省保定市涿州市一带",
+            "lat": 39.4858,
+            "lng": 115.9734,
+            "type": "normal",
+            "event": "与刘备起兵于此。",
+            "time": "184年",
+            "duration": "",
+            "significance": "政治与军事生涯的起点。",
+            "works": [],
+            "quoteLines": [],
+        },
+    ]
+
+    collapsed = profile_builder._collapse_sparse_single_site_locations(loc_items)
+
+    assert len(collapsed) == 2
+    assert [item["name"] for item in collapsed] == ["河东解县", "涿郡"]
 
 
 def test_build_profile_data_marks_coordinates_as_wgs84():
@@ -350,3 +388,49 @@ def test_death_location_heuristic_keeps_explicit_death_event():
     }
 
     assert profile_builder._looks_like_death_location(item) is True
+
+
+def test_extract_title_from_text_prefers_honorific_title_over_generic_quote():
+    text = "中国历史上以“忠义”著称的名将，被后世尊为“武圣”。"
+
+    assert profile_builder.extract_title_from_text(text) == "武圣"
+
+
+def test_build_profile_data_infers_location_significance_when_missing():
+    md = """# 关羽
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：关羽
+- **时代**：东汉末年
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 📍 重要地点：许都
+- **公元纪年**：200年
+- **位置**：许都（今河南许昌）
+- **事迹**：挂印封金，重归刘备
+
+## 地点坐标
+| 现称 | 纬度 | 经度 |
+| --- | --- | --- |
+| 河南许昌 | 34.0311 | 113.8520 |
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("许都", "河南许昌"),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["locations"]
+    assert profile["locations"][0]["significance"]
+    assert "关羽" in profile["locations"][0]["significance"]

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李春", "title": "", "description": "李春是隋代杰出的工匠，其生平事迹在史籍中记载极少，主要活动于隋文帝开皇、仁寿年间。他最卓越的成就是于约公元605-618年间，在今河北赵县主持设计并建造了安济桥（赵州桥）。该桥以首创的“敞肩拱”结构、科学的选址与地基处理、精良的砌筑工艺，创造了世界桥梁史上的奇迹，历经1400余年风雨仍屹立不倒，成为中国古代劳动人民智慧的象征。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "隋代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "可能为今河北省中南部）", "avatar": "", "birth": {"date": "", "location": "可能为今河北省中南部）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "赵州一带）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "世界桥梁史上的杰出工匠。", "identities": "桥梁工匠、工程师", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "赵州桥建造工地", "ancientName": "赵州城南洨河", "modernName": "河北省石家庄市赵县洨河之上", "lat": 37.7556, "lng": 114.7633, "coordSystem": "WGS84", "type": "normal", "event": "勘察洨河水文地质，选定桥址。；主持设计、施工，创造性地采用“敞肩拱”结构，解决了一系列工程技术难题。；可能参与或指导了桥头建筑、栏杆雕刻等附属工程。；管理工程团队，其技术可能影响了周边地区的桥梁建设。", "time": "约公元605-618年", "duration": "不详；十余年", "significance": "科学的选址是赵州桥千年稳固的首要关键，体现了其卓越的工程眼光。；完成了世界桥梁史上的不朽杰作，其设计（如坦拱、并列砌筑）极具科学性与创造性。；完善了桥梁的整体功能与艺术价值。；体现了其组织能力，并可能促进了先进造桥技术的传播。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李春\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李春\n- **时代**：隋代\n- **出生**：生卒年不详，出生地存疑/说法不一/待考（史料未载，可能为今河北省中南部）\n- **去世**：生卒年不详，地点存疑/说法不一/待考（史料未载，可能卒于赵州一带）\n- **享年**：不详\n- **主要身份**：桥梁工匠、工程师\n- **历史地位**：世界桥梁史上的杰出工匠。\n- **主要成就**：\n  - 设计并主持建造了世界上现存年代最久远、保存最完整的敞肩石拱桥——赵州桥（安济桥）。\n  - 首创“敞肩拱”结构，在世界土木工程史上具有里程碑意义。\n  - 其建造技艺体现了隋代高超的工程技术水平。\n\n### 生平概述\n李春是隋代杰出的工匠，其生平事迹在史籍中记载极少，主要活动于隋文帝开皇、仁寿年间。他最卓越的成就是于约公元605-618年间，在今河北赵县主持设计并建造了安济桥（赵州桥）。该桥以首创的“敞肩拱”结构、科学的选址与地基处理、精良的砌筑工艺，创造了世界桥梁史上的奇迹，历经1400余年风雨仍屹立不倒，成为中国古代劳动人民智慧的象征。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动范围围绕赵州桥的建造，可能涉及材料采集与工程管理区域。\n- ⏱️ **时间跨度**：主要活跃于隋代中后期（约公元6世纪末至7世纪初）。\n- 📍 **地理范围**：主要在今河北省中南部，以赵州（今赵县）为核心。\n- 🌟 **重要节点数量**：基于工程逻辑推断的核心地点共6个（含存疑的出生地与去世地）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n*注：关于李春个人生平的具体地点，史料极度匮乏。以下地点主要基于赵州桥建造工程的逻辑环节进行合理推断，并严格标注。*\n\n### 🟢 出生地：存疑/说法不一/待考（史料未载）\n- **时间**：约公元6世纪中后期\n- **停留时间**：不详\n- **地点**：（史料未载，具体地点存疑，可能为今河北省中南部）\n- **事件**：出生与早年成长。\n- **意义**：其早年经历与学艺过程已不可考，但为其后来的工程成就奠定了基础。\n\n### 📍 重要地点：学艺与早期实践地（推断）\n- **时间**：隋代初期\n- **停留时间**：数年\n- **地点**：古称不详（今河北省中南部某地，存疑）\n- **事件**：学习土木建筑、石作等技艺，参与其他工程建设。\n- **意义**：积累了丰富的实践经验与技术声望，为承担重大工程做准备。\n\n### 📍 重要地点：赵州桥选址地\n- **时间**：约公元605年前后\n- **停留时间**：不详\n- **地点**：古称赵州洨河（今河北省石家庄市赵县洨河）\n- **事件**：勘察洨河水文地质，选定桥址。\n- **意义**：科学的选址是赵州桥千年稳固的首要关键，体现了其卓越的工程眼光。\n\n### 📍 重要地点：石料采集场（推断）\n- **时间**：约公元605-610年\n- **停留时间**：数年\n- **地点**：古称不详（今河北省赞皇县、元氏县太行山区，推断）\n- **事件**：组织开采、加工建桥所用的青灰色石灰岩。\n- **意义**：确保了优质建材的供应，石材的规格与质量是桥梁结构的基础。\n\n### 📍 重要地点：赵州桥建造工地\n- **时间**：约公元605-618年\n- **停留时间**：十余年\n- **地点**：古称赵州城南洨河（今河北省石家庄市赵县洨河之上）\n- **事件**：主持设计、施工，创造性地采用“敞肩拱”结构，解决了一系列工程技术难题。\n- **意义**：完成了世界桥梁史上的不朽杰作，其设计（如坦拱、并列砌筑）极具科学性与创造性。\n\n### 📍 重要地点：桥梁附属设施建造地（推断）\n- **时间**：与建桥同期或稍后\n- **停留时间**：不详\n- **地点**：古称赵州（今河北省石家庄市赵县）\n- **事件**：可能参与或指导了桥头建筑、栏杆雕刻等附属工程。\n- **意义**：完善了桥梁的整体功能与艺术价值。\n\n### 📍 重要地点：工程管理与技术传播地（推断）\n- **时间**：隋代中后期\n- **停留时间**：不详\n- **地点**：古称赵州（今河北省石家庄市赵县）及周边区域（推断）\n- **事件**：管理工程团队，其技术可能影响了周边地区的桥梁建设。\n- **意义**：体现了其组织能力，并可能促进了先进造桥技术的传播。\n\n### 🔴 去世地：存疑/说法不一/待考\n- **时间**：约公元7世纪前期\n- **停留时间**：不详\n- **地点**：（史料未载，具体地点不详，可能卒于赵州（今河北赵县）一带）\n- **事件**：去世。\n- **意义**：其具体生卒年与地点已湮没于历史，但其创造的赵州桥永存于世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元6世纪中后期 | 不详 | 出生，具体地点存疑/说法不一/待考（史料未载）。 |\n| 隋开皇年间（公元581-600年） | 青年 | 学习并掌握土木、石作技艺（推断）。 |\n| 约公元605年（隋大业元年）前后 | 壮年 | 受命主持设计、建造赵州桥（安济桥）。 |\n| 约公元605-618年 | 壮年至晚年 | 历时十余年，完成赵州桥的建造。 |\n| 约公元7世纪前期 | 晚年 | 去世，具体时间地点存疑/说法不一/待考。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 河北省石家庄市赵县（赵州桥所在地） | 37.7556 | 114.7633 | 核心事件地点 |\n| 河北省赞皇县（推断石料来源地之一） | 37.6611 | 114.3833 | 推断地点 |\n| 河北省元氏县（推断石料来源地之一） | 37.7667 | 114.5167 | 推断地点 |", "relatedGraph": {"center": {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": 600, "death_year": null, "quote": "“**敞肩拱**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": 600, "death_year": null, "quote": "“**敞肩拱**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李春", "target": "王安石", "label": "同册共现", "confidence": 0.15}, {"source": "李春", "target": "吴道子", "label": "同册共现", "confidence": 0.15}, {"source": "李春", "target": "魏征", "label": "同时代人物", "confidence": null}, {"source": "李春", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "李春", "target": "骆宾王", "label": "相关人物", "confidence": null}, {"source": "李春", "target": "玄奘", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李春", "title": "", "description": "李春是隋代杰出的工匠，其生平事迹在史籍中记载极少，主要活动于隋文帝开皇、仁寿年间。他最卓越的成就是于约公元605-618年间，在今河北赵县主持设计并建造了安济桥（赵州桥）。该桥以首创的“敞肩拱”结构、科学的选址与地基处理、精良的砌筑工艺，创造了世界桥梁史上的奇迹，历经1400余年风雨仍屹立不倒，成为中国古代劳动人民智慧的象征。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "隋代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "可能为今河北省中南部）", "avatar": "", "birth": {"date": "", "location": "可能为今河北省中南部）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "赵州一带）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "不详", "highlights": {"honor": "", "status": "世界桥梁史上的杰出工匠。", "identities": "桥梁工匠、工程师", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "赵州桥建造工地", "ancientName": "赵州城南洨河", "modernName": "河北省石家庄市赵县洨河之上", "lat": 37.7556, "lng": 114.7633, "coordSystem": "WGS84", "type": "normal", "event": "勘察洨河水文地质，选定桥址。；主持设计、施工，创造性地采用“敞肩拱”结构，解决了一系列工程技术难题。；可能参与或指导了桥头建筑、栏杆雕刻等附属工程。；管理工程团队，其技术可能影响了周边地区的桥梁建设。", "time": "约公元605-618年", "duration": "不详；十余年", "significance": "科学的选址是赵州桥千年稳固的首要关键，体现了其卓越的工程眼光。；完成了世界桥梁史上的不朽杰作，其设计（如坦拱、并列砌筑）极具科学性与创造性。；完善了桥梁的整体功能与艺术价值。；体现了其组织能力，并可能促进了先进造桥技术的传播。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李春\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李春\n- **时代**：隋代\n- **出生**：生卒年不详，出生地存疑/说法不一/待考（史料未载，可能为今河北省中南部）\n- **去世**：生卒年不详，地点存疑/说法不一/待考（史料未载，可能卒于赵州一带）\n- **享年**：不详\n- **主要身份**：桥梁工匠、工程师\n- **历史地位**：世界桥梁史上的杰出工匠。\n- **主要成就**：\n  - 设计并主持建造了世界上现存年代最久远、保存最完整的敞肩石拱桥——赵州桥（安济桥）。\n  - 首创“敞肩拱”结构，在世界土木工程史上具有里程碑意义。\n  - 其建造技艺体现了隋代高超的工程技术水平。\n\n### 生平概述\n李春是隋代杰出的工匠，其生平事迹在史籍中记载极少，主要活动于隋文帝开皇、仁寿年间。他最卓越的成就是于约公元605-618年间，在今河北赵县主持设计并建造了安济桥（赵州桥）。该桥以首创的“敞肩拱”结构、科学的选址与地基处理、精良的砌筑工艺，创造了世界桥梁史上的奇迹，历经1400余年风雨仍屹立不倒，成为中国古代劳动人民智慧的象征。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动范围围绕赵州桥的建造，可能涉及材料采集与工程管理区域。\n- ⏱️ **时间跨度**：主要活跃于隋代中后期（约公元6世纪末至7世纪初）。\n- 📍 **地理范围**：主要在今河北省中南部，以赵州（今赵县）为核心。\n- 🌟 **重要节点数量**：基于工程逻辑推断的核心地点共6个（含存疑的出生地与去世地）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n*注：关于李春个人生平的具体地点，史料极度匮乏。以下地点主要基于赵州桥建造工程的逻辑环节进行合理推断，并严格标注。*\n\n### 🟢 出生地：存疑/说法不一/待考（史料未载）\n- **时间**：约公元6世纪中后期\n- **停留时间**：不详\n- **地点**：（史料未载，具体地点存疑，可能为今河北省中南部）\n- **事件**：出生与早年成长。\n- **意义**：其早年经历与学艺过程已不可考，但为其后来的工程成就奠定了基础。\n\n### 📍 重要地点：学艺与早期实践地（推断）\n- **时间**：隋代初期\n- **停留时间**：数年\n- **地点**：古称不详（今河北省中南部某地，存疑）\n- **事件**：学习土木建筑、石作等技艺，参与其他工程建设。\n- **意义**：积累了丰富的实践经验与技术声望，为承担重大工程做准备。\n\n### 📍 重要地点：赵州桥选址地\n- **时间**：约公元605年前后\n- **停留时间**：不详\n- **地点**：古称赵州洨河（今河北省石家庄市赵县洨河）\n- **事件**：勘察洨河水文地质，选定桥址。\n- **意义**：科学的选址是赵州桥千年稳固的首要关键，体现了其卓越的工程眼光。\n\n### 📍 重要地点：石料采集场（推断）\n- **时间**：约公元605-610年\n- **停留时间**：数年\n- **地点**：古称不详（今河北省赞皇县、元氏县太行山区，推断）\n- **事件**：组织开采、加工建桥所用的青灰色石灰岩。\n- **意义**：确保了优质建材的供应，石材的规格与质量是桥梁结构的基础。\n\n### 📍 重要地点：赵州桥建造工地\n- **时间**：约公元605-618年\n- **停留时间**：十余年\n- **地点**：古称赵州城南洨河（今河北省石家庄市赵县洨河之上）\n- **事件**：主持设计、施工，创造性地采用“敞肩拱”结构，解决了一系列工程技术难题。\n- **意义**：完成了世界桥梁史上的不朽杰作，其设计（如坦拱、并列砌筑）极具科学性与创造性。\n\n### 📍 重要地点：桥梁附属设施建造地（推断）\n- **时间**：与建桥同期或稍后\n- **停留时间**：不详\n- **地点**：古称赵州（今河北省石家庄市赵县）\n- **事件**：可能参与或指导了桥头建筑、栏杆雕刻等附属工程。\n- **意义**：完善了桥梁的整体功能与艺术价值。\n\n### 📍 重要地点：工程管理与技术传播地（推断）\n- **时间**：隋代中后期\n- **停留时间**：不详\n- **地点**：古称赵州（今河北省石家庄市赵县）及周边区域（推断）\n- **事件**：管理工程团队，其技术可能影响了周边地区的桥梁建设。\n- **意义**：体现了其组织能力，并可能促进了先进造桥技术的传播。\n\n### 🔴 去世地：存疑/说法不一/待考\n- **时间**：约公元7世纪前期\n- **停留时间**：不详\n- **地点**：（史料未载，具体地点不详，可能卒于赵州（今河北赵县）一带）\n- **事件**：去世。\n- **意义**：其具体生卒年与地点已湮没于历史，但其创造的赵州桥永存于世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约公元6世纪中后期 | 不详 | 出生，具体地点存疑/说法不一/待考（史料未载）。 |\n| 隋开皇年间（公元581-600年） | 青年 | 学习并掌握土木、石作技艺（推断）。 |\n| 约公元605年（隋大业元年）前后 | 壮年 | 受命主持设计、建造赵州桥（安济桥）。 |\n| 约公元605-618年 | 壮年至晚年 | 历时十余年，完成赵州桥的建造。 |\n| 约公元7世纪前期 | 晚年 | 去世，具体时间地点存疑/说法不一/待考。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：李春本人无文学作品传世。但其杰作**赵州桥**常作为中国说明文（如《中国石拱桥》）的经典案例出现，用以说明中国古代劳动人民的智慧与杰出的建筑成就。\n- 核心要点：\n  - **重点**：**赵州桥**是说明文中的典范实物，用以阐释**说明文的写作顺序**（如由概括到具体、由主到次）和**说明方法**（如列数字、打比方、举例子）。\n  - **重点**：文章通过介绍赵州桥的**历史悠久**、**结构坚固**、**形式优美**三大特点，展现其“世界奇观”的地位。\n  - **重点**：对“**敞肩拱**”这一核心**工程术语**的解释，是理解课文科技含量的关键。\n  - 课文中常引用唐代张嘉贞“制造奇特，人不知其所以为”等古人评价，侧面烘托李春技艺的高超。\n  - **赵州桥**已成为一个文化符号，象征着**创新精神**与**工匠精神**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n  - **重点**：隋朝工匠**李春**主持建造了**赵州桥**（安济桥），这是世界上现存最古老、保存最完好的**单孔敞肩石拱桥**。\n  - 该桥建于**隋代**（约公元7世纪初），位于古代南北交通要道**赵州**（今河北赵县）的洨河上。\n  - **重点**：其最大的技术创新是主拱两肩上的四个**小拱**（敞肩拱），这一设计既减轻了桥身重量，节省了材料，又能在洪水期增加泄洪能力。\n- 核心要点：\n  - **重点**：**赵州桥**的建造是**隋代**统一后，社会经济恢复发展、大型工程建设能力提升的体现。\n  - **重点**：李春作为**杰出工匠**的代表，其成就证明了**中国古代科技**（特别是土木工程学）在当时世界上的领先地位。\n  - **重点**：赵州桥历经1400多年，承受多次洪水、地震、战乱而屹立不倒，其**科学的设计**与**精湛的工艺**是根本原因，是**实证精神**的典范。\n  - 该桥是**全国重点文物保护单位**，并于1991年被美国土木工程师学会选定为世界第十二处“国际土木工程历史古迹”。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 河北省石家庄市赵县（赵州桥所在地） | 37.7556 | 114.7633 | 核心事件地点 |\n| 河北省赞皇县（推断石料来源地之一） | 37.6611 | 114.3833 | 推断地点 |\n| 河北省元氏县（推断石料来源地之一） | 37.7667 | 114.5167 | 推断地点 |", "relatedGraph": {"center": {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": 600, "death_year": null, "quote": "“**敞肩拱**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": 600, "death_year": null, "quote": "“**敞肩拱**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "魏征", "name": "魏征", "file": "魏征.html", "dynasty": "隋", "aliases": ["魏玄成", "郑文贞公"], "birth_year": 580, "death_year": 643, "quote": "“兼听则明，偏信则闇”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省巨鹿县", "birthplace_modern": "", "domain_tags": ["政治", "思想", "文学", "唐代谏臣"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "玄奘", "name": "玄奘", "file": "玄奘.html", "dynasty": "唐代", "aliases": [], "birth_year": 602, "death_year": 664, "quote": "“亲践者一百一十国，传闻者二十八国”", "review": "", "foreign_name": "", "main_role_label": "翻译家", "birthplace": "洛州缑氏", "birthplace_modern": "河南省洛阳市偃师区", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李春", "target": "王安石", "label": "同册共现", "confidence": 0.15}, {"source": "李春", "target": "吴道子", "label": "同册共现", "confidence": 0.15}, {"source": "李春", "target": "魏征", "label": "同时代人物", "confidence": null}, {"source": "李春", "target": "虞世南", "label": "同时代人物", "confidence": null}, {"source": "李春", "target": "骆宾王", "label": "相关人物", "confidence": null}, {"source": "李春", "target": "玄奘", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

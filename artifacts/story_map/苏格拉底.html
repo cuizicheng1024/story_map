@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "苏格拉底", "title": "", "description": "苏格拉底生活在雅典由盛转衰的伯罗奔尼撒战争时期。他出身普通，终身以追求智慧与真理为业，常在雅典街头与青年对话，探讨正义、勇敢、虔诚等德性本质，通过不断诘问揭示他人观念的矛盾。他自称“牛虻”，以刺激城邦保持活力。公元前399年，他被控“不敬神”和“腐蚀青年”，在法庭上申辩后被判死刑，从容饮鸩而亡，成为西方哲学史上为信念殉道的典范。", "quote": "练习死亡", "shortReview": "练习死亡", "dynasty": "古希腊（古典时代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "雅典（今希腊雅典）", "avatar": "", "birth": {"date": "公元前469年", "location": "雅典（今希腊雅典）", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84"}, "death": {"date": "公元前399年", "location": "雅典（今希腊雅典）", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84"}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "西方哲学的奠基人之一，其思想与人格通过学生柏拉图和色诺芬的记载对后世产生深远影响。", "identities": "哲学家、教师", "achievements": "开创“苏格拉底式对话”与诘问法；强调“认识你自己”与“德性即知识”；培养了柏拉图等杰出哲学家；为真理与哲学信念从容赴死。", "works": [], "reviews": []}}, "locations": [{"name": "雅典", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "birth", "event": "出生于雅典一个普通家庭，父亲是雕刻匠，母亲是助产士。", "time": "公元前469年", "duration": "大部分人生", "significance": "其一生的思想与活动均以雅典城邦为舞台，他的哲学与雅典的民主制度、社会生活紧密交织。", "works": [], "quoteLines": []}, {"name": "雅典战场（波提狄亚、德利昂、安菲波利斯）", "ancientName": "波提狄亚、德利昂、安菲波利斯", "modernName": "希腊卡兰德里纳附近", "lat": 40.8225, "lng": 23.8456, "coordSystem": "WGS84", "type": "normal", "event": "作为重装步兵参加了伯罗奔尼撒战争中的这三场战役，以勇敢和忍耐力著称。", "time": "约公元前431年 - 公元前422年", "duration": "数次战役期间", "significance": "军事经历塑造了其坚韧品格，也为其关于“勇敢”德性的讨论提供了亲身经验。", "works": [], "quoteLines": []}, {"name": "萨拉米斯战场遗址", "ancientName": "萨拉米斯岛", "modernName": "希腊萨拉米斯岛", "lat": 37.9407, "lng": 23.4966, "coordSystem": "WGS84", "type": "normal", "event": "在“阿吉纽西海战”后，作为五百人议事会成员，他独自反对对十位将军进行集体审判的非法动议。", "time": "公元前406年", "duration": "短暂", "significance": "展现了其不畏强权、坚守法律程序与正义原则的勇气。", "works": [], "quoteLines": []}, {"name": "三十僭主议事会", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "斯巴达支持的寡头政权“三十僭主”执政期间，曾命令苏格拉底参与逮捕一位公民，他违抗命令回家。", "time": "公元前404年 - 公元前403年", "duration": "约一年", "significance": "再次证明其无论在民主制还是寡头制下，都坚持个人道德原则，不屈从于不义的权力。", "works": [], "quoteLines": []}, {"name": "美立都的法庭", "ancientName": "雅典法庭", "modernName": "雅典阿哥拉遗址附近", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "被控“不敬神”和“腐蚀青年”，在法庭上发表著名申辩，拒绝乞求怜悯或流放。", "time": "公元前399年", "duration": "审判日", "significance": "其申辩词是哲学史上捍卫思想自由与理性生活的经典文献，最终被判处死刑。", "works": [], "quoteLines": []}, {"name": "监狱", "ancientName": "雅典监狱", "modernName": "雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "在狱中与朋友、学生继续讨论哲学，特别是关于灵魂不朽的问题；拒绝朋友克里同的越狱计划。", "time": "公元前399年", "duration": "约一个月（等待处决）", "significance": "临终前的言行（见于柏拉图《斐多篇》）完美诠释了其哲学信念——哲学是“练习死亡”，灵魂应追求真理与善，而非苟全性命。", "works": ["斐多篇"], "quoteLines": []}, {"name": "雅典监狱", "ancientName": "雅典监狱", "modernName": "雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "death", "event": "从容饮下毒芹汁，在与门徒的交谈中平静离世。", "time": "公元前399年", "duration": "生命最后时刻", "significance": "其死亡方式成为西方文化中“为真理与信念殉道”的最高象征，极大地升华了其哲学人格的感召力。", "works": [], "quoteLines": []}, {"name": "雅典市集与体育场", "ancientName": "雅典市集与体育场", "modernName": "雅典阿哥拉（市集）、体育场、店铺门口", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "主要活动场所，与各色人等进行哲学对话，探讨各种定义与观念。", "time": "青壮年至晚年", "duration": "每日", "significance": "这是其哲学实践的核心现场，“苏格拉底式对话”在此展开，他将哲学从天上拉回人间。", "works": [], "quoteLines": []}, {"name": "德尔菲神庙", "ancientName": "德尔菲", "modernName": "希腊德尔菲", "lat": 38.4824, "lng": 22.501, "coordSystem": "WGS84", "type": "normal", "event": "友人凯勒丰询问神谕，阿波罗神谕称“没有人比苏格拉底更有智慧”。", "time": "青年时期（具体时间存疑）", "duration": "短暂", "significance": "此事件成为其哲学使命的起点，他通过遍访智者来验证神谕，最终领悟到“自知无知”才是真智慧。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---", "workTexts": {"斐多篇": "“练习死亡”", "斐多": "“练习死亡”", "申辩篇": "《申辩篇》 中对雅典公民的临终告白，体现其对真理与智慧的执着。", "申辩": "《申辩篇》 中对雅典公民的临终告白，体现其对真理与智慧的执着。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 苏格拉底\n\n## 人物档案\n\n### 基本信息\n- **姓名**：苏格拉底\n- **时代**：古希腊（古典时代）\n- **出生**：公元前469年，雅典（今希腊雅典）（具体日期存疑）\n- **去世**：公元前399年，雅典（今希腊雅典）\n- **享年**：约70岁\n- **主要身份**：哲学家、教师\n- **历史地位**：西方哲学的奠基人之一，其思想与人格通过学生柏拉图和色诺芬的记载对后世产生深远影响。\n- **主要成就**：开创“苏格拉底式对话”与诘问法；强调“认识你自己”与“德性即知识”；培养了柏拉图等杰出哲学家；为真理与哲学信念从容赴死。\n\n### 生平概述\n苏格拉底生活在雅典由盛转衰的伯罗奔尼撒战争时期。他出身普通，终身以追求智慧与真理为业，常在雅典街头与青年对话，探讨正义、勇敢、虔诚等德性本质，通过不断诘问揭示他人观念的矛盾。他自称“牛虻”，以刺激城邦保持活力。公元前399年，他被控“不敬神”和“腐蚀青年”，在法庭上申辩后被判死刑，从容饮鸩而亡，成为西方哲学史上为信念殉道的典范。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于雅典城邦及其周边，足迹延伸至希腊中部的德尔菲、北部的波提狄亚等地。\n- ⏱️ **时间跨度**：约公元前469年 - 公元前399年，总跨度约70年。\n- 📍 **地理范围**：以阿提卡半岛的雅典为中心，涉及希腊中部、北部及爱琴海北岸。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：雅典\n- **时间**：公元前469年\n- **停留时间**：大部分人生\n- **地点**：雅典（今希腊雅典）\n- **事件**：出生于雅典一个普通家庭，父亲是雕刻匠，母亲是助产士。\n- **意义**：其一生的思想与活动均以雅典城邦为舞台，他的哲学与雅典的民主制度、社会生活紧密交织。\n\n### 📍 重要地点：雅典战场（波提狄亚、德利昂、安菲波利斯）\n- **时间**：约公元前431年 - 公元前422年\n- **停留时间**：数次战役期间\n- **地点**：波提狄亚（今希腊卡兰德里纳附近）、德利昂（今希腊奥罗普斯附近）、安菲波利斯（今希腊安菲波利斯）\n- **事件**：作为重装步兵参加了伯罗奔尼撒战争中的这三场战役，以勇敢和忍耐力著称。\n- **意义**：军事经历塑造了其坚韧品格，也为其关于“勇敢”德性的讨论提供了亲身经验。\n\n### 📍 重要地点：雅典市集与体育场\n- **时间**：青壮年至晚年\n- **停留时间**：每日\n- **地点**：雅典阿哥拉（市集）、体育场、店铺门口\n- **事件**：主要活动场所，与各色人等进行哲学对话，探讨各种定义与观念。\n- **意义**：这是其哲学实践的核心现场，“苏格拉底式对话”在此展开，他将哲学从天上拉回人间。\n\n### 📍 重要地点：德尔菲神庙\n- **时间**：青年时期（具体时间存疑）\n- **停留时间**：短暂\n- **地点**：德尔菲（今希腊德尔菲）\n- **事件**：友人凯勒丰询问神谕，阿波罗神谕称“没有人比苏格拉底更有智慧”。\n- **意义**：此事件成为其哲学使命的起点，他通过遍访智者来验证神谕，最终领悟到“自知无知”才是真智慧。\n\n### 📍 重要地点：萨拉米斯战场遗址\n- **时间**：公元前406年\n- **停留时间**：短暂\n- **地点**：萨拉米斯岛（今希腊萨拉米斯岛）\n- **事件**：在“阿吉纽西海战”后，作为五百人议事会成员，他独自反对对十位将军进行集体审判的非法动议。\n- **意义**：展现了其不畏强权、坚守法律程序与正义原则的勇气。\n\n### 📍 重要地点：三十僭主议事会\n- **时间**：公元前404年 - 公元前403年\n- **停留时间**：约一年\n- **地点**：雅典（今希腊雅典）\n- **事件**：斯巴达支持的寡头政权“三十僭主”执政期间，曾命令苏格拉底参与逮捕一位公民，他违抗命令回家。\n- **意义**：再次证明其无论在民主制还是寡头制下，都坚持个人道德原则，不屈从于不义的权力。\n\n### 📍 重要地点：美立都的法庭\n- **时间**：公元前399年\n- **停留时间**：审判日\n- **地点**：雅典法庭（今雅典阿哥拉遗址附近）\n- **事件**：被控“不敬神”和“腐蚀青年”，在法庭上发表著名申辩，拒绝乞求怜悯或流放。\n- **意义**：其申辩词是哲学史上捍卫思想自由与理性生活的经典文献，最终被判处死刑。\n\n### 📍 重要地点：监狱\n- **时间**：公元前399年\n- **停留时间**：约一个月（等待处决）\n- **地点**：雅典监狱（今雅典）\n- **事件**：在狱中与朋友、学生继续讨论哲学，特别是关于灵魂不朽的问题；拒绝朋友克里同的越狱计划。\n- **意义**：临终前的言行（见于柏拉图《斐多篇》）完美诠释了其哲学信念——哲学是“练习死亡”，灵魂应追求真理与善，而非苟全性命。\n\n### 🔴 去世地：雅典监狱\n- **时间**：公元前399年\n- **停留时间**：生命最后时刻\n- **地点**：雅典监狱（今雅典）\n- **事件**：从容饮下毒芹汁，在与门徒的交谈中平静离世。\n- **意义**：其死亡方式成为西方文化中“为真理与信念殉道”的最高象征，极大地升华了其哲学人格的感召力。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约公元前469年 | 0岁 | 出生于雅典。 |\n| 约公元前450年代 | 青年 | 接受常规教育，可能学习雕刻。 |\n| 约公元前431年-前422年 | 约38-47岁 | 参加伯罗奔尼撒战争，在波提狄亚、德利昂、安菲波利斯作战。 |\n| 约公元前420年代-前400年代 | 中年 | 在雅典街头开始持续的哲学对话与教学活动。 |\n| 公元前406年 | 约63岁 | 在阿吉纽西海战后，于五百人议事会上勇敢维护法律程序。 |\n| 公元前404年-前403年 | 约65-66岁 | 经历“三十僭主”寡头统治，拒绝执行其非法命令。 |\n| 公元前399年 | 约70岁 | 被审判并判处死刑，饮鸩而死。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 雅典 | 37.9838 | 23.7275 |\n| 德尔菲 | 38.4824 | 22.5010 |\n| 波提狄亚（卡兰德里纳） | 40.2000 | 23.3500 |\n| 德利昂（奥罗普斯） | 38.3247 | 23.7572 |\n| 安菲波利斯 | 40.8225 | 23.8456 |\n| 萨拉米斯岛 | 37.9407 | 23.4966 |\n| 麦加拉 | 37.9911 | 23.3414 |\n| 科林斯（可能途经） | 37.9402 | 22.9210 |", "relatedGraph": {"center": {"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "“苏格拉底式对话”", "review": "练习死亡", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "“苏格拉底式对话”", "review": "练习死亡", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "“吾十有五而志于学”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "泰勒斯", "name": "泰勒斯", "file": "泰勒斯.html", "dynasty": "古希腊（古风时期）", "aliases": [], "birth_year": -624, "death_year": -546, "quote": "“西方哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称米利都", "birthplace_modern": "土耳其艾登省米利都遗址", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "“两点之间直线最短。”", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": ["数学", "几何学"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "亚里士多德", "name": "亚里士多德", "file": "亚里士多德.html", "dynasty": "古希腊（古典时代晚期）", "aliases": [], "birth_year": -384, "death_year": -322, "quote": "“百科全书式的学者”", "review": "*马克思**：称其为“古代最伟大的思想家”。", "foreign_name": "Aristotle（希腊语：Ἀριστοτέλης）", "main_role_label": "哲学家", "birthplace": "马其顿王国斯塔基拉城", "birthplace_modern": "希腊哈尔基季基州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "“全部西方哲学传统都是对柏拉图的一系列注脚。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曾子", "name": "曾子", "file": "曾子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -505, "death_year": -435, "quote": "“吾日三省吾身”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国南武城今地有争议", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "苏格拉底", "target": "孔子", "label": "师生", "confidence": null}, {"source": "苏格拉底", "target": "泰勒斯", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "亚里士多德", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "柏拉图", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "曾子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "苏格拉底", "title": "", "description": "苏格拉底生活在雅典由盛转衰的伯罗奔尼撒战争时期。他出身普通，终身以追求智慧与真理为业，常在雅典街头与青年对话，探讨正义、勇敢、虔诚等德性本质，通过不断诘问揭示他人观念的矛盾。他自称“牛虻”，以刺激城邦保持活力。公元前399年，他被控“不敬神”和“腐蚀青年”，在法庭上申辩后被判死刑，从容饮鸩而亡，成为西方哲学史上为信念殉道的典范。", "quote": "练习死亡", "shortReview": "练习死亡", "dynasty": "古希腊（古典时代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "雅典（今希腊雅典）", "avatar": "", "birth": {"date": "公元前469年", "location": "雅典（今希腊雅典）", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84"}, "death": {"date": "公元前399年", "location": "雅典（今希腊雅典）", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84"}, "lifespan": "约70岁", "highlights": {"honor": "", "status": "西方哲学的奠基人之一，其思想与人格通过学生柏拉图和色诺芬的记载对后世产生深远影响。", "identities": "哲学家、教师", "achievements": "开创“苏格拉底式对话”与诘问法；强调“认识你自己”与“德性即知识”；培养了柏拉图等杰出哲学家；为真理与哲学信念从容赴死。", "works": [], "reviews": []}}, "locations": [{"name": "雅典", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "birth", "event": "出生于雅典一个普通家庭，父亲是雕刻匠，母亲是助产士。", "time": "公元前469年", "duration": "大部分人生", "significance": "其一生的思想与活动均以雅典城邦为舞台，他的哲学与雅典的民主制度、社会生活紧密交织。", "works": [], "quoteLines": []}, {"name": "雅典战场（波提狄亚、德利昂、安菲波利斯）", "ancientName": "波提狄亚、德利昂、安菲波利斯", "modernName": "希腊卡兰德里纳附近", "lat": 40.8225, "lng": 23.8456, "coordSystem": "WGS84", "type": "normal", "event": "作为重装步兵参加了伯罗奔尼撒战争中的这三场战役，以勇敢和忍耐力著称。", "time": "约公元前431年 - 公元前422年", "duration": "数次战役期间", "significance": "军事经历塑造了其坚韧品格，也为其关于“勇敢”德性的讨论提供了亲身经验。", "works": [], "quoteLines": []}, {"name": "萨拉米斯战场遗址", "ancientName": "萨拉米斯岛", "modernName": "希腊萨拉米斯岛", "lat": 37.9407, "lng": 23.4966, "coordSystem": "WGS84", "type": "normal", "event": "在“阿吉纽西海战”后，作为五百人议事会成员，他独自反对对十位将军进行集体审判的非法动议。", "time": "公元前406年", "duration": "短暂", "significance": "展现了其不畏强权、坚守法律程序与正义原则的勇气。", "works": [], "quoteLines": []}, {"name": "三十僭主议事会", "ancientName": "雅典", "modernName": "希腊雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "斯巴达支持的寡头政权“三十僭主”执政期间，曾命令苏格拉底参与逮捕一位公民，他违抗命令回家。", "time": "公元前404年 - 公元前403年", "duration": "约一年", "significance": "再次证明其无论在民主制还是寡头制下，都坚持个人道德原则，不屈从于不义的权力。", "works": [], "quoteLines": []}, {"name": "美立都的法庭", "ancientName": "雅典法庭", "modernName": "雅典阿哥拉遗址附近", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "被控“不敬神”和“腐蚀青年”，在法庭上发表著名申辩，拒绝乞求怜悯或流放。", "time": "公元前399年", "duration": "审判日", "significance": "其申辩词是哲学史上捍卫思想自由与理性生活的经典文献，最终被判处死刑。", "works": [], "quoteLines": []}, {"name": "监狱", "ancientName": "雅典监狱", "modernName": "雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "在狱中与朋友、学生继续讨论哲学，特别是关于灵魂不朽的问题；拒绝朋友克里同的越狱计划。", "time": "公元前399年", "duration": "约一个月（等待处决）", "significance": "临终前的言行（见于柏拉图《斐多篇》）完美诠释了其哲学信念——哲学是“练习死亡”，灵魂应追求真理与善，而非苟全性命。", "works": ["斐多篇"], "quoteLines": []}, {"name": "雅典监狱", "ancientName": "雅典监狱", "modernName": "雅典", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "death", "event": "从容饮下毒芹汁，在与门徒的交谈中平静离世。", "time": "公元前399年", "duration": "生命最后时刻", "significance": "其死亡方式成为西方文化中“为真理与信念殉道”的最高象征，极大地升华了其哲学人格的感召力。", "works": [], "quoteLines": []}, {"name": "雅典市集与体育场", "ancientName": "雅典市集与体育场", "modernName": "雅典阿哥拉（市集）、体育场、店铺门口", "lat": 37.9838, "lng": 23.7275, "coordSystem": "WGS84", "type": "normal", "event": "主要活动场所，与各色人等进行哲学对话，探讨各种定义与观念。", "time": "青壮年至晚年", "duration": "每日", "significance": "这是其哲学实践的核心现场，“苏格拉底式对话”在此展开，他将哲学从天上拉回人间。", "works": [], "quoteLines": []}, {"name": "德尔菲神庙", "ancientName": "德尔菲", "modernName": "希腊德尔菲", "lat": 38.4824, "lng": 22.501, "coordSystem": "WGS84", "type": "normal", "event": "友人凯勒丰询问神谕，阿波罗神谕称“没有人比苏格拉底更有智慧”。", "time": "青年时期（具体时间存疑）", "duration": "短暂", "significance": "此事件成为其哲学使命的起点，他通过遍访智者来验证神谕，最终领悟到“自知无知”才是真智慧。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---", "workTexts": {"斐多篇": "“练习死亡”", "斐多": "“练习死亡”", "申辩篇": "《申辩篇》 中对雅典公民的临终告白，体现其对真理与智慧的执着。", "申辩": "《申辩篇》 中对雅典公民的临终告白，体现其对真理与智慧的执着。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 苏格拉底\n\n## 人物档案\n\n### 基本信息\n- **姓名**：苏格拉底\n- **时代**：古希腊（古典时代）\n- **出生**：公元前469年，雅典（今希腊雅典）（具体日期存疑）\n- **去世**：公元前399年，雅典（今希腊雅典）\n- **享年**：约70岁\n- **主要身份**：哲学家、教师\n- **历史地位**：西方哲学的奠基人之一，其思想与人格通过学生柏拉图和色诺芬的记载对后世产生深远影响。\n- **主要成就**：开创“苏格拉底式对话”与诘问法；强调“认识你自己”与“德性即知识”；培养了柏拉图等杰出哲学家；为真理与哲学信念从容赴死。\n\n### 生平概述\n苏格拉底生活在雅典由盛转衰的伯罗奔尼撒战争时期。他出身普通，终身以追求智慧与真理为业，常在雅典街头与青年对话，探讨正义、勇敢、虔诚等德性本质，通过不断诘问揭示他人观念的矛盾。他自称“牛虻”，以刺激城邦保持活力。公元前399年，他被控“不敬神”和“腐蚀青年”，在法庭上申辩后被判死刑，从容饮鸩而亡，成为西方哲学史上为信念殉道的典范。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于雅典城邦及其周边，足迹延伸至希腊中部的德尔菲、北部的波提狄亚等地。\n- ⏱️ **时间跨度**：约公元前469年 - 公元前399年，总跨度约70年。\n- 📍 **地理范围**：以阿提卡半岛的雅典为中心，涉及希腊中部、北部及爱琴海北岸。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：雅典\n- **时间**：公元前469年\n- **停留时间**：大部分人生\n- **地点**：雅典（今希腊雅典）\n- **事件**：出生于雅典一个普通家庭，父亲是雕刻匠，母亲是助产士。\n- **意义**：其一生的思想与活动均以雅典城邦为舞台，他的哲学与雅典的民主制度、社会生活紧密交织。\n\n### 📍 重要地点：雅典战场（波提狄亚、德利昂、安菲波利斯）\n- **时间**：约公元前431年 - 公元前422年\n- **停留时间**：数次战役期间\n- **地点**：波提狄亚（今希腊卡兰德里纳附近）、德利昂（今希腊奥罗普斯附近）、安菲波利斯（今希腊安菲波利斯）\n- **事件**：作为重装步兵参加了伯罗奔尼撒战争中的这三场战役，以勇敢和忍耐力著称。\n- **意义**：军事经历塑造了其坚韧品格，也为其关于“勇敢”德性的讨论提供了亲身经验。\n\n### 📍 重要地点：雅典市集与体育场\n- **时间**：青壮年至晚年\n- **停留时间**：每日\n- **地点**：雅典阿哥拉（市集）、体育场、店铺门口\n- **事件**：主要活动场所，与各色人等进行哲学对话，探讨各种定义与观念。\n- **意义**：这是其哲学实践的核心现场，“苏格拉底式对话”在此展开，他将哲学从天上拉回人间。\n\n### 📍 重要地点：德尔菲神庙\n- **时间**：青年时期（具体时间存疑）\n- **停留时间**：短暂\n- **地点**：德尔菲（今希腊德尔菲）\n- **事件**：友人凯勒丰询问神谕，阿波罗神谕称“没有人比苏格拉底更有智慧”。\n- **意义**：此事件成为其哲学使命的起点，他通过遍访智者来验证神谕，最终领悟到“自知无知”才是真智慧。\n\n### 📍 重要地点：萨拉米斯战场遗址\n- **时间**：公元前406年\n- **停留时间**：短暂\n- **地点**：萨拉米斯岛（今希腊萨拉米斯岛）\n- **事件**：在“阿吉纽西海战”后，作为五百人议事会成员，他独自反对对十位将军进行集体审判的非法动议。\n- **意义**：展现了其不畏强权、坚守法律程序与正义原则的勇气。\n\n### 📍 重要地点：三十僭主议事会\n- **时间**：公元前404年 - 公元前403年\n- **停留时间**：约一年\n- **地点**：雅典（今希腊雅典）\n- **事件**：斯巴达支持的寡头政权“三十僭主”执政期间，曾命令苏格拉底参与逮捕一位公民，他违抗命令回家。\n- **意义**：再次证明其无论在民主制还是寡头制下，都坚持个人道德原则，不屈从于不义的权力。\n\n### 📍 重要地点：美立都的法庭\n- **时间**：公元前399年\n- **停留时间**：审判日\n- **地点**：雅典法庭（今雅典阿哥拉遗址附近）\n- **事件**：被控“不敬神”和“腐蚀青年”，在法庭上发表著名申辩，拒绝乞求怜悯或流放。\n- **意义**：其申辩词是哲学史上捍卫思想自由与理性生活的经典文献，最终被判处死刑。\n\n### 📍 重要地点：监狱\n- **时间**：公元前399年\n- **停留时间**：约一个月（等待处决）\n- **地点**：雅典监狱（今雅典）\n- **事件**：在狱中与朋友、学生继续讨论哲学，特别是关于灵魂不朽的问题；拒绝朋友克里同的越狱计划。\n- **意义**：临终前的言行（见于柏拉图《斐多篇》）完美诠释了其哲学信念——哲学是“练习死亡”，灵魂应追求真理与善，而非苟全性命。\n\n### 🔴 去世地：雅典监狱\n- **时间**：公元前399年\n- **停留时间**：生命最后时刻\n- **地点**：雅典监狱（今雅典）\n- **事件**：从容饮下毒芹汁，在与门徒的交谈中平静离世。\n- **意义**：其死亡方式成为西方文化中“为真理与信念殉道”的最高象征，极大地升华了其哲学人格的感召力。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约公元前469年 | 0岁 | 出生于雅典。 |\n| 约公元前450年代 | 青年 | 接受常规教育，可能学习雕刻。 |\n| 约公元前431年-前422年 | 约38-47岁 | 参加伯罗奔尼撒战争，在波提狄亚、德利昂、安菲波利斯作战。 |\n| 约公元前420年代-前400年代 | 中年 | 在雅典街头开始持续的哲学对话与教学活动。 |\n| 公元前406年 | 约63岁 | 在阿吉纽西海战后，于五百人议事会上勇敢维护法律程序。 |\n| 公元前404年-前403年 | 约65-66岁 | 经历“三十僭主”寡头统治，拒绝执行其非法命令。 |\n| 公元前399年 | 约70岁 | 被审判并判处死刑，饮鸩而死。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《苏格拉底之死》**（选自柏拉图《申辩篇》《克里同篇》《斐多篇》的节选或概述）\n- 核心要点：\n    - **重点**：**“认识你自己”** 与 **“自知无知”** 是其哲学的起点，强调理性反思与谦逊。\n    - **重点**：**“德性即知识”** 的核心命题，认为无人自愿作恶，恶行源于无知。\n    - **重点**：**“苏格拉底式对话”**（诘问法）的典型特征：通过连续提问揭示对话者观念的矛盾，引导其走向真理。\n    - **“精神助产术”** 的比喻，形容自己帮助他人“产出”真知的角色。\n    - **《申辩篇》** 中对雅典公民的临终告白，体现其对真理与智慧的执着。\n    - **《斐多篇》** 中关于 **灵魂不朽** 的论证，展现其超越肉体死亡的精神追求。\n    - 其从容赴死所体现的 **哲学家的勇气** 与 **知行合一** 的人格典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 生活于 **古典希腊** 时期，特别是 **伯罗奔尼撒战争**（公元前431-前404年）期间，见证了雅典帝国的衰落。\n    - 其审判与处死是 **雅典民主制** 历史上的重大事件，反映了当时社会的思想冲突与政治动荡。\n    - **重点**：其学生 **柏拉图** 和 **色诺芬** 的著作是了解其思想与生平的最主要（且几乎唯一）的文献来源。\n    - **重点**：其死亡成为西方思想史上 **哲学与城邦**、**个人良知与公共权威** 冲突的标志性案例。\n- 核心要点：\n    - **重点**：被后世誉为 **西方哲学的奠基者** 之一，与耶稣、佛陀、孔子并列为人类文明的“导师”。\n    - 其哲学方法标志着古希腊哲学从 **自然哲学** 向 **伦理哲学** 和 **人类自身** 研究的重大转向。\n    - **重点**：其人格与思想通过 **柏拉图** 的对话录得以体系化并传世，深刻影响了整个 **西方哲学传统**。\n    - 对 **理性**、**真理**、**善** 的绝对追求，树立了哲学家的典范形象。\n    - 其命运引发了关于 **民主**、**言论自由**、**司法公正** 的持久历史反思。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 雅典 | 37.9838 | 23.7275 |\n| 德尔菲 | 38.4824 | 22.5010 |\n| 波提狄亚（卡兰德里纳） | 40.2000 | 23.3500 |\n| 德利昂（奥罗普斯） | 38.3247 | 23.7572 |\n| 安菲波利斯 | 40.8225 | 23.8456 |\n| 萨拉米斯岛 | 37.9407 | 23.4966 |\n| 麦加拉 | 37.9911 | 23.3414 |\n| 科林斯（可能途经） | 37.9402 | 22.9210 |", "relatedGraph": {"center": {"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "“苏格拉底式对话”", "review": "练习死亡", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "“苏格拉底式对话”", "review": "练习死亡", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "“吾十有五而志于学”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "泰勒斯", "name": "泰勒斯", "file": "泰勒斯.html", "dynasty": "古希腊（古风时期）", "aliases": [], "birth_year": -624, "death_year": -546, "quote": "“西方哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称米利都", "birthplace_modern": "土耳其艾登省米利都遗址", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "“两点之间直线最短。”", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": ["数学", "几何学"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "亚里士多德", "name": "亚里士多德", "file": "亚里士多德.html", "dynasty": "古希腊（古典时代晚期）", "aliases": [], "birth_year": -384, "death_year": -322, "quote": "“百科全书式的学者”", "review": "*马克思**：称其为“古代最伟大的思想家”。", "foreign_name": "Aristotle（希腊语：Ἀριστοτέλης）", "main_role_label": "哲学家", "birthplace": "马其顿王国斯塔基拉城", "birthplace_modern": "希腊哈尔基季基州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "“全部西方哲学传统都是对柏拉图的一系列注脚。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曾子", "name": "曾子", "file": "曾子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -505, "death_year": -435, "quote": "“吾日三省吾身”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国南武城今地有争议", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "苏格拉底", "target": "孔子", "label": "师生", "confidence": null}, {"source": "苏格拉底", "target": "泰勒斯", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "亚里士多德", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "柏拉图", "label": "同时代人物", "confidence": null}, {"source": "苏格拉底", "target": "曾子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "欧阳修", "title": "", "description": "欧阳修四岁丧父，家贫，其母郑氏以荻秆画地教其识字。他天资聪颖，刻苦攻读，于宋仁宗天圣八年（1030年）进士及第。他支持范仲淹的“庆历新政”，直言敢谏，因此屡遭贬谪，曾外放夷陵、滁州、颍州等地为官。晚年官至参知政事（副宰相），但因与王安石政见不合，坚请外任。他一生宦海浮沉，却始终以文载道，倡导平易自然的文风，对北宋文学、史学和政治都产生了深远影响。", "quote": "春风疑不到天涯，二月山城未见花。", "shortReview": "春风疑不到天涯，二月山城未见花。", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": ["欧阳永叔", "醉翁", "六一居士"], "birthplace": "有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说", "avatar": "", "birth": {"date": "1007年", "location": "有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说", "lat": 31.4675, "lng": 104.6796, "coordSystem": "WGS84"}, "death": {"date": "1072年", "location": "颍州（今安徽省阜阳市）", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84"}, "lifespan": "六十六岁（虚岁）", "highlights": {"honor": "", "status": "北宋文坛领袖，唐宋八大家之一，领导了北宋诗文革新运动。", "identities": "政治家、文学家、史学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "出生地", "ancientName": "存疑，有绵州和吉州庐陵两说。", "modernName": "四川省绵阳市", "lat": 31.4675, "lng": 104.6796, "coordSystem": "WGS84", "type": "birth", "event": "欧阳修出生地存疑。一说因其父欧阳观时任绵州军事推官，故生于绵州官舍；另一说为吉州庐陵。", "time": "公元1007年", "duration": "约4年（1007-1010）", "significance": "人生起点。父亲为官清廉，不久去世，对其早年家境与母亲教育影响深远。", "works": [], "quoteLines": []}, {"name": "随州", "ancientName": "随州", "modernName": "湖北省随州市", "lat": 31.6902, "lng": 113.3825, "coordSystem": "WGS84", "type": "normal", "event": "随母投靠叔父欧阳晔，在此成长、读书。家贫，以荻画地学书。在故书堆中发现韩愈文集，苦读深研，为其文学思想奠定基础。", "time": "公元1010年 - 1029年", "duration": "约19年", "significance": "接受启蒙教育，形成文学志向的关键时期。", "works": [], "quoteLines": ["（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）"]}, {"name": "洛阳", "ancientName": "西京洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "进士及第后，任西京留守推官。与梅尧臣、尹洙等结为至交，切磋诗文，初步实践其文学主张。", "time": "公元1031年 - 1034年", "duration": "约3年", "significance": "初入仕途，结交文坛同道，开始文学革新活动的“试验田”。", "works": [], "quoteLines": ["《戏答元珍》：“春风疑不到天涯，二月山城未见花。”"]}, {"name": "开封", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7971, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "任馆阁校勘，参与编修《崇文总目》。因支持范仲淹改革，写《与高司谏书》痛斥谏官高若讷，被贬为夷陵令。", "time": "公元1034年 - 1036年（首次在中央任职）", "duration": "约2年", "significance": "政治生涯的第一次重大挫折，彰显其刚直不阿的品格。", "works": ["崇文总目", "与高司谏书"], "quoteLines": []}, {"name": "夷陵", "ancientName": "峡州夷陵", "modernName": "湖北省宜昌市", "lat": 30.692, "lng": 111.2863, "coordSystem": "WGS84", "type": "normal", "event": "因直言被贬。在此期间，他深感“天下事固有责于远而不责于近者”，勤于政事，并潜心学术，修订旧作。", "time": "公元1036年 - 1038年", "duration": "约2年", "significance": "贬谪生涯使其更深入体察民情，磨砺了心志，创作亦趋成熟。", "works": [], "quoteLines": ["《戏答元珍》：“曾是洛阳花下客，野芳虽晚不须嗟。”"]}, {"name": "滁州", "ancientName": "滁州", "modernName": "安徽省滁州市", "lat": 32.2532, "lng": 118.3345, "coordSystem": "WGS84", "type": "normal", "event": "因支持“庆历新政”被贬。在滁州实行宽简政治，与民同乐。常游琅琊山，寄情山水。", "time": "公元1045年 - 1048年", "duration": "约3年", "significance": "创作巅峰期之一，写下千古名篇，其“与民同乐”的政治理想和豁达心境得以充分体现。", "works": [], "quoteLines": ["《醉翁亭记》：“醉翁之意不在酒，在乎山水之间也。”", "《丰乐亭记》。"]}, {"name": "颍州", "ancientName": "颍州", "modernName": "安徽省阜阳市", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84", "type": "normal", "event": "初任颍州知州，爱其民风淳朴、水甘土肥，曾表示“终当卜居于此”。晚年归隐此地。", "time": "公元1049年 - 1050年（首次任职）；1067年、1071年（晚年居此）", "duration": "首次任职约2年（1049-1050），晚年归隐约1年（1071-1072）", "significance": "与欧阳修结下不解之缘，是其精神归宿和最终安息地。", "works": [], "quoteLines": ["《采桑子·群芳过后西湖好》：“群芳过后西湖好，狼籍残红。”"]}, {"name": "开封", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7971, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。主修《新唐书》，知贡举，利用科举选拔苏轼、苏辙、曾巩等人才。", "time": "公元1054年 - 1067年（主要中央任职期）", "duration": "约13年", "significance": "政治与学术生涯的顶峰，成为文坛与政坛的核心人物。", "works": ["新唐书"], "quoteLines": ["《秋声赋》：“其色惨淡，烟霏云敛……”"]}, {"name": "颍州", "ancientName": "颍州", "modernName": "安徽省阜阳市", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84", "type": "death", "event": "以太子少师身份退休，居颍州西湖畔。同年闰七月二十三日病逝。", "time": "公元1072年", "duration": "约1年（1071-1072）", "significance": "人生终点。朝廷赠太子太师，谥号“文忠”，葬于开封府新郑县（今河南省新郑市）。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---", "workTexts": {"戏答元珍": "春风疑不到天涯，二月山城未见花。", "醉翁亭记": "醉翁之意不在酒，在乎山水之间也。", "采桑子·群芳过后西湖好": "群芳过后西湖好，狼籍残红。", "采桑子": "群芳过后西湖好，狼籍残红。", "群芳过后西湖好": "群芳过后西湖好，狼籍残红。", "秋声赋": "其色惨淡，烟霏云敛……", "泷冈阡表": "名篇名句：（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）", "新唐书": "事件：被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。", "与高司谏书": "| 1036 | 30岁 | 因《与高司谏书》被贬为夷陵（今湖北宜昌）县令。", "生查子·元夕": "“去年元夜时”\n“今年元夜时”", "生查子": "“去年元夜时”\n“今年元夜时”", "元夕": "“去年元夜时”\n“今年元夜时”", "卖油翁": "“熟能生巧”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 欧阳修\n\n## 人物档案\n\n### 基本信息\n- **姓名**：欧阳修\n- **别名**：欧阳永叔、醉翁、六一居士\n- **时代**：北宋\n- **出生**：公元1007年，出生地存疑，有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说。\n- **去世**：公元1072年，颍州（今安徽省阜阳市）\n- **享年**：六十六岁（虚岁）\n- **主要身份**：政治家、文学家、史学家\n- **历史地位**：北宋文坛领袖，唐宋八大家之一，领导了北宋诗文革新运动。\n- **主要成就**：\n    1. 领导北宋诗文革新运动，扭转了宋初浮靡文风。\n    2. 主修《新唐书》，独撰《新五代史》。\n    3. 赏识并荐举苏洵、苏轼、苏辙、曾巩等文坛巨匠，早年曾向朝廷推荐过王安石。\n    4. 散文、诗、词均有极高造诣，开创一代文风。\n\n### 生平概述\n欧阳修四岁丧父，家贫，其母郑氏以荻秆画地教其识字。他天资聪颖，刻苦攻读，于宋仁宗天圣八年（1030年）进士及第。他支持范仲淹的“庆历新政”，直言敢谏，因此屡遭贬谪，曾外放夷陵、滁州、颍州等地为官。晚年官至参知政事（副宰相），但因与王安石政见不合，坚请外任。他一生宦海浮沉，却始终以文载道，倡导平易自然的文风，对北宋文学、史学和政治都产生了深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要涉及今四川、湖北、河南、安徽等省。\n- ⏱️ **时间跨度**：公元1007年 - 1072年，共计65年。\n- 📍 **地理范围**：以北宋东京开封府为中心，辐射至京西南路、淮南西路、江南东路等地区。\n- 🌟 **重要节点数量**：核心地点9处（含不同时期的同一地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地\n- **时间**：公元1007年\n- **停留时间**：约4年（1007-1010）\n- **地点**：存疑，有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说。\n- **事件**：欧阳修出生地存疑。一说因其父欧阳观时任绵州军事推官，故生于绵州官舍；另一说为吉州庐陵。\n- **意义**：人生起点。父亲为官清廉，不久去世，对其早年家境与母亲教育影响深远。\n\n### 📍 重要地点：随州\n- **时间**：公元1010年 - 1029年\n- **停留时间**：约19年\n- **地点**：随州（今湖北省随州市）\n- **事件**：随母投靠叔父欧阳晔，在此成长、读书。家贫，以荻画地学书。在故书堆中发现韩愈文集，苦读深研，为其文学思想奠定基础。\n- **意义**：接受启蒙教育，形成文学志向的关键时期。\n- **名篇名句**：（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）\n\n### 📍 重要地点：洛阳\n- **时间**：公元1031年 - 1034年\n- **停留时间**：约3年\n- **地点**：西京洛阳（今河南省洛阳市）\n- **事件**：进士及第后，任西京留守推官。与梅尧臣、尹洙等结为至交，切磋诗文，初步实践其文学主张。\n- **意义**：初入仕途，结交文坛同道，开始文学革新活动的“试验田”。\n- **名篇名句**：《戏答元珍》：“春风疑不到天涯，二月山城未见花。”\n\n### 📍 重要地点：开封\n- **时间**：公元1034年 - 1036年（首次在中央任职）\n- **停留时间**：约2年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：任馆阁校勘，参与编修《崇文总目》。因支持范仲淹改革，写《与高司谏书》痛斥谏官高若讷，被贬为夷陵令。\n- **意义**：政治生涯的第一次重大挫折，彰显其刚直不阿的品格。\n\n### 📍 重要地点：夷陵\n- **时间**：公元1036年 - 1038年\n- **停留时间**：约2年\n- **地点**：峡州夷陵（今湖北省宜昌市）\n- **事件**：因直言被贬。在此期间，他深感“天下事固有责于远而不责于近者”，勤于政事，并潜心学术，修订旧作。\n- **意义**：贬谪生涯使其更深入体察民情，磨砺了心志，创作亦趋成熟。\n- **名篇名句**：《戏答元珍》：“曾是洛阳花下客，野芳虽晚不须嗟。”\n\n### 📍 重要地点：滁州\n- **时间**：公元1045年 - 1048年\n- **停留时间**：约3年\n- **地点**：滁州（今安徽省滁州市）\n- **事件**：因支持“庆历新政”被贬。在滁州实行宽简政治，与民同乐。常游琅琊山，寄情山水。\n- **意义**：创作巅峰期之一，写下千古名篇，其“与民同乐”的政治理想和豁达心境得以充分体现。\n- **名篇名句**：《醉翁亭记》：“醉翁之意不在酒，在乎山水之间也。”；《丰乐亭记》。\n\n### 📍 重要地点：颍州\n- **时间**：公元1049年 - 1050年（首次任职）；1067年、1071年（晚年居此）\n- **停留时间**：首次任职约2年（1049-1050），晚年归隐约1年（1071-1072）\n- **地点**：颍州（今安徽省阜阳市）\n- **事件**：初任颍州知州，爱其民风淳朴、水甘土肥，曾表示“终当卜居于此”。晚年归隐此地。\n- **意义**：与欧阳修结下不解之缘，是其精神归宿和最终安息地。\n- **名篇名句**：《采桑子·群芳过后西湖好》：“群芳过后西湖好，狼籍残红。”\n\n### 📍 重要地点：开封\n- **时间**：公元1054年 - 1067年（主要中央任职期）\n- **停留时间**：约13年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。主修《新唐书》，知贡举，利用科举选拔苏轼、苏辙、曾巩等人才。\n- **意义**：政治与学术生涯的顶峰，成为文坛与政坛的核心人物。\n- **名篇名句**：《秋声赋》：“其色惨淡，烟霏云敛……”\n\n### 🔴 去世地：颍州\n- **时间**：公元1072年\n- **停留时间**：约1年（1071-1072）\n- **地点**：颍州（今安徽省阜阳市）\n- **事件**：以太子少师身份退休，居颍州西湖畔。同年闰七月二十三日病逝。\n- **意义**：人生终点。朝廷赠太子太师，谥号“文忠”，葬于开封府新郑县（今河南省新郑市）。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1007 | 1岁 | 出生（地点存疑，有绵州、吉州庐陵两说）。 |\n| 1010 | 4岁 | 父亲去世，随母投靠叔父，定居随州（今湖北随州）。 |\n| 1023 | 17岁 | 在随州应试落榜（原因说法不一）。 |\n| 1029 | 23岁 | 由随州荐名，试于开封，两试国子监均获第一。 |\n| 1030 | 24岁 | 进士及第，授将仕郎，试秘书省校书郎，充任西京留守推官。 |\n| 1031 | 25岁 | 赴洛阳上任，结识梅尧臣、尹洙等。 |\n| 1034 | 28岁 | 召试学士院，授任宣德郎，充馆阁校勘。 |\n| 1036 | 30岁 | 因《与高司谏书》被贬为夷陵（今湖北宜昌）县令。 |\n| 1040 | 34岁 | 被召回京，复任馆阁校勘，后知谏院。 |\n| 1043 | 37岁 | 支持范仲淹“庆历新政”，积极参与政治改革。 |\n| 1045 | 39岁 | 新政失败，被贬为滁州（今安徽滁州）知州。 |\n| 1049 | 43岁 | 改知颍州（今安徽阜阳）。 |\n| 1054 | 48岁 | 奉诏入京，任翰林学士兼史馆修撰。 |\n| 1057 | 51岁 | 知礼部贡举，力抑险怪奇涩的“太学体”，录取苏轼、苏辙、曾巩等人。 |\n| 1061 | 55岁 | 任参知政事（副宰相），进封开国公。 |\n| 1067 | 61岁 | 因反对王安石变法，坚请外任，出知亳州（今安徽亳州）。 |\n| 1071 | 65岁 | 以太子少师身份退休，归隐颍州。 |\n| 1072 | 66岁 | 闰七月二十三日，在颍州西湖畔的私第逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省绵阳市 | 31.4675 | 104.6796 |\n| 江西省吉安市 | 27.1114 | 114.9927 |\n| 湖北省随州市 | 31.6902 | 113.3825 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 河南省开封市 | 34.7971 | 114.3075 |\n| 湖北省宜昌市 | 30.6920 | 111.2863 |\n| 安徽省滁州市 | 32.2532 | 118.3345 |\n| 安徽省阜阳市 | 32.8900 | 115.8149 |\n| 河南省新郑市 | 34.3956 | 113.7416 |", "relatedGraph": {"center": {"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "“春风疑不到天涯，二月山城未见花。”", "review": "春风疑不到天涯，二月山城未见花。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "“春风疑不到天涯，二月山城未见花。”", "review": "春风疑不到天涯，二月山城未见花。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "欧阳修", "target": "苏轼", "label": "并称", "confidence": 0.55}, {"source": "欧阳修", "target": "王安石", "label": "对手", "confidence": null}, {"source": "欧阳修", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "苏舜钦", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "欧阳修", "title": "", "description": "欧阳修四岁丧父，家贫，其母郑氏以荻秆画地教其识字。他天资聪颖，刻苦攻读，于宋仁宗天圣八年（1030年）进士及第。他支持范仲淹的“庆历新政”，直言敢谏，因此屡遭贬谪，曾外放夷陵、滁州、颍州等地为官。晚年官至参知政事（副宰相），但因与王安石政见不合，坚请外任。他一生宦海浮沉，却始终以文载道，倡导平易自然的文风，对北宋文学、史学和政治都产生了深远影响。", "quote": "春风疑不到天涯，二月山城未见花。", "shortReview": "春风疑不到天涯，二月山城未见花。", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": ["欧阳永叔", "醉翁", "六一居士"], "birthplace": "有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说", "avatar": "", "birth": {"date": "1007年", "location": "有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说", "lat": 31.4675, "lng": 104.6796, "coordSystem": "WGS84"}, "death": {"date": "1072年", "location": "颍州（今安徽省阜阳市）", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84"}, "lifespan": "六十六岁（虚岁）", "highlights": {"honor": "", "status": "北宋文坛领袖，唐宋八大家之一，领导了北宋诗文革新运动。", "identities": "政治家、文学家、史学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "出生地", "ancientName": "存疑，有绵州和吉州庐陵两说。", "modernName": "四川省绵阳市", "lat": 31.4675, "lng": 104.6796, "coordSystem": "WGS84", "type": "birth", "event": "欧阳修出生地存疑。一说因其父欧阳观时任绵州军事推官，故生于绵州官舍；另一说为吉州庐陵。", "time": "公元1007年", "duration": "约4年（1007-1010）", "significance": "人生起点。父亲为官清廉，不久去世，对其早年家境与母亲教育影响深远。", "works": [], "quoteLines": []}, {"name": "随州", "ancientName": "随州", "modernName": "湖北省随州市", "lat": 31.6902, "lng": 113.3825, "coordSystem": "WGS84", "type": "normal", "event": "随母投靠叔父欧阳晔，在此成长、读书。家贫，以荻画地学书。在故书堆中发现韩愈文集，苦读深研，为其文学思想奠定基础。", "time": "公元1010年 - 1029年", "duration": "约19年", "significance": "接受启蒙教育，形成文学志向的关键时期。", "works": [], "quoteLines": ["（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）"]}, {"name": "洛阳", "ancientName": "西京洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "进士及第后，任西京留守推官。与梅尧臣、尹洙等结为至交，切磋诗文，初步实践其文学主张。", "time": "公元1031年 - 1034年", "duration": "约3年", "significance": "初入仕途，结交文坛同道，开始文学革新活动的“试验田”。", "works": [], "quoteLines": ["《戏答元珍》：“春风疑不到天涯，二月山城未见花。”"]}, {"name": "开封", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7971, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "任馆阁校勘，参与编修《崇文总目》。因支持范仲淹改革，写《与高司谏书》痛斥谏官高若讷，被贬为夷陵令。", "time": "公元1034年 - 1036年（首次在中央任职）", "duration": "约2年", "significance": "政治生涯的第一次重大挫折，彰显其刚直不阿的品格。", "works": ["崇文总目", "与高司谏书"], "quoteLines": []}, {"name": "夷陵", "ancientName": "峡州夷陵", "modernName": "湖北省宜昌市", "lat": 30.692, "lng": 111.2863, "coordSystem": "WGS84", "type": "normal", "event": "因直言被贬。在此期间，他深感“天下事固有责于远而不责于近者”，勤于政事，并潜心学术，修订旧作。", "time": "公元1036年 - 1038年", "duration": "约2年", "significance": "贬谪生涯使其更深入体察民情，磨砺了心志，创作亦趋成熟。", "works": [], "quoteLines": ["《戏答元珍》：“曾是洛阳花下客，野芳虽晚不须嗟。”"]}, {"name": "滁州", "ancientName": "滁州", "modernName": "安徽省滁州市", "lat": 32.2532, "lng": 118.3345, "coordSystem": "WGS84", "type": "normal", "event": "因支持“庆历新政”被贬。在滁州实行宽简政治，与民同乐。常游琅琊山，寄情山水。", "time": "公元1045年 - 1048年", "duration": "约3年", "significance": "创作巅峰期之一，写下千古名篇，其“与民同乐”的政治理想和豁达心境得以充分体现。", "works": [], "quoteLines": ["《醉翁亭记》：“醉翁之意不在酒，在乎山水之间也。”", "《丰乐亭记》。"]}, {"name": "颍州", "ancientName": "颍州", "modernName": "安徽省阜阳市", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84", "type": "normal", "event": "初任颍州知州，爱其民风淳朴、水甘土肥，曾表示“终当卜居于此”。晚年归隐此地。", "time": "公元1049年 - 1050年（首次任职）；1067年、1071年（晚年居此）", "duration": "首次任职约2年（1049-1050），晚年归隐约1年（1071-1072）", "significance": "与欧阳修结下不解之缘，是其精神归宿和最终安息地。", "works": [], "quoteLines": ["《采桑子·群芳过后西湖好》：“群芳过后西湖好，狼籍残红。”"]}, {"name": "开封", "ancientName": "东京开封府", "modernName": "河南省开封市", "lat": 34.7971, "lng": 114.3075, "coordSystem": "WGS84", "type": "normal", "event": "被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。主修《新唐书》，知贡举，利用科举选拔苏轼、苏辙、曾巩等人才。", "time": "公元1054年 - 1067年（主要中央任职期）", "duration": "约13年", "significance": "政治与学术生涯的顶峰，成为文坛与政坛的核心人物。", "works": ["新唐书"], "quoteLines": ["《秋声赋》：“其色惨淡，烟霏云敛……”"]}, {"name": "颍州", "ancientName": "颍州", "modernName": "安徽省阜阳市", "lat": 32.89, "lng": 115.8149, "coordSystem": "WGS84", "type": "death", "event": "以太子少师身份退休，居颍州西湖畔。同年闰七月二十三日病逝。", "time": "公元1072年", "duration": "约1年（1071-1072）", "significance": "人生终点。朝廷赠太子太师，谥号“文忠”，葬于开封府新郑县（今河南省新郑市）。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---", "workTexts": {"戏答元珍": "春风疑不到天涯，二月山城未见花。", "醉翁亭记": "醉翁之意不在酒，在乎山水之间也。", "采桑子·群芳过后西湖好": "群芳过后西湖好，狼籍残红。", "采桑子": "群芳过后西湖好，狼籍残红。", "群芳过后西湖好": "群芳过后西湖好，狼籍残红。", "秋声赋": "其色惨淡，烟霏云敛……", "泷冈阡表": "名篇名句：（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）", "新唐书": "事件：被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。", "与高司谏书": "| 1036 | 30岁 | 因《与高司谏书》被贬为夷陵（今湖北宜昌）县令。", "生查子·元夕": "“去年元夜时”\n“今年元夜时”", "生查子": "“去年元夜时”\n“今年元夜时”", "元夕": "“去年元夜时”\n“今年元夜时”", "卖油翁": "“熟能生巧”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 欧阳修\n\n## 人物档案\n\n### 基本信息\n- **姓名**：欧阳修\n- **别名**：欧阳永叔、醉翁、六一居士\n- **时代**：北宋\n- **出生**：公元1007年，出生地存疑，有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说。\n- **去世**：公元1072年，颍州（今安徽省阜阳市）\n- **享年**：六十六岁（虚岁）\n- **主要身份**：政治家、文学家、史学家\n- **历史地位**：北宋文坛领袖，唐宋八大家之一，领导了北宋诗文革新运动。\n- **主要成就**：\n    1. 领导北宋诗文革新运动，扭转了宋初浮靡文风。\n    2. 主修《新唐书》，独撰《新五代史》。\n    3. 赏识并荐举苏洵、苏轼、苏辙、曾巩等文坛巨匠，早年曾向朝廷推荐过王安石。\n    4. 散文、诗、词均有极高造诣，开创一代文风。\n\n### 生平概述\n欧阳修四岁丧父，家贫，其母郑氏以荻秆画地教其识字。他天资聪颖，刻苦攻读，于宋仁宗天圣八年（1030年）进士及第。他支持范仲淹的“庆历新政”，直言敢谏，因此屡遭贬谪，曾外放夷陵、滁州、颍州等地为官。晚年官至参知政事（副宰相），但因与王安石政见不合，坚请外任。他一生宦海浮沉，却始终以文载道，倡导平易自然的文风，对北宋文学、史学和政治都产生了深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要涉及今四川、湖北、河南、安徽等省。\n- ⏱️ **时间跨度**：公元1007年 - 1072年，共计65年。\n- 📍 **地理范围**：以北宋东京开封府为中心，辐射至京西南路、淮南西路、江南东路等地区。\n- 🌟 **重要节点数量**：核心地点9处（含不同时期的同一地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地\n- **时间**：公元1007年\n- **停留时间**：约4年（1007-1010）\n- **地点**：存疑，有绵州（今四川省绵阳市）和吉州庐陵（今江西省吉安市）两说。\n- **事件**：欧阳修出生地存疑。一说因其父欧阳观时任绵州军事推官，故生于绵州官舍；另一说为吉州庐陵。\n- **意义**：人生起点。父亲为官清廉，不久去世，对其早年家境与母亲教育影响深远。\n\n### 📍 重要地点：随州\n- **时间**：公元1010年 - 1029年\n- **停留时间**：约19年\n- **地点**：随州（今湖北省随州市）\n- **事件**：随母投靠叔父欧阳晔，在此成长、读书。家贫，以荻画地学书。在故书堆中发现韩愈文集，苦读深研，为其文学思想奠定基础。\n- **意义**：接受启蒙教育，形成文学志向的关键时期。\n- **名篇名句**：（此时期无特定名篇，相关回忆见晚年作品《泷冈阡表》）\n\n### 📍 重要地点：洛阳\n- **时间**：公元1031年 - 1034年\n- **停留时间**：约3年\n- **地点**：西京洛阳（今河南省洛阳市）\n- **事件**：进士及第后，任西京留守推官。与梅尧臣、尹洙等结为至交，切磋诗文，初步实践其文学主张。\n- **意义**：初入仕途，结交文坛同道，开始文学革新活动的“试验田”。\n- **名篇名句**：《戏答元珍》：“春风疑不到天涯，二月山城未见花。”\n\n### 📍 重要地点：开封\n- **时间**：公元1034年 - 1036年（首次在中央任职）\n- **停留时间**：约2年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：任馆阁校勘，参与编修《崇文总目》。因支持范仲淹改革，写《与高司谏书》痛斥谏官高若讷，被贬为夷陵令。\n- **意义**：政治生涯的第一次重大挫折，彰显其刚直不阿的品格。\n\n### 📍 重要地点：夷陵\n- **时间**：公元1036年 - 1038年\n- **停留时间**：约2年\n- **地点**：峡州夷陵（今湖北省宜昌市）\n- **事件**：因直言被贬。在此期间，他深感“天下事固有责于远而不责于近者”，勤于政事，并潜心学术，修订旧作。\n- **意义**：贬谪生涯使其更深入体察民情，磨砺了心志，创作亦趋成熟。\n- **名篇名句**：《戏答元珍》：“曾是洛阳花下客，野芳虽晚不须嗟。”\n\n### 📍 重要地点：滁州\n- **时间**：公元1045年 - 1048年\n- **停留时间**：约3年\n- **地点**：滁州（今安徽省滁州市）\n- **事件**：因支持“庆历新政”被贬。在滁州实行宽简政治，与民同乐。常游琅琊山，寄情山水。\n- **意义**：创作巅峰期之一，写下千古名篇，其“与民同乐”的政治理想和豁达心境得以充分体现。\n- **名篇名句**：《醉翁亭记》：“醉翁之意不在酒，在乎山水之间也。”；《丰乐亭记》。\n\n### 📍 重要地点：颍州\n- **时间**：公元1049年 - 1050年（首次任职）；1067年、1071年（晚年居此）\n- **停留时间**：首次任职约2年（1049-1050），晚年归隐约1年（1071-1072）\n- **地点**：颍州（今安徽省阜阳市）\n- **事件**：初任颍州知州，爱其民风淳朴、水甘土肥，曾表示“终当卜居于此”。晚年归隐此地。\n- **意义**：与欧阳修结下不解之缘，是其精神归宿和最终安息地。\n- **名篇名句**：《采桑子·群芳过后西湖好》：“群芳过后西湖好，狼籍残红。”\n\n### 📍 重要地点：开封\n- **时间**：公元1054年 - 1067年（主要中央任职期）\n- **停留时间**：约13年\n- **地点**：东京开封府（今河南省开封市）\n- **事件**：被召回京，历任翰林学士、史馆修撰、枢密副使、参知政事等要职。主修《新唐书》，知贡举，利用科举选拔苏轼、苏辙、曾巩等人才。\n- **意义**：政治与学术生涯的顶峰，成为文坛与政坛的核心人物。\n- **名篇名句**：《秋声赋》：“其色惨淡，烟霏云敛……”\n\n### 🔴 去世地：颍州\n- **时间**：公元1072年\n- **停留时间**：约1年（1071-1072）\n- **地点**：颍州（今安徽省阜阳市）\n- **事件**：以太子少师身份退休，居颍州西湖畔。同年闰七月二十三日病逝。\n- **意义**：人生终点。朝廷赠太子太师，谥号“文忠”，葬于开封府新郑县（今河南省新郑市）。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1007 | 1岁 | 出生（地点存疑，有绵州、吉州庐陵两说）。 |\n| 1010 | 4岁 | 父亲去世，随母投靠叔父，定居随州（今湖北随州）。 |\n| 1023 | 17岁 | 在随州应试落榜（原因说法不一）。 |\n| 1029 | 23岁 | 由随州荐名，试于开封，两试国子监均获第一。 |\n| 1030 | 24岁 | 进士及第，授将仕郎，试秘书省校书郎，充任西京留守推官。 |\n| 1031 | 25岁 | 赴洛阳上任，结识梅尧臣、尹洙等。 |\n| 1034 | 28岁 | 召试学士院，授任宣德郎，充馆阁校勘。 |\n| 1036 | 30岁 | 因《与高司谏书》被贬为夷陵（今湖北宜昌）县令。 |\n| 1040 | 34岁 | 被召回京，复任馆阁校勘，后知谏院。 |\n| 1043 | 37岁 | 支持范仲淹“庆历新政”，积极参与政治改革。 |\n| 1045 | 39岁 | 新政失败，被贬为滁州（今安徽滁州）知州。 |\n| 1049 | 43岁 | 改知颍州（今安徽阜阳）。 |\n| 1054 | 48岁 | 奉诏入京，任翰林学士兼史馆修撰。 |\n| 1057 | 51岁 | 知礼部贡举，力抑险怪奇涩的“太学体”，录取苏轼、苏辙、曾巩等人。 |\n| 1061 | 55岁 | 任参知政事（副宰相），进封开国公。 |\n| 1067 | 61岁 | 因反对王安石变法，坚请外任，出知亳州（今安徽亳州）。 |\n| 1071 | 65岁 | 以太子少师身份退休，归隐颍州。 |\n| 1072 | 66岁 | 闰七月二十三日，在颍州西湖畔的私第逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《醉翁亭记》**、**《生查子·元夕》**、《卖油翁》、《秋声赋》（节选）。\n- 核心要点：\n    - **《醉翁亭记》** 的核心主题是 **“与民同乐”** 的政治理想和 **“醉翁之意不在酒”** 的山水之乐。\n    - **《醉翁亭记》** 大量运用 **“也”** 字句，形成回环往复、舒缓自如的独特 **句法** 风格。\n    - **《生查子·元夕》** 通过今昔对比（“去年元夜时”与“今年元夜时”），抒写物是人非、旧情难续的 **哀婉** 情感。\n    - 《醉翁亭记》以 **“乐”** 字为线，结构严谨，由景及人，由人及情。\n    - 《卖油翁》通过卖油翁酌油的故事，阐明了 **“熟能生巧”** 的道理。\n    - 欧阳修散文 **平易自然**， **婉曲流畅**，是宋代散文 **“六一风神”** 的代表。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - 北宋 **诗文革新运动** 的领袖，反对西昆体浮靡文风，主张 **“文以载道”**。\n    - 因支持 **范仲淹** 主导的 **“庆历新政”** 而遭贬谪，是北宋 **党争** 的重要亲历者。\n    - 主修 **《新唐书》**（与宋祁合修），独撰 **《新五代史》**。\n    - **知贡举** 期间，利用科举改革文风，大力提拔 **苏轼**、 **苏辙**、 **曾巩** 等后进。\n- 核心要点：\n    - 其政治立场体现了北宋士大夫 **以天下为己任**、 **直言敢谏** 的品格。\n    - 在文学史上，他承前启后，是 **唐宋八大家** 之一，确立了宋代散文平易畅达的主流风格。\n    - 其 **“宽简”** 的为政理念（如在滁州）与 **“与民同乐”** 的思想，是儒家仁政思想的实践。\n    - 作为 **“千古伯乐”**，他对人才的识拔与培养，深刻影响了北宋中后期的文坛与政坛格局。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省绵阳市 | 31.4675 | 104.6796 |\n| 江西省吉安市 | 27.1114 | 114.9927 |\n| 湖北省随州市 | 31.6902 | 113.3825 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 河南省开封市 | 34.7971 | 114.3075 |\n| 湖北省宜昌市 | 30.6920 | 111.2863 |\n| 安徽省滁州市 | 32.2532 | 118.3345 |\n| 安徽省阜阳市 | 32.8900 | 115.8149 |\n| 河南省新郑市 | 34.3956 | 113.7416 |", "relatedGraph": {"center": {"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "“春风疑不到天涯，二月山城未见花。”", "review": "春风疑不到天涯，二月山城未见花。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "“春风疑不到天涯，二月山城未见花。”", "review": "春风疑不到天涯，二月山城未见花。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "“人生到处知何似，应似飞鸿踏雪泥。”", "review": "《宋史·苏轼传》：“器识之闳伟，议论之卓荦，文章之雄隽，政事之精明，四者皆能以特立之志为之主，而以迈往之气辅之。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "王安石", "name": "王安石", "file": "王安石.html", "dynasty": "北宋", "aliases": [], "birth_year": 1021, "death_year": 1086, "quote": "“**荆公体**”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称临江军清江县", "birthplace_modern": "江西省樟树市", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "“**点铁成金**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "“先天下之忧而忧，后天下之乐而乐”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "“以为文者气之所形，然文不可以学而能，气可以养而致。”", "review": "*苏轼评**：“子由之文实胜仆，而世俗不知，乃以为不如。其人深，不愿人知之。其文如其为人，故汪洋澹泊，有一唱三叹之声，而其秀杰之气终不可没。”（《答张文潜书》）", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "“形骸既适则神不烦，观听无邪则道以明”", "review": "*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "欧阳修", "target": "苏轼", "label": "并称", "confidence": 0.55}, {"source": "欧阳修", "target": "王安石", "label": "对手", "confidence": null}, {"source": "欧阳修", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "欧阳修", "target": "苏舜钦", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

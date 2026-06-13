@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "纪昀", "title": "", "description": "纪昀，字晓岚，一字春帆，号石云。生于清雍正二年，历雍正、乾隆、嘉庆三朝。乾隆十二年（1747年）考中举人，乾隆十九年（1754年）中进士，因学问渊博受乾隆帝赏识。乾隆三十八年，受诏任《四库全书》总纂官，倾注十年心血，主持完成这部中国历史上规模最大的丛书编纂工作。其间曾因泄露盐务机密等事获罪，被贬乌鲁木齐。晚年官至礼部尚书、协办大学士，谥“文达”。其一生横跨学术与文学，以博学、诙谐著称，其笔记小说《阅微草堂笔记》与《聊斋志异》并称清代笔记小说双璧。", "quote": "到处歌楼到处花，塞垣此地擅繁华。", "shortReview": "到处歌楼到处花，塞垣此地擅繁华。", "dynasty": "清代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "直隶献县（今河北省沧州市献县）", "avatar": "", "birth": {"date": "1724年", "location": "直隶献县（今河北省沧州市献县）", "lat": 38.189, "lng": 116.12, "coordSystem": "WGS84"}, "death": {"date": "1805年", "location": "京师（今北京市）", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84"}, "lifespan": "81岁（虚岁82岁）", "highlights": {"honor": "", "status": "清代乾隆朝官方学术的代表人物，《四库全书》总纂官。", "identities": "文学家、编纂家、官员", "achievements": "", "works": ["四库全书", "阅微草堂笔记", "聊斋志异"], "reviews": []}}, "locations": [{"name": "献县", "ancientName": "直隶献县", "modernName": "河北省沧州市献县", "lat": 38.189, "lng": 116.12, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦世家，自幼聪颖，接受传统儒家教育。", "time": "公元1724年", "duration": "少年时期（约17年）", "significance": "奠定了其一生的学问基础与价值观。", "works": [], "quoteLines": []}, {"name": "京师（北京）科举与初入仕途", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "乾隆十二年（1747年）考中举人。乾隆十九年（1754年）中进士，入翰林院为庶吉士，后授编修。多次担任科举考官。", "time": "公元1747年 - 1762年", "duration": "约15年", "significance": "正式踏入仕途，开始其官僚与学者生涯，进入帝国政治与文化中心。", "works": [], "quoteLines": []}, {"name": "福建学政任上", "ancientName": "福州", "modernName": "福建省福州市", "lat": 26.074, "lng": 119.296, "coordSystem": "WGS84", "type": "normal", "event": "提督福建学政，主管一省文教。", "time": "约公元1762年 - 1764年", "duration": "约2年", "significance": "首次外放地方，积累了地方文教管理经验。", "works": [], "quoteLines": []}, {"name": "乌鲁木齐", "ancientName": "乌鲁木齐", "modernName": "新疆维吾尔自治区乌鲁木齐市", "lat": 43.825, "lng": 87.616, "coordSystem": "WGS84", "type": "normal", "event": "因泄露盐务机密等事获罪，被革职谪戍乌鲁木齐军营效力。", "time": "公元1768年 - 1771年", "duration": "约3年", "significance": "人生重大挫折，亲历西北边塞，为其创作《乌鲁木齐杂诗》及《阅微草堂笔记》积累了独特素材。", "works": ["乌鲁木齐杂诗", "阅微草堂笔记"], "quoteLines": ["《乌鲁木齐杂诗》：“到处歌楼到处花，塞垣此地擅繁华。”"]}, {"name": "京师（北京）编纂《四库全书》", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "乾隆三十八年（1773年）被任命为《四库全书》总纂官，于翰林院“四库全书馆”主持编纂工作。", "time": "公元1773年 - 1784年", "duration": "约11年", "significance": "一生最重要的事业巅峰，对中国古代文化典籍进行了系统性的整理、校勘与汇编，影响深远。", "works": ["四库全书"], "quoteLines": ["《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。"]}, {"name": "各地学政与乡试主考", "ancientName": "如顺天府、江南贡院等", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "多次担任地方乡试主考官及学政，为国选才。", "time": "贯穿仕途，如公元1777年（顺天乡试主考）、1780年代等", "duration": "短期差旅", "significance": "履行文官职责，门生故吏遍布天下，扩大了其学术与政治影响力。", "works": [], "quoteLines": []}, {"name": "京师（北京）晚年著书", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "官至礼部尚书、协办大学士。公务之余，于“阅微草堂”潜心撰写《阅微草堂笔记》。", "time": "公元1790年代 - 1805年", "duration": "约15年", "significance": "学术与文学创作的总结期，《阅微草堂笔记》成为其文学成就的代表作。", "works": ["阅微草堂笔记"], "quoteLines": ["《阅微草堂笔记·滦阳消夏录》：“鬼魅皆托于星象，而不知星象之理。”"]}, {"name": "京师（北京）", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "death", "event": "病逝于任上，嘉庆帝御赐碑文“敏而好学可为文，授之以政无不达”，故谥号“文达”。", "time": "公元1805年（嘉庆十年）", "duration": "长期居住直至去世", "significance": "走完其作为学者、官员的一生，归葬于故乡献县。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---", "workTexts": {"乌鲁木齐杂诗": "到处歌楼到处花，塞垣此地擅繁华。", "阅微草堂笔记·滦阳消夏录": "鬼魅皆托于星象，而不知星象之理。", "阅微草堂笔记": "鬼魅皆托于星象，而不知星象之理。", "滦阳消夏录": "鬼魅皆托于星象，而不知星象之理。", "纪文达公遗集": "诗文创作与学术评论，有《纪文达公遗集》传世。", "四库全书": "“四库全书馆”", "四库全书总目提要": "名篇名句：《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 纪昀\n\n## 人物档案\n\n### 基本信息\n- **姓名**：纪昀\n- **时代**：清代\n- **出生**：公元1724年，直隶献县（今河北省沧州市献县）\n- **去世**：公元1805年，京师（今北京市）\n- **享年**：81岁（虚岁82岁）\n- **主要身份**：文学家、编纂家、官员\n- **历史地位**：清代乾隆朝官方学术的代表人物，《四库全书》总纂官。\n- **主要成就**：\n    - 主持编纂《**四库全书**》。\n    - 创作文言短篇小说集《**阅微草堂笔记**》。\n    - 诗文创作与学术评论，有《纪文达公遗集》传世。\n    - 历任礼部尚书、协办大学士等要职。\n\n### 生平概述\n纪昀，字晓岚，一字春帆，号石云。生于清雍正二年，历雍正、乾隆、嘉庆三朝。乾隆十二年（1747年）考中举人，乾隆十九年（1754年）中进士，因学问渊博受乾隆帝赏识。乾隆三十八年，受诏任《四库全书》总纂官，倾注十年心血，主持完成这部中国历史上规模最大的丛书编纂工作。其间曾因泄露盐务机密等事获罪，被贬乌鲁木齐。晚年官至礼部尚书、协办大学士，谥“文达”。其一生横跨学术与文学，以博学、诙谐著称，其笔记小说《阅微草堂笔记》与《聊斋志异》并称清代笔记小说双璧。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以京师（北京）为中心，足迹遍及直隶、福建、新疆及山西、贵州等地。\n- ⏱️ **时间跨度**：公元1724年 - 1805年，共81年。\n- 📍 **地理范围**：主要覆盖华北、西北地区，南至福建。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：献县\n- **时间**：公元1724年\n- **停留时间**：少年时期（约17年）\n- **地点**：直隶献县（今河北省沧州市献县）\n- **事件**：出生于官宦世家，自幼聪颖，接受传统儒家教育。\n- **意义**：奠定了其一生的学问基础与价值观。\n\n### 📍 重要地点：京师（北京）科举与初入仕途\n- **时间**：公元1747年 - 1762年\n- **停留时间**：约15年\n- **地点**：京师（今北京市）\n- **事件**：乾隆十二年（1747年）考中举人。乾隆十九年（1754年）中进士，入翰林院为庶吉士，后授编修。多次担任科举考官。\n- **意义**：正式踏入仕途，开始其官僚与学者生涯，进入帝国政治与文化中心。\n\n### 📍 重要地点：福建学政任上\n- **时间**：约公元1762年 - 1764年\n- **停留时间**：约2年\n- **地点**：福州（今福建省福州市）\n- **事件**：提督福建学政，主管一省文教。\n- **意义**：首次外放地方，积累了地方文教管理经验。\n\n### 📍 重要地点：乌鲁木齐\n- **时间**：公元1768年 - 1771年\n- **停留时间**：约3年\n- **地点**：乌鲁木齐（今新疆维吾尔自治区乌鲁木齐市）\n- **事件**：因泄露盐务机密等事获罪，被革职谪戍乌鲁木齐军营效力。\n- **意义**：人生重大挫折，亲历西北边塞，为其创作《乌鲁木齐杂诗》及《阅微草堂笔记》积累了独特素材。\n- **名篇名句**：《乌鲁木齐杂诗》：“到处歌楼到处花，塞垣此地擅繁华。”\n\n### 📍 重要地点：京师（北京）编纂《四库全书》\n- **时间**：公元1773年 - 1784年\n- **停留时间**：约11年\n- **地点**：京师（今北京市）\n- **事件**：乾隆三十八年（1773年）被任命为《四库全书》总纂官，于翰林院“四库全书馆”主持编纂工作。\n- **意义**：一生最重要的事业巅峰，对中国古代文化典籍进行了系统性的整理、校勘与汇编，影响深远。\n- **名篇名句**：《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。\n\n### 📍 重要地点：各地学政与乡试主考\n- **时间**：贯穿仕途，如公元1777年（顺天乡试主考）、1780年代等\n- **停留时间**：短期差旅\n- **地点**：如顺天府（今北京市）、江南贡院（今江苏省南京市）等\n- **事件**：多次担任地方乡试主考官及学政，为国选才。\n- **意义**：履行文官职责，门生故吏遍布天下，扩大了其学术与政治影响力。\n\n### 📍 重要地点：京师（北京）晚年著书\n- **时间**：公元1790年代 - 1805年\n- **停留时间**：约15年\n- **地点**：京师（今北京市）\n- **事件**：官至礼部尚书、协办大学士。公务之余，于“阅微草堂”潜心撰写《阅微草堂笔记》。\n- **意义**：学术与文学创作的总结期，《阅微草堂笔记》成为其文学成就的代表作。\n- **名篇名句**：《阅微草堂笔记·滦阳消夏录》：“鬼魅皆托于星象，而不知星象之理。”\n\n### 🔴 去世地：京师（北京）\n- **时间**：公元1805年（嘉庆十年）\n- **停留时间**：长期居住直至去世\n- **地点**：京师（今北京市）\n- **事件**：病逝于任上，嘉庆帝御赐碑文“敏而好学可为文，授之以政无不达”，故谥号“文达”。\n- **意义**：走完其作为学者、官员的一生，归葬于故乡献县。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1724年 | 0岁 | 出生于直隶献县。 |\n| 1747年 | 24岁（虚岁） | 考中举人。 |\n| 1754年 | 31岁（虚岁） | 考中进士，入翰林院。 |\n| 约1762年 | 约39岁（虚岁） | 出任福建学政。 |\n| 1768年 | 45岁（虚岁） | 因罪革职，谪戍乌鲁木齐。 |\n| 1771年 | 48岁（虚岁） | 获释回京。 |\n| 1773年 | 50岁（虚岁） | 受命担任《四库全书》总纂官。 |\n| 1784年 | 61岁（虚岁） | 《四库全书》主体编纂完成。 |\n| 1790年代 | 67岁+（虚岁） | 晚年任礼部尚书等职，撰写《阅微草堂笔记》。 |\n| 1805年 | 82岁（虚岁） | 于北京病逝，谥“文达”。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河北省沧州市献县 | 38.189 | 116.120 |\n| 北京市（清代翰林院及四库全书馆旧址区域） | 39.920 | 116.397 |\n| 福建省福州市 | 26.074 | 119.296 |\n| 新疆维吾尔自治区乌鲁木齐市 | 43.825 | 87.616 |\n| 北京市（顺天府贡院旧址） | 39.905 | 116.415 |\n| 江苏省南京市（江南贡院旧址） | 32.018 | 118.789 |\n| 山西省太原市（清代乡试地） | 37.870 | 112.549 |\n| 贵州省贵阳市（清代乡试地） | 26.647 | 106.630 |\n| 北京市（纪晓岚故居/墓） | 39.892 | 116.379 |", "relatedGraph": {"center": {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "到处歌楼到处花，塞垣此地擅繁华。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "到处歌楼到处花，塞垣此地擅繁华。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "“士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "“江山代有才人出，各领风骚数百年”", "review": "*清代学者李慈铭评**：“（《廿二史札记》）贯串全史，参互考订，不特阙文误义多所辨明，而各朝之史，皆综其要义，铨其异闻，使首尾井然，一览可悉。”", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "纪昀", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "赵翼", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "纪昀", "title": "", "description": "纪昀，字晓岚，一字春帆，号石云。生于清雍正二年，历雍正、乾隆、嘉庆三朝。乾隆十二年（1747年）考中举人，乾隆十九年（1754年）中进士，因学问渊博受乾隆帝赏识。乾隆三十八年，受诏任《四库全书》总纂官，倾注十年心血，主持完成这部中国历史上规模最大的丛书编纂工作。其间曾因泄露盐务机密等事获罪，被贬乌鲁木齐。晚年官至礼部尚书、协办大学士，谥“文达”。其一生横跨学术与文学，以博学、诙谐著称，其笔记小说《阅微草堂笔记》与《聊斋志异》并称清代笔记小说双璧。", "quote": "到处歌楼到处花，塞垣此地擅繁华。", "shortReview": "到处歌楼到处花，塞垣此地擅繁华。", "dynasty": "清代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "直隶献县（今河北省沧州市献县）", "avatar": "", "birth": {"date": "1724年", "location": "直隶献县（今河北省沧州市献县）", "lat": 38.189, "lng": 116.12, "coordSystem": "WGS84"}, "death": {"date": "1805年", "location": "京师（今北京市）", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84"}, "lifespan": "81岁（虚岁82岁）", "highlights": {"honor": "", "status": "清代乾隆朝官方学术的代表人物，《四库全书》总纂官。", "identities": "文学家、编纂家、官员", "achievements": "", "works": ["四库全书", "阅微草堂笔记", "聊斋志异"], "reviews": []}}, "locations": [{"name": "献县", "ancientName": "直隶献县", "modernName": "河北省沧州市献县", "lat": 38.189, "lng": 116.12, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦世家，自幼聪颖，接受传统儒家教育。", "time": "公元1724年", "duration": "少年时期（约17年）", "significance": "奠定了其一生的学问基础与价值观。", "works": [], "quoteLines": []}, {"name": "京师（北京）科举与初入仕途", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "乾隆十二年（1747年）考中举人。乾隆十九年（1754年）中进士，入翰林院为庶吉士，后授编修。多次担任科举考官。", "time": "公元1747年 - 1762年", "duration": "约15年", "significance": "正式踏入仕途，开始其官僚与学者生涯，进入帝国政治与文化中心。", "works": [], "quoteLines": []}, {"name": "福建学政任上", "ancientName": "福州", "modernName": "福建省福州市", "lat": 26.074, "lng": 119.296, "coordSystem": "WGS84", "type": "normal", "event": "提督福建学政，主管一省文教。", "time": "约公元1762年 - 1764年", "duration": "约2年", "significance": "首次外放地方，积累了地方文教管理经验。", "works": [], "quoteLines": []}, {"name": "乌鲁木齐", "ancientName": "乌鲁木齐", "modernName": "新疆维吾尔自治区乌鲁木齐市", "lat": 43.825, "lng": 87.616, "coordSystem": "WGS84", "type": "normal", "event": "因泄露盐务机密等事获罪，被革职谪戍乌鲁木齐军营效力。", "time": "公元1768年 - 1771年", "duration": "约3年", "significance": "人生重大挫折，亲历西北边塞，为其创作《乌鲁木齐杂诗》及《阅微草堂笔记》积累了独特素材。", "works": ["乌鲁木齐杂诗", "阅微草堂笔记"], "quoteLines": ["《乌鲁木齐杂诗》：“到处歌楼到处花，塞垣此地擅繁华。”"]}, {"name": "京师（北京）编纂《四库全书》", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "乾隆三十八年（1773年）被任命为《四库全书》总纂官，于翰林院“四库全书馆”主持编纂工作。", "time": "公元1773年 - 1784年", "duration": "约11年", "significance": "一生最重要的事业巅峰，对中国古代文化典籍进行了系统性的整理、校勘与汇编，影响深远。", "works": ["四库全书"], "quoteLines": ["《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。"]}, {"name": "各地学政与乡试主考", "ancientName": "如顺天府、江南贡院等", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "多次担任地方乡试主考官及学政，为国选才。", "time": "贯穿仕途，如公元1777年（顺天乡试主考）、1780年代等", "duration": "短期差旅", "significance": "履行文官职责，门生故吏遍布天下，扩大了其学术与政治影响力。", "works": [], "quoteLines": []}, {"name": "京师（北京）晚年著书", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "normal", "event": "官至礼部尚书、协办大学士。公务之余，于“阅微草堂”潜心撰写《阅微草堂笔记》。", "time": "公元1790年代 - 1805年", "duration": "约15年", "significance": "学术与文学创作的总结期，《阅微草堂笔记》成为其文学成就的代表作。", "works": ["阅微草堂笔记"], "quoteLines": ["《阅微草堂笔记·滦阳消夏录》：“鬼魅皆托于星象，而不知星象之理。”"]}, {"name": "京师（北京）", "ancientName": "京师", "modernName": "北京市", "lat": 39.905, "lng": 116.415, "coordSystem": "WGS84", "type": "death", "event": "病逝于任上，嘉庆帝御赐碑文“敏而好学可为文，授之以政无不达”，故谥号“文达”。", "time": "公元1805年（嘉庆十年）", "duration": "长期居住直至去世", "significance": "走完其作为学者、官员的一生，归葬于故乡献县。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---", "workTexts": {"乌鲁木齐杂诗": "到处歌楼到处花，塞垣此地擅繁华。", "阅微草堂笔记·滦阳消夏录": "鬼魅皆托于星象，而不知星象之理。", "阅微草堂笔记": "鬼魅皆托于星象，而不知星象之理。", "滦阳消夏录": "鬼魅皆托于星象，而不知星象之理。", "纪文达公遗集": "诗文创作与学术评论，有《纪文达公遗集》传世。", "四库全书": "“四库全书馆”", "四库全书总目提要": "名篇名句：《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 纪昀\n\n## 人物档案\n\n### 基本信息\n- **姓名**：纪昀\n- **时代**：清代\n- **出生**：公元1724年，直隶献县（今河北省沧州市献县）\n- **去世**：公元1805年，京师（今北京市）\n- **享年**：81岁（虚岁82岁）\n- **主要身份**：文学家、编纂家、官员\n- **历史地位**：清代乾隆朝官方学术的代表人物，《四库全书》总纂官。\n- **主要成就**：\n    - 主持编纂《**四库全书**》。\n    - 创作文言短篇小说集《**阅微草堂笔记**》。\n    - 诗文创作与学术评论，有《纪文达公遗集》传世。\n    - 历任礼部尚书、协办大学士等要职。\n\n### 生平概述\n纪昀，字晓岚，一字春帆，号石云。生于清雍正二年，历雍正、乾隆、嘉庆三朝。乾隆十二年（1747年）考中举人，乾隆十九年（1754年）中进士，因学问渊博受乾隆帝赏识。乾隆三十八年，受诏任《四库全书》总纂官，倾注十年心血，主持完成这部中国历史上规模最大的丛书编纂工作。其间曾因泄露盐务机密等事获罪，被贬乌鲁木齐。晚年官至礼部尚书、协办大学士，谥“文达”。其一生横跨学术与文学，以博学、诙谐著称，其笔记小说《阅微草堂笔记》与《聊斋志异》并称清代笔记小说双璧。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以京师（北京）为中心，足迹遍及直隶、福建、新疆及山西、贵州等地。\n- ⏱️ **时间跨度**：公元1724年 - 1805年，共81年。\n- 📍 **地理范围**：主要覆盖华北、西北地区，南至福建。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：献县\n- **时间**：公元1724年\n- **停留时间**：少年时期（约17年）\n- **地点**：直隶献县（今河北省沧州市献县）\n- **事件**：出生于官宦世家，自幼聪颖，接受传统儒家教育。\n- **意义**：奠定了其一生的学问基础与价值观。\n\n### 📍 重要地点：京师（北京）科举与初入仕途\n- **时间**：公元1747年 - 1762年\n- **停留时间**：约15年\n- **地点**：京师（今北京市）\n- **事件**：乾隆十二年（1747年）考中举人。乾隆十九年（1754年）中进士，入翰林院为庶吉士，后授编修。多次担任科举考官。\n- **意义**：正式踏入仕途，开始其官僚与学者生涯，进入帝国政治与文化中心。\n\n### 📍 重要地点：福建学政任上\n- **时间**：约公元1762年 - 1764年\n- **停留时间**：约2年\n- **地点**：福州（今福建省福州市）\n- **事件**：提督福建学政，主管一省文教。\n- **意义**：首次外放地方，积累了地方文教管理经验。\n\n### 📍 重要地点：乌鲁木齐\n- **时间**：公元1768年 - 1771年\n- **停留时间**：约3年\n- **地点**：乌鲁木齐（今新疆维吾尔自治区乌鲁木齐市）\n- **事件**：因泄露盐务机密等事获罪，被革职谪戍乌鲁木齐军营效力。\n- **意义**：人生重大挫折，亲历西北边塞，为其创作《乌鲁木齐杂诗》及《阅微草堂笔记》积累了独特素材。\n- **名篇名句**：《乌鲁木齐杂诗》：“到处歌楼到处花，塞垣此地擅繁华。”\n\n### 📍 重要地点：京师（北京）编纂《四库全书》\n- **时间**：公元1773年 - 1784年\n- **停留时间**：约11年\n- **地点**：京师（今北京市）\n- **事件**：乾隆三十八年（1773年）被任命为《四库全书》总纂官，于翰林院“四库全书馆”主持编纂工作。\n- **意义**：一生最重要的事业巅峰，对中国古代文化典籍进行了系统性的整理、校勘与汇编，影响深远。\n- **名篇名句**：《四库全书总目提要》：（此为集体成果，纪昀贡献核心）。\n\n### 📍 重要地点：各地学政与乡试主考\n- **时间**：贯穿仕途，如公元1777年（顺天乡试主考）、1780年代等\n- **停留时间**：短期差旅\n- **地点**：如顺天府（今北京市）、江南贡院（今江苏省南京市）等\n- **事件**：多次担任地方乡试主考官及学政，为国选才。\n- **意义**：履行文官职责，门生故吏遍布天下，扩大了其学术与政治影响力。\n\n### 📍 重要地点：京师（北京）晚年著书\n- **时间**：公元1790年代 - 1805年\n- **停留时间**：约15年\n- **地点**：京师（今北京市）\n- **事件**：官至礼部尚书、协办大学士。公务之余，于“阅微草堂”潜心撰写《阅微草堂笔记》。\n- **意义**：学术与文学创作的总结期，《阅微草堂笔记》成为其文学成就的代表作。\n- **名篇名句**：《阅微草堂笔记·滦阳消夏录》：“鬼魅皆托于星象，而不知星象之理。”\n\n### 🔴 去世地：京师（北京）\n- **时间**：公元1805年（嘉庆十年）\n- **停留时间**：长期居住直至去世\n- **地点**：京师（今北京市）\n- **事件**：病逝于任上，嘉庆帝御赐碑文“敏而好学可为文，授之以政无不达”，故谥号“文达”。\n- **意义**：走完其作为学者、官员的一生，归葬于故乡献县。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1724年 | 0岁 | 出生于直隶献县。 |\n| 1747年 | 24岁（虚岁） | 考中举人。 |\n| 1754年 | 31岁（虚岁） | 考中进士，入翰林院。 |\n| 约1762年 | 约39岁（虚岁） | 出任福建学政。 |\n| 1768年 | 45岁（虚岁） | 因罪革职，谪戍乌鲁木齐。 |\n| 1771年 | 48岁（虚岁） | 获释回京。 |\n| 1773年 | 50岁（虚岁） | 受命担任《四库全书》总纂官。 |\n| 1784年 | 61岁（虚岁） | 《四库全书》主体编纂完成。 |\n| 1790年代 | 67岁+（虚岁） | 晚年任礼部尚书等职，撰写《阅微草堂笔记》。 |\n| 1805年 | 82岁（虚岁） | 于北京病逝，谥“文达”。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《河中石兽》**（选自《阅微草堂笔记》）\n- 核心要点：\n    - **重点**：文章通过寻找石兽的多种方法及结果，阐释了认识事物不能“**但知其一，不知其二**”，应遵循客观规律、具体分析的哲理。\n    - **重点**：运用了**议论**与**叙事**相结合的手法，以故事说理，生动形象。\n    - 体现了作者**实事求是**、反对**主观臆断**的科学精神。\n    - **重点**：文中老河兵的分析逻辑，是全文的**核心论证**部分，体现了实践出真知的道理。\n    - 语言**简练**，故事**情节**完整，是清代笔记小说的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：乾隆时期**文化总结**的代表人物，主持编纂《**四库全书**》。\n    - 曾因故被**贬谪新疆**，丰富了其人生阅历与创作素材。\n    - 历任**翰林院编修**、**礼部尚书**、**协办大学士**等职，是清代**高级文官**的典型。\n- 核心要点：\n    - **重点**：其生平与成就集中体现了**乾嘉学派**重视考据、整理文献的学术风气。\n    - **重点**：主持《四库全书》编纂，一方面系统**保存文化典籍**，另一方面也贯彻了清廷的**文化统制**政策（如删改、禁毁部分书籍）。\n    - 《阅微草堂笔记》在文学史上与《聊斋志异》齐名，但风格更偏重**劝诫**与**说理**，反映了其**儒家正统**的立场。\n    - **重点**：作为乾隆帝的文学侍从之臣，其个人命运与**皇权**紧密相连，是研究清代**君臣关系**与**知识分子境遇**的个案。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河北省沧州市献县 | 38.189 | 116.120 |\n| 北京市（清代翰林院及四库全书馆旧址区域） | 39.920 | 116.397 |\n| 福建省福州市 | 26.074 | 119.296 |\n| 新疆维吾尔自治区乌鲁木齐市 | 43.825 | 87.616 |\n| 北京市（顺天府贡院旧址） | 39.905 | 116.415 |\n| 江苏省南京市（江南贡院旧址） | 32.018 | 118.789 |\n| 山西省太原市（清代乡试地） | 37.870 | 112.549 |\n| 贵州省贵阳市（清代乡试地） | 26.647 | 106.630 |\n| 北京市（纪晓岚故居/墓） | 39.892 | 116.379 |", "relatedGraph": {"center": {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "到处歌楼到处花，塞垣此地擅繁华。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "“到处歌楼到处花，塞垣此地擅繁华。”", "review": "到处歌楼到处花，塞垣此地擅繁华。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "“士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "清", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿城", "name": "阿城", "file": "阿城.html", "dynasty": "清代", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "“披阅十载，增删五次”", "review": "*清代评价**：友人敦诚、敦敏称其“诗胆如铁”、“诗笔有奇气”，赞其才华，悲其遭遇。", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁府", "birthplace_modern": "江苏省南京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "“江山代有才人出，各领风骚数百年”", "review": "*清代学者李慈铭评**：“（《廿二史札记》）贯串全史，参互考订，不特阙文误义多所辨明，而各朝之史，皆综其要义，铨其异闻，使首尾井然，一览可悉。”", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "纪昀", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "高斯", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "阿城", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "纪昀", "target": "赵翼", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

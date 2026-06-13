@@ -674,6 +674,7 @@ class TaskService:
             generated_results.append(result)
             if _is_usable_result(result) and result.get("_profile"):
                 profile = result.get("_profile") or {}
+                export_allow_cache = allow_cache and (not bool(result.get("refreshed")))
                 people_payload.append(
                     {
                         "person": profile.get("person", {}),
@@ -682,7 +683,7 @@ class TaskService:
                         "color": self._color_palette[idx % len(self._color_palette)],
                     }
                 )
-                result["exports"] = self._ensure_profile_exports(profile, person, allow_cache=allow_cache)
+                result["exports"] = self._ensure_profile_exports(profile, person, allow_cache=export_allow_cache)
 
         results = list(blocked_results)
         results.extend(generated_results)

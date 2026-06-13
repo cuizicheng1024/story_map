@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "王祎", "title": "江南二儒", "description": "王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。元末天下大乱，他隐居著述，后向朱元璋献策，深受器重。明朝建立后，他参与制定礼制，并与宋濂同任总裁官主持修撰《元史》。洪武五年（1372年），他奉命出使云南，试图劝降元朝残余势力梁王把匝剌瓦尔密。在云南期间，他坚守使节气节，严词拒绝元主的招降，最终于洪武七年（1374年）与元使一起被梁王杀害，壮烈殉国。其一生体现了文人的气节与忠义精神。", "quote": "《华川集》中部分诗文创作于此时期。", "shortReview": "《华川集》中部分诗文创作于此时期。", "dynasty": "元末明初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江义乌（今浙江省金华市义乌市）", "avatar": "", "birth": {"date": "1323年", "location": "浙江义乌（今浙江省金华市义乌市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1374年", "location": "云南昆明（今云南省昆明市）", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84"}, "lifespan": "约51-52岁", "highlights": {"honor": "江南二儒", "status": "明初重要的文史大家与忠节之臣，与宋濂齐名，并称“江南二儒”。", "identities": "文学家、史学家、政治家", "achievements": "参与纂修《元史》；出使云南招降梁王，不屈殉国；诗文创作卓然成家，有《华川集》等传世。", "works": ["元史", "华川集"], "reviews": ["《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "明太祖朱元璋赞其“忠节可嘉”。", "后世学者将其与宋濂并称，认为他们是明初文坛的代表人物，其气节与文章俱为世所重。"]}}, "locations": [{"name": "南京（应天府）", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "向朱元璋上书陈述时务，被召用为中书省掾史。明朝建立后，历任江南儒学提举、起居注、漳州府通判等职。洪武二年（1369年），与宋濂同任《元史》总裁官。参与制定朝廷礼仪。", "time": "1358年 - 1372年", "duration": "约14年", "significance": "其政治生涯与学术成就的巅峰之地，在此完成了修史重任，并成为明初文坛与政坛的重要人物。", "works": ["元史"], "quoteLines": ["《华川集》中部分诗文创作于此时期。"]}, {"name": "云南昆明（出使与殉国地）", "ancientName": "中庆路昆明县", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "normal", "event": "奉明太祖之命出使云南，招谕元朝梁王归附明朝。面对北元使者脱脱的威逼利诱，他坚贞不屈，痛斥元朝残余势力，最终与北元使者一同被梁王杀害。", "time": "1372年 - 1374年", "duration": "约2年", "significance": "人生终点与气节升华之地，以生命践行了忠君爱国与使臣不辱使命的儒家信条。", "works": [], "quoteLines": ["在云南所作诗文存世较少，具体篇目待考。"]}, {"name": "云南昆明", "ancientName": "中庆路昆明县", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "death", "event": "因坚决拒绝为北元招降明朝，并斥责梁王，与北元使者一同被杀害。", "time": "1374年", "duration": "殉国于此", "significance": "其忠烈精神的最终体现，被明廷追谥“忠文”，成为后世称颂的忠节典范。", "works": [], "quoteLines": ["殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**元末明初**，社会动荡，王朝更替。\n- **关键事件**：**朱元璋招揽文士**；**参与修《元史》**；**出使云南**，**不屈殉国**。\n- **代表作品/思想**：了解其有文集传世，作品体现儒家忠义思想。\n- **常见易混点/对比点**：与同时期文臣**宋濂**（《送东阳马生序》作者）并称，可对比其生平与气节。\n\n### 高中阶段\n- **时代背景**：**明初巩固统治**时期，朱元璋加强中央集权与文化控制。\n- **关键事件**：**总裁《元史》**的史学意义；**出使云南**的**政治与外交背景**（招降北元残余势力）。\n- **代表作品/思想**：《华川集》中的诗文，体现其**文学主张**与**经世思想**。\n- **历史评价**：理解其作为“**忠文**”谥号所代表的**儒家忠节观**在明代的强化。\n- **常见易混点/对比点**：与同样出使不屈的**汉代苏武**进行对比；区分其与明朝其他“靖难”殉节之臣的时代背景差异。\n\n---", "examPoints": "### 初中阶段考点\n- 王祎（王忠文）是**元末明初**的著名文臣。\n- 他最重要的事迹是**出使云南招降元朝梁王，最终不屈被害**。\n- 他参与了明朝官方史书 **《元史》** 的编纂工作。\n- 他的谥号是 **“忠文”**，体现了明朝对其忠节的表彰。\n- （存疑）其具体生卒年份在不同资料中略有出入。\n\n### 高中阶段考点\n- 王祎出使云南的背景是明初**对北元残余势力的经略**。\n- 他与**宋濂**同为明初文坛领袖，并称“江南二儒”，两人共同总裁《元史》。\n- 其殉国事件是明初**强化忠君观念**和**宣扬正统**的典型案例。\n- 其文集 **《王忠文公集》** 是研究其思想与元明之际历史的重要资料。\n- （说法不一）关于其早年求学细节及部分作品的创作时间，史料记载不完全一致。", "workTexts": {"华川集": "诗文创作卓然成家，有《华川集》等传世。", "元史": "王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。", "明史·王祎传": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "明史": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "王祎传": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "送东阳马生序": "常见易混点/对比点：与同时期文臣宋濂（《送东阳马生序》作者）并称，可对比其生平与气节。", "王忠文公集": "其文集 《王忠文公集》 是研究其思想与元明之际历史的重要资料。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王忠文（王祎）生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王祎（字子充，号华川，谥忠文）\n- **时代**：元末明初\n- **出生**：元至治三年（1323年）（生年存疑，一说1322年），浙江义乌（今浙江省金华市义乌市）\n- **去世**：明洪武七年（1374年），云南昆明（今云南省昆明市）\n- **享年**：约51-52岁\n- **主要身份**：文学家、史学家、政治家\n- **历史地位**：明初重要的文史大家与忠节之臣，与宋濂齐名，并称“江南二儒”。\n- **主要成就**：参与纂修《元史》；出使云南招降梁王，不屈殉国；诗文创作卓然成家，有《华川集》等传世。\n\n### 生平概述\n王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。元末天下大乱，他隐居著述，后向朱元璋献策，深受器重。明朝建立后，他参与制定礼制，并与宋濂同任总裁官主持修撰《元史》。洪武五年（1372年），他奉命出使云南，试图劝降元朝残余势力梁王把匝剌瓦尔密。在云南期间，他坚守使节气节，严词拒绝元主的招降，最终于洪武七年（1374年）与元使一起被梁王杀害，壮烈殉国。其一生体现了文人的气节与忠义精神。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹主要从浙江故乡出发，至南京明廷中枢为官，最终远赴云南并殉国。\n- ⏱️ **时间跨度**：约1323年 - 1374年，共约52年。\n- 📍 **地理范围**：主要覆盖今浙江省、江苏省（南京）、云南省等地区。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江义乌\n- **公元纪年**：约1323年\n- **停留时间**：青少年时期\n- **位置**：婺州路义乌县（今浙江省金华市义乌市）\n- **事迹**：出生于书香门第，自幼受到良好教育，勤奋攻读经史，为日后学术与仕途打下基础。\n- **意义**：其人生起点与文化根基所在，塑造了其儒家知识分子的品格。\n\n### 📍 重要地点：浙江浦江（求学地）\n- **公元纪年**：约1340年代\n- **停留时间**：数年\n- **位置**：浦江县（今浙江省金华市浦江县）\n- **事迹**：师从元代著名学者柳贯、黄溍，深入研习古文与理学，学问大进，文名渐起。\n- **意义**：学术思想形成的关键时期，奠定了其在文学和史学上的深厚造诣。\n\n### 📍 重要地点：南京（应天府）\n- **公元纪年**：1358年 - 1372年\n- **停留时间**：约14年\n- **位置**：应天府（今江苏省南京市）\n- **事迹**：向朱元璋上书陈述时务，被召用为中书省掾史。明朝建立后，历任江南儒学提举、起居注、漳州府通判等职。洪武二年（1369年），与宋濂同任《元史》总裁官。参与制定朝廷礼仪。\n- **意义**：其政治生涯与学术成就的巅峰之地，在此完成了修史重任，并成为明初文坛与政坛的重要人物。\n- **名篇名句**：《华川集》中部分诗文创作于此时期。\n\n### 📍 重要地点：福建漳州\n- **公元纪年**：约1370年 - 1371年\n- **停留时间**：约1-2年\n- **位置**：漳州府（今福建省漳州市）\n- **事迹**：出任漳州府通判，有治绩。\n- **意义**：地方任职经历，体现了其行政才能。\n\n### 📍 重要地点：云南昆明（出使与殉国地）\n- **公元纪年**：1372年 - 1374年\n- **停留时间**：约2年\n- **位置**：中庆路昆明县（今云南省昆明市）\n- **事迹**：奉明太祖之命出使云南，招谕元朝梁王归附明朝。面对北元使者脱脱的威逼利诱，他坚贞不屈，痛斥元朝残余势力，最终与北元使者一同被梁王杀害。\n- **意义**：人生终点与气节升华之地，以生命践行了忠君爱国与使臣不辱使命的儒家信条。\n- **名篇名句**：在云南所作诗文存世较少，具体篇目待考。\n\n### 🔴 去世地：云南昆明\n- **公元纪年**：1374年\n- **停留时间**：殉国于此\n- **位置**：中庆路昆明县（今云南省昆明市）\n- **经过**：因坚决拒绝为北元招降明朝，并斥责梁王，与北元使者一同被杀害。\n- **意义**：其忠烈精神的最终体现，被明廷追谥“忠文”，成为后世称颂的忠节典范。\n- **名篇名句**：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1323年 | 0岁 | 出生于浙江义乌。 |\n| 约1340年代 | 约17-20岁 | 赴浦江求学于柳贯、黄溍之门。 |\n| 1358年 | 约35岁 | 向朱元璋献策，被召至应天（南京），任中书省掾史。 |\n| 1368年 | 约45岁 | 明朝建立，任江南儒学提举，后升翰林待制。 |\n| 1369年 | 约46岁 | 与宋濂同任总裁官，主持纂修《元史》。 |\n| 1370年 | 约47岁 | 出任漳州府通判。 |\n| 1372年 | 约49岁 | 奉命出使云南，招谕梁王。 |\n| 1374年 | 约51岁 | 在云南昆明不屈殉国。 |\n| 身后 | - | 明廷追赠翰林学士，谥“忠文”。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王祎作为明初“开国文臣”之一，其参与制定礼乐制度、主持修撰《元史》，为明朝构建正统历史观和文化秩序做出了贡献。他出使云南殉国的壮举，彰显了明朝使节的气节，对当时的政治和外交产生了强烈震动，也激励了明初士人的忠义精神。\n\n### 对后世的影响\n- **忠节典范**：其不屈殉国的事迹被载入史册，成为后世儒家忠君爱国教育的楷模。\n- **文学遗产**：其诗文作品收录于《华川集》、《王忠文公集》，是研究元末明初文学与历史的重要文献。\n- **史学贡献**：作为《元史》的总裁官之一，其史学观点和编纂工作对后世研究元代历史具有奠基意义。\n- **地方影响**：在故乡义乌及云南等地，其事迹被长久传颂，成为地方文化记忆的一部分。\n\n### 历史评价\n1. 《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。\n2. 明太祖朱元璋赞其“忠节可嘉”。\n3. 后世学者将其与宋濂并称，认为他们是明初文坛的代表人物，其气节与文章俱为世所重。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**元末明初**，社会动荡，王朝更替。\n- **关键事件**：**朱元璋招揽文士**；**参与修《元史》**；**出使云南**，**不屈殉国**。\n- **代表作品/思想**：了解其有文集传世，作品体现儒家忠义思想。\n- **常见易混点/对比点**：与同时期文臣**宋濂**（《送东阳马生序》作者）并称，可对比其生平与气节。\n\n### 高中阶段\n- **时代背景**：**明初巩固统治**时期，朱元璋加强中央集权与文化控制。\n- **关键事件**：**总裁《元史》**的史学意义；**出使云南**的**政治与外交背景**（招降北元残余势力）。\n- **代表作品/思想**：《华川集》中的诗文，体现其**文学主张**与**经世思想**。\n- **历史评价**：理解其作为“**忠文**”谥号所代表的**儒家忠节观**在明代的强化。\n- **常见易混点/对比点**：与同样出使不屈的**汉代苏武**进行对比；区分其与明朝其他“靖难”殉节之臣的时代背景差异。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 王祎（王忠文）是**元末明初**的著名文臣。\n- 他最重要的事迹是**出使云南招降元朝梁王，最终不屈被害**。\n- 他参与了明朝官方史书 **《元史》** 的编纂工作。\n- 他的谥号是 **“忠文”**，体现了明朝对其忠节的表彰。\n- （存疑）其具体生卒年份在不同资料中略有出入。\n\n### 高中阶段考点\n- 王祎出使云南的背景是明初**对北元残余势力的经略**。\n- 他与**宋濂**同为明初文坛领袖，并称“江南二儒”，两人共同总裁《元史》。\n- 其殉国事件是明初**强化忠君观念**和**宣扬正统**的典型案例。\n- 其文集 **《王忠文公集》** 是研究其思想与元明之际历史的重要资料。\n- （说法不一）关于其早年求学细节及部分作品的创作时间，史料记载不完全一致。", "relatedGraph": {"center": {"id": "王忠文（王祎）生平传记与足迹", "name": "王忠文（王祎）生平传记与足迹", "file": "王忠文（王祎）生平传记与足迹.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "《华川集》中部分诗文创作于此时期。", "review": "《华川集》中部分诗文创作于此时期。", "foreign_name": "", "main_role_label": "江南二儒", "birthplace": "浙江义乌（今浙江省金华市义乌市）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王忠文（王祎）生平传记与足迹", "name": "王忠文（王祎）生平传记与足迹", "file": "王忠文（王祎）生平传记与足迹.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "《华川集》中部分诗文创作于此时期。", "review": "《华川集》中部分诗文创作于此时期。", "foreign_name": "", "main_role_label": "江南二儒", "birthplace": "浙江义乌（今浙江省金华市义乌市）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "明", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "“高筑墙、广积粮、缓称王”", "review": "*明太祖实录**：称其“崛起布衣，奄奠海宇，西汉以后所未有也”。", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "“开国文臣之首”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”", "review": "《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "明", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "“**官逼民反**”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐东杰布", "name": "唐东杰布", "file": "唐东杰布.html", "dynasty": "元末明初", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**铁桥活佛**”", "review": "", "foreign_name": "", "main_role_label": "桥梁建筑师", "birthplace": "存疑/说法不一/待考。古称“窝托加巴”", "birthplace_modern": "西藏自治区日喀则市昂仁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王忠文（王祎）生平传记与足迹", "target": "朱元璋", "label": "君臣", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "宋濂", "label": "并称", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "唐东杰布", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "王祎", "title": "江南二儒", "description": "王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。元末天下大乱，他隐居著述，后向朱元璋献策，深受器重。明朝建立后，他参与制定礼制，并与宋濂同任总裁官主持修撰《元史》。洪武五年（1372年），他奉命出使云南，试图劝降元朝残余势力梁王把匝剌瓦尔密。在云南期间，他坚守使节气节，严词拒绝元主的招降，最终于洪武七年（1374年）与元使一起被梁王杀害，壮烈殉国。其一生体现了文人的气节与忠义精神。", "quote": "《华川集》中部分诗文创作于此时期。", "shortReview": "《华川集》中部分诗文创作于此时期。", "dynasty": "元末明初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江义乌（今浙江省金华市义乌市）", "avatar": "", "birth": {"date": "1323年", "location": "浙江义乌（今浙江省金华市义乌市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1374年", "location": "云南昆明（今云南省昆明市）", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84"}, "lifespan": "约51-52岁", "highlights": {"honor": "江南二儒", "status": "明初重要的文史大家与忠节之臣，与宋濂齐名，并称“江南二儒”。", "identities": "文学家、史学家、政治家", "achievements": "参与纂修《元史》；出使云南招降梁王，不屈殉国；诗文创作卓然成家，有《华川集》等传世。", "works": ["元史", "华川集"], "reviews": ["《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "明太祖朱元璋赞其“忠节可嘉”。", "后世学者将其与宋濂并称，认为他们是明初文坛的代表人物，其气节与文章俱为世所重。"]}}, "locations": [{"name": "南京（应天府）", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "向朱元璋上书陈述时务，被召用为中书省掾史。明朝建立后，历任江南儒学提举、起居注、漳州府通判等职。洪武二年（1369年），与宋濂同任《元史》总裁官。参与制定朝廷礼仪。", "time": "1358年 - 1372年", "duration": "约14年", "significance": "其政治生涯与学术成就的巅峰之地，在此完成了修史重任，并成为明初文坛与政坛的重要人物。", "works": ["元史"], "quoteLines": ["《华川集》中部分诗文创作于此时期。"]}, {"name": "云南昆明（出使与殉国地）", "ancientName": "中庆路昆明县", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "normal", "event": "奉明太祖之命出使云南，招谕元朝梁王归附明朝。面对北元使者脱脱的威逼利诱，他坚贞不屈，痛斥元朝残余势力，最终与北元使者一同被梁王杀害。", "time": "1372年 - 1374年", "duration": "约2年", "significance": "人生终点与气节升华之地，以生命践行了忠君爱国与使臣不辱使命的儒家信条。", "works": [], "quoteLines": ["在云南所作诗文存世较少，具体篇目待考。"]}, {"name": "云南昆明", "ancientName": "中庆路昆明县", "modernName": "云南省昆明市", "lat": 25.0389, "lng": 102.7183, "coordSystem": "WGS84", "type": "death", "event": "因坚决拒绝为北元招降明朝，并斥责梁王，与北元使者一同被杀害。", "time": "1374年", "duration": "殉国于此", "significance": "其忠烈精神的最终体现，被明廷追谥“忠文”，成为后世称颂的忠节典范。", "works": [], "quoteLines": ["殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**元末明初**，社会动荡，王朝更替。\n- **关键事件**：**朱元璋招揽文士**；**参与修《元史》**；**出使云南**，**不屈殉国**。\n- **代表作品/思想**：了解其有文集传世，作品体现儒家忠义思想。\n- **常见易混点/对比点**：与同时期文臣**宋濂**（《送东阳马生序》作者）并称，可对比其生平与气节。\n\n### 高中阶段\n- **时代背景**：**明初巩固统治**时期，朱元璋加强中央集权与文化控制。\n- **关键事件**：**总裁《元史》**的史学意义；**出使云南**的**政治与外交背景**（招降北元残余势力）。\n- **代表作品/思想**：《华川集》中的诗文，体现其**文学主张**与**经世思想**。\n- **历史评价**：理解其作为“**忠文**”谥号所代表的**儒家忠节观**在明代的强化。\n- **常见易混点/对比点**：与同样出使不屈的**汉代苏武**进行对比；区分其与明朝其他“靖难”殉节之臣的时代背景差异。\n\n---", "examPoints": "### 初中阶段考点\n- 王祎（王忠文）是**元末明初**的著名文臣。\n- 他最重要的事迹是**出使云南招降元朝梁王，最终不屈被害**。\n- 他参与了明朝官方史书 **《元史》** 的编纂工作。\n- 他的谥号是 **“忠文”**，体现了明朝对其忠节的表彰。\n- （存疑）其具体生卒年份在不同资料中略有出入。\n\n### 高中阶段考点\n- 王祎出使云南的背景是明初**对北元残余势力的经略**。\n- 他与**宋濂**同为明初文坛领袖，并称“江南二儒”，两人共同总裁《元史》。\n- 其殉国事件是明初**强化忠君观念**和**宣扬正统**的典型案例。\n- 其文集 **《王忠文公集》** 是研究其思想与元明之际历史的重要资料。\n- （说法不一）关于其早年求学细节及部分作品的创作时间，史料记载不完全一致。", "workTexts": {"华川集": "诗文创作卓然成家，有《华川集》等传世。", "元史": "王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。", "明史·王祎传": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "明史": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "王祎传": "名篇名句：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。", "送东阳马生序": "常见易混点/对比点：与同时期文臣宋濂（《送东阳马生序》作者）并称，可对比其生平与气节。", "王忠文公集": "其文集 《王忠文公集》 是研究其思想与元明之际历史的重要资料。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王忠文（王祎）生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王祎（字子充，号华川，谥忠文）\n- **时代**：元末明初\n- **出生**：元至治三年（1323年）（生年存疑，一说1322年），浙江义乌（今浙江省金华市义乌市）\n- **去世**：明洪武七年（1374年），云南昆明（今云南省昆明市）\n- **享年**：约51-52岁\n- **主要身份**：文学家、史学家、政治家\n- **历史地位**：明初重要的文史大家与忠节之臣，与宋濂齐名，并称“江南二儒”。\n- **主要成就**：参与纂修《元史》；出使云南招降梁王，不屈殉国；诗文创作卓然成家，有《华川集》等传世。\n\n### 生平概述\n王祎生活在元明易代的动荡时期，自幼聪颖好学，师从元代大儒柳贯、黄溍。元末天下大乱，他隐居著述，后向朱元璋献策，深受器重。明朝建立后，他参与制定礼制，并与宋濂同任总裁官主持修撰《元史》。洪武五年（1372年），他奉命出使云南，试图劝降元朝残余势力梁王把匝剌瓦尔密。在云南期间，他坚守使节气节，严词拒绝元主的招降，最终于洪武七年（1374年）与元使一起被梁王杀害，壮烈殉国。其一生体现了文人的气节与忠义精神。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹主要从浙江故乡出发，至南京明廷中枢为官，最终远赴云南并殉国。\n- ⏱️ **时间跨度**：约1323年 - 1374年，共约52年。\n- 📍 **地理范围**：主要覆盖今浙江省、江苏省（南京）、云南省等地区。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江义乌\n- **公元纪年**：约1323年\n- **停留时间**：青少年时期\n- **位置**：婺州路义乌县（今浙江省金华市义乌市）\n- **事迹**：出生于书香门第，自幼受到良好教育，勤奋攻读经史，为日后学术与仕途打下基础。\n- **意义**：其人生起点与文化根基所在，塑造了其儒家知识分子的品格。\n\n### 📍 重要地点：浙江浦江（求学地）\n- **公元纪年**：约1340年代\n- **停留时间**：数年\n- **位置**：浦江县（今浙江省金华市浦江县）\n- **事迹**：师从元代著名学者柳贯、黄溍，深入研习古文与理学，学问大进，文名渐起。\n- **意义**：学术思想形成的关键时期，奠定了其在文学和史学上的深厚造诣。\n\n### 📍 重要地点：南京（应天府）\n- **公元纪年**：1358年 - 1372年\n- **停留时间**：约14年\n- **位置**：应天府（今江苏省南京市）\n- **事迹**：向朱元璋上书陈述时务，被召用为中书省掾史。明朝建立后，历任江南儒学提举、起居注、漳州府通判等职。洪武二年（1369年），与宋濂同任《元史》总裁官。参与制定朝廷礼仪。\n- **意义**：其政治生涯与学术成就的巅峰之地，在此完成了修史重任，并成为明初文坛与政坛的重要人物。\n- **名篇名句**：《华川集》中部分诗文创作于此时期。\n\n### 📍 重要地点：福建漳州\n- **公元纪年**：约1370年 - 1371年\n- **停留时间**：约1-2年\n- **位置**：漳州府（今福建省漳州市）\n- **事迹**：出任漳州府通判，有治绩。\n- **意义**：地方任职经历，体现了其行政才能。\n\n### 📍 重要地点：云南昆明（出使与殉国地）\n- **公元纪年**：1372年 - 1374年\n- **停留时间**：约2年\n- **位置**：中庆路昆明县（今云南省昆明市）\n- **事迹**：奉明太祖之命出使云南，招谕元朝梁王归附明朝。面对北元使者脱脱的威逼利诱，他坚贞不屈，痛斥元朝残余势力，最终与北元使者一同被梁王杀害。\n- **意义**：人生终点与气节升华之地，以生命践行了忠君爱国与使臣不辱使命的儒家信条。\n- **名篇名句**：在云南所作诗文存世较少，具体篇目待考。\n\n### 🔴 去世地：云南昆明\n- **公元纪年**：1374年\n- **停留时间**：殉国于此\n- **位置**：中庆路昆明县（今云南省昆明市）\n- **经过**：因坚决拒绝为北元招降明朝，并斥责梁王，与北元使者一同被杀害。\n- **意义**：其忠烈精神的最终体现，被明廷追谥“忠文”，成为后世称颂的忠节典范。\n- **名篇名句**：殉国前大义凛然的言辞载于史传，如《明史·王祎传》所记其临终之语。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1323年 | 0岁 | 出生于浙江义乌。 |\n| 约1340年代 | 约17-20岁 | 赴浦江求学于柳贯、黄溍之门。 |\n| 1358年 | 约35岁 | 向朱元璋献策，被召至应天（南京），任中书省掾史。 |\n| 1368年 | 约45岁 | 明朝建立，任江南儒学提举，后升翰林待制。 |\n| 1369年 | 约46岁 | 与宋濂同任总裁官，主持纂修《元史》。 |\n| 1370年 | 约47岁 | 出任漳州府通判。 |\n| 1372年 | 约49岁 | 奉命出使云南，招谕梁王。 |\n| 1374年 | 约51岁 | 在云南昆明不屈殉国。 |\n| 身后 | - | 明廷追赠翰林学士，谥“忠文”。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王祎作为明初“开国文臣”之一，其参与制定礼乐制度、主持修撰《元史》，为明朝构建正统历史观和文化秩序做出了贡献。他出使云南殉国的壮举，彰显了明朝使节的气节，对当时的政治和外交产生了强烈震动，也激励了明初士人的忠义精神。\n\n### 对后世的影响\n- **忠节典范**：其不屈殉国的事迹被载入史册，成为后世儒家忠君爱国教育的楷模。\n- **文学遗产**：其诗文作品收录于《华川集》、《王忠文公集》，是研究元末明初文学与历史的重要文献。\n- **史学贡献**：作为《元史》的总裁官之一，其史学观点和编纂工作对后世研究元代历史具有奠基意义。\n- **地方影响**：在故乡义乌及云南等地，其事迹被长久传颂，成为地方文化记忆的一部分。\n\n### 历史评价\n1. 《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。\n2. 明太祖朱元璋赞其“忠节可嘉”。\n3. 后世学者将其与宋濂并称，认为他们是明初文坛的代表人物，其气节与文章俱为世所重。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**元末明初**，社会动荡，王朝更替。\n- **关键事件**：**朱元璋招揽文士**；**参与修《元史》**；**出使云南**，**不屈殉国**。\n- **代表作品/思想**：了解其有文集传世，作品体现儒家忠义思想。\n- **常见易混点/对比点**：与同时期文臣**宋濂**（《送东阳马生序》作者）并称，可对比其生平与气节。\n\n### 高中阶段\n- **时代背景**：**明初巩固统治**时期，朱元璋加强中央集权与文化控制。\n- **关键事件**：**总裁《元史》**的史学意义；**出使云南**的**政治与外交背景**（招降北元残余势力）。\n- **代表作品/思想**：《华川集》中的诗文，体现其**文学主张**与**经世思想**。\n- **历史评价**：理解其作为“**忠文**”谥号所代表的**儒家忠节观**在明代的强化。\n- **常见易混点/对比点**：与同样出使不屈的**汉代苏武**进行对比；区分其与明朝其他“靖难”殉节之臣的时代背景差异。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 王祎（王忠文）是**元末明初**的著名文臣。\n- 他最重要的事迹是**出使云南招降元朝梁王，最终不屈被害**。\n- 他参与了明朝官方史书 **《元史》** 的编纂工作。\n- 他的谥号是 **“忠文”**，体现了明朝对其忠节的表彰。\n- （存疑）其具体生卒年份在不同资料中略有出入。\n\n### 高中阶段考点\n- 王祎出使云南的背景是明初**对北元残余势力的经略**。\n- 他与**宋濂**同为明初文坛领袖，并称“江南二儒”，两人共同总裁《元史》。\n- 其殉国事件是明初**强化忠君观念**和**宣扬正统**的典型案例。\n- 其文集 **《王忠文公集》** 是研究其思想与元明之际历史的重要资料。\n- （说法不一）关于其早年求学细节及部分作品的创作时间，史料记载不完全一致。", "relatedGraph": {"center": {"id": "王忠文（王祎）生平传记与足迹", "name": "王忠文（王祎）生平传记与足迹", "file": "王忠文（王祎）生平传记与足迹.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "《华川集》中部分诗文创作于此时期。", "review": "《华川集》中部分诗文创作于此时期。", "foreign_name": "", "main_role_label": "江南二儒", "birthplace": "浙江义乌（今浙江省金华市义乌市）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王忠文（王祎）生平传记与足迹", "name": "王忠文（王祎）生平传记与足迹", "file": "王忠文（王祎）生平传记与足迹.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "《华川集》中部分诗文创作于此时期。", "review": "《华川集》中部分诗文创作于此时期。", "foreign_name": "", "main_role_label": "江南二儒", "birthplace": "浙江义乌（今浙江省金华市义乌市）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "明", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "“高筑墙、广积粮、缓称王”", "review": "*明太祖实录**：称其“崛起布衣，奄奠海宇，西汉以后所未有也”。", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "“开国文臣之首”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”", "review": "《明史》评价：“祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。”又称其使云南“抗节死”。", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "明", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "“**官逼民反**”", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐东杰布", "name": "唐东杰布", "file": "唐东杰布.html", "dynasty": "元末明初", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**铁桥活佛**”", "review": "", "foreign_name": "", "main_role_label": "桥梁建筑师", "birthplace": "存疑/说法不一/待考。古称“窝托加巴”", "birthplace_modern": "西藏自治区日喀则市昂仁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王忠文（王祎）生平传记与足迹", "target": "朱元璋", "label": "君臣", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "宋濂", "label": "并称", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "唐东杰布", "label": "同时代人物", "confidence": null}, {"source": "王忠文（王祎）生平传记与足迹", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

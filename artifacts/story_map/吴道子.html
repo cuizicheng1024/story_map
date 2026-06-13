@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "吴道子", "title": "画圣", "description": "吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。", "quote": "潞州上党", "shortReview": "潞州上党", "dynasty": "唐代（盛唐）", "courtesyName": "", "artName": "", "aliases": ["吴道玄（一说本名道玄", "字道子", "但史料记载不一", "存疑）"], "birthplace": "古称阳翟（今河南省许昌市禹州市）", "avatar": "", "birth": {"date": "680年", "location": "古称阳翟（今河南省许昌市禹州市）", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84"}, "death": {"date": "759年", "location": "长安（今陕西省西安市）", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84"}, "lifespan": "约79岁（基于存疑生卒年推算）", "highlights": {"honor": "画圣", "status": "被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。", "identities": "画家、画师", "achievements": "1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。", "works": [], "reviews": []}}, "locations": [{"name": "阳翟", "ancientName": "阳翟", "modernName": "河南省许昌市禹州市", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，家境贫寒，但自幼喜爱绘画。", "time": "约公元680年（存疑）", "duration": "少年时期", "significance": "艺术生涯的起点，早年生活为其提供了观察社会百态的素材。", "works": [], "quoteLines": []}, {"name": "潞州上党（创作《金桥图》）", "ancientName": "创作《金桥图》地点存疑，可能为潞州上党、洛阳或长安。", "modernName": "山西省长治市", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。", "time": "开元十三年（725年）后", "duration": "短暂", "significance": "参与重大政治题材创作，显示其在宫廷画师中的核心地位。", "works": ["金桥图"], "quoteLines": []}, {"name": "泰山（存疑）", "ancientName": "泰山", "modernName": "山东省泰安市境内", "lat": 36.2001, "lng": 117.0873, "coordSystem": "WGS84", "type": "normal", "event": "可能随唐玄宗东封泰山，沿途观察山川形势。", "time": "开元十三年（725年）前后", "duration": "短暂（随驾）", "significance": "为其山水画创作积累了素材，但具体活动记载不详。", "works": [], "quoteLines": []}, {"name": "长安（入侍宫廷）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。", "time": "开元年间（约713-741年）", "duration": "长期", "significance": "艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。", "works": [], "quoteLines": []}, {"name": "长安景云寺", "ancientName": "长安景云寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，观者如堵。", "time": "天宝年间（742-756年）", "duration": "短暂", "significance": "持续在宗教壁画领域进行创作，影响广泛。", "works": [], "quoteLines": []}, {"name": "存疑", "ancientName": "地点存疑，一说卒于洛阳，确切地点待考）", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。", "time": "约乾元年间（758-760年）", "duration": "晚年", "significance": "标志着唐代绘画一个辉煌时代的结束。", "works": [], "quoteLines": []}, {"name": "洛阳（学艺与初露锋芒）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。", "time": "青年时期", "duration": "数年", "significance": "艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。", "works": [], "quoteLines": []}, {"name": "洛阳天宫寺", "ancientName": "洛阳天宫寺", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。", "time": "开元年间某日", "duration": "短暂（一日）", "significance": "展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。", "works": [], "quoteLines": []}, {"name": "长安兴善寺", "ancientName": "长安兴善寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。", "time": "开元年间", "duration": "短暂", "significance": "进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。", "works": [], "quoteLines": []}, {"name": "洛阳老君庙", "ancientName": "洛阳老君庙", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”", "time": "天宝年间", "duration": "短暂", "significance": "其道教题材壁画获得极高评价，成为后世典范。", "works": ["五圣千官图"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "workTexts": {"金桥图": "### 📍 重要地点：潞州上党（创作《金桥图》）", "五圣千官图": "“画手看前辈，吴生远擅场。”", "书吴道子画后": "“画至于吴道子”\n“画圣”", "送子天王图": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 吴道子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：吴道子\n- **别名**：吴道玄（一说本名道玄，字道子，但史料记载不一，存疑）\n- **时代**：唐代（盛唐）\n- **出生**：约公元680年（存疑），古称阳翟（今河南省许昌市禹州市）\n- **去世**：约公元759年（存疑），地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **享年**：约79岁（基于存疑生卒年推算）\n- **主要身份**：画家、画师\n- **历史地位**：被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。\n- **主要成就**：1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。\n\n### 生平概述\n吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于唐代两京（洛阳、长安）及周边地区，足迹可能东至泰山。\n- ⏱️ **时间跨度**：约公元680年 - 约公元759年（生卒年存疑，总年数约79岁）。\n- 📍 **地理范围**：以今河南省中西部、陕西省关中平原为核心。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：阳翟\n- **时间**：约公元680年（存疑）\n- **停留时间**：少年时期\n- **地点**：古称阳翟（今河南省许昌市禹州市）\n- **事件**：出生于此，家境贫寒，但自幼喜爱绘画。\n- **意义**：艺术生涯的起点，早年生活为其提供了观察社会百态的素材。\n\n### 📍 重要地点：洛阳（学艺与初露锋芒）\n- **时间**：青年时期\n- **停留时间**：数年\n- **地点**：古称洛阳（今河南省洛阳市）\n- **事件**：可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。\n- **意义**：艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。\n\n### 📍 重要地点：长安（入侍宫廷）\n- **时间**：开元年间（约713-741年）\n- **停留时间**：长期\n- **地点**：古称长安（今陕西省西安市）\n- **事件**：被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。\n- **意义**：艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。\n\n### 📍 重要地点：洛阳天宫寺\n- **时间**：开元年间某日\n- **停留时间**：短暂（一日）\n- **地点**：古称洛阳天宫寺（今河南省洛阳市）\n- **事件**：观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。\n- **意义**：展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。\n\n### 📍 重要地点：长安兴善寺\n- **时间**：开元年间\n- **停留时间**：短暂\n- **地点**：古称长安兴善寺（今陕西省西安市）\n- **事件**：绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。\n- **意义**：进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。\n\n### 📍 重要地点：潞州上党（创作《金桥图》）\n- **时间**：开元十三年（725年）后\n- **停留时间**：短暂\n- **地点**：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。\n- **事件**：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。\n- **意义**：参与重大政治题材创作，显示其在宫廷画师中的核心地位。\n\n### 📍 重要地点：长安景云寺\n- **时间**：天宝年间（742-756年）\n- **停留时间**：短暂\n- **地点**：古称长安景云寺（今陕西省西安市）\n- **事件**：绘制壁画，观者如堵。\n- **意义**：持续在宗教壁画领域进行创作，影响广泛。\n\n### 📍 重要地点：洛阳老君庙\n- **时间**：天宝年间\n- **停留时间**：短暂\n- **地点**：古称洛阳老君庙（今河南省洛阳市）\n- **事件**：绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”\n- **意义**：其道教题材壁画获得极高评价，成为后世典范。\n\n### 📍 重要地点：泰山（存疑）\n- **时间**：开元十三年（725年）前后\n- **停留时间**：短暂（随驾）\n- **地点**：古称泰山（今山东省泰安市境内）\n- **事件**：可能随唐玄宗东封泰山，沿途观察山川形势。\n- **意义**：为其山水画创作积累了素材，但具体活动记载不详。\n\n### 🔴 去世地：存疑\n- **时间**：约乾元年间（758-760年）\n- **停留时间**：晚年\n- **地点**：地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **事件**：安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。\n- **意义**：标志着唐代绘画一个辉煌时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约680年（存疑） | 0岁 | 出生于阳翟（今河南禹州）。 |\n| 约700-710年 | 约20-30岁 | 在洛阳等地学习书画，初露锋芒。 |\n| 开元初年 | 约30余岁 | 被唐玄宗召入长安，成为宫廷画家。 |\n| 开元十三年（725年）后 | 约45岁后 | 参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。 |\n| 开元、天宝年间 | 壮年至老年 | 在长安、洛阳创作大量寺观壁画，声名达到顶峰。 |\n| 天宝十五载（756年） | 约76岁 | 安史之乱爆发，可能随玄宗入蜀，此后记载不详。 |\n| 约759年（存疑） | 约79岁 | 去世（地点存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省许昌市禹州市 | 34.1417 | 113.4881 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 山东省泰安市 | 36.2001 | 117.0873 |\n| 山西省长治市 | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "“缁素忘年之交”", "review": "*《新唐书·陆羽传》**：“羽嗜茶，著经三篇，言茶之原、之法、之具尤备，天下益知饮茶矣。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阎立本", "name": "阎立本", "file": "阎立本.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": 673, "quote": "“传呼画师阎立本”", "review": "*唐代张彦远《历代名画记》**：“阎则六法该备，万象不失……像人之美，张（僧繇）得其肉，陆（探微）得其骨，顾（恺之）得其神。神妙无方，以顾为最。至于人物、台阁，阎立本则可与顾、陆…", "foreign_name": "", "main_role_label": "画家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**敞肩拱**”", "review": "", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "吴道子", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "阎立本", "label": "同朝共现", "confidence": 0.25}, {"source": "吴道子", "target": "李春", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "吴道子", "title": "画圣", "description": "吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。", "quote": "潞州上党", "shortReview": "潞州上党", "dynasty": "唐代（盛唐）", "courtesyName": "", "artName": "", "aliases": ["吴道玄（一说本名道玄", "字道子", "但史料记载不一", "存疑）"], "birthplace": "古称阳翟（今河南省许昌市禹州市）", "avatar": "", "birth": {"date": "680年", "location": "古称阳翟（今河南省许昌市禹州市）", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84"}, "death": {"date": "759年", "location": "长安（今陕西省西安市）", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84"}, "lifespan": "约79岁（基于存疑生卒年推算）", "highlights": {"honor": "画圣", "status": "被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。", "identities": "画家、画师", "achievements": "1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。", "works": [], "reviews": []}}, "locations": [{"name": "阳翟", "ancientName": "阳翟", "modernName": "河南省许昌市禹州市", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，家境贫寒，但自幼喜爱绘画。", "time": "约公元680年（存疑）", "duration": "少年时期", "significance": "艺术生涯的起点，早年生活为其提供了观察社会百态的素材。", "works": [], "quoteLines": []}, {"name": "潞州上党（创作《金桥图》）", "ancientName": "创作《金桥图》地点存疑，可能为潞州上党、洛阳或长安。", "modernName": "山西省长治市", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。", "time": "开元十三年（725年）后", "duration": "短暂", "significance": "参与重大政治题材创作，显示其在宫廷画师中的核心地位。", "works": ["金桥图"], "quoteLines": []}, {"name": "泰山（存疑）", "ancientName": "泰山", "modernName": "山东省泰安市境内", "lat": 36.2001, "lng": 117.0873, "coordSystem": "WGS84", "type": "normal", "event": "可能随唐玄宗东封泰山，沿途观察山川形势。", "time": "开元十三年（725年）前后", "duration": "短暂（随驾）", "significance": "为其山水画创作积累了素材，但具体活动记载不详。", "works": [], "quoteLines": []}, {"name": "长安（入侍宫廷）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。", "time": "开元年间（约713-741年）", "duration": "长期", "significance": "艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。", "works": [], "quoteLines": []}, {"name": "长安景云寺", "ancientName": "长安景云寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，观者如堵。", "time": "天宝年间（742-756年）", "duration": "短暂", "significance": "持续在宗教壁画领域进行创作，影响广泛。", "works": [], "quoteLines": []}, {"name": "存疑", "ancientName": "地点存疑，一说卒于洛阳，确切地点待考）", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。", "time": "约乾元年间（758-760年）", "duration": "晚年", "significance": "标志着唐代绘画一个辉煌时代的结束。", "works": [], "quoteLines": []}, {"name": "洛阳（学艺与初露锋芒）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。", "time": "青年时期", "duration": "数年", "significance": "艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。", "works": [], "quoteLines": []}, {"name": "洛阳天宫寺", "ancientName": "洛阳天宫寺", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。", "time": "开元年间某日", "duration": "短暂（一日）", "significance": "展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。", "works": [], "quoteLines": []}, {"name": "长安兴善寺", "ancientName": "长安兴善寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。", "time": "开元年间", "duration": "短暂", "significance": "进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。", "works": [], "quoteLines": []}, {"name": "洛阳老君庙", "ancientName": "洛阳老君庙", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”", "time": "天宝年间", "duration": "短暂", "significance": "其道教题材壁画获得极高评价，成为后世典范。", "works": ["五圣千官图"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "workTexts": {"金桥图": "### 📍 重要地点：潞州上党（创作《金桥图》）", "五圣千官图": "“画手看前辈，吴生远擅场。”", "书吴道子画后": "“画至于吴道子”\n“画圣”", "送子天王图": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 吴道子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：吴道子\n- **别名**：吴道玄（一说本名道玄，字道子，但史料记载不一，存疑）\n- **时代**：唐代（盛唐）\n- **出生**：约公元680年（存疑），古称阳翟（今河南省许昌市禹州市）\n- **去世**：约公元759年（存疑），地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **享年**：约79岁（基于存疑生卒年推算）\n- **主要身份**：画家、画师\n- **历史地位**：被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。\n- **主要成就**：1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。\n\n### 生平概述\n吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于唐代两京（洛阳、长安）及周边地区，足迹可能东至泰山。\n- ⏱️ **时间跨度**：约公元680年 - 约公元759年（生卒年存疑，总年数约79岁）。\n- 📍 **地理范围**：以今河南省中西部、陕西省关中平原为核心。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：阳翟\n- **时间**：约公元680年（存疑）\n- **停留时间**：少年时期\n- **地点**：古称阳翟（今河南省许昌市禹州市）\n- **事件**：出生于此，家境贫寒，但自幼喜爱绘画。\n- **意义**：艺术生涯的起点，早年生活为其提供了观察社会百态的素材。\n\n### 📍 重要地点：洛阳（学艺与初露锋芒）\n- **时间**：青年时期\n- **停留时间**：数年\n- **地点**：古称洛阳（今河南省洛阳市）\n- **事件**：可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。\n- **意义**：艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。\n\n### 📍 重要地点：长安（入侍宫廷）\n- **时间**：开元年间（约713-741年）\n- **停留时间**：长期\n- **地点**：古称长安（今陕西省西安市）\n- **事件**：被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。\n- **意义**：艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。\n\n### 📍 重要地点：洛阳天宫寺\n- **时间**：开元年间某日\n- **停留时间**：短暂（一日）\n- **地点**：古称洛阳天宫寺（今河南省洛阳市）\n- **事件**：观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。\n- **意义**：展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。\n\n### 📍 重要地点：长安兴善寺\n- **时间**：开元年间\n- **停留时间**：短暂\n- **地点**：古称长安兴善寺（今陕西省西安市）\n- **事件**：绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。\n- **意义**：进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。\n\n### 📍 重要地点：潞州上党（创作《金桥图》）\n- **时间**：开元十三年（725年）后\n- **停留时间**：短暂\n- **地点**：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。\n- **事件**：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。\n- **意义**：参与重大政治题材创作，显示其在宫廷画师中的核心地位。\n\n### 📍 重要地点：长安景云寺\n- **时间**：天宝年间（742-756年）\n- **停留时间**：短暂\n- **地点**：古称长安景云寺（今陕西省西安市）\n- **事件**：绘制壁画，观者如堵。\n- **意义**：持续在宗教壁画领域进行创作，影响广泛。\n\n### 📍 重要地点：洛阳老君庙\n- **时间**：天宝年间\n- **停留时间**：短暂\n- **地点**：古称洛阳老君庙（今河南省洛阳市）\n- **事件**：绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”\n- **意义**：其道教题材壁画获得极高评价，成为后世典范。\n\n### 📍 重要地点：泰山（存疑）\n- **时间**：开元十三年（725年）前后\n- **停留时间**：短暂（随驾）\n- **地点**：古称泰山（今山东省泰安市境内）\n- **事件**：可能随唐玄宗东封泰山，沿途观察山川形势。\n- **意义**：为其山水画创作积累了素材，但具体活动记载不详。\n\n### 🔴 去世地：存疑\n- **时间**：约乾元年间（758-760年）\n- **停留时间**：晚年\n- **地点**：地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **事件**：安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。\n- **意义**：标志着唐代绘画一个辉煌时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约680年（存疑） | 0岁 | 出生于阳翟（今河南禹州）。 |\n| 约700-710年 | 约20-30岁 | 在洛阳等地学习书画，初露锋芒。 |\n| 开元初年 | 约30余岁 | 被唐玄宗召入长安，成为宫廷画家。 |\n| 开元十三年（725年）后 | 约45岁后 | 参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。 |\n| 开元、天宝年间 | 壮年至老年 | 在长安、洛阳创作大量寺观壁画，声名达到顶峰。 |\n| 天宝十五载（756年） | 约76岁 | 安史之乱爆发，可能随玄宗入蜀，此后记载不详。 |\n| 约759年（存疑） | 约79岁 | 去世（地点存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省许昌市禹州市 | 34.1417 | 113.4881 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 山东省泰安市 | 36.2001 | 117.0873 |\n| 山西省长治市 | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "“画至于吴道子，而古今之变，天下之能事毕矣”", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "“无人信高洁，谁为表予心？”", "review": "《旧唐书》：“宾王好以数对，如‘秦地重关一百二，汉家离宫三十六’，时人号为‘算博士’。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "“射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中”", "review": "*卢藏用《陈伯玉文集序》**：“道丧五百年而得陈君……卓立千古，横制颓波，天下翕然，质文一变。”", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "“缁素忘年之交”", "review": "*《新唐书·陆羽传》**：“羽嗜茶，著经三篇，言茶之原、之法、之具尤备，天下益知饮茶矣。”", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阎立本", "name": "阎立本", "file": "阎立本.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": 673, "quote": "“传呼画师阎立本”", "review": "*唐代张彦远《历代名画记》**：“阎则六法该备，万象不失……像人之美，张（僧繇）得其肉，陆（探微）得其骨，顾（恺之）得其神。神妙无方，以顾为最。至于人物、台阁，阎立本则可与顾、陆…", "foreign_name": "", "main_role_label": "画家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": null, "death_year": null, "quote": "“**敞肩拱**”", "review": "", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "吴道子", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "阎立本", "label": "同朝共现", "confidence": 0.25}, {"source": "吴道子", "target": "李春", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

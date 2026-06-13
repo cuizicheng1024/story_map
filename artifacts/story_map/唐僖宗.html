@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李儇", "title": "", "description": "唐僖宗李儇是唐懿宗的第五子，十二岁时在宦官田令孜的扶持下即位，年号乾符。他自幼由田令孜陪伴，即位后政事多委于田令孜，沉溺于马球、斗鸡等游戏。乾符元年（874年），王仙芝起义爆发；次年（875年），黄巢响应。起义迅速席卷全国。广明元年（880年），黄巢军攻破潼关，僖宗在田令孜护卫下仓皇出逃至成都，史称“僖宗幸蜀”。中和年间，他依靠沙陀李克用、朱温等藩镇力量于中和四年（884年）平定黄巢，于光启元年（885年）初返回长安。但此时朝廷权威尽失，藩镇割据加剧，宦官与朝臣、藩镇间混战不休，僖宗于光启元年底被迫再次出逃，辗转于凤翔、兴元等地。文德元年（888年）返回长安后不久病逝，唐朝已名存实亡。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "唐朝（晚唐）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "862年", "location": "长安（今陕西省西安市）", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84"}, "death": {"date": "888年", "location": "长安（今陕西省西安市）", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84"}, "lifespan": "27岁（虚岁）", "highlights": {"honor": "", "status": "唐朝走向彻底崩溃前的倒数第二位皇帝，其统治时期爆发了大规模的黄巢起义。", "identities": "唐朝皇帝、唐懿宗第五子", "achievements": "在位期间平定了黄巢起义（依赖藩镇力量）；短暂返回长安，维持了唐朝国祚；年号“乾符”、“广明”、“中和”、“光启”、“文德”。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "birth", "event": "作为唐懿宗第五子出生于皇室。", "time": "公元862年", "duration": "至873年（即位前）", "significance": "唐朝皇子成长之地，为其后来被宦官拥立为帝提供了身份基础。", "works": [], "quoteLines": []}, {"name": "长安（大明宫）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "normal", "event": "在宦官田令孜拥立下即位；初期沉溺玩乐，政事委于田令孜；乾符年间，王仙芝、黄巢起义爆发。", "time": "公元873年-880年", "duration": "约7年", "significance": "其皇帝生涯的起点和名义上的统治中心，见证了唐朝中央权威在起义冲击下的瓦解。", "works": [], "quoteLines": []}, {"name": "成都（蜀郡）", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "广明元年（880年）黄巢破潼关后，僖宗在田令孜护卫下仓皇逃至此地；在此发布诏令，号召天下藩镇讨伐黄巢；中和四年（884年）黄巢起义被平定。", "time": "公元880年底-885年初", "duration": "约4年", "significance": "唐朝流亡政府的临时政治中心，是僖宗依靠藩镇力量反攻的基地，也是唐朝国祚得以延续的关键节点。", "works": [], "quoteLines": []}, {"name": "凤翔府", "ancientName": "凤翔", "modernName": "陕西省宝鸡市凤翔区", "lat": 34.5232, "lng": 107.3925, "coordSystem": "WGS84", "type": "normal", "event": "光启元年（885年）初返回长安后，因宦官田令孜与节度使王重荣、李克用冲突，战火再起，僖宗于年底被迫再次出逃至凤翔。", "time": "公元885年底-886年", "duration": "数月", "significance": "展现了朝廷在返回长安后依然无力控制局面，皇帝再次成为宦官与藩镇博弈的筹码。", "works": [], "quoteLines": []}, {"name": "兴元府", "ancientName": "兴元", "modernName": "陕西省汉中市", "lat": 33.0679, "lng": 107.023, "coordSystem": "WGS84", "type": "normal", "event": "从凤翔继续南逃至此；期间田令孜失势，宦官杨复恭掌权。", "time": "公元886年-887年", "duration": "约1年", "significance": "流亡朝廷的又一个落脚点，标志着僖宗朝宦官势力的内部更迭。", "works": [], "quoteLines": []}, {"name": "长安（返回）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "normal", "event": "文德元年（888年）在邠宁节度使朱玫、凤翔节度使李昌符等人“护送”下返回长安。", "time": "公元888年", "duration": "数月", "significance": "其生命的终点，也是唐朝中央政府最后一次形式上回归旧都，但已彻底失去对全国的控制。", "works": [], "quoteLines": []}, {"name": "长安（武德殿）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "death", "event": "返回长安后不久病逝于武德殿。", "time": "公元888年3月", "duration": "888年（返回后数月）", "significance": "标志着一个混乱时代的结束，其弟昭宗继位，唐朝进入最后的灭亡倒计时。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 唐僖宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李儇\n- **时代**：唐朝（晚唐）\n- **出生**：公元862年，长安（今陕西省西安市）\n- **去世**：公元888年，长安（今陕西省西安市）\n- **享年**：27岁（虚岁）\n- **主要身份**：唐朝皇帝、唐懿宗第五子\n- **历史地位**：唐朝走向彻底崩溃前的倒数第二位皇帝，其统治时期爆发了大规模的黄巢起义。\n- **主要成就**：在位期间平定了黄巢起义（依赖藩镇力量）；短暂返回长安，维持了唐朝国祚；年号“乾符”、“广明”、“中和”、“光启”、“文德”。\n\n### 生平概述\n唐僖宗李儇是唐懿宗的第五子，十二岁时在宦官田令孜的扶持下即位，年号乾符。他自幼由田令孜陪伴，即位后政事多委于田令孜，沉溺于马球、斗鸡等游戏。乾符元年（874年），王仙芝起义爆发；次年（875年），黄巢响应。起义迅速席卷全国。广明元年（880年），黄巢军攻破潼关，僖宗在田令孜护卫下仓皇出逃至成都，史称“僖宗幸蜀”。中和年间，他依靠沙陀李克用、朱温等藩镇力量于中和四年（884年）平定黄巢，于光启元年（885年）初返回长安。但此时朝廷权威尽失，藩镇割据加剧，宦官与朝臣、藩镇间混战不休，僖宗于光启元年底被迫再次出逃，辗转于凤翔、兴元等地。文德元年（888年）返回长安后不久病逝，唐朝已名存实亡。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以长安（今西安）为中心，在黄巢起义期间逃往成都，后又在藩镇与宦官冲突中流落凤翔、兴元等地，最终返回长安。\n- ⏱️ **时间跨度**：公元873年（即位）至公元888年（去世），在位约15年。\n- 📍 **地理范围**：主要活动于关中地区（今陕西省中部）和四川盆地（今四川省）。\n- 🌟 **重要节点数量**：7个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **时间**：公元862年\n- **停留时间**：至873年（即位前）\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐懿宗第五子出生于皇室。\n- **意义**：唐朝皇子成长之地，为其后来被宦官拥立为帝提供了身份基础。\n\n### 📍 重要地点：长安（大明宫）\n- **时间**：公元873年-880年\n- **停留时间**：约7年\n- **地点**：长安（今陕西省西安市）\n- **事件**：在宦官田令孜拥立下即位；初期沉溺玩乐，政事委于田令孜；乾符年间，王仙芝、黄巢起义爆发。\n- **意义**：其皇帝生涯的起点和名义上的统治中心，见证了唐朝中央权威在起义冲击下的瓦解。\n\n### 📍 重要地点：成都（蜀郡）\n- **时间**：公元880年底-885年初\n- **停留时间**：约4年\n- **地点**：成都（今四川省成都市）\n- **事件**：广明元年（880年）黄巢破潼关后，僖宗在田令孜护卫下仓皇逃至此地；在此发布诏令，号召天下藩镇讨伐黄巢；中和四年（884年）黄巢起义被平定。\n- **意义**：唐朝流亡政府的临时政治中心，是僖宗依靠藩镇力量反攻的基地，也是唐朝国祚得以延续的关键节点。\n\n### 📍 重要地点：凤翔府\n- **时间**：公元885年底-886年\n- **停留时间**：数月\n- **地点**：凤翔（今陕西省宝鸡市凤翔区）\n- **事件**：光启元年（885年）初返回长安后，因宦官田令孜与节度使王重荣、李克用冲突，战火再起，僖宗于年底被迫再次出逃至凤翔。\n- **意义**：展现了朝廷在返回长安后依然无力控制局面，皇帝再次成为宦官与藩镇博弈的筹码。\n\n### 📍 重要地点：兴元府\n- **时间**：公元886年-887年\n- **停留时间**：约1年\n- **地点**：兴元（今陕西省汉中市）\n- **事件**：从凤翔继续南逃至此；期间田令孜失势，宦官杨复恭掌权。\n- **意义**：流亡朝廷的又一个落脚点，标志着僖宗朝宦官势力的内部更迭。\n\n### 📍 重要地点：长安（返回）\n- **时间**：公元888年\n- **停留时间**：数月\n- **地点**：长安（今陕西省西安市）\n- **事件**：文德元年（888年）在邠宁节度使朱玫、凤翔节度使李昌符等人“护送”下返回长安。\n- **意义**：其生命的终点，也是唐朝中央政府最后一次形式上回归旧都，但已彻底失去对全国的控制。\n\n### 🔴 去世地：长安（武德殿）\n- **时间**：公元888年3月\n- **停留时间**：888年（返回后数月）\n- **地点**：长安（今陕西省西安市）\n- **事件**：返回长安后不久病逝于武德殿。\n- **意义**：标志着一个混乱时代的结束，其弟昭宗继位，唐朝进入最后的灭亡倒计时。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 862年 | 0岁 | 出生于长安。 |\n| 873年 | 12岁 | 唐懿宗驾崩，在宦官田令孜拥立下即位，是为僖宗。 |\n| 874年 | 13岁 | 王仙芝起义爆发。 |\n| 875年 | 14岁 | 黄巢响应王仙芝起义。 |\n| 880年 | 19岁 | 黄巢军攻破潼关，僖宗仓皇出逃，奔往成都。 |\n| 881年 | 20岁 | 黄巢在长安建立大齐政权。僖宗在成都号召藩镇勤王。 |\n| 884年 | 23岁 | 黄巢起义被藩镇联军平定。 |\n| 885年 | 24岁 | 年初返回长安。因田令孜与河中节度使王重荣、李克用冲突，引发战争，年底再次出逃至凤翔。 |\n| 886年 | 25岁 | 从凤翔逃至兴元府。田令孜失势，杨复恭掌权。 |\n| 887年 | 26岁 | 诏命王重荣讨伐朱玫（此事件细节存疑，说法不一）。 |\n| 888年 | 27岁 | 返回长安。二月病重，三月驾崩，葬于靖陵。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 西安市（唐长安） | 34.2631 | 108.9480 |\n| 成都市（唐成都） | 30.5728 | 104.0668 |\n| 宝鸡市凤翔区（唐凤翔） | 34.5232 | 107.3925 |\n| 汉中市（唐兴元） | 33.0679 | 107.0230 |", "relatedGraph": {"center": {"id": "唐僖宗", "name": "唐僖宗", "file": "唐僖宗.html", "dynasty": "唐朝（晚唐）", "aliases": [], "birth_year": 862, "death_year": 888, "quote": "“**幸蜀**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "唐朝皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐僖宗", "name": "唐僖宗", "file": "唐僖宗.html", "dynasty": "唐朝（晚唐）", "aliases": [], "birth_year": 862, "death_year": 888, "quote": "“**幸蜀**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "唐朝皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "王仙芝", "name": "王仙芝", "file": "王仙芝.html", "dynasty": "唐末", "aliases": [], "birth_year": null, "death_year": 878, "quote": "“天补平均大将军兼海内诸豪都统”", "review": "*《新唐书》**：“（王仙芝、黄巢）犹差科不均，重敛贿赂，百姓流殍，无所控诉，相聚为盗，所在蜂起。”", "foreign_name": "", "main_role_label": "农民起义领袖", "birthplace": "濮州", "birthplace_modern": "山东省菏泽市鄄城县北旧城镇", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "柳公权", "name": "柳公权", "file": "柳公权.html", "dynasty": "唐朝", "aliases": [], "birth_year": 778, "death_year": 865, "quote": "“骨力遒健，结构严密”", "review": "*唐·穆宗**：“朕尝于佛庙见卿笔迹，思之久矣。”（《旧唐书·柳公权传》）", "foreign_name": "", "main_role_label": "书法家", "birthplace": "京兆华原", "birthplace_modern": "陕西铜川市耀州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "崔致远", "name": "崔致远", "file": "崔致远.html", "dynasty": "新罗、唐朝", "aliases": [], "birth_year": 857, "death_year": 908, "quote": "“东国文学之祖”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "新罗沙梁部", "birthplace_modern": "韩国庆尚北道庆州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱温", "name": "朱温", "file": "朱温.html", "dynasty": "唐末五代", "aliases": [], "birth_year": 852, "death_year": 912, "quote": "“太祖（朱温）肇基王迹，奄有中原，实由天资，非假人力。然猜忌宿将，诛戮功臣，失驭下之道矣。”", "review": "*《旧五代史》**：“太祖（朱温）肇基王迹，奄有中原，实由天资，非假人力。然猜忌宿将，诛戮功臣，失驭下之道矣。”", "foreign_name": "", "main_role_label": "农民军将领", "birthplace": "宋州砀山", "birthplace_modern": "安徽省宿州市砀山县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "高适", "name": "高适", "file": "高适.html", "dynasty": "唐朝", "aliases": [], "birth_year": 704, "death_year": 765, "quote": "“**高岑**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "今河南商丘睢阳区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "唐僖宗", "target": "黄巢", "label": "君臣", "confidence": null}, {"source": "唐僖宗", "target": "王仙芝", "label": "君臣", "confidence": null}, {"source": "唐僖宗", "target": "柳公权", "label": "同时代人物", "confidence": null}, {"source": "唐僖宗", "target": "崔致远", "label": "同时代人物", "confidence": null}, {"source": "唐僖宗", "target": "朱温", "label": "同册共现", "confidence": 0.15}, {"source": "唐僖宗", "target": "高适", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李儇", "title": "", "description": "唐僖宗李儇是唐懿宗的第五子，十二岁时在宦官田令孜的扶持下即位，年号乾符。他自幼由田令孜陪伴，即位后政事多委于田令孜，沉溺于马球、斗鸡等游戏。乾符元年（874年），王仙芝起义爆发；次年（875年），黄巢响应。起义迅速席卷全国。广明元年（880年），黄巢军攻破潼关，僖宗在田令孜护卫下仓皇出逃至成都，史称“僖宗幸蜀”。中和年间，他依靠沙陀李克用、朱温等藩镇力量于中和四年（884年）平定黄巢，于光启元年（885年）初返回长安。但此时朝廷权威尽失，藩镇割据加剧，宦官与朝臣、藩镇间混战不休，僖宗于光启元年底被迫再次出逃，辗转于凤翔、兴元等地。文德元年（888年）返回长安后不久病逝，唐朝已名存实亡。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "唐朝（晚唐）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "862年", "location": "长安（今陕西省西安市）", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84"}, "death": {"date": "888年", "location": "长安（今陕西省西安市）", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84"}, "lifespan": "27岁（虚岁）", "highlights": {"honor": "", "status": "唐朝走向彻底崩溃前的倒数第二位皇帝，其统治时期爆发了大规模的黄巢起义。", "identities": "唐朝皇帝、唐懿宗第五子", "achievements": "在位期间平定了黄巢起义（依赖藩镇力量）；短暂返回长安，维持了唐朝国祚；年号“乾符”、“广明”、“中和”、“光启”、“文德”。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "birth", "event": "作为唐懿宗第五子出生于皇室。", "time": "公元862年", "duration": "至873年（即位前）", "significance": "唐朝皇子成长之地，为其后来被宦官拥立为帝提供了身份基础。", "works": [], "quoteLines": []}, {"name": "长安（大明宫）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "normal", "event": "在宦官田令孜拥立下即位；初期沉溺玩乐，政事委于田令孜；乾符年间，王仙芝、黄巢起义爆发。", "time": "公元873年-880年", "duration": "约7年", "significance": "其皇帝生涯的起点和名义上的统治中心，见证了唐朝中央权威在起义冲击下的瓦解。", "works": [], "quoteLines": []}, {"name": "成都（蜀郡）", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "广明元年（880年）黄巢破潼关后，僖宗在田令孜护卫下仓皇逃至此地；在此发布诏令，号召天下藩镇讨伐黄巢；中和四年（884年）黄巢起义被平定。", "time": "公元880年底-885年初", "duration": "约4年", "significance": "唐朝流亡政府的临时政治中心，是僖宗依靠藩镇力量反攻的基地，也是唐朝国祚得以延续的关键节点。", "works": [], "quoteLines": []}, {"name": "凤翔府", "ancientName": "凤翔", "modernName": "陕西省宝鸡市凤翔区", "lat": 34.5232, "lng": 107.3925, "coordSystem": "WGS84", "type": "normal", "event": "光启元年（885年）初返回长安后，因宦官田令孜与节度使王重荣、李克用冲突，战火再起，僖宗于年底被迫再次出逃至凤翔。", "time": "公元885年底-886年", "duration": "数月", "significance": "展现了朝廷在返回长安后依然无力控制局面，皇帝再次成为宦官与藩镇博弈的筹码。", "works": [], "quoteLines": []}, {"name": "兴元府", "ancientName": "兴元", "modernName": "陕西省汉中市", "lat": 33.0679, "lng": 107.023, "coordSystem": "WGS84", "type": "normal", "event": "从凤翔继续南逃至此；期间田令孜失势，宦官杨复恭掌权。", "time": "公元886年-887年", "duration": "约1年", "significance": "流亡朝廷的又一个落脚点，标志着僖宗朝宦官势力的内部更迭。", "works": [], "quoteLines": []}, {"name": "长安（返回）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "normal", "event": "文德元年（888年）在邠宁节度使朱玫、凤翔节度使李昌符等人“护送”下返回长安。", "time": "公元888年", "duration": "数月", "significance": "其生命的终点，也是唐朝中央政府最后一次形式上回归旧都，但已彻底失去对全国的控制。", "works": [], "quoteLines": []}, {"name": "长安（武德殿）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2631, "lng": 108.948, "coordSystem": "WGS84", "type": "death", "event": "返回长安后不久病逝于武德殿。", "time": "公元888年3月", "duration": "888年（返回后数月）", "significance": "标志着一个混乱时代的结束，其弟昭宗继位，唐朝进入最后的灭亡倒计时。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 唐僖宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李儇\n- **时代**：唐朝（晚唐）\n- **出生**：公元862年，长安（今陕西省西安市）\n- **去世**：公元888年，长安（今陕西省西安市）\n- **享年**：27岁（虚岁）\n- **主要身份**：唐朝皇帝、唐懿宗第五子\n- **历史地位**：唐朝走向彻底崩溃前的倒数第二位皇帝，其统治时期爆发了大规模的黄巢起义。\n- **主要成就**：在位期间平定了黄巢起义（依赖藩镇力量）；短暂返回长安，维持了唐朝国祚；年号“乾符”、“广明”、“中和”、“光启”、“文德”。\n\n### 生平概述\n唐僖宗李儇是唐懿宗的第五子，十二岁时在宦官田令孜的扶持下即位，年号乾符。他自幼由田令孜陪伴，即位后政事多委于田令孜，沉溺于马球、斗鸡等游戏。乾符元年（874年），王仙芝起义爆发；次年（875年），黄巢响应。起义迅速席卷全国。广明元年（880年），黄巢军攻破潼关，僖宗在田令孜护卫下仓皇出逃至成都，史称“僖宗幸蜀”。中和年间，他依靠沙陀李克用、朱温等藩镇力量于中和四年（884年）平定黄巢，于光启元年（885年）初返回长安。但此时朝廷权威尽失，藩镇割据加剧，宦官与朝臣、藩镇间混战不休，僖宗于光启元年底被迫再次出逃，辗转于凤翔、兴元等地。文德元年（888年）返回长安后不久病逝，唐朝已名存实亡。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以长安（今西安）为中心，在黄巢起义期间逃往成都，后又在藩镇与宦官冲突中流落凤翔、兴元等地，最终返回长安。\n- ⏱️ **时间跨度**：公元873年（即位）至公元888年（去世），在位约15年。\n- 📍 **地理范围**：主要活动于关中地区（今陕西省中部）和四川盆地（今四川省）。\n- 🌟 **重要节点数量**：7个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **时间**：公元862年\n- **停留时间**：至873年（即位前）\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐懿宗第五子出生于皇室。\n- **意义**：唐朝皇子成长之地，为其后来被宦官拥立为帝提供了身份基础。\n\n### 📍 重要地点：长安（大明宫）\n- **时间**：公元873年-880年\n- **停留时间**：约7年\n- **地点**：长安（今陕西省西安市）\n- **事件**：在宦官田令孜拥立下即位；初期沉溺玩乐，政事委于田令孜；乾符年间，王仙芝、黄巢起义爆发。\n- **意义**：其皇帝生涯的起点和名义上的统治中心，见证了唐朝中央权威在起义冲击下的瓦解。\n\n### 📍 重要地点：成都（蜀郡）\n- **时间**：公元880年底-885年初\n- **停留时间**：约4年\n- **地点**：成都（今四川省成都市）\n- **事件**：广明元年（880年）黄巢破潼关后，僖宗在田令孜护卫下仓皇逃至此地；在此发布诏令，号召天下藩镇讨伐黄巢；中和四年（884年）黄巢起义被平定。\n- **意义**：唐朝流亡政府的临时政治中心，是僖宗依靠藩镇力量反攻的基地，也是唐朝国祚得以延续的关键节点。\n\n### 📍 重要地点：凤翔府\n- **时间**：公元885年底-886年\n- **停留时间**：数月\n- **地点**：凤翔（今陕西省宝鸡市凤翔区）\n- **事件**：光启元年（885年）初返回长安后，因宦官田令孜与节度使王重荣、李克用冲突，战火再起，僖宗于年底被迫再次出逃至凤翔。\n- **意义**：展现了朝廷在返回长安后依然无力控制局面，皇帝再次成为宦官与藩镇博弈的筹码。\n\n### 📍 重要地点：兴元府\n- **时间**：公元886年-887年\n- **停留时间**：约1年\n- **地点**：兴元（今陕西省汉中市）\n- **事件**：从凤翔继续南逃至此；期间田令孜失势，宦官杨复恭掌权。\n- **意义**：流亡朝廷的又一个落脚点，标志着僖宗朝宦官势力的内部更迭。\n\n### 📍 重要地点：长安（返回）\n- **时间**：公元888年\n- **停留时间**：数月\n- **地点**：长安（今陕西省西安市）\n- **事件**：文德元年（888年）在邠宁节度使朱玫、凤翔节度使李昌符等人“护送”下返回长安。\n- **意义**：其生命的终点，也是唐朝中央政府最后一次形式上回归旧都，但已彻底失去对全国的控制。\n\n### 🔴 去世地：长安（武德殿）\n- **时间**：公元888年3月\n- **停留时间**：888年（返回后数月）\n- **地点**：长安（今陕西省西安市）\n- **事件**：返回长安后不久病逝于武德殿。\n- **意义**：标志着一个混乱时代的结束，其弟昭宗继位，唐朝进入最后的灭亡倒计时。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 862年 | 0岁 | 出生于长安。 |\n| 873年 | 12岁 | 唐懿宗驾崩，在宦官田令孜拥立下即位，是为僖宗。 |\n| 874年 | 13岁 | 王仙芝起义爆发。 |\n| 875年 | 14岁 | 黄巢响应王仙芝起义。 |\n| 880年 | 19岁 | 黄巢军攻破潼关，僖宗仓皇出逃，奔往成都。 |\n| 881年 | 20岁 | 黄巢在长安建立大齐政权。僖宗在成都号召藩镇勤王。 |\n| 884年 | 23岁 | 黄巢起义被藩镇联军平定。 |\n| 885年 | 24岁 | 年初返回长安。因田令孜与河中节度使王重荣、李克用冲突，引发战争，年底再次出逃至凤翔。 |\n| 886年 | 25岁 | 从凤翔逃至兴元府。田令孜失势，杨复恭掌权。 |\n| 887年 | 26岁 | 诏命王重荣讨伐朱玫（此事件细节存疑，说法不一）。 |\n| 888年 | 27岁 | 返回长安。二月病重，三月驾崩，葬于靖陵。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐僖宗本人无代表性文学作品传世。在相关历史叙述中，常作为**晚唐衰世**的象征性人物出现。\n- 核心要点：\n    - **重点**：其生平是理解**晚唐社会矛盾总爆发**（如**黄巢起义**）的重要历史背景。\n    - **重点**：**藩镇割据**与**宦官专权**两大痼疾在其统治时期达到顶峰，直接导致**中央权威彻底丧失**。\n    - **重点**：**僖宗幸蜀**是唐朝历史上继安史之乱玄宗入蜀后的又一次重大**皇帝流亡事件**，具有强烈的象征意义。\n    - 其经历常被后世文人用作**王朝末世**、**君主失德**或**命运无常**的典故素材。\n    - 在历史散文或史论中，其形象常与**昏庸**、**傀儡**、**流亡天子**等关键词关联。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：在位期间爆发了**王仙芝、黄巢起义**，这是唐朝历史上规模最大的农民起义，从根本上动摇了唐朝统治根基。\n    - **广明元年（880年）**，黄巢军入长安，僖宗出奔**成都**，唐朝中央政府一度瘫痪。\n    - **中和四年（884年）**，依靠**沙陀族李克用**、**朱温**（后梁太祖）等藩镇力量，最终平定黄巢起义。\n    - **光启年间**，朝廷内部**宦官集团**（田令孜、杨复恭）与**藩镇**（王重荣、李克用、朱玫等）矛盾激化，导致僖宗再次流亡。\n    - 其统治时期，**南衙北司之争**（朝官与宦官）与**藩镇兼并战争**交织，唐朝统治秩序彻底崩溃。\n- 核心要点：\n    - **重点**：唐僖宗是**唐朝由衰乱走向灭亡**的关键过渡性皇帝，其统治加速了唐朝的**灭亡进程**。\n    - **重点**：他的经历典型地反映了**晚唐皇权的脆弱性**，皇帝成为**宦官**和**强藩**手中的傀儡与筹码。\n    - **重点**：**黄巢起义**虽然被平定，但参与镇压的藩镇（如朱温、李克用）借此壮大，形成了新的**割据势力**，为后来的**五代十国**乱世埋下伏笔。\n    - 后世史家多将其与唐懿宗并论，视为导致唐朝最终灭亡的**昏君**代表。\n    - 其“**幸蜀**”与“**再幸凤翔**”的经历，是**唐朝中央集权制度彻底瓦解**的标志性事件。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 西安市（唐长安） | 34.2631 | 108.9480 |\n| 成都市（唐成都） | 30.5728 | 104.0668 |\n| 宝鸡市凤翔区（唐凤翔） | 34.5232 | 107.3925 |\n| 汉中市（唐兴元） | 33.0679 | 107.0230 |", "relatedGraph": {"center": {"id": "唐僖宗", "name": "唐僖宗", "file": "唐僖宗.html", "dynasty": "唐朝（晚唐）", "aliases": [], "birth_year": 862, "death_year": 888, "quote": "“**幸蜀**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "唐朝皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐僖宗", "name": "唐僖宗", "file": "唐僖宗.html", "dynasty": "唐朝（晚唐）", "aliases": [], "birth_year": 862, "death_year": 888, "quote": "“**幸蜀**”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "唐朝皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "“待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。”", "review": "*《新唐书》**：“巢死，秦宗权始张，株乱遍天下……唐亡于巢。”", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "王仙芝", "name": "王仙芝", "file": "王仙芝.html", "dynasty": "唐末", "aliases": [], "birth_year": null, "death_year": 878, "quote": "“天补平均大将军兼海内诸豪都统”", "review": "*《新唐书》**：“（王仙芝、黄巢）犹差科不均，重敛贿赂，百姓流殍，无所控诉，相聚为盗，所在蜂起。”", "foreign_name": "", "main_role_label": "农民起义领袖", "birthplace": "濮州", "birthplace_modern": "山东省菏泽市鄄城县北旧城镇", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "柳公权", "name": "柳公权", "file": "柳公权.html", "dynasty": "唐朝", "aliases": [], "birth_year": 778, "death_year": 865, "quote": "“骨力遒健，结构严密”", "review": "*唐·穆宗**：“朕尝于佛庙见卿笔迹，思之久矣。”（《旧唐书·柳公权传》）", "foreign_name": "", "main_role_label": "书法家", "birthplace": "京兆华原", "birthplace_modern": "陕西铜川市耀州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "崔致远", "name": "崔致远", "file": "崔致远.html", "dynasty": "新罗、唐朝", "aliases": [], "birth_year": 857, "death_year": 908, "quote": "“东国文学之祖”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "新罗沙梁部", "birthplace_modern": "韩国庆尚北道庆州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱温", "name": "朱温", "file": "朱温.html", "dynasty": "唐末五代", "aliases": [], "birth_year": 852, "death_year": 912, "quote": "“太祖（朱温）肇基王迹，奄有中原，实由天资，非假人力。然猜忌宿将，诛戮功臣，失驭下之道矣。”", "review": "*《旧五代史》**：“太祖（朱温）肇基王迹，奄有中原，实由天资，非假人力。然猜忌宿将，诛戮功臣，失驭下之道矣。”", "foreign_name": "", "main_role_label": "农民军将领", "birthplace": "宋州砀山", "birthplace_modern": "安徽省宿州市砀山县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "高适", "name": "高适", "file": "高适.html", "dynasty": "唐朝", "aliases": [], "birth_year": 704, "death_year": 765, "quote": "“**高岑**”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "今河南商丘睢阳区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "唐僖宗", "target": "黄巢", "label": "君臣", "confidence": null}, {"source": "唐僖宗", "target": "王仙芝", "label": "君臣", "confidence": null}, {"source": "唐僖宗", "target": "柳公权", "label": "同时代人物", "confidence": null}, {"source": "唐僖宗", "target": "崔致远", "label": "同时代人物", "confidence": null}, {"source": "唐僖宗", "target": "朱温", "label": "同册共现", "confidence": 0.15}, {"source": "唐僖宗", "target": "高适", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

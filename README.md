@@ -94,7 +94,12 @@
 
 ### 静态版
 
-#### [故事地图体验版](https://cuizicheng1024.github.io/storymap/)
+#### <u>[故事地图体验版](https://cuizicheng1024.github.io/storymap/)</u>
+
+- GitHub Pages 示例人物页：
+- [曹操](https://cuizicheng1024.github.io/storymap/%E6%9B%B9%E6%93%8D.html)
+- [关羽](https://cuizicheng1024.github.io/storymap/%E5%85%B3%E7%BE%BD.html)
+- [苏轼](https://cuizicheng1024.github.io/storymap/%E8%8B%8F%E8%BD%BC.html)
 
 - 可直接体验：首页浏览、已收录人物检索、已生成人物页查看
 - 地图功能：配置 `AMAP_KEY` 后可加载底图并查看轨迹联动

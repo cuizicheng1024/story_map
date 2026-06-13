@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "阿尔伯特·爱因斯坦", "title": "", "description": "阿尔伯特·爱因斯坦出生于德国一个犹太家庭，青少年时期展现出对数学和物理学的非凡天赋与独立思考精神。他于瑞士苏黎世联邦理工学院毕业后，曾短暂任职于伯尔尼专利局，期间发表了包括狭义相对论在内的一系列颠覆性论文，引发物理学革命。此后，他辗转于布拉格、苏黎世和柏林的大学任教与研究，并完成了广义相对论。因纳粹势力崛起，他被迫移居美国，任职于普林斯顿高等研究院，直至逝世。他的一生贯穿两次世界大战，不仅是科学巨匠，也积极投身反战与和平运动，成为理性与人道主义的全球象征。", "quote": "20世纪风云人物", "shortReview": "20世纪风云人物", "dynasty": "现代（19世纪末至20世纪中期）", "courtesyName": "", "artName": "", "aliases": ["爱因斯坦"], "birthplace": "德意志帝国符腾堡王国乌尔姆市", "avatar": "", "birth": {"date": "1879年", "location": "德意志帝国符腾堡王国乌尔姆市", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1955年", "location": "美国新泽西州普林斯顿", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "76岁", "highlights": {"honor": "", "status": "现代物理学的开创者和奠基人，其理论改变了人类对时间、空间、物质和引力的根本认知。", "identities": "理论物理学家、思想家、社会活动家", "achievements": "创立狭义相对论与广义相对论；提出光量子假说，解释光电效应；对布朗运动、统一场论、宇宙学等做出开创性贡献；1921年获诺贝尔物理学奖。", "works": [], "reviews": ["**马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”", "**《时代》杂志**（1999年）：评选爱因斯坦为“20世纪风云人物”，称他“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”", "**杨振宁**（物理学家）：“20世纪物理学的三大贡献中，有两个半都是爱因斯坦的。”（指狭义相对论、广义相对论和量子力学的奠基工作）"]}}, "locations": [], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"论动体的电动力学": "……我们应当把时间的陈述理解为同时性事件的陈述。", "关于光的产生和转化的一个启发性观点": "……光的能量在空间中不是连续分布的。", "广义相对论的基础": "……物理定律必须具有这样的性质，它们对于无论以哪种方式运动着的参照系都是成立的。", "罗素-爱因斯坦宣言": "1955年签署《罗素-爱因斯坦宣言》，呼吁和平利用科学。", "时代": "“20世纪风云人物”\n“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阿尔伯特·爱因斯坦\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：阿尔伯特·爱因斯坦（Albert Einstein）\n- **别名**：爱因斯坦\n- **外文名**：Albert Einstein\n- **领域标签**：理论物理学、相对论、量子力学、诺贝尔奖得主、社会活动家\n- **时代**：现代（19世纪末至20世纪中期）\n- **出生**：1879年3月14日，德意志帝国符腾堡王国乌尔姆市\n- **去世**：1955年4月18日，美国新泽西州普林斯顿\n- **享年**：76岁\n- **主要身份**：理论物理学家、思想家、社会活动家\n- **历史地位**：现代物理学的开创者和奠基人，其理论改变了人类对时间、空间、物质和引力的根本认知。\n- **主要成就**：创立狭义相对论与广义相对论；提出光量子假说，解释光电效应；对布朗运动、统一场论、宇宙学等做出开创性贡献；1921年获诺贝尔物理学奖。\n\n### 生平概述\n阿尔伯特·爱因斯坦出生于德国一个犹太家庭，青少年时期展现出对数学和物理学的非凡天赋与独立思考精神。他于瑞士苏黎世联邦理工学院毕业后，曾短暂任职于伯尔尼专利局，期间发表了包括狭义相对论在内的一系列颠覆性论文，引发物理学革命。此后，他辗转于布拉格、苏黎世和柏林的大学任教与研究，并完成了广义相对论。因纳粹势力崛起，他被迫移居美国，任职于普林斯顿高等研究院，直至逝世。他的一生贯穿两次世界大战，不仅是科学巨匠，也积极投身反战与和平运动，成为理性与人道主义的全球象征。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹横跨欧洲（德国、瑞士、意大利、奥地利、捷克）与北美洲（美国），主要活动于学术中心。\n- ⏱️ **时间跨度**：1879年 - 1955年，共计76年。\n- 📍 **地理范围**：主要覆盖中欧（德语区）及美国东海岸。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：乌尔姆\n- **公元纪年**：1879年\n- **停留时间**：约1年（婴儿期）\n- **位置**：德意志帝国符腾堡王国乌尔姆市（今德国巴登-符腾堡州乌尔姆市）\n- **事迹**：在此出生。\n- **意义**：生命的起点。\n\n### 📍 重要地点：慕尼黑\n- **公元纪年**：1880年 - 1894年\n- **停留时间**：童年及青少年时期（约14年）\n- **位置**：德意志帝国巴伐利亚王国慕尼黑（今德国巴伐利亚州慕尼黑市）\n- **事迹**：在此接受小学和中学教育；对电磁现象产生浓厚兴趣；因厌恶德国军国主义教育，首次萌生放弃德国国籍的念头。\n- **意义**：科学兴趣的启蒙地，也是其反权威、反军国主义思想的萌芽地。\n\n### 📍 重要地点：苏黎世（求学）\n- **公元纪年**：1896年 - 1900年\n- **停留时间**：大学时期（4年）\n- **位置**：瑞士联邦苏黎世（今瑞士苏黎世）\n- **事迹**：进入苏黎世联邦理工学院学习物理学和数学；与同学米列娃·马里奇相识相恋；学业上常因不循常规而与教授产生矛盾。\n- **意义**：获得系统科学训练，奠定学术基础，并结识第一任妻子。\n\n### 📍 重要地点：伯尔尼\n- **公元纪年**：1902年 - 1909年\n- **停留时间**：约7年\n- **位置**：瑞士联邦伯尔尼（今瑞士伯尔尼）\n- **事迹**：在伯尔尼联邦专利局担任三级技术员；与好友哈比希特、索洛文组成“奥林匹亚科学院”自学讨论；1905年（“奇迹年”）发表《论动体的电动力学》（狭义相对论）、《关于光的产生和转化的一个启发性观点》（光量子说）等四篇划时代论文。\n- **意义**：职业生涯初期，也是其科学创造力爆发的黄金时期，完成了从专利员到顶尖物理学家的蜕变。\n- **名篇名句**：《论动体的电动力学》：“……我们应当把时间的陈述理解为同时性事件的陈述。”；《关于光的产生和转化的一个启发性观点》：“……光的能量在空间中不是连续分布的。”\n\n### 📍 重要地点：布拉格\n- **公元纪年**：1911年 - 1912年\n- **停留时间**：约1年半\n- **位置**：奥匈帝国波希米亚王国布拉格（今捷克共和国布拉格）\n- **事迹**：任布拉格德意志大学理论物理学教授；首次计算光线经过太阳边缘的偏折角度，为广义相对论提供关键预言。\n- **意义**：首次获得教授职位，学术地位提升，广义相对论研究取得关键进展。\n\n### 📍 重要地点：柏林\n- **公元纪年**：1914年 - 1933年\n- **停留时间**：约19年\n- **位置**：德意志帝国/魏玛共和国柏林（今德国柏林）\n- **事迹**：任普鲁士科学院院士、柏林大学教授、威廉皇帝物理研究所所长；与第一任妻子离婚，与表姐爱尔莎结婚；1915年完成广义相对论；1919年日食观测证实其引力透镜预言，使其举世闻名；公开反对德国军国主义和纳粹主义。\n- **意义**：学术生涯的顶峰，完成了最伟大的科学成就（广义相对论），并成为具有巨大公共影响力的知识分子。此地也见证了他因政治环境被迫离开德国。\n- **名篇名句**：《广义相对论的基础》：“……物理定律必须具有这样的性质，它们对于无论以哪种方式运动着的参照系都是成立的。”\n\n### 📍 重要地点：莱顿\n- **公元纪年**：20世纪20年代（多次短期访问）\n- **停留时间**：短期访问讲学\n- **位置**：荷兰王国莱顿（今荷兰莱顿）\n- **事迹**：作为特邀教授访问莱顿大学，与好友、物理学家埃伦费斯特交流，并与洛伦兹、外尔等学者切磋。\n- **意义**：重要的国际学术交流中心，与欧洲顶尖物理学家保持密切联系。\n\n### 📍 重要地点：普林斯顿\n- **公元纪年**：1933年 - 1955年\n- **停留时间**：晚年时期（22年）\n- **位置**：美国新泽西州普林斯顿（今美国新泽西州普林斯顿市）\n- **事迹**：受聘于新成立的普林斯顿高等研究院；致力于统一场论研究；二战期间致信罗斯福总统，促成“曼哈顿计划”，但本人未参与具体研究；战后积极倡导核武器控制与世界政府；1955年签署《罗素-爱因斯坦宣言》，呼吁和平利用科学。\n- **意义**：人生的最后驿站，远离欧洲战火，在相对宁静的环境中继续思考终极物理问题，并成为全球和平与人道主义的象征。\n- **名篇名句**：致罗斯福总统的信（1939年）：“……这种新的现象（指核裂变）也可用来制造炸弹，并且能够想象——尽管还不能确定——一种新型的威力极大的炸弹可以由此制造出来。”\n\n### 🔴 去世地：普林斯顿\n- **公元纪年**：1955年4月18日\n- **停留时间**：生命最后22年\n- **位置**：美国新泽西州普林斯顿（今美国新泽西州普林斯顿市）\n- **经过**：因腹主动脉瘤破裂逝世于普林斯顿医院。遵照其遗嘱，遗体火化，骨灰被秘密撒放，不立纪念碑，不举行公开葬礼。\n- **意义**：生命的终点。其简朴的葬礼和对身后事的安排，体现了他一生反对个人崇拜、追求精神自由的品格。\n- **名篇名句**：临终前（对护士，用德语）：“我已完成了我的份内事，现在该走了。”\n\n---\n\n## 四、地点坐标\n\n| 地点名称（现代） | 备注 |\n| :--- | :--- |\n| 今德国巴登-符腾堡州乌尔姆市 | 出生地 |\n| 今德国巴伐利亚州慕尼黑市 | 童年及青少年时期 |\n| 今瑞士苏黎世 | 大学求学地 |\n| 今瑞士伯尔尼 | 专利局工作及“奇迹年”所在地 |\n| 今捷克共和国布拉格 | 首次担任教授地 |\n| 今德国柏林 | 学术生涯顶峰时期所在地 |\n| 今荷兰莱顿 | 学术访问地 |\n| 今美国新泽西州普林斯顿市 | 晚年工作及去世地 |\n\n---\n\n## 五、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1879 | 0 | 出生于德国乌尔姆。 |\n| 1896 | 17 | 放弃德国国籍，进入苏黎世联邦理工学院学习。 |\n| 1900 | 21 | 毕业，但未能获得助教职位。 |\n| 1902 | 23 | 受聘于伯尔尼专利局；“奥林匹亚科学院”成立。 |\n| 1905 | 26 | “奇迹年”，发表狭义相对论、光量子说等四篇论文。 |\n| 1909 | 30 | 离开专利局，首次获得苏黎世大学编外教授职位。 |\n| 1911 | 32 | 任布拉格德意志大学教授；首次计算光线偏折。 |\n| 1914 | 35 | 迁居柏林，任普鲁士科学院院士等职。 |\n| 1915 | 36 | 完成广义相对论。 |\n| 1919 | 40 | 日食观测证实广义相对论预言，名声大振；与米列娃离婚。 |\n| 1921 | 42 | 因光电效应定律获诺贝尔物理学奖。 |\n| 1933 | 54 | 因纳粹迫害移居美国，任职于普林斯顿高等研究院。 |\n| 1939 | 60 | 上书罗斯福总统，建议研制原子弹。 |\n| 1952 | 73 | 以色列政府邀请其出任第二任总统，婉拒。 |\n| 1955 | 76 | 签署《罗素-爱因斯坦宣言》；4月18日在普林斯顿逝世。 |\n\n---\n\n## 六、历史影响\n\n### 对当时的影响\n爱因斯坦的相对论彻底颠覆了牛顿力学建立的绝对时空观，引发了物理学基础理论的革命，使他在20世纪初即成为科学界的泰斗。他的光量子假说为量子力学的建立开辟了道路。同时，作为一位具有强烈社会责任感的公共知识分子，他对两次世界大战、法西斯主义、种族迫害的鲜明反对态度，以及对核武器的警惕，深刻影响了当时的科学界舆论和国际和平运动。\n\n### 对后世的影响\n1. **科技发展**：相对论是现代宇宙学、天体物理学（如黑洞、引力波）、粒子物理学和全球卫星定位系统（GPS）的理论基石。\n2. **科学方法论**：其思想实验和追求理论统一性的方法，成为理论物理学研究的典范。\n3. **文化符号**：“爱因斯坦”成为“天才”的代名词，其形象（蓬乱白发、吐舌照片）和质能方程（E=mc²）成为流行文化标志。\n4. **科学家的社会责任**：树立了科学家关心人类命运、积极参与公共事务的榜样。\n\n### 历史评价\n1. **马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”\n2. **《时代》杂志**（1999年）：评选爱因斯坦为“20世纪风云人物”，称他“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”\n3. **杨振宁**（物理学家）：“20世纪物理学的三大贡献中，有两个半都是爱因斯坦的。”（指狭义相对论、广义相对论和量子力学的奠基工作）\n4. **罗素**（哲学家）：“爱因斯坦不仅是一位伟大的科学家，也是一位伟大的人……他具有战士的坚韧，又有艺术家的敏感与温柔。”\n\n---\n\n## 七、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**第二次工业革命**后，科学技术迅猛发展；**两次世界大战**深刻影响世界格局。\n- **关键事件/贡献**：提出**狭义相对论**和**广义相对论**，改变了人类对**时间、空间、物质和引力**的认识；因解释**光电效应**获得**诺贝尔物理学奖**。\n- **代表作品/思想**：质能方程 **E=mc²**。\n- **常见易混点/对比点**：与**牛顿**经典力学体系的关系（继承与发展）；相对论与日常生活经验（低速下）的差异。\n\n### 高中阶段\n- **时代背景**：**经典物理学**危机（以太漂移实验、黑体辐射等）；**量子力学**的诞生与发展。\n- **关键事件/贡献**：1905年“**奇迹年**”的四篇论文；**光量子假说**（光的波粒二象性）对量子理论的贡献；**布朗运动**的理论解释；**广义相对论**预言（光线弯曲、引力红移、引力波）。\n- **代表作品/思想**：**《论动体的电动力学》**；**统一场论**的探索。\n- **常见易混点/对比点**：**狭义相对论**（惯性系、光速不变）与**广义相对论**（非惯性系、等效原理）的核心区别；爱因斯坦对**量子力学**的贡献（奠基）与对其**哥本哈根诠释**的质疑（“上帝不掷骰子”）。\n\n---\n\n## 八、初高中阶段考点\n\n### 初中阶段\n- 爱因斯坦是**20世纪最伟大的物理学家**之一。\n- 他最重要的理论是**相对论**，包括**狭义相对论**和**广义相对论**。\n- 他提出了著名的质能方程 **E=mc²**，揭示了质量和能量可以相互转换。\n- 他因在**光电效应**方面的研究获得**1921年诺贝尔物理学奖**。\n- 他是一位**和平主义者**，反对战争和法西斯主义。\n- （存疑/说法不一）关于他是否亲自参与**曼哈顿计划**（原子弹研制）：他本人并未参与，但其理论和上书罗斯福的信件是重要推动因素。\n\n### 高中阶段\n- **狭义相对论**的两个基本原理：**相对性原理**和**光速不变原理**。\n- **广义相对论**的核心思想：**等效原理**（引力与加速度等效）和**时空弯曲**（物质告诉时空如何弯曲，时空告诉物质如何运动）。\n- **光电效应**方程：**E_k = hν - W**，其中h是**普朗克常量**，ν是入射光频率，W是**逸出功**。该理论支持了**光的粒子性**。\n- 爱因斯坦对**量子力学**发展的双重角色：既是**奠基人之一**（光量子说），又是**主要质疑者**（对概率诠释的不满）。\n- **相对论**与**牛顿力学**的关系：牛顿力学是相对论在**低速（v<<c）宏观**条件下的近似。\n- 其科学成就的哲学意义：挑战了**绝对时空观**，建立了**相对时空观**。\n- （存疑/说法不一）关于**统一场论**的最终评价：其晚年致力于统一引力和电磁力的努力未获成功，但为后世**大统一理论**和**弦理论**等研究提供了思想启发。", "relatedGraph": {"center": {"id": "阿尔伯特·爱因斯坦", "name": "阿尔伯特·爱因斯坦", "file": "阿尔伯特·爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "20世纪风云人物", "review": "20世纪风云人物", "foreign_name": "", "main_role_label": "", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阿尔伯特·爱因斯坦", "name": "阿尔伯特·爱因斯坦", "file": "阿尔伯特·爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "20世纪风云人物", "review": "20世纪风云人物", "foreign_name": "", "main_role_label": "", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "罗斯福", "name": "罗斯福", "file": "罗斯福.html", "dynasty": "20世纪上半叶（美国）", "aliases": [], "birth_year": 1882, "death_year": 1945, "quote": "“我们唯一不得不害怕的就是害怕本身”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "纽约州海德公园", "birthplace_modern": "美国纽约州海德公园", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "爱因斯坦", "name": "爱因斯坦", "file": "爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "“奥林匹亚科学院”", "review": "*马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”", "foreign_name": "Albert Einstein", "main_role_label": "理论物理学家", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": ["理论物理学", "相对论", "量子力学", "诺贝尔奖得主"], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "“远征军中最引人注目、最勇敢的军官”", "review": "*正面评价**：被誉为“天才的、杰出的军事战略家”，是“美国历史上最伟大的将军之一”（部分军事史家）。他在太平洋的胜利和对日本的改造，被赞为“将敌人变为朋友”的典范。", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "“这是很平常的呀！”", "review": "*官方评价**：被誉为“忠诚的共产主义文艺战士”、“杰出的军旅作家”，其作品“热情讴歌了人民军队的革命英雄主义精神”。", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阿尔伯特·爱因斯坦", "target": "牛顿", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "罗斯福", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "爱因斯坦", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "魏巍", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "阿尔伯特·爱因斯坦", "title": "", "description": "阿尔伯特·爱因斯坦出生于德国一个犹太家庭，青少年时期展现出对数学和物理学的非凡天赋与独立思考精神。他于瑞士苏黎世联邦理工学院毕业后，曾短暂任职于伯尔尼专利局，期间发表了包括狭义相对论在内的一系列颠覆性论文，引发物理学革命。此后，他辗转于布拉格、苏黎世和柏林的大学任教与研究，并完成了广义相对论。因纳粹势力崛起，他被迫移居美国，任职于普林斯顿高等研究院，直至逝世。他的一生贯穿两次世界大战，不仅是科学巨匠，也积极投身反战与和平运动，成为理性与人道主义的全球象征。", "quote": "20世纪风云人物", "shortReview": "20世纪风云人物", "dynasty": "现代（19世纪末至20世纪中期）", "courtesyName": "", "artName": "", "aliases": ["爱因斯坦"], "birthplace": "德意志帝国符腾堡王国乌尔姆市", "avatar": "", "birth": {"date": "1879年", "location": "德意志帝国符腾堡王国乌尔姆市", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1955年", "location": "美国新泽西州普林斯顿", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "76岁", "highlights": {"honor": "", "status": "现代物理学的开创者和奠基人，其理论改变了人类对时间、空间、物质和引力的根本认知。", "identities": "理论物理学家、思想家、社会活动家", "achievements": "创立狭义相对论与广义相对论；提出光量子假说，解释光电效应；对布朗运动、统一场论、宇宙学等做出开创性贡献；1921年获诺贝尔物理学奖。", "works": [], "reviews": ["**马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”", "**《时代》杂志**（1999年）：评选爱因斯坦为“20世纪风云人物”，称他“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”", "**杨振宁**（物理学家）：“20世纪物理学的三大贡献中，有两个半都是爱因斯坦的。”（指狭义相对论、广义相对论和量子力学的奠基工作）"]}}, "locations": [], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"论动体的电动力学": "……我们应当把时间的陈述理解为同时性事件的陈述。", "关于光的产生和转化的一个启发性观点": "……光的能量在空间中不是连续分布的。", "广义相对论的基础": "……物理定律必须具有这样的性质，它们对于无论以哪种方式运动着的参照系都是成立的。", "罗素-爱因斯坦宣言": "1955年签署《罗素-爱因斯坦宣言》，呼吁和平利用科学。", "时代": "“20世纪风云人物”\n“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 阿尔伯特·爱因斯坦\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：阿尔伯特·爱因斯坦（Albert Einstein）\n- **别名**：爱因斯坦\n- **外文名**：Albert Einstein\n- **领域标签**：理论物理学、相对论、量子力学、诺贝尔奖得主、社会活动家\n- **时代**：现代（19世纪末至20世纪中期）\n- **出生**：1879年3月14日，德意志帝国符腾堡王国乌尔姆市\n- **去世**：1955年4月18日，美国新泽西州普林斯顿\n- **享年**：76岁\n- **主要身份**：理论物理学家、思想家、社会活动家\n- **历史地位**：现代物理学的开创者和奠基人，其理论改变了人类对时间、空间、物质和引力的根本认知。\n- **主要成就**：创立狭义相对论与广义相对论；提出光量子假说，解释光电效应；对布朗运动、统一场论、宇宙学等做出开创性贡献；1921年获诺贝尔物理学奖。\n\n### 生平概述\n阿尔伯特·爱因斯坦出生于德国一个犹太家庭，青少年时期展现出对数学和物理学的非凡天赋与独立思考精神。他于瑞士苏黎世联邦理工学院毕业后，曾短暂任职于伯尔尼专利局，期间发表了包括狭义相对论在内的一系列颠覆性论文，引发物理学革命。此后，他辗转于布拉格、苏黎世和柏林的大学任教与研究，并完成了广义相对论。因纳粹势力崛起，他被迫移居美国，任职于普林斯顿高等研究院，直至逝世。他的一生贯穿两次世界大战，不仅是科学巨匠，也积极投身反战与和平运动，成为理性与人道主义的全球象征。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹横跨欧洲（德国、瑞士、意大利、奥地利、捷克）与北美洲（美国），主要活动于学术中心。\n- ⏱️ **时间跨度**：1879年 - 1955年，共计76年。\n- 📍 **地理范围**：主要覆盖中欧（德语区）及美国东海岸。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：乌尔姆\n- **公元纪年**：1879年\n- **停留时间**：约1年（婴儿期）\n- **位置**：德意志帝国符腾堡王国乌尔姆市（今德国巴登-符腾堡州乌尔姆市）\n- **事迹**：在此出生。\n- **意义**：生命的起点。\n\n### 📍 重要地点：慕尼黑\n- **公元纪年**：1880年 - 1894年\n- **停留时间**：童年及青少年时期（约14年）\n- **位置**：德意志帝国巴伐利亚王国慕尼黑（今德国巴伐利亚州慕尼黑市）\n- **事迹**：在此接受小学和中学教育；对电磁现象产生浓厚兴趣；因厌恶德国军国主义教育，首次萌生放弃德国国籍的念头。\n- **意义**：科学兴趣的启蒙地，也是其反权威、反军国主义思想的萌芽地。\n\n### 📍 重要地点：苏黎世（求学）\n- **公元纪年**：1896年 - 1900年\n- **停留时间**：大学时期（4年）\n- **位置**：瑞士联邦苏黎世（今瑞士苏黎世）\n- **事迹**：进入苏黎世联邦理工学院学习物理学和数学；与同学米列娃·马里奇相识相恋；学业上常因不循常规而与教授产生矛盾。\n- **意义**：获得系统科学训练，奠定学术基础，并结识第一任妻子。\n\n### 📍 重要地点：伯尔尼\n- **公元纪年**：1902年 - 1909年\n- **停留时间**：约7年\n- **位置**：瑞士联邦伯尔尼（今瑞士伯尔尼）\n- **事迹**：在伯尔尼联邦专利局担任三级技术员；与好友哈比希特、索洛文组成“奥林匹亚科学院”自学讨论；1905年（“奇迹年”）发表《论动体的电动力学》（狭义相对论）、《关于光的产生和转化的一个启发性观点》（光量子说）等四篇划时代论文。\n- **意义**：职业生涯初期，也是其科学创造力爆发的黄金时期，完成了从专利员到顶尖物理学家的蜕变。\n- **名篇名句**：《论动体的电动力学》：“……我们应当把时间的陈述理解为同时性事件的陈述。”；《关于光的产生和转化的一个启发性观点》：“……光的能量在空间中不是连续分布的。”\n\n### 📍 重要地点：布拉格\n- **公元纪年**：1911年 - 1912年\n- **停留时间**：约1年半\n- **位置**：奥匈帝国波希米亚王国布拉格（今捷克共和国布拉格）\n- **事迹**：任布拉格德意志大学理论物理学教授；首次计算光线经过太阳边缘的偏折角度，为广义相对论提供关键预言。\n- **意义**：首次获得教授职位，学术地位提升，广义相对论研究取得关键进展。\n\n### 📍 重要地点：柏林\n- **公元纪年**：1914年 - 1933年\n- **停留时间**：约19年\n- **位置**：德意志帝国/魏玛共和国柏林（今德国柏林）\n- **事迹**：任普鲁士科学院院士、柏林大学教授、威廉皇帝物理研究所所长；与第一任妻子离婚，与表姐爱尔莎结婚；1915年完成广义相对论；1919年日食观测证实其引力透镜预言，使其举世闻名；公开反对德国军国主义和纳粹主义。\n- **意义**：学术生涯的顶峰，完成了最伟大的科学成就（广义相对论），并成为具有巨大公共影响力的知识分子。此地也见证了他因政治环境被迫离开德国。\n- **名篇名句**：《广义相对论的基础》：“……物理定律必须具有这样的性质，它们对于无论以哪种方式运动着的参照系都是成立的。”\n\n### 📍 重要地点：莱顿\n- **公元纪年**：20世纪20年代（多次短期访问）\n- **停留时间**：短期访问讲学\n- **位置**：荷兰王国莱顿（今荷兰莱顿）\n- **事迹**：作为特邀教授访问莱顿大学，与好友、物理学家埃伦费斯特交流，并与洛伦兹、外尔等学者切磋。\n- **意义**：重要的国际学术交流中心，与欧洲顶尖物理学家保持密切联系。\n\n### 📍 重要地点：普林斯顿\n- **公元纪年**：1933年 - 1955年\n- **停留时间**：晚年时期（22年）\n- **位置**：美国新泽西州普林斯顿（今美国新泽西州普林斯顿市）\n- **事迹**：受聘于新成立的普林斯顿高等研究院；致力于统一场论研究；二战期间致信罗斯福总统，促成“曼哈顿计划”，但本人未参与具体研究；战后积极倡导核武器控制与世界政府；1955年签署《罗素-爱因斯坦宣言》，呼吁和平利用科学。\n- **意义**：人生的最后驿站，远离欧洲战火，在相对宁静的环境中继续思考终极物理问题，并成为全球和平与人道主义的象征。\n- **名篇名句**：致罗斯福总统的信（1939年）：“……这种新的现象（指核裂变）也可用来制造炸弹，并且能够想象——尽管还不能确定——一种新型的威力极大的炸弹可以由此制造出来。”\n\n### 🔴 去世地：普林斯顿\n- **公元纪年**：1955年4月18日\n- **停留时间**：生命最后22年\n- **位置**：美国新泽西州普林斯顿（今美国新泽西州普林斯顿市）\n- **经过**：因腹主动脉瘤破裂逝世于普林斯顿医院。遵照其遗嘱，遗体火化，骨灰被秘密撒放，不立纪念碑，不举行公开葬礼。\n- **意义**：生命的终点。其简朴的葬礼和对身后事的安排，体现了他一生反对个人崇拜、追求精神自由的品格。\n- **名篇名句**：临终前（对护士，用德语）：“我已完成了我的份内事，现在该走了。”\n\n---\n\n## 四、地点坐标\n\n| 地点名称（现代） | 备注 |\n| :--- | :--- |\n| 今德国巴登-符腾堡州乌尔姆市 | 出生地 |\n| 今德国巴伐利亚州慕尼黑市 | 童年及青少年时期 |\n| 今瑞士苏黎世 | 大学求学地 |\n| 今瑞士伯尔尼 | 专利局工作及“奇迹年”所在地 |\n| 今捷克共和国布拉格 | 首次担任教授地 |\n| 今德国柏林 | 学术生涯顶峰时期所在地 |\n| 今荷兰莱顿 | 学术访问地 |\n| 今美国新泽西州普林斯顿市 | 晚年工作及去世地 |\n\n---\n\n## 五、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1879 | 0 | 出生于德国乌尔姆。 |\n| 1896 | 17 | 放弃德国国籍，进入苏黎世联邦理工学院学习。 |\n| 1900 | 21 | 毕业，但未能获得助教职位。 |\n| 1902 | 23 | 受聘于伯尔尼专利局；“奥林匹亚科学院”成立。 |\n| 1905 | 26 | “奇迹年”，发表狭义相对论、光量子说等四篇论文。 |\n| 1909 | 30 | 离开专利局，首次获得苏黎世大学编外教授职位。 |\n| 1911 | 32 | 任布拉格德意志大学教授；首次计算光线偏折。 |\n| 1914 | 35 | 迁居柏林，任普鲁士科学院院士等职。 |\n| 1915 | 36 | 完成广义相对论。 |\n| 1919 | 40 | 日食观测证实广义相对论预言，名声大振；与米列娃离婚。 |\n| 1921 | 42 | 因光电效应定律获诺贝尔物理学奖。 |\n| 1933 | 54 | 因纳粹迫害移居美国，任职于普林斯顿高等研究院。 |\n| 1939 | 60 | 上书罗斯福总统，建议研制原子弹。 |\n| 1952 | 73 | 以色列政府邀请其出任第二任总统，婉拒。 |\n| 1955 | 76 | 签署《罗素-爱因斯坦宣言》；4月18日在普林斯顿逝世。 |\n\n---\n\n## 六、历史影响\n\n### 对当时的影响\n爱因斯坦的相对论彻底颠覆了牛顿力学建立的绝对时空观，引发了物理学基础理论的革命，使他在20世纪初即成为科学界的泰斗。他的光量子假说为量子力学的建立开辟了道路。同时，作为一位具有强烈社会责任感的公共知识分子，他对两次世界大战、法西斯主义、种族迫害的鲜明反对态度，以及对核武器的警惕，深刻影响了当时的科学界舆论和国际和平运动。\n\n### 对后世的影响\n1. **科技发展**：相对论是现代宇宙学、天体物理学（如黑洞、引力波）、粒子物理学和全球卫星定位系统（GPS）的理论基石。\n2. **科学方法论**：其思想实验和追求理论统一性的方法，成为理论物理学研究的典范。\n3. **文化符号**：“爱因斯坦”成为“天才”的代名词，其形象（蓬乱白发、吐舌照片）和质能方程（E=mc²）成为流行文化标志。\n4. **科学家的社会责任**：树立了科学家关心人类命运、积极参与公共事务的榜样。\n\n### 历史评价\n1. **马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”\n2. **《时代》杂志**（1999年）：评选爱因斯坦为“20世纪风云人物”，称他“作为科学家、人道主义者以及原子时代一位不太可能的文化偶像，界定了我们这个世纪的创造性天才。”\n3. **杨振宁**（物理学家）：“20世纪物理学的三大贡献中，有两个半都是爱因斯坦的。”（指狭义相对论、广义相对论和量子力学的奠基工作）\n4. **罗素**（哲学家）：“爱因斯坦不仅是一位伟大的科学家，也是一位伟大的人……他具有战士的坚韧，又有艺术家的敏感与温柔。”\n\n---\n\n## 七、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**第二次工业革命**后，科学技术迅猛发展；**两次世界大战**深刻影响世界格局。\n- **关键事件/贡献**：提出**狭义相对论**和**广义相对论**，改变了人类对**时间、空间、物质和引力**的认识；因解释**光电效应**获得**诺贝尔物理学奖**。\n- **代表作品/思想**：质能方程 **E=mc²**。\n- **常见易混点/对比点**：与**牛顿**经典力学体系的关系（继承与发展）；相对论与日常生活经验（低速下）的差异。\n\n### 高中阶段\n- **时代背景**：**经典物理学**危机（以太漂移实验、黑体辐射等）；**量子力学**的诞生与发展。\n- **关键事件/贡献**：1905年“**奇迹年**”的四篇论文；**光量子假说**（光的波粒二象性）对量子理论的贡献；**布朗运动**的理论解释；**广义相对论**预言（光线弯曲、引力红移、引力波）。\n- **代表作品/思想**：**《论动体的电动力学》**；**统一场论**的探索。\n- **常见易混点/对比点**：**狭义相对论**（惯性系、光速不变）与**广义相对论**（非惯性系、等效原理）的核心区别；爱因斯坦对**量子力学**的贡献（奠基）与对其**哥本哈根诠释**的质疑（“上帝不掷骰子”）。\n\n---\n\n## 八、初高中阶段考点\n\n### 初中阶段\n- 爱因斯坦是**20世纪最伟大的物理学家**之一。\n- 他最重要的理论是**相对论**，包括**狭义相对论**和**广义相对论**。\n- 他提出了著名的质能方程 **E=mc²**，揭示了质量和能量可以相互转换。\n- 他因在**光电效应**方面的研究获得**1921年诺贝尔物理学奖**。\n- 他是一位**和平主义者**，反对战争和法西斯主义。\n- （存疑/说法不一）关于他是否亲自参与**曼哈顿计划**（原子弹研制）：他本人并未参与，但其理论和上书罗斯福的信件是重要推动因素。\n\n### 高中阶段\n- **狭义相对论**的两个基本原理：**相对性原理**和**光速不变原理**。\n- **广义相对论**的核心思想：**等效原理**（引力与加速度等效）和**时空弯曲**（物质告诉时空如何弯曲，时空告诉物质如何运动）。\n- **光电效应**方程：**E_k = hν - W**，其中h是**普朗克常量**，ν是入射光频率，W是**逸出功**。该理论支持了**光的粒子性**。\n- 爱因斯坦对**量子力学**发展的双重角色：既是**奠基人之一**（光量子说），又是**主要质疑者**（对概率诠释的不满）。\n- **相对论**与**牛顿力学**的关系：牛顿力学是相对论在**低速（v<<c）宏观**条件下的近似。\n- 其科学成就的哲学意义：挑战了**绝对时空观**，建立了**相对时空观**。\n- （存疑/说法不一）关于**统一场论**的最终评价：其晚年致力于统一引力和电磁力的努力未获成功，但为后世**大统一理论**和**弦理论**等研究提供了思想启发。", "relatedGraph": {"center": {"id": "阿尔伯特·爱因斯坦", "name": "阿尔伯特·爱因斯坦", "file": "阿尔伯特·爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "20世纪风云人物", "review": "20世纪风云人物", "foreign_name": "", "main_role_label": "", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "阿尔伯特·爱因斯坦", "name": "阿尔伯特·爱因斯坦", "file": "阿尔伯特·爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "20世纪风云人物", "review": "20世纪风云人物", "foreign_name": "", "main_role_label": "", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "牛顿", "name": "牛顿", "file": "牛顿.html", "dynasty": "清", "aliases": [], "birth_year": 1643, "death_year": 1727, "quote": "“我不杜撰假说”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英格兰林肯郡伍尔索普庄园", "birthplace_modern": "英国林肯郡格兰瑟姆附近", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "罗斯福", "name": "罗斯福", "file": "罗斯福.html", "dynasty": "20世纪上半叶（美国）", "aliases": [], "birth_year": 1882, "death_year": 1945, "quote": "“我们唯一不得不害怕的就是害怕本身”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "纽约州海德公园", "birthplace_modern": "美国纽约州海德公园", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "爱因斯坦", "name": "爱因斯坦", "file": "爱因斯坦.html", "dynasty": "现代（19世纪末至20世纪中期）", "aliases": [], "birth_year": 1879, "death_year": 1955, "quote": "“奥林匹亚科学院”", "review": "*马克斯·普朗克**（量子论创始人）：“爱因斯坦的理论，将把我们关于物质结构和宇宙演化的全部观念引向一个新的方向。”", "foreign_name": "Albert Einstein", "main_role_label": "理论物理学家", "birthplace": "德意志帝国符腾堡王国乌尔姆市", "birthplace_modern": "", "domain_tags": ["理论物理学", "相对论", "量子力学", "诺贝尔奖得主"], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "“远征军中最引人注目、最勇敢的军官”", "review": "*正面评价**：被誉为“天才的、杰出的军事战略家”，是“美国历史上最伟大的将军之一”（部分军事史家）。他在太平洋的胜利和对日本的改造，被赞为“将敌人变为朋友”的典范。", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "“这是很平常的呀！”", "review": "*官方评价**：被誉为“忠诚的共产主义文艺战士”、“杰出的军旅作家”，其作品“热情讴歌了人民军队的革命英雄主义精神”。", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "阿尔伯特·爱因斯坦", "target": "牛顿", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "罗斯福", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "爱因斯坦", "label": "君臣", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "阿尔伯特·爱因斯坦", "target": "魏巍", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

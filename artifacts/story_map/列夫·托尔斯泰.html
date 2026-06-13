@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "列夫·尼古拉耶维奇·托尔斯泰", "title": "", "description": "列夫·托尔斯泰出生于俄国贵族家庭，早年生活曾有放纵阶段，后在高加索服役期间开始文学创作。他一生致力于探索生命意义与社会公正，其作品深刻描绘了19世纪初至后期俄国社会的全景图，尤其是贵族阶层的精神危机与农民的苦难。晚年，他激烈否定私有财产和贵族生活，身体力行简朴的农民生活，并因家庭矛盾离家出走，最终病逝于一个偏僻小站。他的思想与文学遗产超越了国界与时代。", "quote": "在战争中，只有那些没有思想的人才是幸福的。", "shortReview": "在战争中，只有那些没有思想的人才是幸福的。", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）", "avatar": "", "birth": {"date": "1828年", "location": "亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）", "lat": 54.0747, "lng": 36.5697, "coordSystem": "WGS84"}, "death": {"date": "1910年", "location": "阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）", "lat": 53.3345, "lng": 39.4636, "coordSystem": "WGS84"}, "lifespan": "82岁", "highlights": {"honor": "", "status": "世界文学史上最伟大的现实主义作家之一，俄国文学的巅峰代表。", "identities": "作家、思想家、改革家", "achievements": "创作《战争与和平》《安娜·卡列尼娜》《复活》三部史诗级巨著；创立“托尔斯泰主义”哲学思想体系；深刻影响甘地等世界非暴力运动领袖。", "works": ["战争与和平", "安娜·卡列尼娜", "复活"], "reviews": []}}, "locations": [{"name": "亚斯纳亚-博利尔纳庄园", "ancientName": "亚斯纳亚-博利尔纳", "modernName": "俄罗斯联邦图拉州", "lat": 54.0747, "lng": 36.5697, "coordSystem": "WGS84", "type": "birth", "event": "出生于世袭贵族家庭，在此度过童年，并在此完成大部分文学创作。", "time": "1828年9月9日", "duration": "童年及一生中大部分时光", "significance": "托尔斯泰的精神家园与创作源泉，其作品中众多场景的原型地。", "works": [], "quoteLines": []}, {"name": "喀山", "ancientName": "喀山", "modernName": "俄罗斯联邦鞑靼斯坦共和国首府", "lat": 55.7963, "lng": 49.1082, "coordSystem": "WGS84", "type": "normal", "event": "进入喀山大学学习，先修东方语言系，后转法律系，最终辍学。", "time": "1844年-1847年", "duration": "约3年", "significance": "接受了最初的高等教育，开始接触启蒙思想，但对僵化的教育体制感到失望。", "works": [], "quoteLines": []}, {"name": "塞瓦斯托波尔", "ancientName": "塞瓦斯托波尔", "modernName": "俄罗斯联邦克里米亚共和国塞瓦斯托波尔市", "lat": 44.6054, "lng": 33.522, "coordSystem": "WGS84", "type": "normal", "event": "参加克里米亚战争中的塞瓦斯托波尔围城战，担任炮兵军官。", "time": "1854年-1855年", "duration": "约1年", "significance": "亲历惨烈的阵地战，创作了《塞瓦斯托波尔故事》系列，奠定了其现实主义战争描写的基础。", "works": ["塞瓦斯托波尔故事"], "quoteLines": ["《塞瓦斯托波尔故事》： “真理是文学中主要的、也是最崇高的东西。”"]}, {"name": "圣彼得堡", "ancientName": "圣彼得堡", "modernName": "俄罗斯联邦圣彼得堡市", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "进入俄国文学界核心圈，结识涅克拉索夫、屠格涅夫等作家，发表《童年》《少年》《青年》系列及《一个地主的早晨》。", "time": "1855年底至1856年", "duration": "累计数年", "significance": "确立了在文坛的地位，但同时也对都市贵族圈子的虚伪生活产生深刻厌恶。", "works": ["童年", "少年", "青年", "一个地主的早晨"], "quoteLines": []}, {"name": "西欧之旅（法国、瑞士、德国等地）", "ancientName": "西欧之旅（法国、瑞士、德国等地）", "modernName": "巴黎（法国）、日内瓦（瑞士）、德累斯顿（德国）等", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "考察西欧教育制度；在巴黎目睹断头台行刑，深感国家暴力的恐怖。", "time": "1857年、1860-1861年（两次旅行）", "duration": "累计约一年", "significance": "对西方文明的幻灭感是其思想形成的关键转折点，促使他转向推崇俄国宗法制农民公社。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "莫斯科", "modernName": "俄罗斯联邦莫斯科市", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "1862年结婚后，与家庭在此居住；进行教育改革和社会调查；创作《战争与和平》《安娜·卡列尼娜》。", "time": "1860年代起频繁往返并最终定居", "duration": "后半生主要居住地之一", "significance": "家庭生活与社会活动的中心，也是其观察俄国社会上层与底层矛盾的窗口。", "works": ["战争与和平", "安娜·卡列尼娜"], "quoteLines": []}, {"name": "萨马拉省", "ancientName": "萨马拉省", "modernName": "俄罗斯联邦萨马拉州", "lat": 53.1959, "lng": 50.1002, "coordSystem": "WGS84", "type": "normal", "event": "因健康原因前往草原地区疗养，目睹严重饥荒，组织赈灾并撰写调查报告。", "time": "1870年代", "duration": "数次前往，每次数月", "significance": "加深了对农民悲惨处境的认识，促使其思想向激进的社会批判转变。", "works": [], "quoteLines": []}, {"name": "莫斯科-库尔斯克铁路沿线农村", "ancientName": "莫斯科至库尔斯克铁路沿线", "modernName": "俄罗斯联邦莫斯科州、图拉州、奥廖尔州、库尔斯克州等地", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "进行社会调查，与农民共同劳动，深入研究农民生活与东正教信仰。", "time": "1880年代", "duration": "多次短期考察", "significance": "促成了其世界观的彻底转变，放弃贵族生活方式，开始奉行农民化、素食、禁欲的简朴生活。", "works": [], "quoteLines": []}, {"name": "阿斯塔波沃车站", "ancientName": "阿斯塔波沃车站", "modernName": "俄罗斯联邦利佩茨克州列夫·托尔斯泰站", "lat": 53.3345, "lng": 39.4636, "coordSystem": "WGS84", "type": "death", "event": "因家庭矛盾毅然离家出走，途中患肺炎，病逝于这个偏僻的火车站站长家中。", "time": "1910年11月20日", "duration": "约一周", "significance": "其离世本身成为其一生追求精神独立与道德纯洁的终极象征，震惊世界。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---", "workTexts": {"袭击": "在战争中，只有那些没有思想的人才是幸福的。", "塞瓦斯托波尔故事": "真理是文学中主要的、也是最崇高的东西。", "童年": "事件：随兄从军，参与对山民的军事行动，并开始文学创作，发表处女作《童年》。", "战争与和平": "| 1863-1869 | 35-41 | 创作并完成《战争与和平》 |", "安娜·卡列尼娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "安娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "卡列尼娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "忏悔录": "| 1880年代 | 52岁起 | 思想剧变，世界观转向，创作《忏悔录》等 |", "复活": "| 1889-1899 | 61-71 | 创作并完成《复活》 |", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 列夫·托尔斯泰\n\n## 人物档案\n\n### 基本信息\n- **姓名**：列夫·尼古拉耶维奇·托尔斯泰\n- **时代**：19世纪俄国（沙皇俄国至资本主义发展时期）\n- **出生**：1828年9月9日，亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）\n- **去世**：1910年11月20日，阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）\n- **享年**：82岁\n- **主要身份**：作家、思想家、改革家\n- **历史地位**：世界文学史上最伟大的现实主义作家之一，俄国文学的巅峰代表。\n- **主要成就**：创作《战争与和平》《安娜·卡列尼娜》《复活》三部史诗级巨著；创立“托尔斯泰主义”哲学思想体系；深刻影响甘地等世界非暴力运动领袖。\n\n### 生平概述\n列夫·托尔斯泰出生于俄国贵族家庭，早年生活曾有放纵阶段，后在高加索服役期间开始文学创作。他一生致力于探索生命意义与社会公正，其作品深刻描绘了19世纪初至后期俄国社会的全景图，尤其是贵族阶层的精神危机与农民的苦难。晚年，他激烈否定私有财产和贵族生活，身体力行简朴的农民生活，并因家庭矛盾离家出走，最终病逝于一个偏僻小站。他的思想与文学遗产超越了国界与时代。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于俄国欧洲部分，从莫斯科、图拉的庄园到高加索、克里米亚战场，晚年曾短暂游历西欧。\n- ⏱️ **时间跨度**：1828年至1910年，共82年。\n- 📍 **地理范围**：以莫斯科和图拉为中心，北至圣彼得堡，南至高加索和克里米亚，西至西欧（德、法、意等）。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：亚斯纳亚-博利尔纳庄园\n- **时间**：1828年9月9日\n- **停留时间**：童年及一生中大部分时光\n- **地点**：亚斯纳亚-博利尔纳（今俄罗斯联邦图拉州）\n- **事件**：出生于世袭贵族家庭，在此度过童年，并在此完成大部分文学创作。\n- **意义**：托尔斯泰的精神家园与创作源泉，其作品中众多场景的原型地。\n\n### 📍 重要地点：喀山\n- **时间**：1844年-1847年\n- **停留时间**：约3年\n- **地点**：喀山（今俄罗斯联邦鞑靼斯坦共和国首府）\n- **事件**：进入喀山大学学习，先修东方语言系，后转法律系，最终辍学。\n- **意义**：接受了最初的高等教育，开始接触启蒙思想，但对僵化的教育体制感到失望。\n\n### 📍 重要地点：高加索地区\n- **时间**：1851年-1854年\n- **停留时间**：约3年\n- **地点**：高加索地区（今俄罗斯联邦北高加索地区）\n- **事件**：随兄从军，参与对山民的军事行动，并开始文学创作，发表处女作《童年》。\n- **意义**：军旅生涯使其目睹战争残酷与平民苦难，成为其战争文学的直接素材，也是其文学生涯的起点。\n- **名篇名句**：《袭击》： “在战争中，只有那些没有思想的人才是幸福的。”\n\n### 📍 重要地点：塞瓦斯托波尔\n- **时间**：1854年-1855年\n- **停留时间**：约1年\n- **地点**：塞瓦斯托波尔（今俄罗斯联邦克里米亚共和国塞瓦斯托波尔市）\n- **事件**：参加克里米亚战争中的塞瓦斯托波尔围城战，担任炮兵军官。\n- **意义**：亲历惨烈的阵地战，创作了《塞瓦斯托波尔故事》系列，奠定了其现实主义战争描写的基础。\n- **名篇名句**：《塞瓦斯托波尔故事》： “真理是文学中主要的、也是最崇高的东西。”\n\n### 📍 重要地点：圣彼得堡\n- **时间**：1855年底至1856年\n- **停留时间**：累计数年\n- **地点**：圣彼得堡（今俄罗斯联邦圣彼得堡市）\n- **事件**：进入俄国文学界核心圈，结识涅克拉索夫、屠格涅夫等作家，发表《童年》《少年》《青年》系列及《一个地主的早晨》。\n- **意义**：确立了在文坛的地位，但同时也对都市贵族圈子的虚伪生活产生深刻厌恶。\n\n### 📍 重要地点：莫斯科\n- **时间**：1860年代起频繁往返并最终定居\n- **停留时间**：后半生主要居住地之一\n- **地点**：莫斯科（今俄罗斯联邦莫斯科市）\n- **事件**：1862年结婚后，与家庭在此居住；进行教育改革和社会调查；创作《战争与和平》《安娜·卡列尼娜》。\n- **意义**：家庭生活与社会活动的中心，也是其观察俄国社会上层与底层矛盾的窗口。\n\n### 📍 重要地点：萨马拉省\n- **时间**：1870年代\n- **停留时间**：数次前往，每次数月\n- **地点**：萨马拉省（今俄罗斯联邦萨马拉州）\n- **事件**：因健康原因前往草原地区疗养，目睹严重饥荒，组织赈灾并撰写调查报告。\n- **意义**：加深了对农民悲惨处境的认识，促使其思想向激进的社会批判转变。\n\n### 📍 重要地点：西欧之旅（法国、瑞士、德国等地）\n- **时间**：1857年、1860-1861年（两次旅行）\n- **停留时间**：累计约一年\n- **地点**：巴黎（法国）、日内瓦（瑞士）、德累斯顿（德国）等\n- **事件**：考察西欧教育制度；在巴黎目睹断头台行刑，深感国家暴力的恐怖。\n- **意义**：对西方文明的幻灭感是其思想形成的关键转折点，促使他转向推崇俄国宗法制农民公社。\n\n### 📍 重要地点：莫斯科-库尔斯克铁路沿线农村\n- **时间**：1880年代\n- **停留时间**：多次短期考察\n- **地点**：莫斯科至库尔斯克铁路沿线（今俄罗斯联邦莫斯科州、图拉州、奥廖尔州、库尔斯克州等地）\n- **事件**：进行社会调查，与农民共同劳动，深入研究农民生活与东正教信仰。\n- **意义**：促成了其世界观的彻底转变，放弃贵族生活方式，开始奉行农民化、素食、禁欲的简朴生活。\n\n### 🔴 去世地：阿斯塔波沃车站\n- **时间**：1910年11月20日\n- **停留时间**：约一周\n- **地点**：阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）\n- **事件**：因家庭矛盾毅然离家出走，途中患肺炎，病逝于这个偏僻的火车站站长家中。\n- **意义**：其离世本身成为其一生追求精神独立与道德纯洁的终极象征，震惊世界。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1828 | 0 | 出生于亚斯纳亚-博利尔纳庄园 |\n| 1844 | 16 | 进入喀山大学学习 |\n| 1847 | 19 | 从喀山大学辍学，回庄园尝试改革 |\n| 1851 | 23 | 前往高加索从军，开始文学创作 |\n| 1854 | 26 | 参加克里米亚战争，塞瓦斯托波尔保卫战 |\n| 1855 | 27 | 抵达圣彼得堡，进入文学界 |\n| 1857 | 29 | 首次游历西欧，在巴黎目睹断头台行刑 |\n| 1860-1861 | 32-33 | 再次游历西欧，考察教育制度 |\n| 1862 | 34 | 与索菲亚·贝尔斯结婚，定居莫斯科 |\n| 1863-1869 | 35-41 | 创作并完成《战争与和平》 |\n| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |\n| 1880年代 | 52岁起 | 思想剧变，世界观转向，创作《忏悔录》等 |\n| 1889-1899 | 61-71 | 创作并完成《复活》 |\n| 1901 | 73 | 被东正教教会革除教籍 |\n| 1910 | 82 | 离家出走，病逝于阿斯塔波沃车站 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 亚斯纳亚-博利尔纳（图拉州） | 54.0747 | 36.5697 |\n| 喀山 | 55.7963 | 49.1082 |\n| 塞瓦斯托波尔 | 44.6054 | 33.5220 |\n| 圣彼得堡 | 59.9343 | 30.3351 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 萨马拉 | 53.1959 | 50.1002 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 日内瓦 | 46.2044 | 6.1432 |\n| 列夫·托尔斯泰站（原阿斯塔波沃） | 53.3345 | 39.4636 |", "relatedGraph": {"center": {"id": "列夫·托尔斯泰", "name": "列夫·托尔斯泰", "file": "列夫·托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "在战争中，只有那些没有思想的人才是幸福的。", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利尔纳庄园", "birthplace_modern": "俄罗斯联邦图拉州", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "列夫·托尔斯泰", "name": "列夫·托尔斯泰", "file": "列夫·托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "在战争中，只有那些没有思想的人才是幸福的。", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利尔纳庄园", "birthplace_modern": "俄罗斯联邦图拉州", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陀思妥耶夫斯基", "name": "陀思妥耶夫斯基", "file": "陀思妥耶夫斯基.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1821, "death_year": 1881, "quote": "“被侮辱与被损害者”", "review": "*弗洛伊德**：“陀思妥耶夫斯基的才智深度可以媲美莎士比亚。他是《卡拉马佐夫兄弟》的作者，也是《罪与罚》的作者，但他最值得纪念的身份是弑父情结的揭示者。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "俄罗斯帝国莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "托尔斯泰", "name": "托尔斯泰", "file": "托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至帝国晚期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利亚纳", "birthplace_modern": "俄罗斯联邦图拉州亚斯纳亚-博利亚纳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "麦克斯韦", "name": "麦克斯韦", "file": "麦克斯韦.html", "dynasty": "19世纪（维多利亚时代）", "aliases": [], "birth_year": 1831, "death_year": 1879, "quote": "“麦克斯韦分布律”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "苏格兰爱丁堡", "birthplace_modern": "英国苏格兰爱丁堡", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "茨威格", "name": "茨威格", "file": "茨威格.html", "dynasty": "19世纪末至20世纪上半叶（奥匈帝国末期至两次世界大战期间）", "aliases": [], "birth_year": 1881, "death_year": 1942, "quote": "斯蒂芬·茨威格出生于维也纳一个富裕的犹太家庭，在深厚的文化氛围中成长", "review": "", "foreign_name": "Stefan Zweig", "main_role_label": "小说家", "birthplace": "维也纳", "birthplace_modern": "奥地利维也纳", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "蒋介石", "name": "蒋介石", "file": "蒋介石.html", "dynasty": "现代", "aliases": [], "birth_year": 1887, "death_year": 1975, "quote": "“如果战端一开，那就是地无分南北，年无分老幼，无论何人，皆有守土抗战之责任，皆应抱定牺牲一切之决心。”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "浙江奉化溪口", "birthplace_modern": "浙江省宁波市奉化区溪口镇", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "莫顿·亨特", "name": "莫顿·亨特", "file": "莫顿·亨特.html", "dynasty": "美国现代（20-21世纪）", "aliases": [], "birth_year": 1927, "death_year": 2016, "quote": "“我提醒自己不要看下面遥远的岩石，而是注意相对轻松的第一小步。”", "review": "*大众心理学的杰出传播者**：被誉为“能让普通人理解弗洛伊德和斯金纳的人”，其工作填补了学术与大众认知之间的鸿沟。", "foreign_name": "", "main_role_label": "作家", "birthplace": "美国宾夕法尼亚州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "列夫·托尔斯泰", "target": "陀思妥耶夫斯基", "label": "并称", "confidence": 0.55}, {"source": "列夫·托尔斯泰", "target": "托尔斯泰", "label": "君臣", "confidence": null}, {"source": "列夫·托尔斯泰", "target": "麦克斯韦", "label": "同时代人物", "confidence": null}, {"source": "列夫·托尔斯泰", "target": "茨威格", "label": "同朝共现", "confidence": 0.25}, {"source": "列夫·托尔斯泰", "target": "蒋介石", "label": "同册共现", "confidence": 0.15}, {"source": "列夫·托尔斯泰", "target": "莫顿·亨特", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "列夫·尼古拉耶维奇·托尔斯泰", "title": "", "description": "列夫·托尔斯泰出生于俄国贵族家庭，早年生活曾有放纵阶段，后在高加索服役期间开始文学创作。他一生致力于探索生命意义与社会公正，其作品深刻描绘了19世纪初至后期俄国社会的全景图，尤其是贵族阶层的精神危机与农民的苦难。晚年，他激烈否定私有财产和贵族生活，身体力行简朴的农民生活，并因家庭矛盾离家出走，最终病逝于一个偏僻小站。他的思想与文学遗产超越了国界与时代。", "quote": "在战争中，只有那些没有思想的人才是幸福的。", "shortReview": "在战争中，只有那些没有思想的人才是幸福的。", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）", "avatar": "", "birth": {"date": "1828年", "location": "亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）", "lat": 54.0747, "lng": 36.5697, "coordSystem": "WGS84"}, "death": {"date": "1910年", "location": "阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）", "lat": 53.3345, "lng": 39.4636, "coordSystem": "WGS84"}, "lifespan": "82岁", "highlights": {"honor": "", "status": "世界文学史上最伟大的现实主义作家之一，俄国文学的巅峰代表。", "identities": "作家、思想家、改革家", "achievements": "创作《战争与和平》《安娜·卡列尼娜》《复活》三部史诗级巨著；创立“托尔斯泰主义”哲学思想体系；深刻影响甘地等世界非暴力运动领袖。", "works": ["战争与和平", "安娜·卡列尼娜", "复活"], "reviews": []}}, "locations": [{"name": "亚斯纳亚-博利尔纳庄园", "ancientName": "亚斯纳亚-博利尔纳", "modernName": "俄罗斯联邦图拉州", "lat": 54.0747, "lng": 36.5697, "coordSystem": "WGS84", "type": "birth", "event": "出生于世袭贵族家庭，在此度过童年，并在此完成大部分文学创作。", "time": "1828年9月9日", "duration": "童年及一生中大部分时光", "significance": "托尔斯泰的精神家园与创作源泉，其作品中众多场景的原型地。", "works": [], "quoteLines": []}, {"name": "喀山", "ancientName": "喀山", "modernName": "俄罗斯联邦鞑靼斯坦共和国首府", "lat": 55.7963, "lng": 49.1082, "coordSystem": "WGS84", "type": "normal", "event": "进入喀山大学学习，先修东方语言系，后转法律系，最终辍学。", "time": "1844年-1847年", "duration": "约3年", "significance": "接受了最初的高等教育，开始接触启蒙思想，但对僵化的教育体制感到失望。", "works": [], "quoteLines": []}, {"name": "塞瓦斯托波尔", "ancientName": "塞瓦斯托波尔", "modernName": "俄罗斯联邦克里米亚共和国塞瓦斯托波尔市", "lat": 44.6054, "lng": 33.522, "coordSystem": "WGS84", "type": "normal", "event": "参加克里米亚战争中的塞瓦斯托波尔围城战，担任炮兵军官。", "time": "1854年-1855年", "duration": "约1年", "significance": "亲历惨烈的阵地战，创作了《塞瓦斯托波尔故事》系列，奠定了其现实主义战争描写的基础。", "works": ["塞瓦斯托波尔故事"], "quoteLines": ["《塞瓦斯托波尔故事》： “真理是文学中主要的、也是最崇高的东西。”"]}, {"name": "圣彼得堡", "ancientName": "圣彼得堡", "modernName": "俄罗斯联邦圣彼得堡市", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "进入俄国文学界核心圈，结识涅克拉索夫、屠格涅夫等作家，发表《童年》《少年》《青年》系列及《一个地主的早晨》。", "time": "1855年底至1856年", "duration": "累计数年", "significance": "确立了在文坛的地位，但同时也对都市贵族圈子的虚伪生活产生深刻厌恶。", "works": ["童年", "少年", "青年", "一个地主的早晨"], "quoteLines": []}, {"name": "西欧之旅（法国、瑞士、德国等地）", "ancientName": "西欧之旅（法国、瑞士、德国等地）", "modernName": "巴黎（法国）、日内瓦（瑞士）、德累斯顿（德国）等", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "考察西欧教育制度；在巴黎目睹断头台行刑，深感国家暴力的恐怖。", "time": "1857年、1860-1861年（两次旅行）", "duration": "累计约一年", "significance": "对西方文明的幻灭感是其思想形成的关键转折点，促使他转向推崇俄国宗法制农民公社。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "莫斯科", "modernName": "俄罗斯联邦莫斯科市", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "1862年结婚后，与家庭在此居住；进行教育改革和社会调查；创作《战争与和平》《安娜·卡列尼娜》。", "time": "1860年代起频繁往返并最终定居", "duration": "后半生主要居住地之一", "significance": "家庭生活与社会活动的中心，也是其观察俄国社会上层与底层矛盾的窗口。", "works": ["战争与和平", "安娜·卡列尼娜"], "quoteLines": []}, {"name": "萨马拉省", "ancientName": "萨马拉省", "modernName": "俄罗斯联邦萨马拉州", "lat": 53.1959, "lng": 50.1002, "coordSystem": "WGS84", "type": "normal", "event": "因健康原因前往草原地区疗养，目睹严重饥荒，组织赈灾并撰写调查报告。", "time": "1870年代", "duration": "数次前往，每次数月", "significance": "加深了对农民悲惨处境的认识，促使其思想向激进的社会批判转变。", "works": [], "quoteLines": []}, {"name": "莫斯科-库尔斯克铁路沿线农村", "ancientName": "莫斯科至库尔斯克铁路沿线", "modernName": "俄罗斯联邦莫斯科州、图拉州、奥廖尔州、库尔斯克州等地", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "进行社会调查，与农民共同劳动，深入研究农民生活与东正教信仰。", "time": "1880年代", "duration": "多次短期考察", "significance": "促成了其世界观的彻底转变，放弃贵族生活方式，开始奉行农民化、素食、禁欲的简朴生活。", "works": [], "quoteLines": []}, {"name": "阿斯塔波沃车站", "ancientName": "阿斯塔波沃车站", "modernName": "俄罗斯联邦利佩茨克州列夫·托尔斯泰站", "lat": 53.3345, "lng": 39.4636, "coordSystem": "WGS84", "type": "death", "event": "因家庭矛盾毅然离家出走，途中患肺炎，病逝于这个偏僻的火车站站长家中。", "time": "1910年11月20日", "duration": "约一周", "significance": "其离世本身成为其一生追求精神独立与道德纯洁的终极象征，震惊世界。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---", "workTexts": {"袭击": "在战争中，只有那些没有思想的人才是幸福的。", "塞瓦斯托波尔故事": "真理是文学中主要的、也是最崇高的东西。", "童年": "事件：随兄从军，参与对山民的军事行动，并开始文学创作，发表处女作《童年》。", "战争与和平": "| 1863-1869 | 35-41 | 创作并完成《战争与和平》 |", "安娜·卡列尼娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "安娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "卡列尼娜": "| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |", "忏悔录": "| 1880年代 | 52岁起 | 思想剧变，世界观转向，创作《忏悔录》等 |", "复活": "| 1889-1899 | 61-71 | 创作并完成《复活》 |", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 列夫·托尔斯泰\n\n## 人物档案\n\n### 基本信息\n- **姓名**：列夫·尼古拉耶维奇·托尔斯泰\n- **时代**：19世纪俄国（沙皇俄国至资本主义发展时期）\n- **出生**：1828年9月9日，亚斯纳亚-博利尔纳庄园（今俄罗斯联邦图拉州）\n- **去世**：1910年11月20日，阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）\n- **享年**：82岁\n- **主要身份**：作家、思想家、改革家\n- **历史地位**：世界文学史上最伟大的现实主义作家之一，俄国文学的巅峰代表。\n- **主要成就**：创作《战争与和平》《安娜·卡列尼娜》《复活》三部史诗级巨著；创立“托尔斯泰主义”哲学思想体系；深刻影响甘地等世界非暴力运动领袖。\n\n### 生平概述\n列夫·托尔斯泰出生于俄国贵族家庭，早年生活曾有放纵阶段，后在高加索服役期间开始文学创作。他一生致力于探索生命意义与社会公正，其作品深刻描绘了19世纪初至后期俄国社会的全景图，尤其是贵族阶层的精神危机与农民的苦难。晚年，他激烈否定私有财产和贵族生活，身体力行简朴的农民生活，并因家庭矛盾离家出走，最终病逝于一个偏僻小站。他的思想与文学遗产超越了国界与时代。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于俄国欧洲部分，从莫斯科、图拉的庄园到高加索、克里米亚战场，晚年曾短暂游历西欧。\n- ⏱️ **时间跨度**：1828年至1910年，共82年。\n- 📍 **地理范围**：以莫斯科和图拉为中心，北至圣彼得堡，南至高加索和克里米亚，西至西欧（德、法、意等）。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：亚斯纳亚-博利尔纳庄园\n- **时间**：1828年9月9日\n- **停留时间**：童年及一生中大部分时光\n- **地点**：亚斯纳亚-博利尔纳（今俄罗斯联邦图拉州）\n- **事件**：出生于世袭贵族家庭，在此度过童年，并在此完成大部分文学创作。\n- **意义**：托尔斯泰的精神家园与创作源泉，其作品中众多场景的原型地。\n\n### 📍 重要地点：喀山\n- **时间**：1844年-1847年\n- **停留时间**：约3年\n- **地点**：喀山（今俄罗斯联邦鞑靼斯坦共和国首府）\n- **事件**：进入喀山大学学习，先修东方语言系，后转法律系，最终辍学。\n- **意义**：接受了最初的高等教育，开始接触启蒙思想，但对僵化的教育体制感到失望。\n\n### 📍 重要地点：高加索地区\n- **时间**：1851年-1854年\n- **停留时间**：约3年\n- **地点**：高加索地区（今俄罗斯联邦北高加索地区）\n- **事件**：随兄从军，参与对山民的军事行动，并开始文学创作，发表处女作《童年》。\n- **意义**：军旅生涯使其目睹战争残酷与平民苦难，成为其战争文学的直接素材，也是其文学生涯的起点。\n- **名篇名句**：《袭击》： “在战争中，只有那些没有思想的人才是幸福的。”\n\n### 📍 重要地点：塞瓦斯托波尔\n- **时间**：1854年-1855年\n- **停留时间**：约1年\n- **地点**：塞瓦斯托波尔（今俄罗斯联邦克里米亚共和国塞瓦斯托波尔市）\n- **事件**：参加克里米亚战争中的塞瓦斯托波尔围城战，担任炮兵军官。\n- **意义**：亲历惨烈的阵地战，创作了《塞瓦斯托波尔故事》系列，奠定了其现实主义战争描写的基础。\n- **名篇名句**：《塞瓦斯托波尔故事》： “真理是文学中主要的、也是最崇高的东西。”\n\n### 📍 重要地点：圣彼得堡\n- **时间**：1855年底至1856年\n- **停留时间**：累计数年\n- **地点**：圣彼得堡（今俄罗斯联邦圣彼得堡市）\n- **事件**：进入俄国文学界核心圈，结识涅克拉索夫、屠格涅夫等作家，发表《童年》《少年》《青年》系列及《一个地主的早晨》。\n- **意义**：确立了在文坛的地位，但同时也对都市贵族圈子的虚伪生活产生深刻厌恶。\n\n### 📍 重要地点：莫斯科\n- **时间**：1860年代起频繁往返并最终定居\n- **停留时间**：后半生主要居住地之一\n- **地点**：莫斯科（今俄罗斯联邦莫斯科市）\n- **事件**：1862年结婚后，与家庭在此居住；进行教育改革和社会调查；创作《战争与和平》《安娜·卡列尼娜》。\n- **意义**：家庭生活与社会活动的中心，也是其观察俄国社会上层与底层矛盾的窗口。\n\n### 📍 重要地点：萨马拉省\n- **时间**：1870年代\n- **停留时间**：数次前往，每次数月\n- **地点**：萨马拉省（今俄罗斯联邦萨马拉州）\n- **事件**：因健康原因前往草原地区疗养，目睹严重饥荒，组织赈灾并撰写调查报告。\n- **意义**：加深了对农民悲惨处境的认识，促使其思想向激进的社会批判转变。\n\n### 📍 重要地点：西欧之旅（法国、瑞士、德国等地）\n- **时间**：1857年、1860-1861年（两次旅行）\n- **停留时间**：累计约一年\n- **地点**：巴黎（法国）、日内瓦（瑞士）、德累斯顿（德国）等\n- **事件**：考察西欧教育制度；在巴黎目睹断头台行刑，深感国家暴力的恐怖。\n- **意义**：对西方文明的幻灭感是其思想形成的关键转折点，促使他转向推崇俄国宗法制农民公社。\n\n### 📍 重要地点：莫斯科-库尔斯克铁路沿线农村\n- **时间**：1880年代\n- **停留时间**：多次短期考察\n- **地点**：莫斯科至库尔斯克铁路沿线（今俄罗斯联邦莫斯科州、图拉州、奥廖尔州、库尔斯克州等地）\n- **事件**：进行社会调查，与农民共同劳动，深入研究农民生活与东正教信仰。\n- **意义**：促成了其世界观的彻底转变，放弃贵族生活方式，开始奉行农民化、素食、禁欲的简朴生活。\n\n### 🔴 去世地：阿斯塔波沃车站\n- **时间**：1910年11月20日\n- **停留时间**：约一周\n- **地点**：阿斯塔波沃车站（今俄罗斯联邦利佩茨克州列夫·托尔斯泰站）\n- **事件**：因家庭矛盾毅然离家出走，途中患肺炎，病逝于这个偏僻的火车站站长家中。\n- **意义**：其离世本身成为其一生追求精神独立与道德纯洁的终极象征，震惊世界。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1828 | 0 | 出生于亚斯纳亚-博利尔纳庄园 |\n| 1844 | 16 | 进入喀山大学学习 |\n| 1847 | 19 | 从喀山大学辍学，回庄园尝试改革 |\n| 1851 | 23 | 前往高加索从军，开始文学创作 |\n| 1854 | 26 | 参加克里米亚战争，塞瓦斯托波尔保卫战 |\n| 1855 | 27 | 抵达圣彼得堡，进入文学界 |\n| 1857 | 29 | 首次游历西欧，在巴黎目睹断头台行刑 |\n| 1860-1861 | 32-33 | 再次游历西欧，考察教育制度 |\n| 1862 | 34 | 与索菲亚·贝尔斯结婚，定居莫斯科 |\n| 1863-1869 | 35-41 | 创作并完成《战争与和平》 |\n| 1873-1877 | 45-49 | 创作并完成《安娜·卡列尼娜》 |\n| 1880年代 | 52岁起 | 思想剧变，世界观转向，创作《忏悔录》等 |\n| 1889-1899 | 61-71 | 创作并完成《复活》 |\n| 1901 | 73 | 被东正教教会革除教籍 |\n| 1910 | 82 | 离家出走，病逝于阿斯塔波沃车站 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《复活》**（节选）、**《安娜·卡列尼娜》**（节选）、**《战争与和平》**（节选）\n- 核心要点：\n    - **重点**：**心理描写**的巅峰艺术，通过“心灵辩证法”深刻揭示人物复杂的内心世界与道德挣扎。\n    - **重点**：**史诗性叙事**风格，在《战争与和平》中将宏大历史进程与个人命运完美交织。\n    - **社会批判**主题，深刻揭露沙皇专制制度、官僚体系与土地私有制的罪恶（尤其在《复活》中）。\n    - **人物形象**塑造，如聂赫留朵夫、安娜·卡列尼娜等，成为世界文学画廊中的经典。\n    - **重点**：**“托尔斯泰主义”** 的文学表达，包括“道德自我完善”、“勿以暴力抗恶”、“博爱”等核心思想。\n    - **现实主义**创作原则的极致体现，追求细节的真实性与历史的准确性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在**俄国农奴制改革**（1861年）前后，其作品与思想是理解这一重大社会转型的关键文本。\n    - 其庄园**亚斯纳亚-博利尔纳**是其一生的活动中心，也是其观察俄国社会的微观样本。\n    - **克里米亚战争**（1853-1856）的亲历者，战争经历塑造了他的和平观。\n    - **重点**：晚年因激烈批判教会和国家，被**东正教教会革除教籍**（1901年），成为轰动国际的事件。\n- 核心要点：\n    - **重点**：其思想是**19世纪俄国社会思潮**从贵族自由主义向平民主义乃至宗教道德探索转变的缩影。\n    - **重点**：**托尔斯泰主义**作为一种社会哲学，对后来的**印度甘地**的非暴力不合作运动产生了直接影响。\n    - 作为**俄国文学黄金时代**的顶峰人物，与陀思妥耶夫斯基并称，代表了俄国文学的最高成就。\n    - **重点**：其一生轨迹（贵族-军人-作家-思想家-苦行者）本身，就是一部关于**俄国知识分子**精神探索的史诗。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 亚斯纳亚-博利尔纳（图拉州） | 54.0747 | 36.5697 |\n| 喀山 | 55.7963 | 49.1082 |\n| 塞瓦斯托波尔 | 44.6054 | 33.5220 |\n| 圣彼得堡 | 59.9343 | 30.3351 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 萨马拉 | 53.1959 | 50.1002 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 日内瓦 | 46.2044 | 6.1432 |\n| 列夫·托尔斯泰站（原阿斯塔波沃） | 53.3345 | 39.4636 |", "relatedGraph": {"center": {"id": "列夫·托尔斯泰", "name": "列夫·托尔斯泰", "file": "列夫·托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "在战争中，只有那些没有思想的人才是幸福的。", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利尔纳庄园", "birthplace_modern": "俄罗斯联邦图拉州", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "列夫·托尔斯泰", "name": "列夫·托尔斯泰", "file": "列夫·托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至资本主义发展时期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "在战争中，只有那些没有思想的人才是幸福的。", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利尔纳庄园", "birthplace_modern": "俄罗斯联邦图拉州", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陀思妥耶夫斯基", "name": "陀思妥耶夫斯基", "file": "陀思妥耶夫斯基.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1821, "death_year": 1881, "quote": "“被侮辱与被损害者”", "review": "*弗洛伊德**：“陀思妥耶夫斯基的才智深度可以媲美莎士比亚。他是《卡拉马佐夫兄弟》的作者，也是《罪与罚》的作者，但他最值得纪念的身份是弑父情结的揭示者。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "俄罗斯帝国莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "托尔斯泰", "name": "托尔斯泰", "file": "托尔斯泰.html", "dynasty": "19世纪俄国（沙皇俄国至帝国晚期）", "aliases": [], "birth_year": 1828, "death_year": 1910, "quote": "“托尔斯泰主义”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "亚斯纳亚-博利亚纳", "birthplace_modern": "俄罗斯联邦图拉州亚斯纳亚-博利亚纳", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "麦克斯韦", "name": "麦克斯韦", "file": "麦克斯韦.html", "dynasty": "19世纪（维多利亚时代）", "aliases": [], "birth_year": 1831, "death_year": 1879, "quote": "“麦克斯韦分布律”", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "苏格兰爱丁堡", "birthplace_modern": "英国苏格兰爱丁堡", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "茨威格", "name": "茨威格", "file": "茨威格.html", "dynasty": "19世纪末至20世纪上半叶（奥匈帝国末期至两次世界大战期间）", "aliases": [], "birth_year": 1881, "death_year": 1942, "quote": "斯蒂芬·茨威格出生于维也纳一个富裕的犹太家庭，在深厚的文化氛围中成长", "review": "", "foreign_name": "Stefan Zweig", "main_role_label": "小说家", "birthplace": "维也纳", "birthplace_modern": "奥地利维也纳", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "蒋介石", "name": "蒋介石", "file": "蒋介石.html", "dynasty": "现代", "aliases": [], "birth_year": 1887, "death_year": 1975, "quote": "“如果战端一开，那就是地无分南北，年无分老幼，无论何人，皆有守土抗战之责任，皆应抱定牺牲一切之决心。”", "review": "地无分南北，年无分老幼，无论何人，皆有守土抗战之责任", "foreign_name": "", "main_role_label": "政治家", "birthplace": "浙江奉化溪口", "birthplace_modern": "浙江省宁波市奉化区溪口镇", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "莫顿·亨特", "name": "莫顿·亨特", "file": "莫顿·亨特.html", "dynasty": "美国现代（20-21世纪）", "aliases": [], "birth_year": 1927, "death_year": 2016, "quote": "“我提醒自己不要看下面遥远的岩石，而是注意相对轻松的第一小步。”", "review": "*大众心理学的杰出传播者**：被誉为“能让普通人理解弗洛伊德和斯金纳的人”，其工作填补了学术与大众认知之间的鸿沟。", "foreign_name": "", "main_role_label": "作家", "birthplace": "美国宾夕法尼亚州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "列夫·托尔斯泰", "target": "陀思妥耶夫斯基", "label": "并称", "confidence": 0.55}, {"source": "列夫·托尔斯泰", "target": "托尔斯泰", "label": "君臣", "confidence": null}, {"source": "列夫·托尔斯泰", "target": "麦克斯韦", "label": "同时代人物", "confidence": null}, {"source": "列夫·托尔斯泰", "target": "茨威格", "label": "同朝共现", "confidence": 0.25}, {"source": "列夫·托尔斯泰", "target": "蒋介石", "label": "同册共现", "confidence": 0.15}, {"source": "列夫·托尔斯泰", "target": "莫顿·亨特", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

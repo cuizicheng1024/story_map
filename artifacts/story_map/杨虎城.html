@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "杨虎城", "title": "西安事变", "description": "杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。", "quote": "我们救国的主张……是绝对不变更的。", "shortReview": "我们救国的主张……是绝对不变更的。", "dynasty": "中国近代（清末至民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "陕西省蒲城县（今陕西省渭南市蒲城县）", "avatar": "", "birth": {"date": "1893年", "location": "陕西省蒲城县（今陕西省渭南市蒲城县）", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84"}, "death": {"date": "1949年", "location": "四川省重庆（今重庆市）", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84"}, "lifespan": "55周岁", "highlights": {"honor": "西安事变", "status": "中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。", "identities": "爱国将领、国民党陆军二级上将、西安事变主要发动者之一", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "蒲城", "ancientName": "陕西省蒲城县", "modernName": "陕西省渭南市蒲城县", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84", "type": "birth", "event": "出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。", "time": "公元1893年", "duration": "童年及少年时期", "significance": "塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "西安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。", "time": "公元1911年-1917年（多次往返）", "duration": "断断续续", "significance": "是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。", "works": [], "quoteLines": []}, {"name": "武功、扶风", "ancientName": "陕西省武功县、扶风县", "modernName": "陕西省咸阳市武功县、扶风县", "lat": 34.2603, "lng": 108.2003, "coordSystem": "WGS84", "type": "normal", "event": "作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。", "time": "公元1917年-1922年", "duration": "约5年", "significance": "在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。", "works": [], "quoteLines": []}, {"name": "陕北（榆林）", "ancientName": "榆林", "modernName": "陕西省榆林市", "lat": 38.2852, "lng": 109.7346, "coordSystem": "WGS84", "type": "normal", "event": "靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。", "time": "公元1922年-1924年", "duration": "约2年", "significance": "部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。", "works": [], "quoteLines": []}, {"name": "河南（归德、郑州）", "ancientName": "归德、郑州", "modernName": "河南省商丘市", "lat": 34.4142, "lng": 115.656, "coordSystem": "WGS84", "type": "normal", "event": "率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。", "time": "公元1927年-1929年", "duration": "约2年", "significance": "部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。", "works": [], "quoteLines": []}, {"name": "山东（临沂）", "ancientName": "临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3565, "coordSystem": "WGS84", "type": "normal", "event": "所部被蒋介石改编为新编第十四师，调往山东驻防。", "time": "公元1929年", "duration": "数月", "significance": "标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。", "works": [], "quoteLines": []}, {"name": "南阳、驻马店", "ancientName": "南阳、驻马店", "modernName": "河南省南阳市", "lat": 32.9997, "lng": 112.5283, "coordSystem": "WGS84", "type": "normal", "event": "在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。", "time": "公元1929年-1930年", "duration": "近一年", "significance": "在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。", "works": [], "quoteLines": []}, {"name": "西安（主政时期）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。", "time": "公元1930年-1937年（主要在1930-1933年实际主政）", "duration": "约7年（含出国前后）", "significance": "其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。", "works": [], "quoteLines": ["《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”"]}, {"name": "南昌、长沙", "ancientName": "南昌、长沙", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。", "time": "公元1937年", "duration": "短暂", "significance": "标志着其失去自由，软禁生涯的开始。", "works": [], "quoteLines": []}, {"name": "重庆（戴公馆、松林坡）", "ancientName": "四川省重庆戴公馆、松林坡", "modernName": "重庆市", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84", "type": "death", "event": "先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。", "time": "公元1937年-1949年（被囚禁），1949年9月6日遇害", "duration": "被囚禁约12年", "significance": "为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "workTexts": {"杨虎城在西安事变中的讲话": "我们救国的主张……是绝对不变更的。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 杨虎城\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨虎城\n- **时代**：中国近代（清末至民国）\n- **出生**：公元1893年11月26日，陕西省蒲城县（今陕西省渭南市蒲城县）\n- **去世**：公元1949年9月6日，四川省重庆（今重庆市）\n- **享年**：55周岁\n- **主要身份**：爱国将领、国民党陆军二级上将、西安事变主要发动者之一\n- **历史地位**：中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。\n- **主要成就**：\n    - 参与领导反清革命与护国战争。\n    - 在军阀混战中崛起，主政陕西。\n    - 与张学良共同发动“西安事变”，兵谏蒋介石，成为时局转换的枢纽。\n    - 坚持抗日救国立场，为民族解放事业献出生命。\n\n### 生平概述\n杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从陕西关中起家，足迹遍及北方多省，最终于重庆遇害。\n- ⏱️ **时间跨度**：约1893年至1949年，约56年。\n- 📍 **地理范围**：主要活动于陕西、河南、江西、湖南、重庆等地，曾途经或活动于安徽、江苏、浙江。\n- 🌟 **重要节点数量**：核心地点11个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蒲城\n- **时间**：公元1893年\n- **停留时间**：童年及少年时期\n- **地点**：陕西省蒲城县（今陕西省渭南市蒲城县）\n- **事件**：出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。\n- **意义**：塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。\n\n### 📍 重要地点：西安\n- **时间**：公元1911年-1917年（多次往返）\n- **停留时间**：断断续续\n- **地点**：长安（今陕西省西安市）\n- **事件**：辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。\n- **意义**：是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。\n\n### 📍 重要地点：武功、扶风\n- **时间**：公元1917年-1922年\n- **停留时间**：约5年\n- **地点**：陕西省武功县、扶风县（今陕西省咸阳市武功县、扶风县）\n- **事件**：作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。\n- **意义**：在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。\n\n### 📍 重要地点：陕北（榆林）\n- **时间**：公元1922年-1924年\n- **停留时间**：约2年\n- **地点**：榆林（今陕西省榆林市）\n- **事件**：靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。\n- **意义**：部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。\n\n### 📍 重要地点：河南（归德、郑州）\n- **时间**：公元1927年-1929年\n- **停留时间**：约2年\n- **地点**：归德（今河南省商丘市）、郑州（今河南省郑州市）\n- **事件**：率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。\n- **意义**：部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。\n\n### 📍 重要地点：山东（临沂）\n- **时间**：公元1929年\n- **停留时间**：数月\n- **地点**：临沂（今山东省临沂市）\n- **事件**：所部被蒋介石改编为新编第十四师，调往山东驻防。\n- **意义**：标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。\n\n### 📍 重要地点：南阳、驻马店\n- **时间**：公元1929年-1930年\n- **停留时间**：近一年\n- **地点**：南阳（今河南省南阳市）、驻马店（今河南省驻马店市）\n- **事件**：在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。\n- **意义**：在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。\n\n### 📍 重要地点：西安（主政时期）\n- **时间**：公元1930年-1937年（主要在1930-1933年实际主政）\n- **停留时间**：约7年（含出国前后）\n- **地点**：长安（今陕西省西安市）\n- **事件**：任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。\n- **意义**：其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。\n- **名篇名句**：《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”\n\n### 📍 重要地点：南昌、长沙\n- **时间**：公元1937年\n- **停留时间**：短暂\n- **地点**：南昌（今江西省南昌市）、长沙（今湖南省长沙市）\n- **事件**：出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。\n- **意义**：标志着其失去自由，软禁生涯的开始。\n\n### 🔴 去世地：重庆（戴公馆、松林坡）\n- **时间**：公元1937年-1949年（被囚禁），1949年9月6日遇害\n- **停留时间**：被囚禁约12年\n- **地点**：四川省重庆（今重庆市）戴公馆、松林坡\n- **事件**：先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。\n- **意义**：为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1893 | 0 | 出生于陕西蒲城。 |\n| 1908 | 15 | 父亲被清政府绞杀，立志反清。 |\n| 1911 | 18 | 参加辛亥革命陕西民军。 |\n| 1915 | 22 | 参加护国战争，讨伐袁世凯。 |\n| 1917 | 24 | 参加陕西靖国军，反对北洋军阀。 |\n| 1924 | 31 | 在陕北结识共产党人，部队加入国民军。 |\n| 1927 | 34 | 参加冯玉祥国民联军，东出潼关参与北伐。 |\n| 1929 | 36 | 部队被蒋介石改编，调往山东、河南。 |\n| 1930 | 37 | 中原大战后入主陕西，任省政府主席。 |\n| 1933 | 40 | 主张抗日，与共产党方面有所接触。 |\n| 1936 | 43 | 12月12日，与张学良发动“西安事变”。 |\n| 1937 | 44 | 被迫出国“考察”；抗战爆发后回国，旋即被囚禁。 |\n| 1949 | 55 | 9月6日，在重庆被国民党特务秘密杀害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省渭南市蒲城县 | 34.9551 | 109.5865 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 陕西省咸阳市武功县 | 34.2603 | 108.2003 |\n| 陕西省咸阳市扶风县 | 34.3753 | 107.8913 |\n| 陕西省榆林市 | 38.2852 | 109.7346 |\n| 河南省商丘市 | 34.4142 | 115.6560 |\n| 河南省郑州市 | 34.7472 | 113.6250 |\n| 山东省临沂市 | 35.1047 | 118.3565 |\n| 河南省南阳市 | 32.9997 | 112.5283 |\n| 河南省驻马店市 | 32.9803 | 114.0248 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 湖南省长沙市 | 28.2282 | 112.9388 |\n| 重庆市 | 29.4316 | 106.9123 |", "relatedGraph": {"center": {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "“我们救国的主张……是绝对不变更的。”", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "“我们救国的主张……是绝对不变更的。”", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "袁世凯", "name": "袁世凯", "file": "袁世凯.html", "dynasty": "近代", "aliases": [], "birth_year": 1859, "death_year": 1916, "quote": "“驻扎朝鲜总理交涉通商事宜”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "近代", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "“我未吞胡恢汉业，君先悬首看吴荒”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "近代", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "“不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "近代", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "“我自横刀向天笑”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨虎城", "target": "袁世凯", "label": "对手", "confidence": null}, {"source": "杨虎城", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谭嗣同", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "杨虎城", "title": "西安事变", "description": "杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。", "quote": "我们救国的主张……是绝对不变更的。", "shortReview": "我们救国的主张……是绝对不变更的。", "dynasty": "中国近代（清末至民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "陕西省蒲城县（今陕西省渭南市蒲城县）", "avatar": "", "birth": {"date": "1893年", "location": "陕西省蒲城县（今陕西省渭南市蒲城县）", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84"}, "death": {"date": "1949年", "location": "四川省重庆（今重庆市）", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84"}, "lifespan": "55周岁", "highlights": {"honor": "西安事变", "status": "中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。", "identities": "爱国将领、国民党陆军二级上将、西安事变主要发动者之一", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "蒲城", "ancientName": "陕西省蒲城县", "modernName": "陕西省渭南市蒲城县", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84", "type": "birth", "event": "出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。", "time": "公元1893年", "duration": "童年及少年时期", "significance": "塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "西安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。", "time": "公元1911年-1917年（多次往返）", "duration": "断断续续", "significance": "是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。", "works": [], "quoteLines": []}, {"name": "武功、扶风", "ancientName": "陕西省武功县、扶风县", "modernName": "陕西省咸阳市武功县、扶风县", "lat": 34.2603, "lng": 108.2003, "coordSystem": "WGS84", "type": "normal", "event": "作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。", "time": "公元1917年-1922年", "duration": "约5年", "significance": "在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。", "works": [], "quoteLines": []}, {"name": "陕北（榆林）", "ancientName": "榆林", "modernName": "陕西省榆林市", "lat": 38.2852, "lng": 109.7346, "coordSystem": "WGS84", "type": "normal", "event": "靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。", "time": "公元1922年-1924年", "duration": "约2年", "significance": "部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。", "works": [], "quoteLines": []}, {"name": "河南（归德、郑州）", "ancientName": "归德、郑州", "modernName": "河南省商丘市", "lat": 34.4142, "lng": 115.656, "coordSystem": "WGS84", "type": "normal", "event": "率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。", "time": "公元1927年-1929年", "duration": "约2年", "significance": "部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。", "works": [], "quoteLines": []}, {"name": "山东（临沂）", "ancientName": "临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3565, "coordSystem": "WGS84", "type": "normal", "event": "所部被蒋介石改编为新编第十四师，调往山东驻防。", "time": "公元1929年", "duration": "数月", "significance": "标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。", "works": [], "quoteLines": []}, {"name": "南阳、驻马店", "ancientName": "南阳、驻马店", "modernName": "河南省南阳市", "lat": 32.9997, "lng": 112.5283, "coordSystem": "WGS84", "type": "normal", "event": "在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。", "time": "公元1929年-1930年", "duration": "近一年", "significance": "在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。", "works": [], "quoteLines": []}, {"name": "西安（主政时期）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。", "time": "公元1930年-1937年（主要在1930-1933年实际主政）", "duration": "约7年（含出国前后）", "significance": "其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。", "works": [], "quoteLines": ["《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”"]}, {"name": "南昌、长沙", "ancientName": "南昌、长沙", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。", "time": "公元1937年", "duration": "短暂", "significance": "标志着其失去自由，软禁生涯的开始。", "works": [], "quoteLines": []}, {"name": "重庆（戴公馆、松林坡）", "ancientName": "四川省重庆戴公馆、松林坡", "modernName": "重庆市", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84", "type": "death", "event": "先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。", "time": "公元1937年-1949年（被囚禁），1949年9月6日遇害", "duration": "被囚禁约12年", "significance": "为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "workTexts": {"杨虎城在西安事变中的讲话": "我们救国的主张……是绝对不变更的。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 杨虎城\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨虎城\n- **时代**：中国近代（清末至民国）\n- **出生**：公元1893年11月26日，陕西省蒲城县（今陕西省渭南市蒲城县）\n- **去世**：公元1949年9月6日，四川省重庆（今重庆市）\n- **享年**：55周岁\n- **主要身份**：爱国将领、国民党陆军二级上将、西安事变主要发动者之一\n- **历史地位**：中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。\n- **主要成就**：\n    - 参与领导反清革命与护国战争。\n    - 在军阀混战中崛起，主政陕西。\n    - 与张学良共同发动“西安事变”，兵谏蒋介石，成为时局转换的枢纽。\n    - 坚持抗日救国立场，为民族解放事业献出生命。\n\n### 生平概述\n杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从陕西关中起家，足迹遍及北方多省，最终于重庆遇害。\n- ⏱️ **时间跨度**：约1893年至1949年，约56年。\n- 📍 **地理范围**：主要活动于陕西、河南、江西、湖南、重庆等地，曾途经或活动于安徽、江苏、浙江。\n- 🌟 **重要节点数量**：核心地点11个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：蒲城\n- **时间**：公元1893年\n- **停留时间**：童年及少年时期\n- **地点**：陕西省蒲城县（今陕西省渭南市蒲城县）\n- **事件**：出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。\n- **意义**：塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。\n\n### 📍 重要地点：西安\n- **时间**：公元1911年-1917年（多次往返）\n- **停留时间**：断断续续\n- **地点**：长安（今陕西省西安市）\n- **事件**：辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。\n- **意义**：是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。\n\n### 📍 重要地点：武功、扶风\n- **时间**：公元1917年-1922年\n- **停留时间**：约5年\n- **地点**：陕西省武功县、扶风县（今陕西省咸阳市武功县、扶风县）\n- **事件**：作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。\n- **意义**：在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。\n\n### 📍 重要地点：陕北（榆林）\n- **时间**：公元1922年-1924年\n- **停留时间**：约2年\n- **地点**：榆林（今陕西省榆林市）\n- **事件**：靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。\n- **意义**：部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。\n\n### 📍 重要地点：河南（归德、郑州）\n- **时间**：公元1927年-1929年\n- **停留时间**：约2年\n- **地点**：归德（今河南省商丘市）、郑州（今河南省郑州市）\n- **事件**：率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。\n- **意义**：部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。\n\n### 📍 重要地点：山东（临沂）\n- **时间**：公元1929年\n- **停留时间**：数月\n- **地点**：临沂（今山东省临沂市）\n- **事件**：所部被蒋介石改编为新编第十四师，调往山东驻防。\n- **意义**：标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。\n\n### 📍 重要地点：南阳、驻马店\n- **时间**：公元1929年-1930年\n- **停留时间**：近一年\n- **地点**：南阳（今河南省南阳市）、驻马店（今河南省驻马店市）\n- **事件**：在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。\n- **意义**：在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。\n\n### 📍 重要地点：西安（主政时期）\n- **时间**：公元1930年-1937年（主要在1930-1933年实际主政）\n- **停留时间**：约7年（含出国前后）\n- **地点**：长安（今陕西省西安市）\n- **事件**：任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。\n- **意义**：其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。\n- **名篇名句**：《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”\n\n### 📍 重要地点：南昌、长沙\n- **时间**：公元1937年\n- **停留时间**：短暂\n- **地点**：南昌（今江西省南昌市）、长沙（今湖南省长沙市）\n- **事件**：出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。\n- **意义**：标志着其失去自由，软禁生涯的开始。\n\n### 🔴 去世地：重庆（戴公馆、松林坡）\n- **时间**：公元1937年-1949年（被囚禁），1949年9月6日遇害\n- **停留时间**：被囚禁约12年\n- **地点**：四川省重庆（今重庆市）戴公馆、松林坡\n- **事件**：先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。\n- **意义**：为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1893 | 0 | 出生于陕西蒲城。 |\n| 1908 | 15 | 父亲被清政府绞杀，立志反清。 |\n| 1911 | 18 | 参加辛亥革命陕西民军。 |\n| 1915 | 22 | 参加护国战争，讨伐袁世凯。 |\n| 1917 | 24 | 参加陕西靖国军，反对北洋军阀。 |\n| 1924 | 31 | 在陕北结识共产党人，部队加入国民军。 |\n| 1927 | 34 | 参加冯玉祥国民联军，东出潼关参与北伐。 |\n| 1929 | 36 | 部队被蒋介石改编，调往山东、河南。 |\n| 1930 | 37 | 中原大战后入主陕西，任省政府主席。 |\n| 1933 | 40 | 主张抗日，与共产党方面有所接触。 |\n| 1936 | 43 | 12月12日，与张学良发动“西安事变”。 |\n| 1937 | 44 | 被迫出国“考察”；抗战爆发后回国，旋即被囚禁。 |\n| 1949 | 55 | 9月6日，在重庆被国民党特务秘密杀害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省渭南市蒲城县 | 34.9551 | 109.5865 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 陕西省咸阳市武功县 | 34.2603 | 108.2003 |\n| 陕西省咸阳市扶风县 | 34.3753 | 107.8913 |\n| 陕西省榆林市 | 38.2852 | 109.7346 |\n| 河南省商丘市 | 34.4142 | 115.6560 |\n| 河南省郑州市 | 34.7472 | 113.6250 |\n| 山东省临沂市 | 35.1047 | 118.3565 |\n| 河南省南阳市 | 32.9997 | 112.5283 |\n| 河南省驻马店市 | 32.9803 | 114.0248 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 湖南省长沙市 | 28.2282 | 112.9388 |\n| 重庆市 | 29.4316 | 106.9123 |", "relatedGraph": {"center": {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "“我们救国的主张……是绝对不变更的。”", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "“我们救国的主张……是绝对不变更的。”", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "袁世凯", "name": "袁世凯", "file": "袁世凯.html", "dynasty": "近代", "aliases": [], "birth_year": 1859, "death_year": 1916, "quote": "“驻扎朝鲜总理交涉通商事宜”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "近代", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "“我未吞胡恢汉业，君先悬首看吴荒”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "近代", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "“不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "近代", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "“我自横刀向天笑”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨虎城", "target": "袁世凯", "label": "对手", "confidence": null}, {"source": "杨虎城", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谭嗣同", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

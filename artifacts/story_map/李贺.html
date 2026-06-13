@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李贺", "title": "诗鬼", "description": "李贺，字长吉，是唐宗室远支。他自幼才华横溢，却因避父名讳（“晋肃”与“进士”音近）被剥夺了参加进士考试的资格，断绝了主要的仕进之路。后虽以恩荫得官奉礼郎，但位卑职冷，抱负难展。他体弱多病，仕途困顿，生活窘迫，将全部心血倾注于诗歌创作，常骑驴觅句，呕心沥血。其诗多抒写怀才不遇的悲愤、对人生短促的慨叹以及光怪陆离的鬼魅世界，在中唐诗坛独树一帜，年仅二十七岁左右便郁郁而终。", "quote": "庞眉书客感秋蓬，谁知死草生华风。", "shortReview": "庞眉书客感秋蓬，谁知死草生华风。", "dynasty": "唐代（中唐）", "courtesyName": "长吉", "artName": "", "aliases": ["长吉"], "birthplace": "福昌县昌谷（今河南洛阳宜阳县）", "avatar": "", "birth": {"date": "790年", "location": "福昌县昌谷（今河南洛阳宜阳县）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "816年", "location": "昌谷（今河南洛阳宜阳县）或潞州（今山西长治）归途中", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约二十七岁（一说二十八岁）", "highlights": {"honor": "诗鬼", "status": "中唐浪漫主义诗人的代表，以奇崛冷艳、虚幻荒诞的独特诗风独步诗坛，后世称“诗鬼”。", "identities": "诗人", "achievements": "开创“长吉体”诗歌风格；以丰富奇特的想象和瑰丽的语言，创作了大量反映怀才不遇苦闷与对生命哲思的诗篇；与李白、李商隐并称“唐代三李”。代表作品有《雁门太守行》、《李凭箜篌引》、《南园十三首》等。", "works": ["雁门太守行", "李凭箜篌引", "南园十三首"], "reviews": []}}, "locations": [{"name": "昌谷", "ancientName": "福昌县昌谷", "modernName": "河南洛阳宜阳县", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "birth", "event": "出生于唐宗室远支家庭，自幼聪颖，早年在此生活、读书。", "time": "约公元790年", "duration": "童年及青少年时期", "significance": "其诗歌中“昌谷”意象的重要来源，奠定了其早期文化积淀与故土情怀。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "东都洛阳", "modernName": "河南洛阳", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "normal", "event": "以诗文干谒名流，获韩愈赏识。韩愈与皇甫湜曾亲访其居，李贺作《高轩过》名动一时。", "time": "约公元807年及之后数次", "duration": "数次短期停留", "significance": "获得文坛领袖的肯定，声名鹊起，是其走向更广阔天地的关键节点。", "works": ["高轩过"], "quoteLines": ["《高轩过》：“庞眉书客感秋蓬，谁知死草生华风。”"]}, {"name": "长安（求仕）", "ancientName": "京师长安", "modernName": "陕西西安", "lat": 34.1583, "lng": 108.9053, "coordSystem": "WGS84", "type": "normal", "event": "准备参加进士考试，但因父名“晋肃”与“进士”音近，被舆论攻击为避讳不谨，最终被迫放弃考试。", "time": "约公元808年", "duration": "数月", "significance": "人生重大挫折，彻底改变了其仕途轨迹，对其心理与创作产生深远影响。", "works": [], "quoteLines": ["《致酒行》：“我有迷魂招不得，雄鸡一声天下白。”"]}, {"name": "长安（任职）", "ancientName": "京师长安", "modernName": "陕西西安", "lat": 34.1583, "lng": 108.9053, "coordSystem": "WGS84", "type": "normal", "event": "以恩荫得官，任太常寺奉礼郎，从九品上，负责祭祀朝会等琐碎礼仪事务；官职卑微，生活清贫，与友人如沈子明等交游，创作了大量诗歌。", "time": "约公元811年 - 约公元813年", "duration": "约三年", "significance": "亲身感受官场沉沦与理想幻灭，创作进入高峰期，诗风更趋奇崛冷艳。", "works": [], "quoteLines": ["《李凭箜篌引》：“吴丝蜀桐张高秋，空山凝云颓不流。”", "《秋来》：“秋坟鬼唱鲍家诗，恨血千年土中碧。”"]}, {"name": "潞州", "ancientName": "潞州", "modernName": "山西长治", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "因病辞去奉礼郎之职，北上潞州，投奔友人张彻，寄身幕府。", "time": "约公元814年 - 约公元816年", "duration": "约三年", "significance": "试图在藩镇幕府中寻找新的出路，但境遇并未改善，健康状况持续恶化。", "works": [], "quoteLines": ["《酒罢张大彻索赠诗》：“陇西长吉摧颓客，酒阑感觉中区窄。”"]}, {"name": "昌谷（存疑）", "ancientName": "福昌县昌谷", "modernName": "河南洛阳宜阳县", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "death", "event": "病逝于家中（一说病逝于潞州归途中）。临终前，将其诗作托付好友沈子明。", "time": "约公元817年", "duration": "生命最后数月", "significance": "天才诗人陨落，其诗作赖友人整理得以传世。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---", "workTexts": {"高轩过": "庞眉书客感秋蓬，谁知死草生华风。", "致酒行": "我有迷魂招不得，雄鸡一声天下白。", "李凭箜篌引": "吴丝蜀桐张高秋，空山凝云颓不流。", "秋来": "秋坟鬼唱鲍家诗，恨血千年土中碧。", "酒罢张大彻索赠诗": "陇西长吉摧颓客，酒阑感觉中区窄。", "雁门太守行": "“黑云压城城欲摧”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李贺\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李贺\n- **字**：长吉\n- **时代**：唐代（中唐）\n- **出生**：约公元790年（一说791年），福昌县昌谷（今河南洛阳宜阳县）\n- **去世**：约公元816年或817年（存疑），卒于昌谷（今河南洛阳宜阳县）或潞州（今山西长治）归途中（存疑）\n- **享年**：约二十七岁（一说二十八岁）\n- **家世**：唐宗室远支（郑王李亮后裔）\n- **主要身份**：诗人\n- **历史地位**：中唐浪漫主义诗人的代表，以奇崛冷艳、虚幻荒诞的独特诗风独步诗坛，后世称“诗鬼”。\n- **主要成就**：开创“长吉体”诗歌风格；以丰富奇特的想象和瑰丽的语言，创作了大量反映怀才不遇苦闷与对生命哲思的诗篇；与李白、李商隐并称“唐代三李”。代表作品有《雁门太守行》、《李凭箜篌引》、《南园十三首》等。\n\n### 生平概述\n李贺，字长吉，是唐宗室远支。他自幼才华横溢，却因避父名讳（“晋肃”与“进士”音近）被剥夺了参加进士考试的资格，断绝了主要的仕进之路。后虽以恩荫得官奉礼郎，但位卑职冷，抱负难展。他体弱多病，仕途困顿，生活窘迫，将全部心血倾注于诗歌创作，常骑驴觅句，呕心沥血。其诗多抒写怀才不遇的悲愤、对人生短促的慨叹以及光怪陆离的鬼魅世界，在中唐诗坛独树一帜，年仅二十七岁左右便郁郁而终。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要局限于唐两京（长安、洛阳）地区及邻近的河东（今山西南部）潞州等地。\n- ⏱️ **时间跨度**：约公元790年 - 约公元817年，总计约27-28年。\n- 📍 **地理范围**：大致覆盖今河南省中西部、陕西省中部及山西省东南部。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：昌谷\n- **时间**：约公元790年\n- **停留时间**：童年及青少年时期\n- **地点**：福昌县昌谷（今河南洛阳宜阳县）\n- **事件**：出生于唐宗室远支家庭，自幼聪颖，早年在此生活、读书。\n- **意义**：其诗歌中“昌谷”意象的重要来源，奠定了其早期文化积淀与故土情怀。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元807年及之后数次\n- **停留时间**：数次短期停留\n- **地点**：东都洛阳（今河南洛阳）\n- **事件**：以诗文干谒名流，获韩愈赏识。韩愈与皇甫湜曾亲访其居，李贺作《高轩过》名动一时。\n- **意义**：获得文坛领袖的肯定，声名鹊起，是其走向更广阔天地的关键节点。\n- **名篇名句**：《高轩过》：“庞眉书客感秋蓬，谁知死草生华风。”\n\n### 📍 重要地点：长安（求仕）\n- **时间**：约公元808年\n- **停留时间**：数月\n- **地点**：京师长安（今陕西西安）\n- **事件**：准备参加进士考试，但因父名“晋肃”与“进士”音近，被舆论攻击为避讳不谨，最终被迫放弃考试。\n- **意义**：人生重大挫折，彻底改变了其仕途轨迹，对其心理与创作产生深远影响。\n- **名篇名句**：《致酒行》：“我有迷魂招不得，雄鸡一声天下白。”\n\n### 📍 重要地点：长安（任职）\n- **时间**：约公元811年 - 约公元813年\n- **停留时间**：约三年\n- **地点**：京师长安（今陕西西安）\n- **事件**：以恩荫得官，任太常寺奉礼郎，从九品上，负责祭祀朝会等琐碎礼仪事务；官职卑微，生活清贫，与友人如沈子明等交游，创作了大量诗歌。\n- **意义**：亲身感受官场沉沦与理想幻灭，创作进入高峰期，诗风更趋奇崛冷艳。\n- **名篇名句**：《李凭箜篌引》：“吴丝蜀桐张高秋，空山凝云颓不流。”；《秋来》：“秋坟鬼唱鲍家诗，恨血千年土中碧。”\n\n### 📍 重要地点：潞州\n- **时间**：约公元814年 - 约公元816年\n- **停留时间**：约三年\n- **地点**：潞州（今山西长治）\n- **事件**：因病辞去奉礼郎之职，北上潞州，投奔友人张彻，寄身幕府。\n- **意义**：试图在藩镇幕府中寻找新的出路，但境遇并未改善，健康状况持续恶化。\n- **名篇名句**：《酒罢张大彻索赠诗》：“陇西长吉摧颓客，酒阑感觉中区窄。”\n\n### 🔴 去世地：昌谷（存疑）\n- **时间**：约公元817年\n- **停留时间**：生命最后数月\n- **地点**：福昌县昌谷（今河南洛阳宜阳县）（一说卒于潞州，今山西长治）\n- **事件**：病逝于家中（一说病逝于潞州归途中）。临终前，将其诗作托付好友沈子明。\n- **意义**：天才诗人陨落，其诗作赖友人整理得以传世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约790年 | 1岁 | 生于福昌县昌谷（今河南宜阳）。 |\n| 约807年 | 18岁 | 至洛阳，以《高轩过》获韩愈、皇甫湜赏识，名动京洛。 |\n| 约808年 | 19岁 | 赴长安应进士试，因避父讳被阻，愤而归。 |\n| 约811年 | 22岁 | 以恩荫入仕，任太常寺奉礼郎，居长安。 |\n| 约813年 | 24岁 | 辞去奉礼郎职务，离开长安。 |\n| 约814年 | 25岁 | 北上潞州（今山西长治），投奔友人张彻，寄身幕府。 |\n| 约816年 | 27岁 | 离开潞州南归，途中病重。 |\n| 约817年 | 约27岁 | 病逝于昌谷家中（一说卒于潞州）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省洛阳市宜阳县（昌谷） | 34.5167 | 112.1833 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市长安区（唐长安） | 34.1583 | 108.9053 |\n| 山西省长治市（唐潞州） | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "“庞眉书客感秋蓬，谁知死草生华风。”", "review": "庞眉书客感秋蓬，谁知死草生华风。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南洛阳宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "“庞眉书客感秋蓬，谁知死草生华风。”", "review": "庞眉书客感秋蓬，谁知死草生华风。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南洛阳宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李白", "name": "李白", "file": "李白.html", "dynasty": "唐朝", "aliases": [], "birth_year": 701, "death_year": 762, "quote": "“五岳寻仙不辞远，一生好入名山游”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "今四川省江油市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "“朱门酒肉臭，路有冻死骨。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "“**师者，所以传道受业解惑也**”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "李贺", "target": "李白", "label": "并称", "confidence": 0.55}, {"source": "李贺", "target": "李商隐", "label": "并称", "confidence": 0.55}, {"source": "李贺", "target": "杜甫", "label": "君臣", "confidence": null}, {"source": "李贺", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "李贺", "target": "郑燮", "label": "同册共现", "confidence": 0.15}, {"source": "李贺", "target": "虞世南", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李贺", "title": "诗鬼", "description": "李贺，字长吉，是唐宗室远支。他自幼才华横溢，却因避父名讳（“晋肃”与“进士”音近）被剥夺了参加进士考试的资格，断绝了主要的仕进之路。后虽以恩荫得官奉礼郎，但位卑职冷，抱负难展。他体弱多病，仕途困顿，生活窘迫，将全部心血倾注于诗歌创作，常骑驴觅句，呕心沥血。其诗多抒写怀才不遇的悲愤、对人生短促的慨叹以及光怪陆离的鬼魅世界，在中唐诗坛独树一帜，年仅二十七岁左右便郁郁而终。", "quote": "庞眉书客感秋蓬，谁知死草生华风。", "shortReview": "庞眉书客感秋蓬，谁知死草生华风。", "dynasty": "唐代（中唐）", "courtesyName": "长吉", "artName": "", "aliases": ["长吉"], "birthplace": "福昌县昌谷（今河南洛阳宜阳县）", "avatar": "", "birth": {"date": "790年", "location": "福昌县昌谷（今河南洛阳宜阳县）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "816年", "location": "昌谷（今河南洛阳宜阳县）或潞州（今山西长治）归途中", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约二十七岁（一说二十八岁）", "highlights": {"honor": "诗鬼", "status": "中唐浪漫主义诗人的代表，以奇崛冷艳、虚幻荒诞的独特诗风独步诗坛，后世称“诗鬼”。", "identities": "诗人", "achievements": "开创“长吉体”诗歌风格；以丰富奇特的想象和瑰丽的语言，创作了大量反映怀才不遇苦闷与对生命哲思的诗篇；与李白、李商隐并称“唐代三李”。代表作品有《雁门太守行》、《李凭箜篌引》、《南园十三首》等。", "works": ["雁门太守行", "李凭箜篌引", "南园十三首"], "reviews": []}}, "locations": [{"name": "昌谷", "ancientName": "福昌县昌谷", "modernName": "河南洛阳宜阳县", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "birth", "event": "出生于唐宗室远支家庭，自幼聪颖，早年在此生活、读书。", "time": "约公元790年", "duration": "童年及青少年时期", "significance": "其诗歌中“昌谷”意象的重要来源，奠定了其早期文化积淀与故土情怀。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "东都洛阳", "modernName": "河南洛阳", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "normal", "event": "以诗文干谒名流，获韩愈赏识。韩愈与皇甫湜曾亲访其居，李贺作《高轩过》名动一时。", "time": "约公元807年及之后数次", "duration": "数次短期停留", "significance": "获得文坛领袖的肯定，声名鹊起，是其走向更广阔天地的关键节点。", "works": ["高轩过"], "quoteLines": ["《高轩过》：“庞眉书客感秋蓬，谁知死草生华风。”"]}, {"name": "长安（求仕）", "ancientName": "京师长安", "modernName": "陕西西安", "lat": 34.1583, "lng": 108.9053, "coordSystem": "WGS84", "type": "normal", "event": "准备参加进士考试，但因父名“晋肃”与“进士”音近，被舆论攻击为避讳不谨，最终被迫放弃考试。", "time": "约公元808年", "duration": "数月", "significance": "人生重大挫折，彻底改变了其仕途轨迹，对其心理与创作产生深远影响。", "works": [], "quoteLines": ["《致酒行》：“我有迷魂招不得，雄鸡一声天下白。”"]}, {"name": "长安（任职）", "ancientName": "京师长安", "modernName": "陕西西安", "lat": 34.1583, "lng": 108.9053, "coordSystem": "WGS84", "type": "normal", "event": "以恩荫得官，任太常寺奉礼郎，从九品上，负责祭祀朝会等琐碎礼仪事务；官职卑微，生活清贫，与友人如沈子明等交游，创作了大量诗歌。", "time": "约公元811年 - 约公元813年", "duration": "约三年", "significance": "亲身感受官场沉沦与理想幻灭，创作进入高峰期，诗风更趋奇崛冷艳。", "works": [], "quoteLines": ["《李凭箜篌引》：“吴丝蜀桐张高秋，空山凝云颓不流。”", "《秋来》：“秋坟鬼唱鲍家诗，恨血千年土中碧。”"]}, {"name": "潞州", "ancientName": "潞州", "modernName": "山西长治", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "因病辞去奉礼郎之职，北上潞州，投奔友人张彻，寄身幕府。", "time": "约公元814年 - 约公元816年", "duration": "约三年", "significance": "试图在藩镇幕府中寻找新的出路，但境遇并未改善，健康状况持续恶化。", "works": [], "quoteLines": ["《酒罢张大彻索赠诗》：“陇西长吉摧颓客，酒阑感觉中区窄。”"]}, {"name": "昌谷（存疑）", "ancientName": "福昌县昌谷", "modernName": "河南洛阳宜阳县", "lat": 34.5167, "lng": 112.1833, "coordSystem": "WGS84", "type": "death", "event": "病逝于家中（一说病逝于潞州归途中）。临终前，将其诗作托付好友沈子明。", "time": "约公元817年", "duration": "生命最后数月", "significance": "天才诗人陨落，其诗作赖友人整理得以传世。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---", "workTexts": {"高轩过": "庞眉书客感秋蓬，谁知死草生华风。", "致酒行": "我有迷魂招不得，雄鸡一声天下白。", "李凭箜篌引": "吴丝蜀桐张高秋，空山凝云颓不流。", "秋来": "秋坟鬼唱鲍家诗，恨血千年土中碧。", "酒罢张大彻索赠诗": "陇西长吉摧颓客，酒阑感觉中区窄。", "雁门太守行": "“黑云压城城欲摧”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 李贺\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李贺\n- **字**：长吉\n- **时代**：唐代（中唐）\n- **出生**：约公元790年（一说791年），福昌县昌谷（今河南洛阳宜阳县）\n- **去世**：约公元816年或817年（存疑），卒于昌谷（今河南洛阳宜阳县）或潞州（今山西长治）归途中（存疑）\n- **享年**：约二十七岁（一说二十八岁）\n- **家世**：唐宗室远支（郑王李亮后裔）\n- **主要身份**：诗人\n- **历史地位**：中唐浪漫主义诗人的代表，以奇崛冷艳、虚幻荒诞的独特诗风独步诗坛，后世称“诗鬼”。\n- **主要成就**：开创“长吉体”诗歌风格；以丰富奇特的想象和瑰丽的语言，创作了大量反映怀才不遇苦闷与对生命哲思的诗篇；与李白、李商隐并称“唐代三李”。代表作品有《雁门太守行》、《李凭箜篌引》、《南园十三首》等。\n\n### 生平概述\n李贺，字长吉，是唐宗室远支。他自幼才华横溢，却因避父名讳（“晋肃”与“进士”音近）被剥夺了参加进士考试的资格，断绝了主要的仕进之路。后虽以恩荫得官奉礼郎，但位卑职冷，抱负难展。他体弱多病，仕途困顿，生活窘迫，将全部心血倾注于诗歌创作，常骑驴觅句，呕心沥血。其诗多抒写怀才不遇的悲愤、对人生短促的慨叹以及光怪陆离的鬼魅世界，在中唐诗坛独树一帜，年仅二十七岁左右便郁郁而终。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要局限于唐两京（长安、洛阳）地区及邻近的河东（今山西南部）潞州等地。\n- ⏱️ **时间跨度**：约公元790年 - 约公元817年，总计约27-28年。\n- 📍 **地理范围**：大致覆盖今河南省中西部、陕西省中部及山西省东南部。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：昌谷\n- **时间**：约公元790年\n- **停留时间**：童年及青少年时期\n- **地点**：福昌县昌谷（今河南洛阳宜阳县）\n- **事件**：出生于唐宗室远支家庭，自幼聪颖，早年在此生活、读书。\n- **意义**：其诗歌中“昌谷”意象的重要来源，奠定了其早期文化积淀与故土情怀。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元807年及之后数次\n- **停留时间**：数次短期停留\n- **地点**：东都洛阳（今河南洛阳）\n- **事件**：以诗文干谒名流，获韩愈赏识。韩愈与皇甫湜曾亲访其居，李贺作《高轩过》名动一时。\n- **意义**：获得文坛领袖的肯定，声名鹊起，是其走向更广阔天地的关键节点。\n- **名篇名句**：《高轩过》：“庞眉书客感秋蓬，谁知死草生华风。”\n\n### 📍 重要地点：长安（求仕）\n- **时间**：约公元808年\n- **停留时间**：数月\n- **地点**：京师长安（今陕西西安）\n- **事件**：准备参加进士考试，但因父名“晋肃”与“进士”音近，被舆论攻击为避讳不谨，最终被迫放弃考试。\n- **意义**：人生重大挫折，彻底改变了其仕途轨迹，对其心理与创作产生深远影响。\n- **名篇名句**：《致酒行》：“我有迷魂招不得，雄鸡一声天下白。”\n\n### 📍 重要地点：长安（任职）\n- **时间**：约公元811年 - 约公元813年\n- **停留时间**：约三年\n- **地点**：京师长安（今陕西西安）\n- **事件**：以恩荫得官，任太常寺奉礼郎，从九品上，负责祭祀朝会等琐碎礼仪事务；官职卑微，生活清贫，与友人如沈子明等交游，创作了大量诗歌。\n- **意义**：亲身感受官场沉沦与理想幻灭，创作进入高峰期，诗风更趋奇崛冷艳。\n- **名篇名句**：《李凭箜篌引》：“吴丝蜀桐张高秋，空山凝云颓不流。”；《秋来》：“秋坟鬼唱鲍家诗，恨血千年土中碧。”\n\n### 📍 重要地点：潞州\n- **时间**：约公元814年 - 约公元816年\n- **停留时间**：约三年\n- **地点**：潞州（今山西长治）\n- **事件**：因病辞去奉礼郎之职，北上潞州，投奔友人张彻，寄身幕府。\n- **意义**：试图在藩镇幕府中寻找新的出路，但境遇并未改善，健康状况持续恶化。\n- **名篇名句**：《酒罢张大彻索赠诗》：“陇西长吉摧颓客，酒阑感觉中区窄。”\n\n### 🔴 去世地：昌谷（存疑）\n- **时间**：约公元817年\n- **停留时间**：生命最后数月\n- **地点**：福昌县昌谷（今河南洛阳宜阳县）（一说卒于潞州，今山西长治）\n- **事件**：病逝于家中（一说病逝于潞州归途中）。临终前，将其诗作托付好友沈子明。\n- **意义**：天才诗人陨落，其诗作赖友人整理得以传世。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约790年 | 1岁 | 生于福昌县昌谷（今河南宜阳）。 |\n| 约807年 | 18岁 | 至洛阳，以《高轩过》获韩愈、皇甫湜赏识，名动京洛。 |\n| 约808年 | 19岁 | 赴长安应进士试，因避父讳被阻，愤而归。 |\n| 约811年 | 22岁 | 以恩荫入仕，任太常寺奉礼郎，居长安。 |\n| 约813年 | 24岁 | 辞去奉礼郎职务，离开长安。 |\n| 约814年 | 25岁 | 北上潞州（今山西长治），投奔友人张彻，寄身幕府。 |\n| 约816年 | 27岁 | 离开潞州南归，途中病重。 |\n| 约817年 | 约27岁 | 病逝于昌谷家中（一说卒于潞州）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《雁门太守行》**、**《李凭箜篌引》**、《南园十三首·其五》（“男儿何不带吴钩”）\n- 核心要点：\n    - **重点**：**《雁门太守行》** 以“黑云压城城欲摧”等浓烈色彩和夸张意象，渲染战争悲壮气氛，体现其**奇崛瑰丽**的风格。\n    - **重点**：**《李凭箜篌引》** 运用大量**神话典故**（如女娲炼石、吴刚倚树）和通感手法，将无形的乐音转化为可见可感的奇幻画面，是描摹音乐的名篇。\n    - **重点**：诗歌善用“鬼”、“泣”、“血”、“死”等**冷艳意象**，营造凄幽诡怪的意境，形成独特的“**长吉体**”。\n    - 诗中常流露**怀才不遇**的悲愤与对**生命短促**的深沉慨叹。\n    - 想象**奇诡**，突破常规逻辑，如“羲和敲日玻璃声”、“石脉水流泉滴沙”等句。\n    - 语言力求**新奇险怪**，锤炼字句，有“笔补造化天无功”的创作追求。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：亲身经历了中唐的**避讳制度**与科举文化，因父名“晋肃”被斥不得举进士，是唐代科举史上著名的**避讳争议**案例。\n    - 作为**唐宗室远支**（郑王李亮后裔），其家世已没落，身份认同影响其诗作中的贵族气质与现实困顿的矛盾。\n    - **重点**：曾任**奉礼郎**，此官职属太常寺，品阶低微（从九品上），负责祭祀礼仪，与其远大抱负形成巨大落差。\n    - 晚年投奔**藩镇幕府**（潞州张彻），反映了中唐士人在中央仕途受阻后，转向地方寻求出路的普遍现象。\n- 核心要点：\n    - **重点**：在文学史上，李贺是**中唐至晚唐诗风转变**的关键人物，上承**楚辞**、李白浪漫主义传统，下启**李商隐**等人的朦胧象征诗风。\n    - **重点**：其“诗鬼”称号，精准概括了其诗歌**虚幻荒诞**、**幽冷凄艳**的美学特质，与李白“诗仙”、杜甫“诗圣”并立。\n    - **重点**：人生悲剧的核心是**理想与现实的极端冲突**：皇族血统的自我期许、惊世才华与卑微官职、病弱身躯、短暂生命之间的不可调和。\n    - 其创作被视为“**苦吟**”的代表，有“呕出心乃已”的传说，体现了唐代诗人将生命体验极致艺术化的倾向。\n    - 后世评价极高，杜牧称其诗为“**骚之苗裔**”，肯定其在浪漫抒情传统中的地位。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省洛阳市宜阳县（昌谷） | 34.5167 | 112.1833 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市长安区（唐长安） | 34.1583 | 108.9053 |\n| 山西省长治市（唐潞州） | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "“庞眉书客感秋蓬，谁知死草生华风。”", "review": "庞眉书客感秋蓬，谁知死草生华风。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南洛阳宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "“庞眉书客感秋蓬，谁知死草生华风。”", "review": "庞眉书客感秋蓬，谁知死草生华风。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南洛阳宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李白", "name": "李白", "file": "李白.html", "dynasty": "唐朝", "aliases": [], "birth_year": 701, "death_year": 762, "quote": "“五岳寻仙不辞远，一生好入名山游”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "今四川省江油市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "“朱门酒肉臭，路有冻死骨。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "“**师者，所以传道受业解惑也**”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "“乞食山僧庙，缝衣歌妓家”", "review": "*清代蒋宝龄《墨林今话》**：“板桥道人……诗词书画皆旷世独立，自成一家。”", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "虞世南", "name": "虞世南", "file": "虞世南.html", "dynasty": "隋", "aliases": ["虞伯施", "虞永兴"], "birth_year": 558, "death_year": 638, "quote": "“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "review": "*唐太宗李世民**：“世南一人，有出世之才，遂兼五绝。一曰忠谠，二曰友悌，三曰博文，四曰词藻，五曰书翰。”", "foreign_name": "", "main_role_label": "书法家", "birthplace": "越州余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "李贺", "target": "李白", "label": "并称", "confidence": 0.55}, {"source": "李贺", "target": "李商隐", "label": "并称", "confidence": 0.55}, {"source": "李贺", "target": "杜甫", "label": "君臣", "confidence": null}, {"source": "李贺", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "李贺", "target": "郑燮", "label": "同册共现", "confidence": 0.15}, {"source": "李贺", "target": "虞世南", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "汤显祖", "title": "临川四梦", "description": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。", "quote": "陛下经营天下二十年于兹矣。", "shortReview": "陛下经营天下二十年于兹矣。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称抚州府临川县（今江西省抚州市临川区）", "avatar": "", "birth": {"date": "1550年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "death": {"date": "1616年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "lifespan": "约66岁（一说67岁）", "highlights": {"honor": "临川四梦", "status": "中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。", "identities": "戏曲家、文学家", "achievements": "创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。", "works": ["论辅臣科臣疏", "牡丹亭", "还魂记", "紫钗记", "南柯记", "邯郸记"], "reviews": []}}, "locations": [{"name": "临川", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，早年即以文才闻名乡里。", "time": "公元1550年", "duration": "青少年时期（约20年）", "significance": "其文化根基与“临川”之名的由来，一生的精神原点。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "南昌府", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "参加乡试中举。", "time": "约1570年", "duration": "短暂游学", "significance": "科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。", "time": "1584年 - 1591年", "duration": "约7年", "significance": "政治生涯的转折点，也是其戏剧思想成熟的重要时期。", "works": ["论辅臣科臣疏"], "quoteLines": ["《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”"]}, {"name": "徐闻", "ancientName": "雷州府徐闻县", "modernName": "广东省湛江市徐闻县", "lat": 20.3265, "lng": 110.1745, "coordSystem": "WGS84", "type": "normal", "event": "因上疏被贬为徐闻典史；建“贵生书院”讲学。", "time": "1591年 - 1593年", "duration": "约2年", "significance": "人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。", "works": [], "quoteLines": []}, {"name": "遂昌", "ancientName": "处州府遂昌县", "modernName": "浙江省丽水市遂昌县", "lat": 28.5924, "lng": 119.2756, "coordSystem": "WGS84", "type": "normal", "event": "任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。", "time": "1593年 - 1598年", "duration": "约5年", "significance": "地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。", "works": [], "quoteLines": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”"]}, {"name": "临川（玉茗堂）", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "normal", "event": "辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "time": "1598年 - 1616年", "duration": "晚年近20年", "significance": "创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。", "works": ["牡丹亭", "南柯记", "邯郸记"], "quoteLines": ["《牡丹亭记题词》：“情不知所起，一往而深。”", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "workTexts": {"论辅臣科臣疏": "陛下经营天下二十年于兹矣。", "惊梦": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "牡丹亭记题词": "情不知所起，一往而深。", "牡丹亭": "| 1598年 | 49岁 | 完成《牡丹亭》。", "南柯记": "| 1600年-1601年 | 51-52岁 | 完成《南柯记》。", "邯郸记": "| 1608年 | 59岁 | 完成《邯郸记》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 汤显祖\n\n## 人物档案\n\n### 基本信息\n- **姓名**：汤显祖\n- **时代**：明代\n- **出生**：公元1550年，古称抚州府临川县（今江西省抚州市临川区）（出生具体日期存疑）\n- **去世**：公元1616年，古称抚州府临川县（今江西省抚州市临川区）（去世具体日期存疑）\n- **享年**：约66岁（一说67岁）\n- **主要身份**：戏曲家、文学家\n- **历史地位**：中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。\n- **主要成就**：创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。\n\n### 生平概述\n汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在江西、南京、浙江、广东等地，核心活动范围在江南。\n- ⏱️ **时间跨度**：公元1550年 - 公元1616年，共66年。\n- 📍 **地理范围**：覆盖今江西、江苏、浙江、广东等省份。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：临川\n- **时间**：公元1550年\n- **停留时间**：青少年时期（约20年）\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：出生于书香门第，早年即以文才闻名乡里。\n- **意义**：其文化根基与“临川”之名的由来，一生的精神原点。\n\n### 📍 重要地点：南昌\n- **时间**：约1570年\n- **停留时间**：短暂游学\n- **地点**：古称南昌府（今江西省南昌市）\n- **事件**：参加乡试中举。\n- **意义**：科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。\n\n### 📍 重要地点：南京\n- **时间**：1584年 - 1591年\n- **停留时间**：约7年\n- **地点**：古称应天府（今江苏省南京市）\n- **事件**：任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。\n- **意义**：政治生涯的转折点，也是其戏剧思想成熟的重要时期。\n- **名篇名句**：《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”\n\n### 📍 重要地点：徐闻\n- **时间**：1591年 - 1593年\n- **停留时间**：约2年\n- **地点**：古称雷州府徐闻县（今广东省湛江市徐闻县）\n- **事件**：因上疏被贬为徐闻典史；建“贵生书院”讲学。\n- **意义**：人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。\n\n### 📍 重要地点：遂昌\n- **时间**：1593年 - 1598年\n- **停留时间**：约5年\n- **地点**：古称处州府遂昌县（今浙江省丽水市遂昌县）\n- **事件**：任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。\n- **意义**：地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。\n- **名篇名句**：《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”\n\n### 🔴 重要创作地：临川（玉茗堂）\n- **时间**：1598年 - 1616年\n- **停留时间**：晚年近20年\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。\n- **意义**：创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。\n- **名篇名句**：《牡丹亭记题词》：“情不知所起，一往而深。”；《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1550年 | 1岁 | 出生于江西临川。 |\n| 1570年 | 21岁 | 于南昌中举。 |\n| 约1577年-1580年 | 28-31岁 | 因拒绝张居正拉拢，数次会试不第（具体年份存异）。 |\n| 1583年 | 34岁 | 张居正死后，中进士。 |\n| 1584年-1591年 | 35-42岁 | 在南京任闲职，上疏批评朝政。 |\n| 1591年 | 42岁 | 被贬广东徐闻典史。 |\n| 1593年 | 44岁 | 调任浙江遂昌知县。 |\n| 1598年 | 49岁 | 辞官归临川。 |\n| 1598年 | 49岁 | 完成《牡丹亭》。 |\n| 1600年-1601年 | 51-52岁 | 完成《南柯记》。 |\n| 1608年 | 59岁 | 完成《邯郸记》。 |\n| 1616年 | 66岁 | 于临川逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省抚州市临川区 | 27.9350 | 116.3583 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 广东省湛江市徐闻县 | 20.3265 | 110.1745 |\n| 浙江省丽水市遂昌县 | 28.5924 | 119.2756 |", "relatedGraph": {"center": {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "aliases": [], "birth_year": 1518, "death_year": 1593, "quote": "“脑为元神之府”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "蕲州", "birthplace_modern": "湖北省黄冈市蕲春县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "“庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张岱", "name": "张岱", "file": "张岱.html", "dynasty": "明", "aliases": [], "birth_year": 1597, "death_year": 1689, "quote": "“雾凇沆砀，天与云与山与水，上下一白。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汤显祖", "target": "笛卡尔", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "李时珍", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "张岱", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "郑成功", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "王阳明", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "汤显祖", "title": "临川四梦", "description": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。", "quote": "陛下经营天下二十年于兹矣。", "shortReview": "陛下经营天下二十年于兹矣。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称抚州府临川县（今江西省抚州市临川区）", "avatar": "", "birth": {"date": "1550年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "death": {"date": "1616年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "lifespan": "约66岁（一说67岁）", "highlights": {"honor": "临川四梦", "status": "中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。", "identities": "戏曲家、文学家", "achievements": "创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。", "works": ["论辅臣科臣疏", "牡丹亭", "还魂记", "紫钗记", "南柯记", "邯郸记"], "reviews": []}}, "locations": [{"name": "临川", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，早年即以文才闻名乡里。", "time": "公元1550年", "duration": "青少年时期（约20年）", "significance": "其文化根基与“临川”之名的由来，一生的精神原点。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "南昌府", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "参加乡试中举。", "time": "约1570年", "duration": "短暂游学", "significance": "科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。", "time": "1584年 - 1591年", "duration": "约7年", "significance": "政治生涯的转折点，也是其戏剧思想成熟的重要时期。", "works": ["论辅臣科臣疏"], "quoteLines": ["《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”"]}, {"name": "徐闻", "ancientName": "雷州府徐闻县", "modernName": "广东省湛江市徐闻县", "lat": 20.3265, "lng": 110.1745, "coordSystem": "WGS84", "type": "normal", "event": "因上疏被贬为徐闻典史；建“贵生书院”讲学。", "time": "1591年 - 1593年", "duration": "约2年", "significance": "人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。", "works": [], "quoteLines": []}, {"name": "遂昌", "ancientName": "处州府遂昌县", "modernName": "浙江省丽水市遂昌县", "lat": 28.5924, "lng": 119.2756, "coordSystem": "WGS84", "type": "normal", "event": "任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。", "time": "1593年 - 1598年", "duration": "约5年", "significance": "地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。", "works": [], "quoteLines": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”"]}, {"name": "临川（玉茗堂）", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "normal", "event": "辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "time": "1598年 - 1616年", "duration": "晚年近20年", "significance": "创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。", "works": ["牡丹亭", "南柯记", "邯郸记"], "quoteLines": ["《牡丹亭记题词》：“情不知所起，一往而深。”", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "workTexts": {"论辅臣科臣疏": "陛下经营天下二十年于兹矣。", "惊梦": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "牡丹亭记题词": "情不知所起，一往而深。", "牡丹亭": "| 1598年 | 49岁 | 完成《牡丹亭》。", "南柯记": "| 1600年-1601年 | 51-52岁 | 完成《南柯记》。", "邯郸记": "| 1608年 | 59岁 | 完成《邯郸记》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 汤显祖\n\n## 人物档案\n\n### 基本信息\n- **姓名**：汤显祖\n- **时代**：明代\n- **出生**：公元1550年，古称抚州府临川县（今江西省抚州市临川区）（出生具体日期存疑）\n- **去世**：公元1616年，古称抚州府临川县（今江西省抚州市临川区）（去世具体日期存疑）\n- **享年**：约66岁（一说67岁）\n- **主要身份**：戏曲家、文学家\n- **历史地位**：中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。\n- **主要成就**：创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。\n\n### 生平概述\n汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在江西、南京、浙江、广东等地，核心活动范围在江南。\n- ⏱️ **时间跨度**：公元1550年 - 公元1616年，共66年。\n- 📍 **地理范围**：覆盖今江西、江苏、浙江、广东等省份。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：临川\n- **时间**：公元1550年\n- **停留时间**：青少年时期（约20年）\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：出生于书香门第，早年即以文才闻名乡里。\n- **意义**：其文化根基与“临川”之名的由来，一生的精神原点。\n\n### 📍 重要地点：南昌\n- **时间**：约1570年\n- **停留时间**：短暂游学\n- **地点**：古称南昌府（今江西省南昌市）\n- **事件**：参加乡试中举。\n- **意义**：科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。\n\n### 📍 重要地点：南京\n- **时间**：1584年 - 1591年\n- **停留时间**：约7年\n- **地点**：古称应天府（今江苏省南京市）\n- **事件**：任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。\n- **意义**：政治生涯的转折点，也是其戏剧思想成熟的重要时期。\n- **名篇名句**：《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”\n\n### 📍 重要地点：徐闻\n- **时间**：1591年 - 1593年\n- **停留时间**：约2年\n- **地点**：古称雷州府徐闻县（今广东省湛江市徐闻县）\n- **事件**：因上疏被贬为徐闻典史；建“贵生书院”讲学。\n- **意义**：人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。\n\n### 📍 重要地点：遂昌\n- **时间**：1593年 - 1598年\n- **停留时间**：约5年\n- **地点**：古称处州府遂昌县（今浙江省丽水市遂昌县）\n- **事件**：任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。\n- **意义**：地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。\n- **名篇名句**：《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”\n\n### 🔴 重要创作地：临川（玉茗堂）\n- **时间**：1598年 - 1616年\n- **停留时间**：晚年近20年\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。\n- **意义**：创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。\n- **名篇名句**：《牡丹亭记题词》：“情不知所起，一往而深。”；《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1550年 | 1岁 | 出生于江西临川。 |\n| 1570年 | 21岁 | 于南昌中举。 |\n| 约1577年-1580年 | 28-31岁 | 因拒绝张居正拉拢，数次会试不第（具体年份存异）。 |\n| 1583年 | 34岁 | 张居正死后，中进士。 |\n| 1584年-1591年 | 35-42岁 | 在南京任闲职，上疏批评朝政。 |\n| 1591年 | 42岁 | 被贬广东徐闻典史。 |\n| 1593年 | 44岁 | 调任浙江遂昌知县。 |\n| 1598年 | 49岁 | 辞官归临川。 |\n| 1598年 | 49岁 | 完成《牡丹亭》。 |\n| 1600年-1601年 | 51-52岁 | 完成《南柯记》。 |\n| 1608年 | 59岁 | 完成《邯郸记》。 |\n| 1616年 | 66岁 | 于临川逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省抚州市临川区 | 27.9350 | 116.3583 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 广东省湛江市徐闻县 | 20.3265 | 110.1745 |\n| 浙江省丽水市遂昌县 | 28.5924 | 119.2756 |", "relatedGraph": {"center": {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "“陛下经营天下二十年于兹矣。”", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "aliases": [], "birth_year": 1518, "death_year": 1593, "quote": "“脑为元神之府”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "蕲州", "birthplace_modern": "湖北省黄冈市蕲春县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "“庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张岱", "name": "张岱", "file": "张岱.html", "dynasty": "明", "aliases": [], "birth_year": 1597, "death_year": 1689, "quote": "“雾凇沆砀，天与云与山与水，上下一白。”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "“天门何崔嵬，下见青云浮。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汤显祖", "target": "笛卡尔", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "李时珍", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "张岱", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "郑成功", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "王阳明", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

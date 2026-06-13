@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "陈延年", "title": "", "description": "陈延年出生于清末一个知识分子家庭，是陈独秀长子。他成长于国家危难、社会剧变的时代，早年受到新思想影响。1920年初赴法勤工俭学，在实践中接受了马克思主义，成为坚定的共产主义战士。1924年回国后，他先后在广东、上海等地担任党的重要领导职务，深入工农群众，发展党的组织，领导革命斗争。他作风朴实，立场坚定，被誉为“开疆辟土的拖拉机”。1927年，蒋介石发动反革命政变后，陈延年在上海被捕，面对酷刑坚贞不屈，最终英勇牺牲，用生命践行了对革命事业的忠诚。", "quote": "革命者只能站着死，绝不跪下生", "shortReview": "革命者只能站着死，绝不跪下生", "dynasty": "清末至民国（中国近代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "安徽省安庆府怀宁县（今安徽省安庆市）", "avatar": "", "birth": {"date": "1898年", "location": "安徽省安庆府怀宁县（今安徽省安庆市）", "lat": 30.5333, "lng": 117.05, "coordSystem": "WGS84"}, "death": {"date": "1927年", "location": "上海龙华（今上海市徐汇区龙华烈士陵园）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84"}, "lifespan": "29岁", "highlights": {"honor": "", "status": "中国共产党早期杰出的无产阶级革命家，为党的建设和革命事业做出了重要贡献，是革命英烈的典范。", "identities": "革命家、政治活动家、中国共产党早期领导人", "achievements": "参与创建旅欧中国少年共产党；领导广东区委工作，推动工农运动；参与领导省港大罢工；在上海坚持地下斗争，英勇就义。", "works": [], "reviews": ["毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "周恩来对陈延年的工作能力和革命精神给予高度评价，称其“广东的党团结得很好，党内生活也搞得好，延年在这方面的贡献是很大的”。", "董必武曾说：“延年是党内不可多得的政治家。”"]}}, "locations": [{"name": "安徽省安庆府怀宁县", "ancientName": "安徽省安庆府怀宁县", "modernName": "安徽省安庆市", "lat": 30.5333, "lng": 117.05, "coordSystem": "WGS84", "type": "birth", "event": "在此出生并度过童年，接受传统启蒙教育，后进入新式学堂。", "time": "1898年", "duration": "童年及少年早期（约至1915年）", "significance": "人生起点，家庭环境为其奠定了最初的文化基础和爱国思想萌芽。", "works": [], "quoteLines": []}, {"name": "上海（震旦大学等）", "ancientName": "上海（震旦大学等）", "modernName": "上海法租界（主要位于今上海市黄浦区、徐汇区一带）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "进入震旦大学学习法语，与弟弟陈乔年一起半工半读，生活清苦，接触并信仰无政府主义等新思潮。", "time": "1915年—1919年", "duration": "约4年", "significance": "开阔眼界，接受现代教育和新思想洗礼，为赴法留学打下语言和思想基础。", "works": [], "quoteLines": []}, {"name": "法国巴黎", "ancientName": "法国巴黎", "modernName": "法国巴黎及里昂等地", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "勤工俭学，深入工厂体验工人生活；参与组织“勤工俭学学会”；与赵世炎、周恩来等建立“旅欧中国少年共产党”（后改称旅欧中国共产主义青年团），并担任宣传部长；1922年加入法国共产党，后转入中国共产党；彻底转向马克思主义。", "time": "1920年—1923年", "duration": "约3年", "significance": "思想发生根本性转变，从无政府主义者成长为坚定的共产主义者；参与创建党的早期海外组织，积累了革命活动经验。", "works": [], "quoteLines": []}, {"name": "广东广州", "ancientName": "广东省广州市", "modernName": "广州市越秀区", "lat": 23.1291, "lng": 113.2644, "coordSystem": "WGS84", "type": "normal", "event": "回国后任社会主义青年团中央驻粤特派员；后任中共广东区委书记（相当于省委书记）；领导广东地区的工农运动，参与领导省港大罢工；大力发展党的组织，使广东区委成为当时全国党员人数最多、组织最严密的地方组织之一。", "time": "1924年—1927年初", "duration": "约3年", "significance": "革命生涯的高峰期，在此全面施展领导才能，将广东建设成为大革命的重要基地，其工作受到党中央高度评价。", "works": [], "quoteLines": ["无个人文学作品存世，但其革命实践和言论体现了“革命者只能站着死，绝不跪下生”的坚定信念。"]}, {"name": "湖北武汉", "ancientName": "湖北武汉", "modernName": "湖北省武汉市（主要活动区域位于今武汉市武昌区、江岸区一带）", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "作为中共五大代表赴武汉参加会议，当选为中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海），但因上海形势险恶，暂留武汉工作。", "time": "1927年4月—5月", "duration": "约1个月", "significance": "在党的最高领导机关担任职务，参与决定大革命紧急关头的方针策略。", "works": [], "quoteLines": []}, {"name": "上海龙华", "ancientName": "上海龙华", "modernName": "上海市徐汇区龙华烈士陵园", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "death", "event": "1927年6月，陈延年在上海被捕。他自称是受雇的炊事员，身份未暴露。但因叛徒出卖，身份暴露。面对酷刑，他坚贞不屈，未泄露党的任何机密。1927年7月4日，被国民党当局押赴刑场，刽子手喝令他跪下，他高声回应：“革命者光明磊落、视死如归，只有站着死，决不跪下！”最后被敌人乱刀残忍杀害，壮烈牺牲。", "time": "1927年6月—7月", "duration": "约一个月（被捕后关押至牺牲）", "significance": "生命的终点，也是其革命气节和崇高精神的永恒丰碑。他的牺牲激励了无数后来者。", "works": [], "quoteLines": ["就义时高呼：“革命者光明磊落、视死如归，只有站着死，决不跪下！”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈延年\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈延年（又名遐延）\n- **时代**：清末至民国（中国近代）\n- **出生**：1898年，安徽省安庆府怀宁县（今安徽省安庆市）\n- **去世**：1927年，上海龙华（今上海市徐汇区龙华烈士陵园）\n- **享年**：29岁\n- **主要身份**：革命家、政治活动家、中国共产党早期领导人\n- **历史地位**：中国共产党早期杰出的无产阶级革命家，为党的建设和革命事业做出了重要贡献，是革命英烈的典范。\n- **主要成就**：参与创建旅欧中国少年共产党；领导广东区委工作，推动工农运动；参与领导省港大罢工；在上海坚持地下斗争，英勇就义。\n\n### 生平概述\n陈延年出生于清末一个知识分子家庭，是陈独秀长子。他成长于国家危难、社会剧变的时代，早年受到新思想影响。1920年初赴法勤工俭学，在实践中接受了马克思主义，成为坚定的共产主义战士。1924年回国后，他先后在广东、上海等地担任党的重要领导职务，深入工农群众，发展党的组织，领导革命斗争。他作风朴实，立场坚定，被誉为“开疆辟土的拖拉机”。1927年，蒋介石发动反革命政变后，陈延年在上海被捕，面对酷刑坚贞不屈，最终英勇牺牲，用生命践行了对革命事业的忠诚。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从安徽安庆出发，求学上海，远赴法国，归国后辗转广东、湖北、上海等地从事革命活动。\n- ⏱️ **时间跨度**：1898年—1927年，共29年。\n- 📍 **地理范围**：主要覆盖中国安徽、上海、广东、湖北及法国巴黎等地。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：安徽省安庆府怀宁县\n- **公元纪年**：1898年\n- **停留时间**：童年及少年早期（约至1915年）\n- **位置**：安徽省安庆府怀宁县（今安徽省安庆市）\n- **事迹**：在此出生并度过童年，接受传统启蒙教育，后进入新式学堂。\n- **意义**：人生起点，家庭环境为其奠定了最初的文化基础和爱国思想萌芽。\n\n### 📍 重要地点：上海（震旦大学等）\n- **公元纪年**：1915年—1919年\n- **停留时间**：约4年\n- **位置**：上海法租界（主要位于今上海市黄浦区、徐汇区一带）\n- **事迹**：进入震旦大学学习法语，与弟弟陈乔年一起半工半读，生活清苦，接触并信仰无政府主义等新思潮。\n- **意义**：开阔眼界，接受现代教育和新思想洗礼，为赴法留学打下语言和思想基础。\n\n### 📍 重要地点：法国巴黎\n- **公元纪年**：1920年—1923年\n- **停留时间**：约3年\n- **位置**：法国巴黎及里昂等地\n- **事迹**：勤工俭学，深入工厂体验工人生活；参与组织“勤工俭学学会”；与赵世炎、周恩来等建立“旅欧中国少年共产党”（后改称旅欧中国共产主义青年团），并担任宣传部长；1922年加入法国共产党，后转入中国共产党；彻底转向马克思主义。\n- **意义**：思想发生根本性转变，从无政府主义者成长为坚定的共产主义者；参与创建党的早期海外组织，积累了革命活动经验。\n\n### 📍 重要地点：广东广州\n- **公元纪年**：1924年—1927年初\n- **停留时间**：约3年\n- **位置**：广东省广州市（今广州市越秀区）\n- **事迹**：回国后任社会主义青年团中央驻粤特派员；后任中共广东区委书记（相当于省委书记）；领导广东地区的工农运动，参与领导省港大罢工；大力发展党的组织，使广东区委成为当时全国党员人数最多、组织最严密的地方组织之一。\n- **意义**：革命生涯的高峰期，在此全面施展领导才能，将广东建设成为大革命的重要基地，其工作受到党中央高度评价。\n- **名篇名句**：无个人文学作品存世，但其革命实践和言论体现了“革命者只能站着死，绝不跪下生”的坚定信念。\n\n### 📍 重要地点：湖北武汉\n- **公元纪年**：1927年4月—5月\n- **停留时间**：约1个月\n- **位置**：湖北省武汉市（主要活动区域位于今武汉市武昌区、江岸区一带）\n- **事迹**：作为中共五大代表赴武汉参加会议，当选为中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海），但因上海形势险恶，暂留武汉工作。\n- **意义**：在党的最高领导机关担任职务，参与决定大革命紧急关头的方针策略。\n\n### 🔴 去世地：上海龙华\n- **公元纪年**：1927年6月—7月\n- **停留时间**：约一个月（被捕后关押至牺牲）\n- **位置**：上海龙华（今上海市徐汇区龙华烈士陵园）\n- **经过**：1927年6月，陈延年在上海被捕。他自称是受雇的炊事员，身份未暴露。但因叛徒出卖，身份暴露。面对酷刑，他坚贞不屈，未泄露党的任何机密。1927年7月4日，被国民党当局押赴刑场，刽子手喝令他跪下，他高声回应：“革命者光明磊落、视死如归，只有站着死，决不跪下！”最后被敌人乱刀残忍杀害，壮烈牺牲。\n- **意义**：生命的终点，也是其革命气节和崇高精神的永恒丰碑。他的牺牲激励了无数后来者。\n- **名篇名句**：就义时高呼：“革命者光明磊落、视死如归，只有站着死，决不跪下！”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1898 | 0 | 出生于安徽省安庆府怀宁县。 |\n| 1915 | 17 | 离开家乡，赴上海求学，先后就读于法语补习学校、震旦大学。 |\n| 1919 | 21 | 参加五四运动；年底赴法国勤工俭学。 |\n| 1922 | 24 | 与赵世炎、周恩来等在巴黎发起成立“旅欧中国少年共产党”，任宣传部长；同年加入法国共产党，后转入中国共产党。 |\n| 1923 | 25 | 赴莫斯科东方大学学习（存疑/说法不一）。 |\n| 1924 | 26 | 回国，被派往广东工作，历任社会主义青年团中央驻粤特派员、中共广东区委秘书、组织部长、区委书记等职。 |\n| 1925 | 27 | 领导广东区委全力支持省港大罢工，发展广东工农运动。 |\n| 1927 | 29 | 4月，赴武汉参加中共五大，当选中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海）；6月在上海被捕；7月4日于上海龙华英勇就义。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈延年是大革命时期中国共产党在南方最重要的地方领导人之一。他领导的广东区委成功组织了广泛的工农群众运动，极大地巩固了广东革命根据地，为北伐战争提供了坚实的后方支持。他在上海牺牲时正值大革命失败后的白色恐怖时期，其坚贞不屈的英雄事迹，极大地鼓舞了处于低潮期的共产党人和革命群众的斗志。\n\n### 对后世的影响\n1.  **革命精神的象征**：陈延年“站着死”的英勇形象，成为共产党人坚守信仰、不怕牺牲的革命气节的永恒象征，被后世广泛传颂和学习。\n2.  **青年楷模**：作为早期青年革命家的杰出代表，他的人生选择和奋斗历程，激励着一代又一代中国青年投身于国家和民族的解放与发展事业。\n3.  **党史重要人物**：作为陈独秀之子，其独立奋斗、坚定信仰并最终为理想献身的经历，是中国共产党早期历史中一个独特而感人的篇章，丰富了党史研究的内涵。\n\n### 历史评价\n1.  毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。\n2.  周恩来对陈延年的工作能力和革命精神给予高度评价，称其“广东的党团结得很好，党内生活也搞得好，延年在这方面的贡献是很大的”。\n3.  董必武曾说：“延年是党内不可多得的政治家。”\n4.  后世史家普遍认为，陈延年是中国共产党早期卓越的组织者和实干家，其牺牲是党和革命事业的重大损失。\n\n---\n\n## 六、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**大革命时期**（1924-1927），国共第一次合作。\n- **关键事件**：**旅欧中国少年共产党**的创建者之一；担任**中共广东区委书记**；领导**省港大罢工**；1927年在上海被捕牺牲。\n- **代表作品/思想**：无文学作品，其思想核心是**坚定的共产主义信仰**和**深入工农群众**的工作作风。\n- **常见易混点/对比点**：与父亲**陈独秀**（中共早期主要领导人，后犯右倾机会主义错误）的**关系与区别**；与弟弟**陈乔年**（同为革命烈士）的并称与共同经历。\n\n### 高中阶段\n- **时代背景**：**中国共产党创建初期**与**国民革命**；**马克思主义在中国的传播**与早期组织建设。\n- **关键事件**：从**无政府主义者**到**马克思主义者**的转变；参与**中共旅欧支部**的建立；在广东的**党组织建设**与**工农运动实践**；在**四一二反革命政变**后的白色恐怖中坚持斗争并牺牲。\n- **代表作品/思想**：其革命实践体现了早期共产党人**理论联系实际**、**密切联系群众**的优良作风。\n- **常见易混点/对比点**：**旅欧中国少年共产党**与国内**中国社会主义青年团**的关系；**中共广东区委**在大革命时期的特殊地位与贡献；**陈延年、赵世炎、周恩来**等在旅欧时期的革命活动。\n\n---\n\n## 七、初高中阶段考点\n\n### 初中阶段\n- 陈延年是**中国共产党早期领导人**之一，**陈独秀**的长子。\n- 他早年赴**法国勤工俭学**，在法国参与建立了**旅欧中国少年共产党**。\n- 回国后，他担任**中共广东区委书记**，领导了广东地区的革命斗争，支持了**省港大罢工**。\n- **1927年**，他在**上海**被国民党逮捕，英勇就义，展现了共产党人**视死如归**的革命精神。\n- （存疑/说法不一）其早年思想经历，部分教材可能简略提及他曾受无政府主义影响。\n\n### 高中阶段\n- 陈延年的思想转变历程是**马克思主义在中国早期传播**和**中国先进知识分子选择救国道路**的典型案例。\n- 他领导的**中共广东区委**是当时全国规模最大、工作最出色的地方党组织之一，为**巩固广东革命根据地**和支援**北伐战争**做出了重要贡献。\n- 他的牺牲是**大革命失败**和**国民党右派叛变革命**后，共产党人遭受残酷迫害的标志性事件之一。\n- 其革命实践体现了中国共产党早期**注重在工人和农民中发展组织、开展运动**的群众路线特点。\n- （存疑/说法不一）关于其在党内具体职务的称谓和权限范围，不同史料记载略有差异，但“广东区委主要领导人”的定位是明确的。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 安庆 | 安徽省安庆市 | 30.5333 | 117.0500 |\n| 上海 | 上海市黄浦区、徐汇区 | 31.2304 | 121.4737 |\n| 巴黎 | 法国巴黎 | 48.8566 | 2.3522 |\n| 广州 | 广东省广州市越秀区 | 23.1291 | 113.2644 |\n| 武汉 | 湖北省武汉市武昌区、江岸区 | 30.5928 | 114.3055 |\n| 龙华 | 上海市徐汇区龙华烈士陵园 | 31.1750 | 121.4450 |", "relatedGraph": {"center": {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "“开疆辟土的拖拉机”", "review": "毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "“开疆辟土的拖拉机”", "review": "毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "", "aliases": ["陈庆同", "陈乾生"], "birth_year": null, "death_year": null, "quote": "“五四运动的总司令”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "安徽安庆怀宁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "周恩来", "name": "周恩来", "file": "周恩来.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1898, "death_year": 1976, "quote": "“为中华之崛起而读书”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "淮安府山阳县", "birthplace_modern": "江苏省淮安市淮安区", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "“问苍茫大地，谁主沉浮？”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "瞿秋白", "name": "瞿秋白", "file": "瞿秋白.html", "dynasty": "现代", "aliases": [], "birth_year": 1899, "death_year": 1935, "quote": "“我总想为大家辟一条光明的路。”", "review": "中国共产党官方评价：“瞿秋白同志是中国共产党早期的主要领导人之一，伟大的马克思主义者，卓越的无产阶级革命家、理论家和宣传家，中国的革命文学事业的奠基者之一。”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "江苏常州", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "“冰天雪地、弹尽粮绝”", "review": "*毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈延年", "target": "陈独秀", "label": "君臣", "confidence": null}, {"source": "陈延年", "target": "周恩来", "label": "君臣", "confidence": null}, {"source": "陈延年", "target": "毛泽东", "label": "宗亲", "confidence": null}, {"source": "陈延年", "target": "瞿秋白", "label": "同朝共现", "confidence": 0.25}, {"source": "陈延年", "target": "杨靖宇", "label": "同朝共现", "confidence": 0.25}, {"source": "陈延年", "target": "黑格尔", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "陈延年", "title": "", "description": "陈延年出生于清末一个知识分子家庭，是陈独秀长子。他成长于国家危难、社会剧变的时代，早年受到新思想影响。1920年初赴法勤工俭学，在实践中接受了马克思主义，成为坚定的共产主义战士。1924年回国后，他先后在广东、上海等地担任党的重要领导职务，深入工农群众，发展党的组织，领导革命斗争。他作风朴实，立场坚定，被誉为“开疆辟土的拖拉机”。1927年，蒋介石发动反革命政变后，陈延年在上海被捕，面对酷刑坚贞不屈，最终英勇牺牲，用生命践行了对革命事业的忠诚。", "quote": "革命者只能站着死，绝不跪下生", "shortReview": "革命者只能站着死，绝不跪下生", "dynasty": "清末至民国（中国近代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "安徽省安庆府怀宁县（今安徽省安庆市）", "avatar": "", "birth": {"date": "1898年", "location": "安徽省安庆府怀宁县（今安徽省安庆市）", "lat": 30.5333, "lng": 117.05, "coordSystem": "WGS84"}, "death": {"date": "1927年", "location": "上海龙华（今上海市徐汇区龙华烈士陵园）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84"}, "lifespan": "29岁", "highlights": {"honor": "", "status": "中国共产党早期杰出的无产阶级革命家，为党的建设和革命事业做出了重要贡献，是革命英烈的典范。", "identities": "革命家、政治活动家、中国共产党早期领导人", "achievements": "参与创建旅欧中国少年共产党；领导广东区委工作，推动工农运动；参与领导省港大罢工；在上海坚持地下斗争，英勇就义。", "works": [], "reviews": ["毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "周恩来对陈延年的工作能力和革命精神给予高度评价，称其“广东的党团结得很好，党内生活也搞得好，延年在这方面的贡献是很大的”。", "董必武曾说：“延年是党内不可多得的政治家。”"]}}, "locations": [{"name": "安徽省安庆府怀宁县", "ancientName": "安徽省安庆府怀宁县", "modernName": "安徽省安庆市", "lat": 30.5333, "lng": 117.05, "coordSystem": "WGS84", "type": "birth", "event": "在此出生并度过童年，接受传统启蒙教育，后进入新式学堂。", "time": "1898年", "duration": "童年及少年早期（约至1915年）", "significance": "人生起点，家庭环境为其奠定了最初的文化基础和爱国思想萌芽。", "works": [], "quoteLines": []}, {"name": "上海（震旦大学等）", "ancientName": "上海（震旦大学等）", "modernName": "上海法租界（主要位于今上海市黄浦区、徐汇区一带）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "进入震旦大学学习法语，与弟弟陈乔年一起半工半读，生活清苦，接触并信仰无政府主义等新思潮。", "time": "1915年—1919年", "duration": "约4年", "significance": "开阔眼界，接受现代教育和新思想洗礼，为赴法留学打下语言和思想基础。", "works": [], "quoteLines": []}, {"name": "法国巴黎", "ancientName": "法国巴黎", "modernName": "法国巴黎及里昂等地", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "勤工俭学，深入工厂体验工人生活；参与组织“勤工俭学学会”；与赵世炎、周恩来等建立“旅欧中国少年共产党”（后改称旅欧中国共产主义青年团），并担任宣传部长；1922年加入法国共产党，后转入中国共产党；彻底转向马克思主义。", "time": "1920年—1923年", "duration": "约3年", "significance": "思想发生根本性转变，从无政府主义者成长为坚定的共产主义者；参与创建党的早期海外组织，积累了革命活动经验。", "works": [], "quoteLines": []}, {"name": "广东广州", "ancientName": "广东省广州市", "modernName": "广州市越秀区", "lat": 23.1291, "lng": 113.2644, "coordSystem": "WGS84", "type": "normal", "event": "回国后任社会主义青年团中央驻粤特派员；后任中共广东区委书记（相当于省委书记）；领导广东地区的工农运动，参与领导省港大罢工；大力发展党的组织，使广东区委成为当时全国党员人数最多、组织最严密的地方组织之一。", "time": "1924年—1927年初", "duration": "约3年", "significance": "革命生涯的高峰期，在此全面施展领导才能，将广东建设成为大革命的重要基地，其工作受到党中央高度评价。", "works": [], "quoteLines": ["无个人文学作品存世，但其革命实践和言论体现了“革命者只能站着死，绝不跪下生”的坚定信念。"]}, {"name": "湖北武汉", "ancientName": "湖北武汉", "modernName": "湖北省武汉市（主要活动区域位于今武汉市武昌区、江岸区一带）", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "作为中共五大代表赴武汉参加会议，当选为中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海），但因上海形势险恶，暂留武汉工作。", "time": "1927年4月—5月", "duration": "约1个月", "significance": "在党的最高领导机关担任职务，参与决定大革命紧急关头的方针策略。", "works": [], "quoteLines": []}, {"name": "上海龙华", "ancientName": "上海龙华", "modernName": "上海市徐汇区龙华烈士陵园", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "death", "event": "1927年6月，陈延年在上海被捕。他自称是受雇的炊事员，身份未暴露。但因叛徒出卖，身份暴露。面对酷刑，他坚贞不屈，未泄露党的任何机密。1927年7月4日，被国民党当局押赴刑场，刽子手喝令他跪下，他高声回应：“革命者光明磊落、视死如归，只有站着死，决不跪下！”最后被敌人乱刀残忍杀害，壮烈牺牲。", "time": "1927年6月—7月", "duration": "约一个月（被捕后关押至牺牲）", "significance": "生命的终点，也是其革命气节和崇高精神的永恒丰碑。他的牺牲激励了无数后来者。", "works": [], "quoteLines": ["就义时高呼：“革命者光明磊落、视死如归，只有站着死，决不跪下！”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陈延年\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：陈延年（又名遐延）\n- **时代**：清末至民国（中国近代）\n- **出生**：1898年，安徽省安庆府怀宁县（今安徽省安庆市）\n- **去世**：1927年，上海龙华（今上海市徐汇区龙华烈士陵园）\n- **享年**：29岁\n- **主要身份**：革命家、政治活动家、中国共产党早期领导人\n- **历史地位**：中国共产党早期杰出的无产阶级革命家，为党的建设和革命事业做出了重要贡献，是革命英烈的典范。\n- **主要成就**：参与创建旅欧中国少年共产党；领导广东区委工作，推动工农运动；参与领导省港大罢工；在上海坚持地下斗争，英勇就义。\n\n### 生平概述\n陈延年出生于清末一个知识分子家庭，是陈独秀长子。他成长于国家危难、社会剧变的时代，早年受到新思想影响。1920年初赴法勤工俭学，在实践中接受了马克思主义，成为坚定的共产主义战士。1924年回国后，他先后在广东、上海等地担任党的重要领导职务，深入工农群众，发展党的组织，领导革命斗争。他作风朴实，立场坚定，被誉为“开疆辟土的拖拉机”。1927年，蒋介石发动反革命政变后，陈延年在上海被捕，面对酷刑坚贞不屈，最终英勇牺牲，用生命践行了对革命事业的忠诚。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从安徽安庆出发，求学上海，远赴法国，归国后辗转广东、湖北、上海等地从事革命活动。\n- ⏱️ **时间跨度**：1898年—1927年，共29年。\n- 📍 **地理范围**：主要覆盖中国安徽、上海、广东、湖北及法国巴黎等地。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：安徽省安庆府怀宁县\n- **公元纪年**：1898年\n- **停留时间**：童年及少年早期（约至1915年）\n- **位置**：安徽省安庆府怀宁县（今安徽省安庆市）\n- **事迹**：在此出生并度过童年，接受传统启蒙教育，后进入新式学堂。\n- **意义**：人生起点，家庭环境为其奠定了最初的文化基础和爱国思想萌芽。\n\n### 📍 重要地点：上海（震旦大学等）\n- **公元纪年**：1915年—1919年\n- **停留时间**：约4年\n- **位置**：上海法租界（主要位于今上海市黄浦区、徐汇区一带）\n- **事迹**：进入震旦大学学习法语，与弟弟陈乔年一起半工半读，生活清苦，接触并信仰无政府主义等新思潮。\n- **意义**：开阔眼界，接受现代教育和新思想洗礼，为赴法留学打下语言和思想基础。\n\n### 📍 重要地点：法国巴黎\n- **公元纪年**：1920年—1923年\n- **停留时间**：约3年\n- **位置**：法国巴黎及里昂等地\n- **事迹**：勤工俭学，深入工厂体验工人生活；参与组织“勤工俭学学会”；与赵世炎、周恩来等建立“旅欧中国少年共产党”（后改称旅欧中国共产主义青年团），并担任宣传部长；1922年加入法国共产党，后转入中国共产党；彻底转向马克思主义。\n- **意义**：思想发生根本性转变，从无政府主义者成长为坚定的共产主义者；参与创建党的早期海外组织，积累了革命活动经验。\n\n### 📍 重要地点：广东广州\n- **公元纪年**：1924年—1927年初\n- **停留时间**：约3年\n- **位置**：广东省广州市（今广州市越秀区）\n- **事迹**：回国后任社会主义青年团中央驻粤特派员；后任中共广东区委书记（相当于省委书记）；领导广东地区的工农运动，参与领导省港大罢工；大力发展党的组织，使广东区委成为当时全国党员人数最多、组织最严密的地方组织之一。\n- **意义**：革命生涯的高峰期，在此全面施展领导才能，将广东建设成为大革命的重要基地，其工作受到党中央高度评价。\n- **名篇名句**：无个人文学作品存世，但其革命实践和言论体现了“革命者只能站着死，绝不跪下生”的坚定信念。\n\n### 📍 重要地点：湖北武汉\n- **公元纪年**：1927年4月—5月\n- **停留时间**：约1个月\n- **位置**：湖北省武汉市（主要活动区域位于今武汉市武昌区、江岸区一带）\n- **事迹**：作为中共五大代表赴武汉参加会议，当选为中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海），但因上海形势险恶，暂留武汉工作。\n- **意义**：在党的最高领导机关担任职务，参与决定大革命紧急关头的方针策略。\n\n### 🔴 去世地：上海龙华\n- **公元纪年**：1927年6月—7月\n- **停留时间**：约一个月（被捕后关押至牺牲）\n- **位置**：上海龙华（今上海市徐汇区龙华烈士陵园）\n- **经过**：1927年6月，陈延年在上海被捕。他自称是受雇的炊事员，身份未暴露。但因叛徒出卖，身份暴露。面对酷刑，他坚贞不屈，未泄露党的任何机密。1927年7月4日，被国民党当局押赴刑场，刽子手喝令他跪下，他高声回应：“革命者光明磊落、视死如归，只有站着死，决不跪下！”最后被敌人乱刀残忍杀害，壮烈牺牲。\n- **意义**：生命的终点，也是其革命气节和崇高精神的永恒丰碑。他的牺牲激励了无数后来者。\n- **名篇名句**：就义时高呼：“革命者光明磊落、视死如归，只有站着死，决不跪下！”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1898 | 0 | 出生于安徽省安庆府怀宁县。 |\n| 1915 | 17 | 离开家乡，赴上海求学，先后就读于法语补习学校、震旦大学。 |\n| 1919 | 21 | 参加五四运动；年底赴法国勤工俭学。 |\n| 1922 | 24 | 与赵世炎、周恩来等在巴黎发起成立“旅欧中国少年共产党”，任宣传部长；同年加入法国共产党，后转入中国共产党。 |\n| 1923 | 25 | 赴莫斯科东方大学学习（存疑/说法不一）。 |\n| 1924 | 26 | 回国，被派往广东工作，历任社会主义青年团中央驻粤特派员、中共广东区委秘书、组织部长、区委书记等职。 |\n| 1925 | 27 | 领导广东区委全力支持省港大罢工，发展广东工农运动。 |\n| 1927 | 29 | 4月，赴武汉参加中共五大，当选中央委员、中央政治局候补委员；会后被任命为中共江苏省委书记（驻上海）；6月在上海被捕；7月4日于上海龙华英勇就义。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n陈延年是大革命时期中国共产党在南方最重要的地方领导人之一。他领导的广东区委成功组织了广泛的工农群众运动，极大地巩固了广东革命根据地，为北伐战争提供了坚实的后方支持。他在上海牺牲时正值大革命失败后的白色恐怖时期，其坚贞不屈的英雄事迹，极大地鼓舞了处于低潮期的共产党人和革命群众的斗志。\n\n### 对后世的影响\n1.  **革命精神的象征**：陈延年“站着死”的英勇形象，成为共产党人坚守信仰、不怕牺牲的革命气节的永恒象征，被后世广泛传颂和学习。\n2.  **青年楷模**：作为早期青年革命家的杰出代表，他的人生选择和奋斗历程，激励着一代又一代中国青年投身于国家和民族的解放与发展事业。\n3.  **党史重要人物**：作为陈独秀之子，其独立奋斗、坚定信仰并最终为理想献身的经历，是中国共产党早期历史中一个独特而感人的篇章，丰富了党史研究的内涵。\n\n### 历史评价\n1.  毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。\n2.  周恩来对陈延年的工作能力和革命精神给予高度评价，称其“广东的党团结得很好，党内生活也搞得好，延年在这方面的贡献是很大的”。\n3.  董必武曾说：“延年是党内不可多得的政治家。”\n4.  后世史家普遍认为，陈延年是中国共产党早期卓越的组织者和实干家，其牺牲是党和革命事业的重大损失。\n\n---\n\n## 六、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**大革命时期**（1924-1927），国共第一次合作。\n- **关键事件**：**旅欧中国少年共产党**的创建者之一；担任**中共广东区委书记**；领导**省港大罢工**；1927年在上海被捕牺牲。\n- **代表作品/思想**：无文学作品，其思想核心是**坚定的共产主义信仰**和**深入工农群众**的工作作风。\n- **常见易混点/对比点**：与父亲**陈独秀**（中共早期主要领导人，后犯右倾机会主义错误）的**关系与区别**；与弟弟**陈乔年**（同为革命烈士）的并称与共同经历。\n\n### 高中阶段\n- **时代背景**：**中国共产党创建初期**与**国民革命**；**马克思主义在中国的传播**与早期组织建设。\n- **关键事件**：从**无政府主义者**到**马克思主义者**的转变；参与**中共旅欧支部**的建立；在广东的**党组织建设**与**工农运动实践**；在**四一二反革命政变**后的白色恐怖中坚持斗争并牺牲。\n- **代表作品/思想**：其革命实践体现了早期共产党人**理论联系实际**、**密切联系群众**的优良作风。\n- **常见易混点/对比点**：**旅欧中国少年共产党**与国内**中国社会主义青年团**的关系；**中共广东区委**在大革命时期的特殊地位与贡献；**陈延年、赵世炎、周恩来**等在旅欧时期的革命活动。\n\n---\n\n## 七、初高中阶段考点\n\n### 初中阶段\n- 陈延年是**中国共产党早期领导人**之一，**陈独秀**的长子。\n- 他早年赴**法国勤工俭学**，在法国参与建立了**旅欧中国少年共产党**。\n- 回国后，他担任**中共广东区委书记**，领导了广东地区的革命斗争，支持了**省港大罢工**。\n- **1927年**，他在**上海**被国民党逮捕，英勇就义，展现了共产党人**视死如归**的革命精神。\n- （存疑/说法不一）其早年思想经历，部分教材可能简略提及他曾受无政府主义影响。\n\n### 高中阶段\n- 陈延年的思想转变历程是**马克思主义在中国早期传播**和**中国先进知识分子选择救国道路**的典型案例。\n- 他领导的**中共广东区委**是当时全国规模最大、工作最出色的地方党组织之一，为**巩固广东革命根据地**和支援**北伐战争**做出了重要贡献。\n- 他的牺牲是**大革命失败**和**国民党右派叛变革命**后，共产党人遭受残酷迫害的标志性事件之一。\n- 其革命实践体现了中国共产党早期**注重在工人和农民中发展组织、开展运动**的群众路线特点。\n- （存疑/说法不一）关于其在党内具体职务的称谓和权限范围，不同史料记载略有差异，但“广东区委主要领导人”的定位是明确的。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 安庆 | 安徽省安庆市 | 30.5333 | 117.0500 |\n| 上海 | 上海市黄浦区、徐汇区 | 31.2304 | 121.4737 |\n| 巴黎 | 法国巴黎 | 48.8566 | 2.3522 |\n| 广州 | 广东省广州市越秀区 | 23.1291 | 113.2644 |\n| 武汉 | 湖北省武汉市武昌区、江岸区 | 30.5928 | 114.3055 |\n| 龙华 | 上海市徐汇区龙华烈士陵园 | 31.1750 | 121.4450 |", "relatedGraph": {"center": {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "“开疆辟土的拖拉机”", "review": "毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "“开疆辟土的拖拉机”", "review": "毛泽东曾称赞陈延年是“党内不可多得的人才”，并评价其“的确是党的好儿子”。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "", "aliases": ["陈庆同", "陈乾生"], "birth_year": null, "death_year": null, "quote": "“五四运动的总司令”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "安徽安庆怀宁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "周恩来", "name": "周恩来", "file": "周恩来.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1898, "death_year": 1976, "quote": "“为中华之崛起而读书”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "淮安府山阳县", "birthplace_modern": "江苏省淮安市淮安区", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "“问苍茫大地，谁主沉浮？”", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "瞿秋白", "name": "瞿秋白", "file": "瞿秋白.html", "dynasty": "现代", "aliases": [], "birth_year": 1899, "death_year": 1935, "quote": "“我总想为大家辟一条光明的路。”", "review": "中国共产党官方评价：“瞿秋白同志是中国共产党早期的主要领导人之一，伟大的马克思主义者，卓越的无产阶级革命家、理论家和宣传家，中国的革命文学事业的奠基者之一。”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "江苏常州", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "“冰天雪地、弹尽粮绝”", "review": "*毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "清", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "“马背上的世界精神”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陈延年", "target": "陈独秀", "label": "君臣", "confidence": null}, {"source": "陈延年", "target": "周恩来", "label": "君臣", "confidence": null}, {"source": "陈延年", "target": "毛泽东", "label": "宗亲", "confidence": null}, {"source": "陈延年", "target": "瞿秋白", "label": "同朝共现", "confidence": 0.25}, {"source": "陈延年", "target": "杨靖宇", "label": "同朝共现", "confidence": 0.25}, {"source": "陈延年", "target": "黑格尔", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

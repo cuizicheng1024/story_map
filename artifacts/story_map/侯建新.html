@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "侯建新", "title": "", "description": "侯建新，1951年生于天津。他于1978年进入南开大学历史系学习，此后长期在南开大学历史学院从事教学与研究工作，专注于欧洲中世纪史、经济社会史及中西历史比较。他通过扎实的史料分析和理论创新，系统探讨了西欧资本主义的起源与社会转型机制，其学术观点在国内外学界产生了广泛影响。作为教育家，他培养了大批世界史人才，并通过教材编写与学术活动，积极推动了中国世界史学科的发展与国际对话。", "quote": "《资本主义起源新论》", "shortReview": "《资本主义起源新论》", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "天津市", "avatar": "", "birth": {"date": "1951年", "location": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84"}, "death": {"date": "", "location": "世", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "在世", "highlights": {"honor": "", "status": "中国世界史领域，特别是欧洲经济社会史与中世纪史研究的领军学者之一。", "identities": "历史学家、教育家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "天津", "ancientName": "天津", "modernName": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长。", "time": "1951年", "duration": "青少年时期", "significance": "人生起点，接受早期教育，形成基本的世界观。", "works": [], "quoteLines": []}, {"name": "南开大学", "ancientName": "南开大学", "modernName": "天津市南开区", "lat": 39.1038, "lng": 117.1645, "coordSystem": "WGS84", "type": "normal", "event": "1978年进入南开大学历史系学习，后获得硕士、博士学位并留校任教，历任讲师、教授、博士生导师；曾任历史学院院长、世界史系主任。（注：具体获得学位及留校年份，公开资料未详载。）", "time": "1978年-至今（求学及工作）", "duration": "长期", "significance": "学术生涯的核心基地，在此完成主要学术积累、人才培养与著作撰写。", "works": [], "quoteLines": ["《资本主义起源新论》", "《现代化第一基石：农民个人力量与中世纪晚期社会变迁》"]}, {"name": "北京（学术会议与交流）", "ancientName": "北京（学术会议与交流）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加中国世界史学界的重要学术会议、项目评审与学科建设活动。", "time": "1980年代-至今", "duration": "多次短期", "significance": "与国内顶尖学者交流，参与制定学科发展方向，提升学术影响力。", "works": [], "quoteLines": []}, {"name": "德国柏林（学术交流）", "ancientName": "德国柏林（学术交流）", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "与德国同行进行学术交流，考察欧洲大陆历史。", "time": "1990年代-2000年代", "duration": "多次短期访问", "significance": "比较研究英、德等国不同的现代化路径，丰富其“社会转型”理论。", "works": [], "quoteLines": []}, {"name": "法国巴黎（档案研究）", "ancientName": "法国巴黎（档案研究）", "modernName": "法国巴黎", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "查阅法国相关历史档案与研究成果。", "time": "2000年代", "duration": "短期研究", "significance": "为中西历史比较，特别是农民与农村社会研究收集材料。", "works": [], "quoteLines": []}, {"name": "华东师范大学", "ancientName": "华东师范大学", "modernName": "上海市", "lat": 31.2333, "lng": 121.4065, "coordSystem": "WGS84", "type": "normal", "event": "参与世界史学科的学术活动与研究生培养交流。", "time": "2010年代", "duration": "短期讲学/会议", "significance": "促进南北学术互动，推动全国世界史研究的均衡发展。", "works": [], "quoteLines": []}, {"name": "英国剑桥大学", "ancientName": "英国剑桥大学", "modernName": "英国剑桥", "lat": 52.2053, "lng": 0.1218, "coordSystem": "WGS84", "type": "normal", "event": "进行学术访问与研究，接触西方经济社会史前沿理论与档案。", "time": "具体年份公开资料未详载", "duration": "访问学者", "significance": "深化对英国农业史、财产权利演变的理解，拓宽国际学术视野。", "works": [], "quoteLines": []}, {"name": "中国人民大学", "ancientName": "中国人民大学", "modernName": "北京市海淀区", "lat": 39.9706, "lng": 116.3184, "coordSystem": "WGS84", "type": "normal", "event": "受邀进行学术讲座或参加高端论坛。", "time": "具体年份公开资料未详载", "duration": "短期讲学/会议", "significance": "在更广泛的学术平台上传播其史学思想，与不同学科背景学者对话。", "works": [], "quoteLines": []}, {"name": "天津", "ancientName": "天津", "modernName": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84", "type": "normal", "event": "持续进行学术研究、指导博士生、著书立说。", "time": "长期至今", "duration": "长期", "significance": "学术生涯的归宿与持续贡献之地，其学术思想与影响力在此不断深化与传播。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---", "examPoints": "### 考点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---", "workTexts": {"资本主义起源新论": "| 2000年代 | 50余岁 | 出版《资本主义起源新论》等重要著作", "世界史": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 侯建新\n\n## 人物档案\n\n### 基本信息\n- **姓名**：侯建新\n- **时代**：当代\n- **出生**：1951年生于天津市\n- **去世**：在世\n- **享年**：在世\n- **主要身份**：历史学家、教育家\n- **历史地位**：中国世界史领域，特别是欧洲经济社会史与中世纪史研究的领军学者之一。\n- **主要成就**：\n    - 倡导并深化“社会转型”研究视角，深化对西欧从封建社会向资本主义社会过渡的理解。\n    - 主编多部有影响力的高校世界史教材，推动学科建设与教学改革。\n    - 在农民学、财产权利史等领域取得重要研究成果，促进中西历史比较研究。\n\n### 生平概述\n侯建新，1951年生于天津。他于1978年进入南开大学历史系学习，此后长期在南开大学历史学院从事教学与研究工作，专注于欧洲中世纪史、经济社会史及中西历史比较。他通过扎实的史料分析和理论创新，系统探讨了西欧资本主义的起源与社会转型机制，其学术观点在国内外学界产生了广泛影响。作为教育家，他培养了大批世界史人才，并通过教材编写与学术活动，积极推动了中国世界史学科的发展与国际对话。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国天津、北京为中心，学术足迹遍及欧洲主要国家。\n- ⏱️ **时间跨度**：1951年至今，跨越70余年。\n- 📍 **地理范围**：中国华北地区，以及英国、德国、法国等欧洲国家。\n- 🌟 **重要节点数量**：核心地点8个（天津、南开大学、北京、英国剑桥大学、德国柏林、法国巴黎、中国人民大学、华东师范大学）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：天津\n- **时间**：1951年\n- **停留时间**：青少年时期\n- **地点**：天津市\n- **事件**：出生并成长。\n- **意义**：人生起点，接受早期教育，形成基本的世界观。\n\n### 📍 重要地点：南开大学\n- **时间**：1978年-至今（求学及工作）\n- **停留时间**：长期\n- **地点**：天津市南开区\n- **事件**：1978年进入南开大学历史系学习，后获得硕士、博士学位并留校任教，历任讲师、教授、博士生导师；曾任历史学院院长、世界史系主任。（注：具体获得学位及留校年份，公开资料未详载。）\n- **意义**：学术生涯的核心基地，在此完成主要学术积累、人才培养与著作撰写。\n- **名篇名句**：《资本主义起源新论》；《现代化第一基石：农民个人力量与中世纪晚期社会变迁》\n\n### 📍 重要地点：北京（学术会议与交流）\n- **时间**：1980年代-至今\n- **停留时间**：多次短期\n- **地点**：北京市\n- **事件**：参加中国世界史学界的重要学术会议、项目评审与学科建设活动。\n- **意义**：与国内顶尖学者交流，参与制定学科发展方向，提升学术影响力。\n\n### 📍 重要地点：英国剑桥大学\n- **时间**：具体年份公开资料未详载\n- **停留时间**：访问学者\n- **地点**：英国剑桥\n- **事件**：进行学术访问与研究，接触西方经济社会史前沿理论与档案。\n- **意义**：深化对英国农业史、财产权利演变的理解，拓宽国际学术视野。\n\n### 📍 重要地点：德国柏林（学术交流）\n- **时间**：1990年代-2000年代\n- **停留时间**：多次短期访问\n- **地点**：德国柏林\n- **事件**：与德国同行进行学术交流，考察欧洲大陆历史。\n- **意义**：比较研究英、德等国不同的现代化路径，丰富其“社会转型”理论。\n\n### 📍 重要地点：法国巴黎（档案研究）\n- **时间**：2000年代\n- **停留时间**：短期研究\n- **地点**：法国巴黎\n- **事件**：查阅法国相关历史档案与研究成果。\n- **意义**：为中西历史比较，特别是农民与农村社会研究收集材料。\n\n### 📍 重要地点：中国人民大学\n- **时间**：具体年份公开资料未详载\n- **停留时间**：短期讲学/会议\n- **地点**：北京市海淀区\n- **事件**：受邀进行学术讲座或参加高端论坛。\n- **意义**：在更广泛的学术平台上传播其史学思想，与不同学科背景学者对话。\n\n### 📍 重要地点：华东师范大学\n- **时间**：2010年代\n- **停留时间**：短期讲学/会议\n- **地点**：上海市\n- **事件**：参与世界史学科的学术活动与研究生培养交流。\n- **意义**：促进南北学术互动，推动全国世界史研究的均衡发展。\n\n### 🔴 现居地/工作地：天津\n- **时间**：长期至今\n- **停留时间**：长期\n- **地点**：天津市\n- **事件**：持续进行学术研究、指导博士生、著书立说。\n- **意义**：学术生涯的归宿与持续贡献之地，其学术思想与影响力在此不断深化与传播。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1951 | 0 | 出生于天津。 |\n| 1978 | 27 | 进入南开大学历史系学习，开启学术生涯。 |\n| 1980年代 | 30余岁 | 获得硕士学位并留校任教（具体年份公开资料未详载）。 |\n| 1990年代 | 40余岁 | 获得博士学位（具体年份公开资料未详载）；赴英国剑桥大学等机构访学（具体年份公开资料未详载），研究视野国际化。 |\n| 2000年代 | 50余岁 | 出版《资本主义起源新论》等重要著作；频繁参与国际学术交流。 |\n| 2000年代-2010年代 | 50-60余岁 | 担任南开大学历史学院院长等行政职务，推动学科建设。 |\n| 2010年代至今 | 60余岁至今 | 持续从事研究与教学，担任重要学术职务，培养新一代学者。 |\n\n---\n\n## 人教版教材知识点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 天津市 | 39.0842 | 117.2009 |\n| 天津市南开区 | 39.1038 | 117.1645 |\n| 北京市 | 39.9042 | 116.4074 |\n| 剑桥大学（英国） | 52.2053 | 0.1218 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 巴黎（法国） | 48.8566 | 2.3522 |\n| 中国人民大学（北京） | 39.9706 | 116.3184 |\n| 华东师范大学（上海） | 31.2333 | 121.4065 |", "relatedGraph": {"center": {"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "“**社会转型**”", "review": "《资本主义起源新论》", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "“**社会转型**”", "review": "《资本主义起源新论》", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "许斌", "name": "许斌", "file": "许斌.html", "dynasty": "存疑/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "--", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/待考", "birthplace_modern": "", "domain_tags": ["存疑", "待考"], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德·金", "name": "马丁·路德·金", "file": "马丁·路德·金.html", "dynasty": "20世纪美国", "aliases": [], "birth_year": 1929, "death_year": 1968, "quote": "“向华盛顿进军”", "review": "", "foreign_name": "", "main_role_label": "民权运动领袖", "birthplace": "亚特兰大", "birthplace_modern": "美国佐治亚州亚特兰大", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "侯建新", "target": "齐世荣", "label": "同朝共现", "confidence": 0.25}, {"source": "侯建新", "target": "许斌", "label": "同册共现", "confidence": 0.15}, {"source": "侯建新", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "侯建新", "target": "黄继光", "label": "相关人物", "confidence": null}, {"source": "侯建新", "target": "黄大年", "label": "相关人物", "confidence": null}, {"source": "侯建新", "target": "马丁·路德·金", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "侯建新", "title": "", "description": "侯建新，1951年生于天津。他于1978年进入南开大学历史系学习，此后长期在南开大学历史学院从事教学与研究工作，专注于欧洲中世纪史、经济社会史及中西历史比较。他通过扎实的史料分析和理论创新，系统探讨了西欧资本主义的起源与社会转型机制，其学术观点在国内外学界产生了广泛影响。作为教育家，他培养了大批世界史人才，并通过教材编写与学术活动，积极推动了中国世界史学科的发展与国际对话。", "quote": "《资本主义起源新论》", "shortReview": "《资本主义起源新论》", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "天津市", "avatar": "", "birth": {"date": "1951年", "location": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84"}, "death": {"date": "", "location": "世", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "在世", "highlights": {"honor": "", "status": "中国世界史领域，特别是欧洲经济社会史与中世纪史研究的领军学者之一。", "identities": "历史学家、教育家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "天津", "ancientName": "天津", "modernName": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长。", "time": "1951年", "duration": "青少年时期", "significance": "人生起点，接受早期教育，形成基本的世界观。", "works": [], "quoteLines": []}, {"name": "南开大学", "ancientName": "南开大学", "modernName": "天津市南开区", "lat": 39.1038, "lng": 117.1645, "coordSystem": "WGS84", "type": "normal", "event": "1978年进入南开大学历史系学习，后获得硕士、博士学位并留校任教，历任讲师、教授、博士生导师；曾任历史学院院长、世界史系主任。（注：具体获得学位及留校年份，公开资料未详载。）", "time": "1978年-至今（求学及工作）", "duration": "长期", "significance": "学术生涯的核心基地，在此完成主要学术积累、人才培养与著作撰写。", "works": [], "quoteLines": ["《资本主义起源新论》", "《现代化第一基石：农民个人力量与中世纪晚期社会变迁》"]}, {"name": "北京（学术会议与交流）", "ancientName": "北京（学术会议与交流）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加中国世界史学界的重要学术会议、项目评审与学科建设活动。", "time": "1980年代-至今", "duration": "多次短期", "significance": "与国内顶尖学者交流，参与制定学科发展方向，提升学术影响力。", "works": [], "quoteLines": []}, {"name": "德国柏林（学术交流）", "ancientName": "德国柏林（学术交流）", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "与德国同行进行学术交流，考察欧洲大陆历史。", "time": "1990年代-2000年代", "duration": "多次短期访问", "significance": "比较研究英、德等国不同的现代化路径，丰富其“社会转型”理论。", "works": [], "quoteLines": []}, {"name": "法国巴黎（档案研究）", "ancientName": "法国巴黎（档案研究）", "modernName": "法国巴黎", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "查阅法国相关历史档案与研究成果。", "time": "2000年代", "duration": "短期研究", "significance": "为中西历史比较，特别是农民与农村社会研究收集材料。", "works": [], "quoteLines": []}, {"name": "华东师范大学", "ancientName": "华东师范大学", "modernName": "上海市", "lat": 31.2333, "lng": 121.4065, "coordSystem": "WGS84", "type": "normal", "event": "参与世界史学科的学术活动与研究生培养交流。", "time": "2010年代", "duration": "短期讲学/会议", "significance": "促进南北学术互动，推动全国世界史研究的均衡发展。", "works": [], "quoteLines": []}, {"name": "英国剑桥大学", "ancientName": "英国剑桥大学", "modernName": "英国剑桥", "lat": 52.2053, "lng": 0.1218, "coordSystem": "WGS84", "type": "normal", "event": "进行学术访问与研究，接触西方经济社会史前沿理论与档案。", "time": "具体年份公开资料未详载", "duration": "访问学者", "significance": "深化对英国农业史、财产权利演变的理解，拓宽国际学术视野。", "works": [], "quoteLines": []}, {"name": "中国人民大学", "ancientName": "中国人民大学", "modernName": "北京市海淀区", "lat": 39.9706, "lng": 116.3184, "coordSystem": "WGS84", "type": "normal", "event": "受邀进行学术讲座或参加高端论坛。", "time": "具体年份公开资料未详载", "duration": "短期讲学/会议", "significance": "在更广泛的学术平台上传播其史学思想，与不同学科背景学者对话。", "works": [], "quoteLines": []}, {"name": "天津", "ancientName": "天津", "modernName": "天津市", "lat": 39.0842, "lng": 117.2009, "coordSystem": "WGS84", "type": "normal", "event": "持续进行学术研究、指导博士生、著书立说。", "time": "长期至今", "duration": "长期", "significance": "学术生涯的归宿与持续贡献之地，其学术思想与影响力在此不断深化与传播。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---", "examPoints": "### 考点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---", "workTexts": {"资本主义起源新论": "| 2000年代 | 50余岁 | 出版《资本主义起源新论》等重要著作", "世界史": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 侯建新\n\n## 人物档案\n\n### 基本信息\n- **姓名**：侯建新\n- **时代**：当代\n- **出生**：1951年生于天津市\n- **去世**：在世\n- **享年**：在世\n- **主要身份**：历史学家、教育家\n- **历史地位**：中国世界史领域，特别是欧洲经济社会史与中世纪史研究的领军学者之一。\n- **主要成就**：\n    - 倡导并深化“社会转型”研究视角，深化对西欧从封建社会向资本主义社会过渡的理解。\n    - 主编多部有影响力的高校世界史教材，推动学科建设与教学改革。\n    - 在农民学、财产权利史等领域取得重要研究成果，促进中西历史比较研究。\n\n### 生平概述\n侯建新，1951年生于天津。他于1978年进入南开大学历史系学习，此后长期在南开大学历史学院从事教学与研究工作，专注于欧洲中世纪史、经济社会史及中西历史比较。他通过扎实的史料分析和理论创新，系统探讨了西欧资本主义的起源与社会转型机制，其学术观点在国内外学界产生了广泛影响。作为教育家，他培养了大批世界史人才，并通过教材编写与学术活动，积极推动了中国世界史学科的发展与国际对话。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国天津、北京为中心，学术足迹遍及欧洲主要国家。\n- ⏱️ **时间跨度**：1951年至今，跨越70余年。\n- 📍 **地理范围**：中国华北地区，以及英国、德国、法国等欧洲国家。\n- 🌟 **重要节点数量**：核心地点8个（天津、南开大学、北京、英国剑桥大学、德国柏林、法国巴黎、中国人民大学、华东师范大学）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：天津\n- **时间**：1951年\n- **停留时间**：青少年时期\n- **地点**：天津市\n- **事件**：出生并成长。\n- **意义**：人生起点，接受早期教育，形成基本的世界观。\n\n### 📍 重要地点：南开大学\n- **时间**：1978年-至今（求学及工作）\n- **停留时间**：长期\n- **地点**：天津市南开区\n- **事件**：1978年进入南开大学历史系学习，后获得硕士、博士学位并留校任教，历任讲师、教授、博士生导师；曾任历史学院院长、世界史系主任。（注：具体获得学位及留校年份，公开资料未详载。）\n- **意义**：学术生涯的核心基地，在此完成主要学术积累、人才培养与著作撰写。\n- **名篇名句**：《资本主义起源新论》；《现代化第一基石：农民个人力量与中世纪晚期社会变迁》\n\n### 📍 重要地点：北京（学术会议与交流）\n- **时间**：1980年代-至今\n- **停留时间**：多次短期\n- **地点**：北京市\n- **事件**：参加中国世界史学界的重要学术会议、项目评审与学科建设活动。\n- **意义**：与国内顶尖学者交流，参与制定学科发展方向，提升学术影响力。\n\n### 📍 重要地点：英国剑桥大学\n- **时间**：具体年份公开资料未详载\n- **停留时间**：访问学者\n- **地点**：英国剑桥\n- **事件**：进行学术访问与研究，接触西方经济社会史前沿理论与档案。\n- **意义**：深化对英国农业史、财产权利演变的理解，拓宽国际学术视野。\n\n### 📍 重要地点：德国柏林（学术交流）\n- **时间**：1990年代-2000年代\n- **停留时间**：多次短期访问\n- **地点**：德国柏林\n- **事件**：与德国同行进行学术交流，考察欧洲大陆历史。\n- **意义**：比较研究英、德等国不同的现代化路径，丰富其“社会转型”理论。\n\n### 📍 重要地点：法国巴黎（档案研究）\n- **时间**：2000年代\n- **停留时间**：短期研究\n- **地点**：法国巴黎\n- **事件**：查阅法国相关历史档案与研究成果。\n- **意义**：为中西历史比较，特别是农民与农村社会研究收集材料。\n\n### 📍 重要地点：中国人民大学\n- **时间**：具体年份公开资料未详载\n- **停留时间**：短期讲学/会议\n- **地点**：北京市海淀区\n- **事件**：受邀进行学术讲座或参加高端论坛。\n- **意义**：在更广泛的学术平台上传播其史学思想，与不同学科背景学者对话。\n\n### 📍 重要地点：华东师范大学\n- **时间**：2010年代\n- **停留时间**：短期讲学/会议\n- **地点**：上海市\n- **事件**：参与世界史学科的学术活动与研究生培养交流。\n- **意义**：促进南北学术互动，推动全国世界史研究的均衡发展。\n\n### 🔴 现居地/工作地：天津\n- **时间**：长期至今\n- **停留时间**：长期\n- **地点**：天津市\n- **事件**：持续进行学术研究、指导博士生、著书立说。\n- **意义**：学术生涯的归宿与持续贡献之地，其学术思想与影响力在此不断深化与传播。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1951 | 0 | 出生于天津。 |\n| 1978 | 27 | 进入南开大学历史系学习，开启学术生涯。 |\n| 1980年代 | 30余岁 | 获得硕士学位并留校任教（具体年份公开资料未详载）。 |\n| 1990年代 | 40余岁 | 获得博士学位（具体年份公开资料未详载）；赴英国剑桥大学等机构访学（具体年份公开资料未详载），研究视野国际化。 |\n| 2000年代 | 50余岁 | 出版《资本主义起源新论》等重要著作；频繁参与国际学术交流。 |\n| 2000年代-2010年代 | 50-60余岁 | 担任南开大学历史学院院长等行政职务，推动学科建设。 |\n| 2010年代至今 | 60余岁至今 | 持续从事研究与教学，担任重要学术职务，培养新一代学者。 |\n\n---\n\n## 人教版教材知识点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：侯建新作为当代历史学家，其作品未直接选入语文教材。但其学术思想中关于**社会转型**、**个人财产权利**、**农民力量**等论述，为理解相关历史题材的文学作品（如描写中世纪或近代社会变迁的小说）提供了深刻的历史背景与理论视角。\n- 核心要点：\n    - **重点**：其研究强调**经济社会史**视角，有助于理解文学作品中人物行为背后的经济驱动与社会结构制约。\n    - **重点**：关于**西欧资本主义起源**的论述，为分析近代题材文学作品中的时代矛盾与人物命运提供了宏观历史框架。\n    - **重点**：对**中世纪农民**生活与法律地位的研究，能深化对相关历史小说中乡村社会描写真实性的认识。\n    - 其“**社会转型**”理论，可用于解读文学中传统与现代冲突的主题。\n    - 对**财产权利**演变的分析，有助于理解文学作品中关于土地、遗产等纠纷的深层社会意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为中国**欧洲经济社会史**研究的重要代表学者，其学术活动本身是当代中国世界史学科发展的关键史实。\n    - **重点**：系统提出并论证了**个人财产权利**与**农民个体发展**是西欧社会转型的“第一基石”这一核心观点。\n    - 主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。\n    - 长期担任**南开大学**历史学科带头人，培养了大批世界史专业人才。\n- 核心要点：\n    - **重点**：其学术定位是连接中国传统史学与西方**经济社会史**、**农民学**研究的桥梁人物。\n    - **重点**：在**资本主义起源**这一重大历史理论问题上，提供了区别于“贸易根源说”和“阶级斗争说”的**新解释路径**。\n    - 其研究体现了中国学者在世界史领域从学习介绍到**自主创新**的转变。\n    - **重点**：通过扎实的**中西历史比较**研究，推动了中国学界对世界历史发展多样性的认识。\n    - 其学术生涯与改革开放后中国**人文社会科学**的重建与发展历程同步。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 天津市 | 39.0842 | 117.2009 |\n| 天津市南开区 | 39.1038 | 117.1645 |\n| 北京市 | 39.9042 | 116.4074 |\n| 剑桥大学（英国） | 52.2053 | 0.1218 |\n| 柏林（德国） | 52.5200 | 13.4050 |\n| 巴黎（法国） | 48.8566 | 2.3522 |\n| 中国人民大学（北京） | 39.9706 | 116.3184 |\n| 华东师范大学（上海） | 31.2333 | 121.4065 |", "relatedGraph": {"center": {"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "“**社会转型**”", "review": "《资本主义起源新论》", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "“**社会转型**”", "review": "《资本主义起源新论》", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "许斌", "name": "许斌", "file": "许斌.html", "dynasty": "存疑/待考", "aliases": [], "birth_year": null, "death_year": null, "quote": "--", "review": "-", "foreign_name": "", "main_role_label": "其他", "birthplace": "存疑/待考", "birthplace_modern": "", "domain_tags": ["存疑", "待考"], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德·金", "name": "马丁·路德·金", "file": "马丁·路德·金.html", "dynasty": "20世纪美国", "aliases": [], "birth_year": 1929, "death_year": 1968, "quote": "“向华盛顿进军”", "review": "", "foreign_name": "", "main_role_label": "民权运动领袖", "birthplace": "亚特兰大", "birthplace_modern": "美国佐治亚州亚特兰大", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "侯建新", "target": "齐世荣", "label": "同朝共现", "confidence": 0.25}, {"source": "侯建新", "target": "许斌", "label": "同册共现", "confidence": 0.15}, {"source": "侯建新", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "侯建新", "target": "黄继光", "label": "相关人物", "confidence": null}, {"source": "侯建新", "target": "黄大年", "label": "相关人物", "confidence": null}, {"source": "侯建新", "target": "马丁·路德·金", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "李治", "title": "", "description": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "shortReview": "上以慰先帝之灵，下以释苍生之愤。", "dynasty": "唐朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "628年", "location": "长安（今陕西省西安市）", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84"}, "death": {"date": "683年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "56岁（虚岁）", "highlights": {"honor": "", "status": "唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。", "identities": "皇帝", "achievements": "承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "birth", "event": "作为唐太宗李世民与长孙皇后的幼子出生于太极宫。", "time": "公元628年", "duration": "少年时期", "significance": "皇子身份，为其后被立为太子并继承大统提供了血统基础。", "works": [], "quoteLines": []}, {"name": "并州（晋王封地）", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。", "time": "公元631年 - 643年（名义封地期间）", "duration": "李治受封后并未就藩，一直居于长安。", "significance": "晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。", "works": [], "quoteLines": []}, {"name": "长安太极宫（登基为帝）", "ancientName": "长安太极宫", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "normal", "event": "贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。", "time": "公元649年", "duration": "即位初期常居于此", "significance": "正式成为唐朝第三位皇帝，开启“永徽之治”。", "works": [], "quoteLines": []}, {"name": "洛阳宫（二圣临朝）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。", "time": "公元657年起频繁往来", "duration": "断续居住，后期常驻", "significance": "政治中心东移，武则天权力巩固的关键地点。", "works": [], "quoteLines": []}, {"name": "嵩山（祭祀中岳）", "ancientName": "嵩山", "modernName": "河南省登封市", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。", "time": "公元666年", "duration": "祭祀期间", "significance": "彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。", "works": [], "quoteLines": []}, {"name": "奉天宫（病重）", "ancientName": "奉天宫（位于嵩山南麓，", "modernName": "河南省登封市）", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。", "time": "公元682年 - 683年", "duration": "约一年", "significance": "高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。", "works": [], "quoteLines": []}, {"name": "翠微宫（病笃）", "ancientName": "翠微宫", "modernName": "陕西省西安市长安区", "lat": 34.01, "lng": 108.85, "coordSystem": "WGS84", "type": "normal", "event": "弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。", "time": "公元683年末", "duration": "临终前", "significance": "高宗去世前的最后停留地之一。", "works": [], "quoteLines": []}, {"name": "洛阳贞观殿", "ancientName": "洛阳贞观殿", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。", "time": "公元683年12月27日", "duration": "临终", "significance": "一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "workTexts": {"平高句丽诏": "上以慰先帝之灵，下以释苍生之愤。", "新唐书·高句丽传": "“灭高句丽”", "新唐书": "“灭高句丽”", "高句丽传": "“灭高句丽”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 唐高宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李治\n- **时代**：唐朝\n- **出生**：公元628年，长安（今陕西省西安市）\n- **去世**：公元683年，洛阳（今河南省洛阳市）\n- **享年**：56岁（虚岁）\n- **主要身份**：皇帝\n- **历史地位**：唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。\n- **主要成就**：承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。\n\n### 生平概述\n唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以两京（长安、洛阳）为核心，足迹涉及并州（太原）、辽东战场及关中行宫。\n- ⏱️ **时间跨度**：公元628年 - 公元683年，共56年。\n- 📍 **地理范围**：唐朝核心统治区域，主要在今陕西、河南、山西及朝鲜半岛。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **时间**：公元628年\n- **停留时间**：少年时期\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐太宗李世民与长孙皇后的幼子出生于太极宫。\n- **意义**：皇子身份，为其后被立为太子并继承大统提供了血统基础。\n\n### 📍 重要地点：并州（晋王封地）\n- **时间**：公元631年 - 643年（名义封地期间）\n- **停留时间**：李治受封后并未就藩，一直居于长安。\n- **地点**：并州（今山西省太原市）\n- **事件**：贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。\n- **意义**：晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。\n\n### 📍 重要地点：长安太极宫（登基为帝）\n- **时间**：公元649年\n- **停留时间**：即位初期常居于此\n- **地点**：长安太极宫（今陕西省西安市）\n- **事件**：贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。\n- **意义**：正式成为唐朝第三位皇帝，开启“永徽之治”。\n\n### 📍 重要地点：洛阳宫（二圣临朝）\n- **时间**：公元657年起频繁往来\n- **停留时间**：断续居住，后期常驻\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。\n- **意义**：政治中心东移，武则天权力巩固的关键地点。\n\n### 📍 重要地点：辽东（征高句丽）\n- **时间**：公元668年（战役决胜年）\n- **停留时间**：高宗未亲征，此为其决策指挥的战役。\n- **地点**：辽东地区及朝鲜半岛北部（今中国辽宁省东部及朝鲜民主主义人民共和国平壤市）\n- **事件**：总章元年（668年），唐军在李勣率领下攻破平壤，灭亡高句丽。此战是其在位期间完成的最重要军事成就之一。\n- **意义**：完成了隋唐两代帝王未竟之业，唐朝版图扩张至朝鲜半岛。\n- **名篇名句**：《平高句丽诏》：“上以慰先帝之灵，下以释苍生之愤。”\n\n### 📍 重要地点：九成宫（避暑理政）\n- **时间**：多次前往，如公元659年、665年\n- **停留时间**：每次数月\n- **地点**：九成宫（今陕西省宝鸡市麟游县）\n- **事件**：高宗多次赴九成宫避暑，并在此处理政务，接见使臣。\n- **意义**：唐代重要的皇家避暑行宫与政治活动场所。\n\n### 📍 重要地点：嵩山（祭祀中岳）\n- **时间**：公元666年\n- **停留时间**：祭祀期间\n- **地点**：嵩山（今河南省登封市）\n- **事件**：乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。\n- **意义**：彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。\n\n### 📍 重要地点：奉天宫（病重）\n- **时间**：公元682年 - 683年\n- **停留时间**：约一年\n- **地点**：奉天宫（位于嵩山南麓，今河南省登封市）\n- **事件**：永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。\n- **意义**：高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。\n\n### 📍 重要地点：翠微宫（病笃）\n- **时间**：公元683年末\n- **停留时间**：临终前\n- **地点**：翠微宫（今陕西省西安市长安区）\n- **事件**：弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。\n- **意义**：高宗去世前的最后停留地之一。\n\n### 🔴 去世地：洛阳贞观殿\n- **时间**：公元683年12月27日\n- **停留时间**：临终\n- **地点**：洛阳贞观殿（今河南省洛阳市）\n- **事件**：弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。\n- **意义**：一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 628年 | 0岁 | 生于长安。 |\n| 631年 | 3岁 | 封晋王。 |\n| 643年 | 15岁 | 被立为皇太子。 |\n| 649年 | 21岁 | 即皇帝位，是为唐高宗。 |\n| 651年 | 23岁 | 永徽二年，召武则天再度入宫（具体时间存疑）。 |\n| 655年 | 27岁 | 永徽六年，立武则天为皇后。 |\n| 657年 | 29岁 | 显庆二年，以洛阳为东都。 |\n| 660年 | 32岁 | 显庆五年，高宗风疾发作，委政于武后，“二圣临朝”开始。 |\n| 668年 | 40岁 | 总章元年，唐灭高句丽。 |\n| 683年 | 56岁 | 驾崩于洛阳，遗诏令武则天参与决事。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省西安市（长安） | 34.2637 | 108.9425 |\n| 河南省洛阳市（洛阳） | 34.6201 | 112.4540 |\n| 山西省太原市（并州） | 37.8706 | 112.5489 |\n| 陕西省麟游县（九成宫） | 34.6810 | 107.7950 |\n| 河南省登封市（嵩山） | 34.4560 | 113.0500 |\n| 河南省登封市（奉天宫） | 34.4600 | 113.0600 |\n| 陕西省西安市长安区（翠微宫） | 34.0100 | 108.8500 |", "relatedGraph": {"center": {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "武则天", "name": "武则天", "file": "武则天.html", "dynasty": "唐朝（唐太宗、高宗时期）、武周", "aliases": [], "birth_year": 624, "death_year": 705, "quote": "“利州（今四川省广元市）”", "review": "*《旧唐书》评价**：“治乱，时也，存亡，势也。使桀、纣在上，虽十尧不能治；使尧、舜在上，虽十桀不能乱……武后夺嫡之谋也，振喉绝襁褓之儿，菹醢碎椒涂之骨，其不道也甚矣，亦奸人妒妇…", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "文成公主", "name": "文成公主", "file": "文成公主.html", "dynasty": "唐朝（吐蕃崛起时期）", "aliases": [], "birth_year": null, "death_year": 680, "quote": "“**和亲**”", "review": "", "foreign_name": "", "main_role_label": "吐蕃赞普王妃", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐玄宗", "name": "唐玄宗", "file": "唐玄宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 685, "death_year": 762, "quote": "“**重色思倾国**”", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "东都洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "唐", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "唐高宗", "target": "武则天", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "文成公主", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "唐玄宗", "label": "同朝共现", "confidence": 0.25}, {"source": "唐高宗", "target": "李渊", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "李治", "title": "", "description": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "shortReview": "上以慰先帝之灵，下以释苍生之愤。", "dynasty": "唐朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "628年", "location": "长安（今陕西省西安市）", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84"}, "death": {"date": "683年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "56岁（虚岁）", "highlights": {"honor": "", "status": "唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。", "identities": "皇帝", "achievements": "承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "birth", "event": "作为唐太宗李世民与长孙皇后的幼子出生于太极宫。", "time": "公元628年", "duration": "少年时期", "significance": "皇子身份，为其后被立为太子并继承大统提供了血统基础。", "works": [], "quoteLines": []}, {"name": "并州（晋王封地）", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。", "time": "公元631年 - 643年（名义封地期间）", "duration": "李治受封后并未就藩，一直居于长安。", "significance": "晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。", "works": [], "quoteLines": []}, {"name": "长安太极宫（登基为帝）", "ancientName": "长安太极宫", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "normal", "event": "贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。", "time": "公元649年", "duration": "即位初期常居于此", "significance": "正式成为唐朝第三位皇帝，开启“永徽之治”。", "works": [], "quoteLines": []}, {"name": "洛阳宫（二圣临朝）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。", "time": "公元657年起频繁往来", "duration": "断续居住，后期常驻", "significance": "政治中心东移，武则天权力巩固的关键地点。", "works": [], "quoteLines": []}, {"name": "嵩山（祭祀中岳）", "ancientName": "嵩山", "modernName": "河南省登封市", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。", "time": "公元666年", "duration": "祭祀期间", "significance": "彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。", "works": [], "quoteLines": []}, {"name": "奉天宫（病重）", "ancientName": "奉天宫（位于嵩山南麓，", "modernName": "河南省登封市）", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。", "time": "公元682年 - 683年", "duration": "约一年", "significance": "高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。", "works": [], "quoteLines": []}, {"name": "翠微宫（病笃）", "ancientName": "翠微宫", "modernName": "陕西省西安市长安区", "lat": 34.01, "lng": 108.85, "coordSystem": "WGS84", "type": "normal", "event": "弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。", "time": "公元683年末", "duration": "临终前", "significance": "高宗去世前的最后停留地之一。", "works": [], "quoteLines": []}, {"name": "洛阳贞观殿", "ancientName": "洛阳贞观殿", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。", "time": "公元683年12月27日", "duration": "临终", "significance": "一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "workTexts": {"平高句丽诏": "上以慰先帝之灵，下以释苍生之愤。", "新唐书·高句丽传": "“灭高句丽”", "新唐书": "“灭高句丽”", "高句丽传": "“灭高句丽”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 唐高宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李治\n- **时代**：唐朝\n- **出生**：公元628年，长安（今陕西省西安市）\n- **去世**：公元683年，洛阳（今河南省洛阳市）\n- **享年**：56岁（虚岁）\n- **主要身份**：皇帝\n- **历史地位**：唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。\n- **主要成就**：承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。\n\n### 生平概述\n唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以两京（长安、洛阳）为核心，足迹涉及并州（太原）、辽东战场及关中行宫。\n- ⏱️ **时间跨度**：公元628年 - 公元683年，共56年。\n- 📍 **地理范围**：唐朝核心统治区域，主要在今陕西、河南、山西及朝鲜半岛。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长安\n- **时间**：公元628年\n- **停留时间**：少年时期\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐太宗李世民与长孙皇后的幼子出生于太极宫。\n- **意义**：皇子身份，为其后被立为太子并继承大统提供了血统基础。\n\n### 📍 重要地点：并州（晋王封地）\n- **时间**：公元631年 - 643年（名义封地期间）\n- **停留时间**：李治受封后并未就藩，一直居于长安。\n- **地点**：并州（今山西省太原市）\n- **事件**：贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。\n- **意义**：晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。\n\n### 📍 重要地点：长安太极宫（登基为帝）\n- **时间**：公元649年\n- **停留时间**：即位初期常居于此\n- **地点**：长安太极宫（今陕西省西安市）\n- **事件**：贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。\n- **意义**：正式成为唐朝第三位皇帝，开启“永徽之治”。\n\n### 📍 重要地点：洛阳宫（二圣临朝）\n- **时间**：公元657年起频繁往来\n- **停留时间**：断续居住，后期常驻\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。\n- **意义**：政治中心东移，武则天权力巩固的关键地点。\n\n### 📍 重要地点：辽东（征高句丽）\n- **时间**：公元668年（战役决胜年）\n- **停留时间**：高宗未亲征，此为其决策指挥的战役。\n- **地点**：辽东地区及朝鲜半岛北部（今中国辽宁省东部及朝鲜民主主义人民共和国平壤市）\n- **事件**：总章元年（668年），唐军在李勣率领下攻破平壤，灭亡高句丽。此战是其在位期间完成的最重要军事成就之一。\n- **意义**：完成了隋唐两代帝王未竟之业，唐朝版图扩张至朝鲜半岛。\n- **名篇名句**：《平高句丽诏》：“上以慰先帝之灵，下以释苍生之愤。”\n\n### 📍 重要地点：九成宫（避暑理政）\n- **时间**：多次前往，如公元659年、665年\n- **停留时间**：每次数月\n- **地点**：九成宫（今陕西省宝鸡市麟游县）\n- **事件**：高宗多次赴九成宫避暑，并在此处理政务，接见使臣。\n- **意义**：唐代重要的皇家避暑行宫与政治活动场所。\n\n### 📍 重要地点：嵩山（祭祀中岳）\n- **时间**：公元666年\n- **停留时间**：祭祀期间\n- **地点**：嵩山（今河南省登封市）\n- **事件**：乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。\n- **意义**：彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。\n\n### 📍 重要地点：奉天宫（病重）\n- **时间**：公元682年 - 683年\n- **停留时间**：约一年\n- **地点**：奉天宫（位于嵩山南麓，今河南省登封市）\n- **事件**：永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。\n- **意义**：高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。\n\n### 📍 重要地点：翠微宫（病笃）\n- **时间**：公元683年末\n- **停留时间**：临终前\n- **地点**：翠微宫（今陕西省西安市长安区）\n- **事件**：弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。\n- **意义**：高宗去世前的最后停留地之一。\n\n### 🔴 去世地：洛阳贞观殿\n- **时间**：公元683年12月27日\n- **停留时间**：临终\n- **地点**：洛阳贞观殿（今河南省洛阳市）\n- **事件**：弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。\n- **意义**：一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 628年 | 0岁 | 生于长安。 |\n| 631年 | 3岁 | 封晋王。 |\n| 643年 | 15岁 | 被立为皇太子。 |\n| 649年 | 21岁 | 即皇帝位，是为唐高宗。 |\n| 651年 | 23岁 | 永徽二年，召武则天再度入宫（具体时间存疑）。 |\n| 655年 | 27岁 | 永徽六年，立武则天为皇后。 |\n| 657年 | 29岁 | 显庆二年，以洛阳为东都。 |\n| 660年 | 32岁 | 显庆五年，高宗风疾发作，委政于武后，“二圣临朝”开始。 |\n| 668年 | 40岁 | 总章元年，唐灭高句丽。 |\n| 683年 | 56岁 | 驾崩于洛阳，遗诏令武则天参与决事。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省西安市（长安） | 34.2637 | 108.9425 |\n| 河南省洛阳市（洛阳） | 34.6201 | 112.4540 |\n| 山西省太原市（并州） | 37.8706 | 112.5489 |\n| 陕西省麟游县（九成宫） | 34.6810 | 107.7950 |\n| 河南省登封市（嵩山） | 34.4560 | 113.0500 |\n| 河南省登封市（奉天宫） | 34.4600 | 113.0600 |\n| 陕西省西安市长安区（翠微宫） | 34.0100 | 108.8500 |", "relatedGraph": {"center": {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "“上以慰先帝之灵，下以释苍生之愤。”", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "武则天", "name": "武则天", "file": "武则天.html", "dynasty": "唐朝（唐太宗、高宗时期）、武周", "aliases": [], "birth_year": 624, "death_year": 705, "quote": "“利州（今四川省广元市）”", "review": "*《旧唐书》评价**：“治乱，时也，存亡，势也。使桀、纣在上，虽十尧不能治；使尧、舜在上，虽十桀不能乱……武后夺嫡之谋也，振喉绝襁褓之儿，菹醢碎椒涂之骨，其不道也甚矣，亦奸人妒妇…", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“慨然抚长剑，济世岂邀名。”", "review": "*《旧唐书》**：“千载可称，一人而已！”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "“秦川雄帝宅，函谷壮皇居。”", "review": "*《旧唐书》**：“臣观文皇帝，发迹多奇，聪明神武。拔人物则不私于党，负志业则咸尽其才。所以屈突、尉迟，由仇敌而愿倾心膂；马周、刘洎，自疏远而卒委钧衡。终平泰阶，谅由斯道。尝试论…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "文成公主", "name": "文成公主", "file": "文成公主.html", "dynasty": "唐朝（吐蕃崛起时期）", "aliases": [], "birth_year": null, "death_year": 680, "quote": "“**和亲**”", "review": "", "foreign_name": "", "main_role_label": "吐蕃赞普王妃", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐玄宗", "name": "唐玄宗", "file": "唐玄宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 685, "death_year": 762, "quote": "“**重色思倾国**”", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "东都洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "唐", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "“姓李氏，陇西成纪人也。”", "review": "《旧唐书》：“高祖审独夫之运去，知新主之勃兴，密运雄图，未伸龙跃。”", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "唐高宗", "target": "武则天", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "文成公主", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "唐玄宗", "label": "同朝共现", "confidence": 0.25}, {"source": "唐高宗", "target": "李渊", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

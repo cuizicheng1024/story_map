@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "费孝通", "title": "差序格局", "description": "费孝通生于清末，成长于中国社会剧烈变革的时代。他早年赴英国留学，师从人类学家马林诺夫斯基，其博士论文《江村经济》成为人类学史上的经典。归国后，他深入中国乡村进行田野调查，致力于理解中国社会结构并探索乡村发展之路。新中国成立后，他参与国家建设与民族识别工作，后在政治运动中遭受冲击。改革开放后，他复出并领导重建中国社会学，晚年提出“中华民族多元一体格局”等重要理论，其学术生涯贯穿了中国20世纪的社会变迁。", "quote": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "shortReview": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "dynasty": "近现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏吴江（今江苏省苏州市吴江区）", "avatar": "", "birth": {"date": "1910年", "location": "江苏吴江（今江苏省苏州市吴江区）", "lat": 31.159, "lng": 120.645, "coordSystem": "WGS84"}, "death": {"date": "2005年", "location": "北京（今北京市）", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84"}, "lifespan": "95岁", "highlights": {"honor": "差序格局", "status": "中国社会学和人类学的奠基人之一，以其开创性的社区研究和“差序格局”等理论闻名于世。", "identities": "社会学家、人类学家、社会活动家", "achievements": "1. 通过《江村经济》开创中国社区研究范式；2. 提出解释中国社会结构的“差序格局”理论；3. 倡导“志在富民”的学术实践理念；4. 改革开放后重建中国社会学学科。", "works": ["江村经济"], "reviews": []}}, "locations": [{"name": "吴江", "ancientName": "江苏吴江", "modernName": "江苏省苏州市吴江区", "lat": 31.159, "lng": 120.645, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个士绅家庭，幼年接受传统启蒙教育。", "time": "公元1910年", "duration": "童年时期", "significance": "江南水乡的成长环境为其日后理解中国乡土社会提供了早期经验。", "works": [], "quoteLines": []}, {"name": "北京（燕京大学）", "ancientName": "北平", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "normal", "event": "进入燕京大学社会学系学习，受教于吴文藻等学者，接受系统的社会学训练。", "time": "公元1930年 - 1933年", "duration": "3年", "significance": "奠定了社会学与人类学的学术基础，并结识了终身伴侣王同惠。", "works": [], "quoteLines": []}, {"name": "广西大瑶山", "ancientName": "广西象县瑶山", "modernName": "广西壮族自治区金秀瑶族自治县", "lat": 24.099, "lng": 110.188, "coordSystem": "WGS84", "type": "normal", "event": "与新婚妻子王同惠进入瑶山进行田野调查。期间王同惠不幸遇难，费孝通身负重伤。", "time": "公元1935年", "duration": "数月", "significance": "首次深入的田野调查经历，遭遇了学术与人生的巨大考验，坚定了其研究中国社会的决心。", "works": [], "quoteLines": []}, {"name": "江苏开弦弓村（江村）", "ancientName": "江苏吴江开弦弓村", "modernName": "江苏省苏州市吴江区七都镇开弦弓村", "lat": 30.989, "lng": 120.428, "coordSystem": "WGS84", "type": "normal", "event": "在姐姐费达生的帮助下，对家乡的蚕丝业乡村进行系统调查，收集了大量一手资料。", "time": "公元1936年", "duration": "约两个月", "significance": "此次调查的成果后来在伦敦整理成其博士论文《江村经济》，成为世界人类学经典，奠定了其学术地位。", "works": ["江村经济"], "quoteLines": ["《江村经济》：它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。"]}, {"name": "伦敦（伦敦经济学院）", "ancientName": "英国伦敦", "modernName": "英国伦敦", "lat": 51.514, "lng": -0.117, "coordSystem": "WGS84", "type": "normal", "event": "师从人类学家马林诺夫斯基，根据在开弦弓村的调查资料撰写博士论文《江村经济》。", "time": "公元1936年 - 1938年", "duration": "约2年", "significance": "接受了功能主义人类学派的系统训练，其博士论文开创了研究“本文化”的先河，获得国际声誉。", "works": ["江村经济"], "quoteLines": []}, {"name": "云南呈贡（魁阁）", "ancientName": "云南呈贡", "modernName": "云南省昆明市呈贡区", "lat": 24.887, "lng": 102.823, "coordSystem": "WGS84", "type": "normal", "event": "任云南大学社会学系教授，主持“魁阁”研究工作站，带领团队开展一系列内地农村调查，如“禄村农田”研究。", "time": "公元1938年 - 1945年", "duration": "约7年", "significance": "在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。", "works": ["云南三村"], "quoteLines": ["《乡土中国》：从基层上看去，中国社会是乡土性的。"]}, {"name": "北京（中央民族学院）", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "normal", "event": "院系调整后转入中央民族学院，从事民族研究与教学工作，参与新中国民族识别。1957年被划为右派，学术活动中断。改革开放后复出，主持重建中国社会学。", "time": "公元1952年 - 1980年代（主要工作阶段）", "duration": "数十年", "significance": "经历了学术生涯的中断与重启，其民族研究为“中华民族多元一体格局”理论打下基础，晚年成为恢复中国社会学的领军人物。", "works": [], "quoteLines": ["《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "death", "event": "因病逝世。", "time": "公元2005年", "duration": "晚年长期居住", "significance": "其一生学术生涯的终点，见证了中国社会学从建立、中断到重建的完整历程。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---", "workTexts": {"江村经济": "“中华民族多元一体格局”", "云南三村": "意义：在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。", "乡土中国": "名篇名句：《乡土中国》：从基层上看去，中国社会是乡土性的。", "中华民族多元一体格局": "名篇名句：《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 费孝通\n\n## 人物档案\n\n### 基本信息\n- **姓名**：费孝通\n- **时代**：近现代\n- **出生**：公元1910年11月2日，江苏吴江（今江苏省苏州市吴江区）\n- **去世**：公元2005年4月24日，北京（今北京市）\n- **享年**：95岁\n- **主要身份**：社会学家、人类学家、社会活动家\n- **历史地位**：中国社会学和人类学的奠基人之一，以其开创性的社区研究和“差序格局”等理论闻名于世。\n- **主要成就**：1. 通过《江村经济》开创中国社区研究范式；2. 提出解释中国社会结构的“差序格局”理论；3. 倡导“志在富民”的学术实践理念；4. 改革开放后重建中国社会学学科。\n\n### 生平概述\n费孝通生于清末，成长于中国社会剧烈变革的时代。他早年赴英国留学，师从人类学家马林诺夫斯基，其博士论文《江村经济》成为人类学史上的经典。归国后，他深入中国乡村进行田野调查，致力于理解中国社会结构并探索乡村发展之路。新中国成立后，他参与国家建设与民族识别工作，后在政治运动中遭受冲击。改革开放后，他复出并领导重建中国社会学，晚年提出“中华民族多元一体格局”等重要理论，其学术生涯贯穿了中国20世纪的社会变迁。\n\n---\n\n## 地图概览\n- 🗺️ **行程概览**：足迹遍及中国东部、西南地区及英国，核心活动区域在江苏、云南、广西及北京。\n- ⏱️ **时间跨度**：1910年 - 2005年，共约95年。\n- 📍 **地理范围**：主要覆盖华东、西南地区及华北，以及英国伦敦。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 出生地：吴江\n- **时间**：公元1910年\n- **停留时间**：童年时期\n- **地点**：江苏吴江（今江苏省苏州市吴江区）\n- **事件**：出生于一个士绅家庭，幼年接受传统启蒙教育。\n- **意义**：江南水乡的成长环境为其日后理解中国乡土社会提供了早期经验。\n\n### 📍 重要地点：北京（燕京大学）\n- **时间**：公元1930年 - 1933年\n- **停留时间**：3年\n- **地点**：北平（今北京市）\n- **事件**：进入燕京大学社会学系学习，受教于吴文藻等学者，接受系统的社会学训练。\n- **意义**：奠定了社会学与人类学的学术基础，并结识了终身伴侣王同惠。\n\n### 📍 重要地点：广西大瑶山\n- **时间**：公元1935年\n- **停留时间**：数月\n- **地点**：广西象县瑶山（今广西壮族自治区金秀瑶族自治县）\n- **事件**：与新婚妻子王同惠进入瑶山进行田野调查。期间王同惠不幸遇难，费孝通身负重伤。\n- **意义**：首次深入的田野调查经历，遭遇了学术与人生的巨大考验，坚定了其研究中国社会的决心。\n\n### 📍 重要地点：江苏开弦弓村（江村）\n- **时间**：公元1936年\n- **停留时间**：约两个月\n- **地点**：江苏吴江开弦弓村（今江苏省苏州市吴江区七都镇开弦弓村）\n- **事件**：在姐姐费达生的帮助下，对家乡的蚕丝业乡村进行系统调查，收集了大量一手资料。\n- **意义**：此次调查的成果后来在伦敦整理成其博士论文《江村经济》，成为世界人类学经典，奠定了其学术地位。\n- **名篇名句**：《江村经济》：它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。\n\n### 📍 重要地点：伦敦（伦敦经济学院）\n- **时间**：公元1936年 - 1938年\n- **停留时间**：约2年\n- **地点**：英国伦敦（今英国伦敦）\n- **事件**：师从人类学家马林诺夫斯基，根据在开弦弓村的调查资料撰写博士论文《江村经济》。\n- **意义**：接受了功能主义人类学派的系统训练，其博士论文开创了研究“本文化”的先河，获得国际声誉。\n\n### 📍 重要地点：云南呈贡（魁阁）\n- **时间**：公元1938年 - 1945年\n- **停留时间**：约7年\n- **地点**：云南呈贡（今云南省昆明市呈贡区）\n- **事件**：任云南大学社会学系教授，主持“魁阁”研究工作站，带领团队开展一系列内地农村调查，如“禄村农田”研究。\n- **意义**：在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。\n- **名篇名句**：《乡土中国》：从基层上看去，中国社会是乡土性的。\n\n### 📍 重要地点：北京（中央民族学院）\n- **时间**：公元1952年 - 1980年代（主要工作阶段）\n- **停留时间**：数十年\n- **地点**：北京（今北京市）\n- **事件**：院系调整后转入中央民族学院，从事民族研究与教学工作，参与新中国民族识别。1957年被划为右派，学术活动中断。改革开放后复出，主持重建中国社会学。\n- **意义**：经历了学术生涯的中断与重启，其民族研究为“中华民族多元一体格局”理论打下基础，晚年成为恢复中国社会学的领军人物。\n- **名篇名句**：《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。\n\n### 📍 去世地：北京\n- **时间**：公元2005年\n- **停留时间**：晚年长期居住\n- **地点**：北京（今北京市）\n- **事件**：因病逝世。\n- **意义**：其一生学术生涯的终点，见证了中国社会学从建立、中断到重建的完整历程。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1910 | 0 | 出生于江苏吴江。 |\n| 1928 | 18 | 入东吴大学医预科。 |\n| 1930 | 20 | 转入燕京大学社会学系。 |\n| 1935 | 25 | 与王同惠赴广西大瑶山调查，王同惠遇难，己身受重伤。 |\n| 1936 | 26 | 赴江苏开弦弓村（江村）调查；后赴英国留学。 |\n| 1938 | 28 | 完成博士论文《江村经济》；同年回国。 |\n| 1939 | 29 | 任云南大学教授，主持“魁阁”研究工作。 |\n| 1945 | 35 | 加入中国民主同盟。 |\n| 1947 | 37 | 返回北平，任清华大学教授，出版《乡土中国》、《生育制度》。 |\n| 1952 | 42 | 院系调整，转入中央民族学院。 |\n| 1957 | 47 | 被划为“右派”，学术研究受阻。 |\n| 1979 | 69 | 受命重建中国社会学。 |\n| 1980 | 70 | 获国际应用人类学会马林诺夫斯基奖。 |\n| 1988 | 78 | 提出“中华民族多元一体格局”理论。 |\n| 1992 | 82 | 开始更广泛地考察全国区域发展，提出“行行重行行”的研究方法。 |\n| 2005 | 95 | 在北京逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江苏省苏州市吴江区 | 31.159 | 120.645 |\n| 北京市（燕京大学旧址） | 39.993 | 116.306 |\n| 广西壮族自治区金秀瑶族自治县 | 24.099 | 110.188 |\n| 江苏省苏州市吴江区七都镇开弦弓村 | 30.989 | 120.428 |\n| 英国伦敦（伦敦政治经济学院） | 51.514 | -0.117 |\n| 云南省昆明市呈贡区 | 24.887 | 102.823 |\n| 北京市（中央民族大学旧址） | 39.943 | 116.335 |\n| 北京市（逝世地） | 39.904 | 116.407 |", "relatedGraph": {"center": {"id": "费孝通", "name": "费孝通", "file": "费孝通.html", "dynasty": "近现代", "aliases": [], "birth_year": 1910, "death_year": 2005, "quote": "“中华民族多元一体格局”", "review": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "江苏吴江", "birthplace_modern": "江苏省苏州市吴江区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "费孝通", "name": "费孝通", "file": "费孝通.html", "dynasty": "近现代", "aliases": [], "birth_year": 1910, "death_year": 2005, "quote": "“中华民族多元一体格局”", "review": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "江苏吴江", "birthplace_modern": "江苏省苏州市吴江区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "“远征军中最引人注目、最勇敢的军官”", "review": "*正面评价**：被誉为“天才的、杰出的军事战略家”，是“美国历史上最伟大的将军之一”（部分军事史家）。他在太平洋的胜利和对日本的改造，被赞为“将敌人变为朋友”的典范。", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "“这是很平常的呀！”", "review": "*官方评价**：被誉为“忠诚的共产主义文艺战士”、“杰出的军旅作家”，其作品“热情讴歌了人民军队的革命英雄主义精神”。", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "“高岗、饶漱石反党联盟”", "review": "*中共中央1955年决议评价**：“高岗、饶漱石反党联盟的目的是要夺取党和国家的最高权力，他们用阴谋手段反对刘少奇同志和周恩来同志，反对党中央的其他负责同志，企图分裂党中央，瓦解…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "现代", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "“层累地造成的中国古史”", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "费孝通", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "顾颉刚", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "费孝通", "title": "差序格局", "description": "费孝通生于清末，成长于中国社会剧烈变革的时代。他早年赴英国留学，师从人类学家马林诺夫斯基，其博士论文《江村经济》成为人类学史上的经典。归国后，他深入中国乡村进行田野调查，致力于理解中国社会结构并探索乡村发展之路。新中国成立后，他参与国家建设与民族识别工作，后在政治运动中遭受冲击。改革开放后，他复出并领导重建中国社会学，晚年提出“中华民族多元一体格局”等重要理论，其学术生涯贯穿了中国20世纪的社会变迁。", "quote": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "shortReview": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "dynasty": "近现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏吴江（今江苏省苏州市吴江区）", "avatar": "", "birth": {"date": "1910年", "location": "江苏吴江（今江苏省苏州市吴江区）", "lat": 31.159, "lng": 120.645, "coordSystem": "WGS84"}, "death": {"date": "2005年", "location": "北京（今北京市）", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84"}, "lifespan": "95岁", "highlights": {"honor": "差序格局", "status": "中国社会学和人类学的奠基人之一，以其开创性的社区研究和“差序格局”等理论闻名于世。", "identities": "社会学家、人类学家、社会活动家", "achievements": "1. 通过《江村经济》开创中国社区研究范式；2. 提出解释中国社会结构的“差序格局”理论；3. 倡导“志在富民”的学术实践理念；4. 改革开放后重建中国社会学学科。", "works": ["江村经济"], "reviews": []}}, "locations": [{"name": "吴江", "ancientName": "江苏吴江", "modernName": "江苏省苏州市吴江区", "lat": 31.159, "lng": 120.645, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个士绅家庭，幼年接受传统启蒙教育。", "time": "公元1910年", "duration": "童年时期", "significance": "江南水乡的成长环境为其日后理解中国乡土社会提供了早期经验。", "works": [], "quoteLines": []}, {"name": "北京（燕京大学）", "ancientName": "北平", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "normal", "event": "进入燕京大学社会学系学习，受教于吴文藻等学者，接受系统的社会学训练。", "time": "公元1930年 - 1933年", "duration": "3年", "significance": "奠定了社会学与人类学的学术基础，并结识了终身伴侣王同惠。", "works": [], "quoteLines": []}, {"name": "广西大瑶山", "ancientName": "广西象县瑶山", "modernName": "广西壮族自治区金秀瑶族自治县", "lat": 24.099, "lng": 110.188, "coordSystem": "WGS84", "type": "normal", "event": "与新婚妻子王同惠进入瑶山进行田野调查。期间王同惠不幸遇难，费孝通身负重伤。", "time": "公元1935年", "duration": "数月", "significance": "首次深入的田野调查经历，遭遇了学术与人生的巨大考验，坚定了其研究中国社会的决心。", "works": [], "quoteLines": []}, {"name": "江苏开弦弓村（江村）", "ancientName": "江苏吴江开弦弓村", "modernName": "江苏省苏州市吴江区七都镇开弦弓村", "lat": 30.989, "lng": 120.428, "coordSystem": "WGS84", "type": "normal", "event": "在姐姐费达生的帮助下，对家乡的蚕丝业乡村进行系统调查，收集了大量一手资料。", "time": "公元1936年", "duration": "约两个月", "significance": "此次调查的成果后来在伦敦整理成其博士论文《江村经济》，成为世界人类学经典，奠定了其学术地位。", "works": ["江村经济"], "quoteLines": ["《江村经济》：它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。"]}, {"name": "伦敦（伦敦经济学院）", "ancientName": "英国伦敦", "modernName": "英国伦敦", "lat": 51.514, "lng": -0.117, "coordSystem": "WGS84", "type": "normal", "event": "师从人类学家马林诺夫斯基，根据在开弦弓村的调查资料撰写博士论文《江村经济》。", "time": "公元1936年 - 1938年", "duration": "约2年", "significance": "接受了功能主义人类学派的系统训练，其博士论文开创了研究“本文化”的先河，获得国际声誉。", "works": ["江村经济"], "quoteLines": []}, {"name": "云南呈贡（魁阁）", "ancientName": "云南呈贡", "modernName": "云南省昆明市呈贡区", "lat": 24.887, "lng": 102.823, "coordSystem": "WGS84", "type": "normal", "event": "任云南大学社会学系教授，主持“魁阁”研究工作站，带领团队开展一系列内地农村调查，如“禄村农田”研究。", "time": "公元1938年 - 1945年", "duration": "约7年", "significance": "在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。", "works": ["云南三村"], "quoteLines": ["《乡土中国》：从基层上看去，中国社会是乡土性的。"]}, {"name": "北京（中央民族学院）", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "normal", "event": "院系调整后转入中央民族学院，从事民族研究与教学工作，参与新中国民族识别。1957年被划为右派，学术活动中断。改革开放后复出，主持重建中国社会学。", "time": "公元1952年 - 1980年代（主要工作阶段）", "duration": "数十年", "significance": "经历了学术生涯的中断与重启，其民族研究为“中华民族多元一体格局”理论打下基础，晚年成为恢复中国社会学的领军人物。", "works": [], "quoteLines": ["《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.904, "lng": 116.407, "coordSystem": "WGS84", "type": "death", "event": "因病逝世。", "time": "公元2005年", "duration": "晚年长期居住", "significance": "其一生学术生涯的终点，见证了中国社会学从建立、中断到重建的完整历程。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---", "workTexts": {"江村经济": "“中华民族多元一体格局”", "云南三村": "意义：在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。", "乡土中国": "名篇名句：《乡土中国》：从基层上看去，中国社会是乡土性的。", "中华民族多元一体格局": "名篇名句：《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 费孝通\n\n## 人物档案\n\n### 基本信息\n- **姓名**：费孝通\n- **时代**：近现代\n- **出生**：公元1910年11月2日，江苏吴江（今江苏省苏州市吴江区）\n- **去世**：公元2005年4月24日，北京（今北京市）\n- **享年**：95岁\n- **主要身份**：社会学家、人类学家、社会活动家\n- **历史地位**：中国社会学和人类学的奠基人之一，以其开创性的社区研究和“差序格局”等理论闻名于世。\n- **主要成就**：1. 通过《江村经济》开创中国社区研究范式；2. 提出解释中国社会结构的“差序格局”理论；3. 倡导“志在富民”的学术实践理念；4. 改革开放后重建中国社会学学科。\n\n### 生平概述\n费孝通生于清末，成长于中国社会剧烈变革的时代。他早年赴英国留学，师从人类学家马林诺夫斯基，其博士论文《江村经济》成为人类学史上的经典。归国后，他深入中国乡村进行田野调查，致力于理解中国社会结构并探索乡村发展之路。新中国成立后，他参与国家建设与民族识别工作，后在政治运动中遭受冲击。改革开放后，他复出并领导重建中国社会学，晚年提出“中华民族多元一体格局”等重要理论，其学术生涯贯穿了中国20世纪的社会变迁。\n\n---\n\n## 地图概览\n- 🗺️ **行程概览**：足迹遍及中国东部、西南地区及英国，核心活动区域在江苏、云南、广西及北京。\n- ⏱️ **时间跨度**：1910年 - 2005年，共约95年。\n- 📍 **地理范围**：主要覆盖华东、西南地区及华北，以及英国伦敦。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 📍 出生地：吴江\n- **时间**：公元1910年\n- **停留时间**：童年时期\n- **地点**：江苏吴江（今江苏省苏州市吴江区）\n- **事件**：出生于一个士绅家庭，幼年接受传统启蒙教育。\n- **意义**：江南水乡的成长环境为其日后理解中国乡土社会提供了早期经验。\n\n### 📍 重要地点：北京（燕京大学）\n- **时间**：公元1930年 - 1933年\n- **停留时间**：3年\n- **地点**：北平（今北京市）\n- **事件**：进入燕京大学社会学系学习，受教于吴文藻等学者，接受系统的社会学训练。\n- **意义**：奠定了社会学与人类学的学术基础，并结识了终身伴侣王同惠。\n\n### 📍 重要地点：广西大瑶山\n- **时间**：公元1935年\n- **停留时间**：数月\n- **地点**：广西象县瑶山（今广西壮族自治区金秀瑶族自治县）\n- **事件**：与新婚妻子王同惠进入瑶山进行田野调查。期间王同惠不幸遇难，费孝通身负重伤。\n- **意义**：首次深入的田野调查经历，遭遇了学术与人生的巨大考验，坚定了其研究中国社会的决心。\n\n### 📍 重要地点：江苏开弦弓村（江村）\n- **时间**：公元1936年\n- **停留时间**：约两个月\n- **地点**：江苏吴江开弦弓村（今江苏省苏州市吴江区七都镇开弦弓村）\n- **事件**：在姐姐费达生的帮助下，对家乡的蚕丝业乡村进行系统调查，收集了大量一手资料。\n- **意义**：此次调查的成果后来在伦敦整理成其博士论文《江村经济》，成为世界人类学经典，奠定了其学术地位。\n- **名篇名句**：《江村经济》：它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。\n\n### 📍 重要地点：伦敦（伦敦经济学院）\n- **时间**：公元1936年 - 1938年\n- **停留时间**：约2年\n- **地点**：英国伦敦（今英国伦敦）\n- **事件**：师从人类学家马林诺夫斯基，根据在开弦弓村的调查资料撰写博士论文《江村经济》。\n- **意义**：接受了功能主义人类学派的系统训练，其博士论文开创了研究“本文化”的先河，获得国际声誉。\n\n### 📍 重要地点：云南呈贡（魁阁）\n- **时间**：公元1938年 - 1945年\n- **停留时间**：约7年\n- **地点**：云南呈贡（今云南省昆明市呈贡区）\n- **事件**：任云南大学社会学系教授，主持“魁阁”研究工作站，带领团队开展一系列内地农村调查，如“禄村农田”研究。\n- **意义**：在抗战艰苦条件下，形成了中国社会学研究的重要学术团队，产出《云南三村》等系列成果，深化了对中国农村类型的认识。\n- **名篇名句**：《乡土中国》：从基层上看去，中国社会是乡土性的。\n\n### 📍 重要地点：北京（中央民族学院）\n- **时间**：公元1952年 - 1980年代（主要工作阶段）\n- **停留时间**：数十年\n- **地点**：北京（今北京市）\n- **事件**：院系调整后转入中央民族学院，从事民族研究与教学工作，参与新中国民族识别。1957年被划为右派，学术活动中断。改革开放后复出，主持重建中国社会学。\n- **意义**：经历了学术生涯的中断与重启，其民族研究为“中华民族多元一体格局”理论打下基础，晚年成为恢复中国社会学的领军人物。\n- **名篇名句**：《中华民族多元一体格局》：中华民族作为一个自觉的实体，是近百年来中国和西方列强对抗中出现的。\n\n### 📍 去世地：北京\n- **时间**：公元2005年\n- **停留时间**：晚年长期居住\n- **地点**：北京（今北京市）\n- **事件**：因病逝世。\n- **意义**：其一生学术生涯的终点，见证了中国社会学从建立、中断到重建的完整历程。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1910 | 0 | 出生于江苏吴江。 |\n| 1928 | 18 | 入东吴大学医预科。 |\n| 1930 | 20 | 转入燕京大学社会学系。 |\n| 1935 | 25 | 与王同惠赴广西大瑶山调查，王同惠遇难，己身受重伤。 |\n| 1936 | 26 | 赴江苏开弦弓村（江村）调查；后赴英国留学。 |\n| 1938 | 28 | 完成博士论文《江村经济》；同年回国。 |\n| 1939 | 29 | 任云南大学教授，主持“魁阁”研究工作。 |\n| 1945 | 35 | 加入中国民主同盟。 |\n| 1947 | 37 | 返回北平，任清华大学教授，出版《乡土中国》、《生育制度》。 |\n| 1952 | 42 | 院系调整，转入中央民族学院。 |\n| 1957 | 47 | 被划为“右派”，学术研究受阻。 |\n| 1979 | 69 | 受命重建中国社会学。 |\n| 1980 | 70 | 获国际应用人类学会马林诺夫斯基奖。 |\n| 1988 | 78 | 提出“中华民族多元一体格局”理论。 |\n| 1992 | 82 | 开始更广泛地考察全国区域发展，提出“行行重行行”的研究方法。 |\n| 2005 | 95 | 在北京逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《乡土中国》**（节选常作为论述类文本阅读材料）\n- 核心要点：\n    - **重点**：理解“**差序格局**”这一核心概念，即中国社会以己为中心、像水波纹一样推及出去的、有差等的人际关系结构。\n    - **重点**：把握“**礼治秩序**”与“**法治秩序**”的区别，认识传统乡土社会依靠传统习俗和规矩维持秩序的特点。\n    - 分析“**乡土本色**”的内涵，即中国社会基层的乡土性，表现为人们对土地的依赖、熟人社会、地方性限制等。\n    - 学习其运用的**比喻论证**和**对比论证**手法，如用“石头丢在水里”比喻差序格局。\n    - 体会其**平实、缜密、深入浅出**的学术语言风格。\n    - **重点**：联系实际，思考传统乡土社会观念在现代社会中的**变迁与延续**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪30年代，费孝通通过**江村调查**，开创了中国社会学**社区研究**的范式，其成果《江村经济》获得国际声誉。\n    - 抗战时期，在云南主持“**魁阁**”学术团队，延续了中国社会学的经验研究传统。\n    - **重点**：20世纪50年代，参与新中国的**民族识别**工作，为其晚年提出“**中华民族多元一体格局**”理论积累了实践基础。\n    - **改革开放**后，受命主持**重建中国社会学**学科，培养了新一代社会学人才。\n- 核心要点：\n    - **重点**：其学术思想核心是“**志在富民**”，强调学术研究应服务于中国农村的发展和人民生活的改善。\n    - **重点**：他的研究路径体现了从**微观社区**（如江村）到**类型比较**（云南三村），再到**宏观区域**（小城镇、区域发展）的拓展。\n    - 他是中国**本土化社会学**和**应用人类学**的重要推动者，其理论源于对中国社会的深刻观察。\n    - **重点**：他的“**中华民族多元一体格局**”理论，为理解中国统一多民族国家的历史与现状提供了重要的学术框架。\n    - 其人生轨迹折射了20世纪中国知识分子的命运与**学术报国**的理想。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江苏省苏州市吴江区 | 31.159 | 120.645 |\n| 北京市（燕京大学旧址） | 39.993 | 116.306 |\n| 广西壮族自治区金秀瑶族自治县 | 24.099 | 110.188 |\n| 江苏省苏州市吴江区七都镇开弦弓村 | 30.989 | 120.428 |\n| 英国伦敦（伦敦政治经济学院） | 51.514 | -0.117 |\n| 云南省昆明市呈贡区 | 24.887 | 102.823 |\n| 北京市（中央民族大学旧址） | 39.943 | 116.335 |\n| 北京市（逝世地） | 39.904 | 116.407 |", "relatedGraph": {"center": {"id": "费孝通", "name": "费孝通", "file": "费孝通.html", "dynasty": "近现代", "aliases": [], "birth_year": 1910, "death_year": 2005, "quote": "“中华民族多元一体格局”", "review": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "江苏吴江", "birthplace_modern": "江苏省苏州市吴江区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "费孝通", "name": "费孝通", "file": "费孝通.html", "dynasty": "近现代", "aliases": [], "birth_year": 1910, "death_year": 2005, "quote": "“中华民族多元一体格局”", "review": "它旨在说明这一经济体系与特定地理环境的关系，以及与这个社区的社会结构的关系。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "江苏吴江", "birthplace_modern": "江苏省苏州市吴江区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "“远征军中最引人注目、最勇敢的军官”", "review": "*正面评价**：被誉为“天才的、杰出的军事战略家”，是“美国历史上最伟大的将军之一”（部分军事史家）。他在太平洋的胜利和对日本的改造，被赞为“将敌人变为朋友”的典范。", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "“这是很平常的呀！”", "review": "*官方评价**：被誉为“忠诚的共产主义文艺战士”、“杰出的军旅作家”，其作品“热情讴歌了人民军队的革命英雄主义精神”。", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "现代", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "“高岗、饶漱石反党联盟”", "review": "*中共中央1955年决议评价**：“高岗、饶漱石反党联盟的目的是要夺取党和国家的最高权力，他们用阴谋手段反对刘少奇同志和周恩来同志，反对党中央的其他负责同志，企图分裂党中央，瓦解…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "现代", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "“层累地造成的中国古史”", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "费孝通", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "费孝通", "target": "顾颉刚", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

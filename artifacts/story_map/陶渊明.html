@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "陶渊明，又名潜，字元亮，号五柳先生，私谥“靖节”", "title": "古今隐逸诗人之宗", "description": "陶渊明生于东晋衰亡之际，出身没落官宦之家。他少有高趣，博学善文，因家贫曾数次出仕，担任过江州祭酒、镇军参军、彭泽令等职。在目睹官场腐败与政治动荡后，于四十一岁任彭泽令时，因“不愿为五斗米向乡里小儿折腰”而辞官归隐，从此躬耕田园，直至终老。其诗文质朴自然，意境高远，真实描绘了农耕生活与隐逸情怀，并虚构了“桃花源”这一理想社会图景，对后世文学与思想影响深远。", "quote": "开荒南野际，守拙归园田", "shortReview": "开荒南野际，守拙归园田", "dynasty": "东晋末至南朝宋初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "柴桑（今江西省九江市）", "avatar": "", "birth": {"date": "365年", "location": "柴桑（今江西省九江市）", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84"}, "death": {"date": "427年", "location": "柴桑（今江西省九江市）", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84"}, "lifespan": "约62岁", "highlights": {"honor": "古今隐逸诗人之宗", "status": "中国第一位田园诗人，被誉为“古今隐逸诗人之宗”。", "identities": "诗人、辞赋家、隐士", "achievements": "开创**田园诗派**；创作《归去来兮辞》《桃花源记》《饮酒》等经典；塑造了“不为五斗米折腰”的文化人格典范。", "works": ["归去来兮辞", "桃花源记", "饮酒"], "reviews": []}}, "locations": [{"name": "柴桑", "ancientName": "柴桑", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个衰落的官宦家庭，曾祖父陶侃为东晋名将。", "time": "约公元365年", "duration": "青少年时期", "significance": "故乡与最终归隐地，其诗文中的“园田居”“南山”等意象多源于此地风物。", "works": [], "quoteLines": []}, {"name": "江州", "ancientName": "江州", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "初仕为“江州祭酒”，但因不堪吏职，不久自解归。", "time": "约公元393年（初仕）", "duration": "短暂", "significance": "初次接触官场，为其后“仕”与“隐”的矛盾埋下伏笔。", "works": [], "quoteLines": []}, {"name": "桓玄军幕（长江中游）", "ancientName": "随军活动，主要在江陵等地", "modernName": "湖北省荆州市", "lat": 30.3352, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "入桓玄幕僚，曾奉使还都。", "time": "约公元398-401年", "duration": "约3年", "significance": "亲历军阀势力膨胀与东晋政局动荡，加深了对时局的失望。", "works": [], "quoteLines": []}, {"name": "京口", "ancientName": "京口", "modernName": "江苏省镇江市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "出任镇军将军刘裕的参军。", "time": "约公元404年", "duration": "短暂", "significance": "在刘裕幕下，目睹其篡晋野心与杀伐，归隐之志更坚。", "works": [], "quoteLines": []}, {"name": "彭泽", "ancientName": "彭泽", "modernName": "江西省九江市彭泽县", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "任彭泽令。因不愿束带见督邮，叹“我不能为五斗米折腰向乡里小人”，即日解绶去职。", "time": "公元405年", "duration": "八十余日", "significance": "人生最后一次出仕与标志性转折点，从此彻底归隐。", "works": [], "quoteLines": []}, {"name": "柴桑园田居", "ancientName": "柴桑", "modernName": "江西省九江市柴桑区", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "开始真正的农耕生活，作《归园田居》组诗。", "time": "公元405年后", "duration": "归隐初期", "significance": "实践其“复得返自然”的理想，创作田园诗的高峰时期。", "works": ["归园田居"], "quoteLines": ["《归园田居·其一》：“开荒南野际，守拙归园田”", "《归园田居·其三》：“晨兴理荒秽，带月荷锄归”。"]}, {"name": "柴桑", "ancientName": "柴桑", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "death", "event": "在贫病交加中去世，友人私谥“靖节”。", "time": "公元427年", "duration": "晚年", "significance": "完成了从仕宦到隐逸的人生旅程，其人格与诗文成为后世典范。", "works": [], "quoteLines": []}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "可能因公务或游历到访东晋都城。", "time": "数次往返", "duration": "短暂", "significance": "作为政治中心，其繁华与腐败是陶渊明批判现实的参照。", "works": [], "quoteLines": []}, {"name": "南山（庐山）", "ancientName": "南山，一般认为指庐山", "modernName": "江西省九江市庐山市南", "lat": 29.5547, "lng": 115.9872, "coordSystem": "WGS84", "type": "normal", "event": "采菊、登高、游憩。", "time": "归隐期间常往", "duration": "不固定", "significance": "其诗中“悠然见南山”的意象来源，象征超脱尘世的精神境界。", "works": [], "quoteLines": ["《饮酒·其五》：“采菊东篱下，悠然见南山”。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---", "workTexts": {"归园田居·其一": "开荒南野际，守拙归园田", "归园田居": "开荒南野际，守拙归园田", "其一": "开荒南野际，守拙归园田", "归园田居·其三": "晨兴理荒秽，带月荷锄归", "其三": "晨兴理荒秽，带月荷锄归", "饮酒·其五": "采菊东篱下，悠然见南山", "饮酒": "采菊东篱下，悠然见南山", "其五": "采菊东篱下，悠然见南山", "归去来兮辞": "| 405年 | 约40岁 | 任建威将军刘敬宣参军。", "桃花源诗并记": "| 421年 | 约56岁 | 作《桃花源诗并记》。", "桃花源记": "“世外桃源”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陶渊明\n\n## 人物档案\n\n### 基本信息\n- **姓名**：陶渊明，又名潜，字元亮，号五柳先生，私谥“靖节”\n- **时代**：东晋末至南朝宋初\n- **出生**：约公元365年（生年另有352年、372年等说，存疑），柴桑（今江西省九江市）\n- **去世**：公元427年，柴桑（今江西省九江市）\n- **享年**：约62岁\n- **主要身份**：诗人、辞赋家、隐士\n- **历史地位**：中国第一位田园诗人，被誉为“古今隐逸诗人之宗”。\n- **主要成就**：开创**田园诗派**；创作《归去来兮辞》《桃花源记》《饮酒》等经典；塑造了“不为五斗米折腰”的文化人格典范。\n\n### 生平概述\n陶渊明生于东晋衰亡之际，出身没落官宦之家。他少有高趣，博学善文，因家贫曾数次出仕，担任过江州祭酒、镇军参军、彭泽令等职。在目睹官场腐败与政治动荡后，于四十一岁任彭泽令时，因“不愿为五斗米向乡里小儿折腰”而辞官归隐，从此躬耕田园，直至终老。其诗文质朴自然，意境高远，真实描绘了农耕生活与隐逸情怀，并虚构了“桃花源”这一理想社会图景，对后世文学与思想影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于长江中下游的江州、建康一带，足迹未出今江西、江苏、安徽等省。\n- ⏱️ **时间跨度**：约公元365年 - 427年，总跨度约62年。\n- 📍 **地理范围**：以故乡柴桑（今江西九江）为中心，东至京口（今江苏镇江），北至彭泽（今江西彭泽县）。\n- 🌟 **重要节点数量**：8个核心地点（上京因位置存疑，未计入可地理编码节点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：柴桑\n- **时间**：约公元365年\n- **停留时间**：青少年时期\n- **地点**：柴桑（今江西省九江市）\n- **事件**：出生于一个衰落的官宦家庭，曾祖父陶侃为东晋名将。\n- **意义**：故乡与最终归隐地，其诗文中的“园田居”“南山”等意象多源于此地风物。\n\n### 📍 重要地点：江州\n- **时间**：约公元393年（初仕）\n- **停留时间**：短暂\n- **地点**：江州（今江西省九江市）\n- **事件**：初仕为“江州祭酒”，但因不堪吏职，不久自解归。\n- **意义**：初次接触官场，为其后“仕”与“隐”的矛盾埋下伏笔。\n\n### 📍 重要地点：桓玄军幕（长江中游）\n- **时间**：约公元398-401年\n- **停留时间**：约3年\n- **地点**：随军活动，主要在江陵（今湖北省荆州市）等地\n- **事件**：入桓玄幕僚，曾奉使还都。\n- **意义**：亲历军阀势力膨胀与东晋政局动荡，加深了对时局的失望。\n\n### 📍 重要地点：京口\n- **时间**：约公元404年\n- **停留时间**：短暂\n- **地点**：京口（今江苏省镇江市）\n- **事件**：出任镇军将军刘裕的参军。\n- **意义**：在刘裕幕下，目睹其篡晋野心与杀伐，归隐之志更坚。\n\n### 📍 重要地点：建康\n- **时间**：数次往返\n- **停留时间**：短暂\n- **地点**：建康（今江苏省南京市）\n- **事件**：可能因公务或游历到访东晋都城。\n- **意义**：作为政治中心，其繁华与腐败是陶渊明批判现实的参照。\n\n### 📍 重要地点：彭泽\n- **时间**：公元405年\n- **停留时间**：八十余日\n- **地点**：彭泽（今江西省九江市彭泽县）\n- **事件**：任彭泽令。因不愿束带见督邮，叹“我不能为五斗米折腰向乡里小人”，即日解绶去职。\n- **意义**：人生最后一次出仕与标志性转折点，从此彻底归隐。\n\n### 📍 重要地点：柴桑园田居\n- **时间**：公元405年后\n- **停留时间**：归隐初期\n- **地点**：柴桑（今江西省九江市柴桑区）\n- **事件**：开始真正的农耕生活，作《归园田居》组诗。\n- **意义**：实践其“复得返自然”的理想，创作田园诗的高峰时期。\n- **名篇名句**：《归园田居·其一》：“开荒南野际，守拙归园田”；《归园田居·其三》：“晨兴理荒秽，带月荷锄归”。\n\n### 📍 重要地点：南山（庐山）\n- **时间**：归隐期间常往\n- **停留时间**：不固定\n- **地点**：南山，一般认为指庐山（今江西省九江市庐山市南）\n- **事件**：采菊、登高、游憩。\n- **意义**：其诗中“悠然见南山”的意象来源，象征超脱尘世的精神境界。\n- **名篇名句**：《饮酒·其五》：“采菊东篱下，悠然见南山”。\n\n### 🔴 去世地：柴桑\n- **时间**：公元427年\n- **停留时间**：晚年\n- **地点**：柴桑（今江西省九江市）\n- **事件**：在贫病交加中去世，友人私谥“靖节”。\n- **意义**：完成了从仕宦到隐逸的人生旅程，其人格与诗文成为后世典范。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约365年 | 0岁 | 生于柴桑。 |\n| 约393年 | 约28岁 | 初仕，任江州祭酒，不堪吏职，少日自解归。 |\n| 约398-401年 | 约33-36岁 | 入桓玄幕僚。 |\n| 404年 | 约39岁 | 任镇军将军刘裕参军。 |\n| 405年 | 约40岁 | 任建威将军刘敬宣参军。同年秋，任彭泽令，八十余日后辞官归隐，作《归去来兮辞》。 |\n| 408年 | 约43岁 | 家中遇火。 |\n| 420年 | 约55岁 | 刘裕代晋，建立南朝宋。陶渊明更名“潜”，隐居不仕。 |\n| 421年 | 约56岁 | 作《桃花源诗并记》。 |\n| 426年 | 约61岁 | 拒绝江州刺史檀道济馈赠的粱肉。 |\n| 427年 | 约62岁 | 卒于柴桑。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省九江市 | 29.7051 | 116.0014 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 江苏省镇江市 | 32.1896 | 119.4253 |\n| 江西省彭泽县 | 29.8965 | 116.5559 |\n| 湖北省荆州市 | 30.3352 | 112.2397 |\n| 江西省九江市庐山市 | 29.5547 | 115.9872 |\n", "relatedGraph": {"center": {"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "“古今隐逸诗人之宗”", "review": "开荒南野际，守拙归园田", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "“古今隐逸诗人之宗”", "review": "开荒南野际，守拙归园田", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "“天下第一行书”", "review": "", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "宋", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "“一回归年为365.2425日”", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "宋", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲍照", "name": "鲍照", "file": "鲍照.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": 414, "death_year": 466, "quote": "“吞声踯躅不敢言”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "出生地存疑", "birthplace_modern": "说法不一", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "希帕蒂娅", "name": "希帕蒂娅", "file": "希帕蒂娅.html", "dynasty": "古罗马帝国晚期（埃及行省）", "aliases": [], "birth_year": 355, "death_year": 415, "quote": "希帕蒂娅生活在罗马帝国基督教势力日益扩张、古典希腊罗马文化受到冲击的时代", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "亚历山大", "birthplace_modern": "埃及亚历山大省亚历山大市", "domain_tags": ["新柏拉图主义", "古典学术传承", "古代科学史"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "祖冲之", "name": "祖冲之", "file": "祖冲之.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": 429, "death_year": 500, "quote": "祖冲之，字文远，生活于南朝宋齐之际", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "出生地存疑", "birthplace_modern": "说法不一", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陶渊明", "target": "王羲之", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "郭守敬", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "关汉卿", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "鲍照", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "希帕蒂娅", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "祖冲之", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "陶渊明，又名潜，字元亮，号五柳先生，私谥“靖节”", "title": "古今隐逸诗人之宗", "description": "陶渊明生于东晋衰亡之际，出身没落官宦之家。他少有高趣，博学善文，因家贫曾数次出仕，担任过江州祭酒、镇军参军、彭泽令等职。在目睹官场腐败与政治动荡后，于四十一岁任彭泽令时，因“不愿为五斗米向乡里小儿折腰”而辞官归隐，从此躬耕田园，直至终老。其诗文质朴自然，意境高远，真实描绘了农耕生活与隐逸情怀，并虚构了“桃花源”这一理想社会图景，对后世文学与思想影响深远。", "quote": "开荒南野际，守拙归园田", "shortReview": "开荒南野际，守拙归园田", "dynasty": "东晋末至南朝宋初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "柴桑（今江西省九江市）", "avatar": "", "birth": {"date": "365年", "location": "柴桑（今江西省九江市）", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84"}, "death": {"date": "427年", "location": "柴桑（今江西省九江市）", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84"}, "lifespan": "约62岁", "highlights": {"honor": "古今隐逸诗人之宗", "status": "中国第一位田园诗人，被誉为“古今隐逸诗人之宗”。", "identities": "诗人、辞赋家、隐士", "achievements": "开创**田园诗派**；创作《归去来兮辞》《桃花源记》《饮酒》等经典；塑造了“不为五斗米折腰”的文化人格典范。", "works": ["归去来兮辞", "桃花源记", "饮酒"], "reviews": []}}, "locations": [{"name": "柴桑", "ancientName": "柴桑", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个衰落的官宦家庭，曾祖父陶侃为东晋名将。", "time": "约公元365年", "duration": "青少年时期", "significance": "故乡与最终归隐地，其诗文中的“园田居”“南山”等意象多源于此地风物。", "works": [], "quoteLines": []}, {"name": "江州", "ancientName": "江州", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "初仕为“江州祭酒”，但因不堪吏职，不久自解归。", "time": "约公元393年（初仕）", "duration": "短暂", "significance": "初次接触官场，为其后“仕”与“隐”的矛盾埋下伏笔。", "works": [], "quoteLines": []}, {"name": "桓玄军幕（长江中游）", "ancientName": "随军活动，主要在江陵等地", "modernName": "湖北省荆州市", "lat": 30.3352, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "入桓玄幕僚，曾奉使还都。", "time": "约公元398-401年", "duration": "约3年", "significance": "亲历军阀势力膨胀与东晋政局动荡，加深了对时局的失望。", "works": [], "quoteLines": []}, {"name": "京口", "ancientName": "京口", "modernName": "江苏省镇江市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "出任镇军将军刘裕的参军。", "time": "约公元404年", "duration": "短暂", "significance": "在刘裕幕下，目睹其篡晋野心与杀伐，归隐之志更坚。", "works": [], "quoteLines": []}, {"name": "彭泽", "ancientName": "彭泽", "modernName": "江西省九江市彭泽县", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "任彭泽令。因不愿束带见督邮，叹“我不能为五斗米折腰向乡里小人”，即日解绶去职。", "time": "公元405年", "duration": "八十余日", "significance": "人生最后一次出仕与标志性转折点，从此彻底归隐。", "works": [], "quoteLines": []}, {"name": "柴桑园田居", "ancientName": "柴桑", "modernName": "江西省九江市柴桑区", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "normal", "event": "开始真正的农耕生活，作《归园田居》组诗。", "time": "公元405年后", "duration": "归隐初期", "significance": "实践其“复得返自然”的理想，创作田园诗的高峰时期。", "works": ["归园田居"], "quoteLines": ["《归园田居·其一》：“开荒南野际，守拙归园田”", "《归园田居·其三》：“晨兴理荒秽，带月荷锄归”。"]}, {"name": "柴桑", "ancientName": "柴桑", "modernName": "江西省九江市", "lat": 29.7051, "lng": 116.0014, "coordSystem": "WGS84", "type": "death", "event": "在贫病交加中去世，友人私谥“靖节”。", "time": "公元427年", "duration": "晚年", "significance": "完成了从仕宦到隐逸的人生旅程，其人格与诗文成为后世典范。", "works": [], "quoteLines": []}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "可能因公务或游历到访东晋都城。", "time": "数次往返", "duration": "短暂", "significance": "作为政治中心，其繁华与腐败是陶渊明批判现实的参照。", "works": [], "quoteLines": []}, {"name": "南山（庐山）", "ancientName": "南山，一般认为指庐山", "modernName": "江西省九江市庐山市南", "lat": 29.5547, "lng": 115.9872, "coordSystem": "WGS84", "type": "normal", "event": "采菊、登高、游憩。", "time": "归隐期间常往", "duration": "不固定", "significance": "其诗中“悠然见南山”的意象来源，象征超脱尘世的精神境界。", "works": [], "quoteLines": ["《饮酒·其五》：“采菊东篱下，悠然见南山”。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---", "workTexts": {"归园田居·其一": "开荒南野际，守拙归园田", "归园田居": "开荒南野际，守拙归园田", "其一": "开荒南野际，守拙归园田", "归园田居·其三": "晨兴理荒秽，带月荷锄归", "其三": "晨兴理荒秽，带月荷锄归", "饮酒·其五": "采菊东篱下，悠然见南山", "饮酒": "采菊东篱下，悠然见南山", "其五": "采菊东篱下，悠然见南山", "归去来兮辞": "| 405年 | 约40岁 | 任建威将军刘敬宣参军。", "桃花源诗并记": "| 421年 | 约56岁 | 作《桃花源诗并记》。", "桃花源记": "“世外桃源”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 陶渊明\n\n## 人物档案\n\n### 基本信息\n- **姓名**：陶渊明，又名潜，字元亮，号五柳先生，私谥“靖节”\n- **时代**：东晋末至南朝宋初\n- **出生**：约公元365年（生年另有352年、372年等说，存疑），柴桑（今江西省九江市）\n- **去世**：公元427年，柴桑（今江西省九江市）\n- **享年**：约62岁\n- **主要身份**：诗人、辞赋家、隐士\n- **历史地位**：中国第一位田园诗人，被誉为“古今隐逸诗人之宗”。\n- **主要成就**：开创**田园诗派**；创作《归去来兮辞》《桃花源记》《饮酒》等经典；塑造了“不为五斗米折腰”的文化人格典范。\n\n### 生平概述\n陶渊明生于东晋衰亡之际，出身没落官宦之家。他少有高趣，博学善文，因家贫曾数次出仕，担任过江州祭酒、镇军参军、彭泽令等职。在目睹官场腐败与政治动荡后，于四十一岁任彭泽令时，因“不愿为五斗米向乡里小儿折腰”而辞官归隐，从此躬耕田园，直至终老。其诗文质朴自然，意境高远，真实描绘了农耕生活与隐逸情怀，并虚构了“桃花源”这一理想社会图景，对后世文学与思想影响深远。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于长江中下游的江州、建康一带，足迹未出今江西、江苏、安徽等省。\n- ⏱️ **时间跨度**：约公元365年 - 427年，总跨度约62年。\n- 📍 **地理范围**：以故乡柴桑（今江西九江）为中心，东至京口（今江苏镇江），北至彭泽（今江西彭泽县）。\n- 🌟 **重要节点数量**：8个核心地点（上京因位置存疑，未计入可地理编码节点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：柴桑\n- **时间**：约公元365年\n- **停留时间**：青少年时期\n- **地点**：柴桑（今江西省九江市）\n- **事件**：出生于一个衰落的官宦家庭，曾祖父陶侃为东晋名将。\n- **意义**：故乡与最终归隐地，其诗文中的“园田居”“南山”等意象多源于此地风物。\n\n### 📍 重要地点：江州\n- **时间**：约公元393年（初仕）\n- **停留时间**：短暂\n- **地点**：江州（今江西省九江市）\n- **事件**：初仕为“江州祭酒”，但因不堪吏职，不久自解归。\n- **意义**：初次接触官场，为其后“仕”与“隐”的矛盾埋下伏笔。\n\n### 📍 重要地点：桓玄军幕（长江中游）\n- **时间**：约公元398-401年\n- **停留时间**：约3年\n- **地点**：随军活动，主要在江陵（今湖北省荆州市）等地\n- **事件**：入桓玄幕僚，曾奉使还都。\n- **意义**：亲历军阀势力膨胀与东晋政局动荡，加深了对时局的失望。\n\n### 📍 重要地点：京口\n- **时间**：约公元404年\n- **停留时间**：短暂\n- **地点**：京口（今江苏省镇江市）\n- **事件**：出任镇军将军刘裕的参军。\n- **意义**：在刘裕幕下，目睹其篡晋野心与杀伐，归隐之志更坚。\n\n### 📍 重要地点：建康\n- **时间**：数次往返\n- **停留时间**：短暂\n- **地点**：建康（今江苏省南京市）\n- **事件**：可能因公务或游历到访东晋都城。\n- **意义**：作为政治中心，其繁华与腐败是陶渊明批判现实的参照。\n\n### 📍 重要地点：彭泽\n- **时间**：公元405年\n- **停留时间**：八十余日\n- **地点**：彭泽（今江西省九江市彭泽县）\n- **事件**：任彭泽令。因不愿束带见督邮，叹“我不能为五斗米折腰向乡里小人”，即日解绶去职。\n- **意义**：人生最后一次出仕与标志性转折点，从此彻底归隐。\n\n### 📍 重要地点：柴桑园田居\n- **时间**：公元405年后\n- **停留时间**：归隐初期\n- **地点**：柴桑（今江西省九江市柴桑区）\n- **事件**：开始真正的农耕生活，作《归园田居》组诗。\n- **意义**：实践其“复得返自然”的理想，创作田园诗的高峰时期。\n- **名篇名句**：《归园田居·其一》：“开荒南野际，守拙归园田”；《归园田居·其三》：“晨兴理荒秽，带月荷锄归”。\n\n### 📍 重要地点：南山（庐山）\n- **时间**：归隐期间常往\n- **停留时间**：不固定\n- **地点**：南山，一般认为指庐山（今江西省九江市庐山市南）\n- **事件**：采菊、登高、游憩。\n- **意义**：其诗中“悠然见南山”的意象来源，象征超脱尘世的精神境界。\n- **名篇名句**：《饮酒·其五》：“采菊东篱下，悠然见南山”。\n\n### 🔴 去世地：柴桑\n- **时间**：公元427年\n- **停留时间**：晚年\n- **地点**：柴桑（今江西省九江市）\n- **事件**：在贫病交加中去世，友人私谥“靖节”。\n- **意义**：完成了从仕宦到隐逸的人生旅程，其人格与诗文成为后世典范。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 约365年 | 0岁 | 生于柴桑。 |\n| 约393年 | 约28岁 | 初仕，任江州祭酒，不堪吏职，少日自解归。 |\n| 约398-401年 | 约33-36岁 | 入桓玄幕僚。 |\n| 404年 | 约39岁 | 任镇军将军刘裕参军。 |\n| 405年 | 约40岁 | 任建威将军刘敬宣参军。同年秋，任彭泽令，八十余日后辞官归隐，作《归去来兮辞》。 |\n| 408年 | 约43岁 | 家中遇火。 |\n| 420年 | 约55岁 | 刘裕代晋，建立南朝宋。陶渊明更名“潜”，隐居不仕。 |\n| 421年 | 约56岁 | 作《桃花源诗并记》。 |\n| 426年 | 约61岁 | 拒绝江州刺史檀道济馈赠的粱肉。 |\n| 427年 | 约62岁 | 卒于柴桑。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《归园田居（其一）》**、**《饮酒（其五）》**、**《归去来兮辞》**（节选）、**《桃花源记》**。\n- 核心要点：\n    - **重点**：诗文核心主题是 **“归隐”** 与 **“自然”**，表达对官场的厌恶和对田园生活的热爱。\n    - **重点**：艺术风格 **平淡自然**、**质朴醇厚**，善用白描手法，如“方宅十余亩，草屋八九间”。\n    - **重点**：经典意象 **“菊”**、**“南山”**、**“孤云”**、**“飞鸟”**，象征高洁人格与自由精神。\n    - 善于营造 **意境**，如“采菊东篱下，悠然见南山”物我两忘的境界。\n    - **《桃花源记》** 虚构了 **“世外桃源”** 这一没有战乱、自给自足的理想社会，反映了对现实的不满与对和平的向往。\n    - 《归去来兮辞》是其告别官场、回归田园的宣言，情感真挚，节奏铿锵，如“悟已往之不谏，知来者之可追”。\n    - 其 **“不为五斗米折腰”** 的典故，成为坚守气节、蔑视权贵的文化符号。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：生活在 **东晋末年至南朝宋初**，经历了 **桓玄之乱**、**刘裕代晋** 等重大政治事件。\n    - 出身于 **没落官僚地主家庭**，曾祖父是东晋名将 **陶侃**。\n    - **重点**：一生 **五次出仕，五次归隐**，最终在41岁任彭泽令后彻底归隐。\n- 核心要点：\n    - **重点**：是中国文学史上 **田园诗派的开创者**，其诗歌扩大了传统诗歌的题材范围。\n    - **重点**：其人生选择代表了中国古代 **“隐逸文化”** 的一个高峰，体现了 **儒家“独善其身”** 与 **道家“返璞归真”** 思想的融合。\n    - 后世对其评价极高，如苏轼称其“欲仕则仕，不以求之为嫌；欲隐则隐，不以去之为高”。\n    - **重点**：其作品与人格，共同塑造了一个 **“固穷守节”** 的文人典范，对后世士大夫的精神世界影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省九江市 | 29.7051 | 116.0014 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 江苏省镇江市 | 32.1896 | 119.4253 |\n| 江西省彭泽县 | 29.8965 | 116.5559 |\n| 湖北省荆州市 | 30.3352 | 112.2397 |\n| 江西省九江市庐山市 | 29.5547 | 115.9872 |\n", "relatedGraph": {"center": {"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "“古今隐逸诗人之宗”", "review": "开荒南野际，守拙归园田", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "“古今隐逸诗人之宗”", "review": "开荒南野际，守拙归园田", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "“天下第一行书”", "review": "", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "宋", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "“一回归年为365.2425日”", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "宋", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "“地也，你不分好歹何为地！天也，你错勘贤愚枉做天！”", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲍照", "name": "鲍照", "file": "鲍照.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": 414, "death_year": 466, "quote": "“吞声踯躅不敢言”", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "出生地存疑", "birthplace_modern": "说法不一", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "希帕蒂娅", "name": "希帕蒂娅", "file": "希帕蒂娅.html", "dynasty": "古罗马帝国晚期（埃及行省）", "aliases": [], "birth_year": 355, "death_year": 415, "quote": "希帕蒂娅生活在罗马帝国基督教势力日益扩张、古典希腊罗马文化受到冲击的时代", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "亚历山大", "birthplace_modern": "埃及亚历山大省亚历山大市", "domain_tags": ["新柏拉图主义", "古典学术传承", "古代科学史"], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "祖冲之", "name": "祖冲之", "file": "祖冲之.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": 429, "death_year": 500, "quote": "祖冲之，字文远，生活于南朝宋齐之际", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "出生地存疑", "birthplace_modern": "说法不一", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "陶渊明", "target": "王羲之", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "郭守敬", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "关汉卿", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "鲍照", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "希帕蒂娅", "label": "同时代人物", "confidence": null}, {"source": "陶渊明", "target": "祖冲之", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

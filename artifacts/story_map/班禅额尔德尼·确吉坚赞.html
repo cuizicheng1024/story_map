@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "班禅额尔德尼·确吉坚赞", "title": "", "description": "班禅额尔德尼·确吉坚赞，1938年生于青海，1943年被认定为第九世班禅转世灵童。1949年8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅（关于其坐床的批准与主持方，历史记载存在不同说法，通常认为与国民政府有关，但具体细节存疑）。1952年返回历世班禅驻锡地扎什伦布寺。他一生历经西藏和平解放、民主改革、自治区成立及改革开放等重大历史时期，始终高举爱国主义旗帜，坚决反对分裂，为维护祖国统一、加强民族团结、推动西藏的繁荣进步作出了不可磨灭的贡献。他长期担任国家重要领导职务，是藏传佛教界与党和政府之间的重要桥梁。", "quote": "无直接文学作品，但在此期间发表拥护中央人民政府的通电。", "shortReview": "无直接文学作品，但在此期间发表拥护中央人民政府的通电。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）", "avatar": "", "birth": {"date": "1938年", "location": "青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）", "lat": 35.8333, "lng": 102.4833, "coordSystem": "WGS84"}, "death": {"date": "1989年", "location": "西藏自治区日喀则市扎什伦布寺（今西藏自治区日喀则市桑珠孜区）", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84"}, "lifespan": "51周岁（虚岁52）", "highlights": {"honor": "", "status": "杰出的藏传佛教领袖，伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友。", "identities": "藏传佛教格鲁派第十世班禅额尔德尼、中国佛教协会名誉会长、全国人民代表大会常务委员会副委员长", "achievements": "坚定拥护国家统一与民族团结；积极推动西藏民主改革与社会发展；致力于弘扬佛法与民族文化；作为国家领导人参与国事管理。", "works": [], "reviews": ["**官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "**宗教界评价**：被信教群众尊奉为具有崇高宗教地位和广泛宗教影响的活佛，其佛学造诣和爱国精神受到广泛敬仰。", "**史家评价**：研究者普遍认为，他的一生是20世纪中国西藏历史变迁的缩影，其政治选择深刻影响了西藏当代史的进程。"]}}, "locations": [{"name": "循化县文都乡", "ancientName": "青海省循化撒拉族自治县文都乡麻日村", "modernName": "青海省海东市循化撒拉族自治县文都藏族乡", "lat": 35.8333, "lng": 102.4833, "coordSystem": "WGS84", "type": "birth", "event": "在此出生并度过幼年，原名贡布才旦。", "time": "1938年", "duration": "幼年（约5年）", "significance": "人生起点，藏族文化启蒙之地。", "works": [], "quoteLines": []}, {"name": "塔尔寺", "ancientName": "青海省湟中县", "modernName": "青海省西宁市湟中区", "lat": 36.4833, "lng": 101.5667, "coordSystem": "WGS84", "type": "normal", "event": "被认定为转世灵童后，迎请至塔尔寺供养、学习经典。1949年8月10日，在此举行坐床典礼，正式继任第十世班禅。", "time": "1943年-1951年", "duration": "约8年", "significance": "完成宗教身份确立的关键阶段，系统学习藏传佛教经典。", "works": [], "quoteLines": ["无直接文学作品，但在此期间发表拥护中央人民政府的通电。"]}, {"name": "扎什伦布寺", "ancientName": "西藏日喀则市", "modernName": "西藏自治区日喀则市桑珠孜区", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84", "type": "normal", "event": "1952年返藏后长期驻锡并主持寺务；1954年后参与国家政治生活；1989年1月在此圆寂。", "time": "1952年-1989年（主要驻锡地）", "duration": "断续驻锡共约30余年", "significance": "历世班禅驻锡地，其宗教事业与政治活动的核心舞台。", "works": [], "quoteLines": ["无传统诗词，但其政治主张与宗教论述多发表于此。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加第一届全国人民代表大会；当选全国人大常委会副委员长；参与国家重大政治活动；与毛泽东、周恩来、邓小平等领导人会晤。", "time": "1954年-1989年（多次往返）", "duration": "累计数年", "significance": "参与国家最高政治生活，履行国家领导人职责的中心。", "works": [], "quoteLines": ["无文学作品，但有重要政治发言与报告。"]}, {"name": "扎什伦布寺", "ancientName": "西藏日喀则市", "modernName": "西藏自治区日喀则市桑珠孜区", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84", "type": "death", "event": "1989年1月，在主持五世至九世班禅遗体合葬灵塔祀殿——班禅东陵扎什南捷开光典礼后，因操劳过度，心脏病突发，于此圆寂。", "time": "1989年1月28日", "duration": "生前最后阶段", "significance": "最终归宿，为其宗教与政治生涯画上句号，也象征其与扎什伦布寺不可分割的联系。", "works": [], "quoteLines": ["无直接诗句，其最后的活动与讲话成为重要历史记录。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"关于和平解放西藏办法的协议": "| 1951年 | 13岁 | 致电拥护《关于和平解放西藏办法的协议》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 班禅额尔德尼·确吉坚赞\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：班禅额尔德尼·确吉坚赞（法名），俗名贡布才旦\n- **时代**：中华人民共和国\n- **出生**：1938年2月3日，青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）\n- **去世**：1989年1月28日，西藏自治区日喀则市扎什伦布寺（今西藏自治区日喀则市桑珠孜区）\n- **享年**：51周岁（虚岁52）\n- **主要身份**：藏传佛教格鲁派第十世班禅额尔德尼、中国佛教协会名誉会长、全国人民代表大会常务委员会副委员长\n- **历史地位**：杰出的藏传佛教领袖，伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友。\n- **主要成就**：坚定拥护国家统一与民族团结；积极推动西藏民主改革与社会发展；致力于弘扬佛法与民族文化；作为国家领导人参与国事管理。\n\n### 生平概述\n班禅额尔德尼·确吉坚赞，1938年生于青海，1943年被认定为第九世班禅转世灵童。1949年8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅（关于其坐床的批准与主持方，历史记载存在不同说法，通常认为与国民政府有关，但具体细节存疑）。1952年返回历世班禅驻锡地扎什伦布寺。他一生历经西藏和平解放、民主改革、自治区成立及改革开放等重大历史时期，始终高举爱国主义旗帜，坚决反对分裂，为维护祖国统一、加强民族团结、推动西藏的繁荣进步作出了不可磨灭的贡献。他长期担任国家重要领导职务，是藏传佛教界与党和政府之间的重要桥梁。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖青海、西藏、北京及中国其他部分省市。\n- ⏱️ **时间跨度**：1938年至1989年，共51年。\n- 📍 **地理范围**：以青藏高原（青海、西藏）为核心，辐射至中国首都北京及内地。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：循化县文都乡\n- **公元纪年**：1938年\n- **停留时间**：幼年（约5年）\n- **位置**：青海省循化撒拉族自治县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）\n- **事迹**：在此出生并度过幼年，原名贡布才旦。\n- **意义**：人生起点，藏族文化启蒙之地。\n\n### 📍 重要地点：塔尔寺\n- **公元纪年**：1943年-1951年\n- **停留时间**：约8年\n- **位置**：青海省湟中县（今青海省西宁市湟中区）\n- **事迹**：被认定为转世灵童后，迎请至塔尔寺供养、学习经典。1949年8月10日，在此举行坐床典礼，正式继任第十世班禅。\n- **意义**：完成宗教身份确立的关键阶段，系统学习藏传佛教经典。\n- **名篇名句**：无直接文学作品，但在此期间发表拥护中央人民政府的通电。\n\n### 📍 重要地点：扎什伦布寺\n- **公元纪年**：1952年-1989年（主要驻锡地）\n- **停留时间**：断续驻锡共约30余年\n- **位置**：西藏日喀则市（今西藏自治区日喀则市桑珠孜区）\n- **事迹**：1952年返藏后长期驻锡并主持寺务；1954年后参与国家政治生活；1989年1月在此圆寂。\n- **意义**：历世班禅驻锡地，其宗教事业与政治活动的核心舞台。\n- **名篇名句**：无传统诗词，但其政治主张与宗教论述多发表于此。\n\n### 📍 重要地点：北京\n- **公元纪年**：1954年-1989年（多次往返）\n- **停留时间**：累计数年\n- **位置**：北京市\n- **事迹**：参加第一届全国人民代表大会；当选全国人大常委会副委员长；参与国家重大政治活动；与毛泽东、周恩来、邓小平等领导人会晤。\n- **意义**：参与国家最高政治生活，履行国家领导人职责的中心。\n- **名篇名句**：无文学作品，但有重要政治发言与报告。\n\n### 📍 重要地点：西藏自治区（拉萨等地）\n- **公元纪年**：1956年-1980年代\n- **停留时间**：多次视察、工作\n- **位置**：西藏自治区拉萨市、日喀则市等地\n- **事迹**：参与西藏自治区筹备委员会工作；民主改革后深入基层视察；推动西藏经济文化建设。\n- **意义**：实践其爱国进步主张，推动西藏社会发展的主要区域。\n\n### 🔴 去世地：扎什伦布寺\n- **公元纪年**：1989年1月28日\n- **停留时间**：生前最后阶段\n- **位置**：西藏日喀则市（今西藏自治区日喀则市桑珠孜区）\n- **经过**：1989年1月，在主持五世至九世班禅遗体合葬灵塔祀殿——班禅东陵扎什南捷开光典礼后，因操劳过度，心脏病突发，于此圆寂。\n- **意义**：最终归宿，为其宗教与政治生涯画上句号，也象征其与扎什伦布寺不可分割的联系。\n- **名篇名句**：无直接诗句，其最后的活动与讲话成为重要历史记录。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n|------|------|----------|\n| 1938年 | 0岁 | 出生于青海省循化县文都乡。 |\n| 1943年 | 5岁 | 被认定为第九世班禅转世灵童，迎至塔尔寺。 |\n| 1949年 | 11岁 | 8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅。10月，致电毛泽东、朱德，拥护中央人民政府。 |\n| 1951年 | 13岁 | 致电拥护《关于和平解放西藏办法的协议》。 |\n| 1952年 | 14岁 | 顺利返回西藏，抵达拉萨并长期驻锡扎什伦布寺。 |\n| 1954年 | 16岁 | 当选第一届全国人大代表，赴京参会；当选全国人大常委会委员。 |\n| 1956年 | 18岁 | 任西藏自治区筹备委员会第一副主任委员。 |\n| 1959年 | 21岁 | 担任代理西藏自治区筹备委员会主任委员，领导筹委会工作。 |\n| 1960年代-1970年代 | 约22岁-41岁 | 经历政治风波，曾受到不公正待遇，但始终坚持爱国立场。此期间经历需结合具体史料进一步确认。 |\n| 1980年 | 42岁 | 当选全国人大常委会副委员长，重返国家政治舞台。 |\n| 1989年 | 51岁（虚岁） | 1月28日，在日喀则扎什伦布寺圆寂。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n确吉坚赞作为藏传佛教两大领袖之一，其坚定的爱国主义立场对稳定西藏局势、促进民族团结起到了关键作用。他积极参与国家政治生活，为西藏的和平解放、民主改革和自治区的建立与发展作出了直接贡献，是连接中央政府与西藏地方及信教群众的重要纽带。\n\n### 对后世的影响\n1.  **树立了爱国爱教的典范**：其一生践行“爱国是公民的神圣职责”的信念，成为藏传佛教界与社会主义社会相适应的楷模。\n2.  **奠定了班禅系统在新中国的政治地位**：他作为国家领导人的实践，为藏传佛教活佛转世制度在当代中国的延续与发展确立了政治和宗教典范。\n3.  **促进了民族宗教政策的完善**：他的经历与贡献，是中国民族宗教工作的重要历史见证，对相关政策的制定与调整产生了深远影响。\n\n### 历史评价\n1.  **官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”\n2.  **宗教界评价**：被信教群众尊奉为具有崇高宗教地位和广泛宗教影响的活佛，其佛学造诣和爱国精神受到广泛敬仰。\n3.  **史家评价**：研究者普遍认为，他的一生是20世纪中国西藏历史变迁的缩影，其政治选择深刻影响了西藏当代史的进程。\n\n---\n\n## 人教版教材知识点与考点\n\n### 初中阶段\n- **时代背景**：生活在**中华人民共和国**时期，经历了**西藏和平解放**、**民主改革**等重大历史事件。\n- **关键事件**：**坐床典礼**（1949年，关于批准方，历史记载存在不同说法）；致电拥护中央人民政府；**返回西藏**（1952年）；参与**西藏自治区**筹备工作。\n- **代表思想/贡献**：**爱国主义**；维护**国家统一**和**民族团结**。\n- **常见易混点/对比点**：与**达赖喇嘛**同为藏传佛教格鲁派领袖，但在政治立场上存在根本区别（爱国与分裂）。\n- **核心考点**：俗名与法名；坐床典礼的时间和地点（1949年，塔尔寺）；1949年致电拥护中央人民政府的历史意义；1952年返回西藏的象征意义；主要政治职务：全国人大常委会副委员长；核心精神：爱国主义。\n\n### 高中阶段\n- **时代背景**：**社会主义革命和建设时期**、**改革开放**时期；**民族区域自治制度**在西藏的实践。\n- **关键事件/贡献**：担任**全国人大常委会副委员长**；推动**西藏社会经济发展**；主持**扎什南捷**灵塔祀殿重建与开光。\n- **代表作品/思想**：其政治报告与讲话体现了**宗教与社会主义社会相适应**的思想。\n- **常见易混点/对比点**：**班禅额尔德尼**封号的历史传承（清中央政府册封）；**活佛转世**制度的历史定制与宗教仪轨。\n- **核心考点**：班禅系统与中央政府关系的历史脉络（元明清册封）；在**西藏民主改革**和**自治区成立**过程中的具体作用；在**改革开放**后复出工作的时代背景与意义；理解“**爱国爱教**典范”在当代中国**民族宗教政策**中的体现；其圆寂与**扎什伦布寺**的关系，以及后续转世寻访与认定工作的开展。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n|------|--------------|------|------|\n| 循化县文都乡 | 青海省海东市循化撒拉族自治县文都藏族乡 | 35.8333 | 102.4833 |\n| 塔尔寺 | 青海省西宁市湟中区塔尔寺 | 36.4833 | 101.5667 |\n| 扎什伦布寺 | 西藏自治区日喀则市桑珠孜区扎什伦布寺 | 29.2667 | 88.8833 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |", "relatedGraph": {"center": {"id": "班禅额尔德尼·确吉坚赞", "name": "班禅额尔德尼·确吉坚赞", "file": "班禅额尔德尼·确吉坚赞.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1938, "death_year": 1989, "quote": "“爱国是公民的神圣职责”", "review": "*官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "青海省循化县文都乡麻日村", "birthplace_modern": "青海省海东市循化撒拉族自治县文都藏族乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "班禅额尔德尼·确吉坚赞", "name": "班禅额尔德尼·确吉坚赞", "file": "班禅额尔德尼·确吉坚赞.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1938, "death_year": 1989, "quote": "“爱国是公民的神圣职责”", "review": "*官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "青海省循化县文都乡麻日村", "birthplace_modern": "青海省海东市循化撒拉族自治县文都藏族乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "现代", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "“中国共产党的亲密朋友、伟大的爱国主义者”", "review": "*官方评价**：“中国共产党的亲密朋友、伟大的爱国主义者”、“西藏和平解放的大功臣”。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "聂荣臻", "name": "聂荣臻", "file": "聂荣臻.html", "dynasty": "现代", "aliases": [], "birth_year": 1899, "death_year": 1992, "quote": "“模范抗日根据地”", "review": "*官方评价**：“中国共产党的优秀党员，久经考验的无产阶级革命家、军事家，中国人民解放军的缔造者之一，伟大的无产阶级革命家、政治家、军事家，中国人民解放军创建人之一，中华人民共和…", "foreign_name": "", "main_role_label": "军事家", "birthplace": "四川省江津县", "birthplace_modern": "重庆市江津区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "班禅额尔德尼·确吉坚赞", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "阿沛·阿旺晋美", "label": "同册共现", "confidence": 0.15}, {"source": "班禅额尔德尼·确吉坚赞", "target": "聂荣臻", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "班禅额尔德尼·确吉坚赞", "title": "", "description": "班禅额尔德尼·确吉坚赞，1938年生于青海，1943年被认定为第九世班禅转世灵童。1949年8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅（关于其坐床的批准与主持方，历史记载存在不同说法，通常认为与国民政府有关，但具体细节存疑）。1952年返回历世班禅驻锡地扎什伦布寺。他一生历经西藏和平解放、民主改革、自治区成立及改革开放等重大历史时期，始终高举爱国主义旗帜，坚决反对分裂，为维护祖国统一、加强民族团结、推动西藏的繁荣进步作出了不可磨灭的贡献。他长期担任国家重要领导职务，是藏传佛教界与党和政府之间的重要桥梁。", "quote": "无直接文学作品，但在此期间发表拥护中央人民政府的通电。", "shortReview": "无直接文学作品，但在此期间发表拥护中央人民政府的通电。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）", "avatar": "", "birth": {"date": "1938年", "location": "青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）", "lat": 35.8333, "lng": 102.4833, "coordSystem": "WGS84"}, "death": {"date": "1989年", "location": "西藏自治区日喀则市扎什伦布寺（今西藏自治区日喀则市桑珠孜区）", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84"}, "lifespan": "51周岁（虚岁52）", "highlights": {"honor": "", "status": "杰出的藏传佛教领袖，伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友。", "identities": "藏传佛教格鲁派第十世班禅额尔德尼、中国佛教协会名誉会长、全国人民代表大会常务委员会副委员长", "achievements": "坚定拥护国家统一与民族团结；积极推动西藏民主改革与社会发展；致力于弘扬佛法与民族文化；作为国家领导人参与国事管理。", "works": [], "reviews": ["**官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "**宗教界评价**：被信教群众尊奉为具有崇高宗教地位和广泛宗教影响的活佛，其佛学造诣和爱国精神受到广泛敬仰。", "**史家评价**：研究者普遍认为，他的一生是20世纪中国西藏历史变迁的缩影，其政治选择深刻影响了西藏当代史的进程。"]}}, "locations": [{"name": "循化县文都乡", "ancientName": "青海省循化撒拉族自治县文都乡麻日村", "modernName": "青海省海东市循化撒拉族自治县文都藏族乡", "lat": 35.8333, "lng": 102.4833, "coordSystem": "WGS84", "type": "birth", "event": "在此出生并度过幼年，原名贡布才旦。", "time": "1938年", "duration": "幼年（约5年）", "significance": "人生起点，藏族文化启蒙之地。", "works": [], "quoteLines": []}, {"name": "塔尔寺", "ancientName": "青海省湟中县", "modernName": "青海省西宁市湟中区", "lat": 36.4833, "lng": 101.5667, "coordSystem": "WGS84", "type": "normal", "event": "被认定为转世灵童后，迎请至塔尔寺供养、学习经典。1949年8月10日，在此举行坐床典礼，正式继任第十世班禅。", "time": "1943年-1951年", "duration": "约8年", "significance": "完成宗教身份确立的关键阶段，系统学习藏传佛教经典。", "works": [], "quoteLines": ["无直接文学作品，但在此期间发表拥护中央人民政府的通电。"]}, {"name": "扎什伦布寺", "ancientName": "西藏日喀则市", "modernName": "西藏自治区日喀则市桑珠孜区", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84", "type": "normal", "event": "1952年返藏后长期驻锡并主持寺务；1954年后参与国家政治生活；1989年1月在此圆寂。", "time": "1952年-1989年（主要驻锡地）", "duration": "断续驻锡共约30余年", "significance": "历世班禅驻锡地，其宗教事业与政治活动的核心舞台。", "works": [], "quoteLines": ["无传统诗词，但其政治主张与宗教论述多发表于此。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "参加第一届全国人民代表大会；当选全国人大常委会副委员长；参与国家重大政治活动；与毛泽东、周恩来、邓小平等领导人会晤。", "time": "1954年-1989年（多次往返）", "duration": "累计数年", "significance": "参与国家最高政治生活，履行国家领导人职责的中心。", "works": [], "quoteLines": ["无文学作品，但有重要政治发言与报告。"]}, {"name": "扎什伦布寺", "ancientName": "西藏日喀则市", "modernName": "西藏自治区日喀则市桑珠孜区", "lat": 29.2667, "lng": 88.8833, "coordSystem": "WGS84", "type": "death", "event": "1989年1月，在主持五世至九世班禅遗体合葬灵塔祀殿——班禅东陵扎什南捷开光典礼后，因操劳过度，心脏病突发，于此圆寂。", "time": "1989年1月28日", "duration": "生前最后阶段", "significance": "最终归宿，为其宗教与政治生涯画上句号，也象征其与扎什伦布寺不可分割的联系。", "works": [], "quoteLines": ["无直接诗句，其最后的活动与讲话成为重要历史记录。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"关于和平解放西藏办法的协议": "| 1951年 | 13岁 | 致电拥护《关于和平解放西藏办法的协议》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 班禅额尔德尼·确吉坚赞\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：班禅额尔德尼·确吉坚赞（法名），俗名贡布才旦\n- **时代**：中华人民共和国\n- **出生**：1938年2月3日，青海省循化县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）\n- **去世**：1989年1月28日，西藏自治区日喀则市扎什伦布寺（今西藏自治区日喀则市桑珠孜区）\n- **享年**：51周岁（虚岁52）\n- **主要身份**：藏传佛教格鲁派第十世班禅额尔德尼、中国佛教协会名誉会长、全国人民代表大会常务委员会副委员长\n- **历史地位**：杰出的藏传佛教领袖，伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友。\n- **主要成就**：坚定拥护国家统一与民族团结；积极推动西藏民主改革与社会发展；致力于弘扬佛法与民族文化；作为国家领导人参与国事管理。\n\n### 生平概述\n班禅额尔德尼·确吉坚赞，1938年生于青海，1943年被认定为第九世班禅转世灵童。1949年8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅（关于其坐床的批准与主持方，历史记载存在不同说法，通常认为与国民政府有关，但具体细节存疑）。1952年返回历世班禅驻锡地扎什伦布寺。他一生历经西藏和平解放、民主改革、自治区成立及改革开放等重大历史时期，始终高举爱国主义旗帜，坚决反对分裂，为维护祖国统一、加强民族团结、推动西藏的繁荣进步作出了不可磨灭的贡献。他长期担任国家重要领导职务，是藏传佛教界与党和政府之间的重要桥梁。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖青海、西藏、北京及中国其他部分省市。\n- ⏱️ **时间跨度**：1938年至1989年，共51年。\n- 📍 **地理范围**：以青藏高原（青海、西藏）为核心，辐射至中国首都北京及内地。\n- 🌟 **重要节点数量**：核心地点约8个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：循化县文都乡\n- **公元纪年**：1938年\n- **停留时间**：幼年（约5年）\n- **位置**：青海省循化撒拉族自治县文都乡麻日村（今青海省海东市循化撒拉族自治县文都藏族乡）\n- **事迹**：在此出生并度过幼年，原名贡布才旦。\n- **意义**：人生起点，藏族文化启蒙之地。\n\n### 📍 重要地点：塔尔寺\n- **公元纪年**：1943年-1951年\n- **停留时间**：约8年\n- **位置**：青海省湟中县（今青海省西宁市湟中区）\n- **事迹**：被认定为转世灵童后，迎请至塔尔寺供养、学习经典。1949年8月10日，在此举行坐床典礼，正式继任第十世班禅。\n- **意义**：完成宗教身份确立的关键阶段，系统学习藏传佛教经典。\n- **名篇名句**：无直接文学作品，但在此期间发表拥护中央人民政府的通电。\n\n### 📍 重要地点：扎什伦布寺\n- **公元纪年**：1952年-1989年（主要驻锡地）\n- **停留时间**：断续驻锡共约30余年\n- **位置**：西藏日喀则市（今西藏自治区日喀则市桑珠孜区）\n- **事迹**：1952年返藏后长期驻锡并主持寺务；1954年后参与国家政治生活；1989年1月在此圆寂。\n- **意义**：历世班禅驻锡地，其宗教事业与政治活动的核心舞台。\n- **名篇名句**：无传统诗词，但其政治主张与宗教论述多发表于此。\n\n### 📍 重要地点：北京\n- **公元纪年**：1954年-1989年（多次往返）\n- **停留时间**：累计数年\n- **位置**：北京市\n- **事迹**：参加第一届全国人民代表大会；当选全国人大常委会副委员长；参与国家重大政治活动；与毛泽东、周恩来、邓小平等领导人会晤。\n- **意义**：参与国家最高政治生活，履行国家领导人职责的中心。\n- **名篇名句**：无文学作品，但有重要政治发言与报告。\n\n### 📍 重要地点：西藏自治区（拉萨等地）\n- **公元纪年**：1956年-1980年代\n- **停留时间**：多次视察、工作\n- **位置**：西藏自治区拉萨市、日喀则市等地\n- **事迹**：参与西藏自治区筹备委员会工作；民主改革后深入基层视察；推动西藏经济文化建设。\n- **意义**：实践其爱国进步主张，推动西藏社会发展的主要区域。\n\n### 🔴 去世地：扎什伦布寺\n- **公元纪年**：1989年1月28日\n- **停留时间**：生前最后阶段\n- **位置**：西藏日喀则市（今西藏自治区日喀则市桑珠孜区）\n- **经过**：1989年1月，在主持五世至九世班禅遗体合葬灵塔祀殿——班禅东陵扎什南捷开光典礼后，因操劳过度，心脏病突发，于此圆寂。\n- **意义**：最终归宿，为其宗教与政治生涯画上句号，也象征其与扎什伦布寺不可分割的联系。\n- **名篇名句**：无直接诗句，其最后的活动与讲话成为重要历史记录。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n|------|------|----------|\n| 1938年 | 0岁 | 出生于青海省循化县文都乡。 |\n| 1943年 | 5岁 | 被认定为第九世班禅转世灵童，迎至塔尔寺。 |\n| 1949年 | 11岁 | 8月10日，在塔尔寺举行坐床典礼，正式继任第十世班禅。10月，致电毛泽东、朱德，拥护中央人民政府。 |\n| 1951年 | 13岁 | 致电拥护《关于和平解放西藏办法的协议》。 |\n| 1952年 | 14岁 | 顺利返回西藏，抵达拉萨并长期驻锡扎什伦布寺。 |\n| 1954年 | 16岁 | 当选第一届全国人大代表，赴京参会；当选全国人大常委会委员。 |\n| 1956年 | 18岁 | 任西藏自治区筹备委员会第一副主任委员。 |\n| 1959年 | 21岁 | 担任代理西藏自治区筹备委员会主任委员，领导筹委会工作。 |\n| 1960年代-1970年代 | 约22岁-41岁 | 经历政治风波，曾受到不公正待遇，但始终坚持爱国立场。此期间经历需结合具体史料进一步确认。 |\n| 1980年 | 42岁 | 当选全国人大常委会副委员长，重返国家政治舞台。 |\n| 1989年 | 51岁（虚岁） | 1月28日，在日喀则扎什伦布寺圆寂。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n确吉坚赞作为藏传佛教两大领袖之一，其坚定的爱国主义立场对稳定西藏局势、促进民族团结起到了关键作用。他积极参与国家政治生活，为西藏的和平解放、民主改革和自治区的建立与发展作出了直接贡献，是连接中央政府与西藏地方及信教群众的重要纽带。\n\n### 对后世的影响\n1.  **树立了爱国爱教的典范**：其一生践行“爱国是公民的神圣职责”的信念，成为藏传佛教界与社会主义社会相适应的楷模。\n2.  **奠定了班禅系统在新中国的政治地位**：他作为国家领导人的实践，为藏传佛教活佛转世制度在当代中国的延续与发展确立了政治和宗教典范。\n3.  **促进了民族宗教政策的完善**：他的经历与贡献，是中国民族宗教工作的重要历史见证，对相关政策的制定与调整产生了深远影响。\n\n### 历史评价\n1.  **官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”\n2.  **宗教界评价**：被信教群众尊奉为具有崇高宗教地位和广泛宗教影响的活佛，其佛学造诣和爱国精神受到广泛敬仰。\n3.  **史家评价**：研究者普遍认为，他的一生是20世纪中国西藏历史变迁的缩影，其政治选择深刻影响了西藏当代史的进程。\n\n---\n\n## 人教版教材知识点与考点\n\n### 初中阶段\n- **时代背景**：生活在**中华人民共和国**时期，经历了**西藏和平解放**、**民主改革**等重大历史事件。\n- **关键事件**：**坐床典礼**（1949年，关于批准方，历史记载存在不同说法）；致电拥护中央人民政府；**返回西藏**（1952年）；参与**西藏自治区**筹备工作。\n- **代表思想/贡献**：**爱国主义**；维护**国家统一**和**民族团结**。\n- **常见易混点/对比点**：与**达赖喇嘛**同为藏传佛教格鲁派领袖，但在政治立场上存在根本区别（爱国与分裂）。\n- **核心考点**：俗名与法名；坐床典礼的时间和地点（1949年，塔尔寺）；1949年致电拥护中央人民政府的历史意义；1952年返回西藏的象征意义；主要政治职务：全国人大常委会副委员长；核心精神：爱国主义。\n\n### 高中阶段\n- **时代背景**：**社会主义革命和建设时期**、**改革开放**时期；**民族区域自治制度**在西藏的实践。\n- **关键事件/贡献**：担任**全国人大常委会副委员长**；推动**西藏社会经济发展**；主持**扎什南捷**灵塔祀殿重建与开光。\n- **代表作品/思想**：其政治报告与讲话体现了**宗教与社会主义社会相适应**的思想。\n- **常见易混点/对比点**：**班禅额尔德尼**封号的历史传承（清中央政府册封）；**活佛转世**制度的历史定制与宗教仪轨。\n- **核心考点**：班禅系统与中央政府关系的历史脉络（元明清册封）；在**西藏民主改革**和**自治区成立**过程中的具体作用；在**改革开放**后复出工作的时代背景与意义；理解“**爱国爱教**典范”在当代中国**民族宗教政策**中的体现；其圆寂与**扎什伦布寺**的关系，以及后续转世寻访与认定工作的开展。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n|------|--------------|------|------|\n| 循化县文都乡 | 青海省海东市循化撒拉族自治县文都藏族乡 | 35.8333 | 102.4833 |\n| 塔尔寺 | 青海省西宁市湟中区塔尔寺 | 36.4833 | 101.5667 |\n| 扎什伦布寺 | 西藏自治区日喀则市桑珠孜区扎什伦布寺 | 29.2667 | 88.8833 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |", "relatedGraph": {"center": {"id": "班禅额尔德尼·确吉坚赞", "name": "班禅额尔德尼·确吉坚赞", "file": "班禅额尔德尼·确吉坚赞.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1938, "death_year": 1989, "quote": "“爱国是公民的神圣职责”", "review": "*官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "青海省循化县文都乡麻日村", "birthplace_modern": "青海省海东市循化撒拉族自治县文都藏族乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "班禅额尔德尼·确吉坚赞", "name": "班禅额尔德尼·确吉坚赞", "file": "班禅额尔德尼·确吉坚赞.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1938, "death_year": 1989, "quote": "“爱国是公民的神圣职责”", "review": "*官方评价**：“伟大的爱国主义者，著名的国务活动家，中国共产党的忠诚朋友，藏传佛教的杰出领袖。”", "foreign_name": "", "main_role_label": "政治", "birthplace": "青海省循化县文都乡麻日村", "birthplace_modern": "青海省海东市循化撒拉族自治县文都藏族乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "现代", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "“中国共产党的亲密朋友、伟大的爱国主义者”", "review": "*官方评价**：“中国共产党的亲密朋友、伟大的爱国主义者”、“西藏和平解放的大功臣”。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "聂荣臻", "name": "聂荣臻", "file": "聂荣臻.html", "dynasty": "现代", "aliases": [], "birth_year": 1899, "death_year": 1992, "quote": "“模范抗日根据地”", "review": "*官方评价**：“中国共产党的优秀党员，久经考验的无产阶级革命家、军事家，中国人民解放军的缔造者之一，伟大的无产阶级革命家、政治家、军事家，中国人民解放军创建人之一，中华人民共和…", "foreign_name": "", "main_role_label": "军事家", "birthplace": "四川省江津县", "birthplace_modern": "重庆市江津区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "班禅额尔德尼·确吉坚赞", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "班禅额尔德尼·确吉坚赞", "target": "阿沛·阿旺晋美", "label": "同册共现", "confidence": 0.15}, {"source": "班禅额尔德尼·确吉坚赞", "target": "聂荣臻", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "张子善", "title": "三反", "description": "张子善出生于河北深县一个贫苦农家，早年接受进步思想，于1933年加入中国共产党。在革命战争年代，他历经考验，为冀中抗日根据地的建设和巩固做出过贡献。新中国成立后，张子善担任天津地区主要领导职务。然而，在和平建设时期，他未能经受住权力和物质的考验，与刘青山（时任天津地委书记）相互勾结，利用职权大肆贪污、盗窃国家资财，生活腐化堕落。1951年底，“三反”运动中其罪行被揭露。经公审，张子善与刘青山于1952年2月10日在保定被依法执行死刑。此案作为“新中国反腐第一案”，在全党和全社会产生了极其深远的历史警示。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "直隶省深县（今河北省衡水市深州市）", "avatar": "", "birth": {"date": "1914年", "location": "直隶省深县（今河北省衡水市深州市）", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84"}, "death": {"date": "1952年", "location": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84"}, "lifespan": "38岁（1914-1952）", "highlights": {"honor": "三反", "status": "新中国成立初期因贪污腐败被处决的高级干部典型，其案件成为全国“三反”运动的标志性事件。", "identities": "革命干部、地方行政官员", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "深县", "ancientName": "直隶省深县", "modernName": "河北省衡水市深州市", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个农民家庭。", "time": "公元1914年", "duration": "童年及少年时期", "significance": "其早年贫困的生活经历，是其后来走上革命道路的动因之一。", "works": [], "quoteLines": []}, {"name": "安平县", "ancientName": "河北省安平县", "modernName": "河北省衡水市安平县", "lat": 38.2345, "lng": 115.5188, "coordSystem": "WGS84", "type": "normal", "event": "在安平县立乡村师范学校读书，开始接触进步思想。", "time": "1930年代初期", "duration": "求学期间", "significance": "思想启蒙之地，为其加入中国共产党奠定了基础。", "works": [], "quoteLines": []}, {"name": "深县、安平县", "ancientName": "河北省深县、安平县", "modernName": "河北省衡水市深州市、安平县", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84", "type": "normal", "event": "1933年加入中国共产党，并在本地从事地下革命活动。", "time": "1933年-1937年", "duration": "约4年", "significance": "正式开始其革命生涯，经历了早期斗争的考验。", "works": [], "quoteLines": []}, {"name": "天津", "ancientName": "天津地区", "modernName": "天津市", "lat": 39.0842, "lng": 117.2, "coordSystem": "WGS84", "type": "normal", "event": "新中国成立后，担任中共天津地委副书记、天津地区专员。期间与刘青山勾结，利用职权贪污、盗窃机场建设款、救灾粮款等，生活极度奢靡。", "time": "1949年-1951年", "duration": "约2年", "significance": "从革命功臣堕落为人民罪人的关键地点，其腐败行为在此地集中发生并最终败露。", "works": [], "quoteLines": []}, {"name": "保定", "ancientName": "保定", "modernName": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84", "type": "normal", "event": "1951年11月，刘青山、张子善贪污案在中共河北省委第三次代表大会上被公开揭露。随后，二人被逮捕并关押于保定。", "time": "1951年底", "duration": "被关押、审判期间", "significance": "案件进入司法程序，成为全国性政治运动的焦点。", "works": [], "quoteLines": []}, {"name": "保定", "ancientName": "保定", "modernName": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84", "type": "death", "event": "经最高人民法院批准，河北省人民法院在保定市举行公审大会，宣判刘青山、张子善死刑，立即执行。", "time": "公元1952年2月10日", "duration": "生命最后时刻", "significance": "其生命的终结地，也是“三反”运动达到高潮的标志性地点。此案对新中国初期的党风廉政建设产生了不可估量的影响。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 张子善\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张子善\n- **时代**：中华人民共和国\n- **出生**：公元1914年，直隶省深县（今河北省衡水市深州市）\n- **去世**：公元1952年2月10日，河北省保定市\n- **享年**：38岁（1914-1952）\n- **主要身份**：革命干部、地方行政官员\n- **历史地位**：新中国成立初期因贪污腐败被处决的高级干部典型，其案件成为全国“三反”运动的标志性事件。\n- **主要成就**：\n    - 青年时期投身革命，在白色恐怖下坚持斗争。\n    - 抗日战争期间，在冀中根据地从事地方党政工作。\n    - 新中国成立初期，曾任中共天津地委副书记、天津地区专员。\n\n### 生平概述\n张子善出生于河北深县一个贫苦农家，早年接受进步思想，于1933年加入中国共产党。在革命战争年代，他历经考验，为冀中抗日根据地的建设和巩固做出过贡献。新中国成立后，张子善担任天津地区主要领导职务。然而，在和平建设时期，他未能经受住权力和物质的考验，与刘青山（时任天津地委书记）相互勾结，利用职权大肆贪污、盗窃国家资财，生活腐化堕落。1951年底，“三反”运动中其罪行被揭露。经公审，张子善与刘青山于1952年2月10日在保定被依法执行死刑。此案作为“新中国反腐第一案”，在全党和全社会产生了极其深远的历史警示。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：深县\n- **时间**：公元1914年\n- **停留时间**：童年及少年时期\n- **地点**：直隶省深县（今河北省衡水市深州市）\n- **事件**：出生于一个农民家庭。\n- **意义**：其早年贫困的生活经历，是其后来走上革命道路的动因之一。\n\n### 📍 重要地点：安平县\n- **时间**：1930年代初期\n- **停留时间**：求学期间\n- **地点**：河北省安平县（今河北省衡水市安平县）\n- **事件**：在安平县立乡村师范学校读书，开始接触进步思想。\n- **意义**：思想启蒙之地，为其加入中国共产党奠定了基础。\n\n### 📍 重要地点：深县、安平县\n- **时间**：1933年-1937年\n- **停留时间**：约4年\n- **地点**：河北省深县、安平县（今河北省衡水市深州市、安平县）\n- **事件**：1933年加入中国共产党，并在本地从事地下革命活动。\n- **意义**：正式开始其革命生涯，经历了早期斗争的考验。\n\n### 📍 重要地点：天津\n- **时间**：1949年-1951年\n- **停留时间**：约2年\n- **地点**：天津地区（今天津市）\n- **事件**：新中国成立后，担任中共天津地委副书记、天津地区专员。期间与刘青山勾结，利用职权贪污、盗窃机场建设款、救灾粮款等，生活极度奢靡。\n- **意义**：从革命功臣堕落为人民罪人的关键地点，其腐败行为在此地集中发生并最终败露。\n\n### 📍 重要地点：保定\n- **时间**：1951年底\n- **停留时间**：被关押、审判期间\n- **地点**：河北省保定市\n- **事件**：1951年11月，刘青山、张子善贪污案在中共河北省委第三次代表大会上被公开揭露。随后，二人被逮捕并关押于保定。\n- **意义**：案件进入司法程序，成为全国性政治运动的焦点。\n\n### 🔴 去世地：保定\n- **时间**：公元1952年2月10日\n- **停留时间**：生命最后时刻\n- **地点**：河北省保定市\n- **事件**：经最高人民法院批准，河北省人民法院在保定市举行公审大会，宣判刘青山、张子善死刑，立即执行。\n- **意义**：其生命的终结地，也是“三反”运动达到高潮的标志性地点。此案对新中国初期的党风廉政建设产生了不可估量的影响。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1914 | 0 | 出生于直隶省深县（今河北深州）。 |\n| 1933 | 19 | 加入中国共产党，开始地下革命工作。 |\n| 1937 | 23 | 抗日战争全面爆发，在冀中根据地坚持斗争。 |\n| 1945 | 31 | 抗日战争胜利，继续在冀中地区担任党政职务（具体职务不详）。 |\n| 1949 | 35 | 中华人民共和国成立，任中共天津地委副书记、天津地区专员。 |\n| 1951 | 37 | 因贪污腐败罪行在“三反”运动中被揭露，11月被逮捕。 |\n| 1952 | 38 | 2月10日，在保定被公审并执行死刑。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省衡水市深州市 | 38.0015 | 115.5603 |\n| 河北省衡水市安平县 | 38.2345 | 115.5188 |\n| 天津市 | 39.0842 | 117.2000 |\n| 河北省保定市 | 38.8740 | 115.4646 |", "relatedGraph": {"center": {"id": "张子善", "name": "张子善", "file": "张子善.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1914, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省深县", "birthplace_modern": "河北省衡水市深州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张子善", "name": "张子善", "file": "张子善.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1914, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省深县", "birthplace_modern": "河北省衡水市深州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘青山", "name": "刘青山", "file": "刘青山.html", "dynasty": "现代（中华人民共和国成立初期）", "aliases": [], "birth_year": 1916, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省安国县", "birthplace_modern": "河北省安国市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "乐松生", "name": "乐松生", "file": "乐松生.html", "dynasty": "现代", "aliases": [], "birth_year": 1908, "death_year": 1968, "quote": "“**和平赎买**”", "review": "毛泽东曾称赞乐松生是“开明人士”，肯定其在公私合营中的带头作用。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "北京", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "张子善", "target": "刘青山", "label": "君臣", "confidence": null}, {"source": "张子善", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "乐松生", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "张子善", "title": "三反", "description": "张子善出生于河北深县一个贫苦农家，早年接受进步思想，于1933年加入中国共产党。在革命战争年代，他历经考验，为冀中抗日根据地的建设和巩固做出过贡献。新中国成立后，张子善担任天津地区主要领导职务。然而，在和平建设时期，他未能经受住权力和物质的考验，与刘青山（时任天津地委书记）相互勾结，利用职权大肆贪污、盗窃国家资财，生活腐化堕落。1951年底，“三反”运动中其罪行被揭露。经公审，张子善与刘青山于1952年2月10日在保定被依法执行死刑。此案作为“新中国反腐第一案”，在全党和全社会产生了极其深远的历史警示。", "quote": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "shortReview": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "直隶省深县（今河北省衡水市深州市）", "avatar": "", "birth": {"date": "1914年", "location": "直隶省深县（今河北省衡水市深州市）", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84"}, "death": {"date": "1952年", "location": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84"}, "lifespan": "38岁（1914-1952）", "highlights": {"honor": "三反", "status": "新中国成立初期因贪污腐败被处决的高级干部典型，其案件成为全国“三反”运动的标志性事件。", "identities": "革命干部、地方行政官员", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "深县", "ancientName": "直隶省深县", "modernName": "河北省衡水市深州市", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个农民家庭。", "time": "公元1914年", "duration": "童年及少年时期", "significance": "其早年贫困的生活经历，是其后来走上革命道路的动因之一。", "works": [], "quoteLines": []}, {"name": "安平县", "ancientName": "河北省安平县", "modernName": "河北省衡水市安平县", "lat": 38.2345, "lng": 115.5188, "coordSystem": "WGS84", "type": "normal", "event": "在安平县立乡村师范学校读书，开始接触进步思想。", "time": "1930年代初期", "duration": "求学期间", "significance": "思想启蒙之地，为其加入中国共产党奠定了基础。", "works": [], "quoteLines": []}, {"name": "深县、安平县", "ancientName": "河北省深县、安平县", "modernName": "河北省衡水市深州市、安平县", "lat": 38.0015, "lng": 115.5603, "coordSystem": "WGS84", "type": "normal", "event": "1933年加入中国共产党，并在本地从事地下革命活动。", "time": "1933年-1937年", "duration": "约4年", "significance": "正式开始其革命生涯，经历了早期斗争的考验。", "works": [], "quoteLines": []}, {"name": "天津", "ancientName": "天津地区", "modernName": "天津市", "lat": 39.0842, "lng": 117.2, "coordSystem": "WGS84", "type": "normal", "event": "新中国成立后，担任中共天津地委副书记、天津地区专员。期间与刘青山勾结，利用职权贪污、盗窃机场建设款、救灾粮款等，生活极度奢靡。", "time": "1949年-1951年", "duration": "约2年", "significance": "从革命功臣堕落为人民罪人的关键地点，其腐败行为在此地集中发生并最终败露。", "works": [], "quoteLines": []}, {"name": "保定", "ancientName": "保定", "modernName": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84", "type": "normal", "event": "1951年11月，刘青山、张子善贪污案在中共河北省委第三次代表大会上被公开揭露。随后，二人被逮捕并关押于保定。", "time": "1951年底", "duration": "被关押、审判期间", "significance": "案件进入司法程序，成为全国性政治运动的焦点。", "works": [], "quoteLines": []}, {"name": "保定", "ancientName": "保定", "modernName": "河北省保定市", "lat": 38.874, "lng": 115.4646, "coordSystem": "WGS84", "type": "death", "event": "经最高人民法院批准，河北省人民法院在保定市举行公审大会，宣判刘青山、张子善死刑，立即执行。", "time": "公元1952年2月10日", "duration": "生命最后时刻", "significance": "其生命的终结地，也是“三反”运动达到高潮的标志性地点。此案对新中国初期的党风廉政建设产生了不可估量的影响。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---", "workTexts": {"中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 张子善\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张子善\n- **时代**：中华人民共和国\n- **出生**：公元1914年，直隶省深县（今河北省衡水市深州市）\n- **去世**：公元1952年2月10日，河北省保定市\n- **享年**：38岁（1914-1952）\n- **主要身份**：革命干部、地方行政官员\n- **历史地位**：新中国成立初期因贪污腐败被处决的高级干部典型，其案件成为全国“三反”运动的标志性事件。\n- **主要成就**：\n    - 青年时期投身革命，在白色恐怖下坚持斗争。\n    - 抗日战争期间，在冀中根据地从事地方党政工作。\n    - 新中国成立初期，曾任中共天津地委副书记、天津地区专员。\n\n### 生平概述\n张子善出生于河北深县一个贫苦农家，早年接受进步思想，于1933年加入中国共产党。在革命战争年代，他历经考验，为冀中抗日根据地的建设和巩固做出过贡献。新中国成立后，张子善担任天津地区主要领导职务。然而，在和平建设时期，他未能经受住权力和物质的考验，与刘青山（时任天津地委书记）相互勾结，利用职权大肆贪污、盗窃国家资财，生活腐化堕落。1951年底，“三反”运动中其罪行被揭露。经公审，张子善与刘青山于1952年2月10日在保定被依法执行死刑。此案作为“新中国反腐第一案”，在全党和全社会产生了极其深远的历史警示。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：深县\n- **时间**：公元1914年\n- **停留时间**：童年及少年时期\n- **地点**：直隶省深县（今河北省衡水市深州市）\n- **事件**：出生于一个农民家庭。\n- **意义**：其早年贫困的生活经历，是其后来走上革命道路的动因之一。\n\n### 📍 重要地点：安平县\n- **时间**：1930年代初期\n- **停留时间**：求学期间\n- **地点**：河北省安平县（今河北省衡水市安平县）\n- **事件**：在安平县立乡村师范学校读书，开始接触进步思想。\n- **意义**：思想启蒙之地，为其加入中国共产党奠定了基础。\n\n### 📍 重要地点：深县、安平县\n- **时间**：1933年-1937年\n- **停留时间**：约4年\n- **地点**：河北省深县、安平县（今河北省衡水市深州市、安平县）\n- **事件**：1933年加入中国共产党，并在本地从事地下革命活动。\n- **意义**：正式开始其革命生涯，经历了早期斗争的考验。\n\n### 📍 重要地点：天津\n- **时间**：1949年-1951年\n- **停留时间**：约2年\n- **地点**：天津地区（今天津市）\n- **事件**：新中国成立后，担任中共天津地委副书记、天津地区专员。期间与刘青山勾结，利用职权贪污、盗窃机场建设款、救灾粮款等，生活极度奢靡。\n- **意义**：从革命功臣堕落为人民罪人的关键地点，其腐败行为在此地集中发生并最终败露。\n\n### 📍 重要地点：保定\n- **时间**：1951年底\n- **停留时间**：被关押、审判期间\n- **地点**：河北省保定市\n- **事件**：1951年11月，刘青山、张子善贪污案在中共河北省委第三次代表大会上被公开揭露。随后，二人被逮捕并关押于保定。\n- **意义**：案件进入司法程序，成为全国性政治运动的焦点。\n\n### 🔴 去世地：保定\n- **时间**：公元1952年2月10日\n- **停留时间**：生命最后时刻\n- **地点**：河北省保定市\n- **事件**：经最高人民法院批准，河北省人民法院在保定市举行公审大会，宣判刘青山、张子善死刑，立即执行。\n- **意义**：其生命的终结地，也是“三反”运动达到高潮的标志性地点。此案对新中国初期的党风廉政建设产生了不可估量的影响。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 1914 | 0 | 出生于直隶省深县（今河北深州）。 |\n| 1933 | 19 | 加入中国共产党，开始地下革命工作。 |\n| 1937 | 23 | 抗日战争全面爆发，在冀中根据地坚持斗争。 |\n| 1945 | 31 | 抗日战争胜利，继续在冀中地区担任党政职务（具体职务不详）。 |\n| 1949 | 35 | 中华人民共和国成立，任中共天津地委副书记、天津地区专员。 |\n| 1951 | 37 | 因贪污腐败罪行在“三反”运动中被揭露，11月被逮捕。 |\n| 1952 | 38 | 2月10日，在保定被公审并执行死刑。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：张子善本人无文学作品传世。其案例常作为历史事件或廉政教育素材出现在相关课文或读本中。\n- 核心要点：\n    - **重点**：作为 **“三反”运动** 的典型案例，其故事常被用于阐述 **反腐倡廉** 的重要性与长期性。\n    - **重点**：案件凸显了 **“糖衣炮弹”** 的比喻，即革命者在和平建设时期可能面临的腐化风险。\n    - **重点**：其人生轨迹（从 **革命功臣** 到 **腐败分子**）具有强烈的 **警示意义** 和 **教育功能**。\n    - 案件处理体现了中国共产党 **从严治党**、 **执法如山** 的早期决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**： **“刘青山、张子善案”** 是新中国成立初期查处的高官贪污第一案，震动全国。\n    - 案件直接推动了1951年底至1952年在全国范围内开展的 **“三反”（反贪污、反浪费、反官僚主义）运动**。\n    - 对二人的严惩，由毛泽东亲自批示，成为巩固新生政权、树立清廉党风的 **标志性事件**。\n- 核心要点：\n    - **重点**：该案件是理解 **新中国初期巩固政权** 和 **整肃党风** 历史的关键切入点。\n    - **重点**：其处理方式体现了 **“法律面前人人平等”** 的原则，对当时的社会风气和干部思想产生了 **震慑与教育** 的双重效果。\n    - **重点**：从历史评价看，张子善的早期革命贡献与其后期的严重罪行形成鲜明对比，成为 **个人腐化导致身败名裂** 的典型。\n    - 案件是研究 **中国共产党执政初期廉政建设史** 不可绕过的重要史实。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省衡水市深州市 | 38.0015 | 115.5603 |\n| 河北省衡水市安平县 | 38.2345 | 115.5188 |\n| 天津市 | 39.0842 | 117.2000 |\n| 河北省保定市 | 38.8740 | 115.4646 |", "relatedGraph": {"center": {"id": "张子善", "name": "张子善", "file": "张子善.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1914, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省深县", "birthplace_modern": "河北省衡水市深州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张子善", "name": "张子善", "file": "张子善.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1914, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省深县", "birthplace_modern": "河北省衡水市深州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘青山", "name": "刘青山", "file": "刘青山.html", "dynasty": "现代（中华人民共和国成立初期）", "aliases": [], "birth_year": 1916, "death_year": 1952, "quote": "“新中国反腐第一案”", "review": "", "foreign_name": "", "main_role_label": "地方行政官员", "birthplace": "直隶省安国县", "birthplace_modern": "河北省安国市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "“向雷锋同志学习”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "“全国战斗英雄”", "review": "*军队评价**：中国人民解放军“全国战斗英雄”，是基层指战员的杰出代表。", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "乐松生", "name": "乐松生", "file": "乐松生.html", "dynasty": "现代", "aliases": [], "birth_year": 1908, "death_year": 1968, "quote": "“**和平赎买**”", "review": "毛泽东曾称赞乐松生是“开明人士”，肯定其在公私合营中的带头作用。", "foreign_name": "", "main_role_label": "社会活动家", "birthplace": "北京", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "张子善", "target": "刘青山", "label": "君臣", "confidence": null}, {"source": "张子善", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "张子善", "target": "乐松生", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

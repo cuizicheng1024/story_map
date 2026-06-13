@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "赵师秀", "title": "永嘉四灵", "description": "赵师秀生活在南宋中期，当时诗坛盛行以才学为诗、讲究“无一字无来处”的江西诗派。他与同乡好友徐照、徐玑、翁卷志趣相投，共同反对江西诗派的艰涩生硬，转而推崇晚唐贾岛、姚合的诗风，注重锤炼字句，描写清幽的自然景物和日常生活，形成“永嘉四灵”诗派。他一生仕途坎坷，仅做过江东推官、筠州推官等小官，大部分时间游历于江浙赣一带，生活清贫，晚景凄凉。其诗《约客》以“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花”写尽江南夏夜的寂寥与闲适，亦成为他最广为传诵的“评论”式代表句。其诗风对后来的“江湖诗派”产生了直接影响。", "quote": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "shortReview": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": ["字紫芝", "号灵秀"], "birthplace": "永嘉（今浙江省温州市）", "avatar": "", "birth": {"date": "1170年", "location": "永嘉（今浙江省温州市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1220年", "location": "说法不一（一说在临安", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约五十岁", "highlights": {"honor": "永嘉四灵", "status": "“永嘉四灵”之冠，南宋中后期“唐诗复归”诗风的代表人物。", "identities": "诗人（以五言律诗见长；亦有词作但以诗名传世）", "achievements": "与徐照、徐玑、翁卷并称“永嘉四灵”；诗风清瘦野逸，刻意雕琢，以五律见长；代表作《约客》传诵千古。", "works": ["约客"], "reviews": ["**元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "**清·纪昀《四库全书总目》**：“四灵皆以炼字为宗，而师秀才力稍富健。” 指出其诗风特点及相对优势。", "**现代评价**：被视为南宋“唐诗复归”运动的重要实践者，其作品在艺术上达到了相当高度，但题材相对狭窄，格局不大。"]}}, "locations": [{"name": "筠州", "ancientName": "筠州", "modernName": "江西省高安市", "lat": 28.4209, "lng": 115.3815, "coordSystem": "WGS84", "type": "normal", "event": "担任筠州推官，这是他有记载的最后官职。任上生活相对稳定，但心境已趋淡泊。", "time": "约1210年前后", "duration": "任职期间（具体时长待考）", "significance": "晚年为官之地，是其人生最后阶段的重要生活场所。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **核心篇目**：**《约客》**（黄梅时节家家雨）。\n- **关键词**：**“永嘉四灵”**、**南宋诗人**、**写景抒情**、**闲适诗**。\n- **常见考点**：\n    1.  诗歌描绘的**江南夏夜**景象（雨声、蛙声）。\n    2.  诗人“**闲敲棋子**”这一细节动作所传达的**寂寞、怅惘、闲适**等复杂心境（理解可多元）。\n    3.  诗歌**以声衬静**、**融情于景**的艺术手法。\n    4.  作者所属的诗歌流派是“**永嘉四灵**”。\n\n### 高中阶段\n- **文学史定位**：**南宋中后期诗歌流派**“**永嘉四灵**”的代表人物。\n- **关键词**：**反江西诗派**、**推崇晚唐（贾岛、姚合）**、**清瘦野逸**、**五律**。\n- **常见考点/对比**：\n    1.  **“永嘉四灵”** 的诗歌主张：反对江西诗派“资书以为诗”，主张“捐书以为诗”，学习晚唐，讲究**苦吟**与**锤炼**。\n    2.  诗风特点：**题材狭窄**（多写景、交游），**风格清寒**，**注重字句雕琢**。\n    3.  与**“江湖诗派”** 的关系：四灵诗风是江湖诗派的先声，但江湖诗人题材更广，更显奔走江湖之气。\n    4.  与**陆游、杨万里**等中兴大家的区别：四灵格局较小，缺乏陆游的雄浑悲壮和杨万里的活泼生趣。\n\n---", "examPoints": "### 初中阶段\n1.  **《约客》** 一诗的**默写与赏析**。\n2.  诗中“**家家雨**”、“**处处蛙**”渲染了怎样的氛围？\n3.  “**闲敲棋子落灯花**”体现了诗人怎样的心情？\n4.  赵师秀是哪个朝代、哪个诗歌流派的代表诗人？（**南宋**；**永嘉四灵**）\n5.  （说法不一）《约客》一诗的具体创作背景。\n\n### 高中阶段\n1.  **“永嘉四灵”** 指的是哪四位诗人？（**赵师秀、徐照、徐玑、翁卷**）\n2.  简述“永嘉四灵”的诗歌主张及其在文学史上的意义。\n3.  比较赵师秀与**贾岛**诗歌风格的异同。（同：苦吟、清冷；异：赵诗更显平和闲适，贾诗更多寒苦峭硬）。\n4.  分析赵师秀诗歌（如《薛氏瓜庐》）中体现的**隐逸情怀**与**现实困境**。\n5.  （说法不一）赵师秀的生卒年及确切去世地点。", "workTexts": {"约客": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "数日": "数日秋风欺病夫，尽吹黄叶下庭芜。林疏放得遥山出，又被云遮一半无。", "薛氏瓜庐": "不作封侯念，悠然远世纷。惟应种瓜事，犹被读书分。", "金陵怀古": "“白头追想当时事，幕府青衫最少年。”", "瀛奎律髓": "“四灵诗，赵紫芝为冠。”", "四库全书总目": "“四灵皆以炼字为宗，而师秀才力稍富健。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 赵师秀\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：赵师秀\n- **别名**：字紫芝，号灵秀\n- **时代**：南宋\n- **出生**：约宋孝宗乾道六年（1170年），永嘉（今浙江省温州市）\n- **去世**：约宋宁宗嘉定十三年（1220年），说法不一（一说在临安，今浙江杭州；一说在永嘉，今浙江温州）\n- **享年**：约五十岁\n- **主要身份**：诗人（以五言律诗见长；亦有词作但以诗名传世）\n- **历史地位**：“永嘉四灵”之冠，南宋中后期“唐诗复归”诗风的代表人物。\n- **主要成就**：与徐照、徐玑、翁卷并称“永嘉四灵”；诗风清瘦野逸，刻意雕琢，以五律见长；代表作《约客》传诵千古。\n\n### 生平概述\n赵师秀生活在南宋中期，当时诗坛盛行以才学为诗、讲究“无一字无来处”的江西诗派。他与同乡好友徐照、徐玑、翁卷志趣相投，共同反对江西诗派的艰涩生硬，转而推崇晚唐贾岛、姚合的诗风，注重锤炼字句，描写清幽的自然景物和日常生活，形成“永嘉四灵”诗派。他一生仕途坎坷，仅做过江东推官、筠州推官等小官，大部分时间游历于江浙赣一带，生活清贫，晚景凄凉。其诗《约客》以“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花”写尽江南夏夜的寂寥与闲适，亦成为他最广为传诵的“评论”式代表句。其诗风对后来的“江湖诗派”产生了直接影响。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于南宋两浙东路、江南西路及临安等地。\n- ⏱️ **时间跨度**：约1170年—1220年，约50年。\n- 📍 **地理范围**：以今浙江省为核心，涉及江苏、江西部分地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：永嘉\n- **公元纪年**：约1170年\n- **停留时间**：青少年时期\n- **位置**：永嘉（今浙江省温州市）\n- **事迹**：在此成长，与同乡徐照、徐玑、翁卷结识，奠定日后共同倡导诗风改革的基础。\n- **意义**：其文学思想与“永嘉学派”经世致用的地域文化氛围有潜在关联，是“永嘉四灵”诗派的发源地。\n\n### 📍 重要地点：上饶\n- **公元纪年**：约12世纪末至13世纪初（中年时期，具体年份待考）\n- **停留时间**：数年（待考）\n- **位置**：信州（今江西省上饶市）\n- **事迹**：寓居于此，与当地文人交游，诗酒唱和。其诗《约客》的创作背景存疑，有说法认为与上饶等地生活经历有关。\n- **意义**：这段游历拓宽了他的视野，其诗中清幽闲适的意境多源于此阶段的生活体验。\n- **名篇名句**：《约客》：“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。”\n\n### 📍 重要地点：临安\n- **公元纪年**：约12世纪末至13世纪初（多次往返，具体年份待考）\n- **停留时间**：断续居留（具体时长待考）\n- **位置**：行在临安（今浙江省杭州市）\n- **事迹**：为求取功名或游历，多次来到南宋都城。在此与更多文人交往，诗名渐显，但仕途始终不顺。\n- **意义**：作为政治文化中心，是其展示才华、寻求机遇的舞台，也见证了其功名蹭蹬的失意。\n- **名篇名句**《数日》：“数日秋风欺病夫，尽吹黄叶下庭芜。林疏放得遥山出，又被云遮一半无。”\n\n### 📍 重要地点：金陵\n- **公元纪年**：约12世纪末至13世纪初（中年时期，具体年份待考）\n- **停留时间**：任职期间（待考）\n- **位置**：建康府（今江苏省南京市）\n- **事迹**：曾任江东安抚司推官，处理公务之余，遍访六朝古迹。\n- **意义**：六朝金粉之地的兴衰沧桑，为其诗歌增添了历史的厚重感与苍凉意蕴。\n- **名篇名句**《金陵怀古》（归属存疑）：“白头追想当时事，幕府青衫最少年。”\n\n### 📍 重要地点：筠州\n- **公元纪年**：约1210年前后\n- **停留时间**：任职期间（具体时长待考）\n- **位置**：筠州（今江西省高安市）\n- **事迹**：担任筠州推官，这是他有记载的最后官职。任上生活相对稳定，但心境已趋淡泊。\n- **意义**：晚年为官之地，是其人生最后阶段的重要生活场所。\n\n### 🔴 去世地：说法不一\n- **公元纪年**：约1220年\n- **停留时间**：晚年\n- **位置**：说法不一（一说在临安，今浙江省杭州市；一说在永嘉，今浙江省温州市）\n- **经过**：在贫病交加中去世，具体经过史载不详。\n- **意义**：生命的终点，标志“永嘉四灵”一个时代的结束。\n- **名篇名句**《薛氏瓜庐》：“不作封侯念，悠然远世纷。惟应种瓜事，犹被读书分。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1170年 | 0岁 | 出生于永嘉（今浙江温州）。 |\n| 约1190年后 | 20余岁 | 与徐照、徐玑、翁卷结识，开始共同倡导晚唐诗风，“永嘉四灵”雏形初现。 |\n| 约12世纪末至13世纪初 | 中年 | 游历于金陵、上饶等地，担任江东推官等低级官职，诗作渐丰。 |\n| 约1210年 | 40余岁 | 任筠州推官。 |\n| 约1211年 | 约41岁 | 徐照去世，作诗哀悼，“四灵”凋零。 |\n| 约1220年 | 约50岁 | 在临安（或永嘉）去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n赵师秀与“永嘉四灵”其他成员一起，在南宋诗坛掀起了一股反对江西诗派、复归晚唐诗风的潮流。他们以精炼的语言、清冷的意象描写日常景物与闲情逸致，为当时诗坛注入了清新之气，直接影响了随后兴起的、更为广泛的“江湖诗派”。\n\n### 对后世的影响\n1.  **诗风传承**：其清苦、精炼的诗风成为后世一些追求性灵、反对模拟的诗人学习的对象。\n2.  **文学史定位**：“永嘉四灵”作为一个诗歌流派，被写入中国文学史，成为研究南宋中后期诗风转变的关键一环。\n3.  **经典作品**：《约客》一诗因其生动的生活场景和细腻的心理刻画，成为家喻户晓的宋诗名篇，入选多种教材。\n\n### 历史评价\n1.  **元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。\n2.  **清·纪昀《四库全书总目》**：“四灵皆以炼字为宗，而师秀才力稍富健。” 指出其诗风特点及相对优势。\n3.  **现代评价**：被视为南宋“唐诗复归”运动的重要实践者，其作品在艺术上达到了相当高度，但题材相对狭窄，格局不大。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **核心篇目**：**《约客》**（黄梅时节家家雨）。\n- **关键词**：**“永嘉四灵”**、**南宋诗人**、**写景抒情**、**闲适诗**。\n- **常见考点**：\n    1.  诗歌描绘的**江南夏夜**景象（雨声、蛙声）。\n    2.  诗人“**闲敲棋子**”这一细节动作所传达的**寂寞、怅惘、闲适**等复杂心境（理解可多元）。\n    3.  诗歌**以声衬静**、**融情于景**的艺术手法。\n    4.  作者所属的诗歌流派是“**永嘉四灵**”。\n\n### 高中阶段\n- **文学史定位**：**南宋中后期诗歌流派**“**永嘉四灵**”的代表人物。\n- **关键词**：**反江西诗派**、**推崇晚唐（贾岛、姚合）**、**清瘦野逸**、**五律**。\n- **常见考点/对比**：\n    1.  **“永嘉四灵”** 的诗歌主张：反对江西诗派“资书以为诗”，主张“捐书以为诗”，学习晚唐，讲究**苦吟**与**锤炼**。\n    2.  诗风特点：**题材狭窄**（多写景、交游），**风格清寒**，**注重字句雕琢**。\n    3.  与**“江湖诗派”** 的关系：四灵诗风是江湖诗派的先声，但江湖诗人题材更广，更显奔走江湖之气。\n    4.  与**陆游、杨万里**等中兴大家的区别：四灵格局较小，缺乏陆游的雄浑悲壮和杨万里的活泼生趣。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n1.  **《约客》** 一诗的**默写与赏析**。\n2.  诗中“**家家雨**”、“**处处蛙**”渲染了怎样的氛围？\n3.  “**闲敲棋子落灯花**”体现了诗人怎样的心情？\n4.  赵师秀是哪个朝代、哪个诗歌流派的代表诗人？（**南宋**；**永嘉四灵**）\n5.  （说法不一）《约客》一诗的具体创作背景。\n\n### 高中阶段\n1.  **“永嘉四灵”** 指的是哪四位诗人？（**赵师秀、徐照、徐玑、翁卷**）\n2.  简述“永嘉四灵”的诗歌主张及其在文学史上的意义。\n3.  比较赵师秀与**贾岛**诗歌风格的异同。（同：苦吟、清冷；异：赵诗更显平和闲适，贾诗更多寒苦峭硬）。\n4.  分析赵师秀诗歌（如《薛氏瓜庐》）中体现的**隐逸情怀**与**现实困境**。\n5.  （说法不一）赵师秀的生卒年及确切去世地点。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "“窃尝设为问答以拟于用。”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "现代", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "“为国家强盛而学习”", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "赵师秀", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "朱熹", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "杨万里", "label": "同朝共现", "confidence": 0.25}, {"source": "赵师秀", "target": "邓稼先", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "赵师秀", "title": "永嘉四灵", "description": "赵师秀生活在南宋中期，当时诗坛盛行以才学为诗、讲究“无一字无来处”的江西诗派。他与同乡好友徐照、徐玑、翁卷志趣相投，共同反对江西诗派的艰涩生硬，转而推崇晚唐贾岛、姚合的诗风，注重锤炼字句，描写清幽的自然景物和日常生活，形成“永嘉四灵”诗派。他一生仕途坎坷，仅做过江东推官、筠州推官等小官，大部分时间游历于江浙赣一带，生活清贫，晚景凄凉。其诗《约客》以“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花”写尽江南夏夜的寂寥与闲适，亦成为他最广为传诵的“评论”式代表句。其诗风对后来的“江湖诗派”产生了直接影响。", "quote": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "shortReview": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "dynasty": "南宋", "courtesyName": "", "artName": "", "aliases": ["字紫芝", "号灵秀"], "birthplace": "永嘉（今浙江省温州市）", "avatar": "", "birth": {"date": "1170年", "location": "永嘉（今浙江省温州市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1220年", "location": "说法不一（一说在临安", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约五十岁", "highlights": {"honor": "永嘉四灵", "status": "“永嘉四灵”之冠，南宋中后期“唐诗复归”诗风的代表人物。", "identities": "诗人（以五言律诗见长；亦有词作但以诗名传世）", "achievements": "与徐照、徐玑、翁卷并称“永嘉四灵”；诗风清瘦野逸，刻意雕琢，以五律见长；代表作《约客》传诵千古。", "works": ["约客"], "reviews": ["**元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "**清·纪昀《四库全书总目》**：“四灵皆以炼字为宗，而师秀才力稍富健。” 指出其诗风特点及相对优势。", "**现代评价**：被视为南宋“唐诗复归”运动的重要实践者，其作品在艺术上达到了相当高度，但题材相对狭窄，格局不大。"]}}, "locations": [{"name": "筠州", "ancientName": "筠州", "modernName": "江西省高安市", "lat": 28.4209, "lng": 115.3815, "coordSystem": "WGS84", "type": "normal", "event": "担任筠州推官，这是他有记载的最后官职。任上生活相对稳定，但心境已趋淡泊。", "time": "约1210年前后", "duration": "任职期间（具体时长待考）", "significance": "晚年为官之地，是其人生最后阶段的重要生活场所。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **核心篇目**：**《约客》**（黄梅时节家家雨）。\n- **关键词**：**“永嘉四灵”**、**南宋诗人**、**写景抒情**、**闲适诗**。\n- **常见考点**：\n    1.  诗歌描绘的**江南夏夜**景象（雨声、蛙声）。\n    2.  诗人“**闲敲棋子**”这一细节动作所传达的**寂寞、怅惘、闲适**等复杂心境（理解可多元）。\n    3.  诗歌**以声衬静**、**融情于景**的艺术手法。\n    4.  作者所属的诗歌流派是“**永嘉四灵**”。\n\n### 高中阶段\n- **文学史定位**：**南宋中后期诗歌流派**“**永嘉四灵**”的代表人物。\n- **关键词**：**反江西诗派**、**推崇晚唐（贾岛、姚合）**、**清瘦野逸**、**五律**。\n- **常见考点/对比**：\n    1.  **“永嘉四灵”** 的诗歌主张：反对江西诗派“资书以为诗”，主张“捐书以为诗”，学习晚唐，讲究**苦吟**与**锤炼**。\n    2.  诗风特点：**题材狭窄**（多写景、交游），**风格清寒**，**注重字句雕琢**。\n    3.  与**“江湖诗派”** 的关系：四灵诗风是江湖诗派的先声，但江湖诗人题材更广，更显奔走江湖之气。\n    4.  与**陆游、杨万里**等中兴大家的区别：四灵格局较小，缺乏陆游的雄浑悲壮和杨万里的活泼生趣。\n\n---", "examPoints": "### 初中阶段\n1.  **《约客》** 一诗的**默写与赏析**。\n2.  诗中“**家家雨**”、“**处处蛙**”渲染了怎样的氛围？\n3.  “**闲敲棋子落灯花**”体现了诗人怎样的心情？\n4.  赵师秀是哪个朝代、哪个诗歌流派的代表诗人？（**南宋**；**永嘉四灵**）\n5.  （说法不一）《约客》一诗的具体创作背景。\n\n### 高中阶段\n1.  **“永嘉四灵”** 指的是哪四位诗人？（**赵师秀、徐照、徐玑、翁卷**）\n2.  简述“永嘉四灵”的诗歌主张及其在文学史上的意义。\n3.  比较赵师秀与**贾岛**诗歌风格的异同。（同：苦吟、清冷；异：赵诗更显平和闲适，贾诗更多寒苦峭硬）。\n4.  分析赵师秀诗歌（如《薛氏瓜庐》）中体现的**隐逸情怀**与**现实困境**。\n5.  （说法不一）赵师秀的生卒年及确切去世地点。", "workTexts": {"约客": "黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。", "数日": "数日秋风欺病夫，尽吹黄叶下庭芜。林疏放得遥山出，又被云遮一半无。", "薛氏瓜庐": "不作封侯念，悠然远世纷。惟应种瓜事，犹被读书分。", "金陵怀古": "“白头追想当时事，幕府青衫最少年。”", "瀛奎律髓": "“四灵诗，赵紫芝为冠。”", "四库全书总目": "“四灵皆以炼字为宗，而师秀才力稍富健。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 赵师秀\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：赵师秀\n- **别名**：字紫芝，号灵秀\n- **时代**：南宋\n- **出生**：约宋孝宗乾道六年（1170年），永嘉（今浙江省温州市）\n- **去世**：约宋宁宗嘉定十三年（1220年），说法不一（一说在临安，今浙江杭州；一说在永嘉，今浙江温州）\n- **享年**：约五十岁\n- **主要身份**：诗人（以五言律诗见长；亦有词作但以诗名传世）\n- **历史地位**：“永嘉四灵”之冠，南宋中后期“唐诗复归”诗风的代表人物。\n- **主要成就**：与徐照、徐玑、翁卷并称“永嘉四灵”；诗风清瘦野逸，刻意雕琢，以五律见长；代表作《约客》传诵千古。\n\n### 生平概述\n赵师秀生活在南宋中期，当时诗坛盛行以才学为诗、讲究“无一字无来处”的江西诗派。他与同乡好友徐照、徐玑、翁卷志趣相投，共同反对江西诗派的艰涩生硬，转而推崇晚唐贾岛、姚合的诗风，注重锤炼字句，描写清幽的自然景物和日常生活，形成“永嘉四灵”诗派。他一生仕途坎坷，仅做过江东推官、筠州推官等小官，大部分时间游历于江浙赣一带，生活清贫，晚景凄凉。其诗《约客》以“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花”写尽江南夏夜的寂寥与闲适，亦成为他最广为传诵的“评论”式代表句。其诗风对后来的“江湖诗派”产生了直接影响。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于南宋两浙东路、江南西路及临安等地。\n- ⏱️ **时间跨度**：约1170年—1220年，约50年。\n- 📍 **地理范围**：以今浙江省为核心，涉及江苏、江西部分地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：永嘉\n- **公元纪年**：约1170年\n- **停留时间**：青少年时期\n- **位置**：永嘉（今浙江省温州市）\n- **事迹**：在此成长，与同乡徐照、徐玑、翁卷结识，奠定日后共同倡导诗风改革的基础。\n- **意义**：其文学思想与“永嘉学派”经世致用的地域文化氛围有潜在关联，是“永嘉四灵”诗派的发源地。\n\n### 📍 重要地点：上饶\n- **公元纪年**：约12世纪末至13世纪初（中年时期，具体年份待考）\n- **停留时间**：数年（待考）\n- **位置**：信州（今江西省上饶市）\n- **事迹**：寓居于此，与当地文人交游，诗酒唱和。其诗《约客》的创作背景存疑，有说法认为与上饶等地生活经历有关。\n- **意义**：这段游历拓宽了他的视野，其诗中清幽闲适的意境多源于此阶段的生活体验。\n- **名篇名句**：《约客》：“黄梅时节家家雨，青草池塘处处蛙。有约不来过夜半，闲敲棋子落灯花。”\n\n### 📍 重要地点：临安\n- **公元纪年**：约12世纪末至13世纪初（多次往返，具体年份待考）\n- **停留时间**：断续居留（具体时长待考）\n- **位置**：行在临安（今浙江省杭州市）\n- **事迹**：为求取功名或游历，多次来到南宋都城。在此与更多文人交往，诗名渐显，但仕途始终不顺。\n- **意义**：作为政治文化中心，是其展示才华、寻求机遇的舞台，也见证了其功名蹭蹬的失意。\n- **名篇名句**《数日》：“数日秋风欺病夫，尽吹黄叶下庭芜。林疏放得遥山出，又被云遮一半无。”\n\n### 📍 重要地点：金陵\n- **公元纪年**：约12世纪末至13世纪初（中年时期，具体年份待考）\n- **停留时间**：任职期间（待考）\n- **位置**：建康府（今江苏省南京市）\n- **事迹**：曾任江东安抚司推官，处理公务之余，遍访六朝古迹。\n- **意义**：六朝金粉之地的兴衰沧桑，为其诗歌增添了历史的厚重感与苍凉意蕴。\n- **名篇名句**《金陵怀古》（归属存疑）：“白头追想当时事，幕府青衫最少年。”\n\n### 📍 重要地点：筠州\n- **公元纪年**：约1210年前后\n- **停留时间**：任职期间（具体时长待考）\n- **位置**：筠州（今江西省高安市）\n- **事迹**：担任筠州推官，这是他有记载的最后官职。任上生活相对稳定，但心境已趋淡泊。\n- **意义**：晚年为官之地，是其人生最后阶段的重要生活场所。\n\n### 🔴 去世地：说法不一\n- **公元纪年**：约1220年\n- **停留时间**：晚年\n- **位置**：说法不一（一说在临安，今浙江省杭州市；一说在永嘉，今浙江省温州市）\n- **经过**：在贫病交加中去世，具体经过史载不详。\n- **意义**：生命的终点，标志“永嘉四灵”一个时代的结束。\n- **名篇名句**《薛氏瓜庐》：“不作封侯念，悠然远世纷。惟应种瓜事，犹被读书分。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1170年 | 0岁 | 出生于永嘉（今浙江温州）。 |\n| 约1190年后 | 20余岁 | 与徐照、徐玑、翁卷结识，开始共同倡导晚唐诗风，“永嘉四灵”雏形初现。 |\n| 约12世纪末至13世纪初 | 中年 | 游历于金陵、上饶等地，担任江东推官等低级官职，诗作渐丰。 |\n| 约1210年 | 40余岁 | 任筠州推官。 |\n| 约1211年 | 约41岁 | 徐照去世，作诗哀悼，“四灵”凋零。 |\n| 约1220年 | 约50岁 | 在临安（或永嘉）去世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n赵师秀与“永嘉四灵”其他成员一起，在南宋诗坛掀起了一股反对江西诗派、复归晚唐诗风的潮流。他们以精炼的语言、清冷的意象描写日常景物与闲情逸致，为当时诗坛注入了清新之气，直接影响了随后兴起的、更为广泛的“江湖诗派”。\n\n### 对后世的影响\n1.  **诗风传承**：其清苦、精炼的诗风成为后世一些追求性灵、反对模拟的诗人学习的对象。\n2.  **文学史定位**：“永嘉四灵”作为一个诗歌流派，被写入中国文学史，成为研究南宋中后期诗风转变的关键一环。\n3.  **经典作品**：《约客》一诗因其生动的生活场景和细腻的心理刻画，成为家喻户晓的宋诗名篇，入选多种教材。\n\n### 历史评价\n1.  **元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。\n2.  **清·纪昀《四库全书总目》**：“四灵皆以炼字为宗，而师秀才力稍富健。” 指出其诗风特点及相对优势。\n3.  **现代评价**：被视为南宋“唐诗复归”运动的重要实践者，其作品在艺术上达到了相当高度，但题材相对狭窄，格局不大。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **核心篇目**：**《约客》**（黄梅时节家家雨）。\n- **关键词**：**“永嘉四灵”**、**南宋诗人**、**写景抒情**、**闲适诗**。\n- **常见考点**：\n    1.  诗歌描绘的**江南夏夜**景象（雨声、蛙声）。\n    2.  诗人“**闲敲棋子**”这一细节动作所传达的**寂寞、怅惘、闲适**等复杂心境（理解可多元）。\n    3.  诗歌**以声衬静**、**融情于景**的艺术手法。\n    4.  作者所属的诗歌流派是“**永嘉四灵**”。\n\n### 高中阶段\n- **文学史定位**：**南宋中后期诗歌流派**“**永嘉四灵**”的代表人物。\n- **关键词**：**反江西诗派**、**推崇晚唐（贾岛、姚合）**、**清瘦野逸**、**五律**。\n- **常见考点/对比**：\n    1.  **“永嘉四灵”** 的诗歌主张：反对江西诗派“资书以为诗”，主张“捐书以为诗”，学习晚唐，讲究**苦吟**与**锤炼**。\n    2.  诗风特点：**题材狭窄**（多写景、交游），**风格清寒**，**注重字句雕琢**。\n    3.  与**“江湖诗派”** 的关系：四灵诗风是江湖诗派的先声，但江湖诗人题材更广，更显奔走江湖之气。\n    4.  与**陆游、杨万里**等中兴大家的区别：四灵格局较小，缺乏陆游的雄浑悲壮和杨万里的活泼生趣。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n1.  **《约客》** 一诗的**默写与赏析**。\n2.  诗中“**家家雨**”、“**处处蛙**”渲染了怎样的氛围？\n3.  “**闲敲棋子落灯花**”体现了诗人怎样的心情？\n4.  赵师秀是哪个朝代、哪个诗歌流派的代表诗人？（**南宋**；**永嘉四灵**）\n5.  （说法不一）《约客》一诗的具体创作背景。\n\n### 高中阶段\n1.  **“永嘉四灵”** 指的是哪四位诗人？（**赵师秀、徐照、徐玑、翁卷**）\n2.  简述“永嘉四灵”的诗歌主张及其在文学史上的意义。\n3.  比较赵师秀与**贾岛**诗歌风格的异同。（同：苦吟、清冷；异：赵诗更显平和闲适，贾诗更多寒苦峭硬）。\n4.  分析赵师秀诗歌（如《薛氏瓜庐》）中体现的**隐逸情怀**与**现实困境**。\n5.  （说法不一）赵师秀的生卒年及确切去世地点。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "“无一字无来处”", "review": "*元·方回《瀛奎律髓》**：“四灵诗，赵紫芝为冠。” 肯定了他在四人中的领袖地位。", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "“小楼一夜听春雨，深巷明朝卖杏花。”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "“壮岁旌旗拥万夫，锦襜突骑渡江初。”", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "“窃尝设为问答以拟于用。”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "“**源头活水**”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "“中兴四大诗人”", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "现代", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "“为国家强盛而学习”", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "赵师秀", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "辛弃疾", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "朱熹", "label": "同时代人物", "confidence": null}, {"source": "赵师秀", "target": "杨万里", "label": "同朝共现", "confidence": 0.25}, {"source": "赵师秀", "target": "邓稼先", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

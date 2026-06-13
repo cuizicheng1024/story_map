@@ -142,7 +142,9 @@ def _site_mode_notice_html() -> str:
   try {{
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (!isLocalHost) return;
+    const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (!isDevHost) return;
     const notice = document.getElementById('site-mode-notice');
     if (notice) notice.style.display = 'none';
   }} catch (_) {{}}
@@ -164,7 +166,9 @@ def _amap_bootstrap_html() -> str:
   try {
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
+    const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -238,7 +242,9 @@ def _profile_map_bootstrap_html() -> str:
   try {
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
+    const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -777,6 +783,7 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
     current_aliases = [x for x in [person_name, display_name] if str(x or "").strip()]
 
     nodes: List[Dict[str, Any]] = []
+    raw_idx_to_idx: Dict[int, int] = {}
     person_to_idx: Dict[str, int] = {}
     alias_to_idx: Dict[str, int] = {}
     normalized_alias_to_idx: Dict[str, int] = {}
@@ -785,14 +792,16 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
             continue
         item = dict(raw)
         item["_idx"] = idx
+        compact_idx = len(nodes)
+        raw_idx_to_idx[idx] = compact_idx
         name = str(item.get("person") or "").strip()
         if name:
-            person_to_idx[name] = idx
+            person_to_idx[name] = compact_idx
         for alias in _collect_node_aliases(item):
-            alias_to_idx.setdefault(alias, idx)
+            alias_to_idx.setdefault(alias, compact_idx)
             normalized = _normalize_person_token(alias)
             if normalized:
-                normalized_alias_to_idx.setdefault(normalized, idx)
+                normalized_alias_to_idx.setdefault(normalized, compact_idx)
         nodes.append(item)
     available_person_names = [str(node.get("person") or "").strip() for node in nodes if str(node.get("person") or "").strip()]
 
@@ -805,10 +814,14 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
             b = int(raw.get("b"))
         except Exception:
             continue
-        if a < 0 or b < 0 or a == b or a >= len(nodes) or b >= len(nodes):
+        if a < 0 or b < 0 or a == b:
             continue
-        adjacency.setdefault(a, []).append((b, raw))
-        adjacency.setdefault(b, []).append((a, raw))
+        a_idx = raw_idx_to_idx.get(a)
+        b_idx = raw_idx_to_idx.get(b)
+        if a_idx is None or b_idx is None or a_idx == b_idx:
+            continue
+        adjacency.setdefault(a_idx, []).append((b_idx, raw))
+        adjacency.setdefault(b_idx, []).append((a_idx, raw))
 
     current_idx = None
     for alias in current_aliases:

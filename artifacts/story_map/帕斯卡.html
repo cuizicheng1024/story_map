@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "布莱兹·帕斯卡", "title": "", "description": "布莱兹·帕斯卡生于17世纪法国一个税务官员家庭，自幼体弱但天资聪颖。他在父亲指导下接受教育，少年时便在数学与物理学上展现出非凡才华，16岁即发表关于圆锥曲线的论文。成年后，他在巴黎与鲁昂等地进行科学研究，发明了早期机械计算器并进行了著名的“真空实验”。1654年经历一场马车事故后，他经历了深刻的宗教体验，此后将更多精力投入神学与哲学思考，以犀利的文笔为詹森派辩护，并在病痛中写下了不朽的《思想录》片段，直至早逝。", "quote": "真空实验", "shortReview": "真空实验", "dynasty": "17世纪（法国波旁王朝）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）", "avatar": "", "birth": {"date": "1623年", "location": "奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）", "lat": 45.7772, "lng": 3.087, "coordSystem": "WGS84"}, "death": {"date": "1662年", "location": "巴黎（今法国法兰西岛大区巴黎市）", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84"}, "lifespan": "39岁", "highlights": {"honor": "", "status": "近代概率论的奠基人之一，也是法国古典散文大师，对后世科学与哲学思想影响深远。", "identities": "数学家、物理学家、哲学家、散文家", "achievements": "提出帕斯卡定律（流体静力学）；创立概率论；发明液压计算器（帕斯卡计算器）；撰写哲学名著《思想录》与《致外省人信札》。", "works": ["思想录", "致外省人信札"], "reviews": []}}, "locations": [{"name": "克莱蒙费朗", "ancientName": "奥弗涅", "modernName": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "lat": 45.7772, "lng": 3.087, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的税务官家庭，幼年丧母，由父亲亲自教育。", "time": "公元1623年", "duration": "约10年（1623-1631年，后随家庭迁居，期间偶有返回）", "significance": "其早期教育和科学兴趣的萌芽地。", "works": [], "quoteLines": []}, {"name": "巴黎（早期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。16岁时发表《圆锥曲线论》。", "time": "公元1631年 - 公元1639年", "duration": "约8年", "significance": "奠定了其作为数学神童的学术基础，进入欧洲学术中心圈。", "works": ["圆锥曲线论"], "quoteLines": []}, {"name": "鲁昂", "ancientName": "诺曼底", "modernName": "法国诺曼底大区鲁昂市", "lat": 49.4432, "lng": 1.0999, "coordSystem": "WGS84", "type": "normal", "event": "为协助父亲完成税务计算工作，于1642-1645年间发明并改进“帕斯卡计算器”。1648年，通过“真空实验”证明真空的存在，推翻了亚里士多德“自然厌恶真空”的学说。", "time": "公元1639年 - 公元1648年", "duration": "约9年（期间频繁往返巴黎）", "significance": "科学发明与实验的关键时期，在流体力学和物理学上取得突破性成就。", "works": [], "quoteLines": []}, {"name": "巴黎（科学社交圈）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "与费马通信，共同创立概率论。进行大气压实验（多姆山实验）。社交活跃，生活较为世俗。", "time": "公元1648年 - 公元1654年", "duration": "约6年", "significance": "科学成就的巅峰期，概率论思想诞生。", "works": [], "quoteLines": []}, {"name": "默伦", "ancientName": "默伦", "modernName": "法国法兰西岛大区塞纳-马恩省默伦市", "lat": 48.5356, "lng": 2.6585, "coordSystem": "WGS84", "type": "normal", "event": "马匹受惊，马车坠入河中，帕斯卡幸免于难。当晚经历强烈的宗教神秘体验。", "time": "公元1654年11月23日", "duration": "瞬间事件", "significance": "人生重大转折点，从此疏远世俗科学，专注于宗教与哲学思考。", "works": [], "quoteLines": []}, {"name": "巴黎（隐居与写作）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "进入波尔罗亚尔修道院隐居。为詹森派辩护，匿名发表《致外省人信札》，以绝妙文笔抨击耶稣会。开始撰写《思想录》。", "time": "公元1655年 - 公元1662年", "duration": "约7年", "significance": "哲学与文学创作的黄金时期，完成了其思想体系的构建。", "works": ["致外省人信札", "思想录"], "quoteLines": []}, {"name": "波尔罗亚尔修道院", "ancientName": "波尔罗亚尔修道院", "modernName": "法国法兰西岛大区伊夫林省", "lat": 48.7456, "lng": 2.0147, "coordSystem": "WGS84", "type": "normal", "event": "与詹森派学者密切交往，进行深刻的灵修与写作。", "time": "公元1655年 - 公元1662年（间歇性居住）", "duration": "断续居住数年", "significance": "其宗教哲学思想形成与深化的核心场所。", "works": [], "quoteLines": []}, {"name": "巴黎（科学实验）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "为研究摆线问题，集中精力进行数学研究，推动了微积分的发展。", "time": "公元1658年", "duration": "数月", "significance": "在病痛中仍坚持科学研究，展现了其理性精神的延续。", "works": [], "quoteLines": []}, {"name": "巴黎（最后居所）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "病情恶化，将住所让给穷人居住，自己搬入妹妹家。临终前说：“愿上帝永不离弃我。”", "time": "公元1662年", "duration": "约半年", "significance": "体现了其虔诚的信仰与博爱精神。", "works": [], "quoteLines": []}, {"name": "巴黎", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "death", "event": "因长期疾病（疑似胃癌或肺结核）与脑卒中去世。", "time": "公元1662年8月19日", "duration": "生命最后时刻", "significance": "一代科学与思想巨匠陨落，其未完成的《思想录》手稿成为后世哲学宝库。", "works": ["思想录"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---", "workTexts": {"思想录": "“真空实验”", "圆锥曲线论": "事件：随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。", "致外省人信札": "| 1656 | 33 | 开始匿名发表《致外省人信札》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 帕斯卡\n\n## 人物档案\n\n### 基本信息\n- **姓名**：布莱兹·帕斯卡\n- **时代**：17世纪（法国波旁王朝）\n- **出生**：公元1623年6月19日，奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）\n- **去世**：公元1662年8月19日，巴黎（今法国法兰西岛大区巴黎市）\n- **享年**：39岁\n- **主要身份**：数学家、物理学家、哲学家、散文家\n- **历史地位**：近代概率论的奠基人之一，也是法国古典散文大师，对后世科学与哲学思想影响深远。\n- **主要成就**：提出帕斯卡定律（流体静力学）；创立概率论；发明液压计算器（帕斯卡计算器）；撰写哲学名著《思想录》与《致外省人信札》。\n\n### 生平概述\n布莱兹·帕斯卡生于17世纪法国一个税务官员家庭，自幼体弱但天资聪颖。他在父亲指导下接受教育，少年时便在数学与物理学上展现出非凡才华，16岁即发表关于圆锥曲线的论文。成年后，他在巴黎与鲁昂等地进行科学研究，发明了早期机械计算器并进行了著名的“真空实验”。1654年经历一场马车事故后，他经历了深刻的宗教体验，此后将更多精力投入神学与哲学思考，以犀利的文笔为詹森派辩护，并在病痛中写下了不朽的《思想录》片段，直至早逝。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于法国中北部，以巴黎为中心，往返于鲁昂、克莱蒙等地。\n- ⏱️ **时间跨度**：公元1623年 - 公元1662年，共39年。\n- 📍 **地理范围**：法国奥弗涅、诺曼底、法兰西岛等地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：克莱蒙费朗\n- **时间**：公元1623年\n- **停留时间**：约10年（1623-1631年，后随家庭迁居，期间偶有返回）\n- **地点**：奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）\n- **事件**：出生于一个富裕的税务官家庭，幼年丧母，由父亲亲自教育。\n- **意义**：其早期教育和科学兴趣的萌芽地。\n\n### 📍 重要地点：巴黎（早期）\n- **时间**：公元1631年 - 公元1639年\n- **停留时间**：约8年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。16岁时发表《圆锥曲线论》。\n- **意义**：奠定了其作为数学神童的学术基础，进入欧洲学术中心圈。\n\n### 📍 重要地点：鲁昂\n- **时间**：公元1639年 - 公元1648年\n- **停留时间**：约9年（期间频繁往返巴黎）\n- **地点**：诺曼底（今法国诺曼底大区鲁昂市）\n- **事件**：为协助父亲完成税务计算工作，于1642-1645年间发明并改进“帕斯卡计算器”。1648年，通过“真空实验”证明真空的存在，推翻了亚里士多德“自然厌恶真空”的学说。\n- **意义**：科学发明与实验的关键时期，在流体力学和物理学上取得突破性成就。\n\n### 📍 重要地点：巴黎（科学社交圈）\n- **时间**：公元1648年 - 公元1654年\n- **停留时间**：约6年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：与费马通信，共同创立概率论。进行大气压实验（多姆山实验）。社交活跃，生活较为世俗。\n- **意义**：科学成就的巅峰期，概率论思想诞生。\n\n### 📍 重要地点：默伦\n- **时间**：公元1654年11月23日\n- **停留时间**：瞬间事件\n- **地点**：默伦（今法国法兰西岛大区塞纳-马恩省默伦市）\n- **事件**：马匹受惊，马车坠入河中，帕斯卡幸免于难。当晚经历强烈的宗教神秘体验。\n- **意义**：人生重大转折点，从此疏远世俗科学，专注于宗教与哲学思考。\n\n### 📍 重要地点：巴黎（隐居与写作）\n- **时间**：公元1655年 - 公元1662年\n- **停留时间**：约7年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：进入波尔罗亚尔修道院隐居。为詹森派辩护，匿名发表《致外省人信札》，以绝妙文笔抨击耶稣会。开始撰写《思想录》。\n- **意义**：哲学与文学创作的黄金时期，完成了其思想体系的构建。\n\n### 📍 重要地点：波尔罗亚尔修道院\n- **时间**：公元1655年 - 公元1662年（间歇性居住）\n- **停留时间**：断续居住数年\n- **地点**：波尔罗亚尔修道院（遗址）（今法国法兰西岛大区伊夫林省）\n- **事件**：与詹森派学者密切交往，进行深刻的灵修与写作。\n- **意义**：其宗教哲学思想形成与深化的核心场所。\n\n### 📍 重要地点：巴黎（科学实验）\n- **时间**：公元1658年\n- **停留时间**：数月\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：为研究摆线问题，集中精力进行数学研究，推动了微积分的发展。\n- **意义**：在病痛中仍坚持科学研究，展现了其理性精神的延续。\n\n### 📍 重要地点：巴黎（最后居所）\n- **时间**：公元1662年\n- **停留时间**：约半年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：病情恶化，将住所让给穷人居住，自己搬入妹妹家。临终前说：“愿上帝永不离弃我。”\n- **意义**：体现了其虔诚的信仰与博爱精神。\n\n### 🔴 去世地：巴黎\n- **时间**：公元1662年8月19日\n- **停留时间**：生命最后时刻\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：因长期疾病（疑似胃癌或肺结核）与脑卒中去世。\n- **意义**：一代科学与思想巨匠陨落，其未完成的《思想录》手稿成为后世哲学宝库。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1623 | 0 | 出生于法国克莱蒙费朗。 |\n| 1631 | 8 | 随父移居巴黎，开始接受系统科学教育。 |\n| 1635 | 12 | 独自发现欧几里得前23条定理。 |\n| 1639 | 16 | 发表《圆锥曲线论》。 |\n| 1642 | 19 | 开始设计并制作帕斯卡计算器。 |\n| 1648 | 25 | 完成真空实验，证明大气压与真空存在。 |\n| 1654 | 31 | 与费马通信奠定概率论基础；经历“默伦桥事件”，思想转向宗教。 |\n| 1656 | 33 | 开始匿名发表《致外省人信札》。 |\n| 1658 | 35 | 集中研究数学摆线问题。 |\n| 1662 | 39 | 在巴黎去世，留下《思想录》手稿。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 克莱蒙费朗 | 45.7772 | 3.0870 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 鲁昂 | 49.4432 | 1.0999 |\n| 默伦 | 48.5356 | 2.6585 |\n| 波尔罗亚尔修道院（遗址） | 48.7456 | 2.0147 |", "relatedGraph": {"center": {"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "真空实验", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "真空实验", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "“业余数学家之王”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "莱布尼茨", "name": "莱布尼茨", "file": "莱布尼茨.html", "dynasty": "17世纪（神圣罗马帝国时期）", "aliases": [], "birth_year": 1646, "death_year": 1716, "quote": "“单子没有可供事物出入的窗户。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "莱比锡", "birthplace_modern": "德国萨克森州莱比锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "帕斯卡", "target": "费马", "label": "君臣", "confidence": null}, {"source": "帕斯卡", "target": "笛卡尔", "label": "宗亲", "confidence": null}, {"source": "帕斯卡", "target": "莱布尼茨", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "布莱兹·帕斯卡", "title": "", "description": "布莱兹·帕斯卡生于17世纪法国一个税务官员家庭，自幼体弱但天资聪颖。他在父亲指导下接受教育，少年时便在数学与物理学上展现出非凡才华，16岁即发表关于圆锥曲线的论文。成年后，他在巴黎与鲁昂等地进行科学研究，发明了早期机械计算器并进行了著名的“真空实验”。1654年经历一场马车事故后，他经历了深刻的宗教体验，此后将更多精力投入神学与哲学思考，以犀利的文笔为詹森派辩护，并在病痛中写下了不朽的《思想录》片段，直至早逝。", "quote": "真空实验", "shortReview": "真空实验", "dynasty": "17世纪（法国波旁王朝）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）", "avatar": "", "birth": {"date": "1623年", "location": "奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）", "lat": 45.7772, "lng": 3.087, "coordSystem": "WGS84"}, "death": {"date": "1662年", "location": "巴黎（今法国法兰西岛大区巴黎市）", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84"}, "lifespan": "39岁", "highlights": {"honor": "", "status": "近代概率论的奠基人之一，也是法国古典散文大师，对后世科学与哲学思想影响深远。", "identities": "数学家、物理学家、哲学家、散文家", "achievements": "提出帕斯卡定律（流体静力学）；创立概率论；发明液压计算器（帕斯卡计算器）；撰写哲学名著《思想录》与《致外省人信札》。", "works": ["思想录", "致外省人信札"], "reviews": []}}, "locations": [{"name": "克莱蒙费朗", "ancientName": "奥弗涅", "modernName": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "lat": 45.7772, "lng": 3.087, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个富裕的税务官家庭，幼年丧母，由父亲亲自教育。", "time": "公元1623年", "duration": "约10年（1623-1631年，后随家庭迁居，期间偶有返回）", "significance": "其早期教育和科学兴趣的萌芽地。", "works": [], "quoteLines": []}, {"name": "巴黎（早期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。16岁时发表《圆锥曲线论》。", "time": "公元1631年 - 公元1639年", "duration": "约8年", "significance": "奠定了其作为数学神童的学术基础，进入欧洲学术中心圈。", "works": ["圆锥曲线论"], "quoteLines": []}, {"name": "鲁昂", "ancientName": "诺曼底", "modernName": "法国诺曼底大区鲁昂市", "lat": 49.4432, "lng": 1.0999, "coordSystem": "WGS84", "type": "normal", "event": "为协助父亲完成税务计算工作，于1642-1645年间发明并改进“帕斯卡计算器”。1648年，通过“真空实验”证明真空的存在，推翻了亚里士多德“自然厌恶真空”的学说。", "time": "公元1639年 - 公元1648年", "duration": "约9年（期间频繁往返巴黎）", "significance": "科学发明与实验的关键时期，在流体力学和物理学上取得突破性成就。", "works": [], "quoteLines": []}, {"name": "巴黎（科学社交圈）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "与费马通信，共同创立概率论。进行大气压实验（多姆山实验）。社交活跃，生活较为世俗。", "time": "公元1648年 - 公元1654年", "duration": "约6年", "significance": "科学成就的巅峰期，概率论思想诞生。", "works": [], "quoteLines": []}, {"name": "默伦", "ancientName": "默伦", "modernName": "法国法兰西岛大区塞纳-马恩省默伦市", "lat": 48.5356, "lng": 2.6585, "coordSystem": "WGS84", "type": "normal", "event": "马匹受惊，马车坠入河中，帕斯卡幸免于难。当晚经历强烈的宗教神秘体验。", "time": "公元1654年11月23日", "duration": "瞬间事件", "significance": "人生重大转折点，从此疏远世俗科学，专注于宗教与哲学思考。", "works": [], "quoteLines": []}, {"name": "巴黎（隐居与写作）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "进入波尔罗亚尔修道院隐居。为詹森派辩护，匿名发表《致外省人信札》，以绝妙文笔抨击耶稣会。开始撰写《思想录》。", "time": "公元1655年 - 公元1662年", "duration": "约7年", "significance": "哲学与文学创作的黄金时期，完成了其思想体系的构建。", "works": ["致外省人信札", "思想录"], "quoteLines": []}, {"name": "波尔罗亚尔修道院", "ancientName": "波尔罗亚尔修道院", "modernName": "法国法兰西岛大区伊夫林省", "lat": 48.7456, "lng": 2.0147, "coordSystem": "WGS84", "type": "normal", "event": "与詹森派学者密切交往，进行深刻的灵修与写作。", "time": "公元1655年 - 公元1662年（间歇性居住）", "duration": "断续居住数年", "significance": "其宗教哲学思想形成与深化的核心场所。", "works": [], "quoteLines": []}, {"name": "巴黎（科学实验）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "为研究摆线问题，集中精力进行数学研究，推动了微积分的发展。", "time": "公元1658年", "duration": "数月", "significance": "在病痛中仍坚持科学研究，展现了其理性精神的延续。", "works": [], "quoteLines": []}, {"name": "巴黎（最后居所）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "病情恶化，将住所让给穷人居住，自己搬入妹妹家。临终前说：“愿上帝永不离弃我。”", "time": "公元1662年", "duration": "约半年", "significance": "体现了其虔诚的信仰与博爱精神。", "works": [], "quoteLines": []}, {"name": "巴黎", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "death", "event": "因长期疾病（疑似胃癌或肺结核）与脑卒中去世。", "time": "公元1662年8月19日", "duration": "生命最后时刻", "significance": "一代科学与思想巨匠陨落，其未完成的《思想录》手稿成为后世哲学宝库。", "works": ["思想录"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---", "workTexts": {"思想录": "“真空实验”", "圆锥曲线论": "事件：随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。", "致外省人信札": "| 1656 | 33 | 开始匿名发表《致外省人信札》。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 帕斯卡\n\n## 人物档案\n\n### 基本信息\n- **姓名**：布莱兹·帕斯卡\n- **时代**：17世纪（法国波旁王朝）\n- **出生**：公元1623年6月19日，奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）\n- **去世**：公元1662年8月19日，巴黎（今法国法兰西岛大区巴黎市）\n- **享年**：39岁\n- **主要身份**：数学家、物理学家、哲学家、散文家\n- **历史地位**：近代概率论的奠基人之一，也是法国古典散文大师，对后世科学与哲学思想影响深远。\n- **主要成就**：提出帕斯卡定律（流体静力学）；创立概率论；发明液压计算器（帕斯卡计算器）；撰写哲学名著《思想录》与《致外省人信札》。\n\n### 生平概述\n布莱兹·帕斯卡生于17世纪法国一个税务官员家庭，自幼体弱但天资聪颖。他在父亲指导下接受教育，少年时便在数学与物理学上展现出非凡才华，16岁即发表关于圆锥曲线的论文。成年后，他在巴黎与鲁昂等地进行科学研究，发明了早期机械计算器并进行了著名的“真空实验”。1654年经历一场马车事故后，他经历了深刻的宗教体验，此后将更多精力投入神学与哲学思考，以犀利的文笔为詹森派辩护，并在病痛中写下了不朽的《思想录》片段，直至早逝。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于法国中北部，以巴黎为中心，往返于鲁昂、克莱蒙等地。\n- ⏱️ **时间跨度**：公元1623年 - 公元1662年，共39年。\n- 📍 **地理范围**：法国奥弗涅、诺曼底、法兰西岛等地区。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：克莱蒙费朗\n- **时间**：公元1623年\n- **停留时间**：约10年（1623-1631年，后随家庭迁居，期间偶有返回）\n- **地点**：奥弗涅（今法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市）\n- **事件**：出生于一个富裕的税务官家庭，幼年丧母，由父亲亲自教育。\n- **意义**：其早期教育和科学兴趣的萌芽地。\n\n### 📍 重要地点：巴黎（早期）\n- **时间**：公元1631年 - 公元1639年\n- **停留时间**：约8年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：随父亲移居巴黎，参与父亲的学术沙龙，接触费马、笛卡尔等学者。16岁时发表《圆锥曲线论》。\n- **意义**：奠定了其作为数学神童的学术基础，进入欧洲学术中心圈。\n\n### 📍 重要地点：鲁昂\n- **时间**：公元1639年 - 公元1648年\n- **停留时间**：约9年（期间频繁往返巴黎）\n- **地点**：诺曼底（今法国诺曼底大区鲁昂市）\n- **事件**：为协助父亲完成税务计算工作，于1642-1645年间发明并改进“帕斯卡计算器”。1648年，通过“真空实验”证明真空的存在，推翻了亚里士多德“自然厌恶真空”的学说。\n- **意义**：科学发明与实验的关键时期，在流体力学和物理学上取得突破性成就。\n\n### 📍 重要地点：巴黎（科学社交圈）\n- **时间**：公元1648年 - 公元1654年\n- **停留时间**：约6年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：与费马通信，共同创立概率论。进行大气压实验（多姆山实验）。社交活跃，生活较为世俗。\n- **意义**：科学成就的巅峰期，概率论思想诞生。\n\n### 📍 重要地点：默伦\n- **时间**：公元1654年11月23日\n- **停留时间**：瞬间事件\n- **地点**：默伦（今法国法兰西岛大区塞纳-马恩省默伦市）\n- **事件**：马匹受惊，马车坠入河中，帕斯卡幸免于难。当晚经历强烈的宗教神秘体验。\n- **意义**：人生重大转折点，从此疏远世俗科学，专注于宗教与哲学思考。\n\n### 📍 重要地点：巴黎（隐居与写作）\n- **时间**：公元1655年 - 公元1662年\n- **停留时间**：约7年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：进入波尔罗亚尔修道院隐居。为詹森派辩护，匿名发表《致外省人信札》，以绝妙文笔抨击耶稣会。开始撰写《思想录》。\n- **意义**：哲学与文学创作的黄金时期，完成了其思想体系的构建。\n\n### 📍 重要地点：波尔罗亚尔修道院\n- **时间**：公元1655年 - 公元1662年（间歇性居住）\n- **停留时间**：断续居住数年\n- **地点**：波尔罗亚尔修道院（遗址）（今法国法兰西岛大区伊夫林省）\n- **事件**：与詹森派学者密切交往，进行深刻的灵修与写作。\n- **意义**：其宗教哲学思想形成与深化的核心场所。\n\n### 📍 重要地点：巴黎（科学实验）\n- **时间**：公元1658年\n- **停留时间**：数月\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：为研究摆线问题，集中精力进行数学研究，推动了微积分的发展。\n- **意义**：在病痛中仍坚持科学研究，展现了其理性精神的延续。\n\n### 📍 重要地点：巴黎（最后居所）\n- **时间**：公元1662年\n- **停留时间**：约半年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：病情恶化，将住所让给穷人居住，自己搬入妹妹家。临终前说：“愿上帝永不离弃我。”\n- **意义**：体现了其虔诚的信仰与博爱精神。\n\n### 🔴 去世地：巴黎\n- **时间**：公元1662年8月19日\n- **停留时间**：生命最后时刻\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：因长期疾病（疑似胃癌或肺结核）与脑卒中去世。\n- **意义**：一代科学与思想巨匠陨落，其未完成的《思想录》手稿成为后世哲学宝库。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n| --- | --- | --- |\n| 1623 | 0 | 出生于法国克莱蒙费朗。 |\n| 1631 | 8 | 随父移居巴黎，开始接受系统科学教育。 |\n| 1635 | 12 | 独自发现欧几里得前23条定理。 |\n| 1639 | 16 | 发表《圆锥曲线论》。 |\n| 1642 | 19 | 开始设计并制作帕斯卡计算器。 |\n| 1648 | 25 | 完成真空实验，证明大气压与真空存在。 |\n| 1654 | 31 | 与费马通信奠定概率论基础；经历“默伦桥事件”，思想转向宗教。 |\n| 1656 | 33 | 开始匿名发表《致外省人信札》。 |\n| 1658 | 35 | 集中研究数学摆线问题。 |\n| 1662 | 39 | 在巴黎去世，留下《思想录》手稿。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《思想录》**（节选）\n- 核心要点：\n    - **重点**：探讨**人的伟大与渺小**，提出“人是一根会思想的苇草”这一核心比喻，强调**思想**的尊严与价值。\n    - 分析**信仰与理性**的关系，认为“人心有其理性，那是理性所不能认识的”。\n    - **重点**：运用大量**悖论**与**警句**，文风**思辨深邃**、**简洁有力**，是法国古典散文的典范。\n    - **重点**：反映了**詹森派**的神学思想，即强调人的**原罪**、**神恩**的必要性以及对世俗理性的怀疑。\n    - 其文字充满**情感张力**与**哲学洞见**，对后世存在主义哲学有先导影响。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：17世纪**科学革命**的重要参与者，在**流体静力学**（帕斯卡定律）和**概率论**领域做出开创性贡献。\n    - 发明**帕斯卡计算器**，是早期机械计算机的里程碑。\n    - **重点**：卷入17世纪法国天主教内部的**詹森派**与**耶稣会**之争，以《致外省人信札》为詹森派辩护，文笔犀利。\n- 核心要点：\n    - **重点**：其生平体现了**近代早期**一位“通才”学者的典型路径：从**数学物理**的精确世界转向**神学哲学**的终极关怀。\n    - 他的科学工作（如概率论）源于解决实际问题（如赌博），体现了**经验主义**与**理性主义**的结合。\n    - **重点**：其哲学思想（《思想录》）被视为对**理性主义**（如笛卡尔）的深刻补充与批判，突出了**人的情感、直觉与信仰维度**。\n    - 作为**散文家**，其作品是法语文学的瑰宝，对**启蒙思想家**如伏尔泰等有深远影响。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 克莱蒙费朗 | 45.7772 | 3.0870 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 鲁昂 | 49.4432 | 1.0999 |\n| 默伦 | 48.5356 | 2.6585 |\n| 波尔罗亚尔修道院（遗址） | 48.7456 | 2.0147 |", "relatedGraph": {"center": {"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "真空实验", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "帕斯卡", "name": "帕斯卡", "file": "帕斯卡.html", "dynasty": "17世纪（法国波旁王朝）", "aliases": [], "birth_year": 1623, "death_year": 1662, "quote": "“帕斯卡计算器”", "review": "真空实验", "foreign_name": "", "main_role_label": "数学家", "birthplace": "奥弗涅", "birthplace_modern": "法国奥弗涅-罗讷-阿尔卑斯大区克莱蒙费朗市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "“业余数学家之王”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "笛卡尔", "name": "笛卡尔", "file": "笛卡尔.html", "dynasty": "明", "aliases": [], "birth_year": 1596, "death_year": 1650, "quote": "“近代哲学之父”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "法兰西王国图赖讷省拉艾", "birthplace_modern": "法国安德尔-卢瓦尔省笛卡尔镇", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "莱布尼茨", "name": "莱布尼茨", "file": "莱布尼茨.html", "dynasty": "17世纪（神圣罗马帝国时期）", "aliases": [], "birth_year": 1646, "death_year": 1716, "quote": "“单子没有可供事物出入的窗户。”", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "莱比锡", "birthplace_modern": "德国萨克森州莱比锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "“彼得·米哈伊洛夫”", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "“**因势象形，各具情态**”", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "“**开辟荆榛逐荷夷**”", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "帕斯卡", "target": "费马", "label": "君臣", "confidence": null}, {"source": "帕斯卡", "target": "笛卡尔", "label": "宗亲", "confidence": null}, {"source": "帕斯卡", "target": "莱布尼茨", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "彼得一世", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "帕斯卡", "target": "郑成功", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

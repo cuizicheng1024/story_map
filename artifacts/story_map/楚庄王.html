@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "熊旅", "title": "", "description": "楚庄王是春秋时期楚国最有作为的君主之一。他即位之初，楚国内部有若敖氏专权，外部面临晋国等中原强国的压力。庄王初期佯装沉湎酒色，实则观察局势，后听从伍举、苏从劝谏，罢黜奸佞，任用孙叔敖等贤臣，改革内政，兴修水利，整顿军备。他先后平定国内叛乱、灭亡庸国，稳固后方。随后挥师北上，于邲之战中大败晋国，饮马黄河，问鼎周室，使楚国势力深入中原，成为公认的霸主。其“不鸣则已，一鸣惊人”的典故流传千古。", "quote": "贤哉楚庄王！轻千乘之国而重一言。", "shortReview": "贤哉楚庄王！轻千乘之国而重一言。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "楚国郢都（今湖北荆州）", "avatar": "", "birth": {"date": "公元前630年", "location": "楚国郢都（今湖北荆州）", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84"}, "death": {"date": "公元前591年", "location": "楚国郢都（今湖北荆州）", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84"}, "lifespan": "约40岁（存疑）", "highlights": {"honor": "", "status": "春秋五霸之一，通过内政改革与军事扩张使楚国国力达到鼎盛，深刻改变了春秋中期的政治格局。", "identities": "楚国国君、政治家、军事家", "achievements": "一鸣惊人、问鼎中原、邲之战大胜晋国、灭庸国、称霸诸侯。", "works": [], "reviews": ["**司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八年，伐陆浑戎，遂至洛，观兵于周郊。”", "**孔子**：“贤哉楚庄王！轻千乘之国而重一言。”（《史记·陈杞世家》）", "**后世史家**：普遍认为楚庄王是楚国历史上最杰出的君主，其霸业是楚国国力的巅峰，其“一鸣惊人”的智慧与“问鼎中原”的胆略备受推崇。"]}}, "locations": [{"name": "郢都", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "birth", "event": "作为楚穆王之子，在此地出生并成长，接受王室教育。", "time": "约公元前630年（存疑）", "duration": "出生至即位前", "significance": "楚国的政治中心，其王业的起点与终点。", "works": [], "quoteLines": []}, {"name": "郢都（即位与“一鸣惊人”）", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "normal", "event": "即位之初，沉湎酒色，不理朝政，实则暗中观察。后接受伍举“大鸟”隐喻劝谏，罢黜奸佞，任用贤才，开始亲政改革。", "time": "公元前613年", "duration": "即位初期（约三年）", "significance": "实现从“隐忍”到“奋发”的关键转折地，奠定霸业基础。", "works": [], "quoteLines": ["《史记·楚世家》：“三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。”"]}, {"name": "若敖氏叛乱地（今湖北当阳一带）", "ancientName": "楚国境内", "modernName": "湖北省当阳市一带", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "normal", "event": "率军平定令尹斗越椒（若敖氏）的叛乱，巩固了王权。", "time": "公元前605年", "duration": "平叛期间", "significance": "清除了国内最大的政治军事威胁，实现了权力的高度集中。", "works": [], "quoteLines": []}, {"name": "邲（今河南荥阳东北）", "ancientName": "邲", "modernName": "河南省荥阳市东北", "lat": 27.507658, "lng": 107.62906, "coordSystem": "WGS84", "type": "normal", "event": "指挥楚军与晋国军队进行邲之战，大获全胜。战后楚庄王祭祀黄河，巡视晋军尸骨，展现了霸主气度。", "time": "公元前597年", "duration": "邲之战期间", "significance": "此战是楚晋争霸的决定性胜利，标志着楚国霸权的确立。", "works": [], "quoteLines": ["《左传·宣公十二年》记载楚庄王论“武”有七德：“夫文，止戈为武…夫武，禁暴、戢兵、保大、定功、安民、和众、丰财者也。”"]}, {"name": "郢都", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "death", "event": "在邲之战后数年，于郢都病逝。", "time": "公元前591年", "duration": "晚年直至去世", "significance": "其霸业的起点与终点，身后楚国霸权虽有所延续，但再未达到其在位时的高度。", "works": [], "quoteLines": ["无直接相关传世诗文。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**春秋时期**，周王室衰微，诸侯争霸。\n- **关键事件**：**“一鸣惊人”** 的典故，讲述其即位初期隐忍而后奋发的故事。\n- **关键事件**：**“问鼎中原”**，率军至周王室边境，询问九鼎轻重，挑战周天子权威。\n- **关键事件**：**邲之战**，大败晋国，成为霸主。\n- **代表思想/政策**：任用**孙叔敖**为令尹，兴修水利（如芍陂），发展经济。\n- **历史地位**：**春秋五霸**之一（通常与齐桓公、晋文公等并列）。\n- **常见易混点**：区分“春秋五霸”的不同说法（如《史记》与《荀子》版本），楚庄王是其中公认的成员。\n\n### 高中阶段\n- **时代背景**：春秋中后期，**宗法分封制**进一步瓦解，**礼乐征伐自诸侯出**。\n- **政治改革**：平定**若敖氏**叛乱，加强**君主集权**，削弱旧贵族势力。\n- **军事战略**：邲之战中运用的战术思想，以及其“**止戈为武**”的战争哲学。\n- **霸业性质**：楚庄王霸业与齐桓公“尊王攘夷”不同，更具挑战周礼、武力扩张的色彩，反映了**华夏文化圈**的扩大与融合。\n- **历史评价**：理解其作为“**霸主**”在维持区域秩序、促进文化交流（楚文化与中原文化）方面的双重作用。\n- **对比点**：与**齐桓公**、**晋文公**的称霸方式、口号及历史影响进行对比。\n\n---", "examPoints": "### 初中阶段考点\n1.  **春秋五霸**的构成（楚庄王是其中之一）。\n2.  **“一鸣惊人”** 成语的出处与历史背景。\n3.  **“问鼎中原”** 事件的含义及其反映的周王室与诸侯关系变化。\n4.  **邲之战**的交战双方（楚、晋）及结果（楚胜）。\n5.  楚庄王任用的著名令尹：**孙叔敖**。\n6.  楚庄王霸业对**楚国**及**中原格局**的影响。\n\n### 高中阶段考点\n1.  楚庄王改革内政、加强王权的具体措施（如平定若敖氏）。\n2.  **邲之战**在春秋争霸史上的地位（晋楚争霸的转折点）。\n3.  楚庄王“**止戈为武**”思想的内涵与评价。\n4.  楚庄王霸业与齐桓公霸业在**手段、口号、文化影响**上的异同。\n5.  楚庄王时期**楚国疆域**的扩张方向（北进中原、东拓淮域）。\n6.  （存疑/说法不一）楚庄王是否严格符合后世儒家对“霸主”德行的全部要求。", "workTexts": {"史记·楚世家": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "史记": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "楚世家": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "左传·宣公三年": "楚子问鼎之大小轻重焉。", "左传": "楚子问鼎之大小轻重焉。", "宣公三年": "楚子问鼎之大小轻重焉。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 楚庄王 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：熊旅（又称熊侣、芈旅）\n- **时代**：春秋时期\n- **出生**：约公元前630年（存疑），楚国郢都（今湖北荆州）\n- **去世**：公元前591年，楚国郢都（今湖北荆州）\n- **享年**：约40岁（存疑）\n- **主要身份**：楚国国君、政治家、军事家\n- **历史地位**：春秋五霸之一，通过内政改革与军事扩张使楚国国力达到鼎盛，深刻改变了春秋中期的政治格局。\n- **主要成就**：一鸣惊人、问鼎中原、邲之战大胜晋国、灭庸国、称霸诸侯。\n\n### 生平概述\n楚庄王是春秋时期楚国最有作为的君主之一。他即位之初，楚国内部有若敖氏专权，外部面临晋国等中原强国的压力。庄王初期佯装沉湎酒色，实则观察局势，后听从伍举、苏从劝谏，罢黜奸佞，任用孙叔敖等贤臣，改革内政，兴修水利，整顿军备。他先后平定国内叛乱、灭亡庸国，稳固后方。随后挥师北上，于邲之战中大败晋国，饮马黄河，问鼎周室，使楚国势力深入中原，成为公认的霸主。其“不鸣则已，一鸣惊人”的典故流传千古。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以楚国核心区域（今湖北、河南南部）为中心，北进至中原（今河南洛阳一带），东征至淮河流域。\n- ⏱️ **时间跨度**：公元前613年至公元前591年，共22年（在位期间）。\n- 📍 **地理范围**：主要活动于今湖北、河南、安徽、湖南等地区。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：郢都\n- **公元纪年**：约公元前630年（存疑）\n- **停留时间**：出生至即位前\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：作为楚穆王之子，在此地出生并成长，接受王室教育。\n- **意义**：楚国的政治中心，其王业的起点与终点。\n\n### 📍 重要地点：郢都（即位与“一鸣惊人”）\n- **公元纪年**：公元前613年\n- **停留时间**：即位初期（约三年）\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：即位之初，沉湎酒色，不理朝政，实则暗中观察。后接受伍举“大鸟”隐喻劝谏，罢黜奸佞，任用贤才，开始亲政改革。\n- **意义**：实现从“隐忍”到“奋发”的关键转折地，奠定霸业基础。\n- **名篇名句**：《史记·楚世家》：“三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。”\n\n### 📍 重要地点：若敖氏叛乱地（今湖北当阳一带）\n- **公元纪年**：公元前605年\n- **停留时间**：平叛期间\n- **位置**：楚国境内（今湖北省当阳市一带）\n- **事迹**：率军平定令尹斗越椒（若敖氏）的叛乱，巩固了王权。\n- **意义**：清除了国内最大的政治军事威胁，实现了权力的高度集中。\n\n### 📍 重要地点：庸国（今湖北竹山一带）\n- **公元纪年**：公元前611年\n- **停留时间**：灭庸战役期间\n- **位置**：庸国（今湖北省竹山县一带）\n- **事迹**：联合秦、巴两国，亲征并灭亡了趁楚国饥荒而叛乱的庸国。\n- **意义**：稳定了楚国西部边疆，展示了军事才能，为北进解除了后顾之忧。\n\n### 📍 重要地点：洛邑（周王室都城）\n- **公元纪年**：公元前606年\n- **停留时间**：短暂驻扎\n- **位置**：洛邑（今河南省洛阳市）\n- **事迹**：率军北伐陆浑之戎，兵锋直抵周王室边境，并遣使询问象征王权的九鼎之大小轻重（“问鼎中原”）。\n- **意义**：公开挑战周天子权威，标志着楚国势力正式深入中原核心区，霸业达到新高度。\n- **名篇名句**：《左传·宣公三年》：“楚子问鼎之大小轻重焉。”\n\n### 📍 重要地点：邲（今河南荥阳东北）\n- **公元纪年**：公元前597年\n- **停留时间**：邲之战期间\n- **位置**：邲（今河南省荥阳市东北）\n- **事迹**：指挥楚军与晋国军队进行邲之战，大获全胜。战后楚庄王祭祀黄河，巡视晋军尸骨，展现了霸主气度。\n- **意义**：此战是楚晋争霸的决定性胜利，标志着楚国霸权的确立。\n- **名篇名句**：《左传·宣公十二年》记载楚庄王论“武”有七德：“夫文，止戈为武…夫武，禁暴、戢兵、保大、定功、安民、和众、丰财者也。”\n\n### 📍 重要地点：辰陵（今河南西华西北）\n- **公元纪年**：公元前598年\n- **停留时间**：会盟期间\n- **位置**：辰陵（今河南省西华县西北）\n- **事迹**：主持辰陵之盟，陈、郑等中原小国归附，楚庄王正式成为中原诸侯的盟主。\n- **意义**：霸业在政治外交上得到确认的标志性事件。\n\n### 🔴 去世地：郢都\n- **公元纪年**：公元前591年\n- **停留时间**：晚年直至去世\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：在邲之战后数年，于郢都病逝。\n- **意义**：其霸业的起点与终点，身后楚国霸权虽有所延续，但再未达到其在位时的高度。\n- **名篇名句**：无直接相关传世诗文。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄（约） | 关键事件 |\n| --- | --- | --- |\n| 约前630年 | 0 | 出生于楚国郢都 |\n| 前613年 | 约17岁 | 即位为楚王，初期佯装荒淫 |\n| 前611年 | 约19岁 | 联合秦、巴，亲征灭亡庸国 |\n| 前606年 | 约24岁 | 北伐陆浑之戎，兵至洛邑，“问鼎中原” |\n| 前605年 | 约25岁 | 平定若敖氏（斗越椒）叛乱 |\n| 前598年 | 约32岁 | 主持辰陵之盟，成为中原盟主 |\n| 前597年 | 约33岁 | 指挥邲之战，大败晋国，霸业达到顶峰 |\n| 前591年 | 约39岁 | 病逝于郢都 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n楚庄王通过强有力的内政改革和军事胜利，使楚国从一个被中原视为“蛮夷”的南方大国，一跃成为号令诸侯的霸主，彻底改变了春秋中期“晋强楚弱”的格局，形成了晋楚长期争霸、中原小国朝秦暮楚的复杂局面。\n\n### 对后世的影响\n- **成语典故**：“一鸣惊人”、“问鼎中原”成为汉语中极具生命力的成语，喻指蓄势待发、挑战权威。\n- **政治军事思想**：其“止戈为武”的战争观，以及重用贤才（如孙叔敖）、整顿内政的治国方略，为后世提供了借鉴。\n- **文化象征**：作为“春秋五霸”之一，其事迹成为后世论述霸权兴衰、君主德行的经典案例。\n\n### 历史评价\n1.  **司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八年，伐陆浑戎，遂至洛，观兵于周郊。”\n2.  **孔子**：“贤哉楚庄王！轻千乘之国而重一言。”（《史记·陈杞世家》）\n3.  **后世史家**：普遍认为楚庄王是楚国历史上最杰出的君主，其霸业是楚国国力的巅峰，其“一鸣惊人”的智慧与“问鼎中原”的胆略备受推崇。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**春秋时期**，周王室衰微，诸侯争霸。\n- **关键事件**：**“一鸣惊人”** 的典故，讲述其即位初期隐忍而后奋发的故事。\n- **关键事件**：**“问鼎中原”**，率军至周王室边境，询问九鼎轻重，挑战周天子权威。\n- **关键事件**：**邲之战**，大败晋国，成为霸主。\n- **代表思想/政策**：任用**孙叔敖**为令尹，兴修水利（如芍陂），发展经济。\n- **历史地位**：**春秋五霸**之一（通常与齐桓公、晋文公等并列）。\n- **常见易混点**：区分“春秋五霸”的不同说法（如《史记》与《荀子》版本），楚庄王是其中公认的成员。\n\n### 高中阶段\n- **时代背景**：春秋中后期，**宗法分封制**进一步瓦解，**礼乐征伐自诸侯出**。\n- **政治改革**：平定**若敖氏**叛乱，加强**君主集权**，削弱旧贵族势力。\n- **军事战略**：邲之战中运用的战术思想，以及其“**止戈为武**”的战争哲学。\n- **霸业性质**：楚庄王霸业与齐桓公“尊王攘夷”不同，更具挑战周礼、武力扩张的色彩，反映了**华夏文化圈**的扩大与融合。\n- **历史评价**：理解其作为“**霸主**”在维持区域秩序、促进文化交流（楚文化与中原文化）方面的双重作用。\n- **对比点**：与**齐桓公**、**晋文公**的称霸方式、口号及历史影响进行对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **春秋五霸**的构成（楚庄王是其中之一）。\n2.  **“一鸣惊人”** 成语的出处与历史背景。\n3.  **“问鼎中原”** 事件的含义及其反映的周王室与诸侯关系变化。\n4.  **邲之战**的交战双方（楚、晋）及结果（楚胜）。\n5.  楚庄王任用的著名令尹：**孙叔敖**。\n6.  楚庄王霸业对**楚国**及**中原格局**的影响。\n\n### 高中阶段考点\n1.  楚庄王改革内政、加强王权的具体措施（如平定若敖氏）。\n2.  **邲之战**在春秋争霸史上的地位（晋楚争霸的转折点）。\n3.  楚庄王“**止戈为武**”思想的内涵与评价。\n4.  楚庄王霸业与齐桓公霸业在**手段、口号、文化影响**上的异同。\n5.  楚庄王时期**楚国疆域**的扩张方向（北进中原、东拓淮域）。\n6.  （存疑/说法不一）楚庄王是否严格符合后世儒家对“霸主”德行的全部要求。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生于楚国郢都 | 出生于楚国郢都 | 30.386639 | 112.198552 |\n| 即位为楚王，初期佯装荒淫 | 即位为楚王，初期佯装荒淫 | 33.866572 | 114.643125 |\n| 联合秦、巴，亲征灭亡庸国 | 联合秦、巴，亲征灭亡庸国 | 35.574924 | 116.312603 |\n| 平定若敖氏叛乱 | 平定若敖氏叛乱 | 37.804461 | 113.623386 |\n| 指挥邲之战，大败晋国，霸业达到顶峰 | 指挥邲之战，大败晋国，霸业达到顶峰 | 27.507658 | 107.629060 |\n| 病逝于郢都 | 病逝于郢都 | 32.927902 | 115.591613 |", "relatedGraph": {"center": {"id": "楚庄王 生平传记与足迹", "name": "楚庄王 生平传记与足迹", "file": "楚庄王 生平传记与足迹.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "贤哉楚庄王！轻千乘之国而重一言。", "review": "贤哉楚庄王！轻千乘之国而重一言。", "foreign_name": "", "main_role_label": "", "birthplace": "楚国郢都（今湖北荆州）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "楚庄王 生平传记与足迹", "name": "楚庄王 生平传记与足迹", "file": "楚庄王 生平传记与足迹.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "贤哉楚庄王！轻千乘之国而重一言。", "review": "贤哉楚庄王！轻千乘之国而重一言。", "foreign_name": "", "main_role_label": "", "birthplace": "楚国郢都（今湖北荆州）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "“（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……”", "review": "*《左传》**：评价其“文而有礼”，善于纳谏，能成就大事。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "“不鸣则已，一鸣惊人”", "review": "*司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": null, "quote": "“不战而屈人之兵”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "释迦牟尼", "name": "释迦牟尼", "file": "释迦牟尼.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -563, "death_year": -483, "quote": "“释迦族的圣人”", "review": "*古代评价**：被信徒尊为“世尊”、“天人师”，视为真理的发现者与宣说者。", "foreign_name": "", "main_role_label": "宗教家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "“治大国，若烹小鲜。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "楚庄王 生平传记与足迹", "target": "重耳", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "狐偃", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "楚庄王", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "释迦牟尼", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "老子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "熊旅", "title": "", "description": "楚庄王是春秋时期楚国最有作为的君主之一。他即位之初，楚国内部有若敖氏专权，外部面临晋国等中原强国的压力。庄王初期佯装沉湎酒色，实则观察局势，后听从伍举、苏从劝谏，罢黜奸佞，任用孙叔敖等贤臣，改革内政，兴修水利，整顿军备。他先后平定国内叛乱、灭亡庸国，稳固后方。随后挥师北上，于邲之战中大败晋国，饮马黄河，问鼎周室，使楚国势力深入中原，成为公认的霸主。其“不鸣则已，一鸣惊人”的典故流传千古。", "quote": "贤哉楚庄王！轻千乘之国而重一言。", "shortReview": "贤哉楚庄王！轻千乘之国而重一言。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "楚国郢都（今湖北荆州）", "avatar": "", "birth": {"date": "公元前630年", "location": "楚国郢都（今湖北荆州）", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84"}, "death": {"date": "公元前591年", "location": "楚国郢都（今湖北荆州）", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84"}, "lifespan": "约40岁（存疑）", "highlights": {"honor": "", "status": "春秋五霸之一，通过内政改革与军事扩张使楚国国力达到鼎盛，深刻改变了春秋中期的政治格局。", "identities": "楚国国君、政治家、军事家", "achievements": "一鸣惊人、问鼎中原、邲之战大胜晋国、灭庸国、称霸诸侯。", "works": [], "reviews": ["**司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八年，伐陆浑戎，遂至洛，观兵于周郊。”", "**孔子**：“贤哉楚庄王！轻千乘之国而重一言。”（《史记·陈杞世家》）", "**后世史家**：普遍认为楚庄王是楚国历史上最杰出的君主，其霸业是楚国国力的巅峰，其“一鸣惊人”的智慧与“问鼎中原”的胆略备受推崇。"]}}, "locations": [{"name": "郢都", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "birth", "event": "作为楚穆王之子，在此地出生并成长，接受王室教育。", "time": "约公元前630年（存疑）", "duration": "出生至即位前", "significance": "楚国的政治中心，其王业的起点与终点。", "works": [], "quoteLines": []}, {"name": "郢都（即位与“一鸣惊人”）", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "normal", "event": "即位之初，沉湎酒色，不理朝政，实则暗中观察。后接受伍举“大鸟”隐喻劝谏，罢黜奸佞，任用贤才，开始亲政改革。", "time": "公元前613年", "duration": "即位初期（约三年）", "significance": "实现从“隐忍”到“奋发”的关键转折地，奠定霸业基础。", "works": [], "quoteLines": ["《史记·楚世家》：“三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。”"]}, {"name": "若敖氏叛乱地（今湖北当阳一带）", "ancientName": "楚国境内", "modernName": "湖北省当阳市一带", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "normal", "event": "率军平定令尹斗越椒（若敖氏）的叛乱，巩固了王权。", "time": "公元前605年", "duration": "平叛期间", "significance": "清除了国内最大的政治军事威胁，实现了权力的高度集中。", "works": [], "quoteLines": []}, {"name": "邲（今河南荥阳东北）", "ancientName": "邲", "modernName": "河南省荥阳市东北", "lat": 27.507658, "lng": 107.62906, "coordSystem": "WGS84", "type": "normal", "event": "指挥楚军与晋国军队进行邲之战，大获全胜。战后楚庄王祭祀黄河，巡视晋军尸骨，展现了霸主气度。", "time": "公元前597年", "duration": "邲之战期间", "significance": "此战是楚晋争霸的决定性胜利，标志着楚国霸权的确立。", "works": [], "quoteLines": ["《左传·宣公十二年》记载楚庄王论“武”有七德：“夫文，止戈为武…夫武，禁暴、戢兵、保大、定功、安民、和众、丰财者也。”"]}, {"name": "郢都", "ancientName": "郢都", "modernName": "湖北省荆州市荆州区纪南城遗址", "lat": 30.386639, "lng": 112.198552, "coordSystem": "WGS84", "type": "death", "event": "在邲之战后数年，于郢都病逝。", "time": "公元前591年", "duration": "晚年直至去世", "significance": "其霸业的起点与终点，身后楚国霸权虽有所延续，但再未达到其在位时的高度。", "works": [], "quoteLines": ["无直接相关传世诗文。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**春秋时期**，周王室衰微，诸侯争霸。\n- **关键事件**：**“一鸣惊人”** 的典故，讲述其即位初期隐忍而后奋发的故事。\n- **关键事件**：**“问鼎中原”**，率军至周王室边境，询问九鼎轻重，挑战周天子权威。\n- **关键事件**：**邲之战**，大败晋国，成为霸主。\n- **代表思想/政策**：任用**孙叔敖**为令尹，兴修水利（如芍陂），发展经济。\n- **历史地位**：**春秋五霸**之一（通常与齐桓公、晋文公等并列）。\n- **常见易混点**：区分“春秋五霸”的不同说法（如《史记》与《荀子》版本），楚庄王是其中公认的成员。\n\n### 高中阶段\n- **时代背景**：春秋中后期，**宗法分封制**进一步瓦解，**礼乐征伐自诸侯出**。\n- **政治改革**：平定**若敖氏**叛乱，加强**君主集权**，削弱旧贵族势力。\n- **军事战略**：邲之战中运用的战术思想，以及其“**止戈为武**”的战争哲学。\n- **霸业性质**：楚庄王霸业与齐桓公“尊王攘夷”不同，更具挑战周礼、武力扩张的色彩，反映了**华夏文化圈**的扩大与融合。\n- **历史评价**：理解其作为“**霸主**”在维持区域秩序、促进文化交流（楚文化与中原文化）方面的双重作用。\n- **对比点**：与**齐桓公**、**晋文公**的称霸方式、口号及历史影响进行对比。\n\n---", "examPoints": "### 初中阶段考点\n1.  **春秋五霸**的构成（楚庄王是其中之一）。\n2.  **“一鸣惊人”** 成语的出处与历史背景。\n3.  **“问鼎中原”** 事件的含义及其反映的周王室与诸侯关系变化。\n4.  **邲之战**的交战双方（楚、晋）及结果（楚胜）。\n5.  楚庄王任用的著名令尹：**孙叔敖**。\n6.  楚庄王霸业对**楚国**及**中原格局**的影响。\n\n### 高中阶段考点\n1.  楚庄王改革内政、加强王权的具体措施（如平定若敖氏）。\n2.  **邲之战**在春秋争霸史上的地位（晋楚争霸的转折点）。\n3.  楚庄王“**止戈为武**”思想的内涵与评价。\n4.  楚庄王霸业与齐桓公霸业在**手段、口号、文化影响**上的异同。\n5.  楚庄王时期**楚国疆域**的扩张方向（北进中原、东拓淮域）。\n6.  （存疑/说法不一）楚庄王是否严格符合后世儒家对“霸主”德行的全部要求。", "workTexts": {"史记·楚世家": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "史记": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "楚世家": "三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。", "左传·宣公三年": "楚子问鼎之大小轻重焉。", "左传": "楚子问鼎之大小轻重焉。", "宣公三年": "楚子问鼎之大小轻重焉。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 楚庄王 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：熊旅（又称熊侣、芈旅）\n- **时代**：春秋时期\n- **出生**：约公元前630年（存疑），楚国郢都（今湖北荆州）\n- **去世**：公元前591年，楚国郢都（今湖北荆州）\n- **享年**：约40岁（存疑）\n- **主要身份**：楚国国君、政治家、军事家\n- **历史地位**：春秋五霸之一，通过内政改革与军事扩张使楚国国力达到鼎盛，深刻改变了春秋中期的政治格局。\n- **主要成就**：一鸣惊人、问鼎中原、邲之战大胜晋国、灭庸国、称霸诸侯。\n\n### 生平概述\n楚庄王是春秋时期楚国最有作为的君主之一。他即位之初，楚国内部有若敖氏专权，外部面临晋国等中原强国的压力。庄王初期佯装沉湎酒色，实则观察局势，后听从伍举、苏从劝谏，罢黜奸佞，任用孙叔敖等贤臣，改革内政，兴修水利，整顿军备。他先后平定国内叛乱、灭亡庸国，稳固后方。随后挥师北上，于邲之战中大败晋国，饮马黄河，问鼎周室，使楚国势力深入中原，成为公认的霸主。其“不鸣则已，一鸣惊人”的典故流传千古。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以楚国核心区域（今湖北、河南南部）为中心，北进至中原（今河南洛阳一带），东征至淮河流域。\n- ⏱️ **时间跨度**：公元前613年至公元前591年，共22年（在位期间）。\n- 📍 **地理范围**：主要活动于今湖北、河南、安徽、湖南等地区。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：郢都\n- **公元纪年**：约公元前630年（存疑）\n- **停留时间**：出生至即位前\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：作为楚穆王之子，在此地出生并成长，接受王室教育。\n- **意义**：楚国的政治中心，其王业的起点与终点。\n\n### 📍 重要地点：郢都（即位与“一鸣惊人”）\n- **公元纪年**：公元前613年\n- **停留时间**：即位初期（约三年）\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：即位之初，沉湎酒色，不理朝政，实则暗中观察。后接受伍举“大鸟”隐喻劝谏，罢黜奸佞，任用贤才，开始亲政改革。\n- **意义**：实现从“隐忍”到“奋发”的关键转折地，奠定霸业基础。\n- **名篇名句**：《史记·楚世家》：“三年不蜚，蜚将冲天；三年不鸣，鸣将惊人。”\n\n### 📍 重要地点：若敖氏叛乱地（今湖北当阳一带）\n- **公元纪年**：公元前605年\n- **停留时间**：平叛期间\n- **位置**：楚国境内（今湖北省当阳市一带）\n- **事迹**：率军平定令尹斗越椒（若敖氏）的叛乱，巩固了王权。\n- **意义**：清除了国内最大的政治军事威胁，实现了权力的高度集中。\n\n### 📍 重要地点：庸国（今湖北竹山一带）\n- **公元纪年**：公元前611年\n- **停留时间**：灭庸战役期间\n- **位置**：庸国（今湖北省竹山县一带）\n- **事迹**：联合秦、巴两国，亲征并灭亡了趁楚国饥荒而叛乱的庸国。\n- **意义**：稳定了楚国西部边疆，展示了军事才能，为北进解除了后顾之忧。\n\n### 📍 重要地点：洛邑（周王室都城）\n- **公元纪年**：公元前606年\n- **停留时间**：短暂驻扎\n- **位置**：洛邑（今河南省洛阳市）\n- **事迹**：率军北伐陆浑之戎，兵锋直抵周王室边境，并遣使询问象征王权的九鼎之大小轻重（“问鼎中原”）。\n- **意义**：公开挑战周天子权威，标志着楚国势力正式深入中原核心区，霸业达到新高度。\n- **名篇名句**：《左传·宣公三年》：“楚子问鼎之大小轻重焉。”\n\n### 📍 重要地点：邲（今河南荥阳东北）\n- **公元纪年**：公元前597年\n- **停留时间**：邲之战期间\n- **位置**：邲（今河南省荥阳市东北）\n- **事迹**：指挥楚军与晋国军队进行邲之战，大获全胜。战后楚庄王祭祀黄河，巡视晋军尸骨，展现了霸主气度。\n- **意义**：此战是楚晋争霸的决定性胜利，标志着楚国霸权的确立。\n- **名篇名句**：《左传·宣公十二年》记载楚庄王论“武”有七德：“夫文，止戈为武…夫武，禁暴、戢兵、保大、定功、安民、和众、丰财者也。”\n\n### 📍 重要地点：辰陵（今河南西华西北）\n- **公元纪年**：公元前598年\n- **停留时间**：会盟期间\n- **位置**：辰陵（今河南省西华县西北）\n- **事迹**：主持辰陵之盟，陈、郑等中原小国归附，楚庄王正式成为中原诸侯的盟主。\n- **意义**：霸业在政治外交上得到确认的标志性事件。\n\n### 🔴 去世地：郢都\n- **公元纪年**：公元前591年\n- **停留时间**：晚年直至去世\n- **位置**：郢都（今湖北省荆州市荆州区纪南城遗址）\n- **事迹**：在邲之战后数年，于郢都病逝。\n- **意义**：其霸业的起点与终点，身后楚国霸权虽有所延续，但再未达到其在位时的高度。\n- **名篇名句**：无直接相关传世诗文。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄（约） | 关键事件 |\n| --- | --- | --- |\n| 约前630年 | 0 | 出生于楚国郢都 |\n| 前613年 | 约17岁 | 即位为楚王，初期佯装荒淫 |\n| 前611年 | 约19岁 | 联合秦、巴，亲征灭亡庸国 |\n| 前606年 | 约24岁 | 北伐陆浑之戎，兵至洛邑，“问鼎中原” |\n| 前605年 | 约25岁 | 平定若敖氏（斗越椒）叛乱 |\n| 前598年 | 约32岁 | 主持辰陵之盟，成为中原盟主 |\n| 前597年 | 约33岁 | 指挥邲之战，大败晋国，霸业达到顶峰 |\n| 前591年 | 约39岁 | 病逝于郢都 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n楚庄王通过强有力的内政改革和军事胜利，使楚国从一个被中原视为“蛮夷”的南方大国，一跃成为号令诸侯的霸主，彻底改变了春秋中期“晋强楚弱”的格局，形成了晋楚长期争霸、中原小国朝秦暮楚的复杂局面。\n\n### 对后世的影响\n- **成语典故**：“一鸣惊人”、“问鼎中原”成为汉语中极具生命力的成语，喻指蓄势待发、挑战权威。\n- **政治军事思想**：其“止戈为武”的战争观，以及重用贤才（如孙叔敖）、整顿内政的治国方略，为后世提供了借鉴。\n- **文化象征**：作为“春秋五霸”之一，其事迹成为后世论述霸权兴衰、君主德行的经典案例。\n\n### 历史评价\n1.  **司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八年，伐陆浑戎，遂至洛，观兵于周郊。”\n2.  **孔子**：“贤哉楚庄王！轻千乘之国而重一言。”（《史记·陈杞世家》）\n3.  **后世史家**：普遍认为楚庄王是楚国历史上最杰出的君主，其霸业是楚国国力的巅峰，其“一鸣惊人”的智慧与“问鼎中原”的胆略备受推崇。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**春秋时期**，周王室衰微，诸侯争霸。\n- **关键事件**：**“一鸣惊人”** 的典故，讲述其即位初期隐忍而后奋发的故事。\n- **关键事件**：**“问鼎中原”**，率军至周王室边境，询问九鼎轻重，挑战周天子权威。\n- **关键事件**：**邲之战**，大败晋国，成为霸主。\n- **代表思想/政策**：任用**孙叔敖**为令尹，兴修水利（如芍陂），发展经济。\n- **历史地位**：**春秋五霸**之一（通常与齐桓公、晋文公等并列）。\n- **常见易混点**：区分“春秋五霸”的不同说法（如《史记》与《荀子》版本），楚庄王是其中公认的成员。\n\n### 高中阶段\n- **时代背景**：春秋中后期，**宗法分封制**进一步瓦解，**礼乐征伐自诸侯出**。\n- **政治改革**：平定**若敖氏**叛乱，加强**君主集权**，削弱旧贵族势力。\n- **军事战略**：邲之战中运用的战术思想，以及其“**止戈为武**”的战争哲学。\n- **霸业性质**：楚庄王霸业与齐桓公“尊王攘夷”不同，更具挑战周礼、武力扩张的色彩，反映了**华夏文化圈**的扩大与融合。\n- **历史评价**：理解其作为“**霸主**”在维持区域秩序、促进文化交流（楚文化与中原文化）方面的双重作用。\n- **对比点**：与**齐桓公**、**晋文公**的称霸方式、口号及历史影响进行对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **春秋五霸**的构成（楚庄王是其中之一）。\n2.  **“一鸣惊人”** 成语的出处与历史背景。\n3.  **“问鼎中原”** 事件的含义及其反映的周王室与诸侯关系变化。\n4.  **邲之战**的交战双方（楚、晋）及结果（楚胜）。\n5.  楚庄王任用的著名令尹：**孙叔敖**。\n6.  楚庄王霸业对**楚国**及**中原格局**的影响。\n\n### 高中阶段考点\n1.  楚庄王改革内政、加强王权的具体措施（如平定若敖氏）。\n2.  **邲之战**在春秋争霸史上的地位（晋楚争霸的转折点）。\n3.  楚庄王“**止戈为武**”思想的内涵与评价。\n4.  楚庄王霸业与齐桓公霸业在**手段、口号、文化影响**上的异同。\n5.  楚庄王时期**楚国疆域**的扩张方向（北进中原、东拓淮域）。\n6.  （存疑/说法不一）楚庄王是否严格符合后世儒家对“霸主”德行的全部要求。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生于楚国郢都 | 出生于楚国郢都 | 30.386639 | 112.198552 |\n| 即位为楚王，初期佯装荒淫 | 即位为楚王，初期佯装荒淫 | 33.866572 | 114.643125 |\n| 联合秦、巴，亲征灭亡庸国 | 联合秦、巴，亲征灭亡庸国 | 35.574924 | 116.312603 |\n| 平定若敖氏叛乱 | 平定若敖氏叛乱 | 37.804461 | 113.623386 |\n| 指挥邲之战，大败晋国，霸业达到顶峰 | 指挥邲之战，大败晋国，霸业达到顶峰 | 27.507658 | 107.629060 |\n| 病逝于郢都 | 病逝于郢都 | 32.927902 | 115.591613 |", "relatedGraph": {"center": {"id": "楚庄王 生平传记与足迹", "name": "楚庄王 生平传记与足迹", "file": "楚庄王 生平传记与足迹.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "贤哉楚庄王！轻千乘之国而重一言。", "review": "贤哉楚庄王！轻千乘之国而重一言。", "foreign_name": "", "main_role_label": "", "birthplace": "楚国郢都（今湖北荆州）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "楚庄王 生平传记与足迹", "name": "楚庄王 生平传记与足迹", "file": "楚庄王 生平传记与足迹.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "贤哉楚庄王！轻千乘之国而重一言。", "review": "贤哉楚庄王！轻千乘之国而重一言。", "foreign_name": "", "main_role_label": "", "birthplace": "楚国郢都（今湖北荆州）", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "“（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……”", "review": "*《左传》**：评价其“文而有礼”，善于纳谏，能成就大事。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋战国", "aliases": [], "birth_year": null, "death_year": -629, "quote": "“晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。”", "review": "*《左传》**：通过记述其言行，塑造了一个深谋远虑、忠诚果敢、善于辞令的政治家形象。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "“不鸣则已，一鸣惊人”", "review": "*司马迁《史记》**：“庄王即位三年，不出号令，日夜为乐…伍举入谏…于是乃罢淫乐，听政，所诛者数百人，所进者数百人，任伍举、苏从以政，国人大说。是岁灭庸。六年，伐宋，获五百乘。八…", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -630, "death_year": null, "quote": "“不战而屈人之兵”", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "释迦牟尼", "name": "释迦牟尼", "file": "释迦牟尼.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -563, "death_year": -483, "quote": "“释迦族的圣人”", "review": "*古代评价**：被信徒尊为“世尊”、“天人师”，视为真理的发现者与宣说者。", "foreign_name": "", "main_role_label": "宗教家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋战国", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "“治大国，若烹小鲜。”", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "楚庄王 生平传记与足迹", "target": "重耳", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "狐偃", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "楚庄王", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "释迦牟尼", "label": "同时代人物", "confidence": null}, {"source": "楚庄王 生平传记与足迹", "target": "老子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

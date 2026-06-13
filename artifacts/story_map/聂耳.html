@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "聂耳", "title": "", "description": "聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。", "quote": "聂耳同志是伟大的人民音乐家。", "shortReview": "聂耳同志是伟大的人民音乐家。", "dynasty": "中华民国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "云南省昆明市", "avatar": "", "birth": {"date": "1912年", "location": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84"}, "death": {"date": "1935年", "location": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84"}, "lifespan": "23岁", "highlights": {"honor": "", "status": "中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "identities": "作曲家、音乐活动家", "achievements": "创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。", "works": ["风云儿女", "义勇军进行曲", "毕业歌", "卖报歌"], "reviews": ["毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”", "夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”"]}}, "locations": [{"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "birth", "event": "度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。", "time": "1912年—1930年", "duration": "18年", "significance": "奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。", "time": "1930年—1935年4月", "duration": "约5年", "significance": "艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。", "works": ["义勇军进行曲", "毕业歌", "卖报歌", "铁蹄下的歌女"], "quoteLines": ["《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家", "《义勇军进行曲》：起来！不愿做奴隶的人们！"]}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "与“左翼音乐家联盟”成员联系，探讨革命音乐发展。", "time": "1932年8月", "duration": "短暂访问", "significance": "加强了与北方左翼文艺界的联系。", "works": [], "quoteLines": []}, {"name": "日本东京", "ancientName": "东京", "modernName": "日本东京都", "lat": 35.68, "lng": 139.69, "coordSystem": "WGS84", "type": "normal", "event": "考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。", "time": "1935年4月—6月", "duration": "约3个月", "significance": "为赴苏深造做准备，是其生命最后阶段的重要一站。", "works": ["义勇军进行曲"], "quoteLines": []}, {"name": "藤泽市", "ancientName": "藤泽市鹄沼", "modernName": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "normal", "event": "应日本友人邀请，在此避暑并进行休整与创作。", "time": "1935年7月", "duration": "约半个月", "significance": "人生旅途的终点。", "works": [], "quoteLines": []}, {"name": "藤泽市鹄沼海滨", "ancientName": "鹄沼海滨", "modernName": "日本神奈川县藤泽市鹄沼海岸", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "death", "event": "在海滨游泳时不幸溺水身亡，年仅23岁。", "time": "1935年7月17日", "duration": "当日", "significance": "巨星陨落之地，其逝世是中国音乐界的重大损失。", "works": [], "quoteLines": ["《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---", "examPoints": "### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。", "workTexts": {"毕业歌": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "卖报歌": "《卖报歌》：啦啦啦！", "义勇军进行曲": "《义勇军进行曲》：起来！", "中国歌舞短论": "| 1932 | 20岁 | 发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "义勇军作曲": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 聂耳\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：聂耳（原名聂守信，字子义，一作紫艺）\n- **时代**：中华民国\n- **出生**：1912年2月15日，云南省昆明市\n- **去世**：1935年7月17日，日本神奈川县藤泽市\n- **享年**：23岁\n- **主要身份**：作曲家、音乐活动家\n- **历史地位**：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。\n- **主要成就**：创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。\n\n### 生平概述\n聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖中国云南、上海、北平及日本东京、藤泽等地。\n- ⏱️ **时间跨度**：1912年—1935年，共23年。\n- 📍 **地理范围**：中国西南地区、华东地区、华北地区及日本关东地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：昆明\n- **公元纪年**：1912年—1930年\n- **停留时间**：18年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。\n- **意义**：奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。\n\n### 📍 重要地点：上海\n- **公元纪年**：1930年—1935年4月\n- **停留时间**：约5年\n- **位置**：上海（今上海市）\n- **事迹**：加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。\n- **意义**：艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。\n- **名篇名句**：《毕业歌》：同学们，大家起来，担负起天下的兴亡！；《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家；《义勇军进行曲》：起来！不愿做奴隶的人们！\n\n### 📍 重要地点：北平\n- **公元纪年**：1932年8月\n- **停留时间**：短暂访问\n- **位置**：北平（今北京市）\n- **事迹**：与“左翼音乐家联盟”成员联系，探讨革命音乐发展。\n- **意义**：加强了与北方左翼文艺界的联系。\n\n### 📍 重要地点：日本东京\n- **公元纪年**：1935年4月—6月\n- **停留时间**：约3个月\n- **位置**：东京（今日本东京都）\n- **事迹**：考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。\n- **意义**：为赴苏深造做准备，是其生命最后阶段的重要一站。\n\n### 📍 重要地点：藤泽市\n- **公元纪年**：1935年7月\n- **停留时间**：约半个月\n- **位置**：藤泽市鹄沼（今日本神奈川县藤泽市）\n- **事迹**：应日本友人邀请，在此避暑并进行休整与创作。\n- **意义**：人生旅途的终点。\n\n### 🔴 去世地：藤泽市鹄沼海滨\n- **公元纪年**：1935年7月17日\n- **停留时间**：当日\n- **位置**：鹄沼海滨（今日本神奈川县藤泽市鹄沼海岸）\n- **经过**：在海滨游泳时不幸溺水身亡，年仅23岁。\n- **意义**：巨星陨落之地，其逝世是中国音乐界的重大损失。\n- **名篇名句**：《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1912 | 0岁 | 出生于云南昆明。 |\n| 1918 | 6岁 | 入昆明师范附属小学读书。 |\n| 1922 | 10岁 | 入私立求实小学高小，开始受到音乐熏陶。 |\n| 1925 | 13岁 | 考入云南省立第一联合中学。 |\n| 1927 | 15岁 | 考入云南省立第一师范学校，开始学习小提琴、钢琴。 |\n| 1928 | 16岁 | 秘密加入中国共产主义青年团。 |\n| 1930 | 18岁 | 因被叛徒出卖遭通缉，离开昆明赴上海。 |\n| 1931 | 19岁 | 考入黎锦晖主办的“明月歌剧社”，任小提琴师。 |\n| 1932 | 20岁 | 发表《中国歌舞短论》批评黎锦晖，退出歌剧社；结识田汉，加入中国共产党；进入联华影业公司。 |\n| 1933 | 21岁 | 开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。 |\n| 1934 | 22岁 | 进入百代唱片公司，任音乐部副主任；创作《毕业歌》《大路歌》《开路先锋》等大量作品；组织“百代国乐队”。 |\n| 1935 | 23岁 | 为《风云儿女》谱曲，创作《义勇军进行曲》；4月取道日本赴苏联学习；7月17日在日本藤泽市鹄沼海滨溺水逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n聂耳的音乐创作紧扣“九一八”事变后抗日救亡的时代主题，以其强烈的感染力和号召力，极大地鼓舞了全国人民的抗战斗志。他与田汉等人推动的左翼音乐运动，开创了中国无产阶级革命音乐的道路，其作品通过电影、唱片和群众歌咏活动广泛传播，成为动员群众、宣传抗日的有力武器。\n\n### 对后世的影响\n- **国歌象征**：其谱曲的《义勇军进行曲》成为中华人民共和国国歌，成为中华民族不屈不挠、团结奋进精神的最高音乐象征。\n- **艺术典范**：其作品将艺术性与革命性、民族风格与时代精神完美结合，为后世革命音乐和主旋律创作树立了典范。\n- **精神遗产**：作为“人民音乐家”，其短暂而光辉的一生，成为爱国、奋斗、奉献精神的永恒楷模。\n\n### 历史评价\n- 毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）\n- 周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”\n- 夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”\n- 2009年，聂耳被评为“100位为新中国成立作出突出贡献的英雄模范人物”之一。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 昆明 | 云南省昆明市 | 25.04 | 102.68 |\n| 上海 | 上海市 | 31.23 | 121.47 |\n| 北平 | 北京市 | 39.90 | 116.40 |\n| 东京 | 日本东京都 | 35.68 | 139.69 |\n| 藤泽市 | 日本神奈川县藤泽市 | 35.34 | 139.49 |", "relatedGraph": {"center": {"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "“左翼音乐家联盟”", "review": "毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "“左翼音乐家联盟”", "review": "毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "罗盛教", "name": "罗盛教", "file": "罗盛教.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "“一级爱民模范”", "review": "*官方评价**：伟大的国际主义战士，中国人民志愿军一级爱民模范。", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省娄底市新化县", "birthplace_modern": "松山乡桐子村", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王进喜", "name": "王进喜", "file": "王进喜.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1923, "death_year": 1970, "quote": "“宁肯少活二十年，拼命也要拿下大油田”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "田汉", "name": "田汉", "file": "田汉.html", "dynasty": "现代", "aliases": [], "birth_year": 1898, "death_year": 1968, "quote": "“团结能与时代共痛痒之有为青年作艺术上之革命运动”", "review": "*夏衍**：“田汉同志是我国革命戏剧运动的奠基人和戏曲改革运动的先驱者，又是我国早期革命音乐、电影的杰出组织者和领导人。”", "foreign_name": "", "main_role_label": "剧作家", "birthplace": "湖南长沙县", "birthplace_modern": "湖南省长沙市长沙县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "曾联松", "name": "曾联松", "file": "曾联松.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1917, "death_year": 1999, "quote": "“上海现代经济通讯社”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "浙江瑞安", "birthplace_modern": "浙江省温州市瑞安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "聂耳", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "罗盛教", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "王进喜", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "田汉", "label": "同朝共现", "confidence": 0.25}, {"source": "聂耳", "target": "曾联松", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "聂耳", "title": "", "description": "聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。", "quote": "聂耳同志是伟大的人民音乐家。", "shortReview": "聂耳同志是伟大的人民音乐家。", "dynasty": "中华民国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "云南省昆明市", "avatar": "", "birth": {"date": "1912年", "location": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84"}, "death": {"date": "1935年", "location": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84"}, "lifespan": "23岁", "highlights": {"honor": "", "status": "中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "identities": "作曲家、音乐活动家", "achievements": "创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。", "works": ["风云儿女", "义勇军进行曲", "毕业歌", "卖报歌"], "reviews": ["毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”", "夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”"]}}, "locations": [{"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "birth", "event": "度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。", "time": "1912年—1930年", "duration": "18年", "significance": "奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。", "time": "1930年—1935年4月", "duration": "约5年", "significance": "艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。", "works": ["义勇军进行曲", "毕业歌", "卖报歌", "铁蹄下的歌女"], "quoteLines": ["《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家", "《义勇军进行曲》：起来！不愿做奴隶的人们！"]}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "与“左翼音乐家联盟”成员联系，探讨革命音乐发展。", "time": "1932年8月", "duration": "短暂访问", "significance": "加强了与北方左翼文艺界的联系。", "works": [], "quoteLines": []}, {"name": "日本东京", "ancientName": "东京", "modernName": "日本东京都", "lat": 35.68, "lng": 139.69, "coordSystem": "WGS84", "type": "normal", "event": "考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。", "time": "1935年4月—6月", "duration": "约3个月", "significance": "为赴苏深造做准备，是其生命最后阶段的重要一站。", "works": ["义勇军进行曲"], "quoteLines": []}, {"name": "藤泽市", "ancientName": "藤泽市鹄沼", "modernName": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "normal", "event": "应日本友人邀请，在此避暑并进行休整与创作。", "time": "1935年7月", "duration": "约半个月", "significance": "人生旅途的终点。", "works": [], "quoteLines": []}, {"name": "藤泽市鹄沼海滨", "ancientName": "鹄沼海滨", "modernName": "日本神奈川县藤泽市鹄沼海岸", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "death", "event": "在海滨游泳时不幸溺水身亡，年仅23岁。", "time": "1935年7月17日", "duration": "当日", "significance": "巨星陨落之地，其逝世是中国音乐界的重大损失。", "works": [], "quoteLines": ["《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---", "examPoints": "### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。", "workTexts": {"毕业歌": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "卖报歌": "《卖报歌》：啦啦啦！", "义勇军进行曲": "《义勇军进行曲》：起来！", "中国歌舞短论": "| 1932 | 20岁 | 发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "义勇军作曲": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 聂耳\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：聂耳（原名聂守信，字子义，一作紫艺）\n- **时代**：中华民国\n- **出生**：1912年2月15日，云南省昆明市\n- **去世**：1935年7月17日，日本神奈川县藤泽市\n- **享年**：23岁\n- **主要身份**：作曲家、音乐活动家\n- **历史地位**：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。\n- **主要成就**：创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。\n\n### 生平概述\n聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖中国云南、上海、北平及日本东京、藤泽等地。\n- ⏱️ **时间跨度**：1912年—1935年，共23年。\n- 📍 **地理范围**：中国西南地区、华东地区、华北地区及日本关东地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：昆明\n- **公元纪年**：1912年—1930年\n- **停留时间**：18年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。\n- **意义**：奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。\n\n### 📍 重要地点：上海\n- **公元纪年**：1930年—1935年4月\n- **停留时间**：约5年\n- **位置**：上海（今上海市）\n- **事迹**：加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。\n- **意义**：艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。\n- **名篇名句**：《毕业歌》：同学们，大家起来，担负起天下的兴亡！；《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家；《义勇军进行曲》：起来！不愿做奴隶的人们！\n\n### 📍 重要地点：北平\n- **公元纪年**：1932年8月\n- **停留时间**：短暂访问\n- **位置**：北平（今北京市）\n- **事迹**：与“左翼音乐家联盟”成员联系，探讨革命音乐发展。\n- **意义**：加强了与北方左翼文艺界的联系。\n\n### 📍 重要地点：日本东京\n- **公元纪年**：1935年4月—6月\n- **停留时间**：约3个月\n- **位置**：东京（今日本东京都）\n- **事迹**：考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。\n- **意义**：为赴苏深造做准备，是其生命最后阶段的重要一站。\n\n### 📍 重要地点：藤泽市\n- **公元纪年**：1935年7月\n- **停留时间**：约半个月\n- **位置**：藤泽市鹄沼（今日本神奈川县藤泽市）\n- **事迹**：应日本友人邀请，在此避暑并进行休整与创作。\n- **意义**：人生旅途的终点。\n\n### 🔴 去世地：藤泽市鹄沼海滨\n- **公元纪年**：1935年7月17日\n- **停留时间**：当日\n- **位置**：鹄沼海滨（今日本神奈川县藤泽市鹄沼海岸）\n- **经过**：在海滨游泳时不幸溺水身亡，年仅23岁。\n- **意义**：巨星陨落之地，其逝世是中国音乐界的重大损失。\n- **名篇名句**：《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 1912 | 0岁 | 出生于云南昆明。 |\n| 1918 | 6岁 | 入昆明师范附属小学读书。 |\n| 1922 | 10岁 | 入私立求实小学高小，开始受到音乐熏陶。 |\n| 1925 | 13岁 | 考入云南省立第一联合中学。 |\n| 1927 | 15岁 | 考入云南省立第一师范学校，开始学习小提琴、钢琴。 |\n| 1928 | 16岁 | 秘密加入中国共产主义青年团。 |\n| 1930 | 18岁 | 因被叛徒出卖遭通缉，离开昆明赴上海。 |\n| 1931 | 19岁 | 考入黎锦晖主办的“明月歌剧社”，任小提琴师。 |\n| 1932 | 20岁 | 发表《中国歌舞短论》批评黎锦晖，退出歌剧社；结识田汉，加入中国共产党；进入联华影业公司。 |\n| 1933 | 21岁 | 开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。 |\n| 1934 | 22岁 | 进入百代唱片公司，任音乐部副主任；创作《毕业歌》《大路歌》《开路先锋》等大量作品；组织“百代国乐队”。 |\n| 1935 | 23岁 | 为《风云儿女》谱曲，创作《义勇军进行曲》；4月取道日本赴苏联学习；7月17日在日本藤泽市鹄沼海滨溺水逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n聂耳的音乐创作紧扣“九一八”事变后抗日救亡的时代主题，以其强烈的感染力和号召力，极大地鼓舞了全国人民的抗战斗志。他与田汉等人推动的左翼音乐运动，开创了中国无产阶级革命音乐的道路，其作品通过电影、唱片和群众歌咏活动广泛传播，成为动员群众、宣传抗日的有力武器。\n\n### 对后世的影响\n- **国歌象征**：其谱曲的《义勇军进行曲》成为中华人民共和国国歌，成为中华民族不屈不挠、团结奋进精神的最高音乐象征。\n- **艺术典范**：其作品将艺术性与革命性、民族风格与时代精神完美结合，为后世革命音乐和主旋律创作树立了典范。\n- **精神遗产**：作为“人民音乐家”，其短暂而光辉的一生，成为爱国、奋斗、奉献精神的永恒楷模。\n\n### 历史评价\n- 毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）\n- 周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”\n- 夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”\n- 2009年，聂耳被评为“100位为新中国成立作出突出贡献的英雄模范人物”之一。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 昆明 | 云南省昆明市 | 25.04 | 102.68 |\n| 上海 | 上海市 | 31.23 | 121.47 |\n| 北平 | 北京市 | 39.90 | 116.40 |\n| 东京 | 日本东京都 | 35.68 | 139.69 |\n| 藤泽市 | 日本神奈川县藤泽市 | 35.34 | 139.49 |", "relatedGraph": {"center": {"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "“左翼音乐家联盟”", "review": "毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "“左翼音乐家联盟”", "review": "毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "罗盛教", "name": "罗盛教", "file": "罗盛教.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "“一级爱民模范”", "review": "*官方评价**：伟大的国际主义战士，中国人民志愿军一级爱民模范。", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省娄底市新化县", "birthplace_modern": "松山乡桐子村", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王进喜", "name": "王进喜", "file": "王进喜.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1923, "death_year": 1970, "quote": "“宁肯少活二十年，拼命也要拿下大油田”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "田汉", "name": "田汉", "file": "田汉.html", "dynasty": "现代", "aliases": [], "birth_year": 1898, "death_year": 1968, "quote": "“团结能与时代共痛痒之有为青年作艺术上之革命运动”", "review": "*夏衍**：“田汉同志是我国革命戏剧运动的奠基人和戏曲改革运动的先驱者，又是我国早期革命音乐、电影的杰出组织者和领导人。”", "foreign_name": "", "main_role_label": "剧作家", "birthplace": "湖南长沙县", "birthplace_modern": "湖南省长沙市长沙县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "曾联松", "name": "曾联松", "file": "曾联松.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1917, "death_year": 1999, "quote": "“上海现代经济通讯社”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "浙江瑞安", "birthplace_modern": "浙江省温州市瑞安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "聂耳", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "罗盛教", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "王进喜", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "田汉", "label": "同朝共现", "confidence": 0.25}, {"source": "聂耳", "target": "曾联松", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

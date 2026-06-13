@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "刘备", "title": "仁德", "description": "刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。", "quote": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "shortReview": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "涿郡涿县（今河北省涿州市）", "avatar": "", "birth": {"date": "161年", "location": "涿郡涿县（今河北省涿州市）", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84"}, "death": {"date": "223年", "location": "永安宫（白帝城", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "62岁", "highlights": {"honor": "仁德", "status": "三国时期蜀汉政权的建立者，以“仁德”著称的君主。", "identities": "政治家、军事家、蜀汉开国皇帝", "achievements": "建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。", "works": [], "reviews": []}}, "locations": [{"name": "涿郡涿县", "ancientName": "涿郡涿县", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "birth", "event": "刘备出生于此，幼年丧父，与母亲以织席贩履为生。", "time": "公元161年", "duration": "少年时期", "significance": "刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。", "works": [], "quoteLines": []}, {"name": "涿郡（求学）", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "normal", "event": "少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。", "time": "约公元175年-184年", "duration": "求学数年", "significance": "接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "normal", "event": "黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。", "time": "公元184年", "duration": "起兵初期", "significance": "刘备政治军事生涯的正式起点，奠定了核心班底。", "works": [], "quoteLines": []}, {"name": "平原县", "ancientName": "平原国平原县", "modernName": "山东省德州市平原县", "lat": 37.1654, "lng": 116.434, "coordSystem": "WGS84", "type": "normal", "event": "刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。", "time": "约公元191年-194年", "duration": "约3年", "significance": "刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。", "works": [], "quoteLines": []}, {"name": "新野县", "ancientName": "荆州南阳郡新野县", "modernName": "河南省南阳市新野县", "lat": 32.524, "lng": 112.36, "coordSystem": "WGS84", "type": "normal", "event": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。", "time": "公元201年-208年", "duration": "约7年", "significance": "刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。", "works": ["隆中对"], "quoteLines": []}, {"name": "江陵、公安", "ancientName": "南郡江陵、公安", "modernName": "湖北省荆州市", "lat": 30.3348, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。", "time": "公元208年-211年", "duration": "约3年", "significance": "刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州蜀郡成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。", "time": "公元214年-223年", "duration": "约9年", "significance": "刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。", "works": [], "quoteLines": []}, {"name": "白帝城（永安宫）", "ancientName": "永安宫（白帝城，", "modernName": "重庆市奉节县）", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84", "type": "death", "event": "夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。", "time": "公元222年-223年", "duration": "约1年", "significance": "刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "workTexts": {"隆中对": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "三顾茅庐": "重点：仁德形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 刘备\n\n## 人物档案\n\n### 基本信息\n- **姓名**：刘备\n- **时代**：东汉末年至三国时期\n- **出生**：公元161年，涿郡涿县（今河北省涿州市）（具体日期存疑）\n- **去世**：公元223年，永安宫（白帝城，今重庆市奉节县）（具体月日存疑）\n- **享年**：62岁\n- **主要身份**：政治家、军事家、蜀汉开国皇帝\n- **历史地位**：三国时期蜀汉政权的建立者，以“仁德”著称的君主。\n- **主要成就**：建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。\n\n### 生平概述\n刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从幽燕之地（河北）起兵，辗转中原、荆襄，最终立国于巴蜀（四川、重庆），一生足迹遍布中国中东部。\n- ⏱️ **时间跨度**：公元161年 - 公元223年，享年62年。\n- 📍 **地理范围**：大致覆盖今河北、山东、河南、湖北、湖南、重庆、四川等省市。\n- 🌟 **重要节点数量**：10个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：涿郡涿县\n- **时间**：公元161年\n- **停留时间**：少年时期\n- **地点**：涿郡涿县（今河北省涿州市）\n- **事件**：刘备出生于此，幼年丧父，与母亲以织席贩履为生。\n- **意义**：刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。\n\n### 📍 重要地点：涿郡（求学）\n- **时间**：约公元175年-184年\n- **停留时间**：求学数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。\n- **意义**：接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。\n\n### 📍 重要地点：涿郡\n- **时间**：公元184年\n- **停留时间**：起兵初期\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。\n- **意义**：刘备政治军事生涯的正式起点，奠定了核心班底。\n\n### 📍 重要地点：平原县\n- **时间**：约公元191年-194年\n- **停留时间**：约3年\n- **地点**：平原国平原县（今山东省德州市平原县）\n- **事件**：刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。\n- **意义**：刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。\n\n### 📍 重要地点：小沛、徐州\n- **时间**：公元194年-196年\n- **停留时间**：约2年\n- **地点**：小沛（今江苏省徐州市沛县）、徐州（治所先后在郯城、下邳）\n- **事件**：陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。\n- **意义**：刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。\n\n### 📍 重要地点：新野县\n- **时间**：公元201年-208年\n- **停留时间**：约7年\n- **地点**：荆州南阳郡新野县（今河南省南阳市新野县）\n- **事件**：刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。\n- **意义**：刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。\n\n### 📍 重要地点：江陵、公安\n- **时间**：公元208年-211年\n- **停留时间**：约3年\n- **地点**：南郡江陵（今湖北省荆州市）、公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。\n- **意义**：刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。\n\n### 📍 重要地点：成都\n- **时间**：公元214年-223年\n- **停留时间**：约9年\n- **地点**：益州蜀郡成都（今四川省成都市）\n- **事件**：公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。\n- **意义**：刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。\n\n### 🔴 去世地：白帝城（永安宫）\n- **时间**：公元222年-223年\n- **停留时间**：约1年\n- **地点**：永安宫（白帝城，今重庆市奉节县）\n- **事件**：夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。\n- **意义**：刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 161年 | 0岁 | 生于幽州涿郡涿县。 |\n| 184年 | 23岁 | 在涿郡起兵，参与镇压黄巾起义。 |\n| 194年 | 33岁 | 领徐州牧，首次拥有州郡。 |\n| 196年 | 35岁 | 被吕布击败，失去徐州，投靠曹操。 |\n| 200年 | 39岁 | 衣带诏事发，逃离曹操，被击败后投奔袁绍。 |\n| 201年 | 40岁 | 投奔荆州刘表，屯兵新野。 |\n| 207年 | 46岁 | 三顾茅庐，得诸葛亮。 |\n| 208年 | 47岁 | 联合孙权，于赤壁大败曹操。 |\n| 211年 | 50岁 | 应刘璋之邀入蜀。 |\n| 214年 | 53岁 | 夺取益州，领益州牧。 |\n| 219年 | 58岁 | 夺取汉中，进位汉中王。 |\n| 220年 | 59岁 | 关羽失荆州被杀。 |\n| 221年 | 60岁 | 在成都称帝，建立蜀汉。 |\n| 222年 | 61岁 | 夷陵之战惨败于陆逊。 |\n| 223年 | 62岁 | 病逝于白帝城永安宫。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省涿州市 | 39.4853 | 115.9990 |\n| 山东省平原县 | 37.1654 | 116.4340 |\n| 江苏省沛县 | 34.7217 | 116.9375 |\n| 河南省新野县 | 32.5240 | 112.3600 |\n| 湖北省荆州市（古江陵） | 30.3348 | 112.2397 |\n| 湖北省公安县 | 30.0583 | 112.2294 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 重庆市奉节县 | 31.0185 | 109.4648 |", "relatedGraph": {"center": {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": 219, "quote": "“十八路诸侯讨董卓”", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "多为后世推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "会面", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "“鞠躬尽瘁，死而后已”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": null, "death_year": 221, "quote": "“身是张益德也，可来共决死！”", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "汉", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "“才策谋略，世之奇士”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "刘备", "target": "关羽", "label": "会面", "confidence": 0.55}, {"source": "刘备", "target": "诸葛亮", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "张飞", "label": "宗亲", "confidence": null}, {"source": "刘备", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "刘备", "title": "仁德", "description": "刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。", "quote": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "shortReview": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "涿郡涿县（今河北省涿州市）", "avatar": "", "birth": {"date": "161年", "location": "涿郡涿县（今河北省涿州市）", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84"}, "death": {"date": "223年", "location": "永安宫（白帝城", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "62岁", "highlights": {"honor": "仁德", "status": "三国时期蜀汉政权的建立者，以“仁德”著称的君主。", "identities": "政治家、军事家、蜀汉开国皇帝", "achievements": "建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。", "works": [], "reviews": []}}, "locations": [{"name": "涿郡涿县", "ancientName": "涿郡涿县", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "birth", "event": "刘备出生于此，幼年丧父，与母亲以织席贩履为生。", "time": "公元161年", "duration": "少年时期", "significance": "刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。", "works": [], "quoteLines": []}, {"name": "涿郡（求学）", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "normal", "event": "少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。", "time": "约公元175年-184年", "duration": "求学数年", "significance": "接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "normal", "event": "黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。", "time": "公元184年", "duration": "起兵初期", "significance": "刘备政治军事生涯的正式起点，奠定了核心班底。", "works": [], "quoteLines": []}, {"name": "平原县", "ancientName": "平原国平原县", "modernName": "山东省德州市平原县", "lat": 37.1654, "lng": 116.434, "coordSystem": "WGS84", "type": "normal", "event": "刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。", "time": "约公元191年-194年", "duration": "约3年", "significance": "刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。", "works": [], "quoteLines": []}, {"name": "新野县", "ancientName": "荆州南阳郡新野县", "modernName": "河南省南阳市新野县", "lat": 32.524, "lng": 112.36, "coordSystem": "WGS84", "type": "normal", "event": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。", "time": "公元201年-208年", "duration": "约7年", "significance": "刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。", "works": ["隆中对"], "quoteLines": []}, {"name": "江陵、公安", "ancientName": "南郡江陵、公安", "modernName": "湖北省荆州市", "lat": 30.3348, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。", "time": "公元208年-211年", "duration": "约3年", "significance": "刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州蜀郡成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。", "time": "公元214年-223年", "duration": "约9年", "significance": "刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。", "works": [], "quoteLines": []}, {"name": "白帝城（永安宫）", "ancientName": "永安宫（白帝城，", "modernName": "重庆市奉节县）", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84", "type": "death", "event": "夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。", "time": "公元222年-223年", "duration": "约1年", "significance": "刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "workTexts": {"隆中对": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "三顾茅庐": "重点：仁德形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 刘备\n\n## 人物档案\n\n### 基本信息\n- **姓名**：刘备\n- **时代**：东汉末年至三国时期\n- **出生**：公元161年，涿郡涿县（今河北省涿州市）（具体日期存疑）\n- **去世**：公元223年，永安宫（白帝城，今重庆市奉节县）（具体月日存疑）\n- **享年**：62岁\n- **主要身份**：政治家、军事家、蜀汉开国皇帝\n- **历史地位**：三国时期蜀汉政权的建立者，以“仁德”著称的君主。\n- **主要成就**：建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。\n\n### 生平概述\n刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从幽燕之地（河北）起兵，辗转中原、荆襄，最终立国于巴蜀（四川、重庆），一生足迹遍布中国中东部。\n- ⏱️ **时间跨度**：公元161年 - 公元223年，享年62年。\n- 📍 **地理范围**：大致覆盖今河北、山东、河南、湖北、湖南、重庆、四川等省市。\n- 🌟 **重要节点数量**：10个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：涿郡涿县\n- **时间**：公元161年\n- **停留时间**：少年时期\n- **地点**：涿郡涿县（今河北省涿州市）\n- **事件**：刘备出生于此，幼年丧父，与母亲以织席贩履为生。\n- **意义**：刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。\n\n### 📍 重要地点：涿郡（求学）\n- **时间**：约公元175年-184年\n- **停留时间**：求学数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。\n- **意义**：接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。\n\n### 📍 重要地点：涿郡\n- **时间**：公元184年\n- **停留时间**：起兵初期\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。\n- **意义**：刘备政治军事生涯的正式起点，奠定了核心班底。\n\n### 📍 重要地点：平原县\n- **时间**：约公元191年-194年\n- **停留时间**：约3年\n- **地点**：平原国平原县（今山东省德州市平原县）\n- **事件**：刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。\n- **意义**：刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。\n\n### 📍 重要地点：小沛、徐州\n- **时间**：公元194年-196年\n- **停留时间**：约2年\n- **地点**：小沛（今江苏省徐州市沛县）、徐州（治所先后在郯城、下邳）\n- **事件**：陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。\n- **意义**：刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。\n\n### 📍 重要地点：新野县\n- **时间**：公元201年-208年\n- **停留时间**：约7年\n- **地点**：荆州南阳郡新野县（今河南省南阳市新野县）\n- **事件**：刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。\n- **意义**：刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。\n\n### 📍 重要地点：江陵、公安\n- **时间**：公元208年-211年\n- **停留时间**：约3年\n- **地点**：南郡江陵（今湖北省荆州市）、公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。\n- **意义**：刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。\n\n### 📍 重要地点：成都\n- **时间**：公元214年-223年\n- **停留时间**：约9年\n- **地点**：益州蜀郡成都（今四川省成都市）\n- **事件**：公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。\n- **意义**：刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。\n\n### 🔴 去世地：白帝城（永安宫）\n- **时间**：公元222年-223年\n- **停留时间**：约1年\n- **地点**：永安宫（白帝城，今重庆市奉节县）\n- **事件**：夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。\n- **意义**：刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。\n\n---\n\n## 生平时间线\n| 年份 | 年龄 | 关键事件 |\n|---|---|---|\n| 161年 | 0岁 | 生于幽州涿郡涿县。 |\n| 184年 | 23岁 | 在涿郡起兵，参与镇压黄巾起义。 |\n| 194年 | 33岁 | 领徐州牧，首次拥有州郡。 |\n| 196年 | 35岁 | 被吕布击败，失去徐州，投靠曹操。 |\n| 200年 | 39岁 | 衣带诏事发，逃离曹操，被击败后投奔袁绍。 |\n| 201年 | 40岁 | 投奔荆州刘表，屯兵新野。 |\n| 207年 | 46岁 | 三顾茅庐，得诸葛亮。 |\n| 208年 | 47岁 | 联合孙权，于赤壁大败曹操。 |\n| 211年 | 50岁 | 应刘璋之邀入蜀。 |\n| 214年 | 53岁 | 夺取益州，领益州牧。 |\n| 219年 | 58岁 | 夺取汉中，进位汉中王。 |\n| 220年 | 59岁 | 关羽失荆州被杀。 |\n| 221年 | 60岁 | 在成都称帝，建立蜀汉。 |\n| 222年 | 61岁 | 夷陵之战惨败于陆逊。 |\n| 223年 | 62岁 | 病逝于白帝城永安宫。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河北省涿州市 | 39.4853 | 115.9990 |\n| 山东省平原县 | 37.1654 | 116.4340 |\n| 江苏省沛县 | 34.7217 | 116.9375 |\n| 河南省新野县 | 32.5240 | 112.3600 |\n| 湖北省荆州市（古江陵） | 30.3348 | 112.2397 |\n| 湖北省公安县 | 30.0583 | 112.2294 |\n| 四川省成都市 | 30.5728 | 104.0668 |\n| 重庆市奉节县 | 31.0185 | 109.4648 |", "relatedGraph": {"center": {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "“君臣之至公，古今之盛轨”", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": null, "death_year": 219, "quote": "“十八路诸侯讨董卓”", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "多为后世推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "会面", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "“鞠躬尽瘁，死而后已”", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "魏晋南北", "aliases": [], "birth_year": null, "death_year": 221, "quote": "“身是张益德也，可来共决死！”", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "汉", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "“西凉马超，有吕布之勇。”", "review": "*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "“（寔）除太丘长。修德清静，百姓以安。”", "review": "《后汉书》评价：“汉自中世以下，阉竖擅恣，故俗遂以遁身矫絜放言为高。士有不谈此者，则芸夫牧竖已叫呼之矣。故时政弥惛，而其风愈往。唯陈先生进退之节，必可度也。据于德故物不犯，安于仁故…", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "汉", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "“才策谋略，世之奇士”", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "刘备", "target": "关羽", "label": "会面", "confidence": 0.55}, {"source": "刘备", "target": "诸葛亮", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "张飞", "label": "宗亲", "confidence": null}, {"source": "刘备", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">

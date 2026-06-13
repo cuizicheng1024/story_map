@@ -9,11 +9,13 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./vendor/babel.min.js"></script>
-<script>window.MAP_STORY_STATIC_SITE=true;</script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
 <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_AMAP_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./amap-config.js', window.location.href).toString();
@@ -80,7 +82,9 @@ const _ensureAmap = () => new Promise((resolve, reject) => {
 </script><script>
 (() => {
   try {
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && window.MAP_STORY_STATIC_SITE !== true) {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isLocalHost)) {
       window.__MAP_STORY_GEOVIS_CONFIG__ = true;
       const cfg = document.createElement('script');
       cfg.src = new URL('./geovis-config.js', window.location.href).toString();
@@ -616,15 +620,19 @@ body {
   min-width: 74px;
   border-radius: 18px;
   padding: 0 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(218, 220, 224, 0.92);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-bottom-button {
   min-height: 52px;
   min-width: 74px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(252, 248, 238, 0.97), rgba(242, 231, 210, 0.98));
+  border: 1px solid rgba(154, 126, 88, 0.34);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #5f3f22;
 }
 .map-compact-action-button {
   width: 60px;
@@ -633,6 +641,16 @@ body {
   padding-right: 0;
   justify-content: center;
 }
+.map-layer-trigger:hover,
+.map-bottom-button:hover {
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.99), rgba(247, 236, 216, 0.99));
+  border-color: rgba(143, 112, 72, 0.48);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+.map-layer-trigger:active,
+.map-bottom-button:active {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
 .map-layer-trigger-icon {
   width: 30px;
   height: 30px;
@@ -640,8 +658,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.24));
-  color: #1d4ed8;
+  background: linear-gradient(135deg, rgba(59, 88, 150, 0.96), rgba(44, 66, 119, 0.98));
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 12px rgba(34, 50, 93, 0.24);
 }
 .map-layer-tray {
   position: absolute;
@@ -1319,6 +1338,7 @@ body {
   min-height: 420px;
   border-radius: 24px;
   overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%),
     radial-gradient(760px 560px at 86% 12%, rgba(52,168,83,0.14), transparent 56%),
@@ -1360,6 +1380,10 @@ body {
   text-align: center;
   z-index: 2;
 }
+.related-graph-node:hover,
+.related-graph-node:focus-within {
+  z-index: 48;
+}
 .related-graph-link {
   position: relative;
   display: inline-flex;
@@ -1368,6 +1392,11 @@ body {
   gap: 8px;
   text-decoration: none;
   outline: none;
+}
+.related-graph-link:hover,
+.related-graph-link:focus-within,
+.related-graph-link:focus-visible {
+  z-index: 56;
 }
 .related-graph-link:hover .related-graph-card,
 .related-graph-link:hover .related-graph-card.center {
@@ -1400,23 +1429,53 @@ body {
   padding-top: 10px;
 }
 .related-graph-dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: rgba(224, 231, 255, 0.92);
-  border: 1px solid rgba(255,255,255,0.72);
+  position: relative;
+  background: transparent;
   box-shadow:
-    0 0 0 4px rgba(96,165,250,0.12),
-    0 0 22px rgba(96,165,250,0.18);
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 18px rgba(96,165,250,0.20);
+}
+.related-graph-dot::before,
+.related-graph-dot::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.related-graph-dot::before {
+  width: 13px;
+  height: 13px;
+  background: rgba(224, 231, 255, 0.88);
+  box-shadow: 0 0 8px rgba(96,165,250,0.22);
+}
+.related-graph-dot::after {
+  width: 11.5px;
+  height: 11.5px;
+  background: rgba(224, 231, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
 }
 .related-graph-card.center .related-graph-dot {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(191,219,254,0.98), rgba(96,165,250,0.96));
-  border-color: rgba(255,255,255,0.9);
+  width: 24px;
+  height: 24px;
   box-shadow:
-    0 0 0 8px rgba(59,130,246,0.16),
-    0 0 36px rgba(96,165,250,0.26);
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 24px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::before {
+  width: 17px;
+  height: 17px;
+  background: rgba(191,219,254,0.90);
+  box-shadow: 0 0 10px rgba(96,165,250,0.26);
+}
+.related-graph-card.center .related-graph-dot::after {
+  width: 15px;
+  height: 15px;
+  background: rgba(191,219,254,0.98);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
 }
 .related-graph-label {
   display: inline-flex;
@@ -1454,7 +1513,7 @@ body {
   opacity: 0;
   transform: translate(-50%, 0);
   transition: opacity .16s ease, transform .16s ease;
-  z-index: 18;
+  z-index: 72;
 }
 .related-graph-tooltip.is-center {
   bottom: calc(100% + 16px);
@@ -1543,15 +1602,6 @@ body {
 </head>
 <body class="p-4 md:p-8">
     
-<div class="max-w-screen-2xl mx-auto mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-sm">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div>
-      <div class="text-sm font-semibold text-amber-900">静态演示版</div>
-      <div class="text-[11px] text-amber-800/90 mt-1">当前仅展示已生成内容；人物对话与实时生成需要额外部署 FastAPI 后端。</div>
-    </div>
-    <div class="text-[11px] font-semibold text-amber-700">Pages</div>
-  </div>
-</div>
     <div id="boot-fallback" class="max-w-screen-2xl mx-auto mb-4 glass-panel theme-card p-4 rounded-xl theme-soft-section">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -1611,7 +1661,7 @@ body {
     </script>
     <script type="text/babel" data-presets="env,react">
       const { useState, useEffect, useRef, useMemo } = React;
-      const data = {"person": {"name": "王洪文", "title": "文化大革命", "description": "王洪文出生于吉林长春，早年入伍参加抗美援朝，复员后到上海第十七棉纺厂当工人。“文化大革命”初期，他通过组织“工总司”造反起家，迅速崛起为上海的工人领袖，并进入地方权力核心。后因得到毛泽东的赏识，被调往中央，于1973年中共十大上当选为中共中央副主席，地位显赫。他与江青、张春桥、姚文元结成“四人帮”，在“文革”后期的政治舞台上扮演了重要角色。1976年10月，“四人帮”被粉碎，王洪文随即被捕。1981年被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑。1992年病逝于狱中。", "quote": "一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。", "shortReview": "一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。", "dynasty": "当代中国（“文化大革命”时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉林省长春市", "avatar": "", "birth": {"date": "1935年", "location": "吉林省长春市", "lat": 43.8868, "lng": 125.3245, "coordSystem": "WGS84"}, "death": {"date": "1992年", "location": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "约57岁（1935-1992，存疑）", "highlights": {"honor": "文化大革命", "status": "“文化大革命”期间崛起的重要政治人物，是“四人帮”核心成员之一，其兴衰是那个特殊历史时期的典型缩影。", "identities": "工人、政治人物、“四人帮”成员", "achievements": "参与一系列政治活动，曾任中共中央副主席。", "works": [], "reviews": ["1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”", "最高人民法院特别法庭判决书认定，王洪文是江青反革命集团的主犯，他积极参与了夺取党和国家最高权力的阴谋活动。", "后世史家普遍认为，王洪文是特定历史条件下政治投机者的代表，其人生轨迹深刻反映了“文革”时期政治生态的扭曲。"]}}, "locations": [{"name": "长春", "ancientName": "长春", "modernName": "吉林省长春市", "lat": 43.8868, "lng": 125.3245, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于此，度过童年和少年时光。", "time": "约1935年", "duration": "青少年时期", "significance": "人生的起点，早年生活经历塑造了其工人阶级的身份背景。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "从朝鲜战场复员后，进入上海第十七棉纺厂当工人；“文革”初期，组织“上海工人革命造反总司令部”（工总司）并任司令，参与“一月风暴”夺权，后任上海市革命委员会副主任等职。", "time": "1950年代中期—1960年代末", "duration": "约十余年", "significance": "政治发迹之地。从普通工人到地方政治明星的转变，为其进入中央奠定了基础。", "works": [], "quoteLines": ["无个人文学作品。"]}, {"name": "北京（中央任职时期）", "ancientName": "北京（中央任职时期）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1969年在中共九大上当选中央委员；1973年在中共十大上当选中共中央副主席，成为排名第三的中央领导人；参与“四人帮”的一系列政治活动。", "time": "1969年—1976年", "duration": "约7年", "significance": "政治生涯的顶峰，也是其参与高层政治斗争的核心舞台。", "works": [], "quoteLines": ["无个人文学作品。"]}, {"name": "北京（秦城监狱）", "ancientName": "北京（秦城监狱）", "modernName": "北京市秦城监狱", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "1976年10月被拘禁；1981年被判处无期徒刑，此后在秦城监狱服刑；1992年8月3日因肝病病逝。", "time": "1992年8月3日", "duration": "1976年被捕后至去世", "significance": "人生的终点，其政治生命的终结与法律制裁的执行地。", "works": [], "quoteLines": ["无个人文学作品。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，王洪文主要作为“文化大革命”和“江青反革命集团”（“四人帮”）的成员被提及，是理解“文革”历史的关键人物之一。\n\n### 初中阶段\n- **时代背景**：**“文化大革命”**（1966-1976年）是一场由领导者错误发动，被反革命集团利用的内乱。\n- **关键事件**：**“四人帮”**的形成与覆灭。王洪文是“四人帮”成员之一（其他三人为江青、张春桥、姚文元）。\n- **关键事件**：**1976年10月**，华国锋、叶剑英等代表党中央一举粉碎“四人帮”，结束了“文化大革命”。\n- **代表思想/作品**：无。教材强调其是反革命集团成员。\n- **常见易混点/对比点**：区分“四人帮”与“林彪反革命集团”。“四人帮”主要在“文革”后期活跃。\n\n### 高中阶段\n- **时代背景**：深入理解“文化大革命”的性质、原因和危害。\n- **关键事件**：**“一月风暴”**与地方夺权。王洪文是上海“工总司”负责人，参与领导了上海的夺权，这是“文革”动乱升级的标志之一。\n- **关键事件**：**中共十大（1973年）**。王洪文在此次大会上当选为党中央副主席，反映了当时党内政治生活的极不正常。\n- **关键事件**：**对林彪、江青反革命集团的审判（1980-1981年）**。王洪文作为主犯受审，体现了**社会主义法制**的恢复与重建。\n- **代表思想/作品**：无个人系统思想，其活动是**极左路线**的体现。\n- **常见易混点/对比点**：分析“造反派”头头（如王洪文）与老一辈革命家在“文革”中的不同立场与命运，理解“文革”对**民主与法制**的践踏。\n\n---", "examPoints": "### 初中阶段\n- 记住“四人帮”的成员名单：江青、张春桥、姚文元、**王洪文**。\n- 知道“四人帮”是**文化大革命**中形成的反革命集团。\n- 了解**1976年10月**粉碎“四人帮”是“文化大革命”结束的标志。\n- （存疑/说法不一）关于其早年具体经历，教材通常不作详细要求。\n\n### 高中阶段\n- 理解王洪文的崛起是“文革”期间**干部选拔制度**遭到破坏的典型案例。\n- 分析“四人帮”在“文革”后期所起的**主要破坏作用**（如迫害老干部、煽动动乱等）。\n- 认识**审判林彪、江青反革命集团**的历史意义：是法治的胜利，标志着对“文革”错误的彻底清算。\n- （存疑/说法不一）关于其在某些具体历史事件中的个人责任细节，学术界有进一步研究，但教材通常以官方结论为准。", "workTexts": {"关于建国以来党的若干历史问题的决议": "“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王洪文\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王洪文\n- **时代**：当代中国（“文化大革命”时期）\n- **出生**：1935年（存疑，另有1934年说），吉林省长春市\n- **去世**：1992年8月3日，北京市\n- **享年**：约57岁（1935-1992，存疑）\n- **主要身份**：工人、政治人物、“四人帮”成员\n- **历史地位**：“文化大革命”期间崛起的重要政治人物，是“四人帮”核心成员之一，其兴衰是那个特殊历史时期的典型缩影。\n- **主要成就**：参与一系列政治活动，曾任中共中央副主席。\n\n### 生平概述\n王洪文出生于吉林长春，早年入伍参加抗美援朝，复员后到上海第十七棉纺厂当工人。“文化大革命”初期，他通过组织“工总司”造反起家，迅速崛起为上海的工人领袖，并进入地方权力核心。后因得到毛泽东的赏识，被调往中央，于1973年中共十大上当选为中共中央副主席，地位显赫。他与江青、张春桥、姚文元结成“四人帮”，在“文革”后期的政治舞台上扮演了重要角色。1976年10月，“四人帮”被粉碎，王洪文随即被捕。1981年被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑。1992年病逝于狱中。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从东北（长春）到华东（上海）的政治崛起，再到华北（北京）的权力顶峰与最终覆灭。\n- ⏱️ **时间跨度**：约1935年—1992年，总计约57年。\n- 📍 **地理范围**：主要覆盖中国东北地区（吉林）、华东地区（上海）和华北地区（北京）。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长春\n- **公元纪年**：约1935年\n- **停留时间**：青少年时期\n- **位置**：吉林省长春市\n- **事迹**：出生并成长于此，度过童年和少年时光。\n- **意义**：人生的起点，早年生活经历塑造了其工人阶级的身份背景。\n\n### 📍 重要地点：上海\n- **公元纪年**：1950年代中期—1960年代末\n- **停留时间**：约十余年\n- **位置**：上海市\n- **事迹**：从朝鲜战场复员后，进入上海第十七棉纺厂当工人；“文革”初期，组织“上海工人革命造反总司令部”（工总司）并任司令，参与“一月风暴”夺权，后任上海市革命委员会副主任等职。\n- **意义**：政治发迹之地。从普通工人到地方政治明星的转变，为其进入中央奠定了基础。\n- **名篇名句**：无个人文学作品。\n\n### 📍 重要地点：北京（中央任职时期）\n- **公元纪年**：1969年—1976年\n- **停留时间**：约7年\n- **位置**：北京市\n- **事迹**：1969年在中共九大上当选中央委员；1973年在中共十大上当选中共中央副主席，成为排名第三的中央领导人；参与“四人帮”的一系列政治活动。\n- **意义**：政治生涯的顶峰，也是其参与高层政治斗争的核心舞台。\n- **名篇名句**：无个人文学作品。\n\n### 🔴 去世地：北京（秦城监狱）\n- **公元纪年**：1992年8月3日\n- **停留时间**：1976年被捕后至去世\n- **位置**：北京市秦城监狱\n- **经过**：1976年10月被拘禁；1981年被判处无期徒刑，此后在秦城监狱服刑；1992年8月3日因肝病病逝。\n- **意义**：人生的终点，其政治生命的终结与法律制裁的执行地。\n- **名篇名句**：无个人文学作品。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1935年 | 0岁 | 出生于吉林省长春市。 |\n| 1950年 | 约15岁 | 参加中国人民解放军，后赴朝鲜参加抗美援朝战争。 |\n| 1956年 | 约21岁 | 复员，分配到上海第十七棉纺厂当工人。 |\n| 1966年 | 约31岁 | “文化大革命”爆发，组织“上海工人革命造反总司令部”（工总司），任司令。 |\n| 1967年 | 约32岁 | 参与“一月风暴”夺权，后任上海市革命委员会副主任。 |\n| 1969年 | 约34岁 | 在中共九大上当选为中央委员。 |\n| 1972年 | 约37岁 | 由毛泽东提议调到中央工作。 |\n| 1973年 | 约38岁 | 在中共十大上当选为中共中央副主席，成为党的第三号领导人。 |\n| 1976年10月 | 约41岁 | “四人帮”被粉碎，随即被拘禁审查。 |\n| 1981年1月 | 约46岁 | 被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑，剥夺政治权利终身。 |\n| 1992年8月3日 | 约57岁 | 因肝病在北京秦城监狱病逝。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王洪文是“文化大革命”期间“造反起家”的典型代表。他的快速崛起和身居高位，严重冲击了党和国家的正常组织秩序与政治生活，是“文革”极左路线在干部任用上的体现。作为“四人帮”成员之一，他参与了一系列阴谋活动，加剧了“文革”后期的政治动荡，对当时国家的政治、经济和社会发展造成了破坏性影响。\n\n### 对后世的影响\n1.  **历史教训的象征**：王洪文的个人命运成为总结“文化大革命”历史教训的重要案例，警示后人必须坚持正确的组织路线和干部选拔标准。\n2.  **法治建设的反面教材**：对其依法进行公开审判，体现了法律面前人人平等的原则，是改革开放后中国重建法治秩序的标志性事件之一。\n3.  **“文革”研究的关键人物**：作为“四人帮”核心成员，其生平是研究“文化大革命”历史，特别是工人造反派与高层政治关系的重要切入点。\n\n### 历史评价\n1.  1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”\n2.  最高人民法院特别法庭判决书认定，王洪文是江青反革命集团的主犯，他积极参与了夺取党和国家最高权力的阴谋活动。\n3.  后世史家普遍认为，王洪文是特定历史条件下政治投机者的代表，其人生轨迹深刻反映了“文革”时期政治生态的扭曲。\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，王洪文主要作为“文化大革命”和“江青反革命集团”（“四人帮”）的成员被提及，是理解“文革”历史的关键人物之一。\n\n### 初中阶段\n- **时代背景**：**“文化大革命”**（1966-1976年）是一场由领导者错误发动，被反革命集团利用的内乱。\n- **关键事件**：**“四人帮”**的形成与覆灭。王洪文是“四人帮”成员之一（其他三人为江青、张春桥、姚文元）。\n- **关键事件**：**1976年10月**，华国锋、叶剑英等代表党中央一举粉碎“四人帮”，结束了“文化大革命”。\n- **代表思想/作品**：无。教材强调其是反革命集团成员。\n- **常见易混点/对比点**：区分“四人帮”与“林彪反革命集团”。“四人帮”主要在“文革”后期活跃。\n\n### 高中阶段\n- **时代背景**：深入理解“文化大革命”的性质、原因和危害。\n- **关键事件**：**“一月风暴”**与地方夺权。王洪文是上海“工总司”负责人，参与领导了上海的夺权，这是“文革”动乱升级的标志之一。\n- **关键事件**：**中共十大（1973年）**。王洪文在此次大会上当选为党中央副主席，反映了当时党内政治生活的极不正常。\n- **关键事件**：**对林彪、江青反革命集团的审判（1980-1981年）**。王洪文作为主犯受审，体现了**社会主义法制**的恢复与重建。\n- **代表思想/作品**：无个人系统思想，其活动是**极左路线**的体现。\n- **常见易混点/对比点**：分析“造反派”头头（如王洪文）与老一辈革命家在“文革”中的不同立场与命运，理解“文革”对**民主与法制**的践踏。\n\n---\n\n## 初高中阶段考点\n### 初中阶段\n- 记住“四人帮”的成员名单：江青、张春桥、姚文元、**王洪文**。\n- 知道“四人帮”是**文化大革命**中形成的反革命集团。\n- 了解**1976年10月**粉碎“四人帮”是“文化大革命”结束的标志。\n- （存疑/说法不一）关于其早年具体经历，教材通常不作详细要求。\n\n### 高中阶段\n- 理解王洪文的崛起是“文革”期间**干部选拔制度**遭到破坏的典型案例。\n- 分析“四人帮”在“文革”后期所起的**主要破坏作用**（如迫害老干部、煽动动乱等）。\n- 认识**审判林彪、江青反革命集团**的历史意义：是法治的胜利，标志着对“文革”错误的彻底清算。\n- （存疑/说法不一）关于其在某些具体历史事件中的个人责任细节，学术界有进一步研究，但教材通常以官方结论为准。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 长春 | 吉林省长春市 | 43.8868 | 125.3245 |\n| 上海 | 上海市 | 31.2304 | 121.4737 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |\n| 北京（秦城监狱） | 北京市秦城监狱 | 39.9042 | 116.4074 |", "relatedGraph": {"center": {"id": "王洪文", "name": "王洪文", "file": "王洪文.html", "dynasty": "当代中国（“文化大革命”时期）", "aliases": [], "birth_year": 1935, "death_year": 1992, "quote": "“上海工人革命造反总司令部”", "review": "1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文…", "foreign_name": "", "main_role_label": "政治", "birthplace": "吉林省长春市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王洪文", "name": "王洪文", "file": "王洪文.html", "dynasty": "当代中国（“文化大革命”时期）", "aliases": [], "birth_year": 1935, "death_year": 1992, "quote": "“上海工人革命造反总司令部”", "review": "1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文…", "foreign_name": "", "main_role_label": "政治", "birthplace": "吉林省长春市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "林彪", "name": "林彪", "file": "林彪.html", "dynasty": "现代中国", "aliases": [], "birth_year": 1907, "death_year": 1971, "quote": "“《“571工程”", "review": "*官方定性**：中共中央在1973年《关于林彪反党集团反革命罪行的审查报告》中将其定性为“资产阶级野心家、阴谋家、反革命两面派、叛徒、卖国贼”。1981年《关于建国以来党的若干历…", "foreign_name": "", "main_role_label": "军事家", "birthplace": "湖北省黄冈县林家大湾", "birthplace_modern": "湖北省黄冈市团风县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "姚文元", "name": "姚文元", "file": "姚文元.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1931, "death_year": 2005, "quote": "“中央文革小组”", "review": "", "foreign_name": "", "main_role_label": "理论家", "birthplace": "上海", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王洪文", "target": "林彪", "label": "同朝共现", "confidence": 0.25}, {"source": "王洪文", "target": "姚文元", "label": "同册共现", "confidence": 0.15}, {"source": "王洪文", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "黄大年", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "6d31e7b2687c"};
+      const data = {"person": {"name": "王洪文", "title": "文化大革命", "description": "王洪文出生于吉林长春，早年入伍参加抗美援朝，复员后到上海第十七棉纺厂当工人。“文化大革命”初期，他通过组织“工总司”造反起家，迅速崛起为上海的工人领袖，并进入地方权力核心。后因得到毛泽东的赏识，被调往中央，于1973年中共十大上当选为中共中央副主席，地位显赫。他与江青、张春桥、姚文元结成“四人帮”，在“文革”后期的政治舞台上扮演了重要角色。1976年10月，“四人帮”被粉碎，王洪文随即被捕。1981年被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑。1992年病逝于狱中。", "quote": "一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。", "shortReview": "一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。", "dynasty": "当代中国（“文化大革命”时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉林省长春市", "avatar": "", "birth": {"date": "1935年", "location": "吉林省长春市", "lat": 43.8868, "lng": 125.3245, "coordSystem": "WGS84"}, "death": {"date": "1992年", "location": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "约57岁（1935-1992，存疑）", "highlights": {"honor": "文化大革命", "status": "“文化大革命”期间崛起的重要政治人物，是“四人帮”核心成员之一，其兴衰是那个特殊历史时期的典型缩影。", "identities": "工人、政治人物、“四人帮”成员", "achievements": "参与一系列政治活动，曾任中共中央副主席。", "works": [], "reviews": ["1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”", "最高人民法院特别法庭判决书认定，王洪文是江青反革命集团的主犯，他积极参与了夺取党和国家最高权力的阴谋活动。", "后世史家普遍认为，王洪文是特定历史条件下政治投机者的代表，其人生轨迹深刻反映了“文革”时期政治生态的扭曲。"]}}, "locations": [{"name": "长春", "ancientName": "长春", "modernName": "吉林省长春市", "lat": 43.8868, "lng": 125.3245, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于此，度过童年和少年时光。", "time": "约1935年", "duration": "青少年时期", "significance": "人生的起点，早年生活经历塑造了其工人阶级的身份背景。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "从朝鲜战场复员后，进入上海第十七棉纺厂当工人；“文革”初期，组织“上海工人革命造反总司令部”（工总司）并任司令，参与“一月风暴”夺权，后任上海市革命委员会副主任等职。", "time": "1950年代中期—1960年代末", "duration": "约十余年", "significance": "政治发迹之地。从普通工人到地方政治明星的转变，为其进入中央奠定了基础。", "works": [], "quoteLines": ["无个人文学作品。"]}, {"name": "北京（中央任职时期）", "ancientName": "北京（中央任职时期）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1969年在中共九大上当选中央委员；1973年在中共十大上当选中共中央副主席，成为排名第三的中央领导人；参与“四人帮”的一系列政治活动。", "time": "1969年—1976年", "duration": "约7年", "significance": "政治生涯的顶峰，也是其参与高层政治斗争的核心舞台。", "works": [], "quoteLines": ["无个人文学作品。"]}, {"name": "北京（秦城监狱）", "ancientName": "北京（秦城监狱）", "modernName": "北京市秦城监狱", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "1976年10月被拘禁；1981年被判处无期徒刑，此后在秦城监狱服刑；1992年8月3日因肝病病逝。", "time": "1992年8月3日", "duration": "1976年被捕后至去世", "significance": "人生的终点，其政治生命的终结与法律制裁的执行地。", "works": [], "quoteLines": ["无个人文学作品。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，王洪文主要作为“文化大革命”和“江青反革命集团”（“四人帮”）的成员被提及，是理解“文革”历史的关键人物之一。\n\n### 初中阶段\n- **时代背景**：**“文化大革命”**（1966-1976年）是一场由领导者错误发动，被反革命集团利用的内乱。\n- **关键事件**：**“四人帮”**的形成与覆灭。王洪文是“四人帮”成员之一（其他三人为江青、张春桥、姚文元）。\n- **关键事件**：**1976年10月**，华国锋、叶剑英等代表党中央一举粉碎“四人帮”，结束了“文化大革命”。\n- **代表思想/作品**：无。教材强调其是反革命集团成员。\n- **常见易混点/对比点**：区分“四人帮”与“林彪反革命集团”。“四人帮”主要在“文革”后期活跃。\n\n### 高中阶段\n- **时代背景**：深入理解“文化大革命”的性质、原因和危害。\n- **关键事件**：**“一月风暴”**与地方夺权。王洪文是上海“工总司”负责人，参与领导了上海的夺权，这是“文革”动乱升级的标志之一。\n- **关键事件**：**中共十大（1973年）**。王洪文在此次大会上当选为党中央副主席，反映了当时党内政治生活的极不正常。\n- **关键事件**：**对林彪、江青反革命集团的审判（1980-1981年）**。王洪文作为主犯受审，体现了**社会主义法制**的恢复与重建。\n- **代表思想/作品**：无个人系统思想，其活动是**极左路线**的体现。\n- **常见易混点/对比点**：分析“造反派”头头（如王洪文）与老一辈革命家在“文革”中的不同立场与命运，理解“文革”对**民主与法制**的践踏。\n\n---", "examPoints": "### 初中阶段\n- 记住“四人帮”的成员名单：江青、张春桥、姚文元、**王洪文**。\n- 知道“四人帮”是**文化大革命**中形成的反革命集团。\n- 了解**1976年10月**粉碎“四人帮”是“文化大革命”结束的标志。\n- （存疑/说法不一）关于其早年具体经历，教材通常不作详细要求。\n\n### 高中阶段\n- 理解王洪文的崛起是“文革”期间**干部选拔制度**遭到破坏的典型案例。\n- 分析“四人帮”在“文革”后期所起的**主要破坏作用**（如迫害老干部、煽动动乱等）。\n- 认识**审判林彪、江青反革命集团**的历史意义：是法治的胜利，标志着对“文革”错误的彻底清算。\n- （存疑/说法不一）关于其在某些具体历史事件中的个人责任细节，学术界有进一步研究，但教材通常以官方结论为准。", "workTexts": {"关于建国以来党的若干历史问题的决议": "“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”", "中国石拱桥": "“桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。”\n“赵州桥不但形式优美，而且结构坚固。”", "记承天寺夜游": "“庭下如积水空明，水中藻、荇交横，盖竹柏影也。”\n“但少闲人如吾两人者耳。”"}, "markdown": "# 王洪文\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：王洪文\n- **时代**：当代中国（“文化大革命”时期）\n- **出生**：1935年（存疑，另有1934年说），吉林省长春市\n- **去世**：1992年8月3日，北京市\n- **享年**：约57岁（1935-1992，存疑）\n- **主要身份**：工人、政治人物、“四人帮”成员\n- **历史地位**：“文化大革命”期间崛起的重要政治人物，是“四人帮”核心成员之一，其兴衰是那个特殊历史时期的典型缩影。\n- **主要成就**：参与一系列政治活动，曾任中共中央副主席。\n\n### 生平概述\n王洪文出生于吉林长春，早年入伍参加抗美援朝，复员后到上海第十七棉纺厂当工人。“文化大革命”初期，他通过组织“工总司”造反起家，迅速崛起为上海的工人领袖，并进入地方权力核心。后因得到毛泽东的赏识，被调往中央，于1973年中共十大上当选为中共中央副主席，地位显赫。他与江青、张春桥、姚文元结成“四人帮”，在“文革”后期的政治舞台上扮演了重要角色。1976年10月，“四人帮”被粉碎，王洪文随即被捕。1981年被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑。1992年病逝于狱中。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从东北（长春）到华东（上海）的政治崛起，再到华北（北京）的权力顶峰与最终覆灭。\n- ⏱️ **时间跨度**：约1935年—1992年，总计约57年。\n- 📍 **地理范围**：主要覆盖中国东北地区（吉林）、华东地区（上海）和华北地区（北京）。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：长春\n- **公元纪年**：约1935年\n- **停留时间**：青少年时期\n- **位置**：吉林省长春市\n- **事迹**：出生并成长于此，度过童年和少年时光。\n- **意义**：人生的起点，早年生活经历塑造了其工人阶级的身份背景。\n\n### 📍 重要地点：上海\n- **公元纪年**：1950年代中期—1960年代末\n- **停留时间**：约十余年\n- **位置**：上海市\n- **事迹**：从朝鲜战场复员后，进入上海第十七棉纺厂当工人；“文革”初期，组织“上海工人革命造反总司令部”（工总司）并任司令，参与“一月风暴”夺权，后任上海市革命委员会副主任等职。\n- **意义**：政治发迹之地。从普通工人到地方政治明星的转变，为其进入中央奠定了基础。\n- **名篇名句**：无个人文学作品。\n\n### 📍 重要地点：北京（中央任职时期）\n- **公元纪年**：1969年—1976年\n- **停留时间**：约7年\n- **位置**：北京市\n- **事迹**：1969年在中共九大上当选中央委员；1973年在中共十大上当选中共中央副主席，成为排名第三的中央领导人；参与“四人帮”的一系列政治活动。\n- **意义**：政治生涯的顶峰，也是其参与高层政治斗争的核心舞台。\n- **名篇名句**：无个人文学作品。\n\n### 🔴 去世地：北京（秦城监狱）\n- **公元纪年**：1992年8月3日\n- **停留时间**：1976年被捕后至去世\n- **位置**：北京市秦城监狱\n- **经过**：1976年10月被拘禁；1981年被判处无期徒刑，此后在秦城监狱服刑；1992年8月3日因肝病病逝。\n- **意义**：人生的终点，其政治生命的终结与法律制裁的执行地。\n- **名篇名句**：无个人文学作品。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 年龄 | 关键事件 |\n| :--- | :--- | :--- |\n| 约1935年 | 0岁 | 出生于吉林省长春市。 |\n| 1950年 | 约15岁 | 参加中国人民解放军，后赴朝鲜参加抗美援朝战争。 |\n| 1956年 | 约21岁 | 复员，分配到上海第十七棉纺厂当工人。 |\n| 1966年 | 约31岁 | “文化大革命”爆发，组织“上海工人革命造反总司令部”（工总司），任司令。 |\n| 1967年 | 约32岁 | 参与“一月风暴”夺权，后任上海市革命委员会副主任。 |\n| 1969年 | 约34岁 | 在中共九大上当选为中央委员。 |\n| 1972年 | 约37岁 | 由毛泽东提议调到中央工作。 |\n| 1973年 | 约38岁 | 在中共十大上当选为中共中央副主席，成为党的第三号领导人。 |\n| 1976年10月 | 约41岁 | “四人帮”被粉碎，随即被拘禁审查。 |\n| 1981年1月 | 约46岁 | 被最高人民法院特别法庭确认为江青反革命集团主犯，判处无期徒刑，剥夺政治权利终身。 |\n| 1992年8月3日 | 约57岁 | 因肝病在北京秦城监狱病逝。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n王洪文是“文化大革命”期间“造反起家”的典型代表。他的快速崛起和身居高位，严重冲击了党和国家的正常组织秩序与政治生活，是“文革”极左路线在干部任用上的体现。作为“四人帮”成员之一，他参与了一系列阴谋活动，加剧了“文革”后期的政治动荡，对当时国家的政治、经济和社会发展造成了破坏性影响。\n\n### 对后世的影响\n1.  **历史教训的象征**：王洪文的个人命运成为总结“文化大革命”历史教训的重要案例，警示后人必须坚持正确的组织路线和干部选拔标准。\n2.  **法治建设的反面教材**：对其依法进行公开审判，体现了法律面前人人平等的原则，是改革开放后中国重建法治秩序的标志性事件之一。\n3.  **“文革”研究的关键人物**：作为“四人帮”核心成员，其生平是研究“文化大革命”历史，特别是工人造反派与高层政治关系的重要切入点。\n\n### 历史评价\n1.  1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文元、王洪文等作出了严肃的处理。”\n2.  最高人民法院特别法庭判决书认定，王洪文是江青反革命集团的主犯，他积极参与了夺取党和国家最高权力的阴谋活动。\n3.  后世史家普遍认为，王洪文是特定历史条件下政治投机者的代表，其人生轨迹深刻反映了“文革”时期政治生态的扭曲。\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，王洪文主要作为“文化大革命”和“江青反革命集团”（“四人帮”）的成员被提及，是理解“文革”历史的关键人物之一。\n\n### 初中阶段\n- **时代背景**：**“文化大革命”**（1966-1976年）是一场由领导者错误发动，被反革命集团利用的内乱。\n- **关键事件**：**“四人帮”**的形成与覆灭。王洪文是“四人帮”成员之一（其他三人为江青、张春桥、姚文元）。\n- **关键事件**：**1976年10月**，华国锋、叶剑英等代表党中央一举粉碎“四人帮”，结束了“文化大革命”。\n- **代表思想/作品**：无。教材强调其是反革命集团成员。\n- **常见易混点/对比点**：区分“四人帮”与“林彪反革命集团”。“四人帮”主要在“文革”后期活跃。\n\n### 高中阶段\n- **时代背景**：深入理解“文化大革命”的性质、原因和危害。\n- **关键事件**：**“一月风暴”**与地方夺权。王洪文是上海“工总司”负责人，参与领导了上海的夺权，这是“文革”动乱升级的标志之一。\n- **关键事件**：**中共十大（1973年）**。王洪文在此次大会上当选为党中央副主席，反映了当时党内政治生活的极不正常。\n- **关键事件**：**对林彪、江青反革命集团的审判（1980-1981年）**。王洪文作为主犯受审，体现了**社会主义法制**的恢复与重建。\n- **代表思想/作品**：无个人系统思想，其活动是**极左路线**的体现。\n- **常见易混点/对比点**：分析“造反派”头头（如王洪文）与老一辈革命家在“文革”中的不同立场与命运，理解“文革”对**民主与法制**的践踏。\n\n---\n\n## 初高中阶段考点\n### 初中阶段\n- 记住“四人帮”的成员名单：江青、张春桥、姚文元、**王洪文**。\n- 知道“四人帮”是**文化大革命**中形成的反革命集团。\n- 了解**1976年10月**粉碎“四人帮”是“文化大革命”结束的标志。\n- （存疑/说法不一）关于其早年具体经历，教材通常不作详细要求。\n\n### 高中阶段\n- 理解王洪文的崛起是“文革”期间**干部选拔制度**遭到破坏的典型案例。\n- 分析“四人帮”在“文革”后期所起的**主要破坏作用**（如迫害老干部、煽动动乱等）。\n- 认识**审判林彪、江青反革命集团**的历史意义：是法治的胜利，标志着对“文革”错误的彻底清算。\n- （存疑/说法不一）关于其在某些具体历史事件中的个人责任细节，学术界有进一步研究，但教材通常以官方结论为准。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| :--- | :--- | :--- | :--- |\n| 长春 | 吉林省长春市 | 43.8868 | 125.3245 |\n| 上海 | 上海市 | 31.2304 | 121.4737 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |\n| 北京（秦城监狱） | 北京市秦城监狱 | 39.9042 | 116.4074 |", "relatedGraph": {"center": {"id": "王洪文", "name": "王洪文", "file": "王洪文.html", "dynasty": "当代中国（“文化大革命”时期）", "aliases": [], "birth_year": 1935, "death_year": 1992, "quote": "“上海工人革命造反总司令部”", "review": "1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文…", "foreign_name": "", "main_role_label": "政治", "birthplace": "吉林省长春市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王洪文", "name": "王洪文", "file": "王洪文.html", "dynasty": "当代中国（“文化大革命”时期）", "aliases": [], "birth_year": 1935, "death_year": 1992, "quote": "“上海工人革命造反总司令部”", "review": "1981年《关于建国以来党的若干历史问题的决议》指出：“一九七六年十月，中央政治局执行党和人民的意志，毅然粉碎了江青反革命集团，结束了‘文化大革命’这场灾难……对江青、张春桥、姚文…", "foreign_name": "", "main_role_label": "政治", "birthplace": "吉林省长春市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "林彪", "name": "林彪", "file": "林彪.html", "dynasty": "现代中国", "aliases": [], "birth_year": 1907, "death_year": 1971, "quote": "“《“571工程”", "review": "*官方定性**：中共中央在1973年《关于林彪反党集团反革命罪行的审查报告》中将其定性为“资产阶级野心家、阴谋家、反革命两面派、叛徒、卖国贼”。1981年《关于建国以来党的若干历…", "foreign_name": "", "main_role_label": "军事家", "birthplace": "湖北省黄冈县林家大湾", "birthplace_modern": "湖北省黄冈市团风县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "姚文元", "name": "姚文元", "file": "姚文元.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1931, "death_year": 2005, "quote": "“中央文革小组”", "review": "", "foreign_name": "", "main_role_label": "理论家", "birthplace": "上海", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "于文豪", "name": "于文豪", "file": "于文豪.html", "dynasty": "当代（存疑）", "aliases": [], "birth_year": null, "death_year": null, "quote": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "review": "目前未见权威史家或公众对于文豪的广泛历史评价（存疑）。", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "“历史学家应该具备通识，才能看清历史的长河。”", "review": "学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "现代", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "“深部探测关键仪器装备”", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王洪文", "target": "林彪", "label": "同朝共现", "confidence": 0.25}, {"source": "王洪文", "target": "姚文元", "label": "同册共现", "confidence": 0.15}, {"source": "王洪文", "target": "于文豪", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "王洪文", "target": "黄大年", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c3eb4556a253"};
       window.__EXPORT_DATA__ = data;
 const hideBootFallback = () => {
   const el = document.getElementById('boot-fallback');
@@ -3429,9 +3479,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const normalizeFocusOptions = (raw) => {
+    if (typeof raw === 'boolean') {
+      return { pulse: raw, strict: false };
+    }
+    const opts = raw && typeof raw === 'object' ? raw : {};
+    return {
+      pulse: !Object.prototype.hasOwnProperty.call(opts, 'pulse') || Boolean(opts.pulse),
+      strict: Boolean(opts.strict)
+    };
+  };
   const applySelectionToMap = (idx, loc, options = {}) => {
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
+    const strict = Boolean(options && options.strict);
     if (!loc) return false;
     const run = (pulseNow = pulse) => {
       const controller = mapRef.current;
@@ -3441,7 +3502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, pulseNow);
+          controller.focusIndex(idx, { pulse: pulseNow, strict });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -3836,10 +3897,18 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
         const loc = locations[nextIdx];
+        const focusOptions = normalizeFocusOptions(rawOptions);
+        if (!loc || !Number.isFinite(Number(loc.lng)) || !Number.isFinite(Number(loc.lat))) return;
+        if (focusOptions.strict) {
+          try {
+            map.setZoomAndCenter(focusZoom, [Number(loc.lng), Number(loc.lat)]);
+            return;
+          } catch (_) {}
+        }
         const focusPoints = [nextIdx - 1, nextIdx, nextIdx + 1]
           .filter((item, pos, arr) => item >= 0 && item < locations.length && arr.indexOf(item) === pos)
           .map((item) => locations[item])
@@ -4342,9 +4411,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           const pulseLat = Number.isFinite(Number(renderLoc?.renderLat)) ? Number(renderLoc.renderLat) : Number(loc.lat);
           runPulse(pulseLng, pulseLat, getLifeColor(loc, idx));
         };
-        const focusTimelineIndex = (idx, pulse) => {
+        const focusTimelineIndex = (idx, rawOptions) => {
           const loc = locations[idx];
           if (!loc) return;
+          const focusOptions = normalizeFocusOptions(rawOptions);
+          if (focusOptions.strict) {
+            try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: focusOptions.pulse ? 650 : 0 }); } catch (_) {}
+            if (focusOptions.pulse) pulseByIndex(idx);
+            return;
+          }
           const neighborIndexes = [idx - 1, idx, idx + 1].filter((item, pos, arr) => (
             item >= 0 && item < locations.length && arr.indexOf(item) === pos
           ));
@@ -4366,7 +4441,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           } else {
             try { map.easeTo({ center: [loc.lng, loc.lat], zoom: focusZoom, duration: 650 }); } catch (_) {}
           }
-          if (pulse) pulseByIndex(idx);
+          if (focusOptions.pulse) pulseByIndex(idx);
         };
         const onPointLayerClick = (e) => {
           const feature = e?.features?.[0];
@@ -5024,19 +5099,24 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
       };
-      const focusIndex = (idx, pulse) => {
+      const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
         if (!Number.isFinite(nextIdx) || nextIdx < 0 || nextIdx >= locations.length) return;
+        const focusOptions = normalizeFocusOptions(rawOptions);
         const pickIndexes = [nextIdx - 1, nextIdx, nextIdx + 1].filter((item, pos, arr) => (
           item >= 0 && item < locations.length && arr.indexOf(item) === pos
         ));
-        const points = pickIndexes.map((item) => locations[item]).filter(Boolean);
+        const points = (focusOptions.strict ? [locations[nextIdx]] : pickIndexes.map((item) => locations[item])).filter(Boolean);
         if (!points.length) return;
+        if (focusOptions.strict && points[0] && Number.isFinite(Number(points[0].lng)) && Number.isFinite(Number(points[0].lat))) {
+          setView([Number(points[0].lat), Number(points[0].lng)], focusZoom);
+          return;
+        }
         const cartPoints = points.map((item) => Cesium.Cartesian3.fromDegrees(Number(item.lng), Number(item.lat), 0));
         const sphere = Cesium.BoundingSphere.fromPoints(cartPoints);
         try {
           viewer.camera.flyToBoundingSphere(sphere, {
-            duration: pulse ? 0.9 : 0.1,
+            duration: focusOptions.pulse ? 0.9 : 0.1,
             offset: new Cesium.HeadingPitchRange(
               Cesium.Math.toRadians(-18),
               Cesium.Math.toRadians(-38),
@@ -5279,6 +5359,15 @@ const LIFE_GRADIENT_END = '#5D4037';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+          mapEl.style.position = 'relative';
+          mapEl.style.width = '100%';
+          mapEl.style.height = journeyPanelHeight;
+          mapEl.style.minHeight = journeyPanelMinHeight;
+        }
+      } catch (_) {}
+      try {
         const maplibreEl = document.getElementById('map-maplibre');
         if (maplibreEl) {
           maplibreEl.style.position = 'absolute';
@@ -5292,6 +5381,23 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
       try {
+        const amapContainer = amapMapRef.current && typeof amapMapRef.current.getContainer === 'function'
+          ? amapMapRef.current.getContainer()
+          : document.getElementById('map-maplibre');
+        if (amapContainer) {
+          amapContainer.style.position = 'absolute';
+          amapContainer.style.inset = '0';
+          amapContainer.style.width = '100%';
+          amapContainer.style.height = '100%';
+          const innerNodes = amapContainer.querySelectorAll('.amap-maps, .amap-layers');
+          innerNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            node.style.width = '100%';
+            node.style.height = '100%';
+          });
+        }
+      } catch (_) {}
+      try {
         if (maplibreMapRef.current && typeof maplibreMapRef.current.resize === 'function') {
           maplibreMapRef.current.resize();
         }
@@ -5299,6 +5405,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         if (amapMapRef.current && typeof amapMapRef.current.resize === 'function') {
           amapMapRef.current.resize();
+          window.requestAnimationFrame(() => {
+            try { amapMapRef.current && amapMapRef.current.resize && amapMapRef.current.resize(); } catch (_) {}
+          });
         }
       } catch (_) {}
       try {
@@ -5309,15 +5418,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         }
       } catch (_) {}
     };
-    const timers = [0, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const timers = [0, 48, 160, 720].map((delay) => window.setTimeout(syncMapViewport, delay));
+    const rafId = window.requestAnimationFrame(syncMapViewport);
     window.addEventListener('resize', syncMapViewport);
     return () => {
+      try { window.cancelAnimationFrame(rafId); } catch (_) {}
       timers.forEach((timer) => {
         try { window.clearTimeout(timer); } catch (_) {}
       });
       window.removeEventListener('resize', syncMapViewport);
     };
-  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen]);
+  }, [splitPct, mapReadyTick, mapLayerType, isJourneyFullscreen, journeyPanelHeight, journeyPanelMinHeight]);
   const toggleJourneyFullscreen = async () => {
     const shell = journeyShellRef.current;
     if (!shell) return;
@@ -5384,7 +5495,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       activeIndexRef.current = idx;
       setActiveIndex(idx);
     }
-    applySelectionToMap(idx, loc, { pulse: true, stabilize: true });
+    applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });
   };
   useEffect(() => {
     const isFirstActiveEffect = !didRunActiveEffectRef.current;
@@ -5562,19 +5673,21 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (!tryUrls.includes(val)) tryUrls.push(val);
     };
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
       pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
       pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
-    if (!staticSite && window.location && window.location.protocol !== 'file:') {
+    if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
     }
-    if (!staticSite) {
+    if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -5733,7 +5846,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         >
           <div ref={splitRef} className="flex flex-col lg:flex-row gap-6 items-stretch">
             <div
-              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col"
+              className="glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"
               style={{ flexBasis: `${splitPct}%`, flexGrow: 0, height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
             >
               <div className="p-4 border-b border-[rgba(218,220,224,0.82)] bg-[linear-gradient(135deg,rgba(232,240,254,0.96),rgba(248,249,250,0.94))] text-[var(--color-text-secondary)]">
@@ -5923,7 +6036,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 draggingRef.current = true;
               }}
             ></div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div id="map" style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
@@ -6000,7 +6113,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 value={mapLayerType}
                 onChange={(v) => setMapLayerType(String(v || 'vector'))}
                 options={[
-                  { id: 'vector', label: '地图', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
+                  { id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' },
                   { id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' },
                   { id: 'terrain', label: '地形', title: '切换到地形图', badge: '地形', previewClass: 'is-terrain' },
                   { id: 'terrain-3d', label: '3D地形', title: '切换到3D地形图', badge: '3D', previewClass: 'is-terrain3d' }
@@ -6069,58 +6182,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </div>
         </div>
-        <section className="glass-panel theme-card p-6 rounded-xl shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
-            <div className="text-[11px] text-gray-400">
-              悬浮查看详情，点击人物名跳转
-            </div>
-          </div>
-          {relatedGraphLayout.length ? (
-            <div className="space-y-4">
-              <div className="related-graph-stage">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {relatedGraphLayout.map((node, idx) => (
-                    <g key={`edge-${idx}`}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={node.x}
-                        y2={node.y}
-                        stroke="rgba(26,115,232,0.14)"
-                        strokeWidth="0.18"
-                        strokeDasharray="0.6 1.2"
-                      />
-                    </g>
-                  ))}
-                </svg>
-                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
-                  <div className="related-graph-link">
-                    <div className="related-graph-card center">
-                      <div className="related-graph-dot" />
-                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
-                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
-                    </div>
-                  </div>
-                </div>
-                {relatedGraphLayout.map((node, idx) => (
-                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
-                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
-                      <div className="related-graph-card">
-                        <div className="related-graph-label">{node.name}</div>
-                        <div className="related-graph-dot" />
-                        <RelatedGraphTooltip node={node} />
-                      </div>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
-          )}
-        </section>
-
         <section ref={chatSectionRef} className="glass-panel theme-card p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
@@ -6241,6 +6302,58 @@ const LIFE_GRADIENT_END = '#5D4037';
             </div>
           </section>
         ) : null}
+
+        <section className="glass-panel theme-card relative z-[2] overflow-visible p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="theme-title text-lg font-bold">知识图谱</h2>
+            <div className="text-[11px] text-gray-400">
+              悬浮查看详情，点击人物名跳转
+            </div>
+          </div>
+          {relatedGraphLayout.length ? (
+            <div className="space-y-4">
+              <div className="related-graph-stage">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {relatedGraphLayout.map((node, idx) => (
+                    <g key={`edge-${idx}`}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={node.x}
+                        y2={node.y}
+                        stroke="rgba(26,115,232,0.14)"
+                        strokeWidth="0.18"
+                        strokeDasharray="0.6 1.2"
+                      />
+                    </g>
+                  ))}
+                </svg>
+                <div className="related-graph-node" style={{ left: '50%', top: '50%' }}>
+                  <div className="related-graph-link">
+                    <div className="related-graph-card center">
+                      <div className="related-graph-dot" />
+                      <div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>
+                      <RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />
+                    </div>
+                  </div>
+                </div>
+                {relatedGraphLayout.map((node, idx) => (
+                  <div key={node.id || idx} className="related-graph-node" style={{ left: `${node.x}%`, top: `${node.y}%` }}>
+                    <a href={getRelatedPersonHref(node)} className="related-graph-link">
+                      <div className="related-graph-card">
+                        <div className="related-graph-label">{node.name}</div>
+                        <div className="related-graph-dot" />
+                        <RelatedGraphTooltip node={node} />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">暂未识别到可展示的相关人物关系。</div>
+          )}
+        </section>
 
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">
