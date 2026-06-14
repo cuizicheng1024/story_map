@@ -1,3 +1,4 @@
+import argparse
 import importlib
 from pathlib import Path
 
@@ -18,7 +19,12 @@ def test_render_index_html_emits_valid_regex_literals():
     assert r'replace(/^约\s*/g, "")' in html
     assert r'replace(/^公元前?\d+年\s*/g, "")' in html
     assert r'window.__openPerson(\'' not in html
-    assert 'window.__openPerson(\'" + personJs + "\')' in html
+    assert "const clearTaskPoll = () => {" in html
+    assert "const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {" in html
+    assert "const resolveTaskResultHtml = (result, fallbackPerson) => {" in html
+    assert "if (activeTaskPollId === id) return;" in html
+    assert "scheduleTaskPoll(id, generation, tick, 900);" in html
+    assert "const targetHtml = resolveTaskResultHtml(result, person);" in html
     assert "snapshot.exists !== true" in html
     assert 'if (st === "partial_failed")' in html
 
@@ -84,6 +90,28 @@ def test_build_payload_meta_prefers_github_env(monkeypatch):
     }
 
 
+def test_prepare_home_payload_for_output_merges_defaults(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    monkeypatch.setattr(module, "_build_payload_meta", lambda: {"generated_at": "2026-06-14 00:00:00"})
+
+    payload = module._prepare_home_payload_for_output(
+        {"min_year": -221, "nodes": [{"person": "秦始皇"}], "edges": [{"a": 0, "b": 0}]},
+        default_start=100,
+        default_end=1600,
+    )
+
+    assert payload["generated_at"] == "2026-06-14 00:00:00"
+    assert payload["min_year"] == -221
+    assert payload["max_year"] == module.MAX_YEAR
+    assert payload["default_start"] == 100
+    assert payload["default_end"] == 1600
+    assert payload["nodes"] == [{"person": "秦始皇"}]
+    assert payload["edges"] == [{"a": 0, "b": 0}]
+    assert payload["kg_edges"] == []
+    assert payload["search_capabilities"]["aliases"] is True
+
+
 def test_render_index_html_uses_sparser_tick_config_for_recent_ranges():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -94,6 +122,75 @@ def test_render_index_html_uses_sparser_tick_config_for_recent_ranges():
     assert "const contemporaryRatio = overlapYears(start, end, 1911, maxYear) / span;" in html
     assert "const maxLabels = contemporaryRatio >= 0.7 ? 5 : (recentRatio >= 0.55 ? 6 : 9);" in html
     assert "const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);" in html
+
+
+def test_main_can_export_homepage_from_neo4j_without_story_markdown(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    story_map_dir = tmp_path / "story_map"
+    story_map_dir.mkdir()
+    story_md_dir = tmp_path / "story"
+    story_md_dir.mkdir()
+    spotlight = tmp_path / "spotlight.json"
+    spotlight.write_text("{}", encoding="utf-8")
+
+    args = argparse.Namespace(
+        story_map_dir=str(story_map_dir),
+        story_md_dir=str(story_md_dir),
+        spotlight=str(spotlight),
+        out_index="index.html",
+        out_data="stellar_home_data.json",
+        title="故事地图",
+        default_start=100,
+        default_end=1600,
+        graph_source="neo4j",
+    )
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
+    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
+    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: [])
+    monkeypatch.setattr(module, "person_redirects", lambda names=None: {})
+    monkeypatch.setattr(
+        module,
+        "load_home_graph_payload_with_source",
+        lambda *args, **kwargs: (
+            {"min_year": -200, "max_year": 200, "nodes": [{"person": "张骞"}], "edges": []},
+            "neo4j",
+        ),
+    )
+    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: {"index": "i", "data": "d", "count": 1})
+
+    assert module.main() == 0
+
+
+def test_main_fails_when_explicit_neo4j_source_is_unavailable(tmp_path, monkeypatch, capsys):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    story_map_dir = tmp_path / "story_map"
+    story_map_dir.mkdir()
+    story_md_dir = tmp_path / "story"
+    story_md_dir.mkdir()
+    spotlight = tmp_path / "spotlight.json"
+    spotlight.write_text("{}", encoding="utf-8")
+
+    args = argparse.Namespace(
+        story_map_dir=str(story_map_dir),
+        story_md_dir=str(story_md_dir),
+        spotlight=str(spotlight),
+        out_index="index.html",
+        out_data="stellar_home_data.json",
+        title="故事地图",
+        default_start=100,
+        default_end=1600,
+        graph_source="neo4j",
+    )
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
+    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
+    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: [])
+    monkeypatch.setattr(module, "person_redirects", lambda names=None: {})
+    monkeypatch.setattr(module, "load_home_graph_payload_with_source", lambda *args, **kwargs: ({}, ""))
+
+    assert module.main() == 1
+    assert '"error": "neo4j graph payload unavailable"' in capsys.readouterr().out
 
 
 def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
@@ -140,6 +237,9 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'if (status === "idle") return "待命";' in html
     assert 'const basePercent = status === "idle"' in html
     assert '$pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";' in html
+    assert 'const escapePixelLogHtml = (value) => {' in html
+    assert 'const safeLabelText = escapePixelLogHtml(labelText);' in html
+    assert 'escapePixelLogHtml(detail)' in html
     assert 'renderPixelProgressLog(status, progress);' in html
     assert 'speechText: next.speech,' in html
 
@@ -232,6 +332,9 @@ def test_render_index_html_shows_person_info_on_map_marker_hover():
     assert 'MarkerCluster' not in html
     assert 'const sz = dim ? 16 : (emph ? 20 : 18);' in html
     assert "it.mk.setContent(it.el);" in html
+    assert 'const button = document.createElement("button");' in html
+    assert 'button.addEventListener("click", () => {' in html
+    assert 'openPerson(n && n.person ? n.person : "");' in html
 
 
 def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_window_visibility():

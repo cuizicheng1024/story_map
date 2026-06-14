@@ -91,6 +91,10 @@ def _is_usable_result(result: Dict[str, object]) -> bool:
     return str(result.get("status") or "").strip() == "degraded"
 
 
+def _has_task_blocking_failure(result: Dict[str, object]) -> bool:
+    return bool(result.get("homepage_refresh_failed"))
+
+
 class TaskService:
     def __init__(
         self,
@@ -707,8 +711,8 @@ class TaskService:
 
         duration = self._format_seconds(time.perf_counter() - started_at)
         conclusion = self._build_conclusion(results, len(people_payload) > 1)
-        success_results = [result for result in results if _is_usable_result(result)]
-        failed_results = [result for result in results if not _is_usable_result(result)]
+        success_results = [result for result in results if _is_usable_result(result) and not _has_task_blocking_failure(result)]
+        failed_results = [result for result in results if (not _is_usable_result(result)) or _has_task_blocking_failure(result)]
         failed_people = [str(item.get("person") or "").strip() for item in failed_results if str(item.get("person") or "").strip()]
         if success_results and failed_results:
             summary_status = "partial_failed"

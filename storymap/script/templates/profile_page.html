@@ -3597,8 +3597,10 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (Array.isArray(loc.works) && loc.works.length) push('work', '作品');
     if (!hasExplicitNonLiteraryContext && /(诗|词|赋|文章|著作|写作|创作|文集|碑|序|选集|总集|诗文)/.test(pool)) push('work', '文学');
     if (warPattern.test(pool)) push('war', '战争');
-    if (/(任|官|相|帝|王|后|宰相|执政|改革|变法|称帝|即位|登基|拜相)/.test(pool)) push('politics', '仕途');
-    if (/(游|行|巡|迁|至|出使|远行|流放|谪|入朝|赴|抵达|定居)/.test(pool)) push('travel', '行旅');
+    const politicsPattern = /(任官|出任|赴任|主政|执政|从政|辅政|摄政|拜相|为相|宰相|丞相|尚书|刺史|太守|封侯|封王|称王|称帝|即位|登基|改革|变法|新政)/;
+    if (politicsPattern.test(pool)) push('politics', '仕途');
+    const travelPattern = /(游历|巡游|巡幸|迁居|迁徙|迁往|迁至|迁到|出使|远行|远赴|流放|流寓|谪居|谪迁|入朝|赴任|奔赴|抵达|定居|南下|北上|东行|西行|启程)/;
+    if (travelPattern.test(pool)) push('travel', '行旅');
     return out.slice(0, 3);
   };
   const getRelatedGraphNodeColor = (node) => {
@@ -6349,7 +6351,7 @@ const LIFE_GRADIENT_END = '#5D4037';
     const roleText = String(relatedIdentities || relatedStatus || '').trim();
     const questionPool = [roleText, description, data?.person?.dynasty, firstWork, firstQuote].filter(Boolean).join(' ');
     const detectPromptProfile = () => {
-      if (/(将军|将领|统帅|军|侯|王|征战|战役|战场|兵|骑|伐|守边|武将)/.test(questionPool)) return 'military';
+      if (/(将军|将领|统帅|武将|领兵|统军|用兵|出征|征战|战役|战场|守边|军旅|军功|行伍|骑兵|北伐|东征|西征|南征)/.test(questionPool)) return 'military';
       if (/(诗人|词人|作家|文学|文豪|诗|词|赋|文章|书法|画家|文选)/.test(questionPool)) return 'literary';
       if (/(政治家|宰相|皇帝|君主|帝王|改革|变法|执政|官员|丞相|大臣|首相)/.test(questionPool)) return 'statesman';
       if (/(思想家|学者|教育家|经学|哲学|史学|史家|学术|理学|科学家|数学|天文|医学)/.test(questionPool)) return 'scholar';

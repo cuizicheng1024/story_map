@@ -116,12 +116,8 @@ def create_app(
     @app.get("/generate")
     async def generate_get(request: FastAPIRequest, person: str = "", text: str = "") -> JSONResponse:
         _enforce_origin(request, resolve_cors_origin)
-        value = str(person or text or "").strip()
-        if not value:
-            return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
-        result = task_service.submit_task(value)
-        status = 200 if result.get("ok") else 400
-        return JSONResponse(status_code=status, content=result)
+        _ = person, text
+        return JSONResponse(status_code=405, content={"ok": False, "error": "use POST /generate"})
 
     @app.post("/generate")
     async def generate_post(request: FastAPIRequest) -> JSONResponse:

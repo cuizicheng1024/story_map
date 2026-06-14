@@ -1,5 +1,6 @@
 import sys
 import json
+import time
 import threading
 from pathlib import Path
 
@@ -120,3 +121,103 @@ def test_refresh_stellar_homepage_invalidates_renderer_cache_on_success(monkeypa
             "/tmp/story",
         ],
     ]
+
+
+def test_refresh_stellar_homepage_passes_timeout_to_subprocess(monkeypatch):
+    invalidated = []
+    timeouts = []
+
+    monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: "/tmp/story_map")
+    monkeypatch.setattr(artifacts, "_story_md_dir", lambda: "/tmp/story")
+    monkeypatch.setattr(artifacts, "_project_root", lambda: "/tmp/project")
+    monkeypatch.setattr(artifacts, "_invalidate_stellar_home_render_cache", lambda: invalidated.append(True))
+    monkeypatch.setattr(artifacts, "_homepage_refresh_timeout_seconds", lambda: 33)
+
+    class Completed:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    def _fake_run(command, **kwargs):
+        _ = command
+        timeouts.append(kwargs.get("timeout"))
+        return Completed()
+
+    monkeypatch.setattr(artifacts.subprocess, "run", _fake_run)
+
+    result = artifacts.refresh_stellar_homepage("苏轼")
+
+    assert result["ok"] is True
+    assert timeouts == [33, 33]
+    assert invalidated == [True]
+
+
+def test_refresh_stellar_homepage_returns_timeout_result_without_invalidating_cache(monkeypatch):
+    invalidated = []
+    commands = []
+
+    monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: "/tmp/story_map")
+    monkeypatch.setattr(artifacts, "_story_md_dir", lambda: "/tmp/story")
+    monkeypatch.setattr(artifacts, "_project_root", lambda: "/tmp/project")
+    monkeypatch.setattr(artifacts, "_invalidate_stellar_home_render_cache", lambda: invalidated.append(True))
+    monkeypatch.setattr(artifacts, "_homepage_refresh_timeout_seconds", lambda: 7)
+
+    def _fake_run(command, **kwargs):
+        _ = kwargs
+        commands.append(command)
+        raise artifacts.subprocess.TimeoutExpired(cmd=command, timeout=7, output="slow stdout", stderr="slow stderr")
+
+    monkeypatch.setattr(artifacts.subprocess, "run", _fake_run)
+
+    result = artifacts.refresh_stellar_homepage("苏轼")
+
+    assert result["ok"] is False
+    assert result["returncode"] == 124
+    assert "Command timed out after 7s" in result["output"]
+    assert "slow stdout" in result["output"]
+    assert invalidated == []
+    assert commands == [[sys.executable, "tools/build_pep_people_spotlight.py"]]
+
+
+def test_refresh_stellar_homepage_serializes_concurrent_calls(monkeypatch):
+    entered = []
+    active = 0
+    max_active = 0
+    guard = threading.Lock()
+
+    monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: "/tmp/story_map")
+    monkeypatch.setattr(artifacts, "_story_md_dir", lambda: "/tmp/story")
+    monkeypatch.setattr(artifacts, "_project_root", lambda: "/tmp/project")
+    monkeypatch.setattr(artifacts, "_invalidate_stellar_home_render_cache", lambda: None)
+    monkeypatch.setattr(artifacts, "_homepage_refresh_timeout_seconds", lambda: 30)
+
+    class Completed:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    def _fake_run(command, **kwargs):
+        nonlocal active, max_active
+        _ = command, kwargs
+        with guard:
+            active += 1
+            max_active = max(max_active, active)
+            entered.append(active)
+        time.sleep(0.02)
+        with guard:
+            active -= 1
+        return Completed()
+
+    monkeypatch.setattr(artifacts.subprocess, "run", _fake_run)
+
+    threads = [
+        threading.Thread(target=artifacts.refresh_stellar_homepage, args=("苏轼",)),
+        threading.Thread(target=artifacts.refresh_stellar_homepage, args=("辛弃疾",)),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert max_active == 1
+    assert entered

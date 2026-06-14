@@ -150,6 +150,26 @@ def create_generation_api(
             )
         return specs
 
+    def _apply_homepage_refresh_result(result: Dict[str, object], refresh_result: Dict[str, object]) -> Dict[str, object]:
+        normalized_refresh = dict(refresh_result or {}) if isinstance(refresh_result, dict) else {}
+        result["_homepage_refresh"] = normalized_refresh
+        if bool(normalized_refresh.get("ok")):
+            return result
+        detail = (
+            str(normalized_refresh.get("error") or "").strip()
+            or str(normalized_refresh.get("output") or "").strip()
+            or "首页刷新失败"
+        )
+        summary = f"首页刷新失败：{detail}"
+        result["ok"] = False
+        result["status"] = "degraded"
+        result["degraded"] = True
+        result["warning"] = summary
+        result["error"] = summary
+        result["homepage_refresh_failed"] = True
+        result["homepage_refresh_error"] = detail
+        return result
+
     def should_refresh_stellar_home(result: Dict[str, object]) -> bool:
         if not _is_usable_result(result):
             return False
@@ -209,7 +229,7 @@ def create_generation_api(
         )
         result["requested_person"] = requested_person
         if refresh_homepage and refresh_stellar_homepage and should_refresh_stellar_home(result):
-            result["_homepage_refresh"] = refresh_stellar_homepage(canonical_person)
+            result = _apply_homepage_refresh_result(result, refresh_stellar_homepage(canonical_person))
         result["_state"] = asdict(build_generation_state(canonical_person, result, requested_person=requested_person))
         return result
 

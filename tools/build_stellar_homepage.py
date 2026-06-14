@@ -45,9 +45,21 @@ except Exception:
     load_dotenv = None
 try:
     from storymap.script.env_utils import apply_story_map_env_aliases, env_flag
+    from storymap.script.graph_service import (
+        graph_backend_name,
+        load_home_graph_payload_with_source,
+        should_sync_to_neo4j,
+        sync_graph_payload_to_neo4j,
+        write_normalized_graph_json,
+    )
 except Exception:
     apply_story_map_env_aliases = None
     env_flag = None
+    graph_backend_name = None
+    load_home_graph_payload_with_source = None
+    should_sync_to_neo4j = None
+    sync_graph_payload_to_neo4j = None
+    write_normalized_graph_json = None
 if load_dotenv:
     load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
     load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
@@ -56,6 +68,7 @@ if apply_story_map_env_aliases:
     apply_story_map_env_aliases()
 STORY_MD_DIR = story_md_dir_path()
 STORY_MAP_DIR = story_artifacts_dir_path()
+GRAPH_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "graph"
 SPOTLIGHT_JSON = REPO_ROOT / "data" / "pep_people_spotlight.json"
 KNOWLEDGE_GRAPH_JSON = REPO_ROOT / "data" / "people_knowledge_graph.json"
 BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
@@ -3859,6 +3872,14 @@ def _render_index_html(title: str, data_file: str) -> str:
           return `<div class="${{cls}}"><div class="pixel-progress-agent-name">${{item.label}}</div><div class="pixel-progress-agent-role">${{item.role}}</div><div class="pixel-progress-agent-status">${{stateText}}</div></div>`;
         }}).join("");
       }};
+      const escapePixelLogHtml = (value) => {{
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }};
       const renderPixelProgressLog = (status, progress) => {{
         if (!$pixelGenLog) return;
         const items = (Array.isArray(progress) ? progress : []).slice(-5);
@@ -3873,8 +3894,9 @@ def _render_index_html(title: str, data_file: str) -> str:
           const detail = String((item && item.detail) || "").trim();
           const time = String((item && item.time) || "").trim();
           const labelText = time ? `${{label}} · ${{time}}` : label;
-          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${{detail}}</div>` : "";
-          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${{labelText}}</div>${{detailHtml}}</div>`;
+          const safeLabelText = escapePixelLogHtml(labelText);
+          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${{escapePixelLogHtml(detail)}}</div>` : "";
+          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${{safeLabelText}}</div>${{detailHtml}}</div>`;
         }}).join("");
       }};
       const updatePixelProgressPanel = (patch = {{}}) => {{
@@ -3985,6 +4007,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         $genStatus.classList.remove("hidden");
       }};
       const clearGenTask = () => {{
+        clearTaskPoll();
         try {{ localStorage.removeItem("stellar_gen_task_v1"); }} catch (_) {{}}
       }};
       const setGeneratingUI = (isGenerating) => {{
@@ -4013,6 +4036,58 @@ def _render_index_html(title: str, data_file: str) -> str:
         const id = setTimeout(() => controller.abort(), ms || 12000);
         return fetch(url, {{ cache: "no-store", signal: controller.signal }}).finally(() => clearTimeout(id));
       }};
+      const normalizeRelativeHtmlFile = (file) => {{
+        const raw = String(file || "").trim().replace(/^[.\/]+/, "");
+        if (!raw) return "";
+        return /\.html?$/i.test(raw) ? raw : "";
+      }};
+      const navigateToRelativeHtml = (file) => {{
+        const target = normalizeRelativeHtmlFile(file);
+        if (!target) return false;
+        window.location.href = "./" + encodeURIComponent(target);
+        return true;
+      }};
+      const resolveTaskResultHtml = (result, fallbackPerson) => {{
+        const files = Array.isArray(result && result.files) ? result.files : [];
+        for (const item of files) {{
+          const html = normalizeRelativeHtmlFile(item && item.html);
+          if (html) return html;
+        }}
+        const multiHtml = normalizeRelativeHtmlFile(result && result.multi ? result.multi.html : "");
+        if (multiHtml) return multiHtml;
+        const people = Array.isArray(result && result.people) ? result.people : [];
+        const preferredNames = [];
+        const primaryName = String(people.length ? people[0] : (fallbackPerson || "")).trim();
+        const fallbackName = String(fallbackPerson || "").trim();
+        if (primaryName) preferredNames.push(primaryName);
+        if (fallbackName && !preferredNames.includes(fallbackName)) preferredNames.push(fallbackName);
+        for (const name of preferredNames) {{
+          const found = nodes.find((n) => n && String(n.person || "").trim() === name) || null;
+          const html = normalizeRelativeHtmlFile(found && found.file ? found.file : (name ? (name + ".html") : ""));
+          if (html) return html;
+        }}
+        return "";
+      }};
+      let activeTaskPollId = "";
+      let activeTaskPollGeneration = 0;
+      let activeTaskPollTimer = 0;
+      const clearTaskPoll = () => {{
+        activeTaskPollId = "";
+        activeTaskPollGeneration += 1;
+        if (activeTaskPollTimer) {{
+          clearTimeout(activeTaskPollTimer);
+          activeTaskPollTimer = 0;
+        }}
+      }};
+      const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {{
+        if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
+        if (activeTaskPollTimer) clearTimeout(activeTaskPollTimer);
+        activeTaskPollTimer = setTimeout(() => {{
+          activeTaskPollTimer = 0;
+          if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
+          tick();
+        }}, ms);
+      }};
 
       const openPerson = (name) => {{
         const q = String(name || "").trim();
@@ -4024,10 +4099,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           return;
         }}
         const file = found && found.file ? String(found.file) : "";
-        if (file) {{
-          window.location.href = "./" + encodeURIComponent(file);
-          return;
-        }}
+        if (navigateToRelativeHtml(file)) return;
         ensurePersonGenerated(q);
       }};
       window.__openPerson = openPerson;
@@ -4035,8 +4107,14 @@ def _render_index_html(title: str, data_file: str) -> str:
       const pollTask = (taskId, personName) => {{
         const id = String(taskId || "").trim();
         if (!id) return;
+        if (activeTaskPollId === id) return;
+        clearTaskPoll();
+        activeTaskPollId = id;
+        activeTaskPollGeneration += 1;
+        const generation = activeTaskPollGeneration;
         const person = String(personName || "").trim();
         const tick = async () => {{
+          if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
           try {{
             const resp = await fetchWithTimeout(apiUrl("task?id=" + encodeURIComponent(id)), 12000);
@@ -4072,7 +4150,8 @@ def _render_index_html(title: str, data_file: str) -> str:
               stageKey: "queued",
             }});
             setGeneratingUI(true);
-            return setTimeout(tick, 900);
+            scheduleTaskPoll(id, generation, tick, 900);
+            return;
           }}
           if (st === "running") {{
             const ptxt = lastDetail ? (lastTxt + "：" + lastDetail) : lastTxt;
@@ -4089,7 +4168,8 @@ def _render_index_html(title: str, data_file: str) -> str:
               stageKey: resolvePixelStageKey(st, lastTxt, lastDetail, progress),
             }});
             setGeneratingUI(true);
-            return setTimeout(tick, 900);
+            scheduleTaskPoll(id, generation, tick, 900);
+            return;
           }}
           if (st === "failed") {{
             const summary = "分析失败：" + String(snapshot.error || "未知错误");
@@ -4153,7 +4233,10 @@ def _render_index_html(title: str, data_file: str) -> str:
               stageKey: "deliver",
             }});
             setGeneratingUI(false);
-            window.location.href = "./" + encodeURIComponent(person + ".html");
+            const targetHtml = resolveTaskResultHtml(result, person);
+            if (!navigateToRelativeHtml(targetHtml)) {{
+              setGenStatus("分析完成，但未找到可打开的人物页");
+            }}
             return;
           }}
           setGenStatus("分析任务状态异常，请稍后重试");
@@ -4184,7 +4267,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           if (headResp && headResp.ok) {{
             setGenStatus("");
             setGeneratingUI(false);
-            window.location.href = "./" + encodeURIComponent(person + ".html");
+            navigateToRelativeHtml(person + ".html");
             return;
           }}
         }} catch (_) {{}}
@@ -4965,19 +5048,32 @@ def _render_index_html(title: str, data_file: str) -> str:
             const quote = stripMd(String(n.quote || "").trim());
             const review = stripMd(String(n.review || "").trim());
             const tagline = stripOuterQuotes(review || quote);
-            const personJs = String(n.person || "")
-              .replace(/\\/g, "\\\\")
-              .replace(/'/g, "\\'");
-            let html = '';
-            html += '<div style="min-width:220px;max-width:280px">';
-            html += '<div style="font-weight:800;color:#0f172a;font-size:14px">' + esc(n.person) + '</div>';
-            html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">生卒：' + esc(years) + '</div>';
-            if (dynasty) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">时代：' + esc(dynasty) + '</div>';
-            if (bp) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">籍贯：' + esc(bp) + '</div>';
-            if (tagline) html += '<div style="margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4">“' + esc(tagline) + '”</div>';
-            html += "<div style=\"margin-top:8px\"><button onclick=\"window.__openPerson && window.__openPerson('" + personJs + "')\" style=\"background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer\">打开人物页</button></div>";
-            html += '</div>';
-            return html;
+            const root = document.createElement("div");
+            root.style.minWidth = "220px";
+            root.style.maxWidth = "280px";
+            const appendLine = (text, cssText) => {{
+              const el = document.createElement("div");
+              el.style.cssText = cssText;
+              el.textContent = text;
+              root.appendChild(el);
+            }};
+            appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
+            appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (bp) appendLine("籍贯：" + bp, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (tagline) appendLine("“" + tagline + "”", "margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4");
+            const actions = document.createElement("div");
+            actions.style.marginTop = "8px";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "打开人物页";
+            button.style.cssText = "background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer";
+            button.addEventListener("click", () => {{
+              openPerson(n && n.person ? n.person : "");
+            }});
+            actions.appendChild(button);
+            root.appendChild(actions);
+            return root;
           }};
 
           const openMarkerInfo = (n, lng, lat) => {{
@@ -5514,6 +5610,78 @@ def _sync_vendor_assets(story_map_dir: Path) -> None:
     shutil.copytree(src, story_map_dir / "vendor", dirs_exist_ok=True)
 
 
+def _prepare_home_payload_for_output(base_payload: Dict[str, Any], *, default_start: int, default_end: int) -> Dict[str, Any]:
+    try:
+        min_year = int(base_payload.get("min_year")) if base_payload.get("min_year") not in (None, "") else None
+    except Exception:
+        min_year = None
+    try:
+        max_year = int(base_payload.get("max_year")) if base_payload.get("max_year") not in (None, "") else None
+    except Exception:
+        max_year = None
+    nodes = base_payload.get("nodes") if isinstance(base_payload.get("nodes"), list) else []
+    edges = base_payload.get("edges") if isinstance(base_payload.get("edges"), list) else []
+    kg_edges = base_payload.get("kg_edges") if isinstance(base_payload.get("kg_edges"), list) else []
+    return {
+        **_build_payload_meta(),
+        "min_year": min_year if min_year is not None else MIN_YEAR,
+        "max_year": max_year if max_year is not None else MAX_YEAR,
+        "default_start": int(default_start),
+        "default_end": int(default_end),
+        "role_band_order": ROLE_BAND_ORDER,
+        "role_band_labels": ROLE_BAND_LABELS,
+        "search_capabilities": {
+            "aliases": True,
+            "foreign_name": True,
+            "pinyin": HAS_PINYIN,
+        },
+        "nodes": nodes,
+        "edges": edges,
+        "kg_edges": kg_edges,
+    }
+
+
+def _write_homepage_outputs(
+    *,
+    story_map_dir: Path,
+    out_index_name: str,
+    out_data_name: str,
+    title: str,
+    payload: Dict[str, Any],
+    active_redirects: Dict[str, str],
+    sync_payload_to_neo4j: bool,
+) -> Dict[str, Any]:
+    out_data = story_map_dir / str(out_data_name)
+    out_index = story_map_dir / str(out_index_name)
+    if write_normalized_graph_json:
+        try:
+            write_normalized_graph_json(payload, GRAPH_ARTIFACT_DIR / "normalized_graph.json")
+        except Exception:
+            pass
+    if sync_payload_to_neo4j and should_sync_to_neo4j and sync_graph_payload_to_neo4j:
+        try:
+            if should_sync_to_neo4j():
+                sync_graph_payload_to_neo4j(payload, replace=True)
+        except Exception:
+            pass
+    out_data.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_index.write_text(_render_index_html(title, out_data.name), encoding="utf-8")
+    for alias, canonical in active_redirects.items():
+        if not alias or not canonical:
+            continue
+        try:
+            redirect_path = story_map_dir / f"{alias}.html"
+            redirect_path.write_text(_render_person_alias_redirect_html(alias, canonical), encoding="utf-8")
+        except Exception:
+            pass
+    _sync_vendor_assets(story_map_dir)
+    return {
+        "index": str(out_index),
+        "data": str(out_data),
+        "count": len(payload.get("nodes") if isinstance(payload.get("nodes"), list) else []),
+    }
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--story-map-dir", default=str(STORY_MAP_DIR))
@@ -5524,6 +5692,7 @@ def main() -> int:
     p.add_argument("--title", default="故事地图")
     p.add_argument("--default-start", type=int, default=100)
     p.add_argument("--default-end", type=int, default=1600)
+    p.add_argument("--graph-source", choices=("auto", "build", "neo4j"), default="auto")
     args = p.parse_args()
 
     story_map_dir = Path(args.story_map_dir).resolve()
@@ -5907,7 +6076,7 @@ def main() -> int:
         base_split_markers = "当时|现|今|属|位于|位在|坐落于|附近|一带|境内|范围内|大致在"
         if split_markers:
             base_split_markers = f"{base_split_markers}|{split_markers}"
-        q = re.split(rf"(?:{base_split_markers})", q, 1)[0].strip()
+        q = re.split(rf"(?:{base_split_markers})", q, maxsplit=1)[0].strip()
         q = q.split("，", 1)[0].split(",", 1)[0].split("；", 1)[0].split(";", 1)[0].strip()
         return q
 
@@ -6117,6 +6286,47 @@ def main() -> int:
                     foreign_cache[addr] = res
 
     md_names = _scan_people_from_story_md(story_md_dir)
+    requested_graph_source = str(args.graph_source or "auto").strip().lower()
+    configured_graph_backend = graph_backend_name() if graph_backend_name else "file"
+    active_redirects = person_redirects(md_names) if md_names else {}
+
+    should_try_neo4j = requested_graph_source == "neo4j" or (
+        requested_graph_source == "auto" and configured_graph_backend == "neo4j"
+    )
+    if should_try_neo4j and load_home_graph_payload_with_source:
+        try:
+            graph_payload, graph_payload_source = load_home_graph_payload_with_source(
+                backend="neo4j",
+                strict_backend=(requested_graph_source == "neo4j"),
+            )
+        except Exception:
+            graph_payload, graph_payload_source = {}, ""
+        if (
+            graph_payload_source == "neo4j"
+            and isinstance(graph_payload, dict)
+            and isinstance(graph_payload.get("nodes"), list)
+            and graph_payload.get("nodes")
+        ):
+            payload = _prepare_home_payload_for_output(
+                graph_payload,
+                default_start=int(args.default_start),
+                default_end=int(args.default_end),
+            )
+            outputs = _write_homepage_outputs(
+                story_map_dir=story_map_dir,
+                out_index_name=str(args.out_index),
+                out_data_name=str(args.out_data),
+                title=str(args.title),
+                payload=payload,
+                active_redirects=active_redirects,
+                sync_payload_to_neo4j=False,
+            )
+            print(json.dumps({"ok": True, **outputs, "source": "neo4j"}, ensure_ascii=False))
+            return 0
+        if requested_graph_source == "neo4j":
+            print(json.dumps({"ok": False, "error": "neo4j graph payload unavailable"}, ensure_ascii=False))
+            return 1
+
     if not md_names:
         print(
             json.dumps(
@@ -6130,7 +6340,6 @@ def main() -> int:
         return 1
     # 首页只给“仍然只是别名”的名字生成跳转页；如果它已经有真实 Markdown，
     # 就不能再被 redirect 覆盖。
-    active_redirects = person_redirects(md_names)
     story_name_entries = _canonical_story_name_entries(md_names)
 
     spotlight_data = _read_json(spotlight_path)
@@ -6633,28 +6842,17 @@ def main() -> int:
     except Exception:
         kg_edges = []
 
-    min_year_v = MIN_YEAR
-    max_year_v = MAX_YEAR
-
-    out_data = story_map_dir / str(args.out_data)
-    out_index = story_map_dir / str(args.out_index)
-    payload = {
-        **_build_payload_meta(),
-        "min_year": min_year_v,
-        "max_year": max_year_v,
-        "default_start": int(args.default_start),
-        "default_end": int(args.default_end),
-        "role_band_order": ROLE_BAND_ORDER,
-        "role_band_labels": ROLE_BAND_LABELS,
-        "search_capabilities": {
-            "aliases": True,
-            "foreign_name": True,
-            "pinyin": HAS_PINYIN,
+    payload = _prepare_home_payload_for_output(
+        {
+            "min_year": MIN_YEAR,
+            "max_year": MAX_YEAR,
+            "nodes": nodes,
+            "edges": edges,
+            "kg_edges": kg_edges,
         },
-        "nodes": nodes,
-        "edges": edges,
-        "kg_edges": kg_edges,
-    }
+        default_start=int(args.default_start),
+        default_end=int(args.default_end),
+    )
     try:
         amap_cache_path.parent.mkdir(parents=True, exist_ok=True)
         payload_cache: Dict[str, Any] = {}
@@ -6693,18 +6891,16 @@ def main() -> int:
             BIRTH_COORDS_WGS84_JSON.write_text(json.dumps(payload_pbc, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         pass
-    out_data.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    out_index.write_text(_render_index_html(args.title, out_data.name), encoding="utf-8")
-    for alias, canonical in active_redirects.items():
-        if not alias or not canonical:
-            continue
-        try:
-            redirect_path = story_map_dir / f"{alias}.html"
-            redirect_path.write_text(_render_person_alias_redirect_html(alias, canonical), encoding="utf-8")
-        except Exception:
-            pass
-    _sync_vendor_assets(story_map_dir)
-    print(json.dumps({"ok": True, "index": str(out_index), "data": str(out_data), "count": len(nodes)}, ensure_ascii=False))
+    outputs = _write_homepage_outputs(
+        story_map_dir=story_map_dir,
+        out_index_name=str(args.out_index),
+        out_data_name=str(args.out_data),
+        title=str(args.title),
+        payload=payload,
+        active_redirects=active_redirects,
+        sync_payload_to_neo4j=True,
+    )
+    print(json.dumps({"ok": True, **outputs, "source": "build"}, ensure_ascii=False))
     return 0
 
 

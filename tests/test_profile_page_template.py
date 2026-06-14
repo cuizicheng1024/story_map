@@ -1,3 +1,4 @@
+import importlib
 import sys
 import typing
 from pathlib import Path
@@ -108,6 +109,94 @@ def test_render_profile_html_falls_back_to_raw_knowledge_graph(monkeypatch):
     assert "has_story" in han_wu_di
 
 
+def test_render_profile_html_prefers_shared_graph_service_payload(monkeypatch):
+    renderer._load_stellar_home_data.cache_clear()
+    renderer._build_stellar_home_fallback.cache_clear()
+    payload = {
+        "nodes": [
+            {
+                "person": "张骞",
+                "file": "张骞.html",
+                "dynasty": "西汉",
+                "birth_year": -164,
+                "death_year": -114,
+                "domain_tags": ["外交"],
+            },
+            {
+                "person": "汉武帝",
+                "file": "汉武帝.html",
+                "dynasty": "西汉",
+                "birth_year": -156,
+                "death_year": -87,
+                "domain_tags": ["政治"],
+            },
+        ],
+        "edges": [{"a": 0, "b": 1, "type": "bio", "label": "君臣", "confidence": 0.88}],
+    }
+    monkeypatch.setattr(renderer, "load_home_graph_payload", lambda _path=None: payload)
+
+    html = render_profile_html(
+        {
+            "person": {"name": "张骞", "dynasty": "西汉"},
+            "locations": [],
+            "highlights": {},
+            "markdown": "# 张骞\n\n张骞出使西域。",
+        }
+    )
+
+    related = (_extract_export_data_from_html(html).get("relatedGraph") or {}).get("nodes") or []
+    assert any(str(item.get("name") or "") == "汉武帝" for item in related)
+
+
+def test_related_people_graph_prefers_graph_service_result(monkeypatch):
+    renderer._load_stellar_home_data.cache_clear()
+    monkeypatch.setattr(
+        renderer,
+        "get_related_people_graph",
+        lambda person, markdown="", limit=6: {
+            "center": {"name": str(person.get("name") or ""), "isCenter": True},
+            "nodes": [{"name": str(person.get("name") or ""), "isCenter": True}, {"name": "汉武帝", "isCenter": False}],
+            "links": [{"source": str(person.get("name") or ""), "target": "汉武帝", "label": "君臣"}],
+        },
+    )
+    monkeypatch.setattr(renderer, "_load_stellar_home_data", lambda: (_ for _ in ()).throw(AssertionError("should not fallback")))
+
+    related = renderer._build_related_people_graph(
+        {
+            "person": {"name": "张骞", "dynasty": "西汉"},
+            "markdown": "# 张骞\n\n张骞出使西域。",
+        }
+    )
+
+    assert any(str(node.get("name") or "") == "汉武帝" for node in (related.get("nodes") or []))
+
+
+def test_related_people_graph_falls_back_when_graph_service_raises(monkeypatch):
+    renderer._load_stellar_home_data.cache_clear()
+    payload = {
+        "nodes": [
+            {"person": "张骞", "file": "张骞.html", "dynasty": "西汉"},
+            {"person": "汉武帝", "file": "汉武帝.html", "dynasty": "西汉"},
+        ],
+        "edges": [{"a": 0, "b": 1, "type": "bio", "label": "君臣", "confidence": 0.88}],
+    }
+    monkeypatch.setattr(
+        renderer,
+        "get_related_people_graph",
+        lambda person, markdown="", limit=6: (_ for _ in ()).throw(RuntimeError("neo4j unavailable")),
+    )
+    monkeypatch.setattr(renderer, "_load_stellar_home_data", lambda: payload)
+
+    related = renderer._build_related_people_graph(
+        {
+            "person": {"name": "张骞", "dynasty": "西汉"},
+            "markdown": "# 张骞\n\n张骞出使西域。",
+        }
+    )
+
+    assert any(str(node.get("name") or "") == "汉武帝" for node in (related.get("nodes") or []))
+
+
 def test_render_profile_html_injects_shared_person_tooltip_helper():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
@@ -200,7 +289,8 @@ def test_static_profile_page_tries_local_ai_proxy_on_localhost():
 
 
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
-    hints = typing.get_type_hints(renderer._canonical_person_name)
+    registry = importlib.import_module("storymap.script.person_registry")
+    hints = typing.get_type_hints(registry.canonical_person_name)
 
     assert "available_names" in hints
     assert hints["return"] is str
@@ -720,6 +810,8 @@ def test_profile_page_template_uses_recommended_question_cards_and_color_teachin
     assert "推荐问题" in html
     assert "推荐任务" not in html
     assert "const detectPromptProfile = () => {" in html
+    assert "(将军|将领|统帅|武将|领兵|统军|用兵|出征|征战|战役|战场|守边|军旅|军功|行伍|骑兵|北伐|东征|西征|南征)" in html
+    assert "(将军|将领|统帅|军|侯|王|征战|战役|战场|兵|骑|伐|守边|武将)" not in html
     assert "recommended-question-grid" in html
     assert "recommended-question-card" in html
     assert "recommended-question-kicker" in html
@@ -735,6 +827,22 @@ def test_profile_page_template_uses_context_aware_war_badge_rule():
     assert "const warPattern = /(战争|战事|战场|交战|作战|参战|战役|会战|抗战|抗敌|起义|兵变|兵败|兵临|用兵|出兵|撤兵|领兵|率军|统军|攻城|守城|攻伐|讨伐|征讨|征战|交锋)/;" in html
     assert "if (warPattern.test(pool)) push('war', '战争');" in html
     assert "if (/(战|伐|兵|军|攻|守|起义|征讨|抗战|会战|战役|交锋)/.test(pool)) push('war', '战争');" not in html
+
+
+def test_profile_page_template_uses_precise_travel_badge_rule():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const travelPattern = /(游历|巡游|巡幸|迁居|迁徙|迁往|迁至|迁到|出使|远行|远赴|流放|流寓|谪居|谪迁|入朝|赴任|奔赴|抵达|定居|南下|北上|东行|西行|启程)/;" in html
+    assert "if (travelPattern.test(pool)) push('travel', '行旅');" in html
+    assert "if (/(游|行|巡|迁|至|出使|远行|流放|谪|入朝|赴|抵达|定居)/.test(pool)) push('travel', '行旅');" not in html
+
+
+def test_profile_page_template_uses_precise_politics_badge_rule():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const politicsPattern = /(任官|出任|赴任|主政|执政|从政|辅政|摄政|拜相|为相|宰相|丞相|尚书|刺史|太守|封侯|封王|称王|称帝|即位|登基|改革|变法|新政)/;" in html
+    assert "if (politicsPattern.test(pool)) push('politics', '仕途');" in html
+    assert "if (/(任|官|相|帝|王|后|宰相|执政|改革|变法|称帝|即位|登基|拜相)/.test(pool)) push('politics', '仕途');" not in html
 
 
 def test_profile_page_template_avoids_repeated_map_reactivation_on_ready_tick():

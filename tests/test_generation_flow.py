@@ -197,6 +197,53 @@ def test_generate_for_person_rebuilds_when_cached_export_data_lacks_person_name(
     assert result["_profile"]["locations"] == [{"name": "河西走廊"}]
 
 
+def test_generate_for_person_hits_cache_for_new_runtime_config_loader_html(tmp_path):
+    person = "霍去病"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    md_path.write_text("# 霍去病\n\nNEW_MARKDOWN\n", encoding="utf-8")
+    html_path.write_text(
+        '<html><head><script src="./amap-config.js"></script></head>'
+        '<body><script>const data = {"person":{"name":"霍去病"},"locations":[]}; window.__EXPORT_DATA__ = data;</script>OLD</body></html>',
+        encoding="utf-8",
+    )
+    (tmp_path / "amap-config.js").write_text("window.AMAP_KEY='x';", encoding="utf-8")
+    (tmp_path / "geovis-config.js").write_text("window.GEOVIS_TOKEN='y';", encoding="utf-8")
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person=person,
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {"person": {"name": person}, "locations": []},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: (_ for _ in ()).throw(AssertionError("cache hit should not re-render html")),
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "mapStyle": {}, "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: str(html_path),
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is True
+    assert result["cached"] is True
+    assert result.get("refreshed") is not True
+    assert html_path.read_text(encoding="utf-8").endswith("OLD</body></html>")
+
+
 def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, monkeypatch):
     person = "李四光"
     md_path = tmp_path / f"{person}.md"
@@ -670,6 +717,86 @@ def test_story_map_wrapper_preserves_quality_degraded_result_as_usable(tmp_path,
     assert refreshed == [person]
 
 
+def test_story_map_wrapper_marks_homepage_refresh_failure_as_degraded(tmp_path, monkeypatch):
+    person = "霍去病"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+
+    monkeypatch.setattr(sm, "_story_paths", lambda _person: (str(md_path), str(html_path)))
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "geocode_markdown", lambda md: md)
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "validate_story_markdown", lambda _md: {"metrics": {}, "issues": []})
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "parse_story_markdown", lambda _md: {"points": []})
+    monkeypatch.setattr(
+        sm,
+        "generate_historical_markdown",
+        lambda _client, requested_person: f"# {requested_person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前140年 | 平阳 | 山西临汾 | 出生 |\n",
+    )
+    monkeypatch.setattr(
+        sm,
+        "load_profile_from_md",
+        lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "mapStyle": {}, "markdown": md},
+    )
+    monkeypatch.setattr(sm, "save_markdown", lambda _person, content: (md_path.write_text(content, encoding="utf-8"), str(md_path))[1])
+    monkeypatch.setattr(sm, "save_html", lambda _person, content: (html_path.write_text(content, encoding="utf-8"), str(html_path))[1])
+    monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{title}|{md}</body></html>")
+    monkeypatch.setattr(
+        sm,
+        "refresh_stellar_homepage",
+        lambda requested_person: {"ok": False, "person": requested_person, "returncode": 124, "output": "timeout"},
+    )
+
+    result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
+
+    assert result["ok"] is False
+    assert result["status"] == "degraded"
+    assert result["homepage_refresh_failed"] is True
+    assert result["homepage_refresh_error"] == "timeout"
+    assert "首页刷新失败" in result["error"]
+    assert result["_homepage_refresh"]["ok"] is False
+
+
+def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(tmp_path):
+    person = "李四光"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+
+    result = generation_service.generate_for_person(
+        client=object(),
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, requested_person: f"# {requested_person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1889年 | 黄冈 | 湖北黄冈 | 出生 |\n",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+        build_amap_config_js=lambda: (_ for _ in ()).throw(RuntimeError("amap config failed")),
+        build_geovis_config_js=lambda: b"window.GEOVIS_TOKEN='x';",
+    )
+
+    assert result["ok"] is False
+    assert result["status"] == "degraded"
+    assert result["runtime_config_failed"] is True
+    assert result["runtime_config_error"] == "amap config failed"
+    assert "运行时地图配置写入失败" in result["error"]
+
+
 def test_should_refresh_stellar_home_when_homepage_artifacts_are_missing(tmp_path):
     html_path = tmp_path / "霍去病.html"
     html_path.write_text("<html></html>", encoding="utf-8")
@@ -1061,7 +1188,7 @@ def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(tm
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
 
 
-def test_generate_for_person_cache_hit_keeps_cached_result_when_runtime_config_write_fails(tmp_path):
+def test_generate_for_person_cache_hit_marks_degraded_when_runtime_config_write_fails(tmp_path):
     md_path = tmp_path / "关羽.md"
     html_path = tmp_path / "关羽.html"
     md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
@@ -1112,7 +1239,10 @@ def test_generate_for_person_cache_hit_keeps_cached_result_when_runtime_config_w
         build_geovis_config_js=lambda: b'window.GEOVIS_TOKEN="geo";',
     )
 
-    assert result["ok"] is True
+    assert result["ok"] is False
+    assert result["status"] == "degraded"
+    assert result["runtime_config_failed"] is True
+    assert result["runtime_config_error"] == "readonly: amap-config.js"
     assert result["cached"] is True
     assert result["html_path"] == str(html_path)
     assert warnings

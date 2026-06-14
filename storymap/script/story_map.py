@@ -115,7 +115,7 @@ except ImportError:
     )
 
 
-load_project_env(from_file=__file__, override=True)
+load_project_env(from_file=__file__, override=False)
 apply_story_map_env_aliases()
 runtime_support_utils.apply_minimax_env_aliases()
 

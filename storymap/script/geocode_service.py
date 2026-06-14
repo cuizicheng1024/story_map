@@ -24,7 +24,7 @@ except ImportError:
     from story_agents import StoryAgentLLM
 
 
-load_project_env(from_file=__file__, override=True)
+load_project_env(from_file=__file__, override=False)
 apply_story_map_env_aliases()
 
 _LOGGER = logging.getLogger("story_map.geocode")

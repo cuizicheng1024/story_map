@@ -77,6 +77,20 @@ async def test_existing_person_story_map_page_loads_normally(monkeypatch, tmp_pa
     assert "window.__EXPORT_DATA__" in response.text
 
 
+async def test_generate_get_is_rejected_and_does_not_submit_task(monkeypatch):
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "submit_task",
+        lambda _value: (_ for _ in ()).throw(AssertionError("GET /generate should not submit tasks")),
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/generate", params={"person": "霍去病"})
+
+    assert response.status_code == 405
+    assert response.json() == {"ok": False, "error": "use POST /generate"}
+
+
 async def test_generate_then_poll_task_flow(monkeypatch):
     def _fake_generate(_client, person, **_kwargs):
         assert person == "霍去病"
@@ -199,6 +213,44 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     assert list_response.status_code == 200
     assert storage_response.status_code == 200
     assert maintain_response.status_code == 200
+
+
+async def test_task_is_marked_failed_when_homepage_refresh_failed(monkeypatch):
+    def _fake_generate(_client, person, **_kwargs):
+        return {
+            "ok": False,
+            "status": "degraded",
+            "degraded": True,
+            "person": person,
+            "error": "首页刷新失败：timeout",
+            "homepage_refresh_failed": True,
+            "homepage_refresh_error": "timeout",
+            "_homepage_refresh": {"ok": False, "returncode": 124, "output": "timeout"},
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {"person": {"name": person}, "locations": [], "mapStyle": {}},
+        }
+
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", _fake_generate)
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        submit = await client.post("/generate", json={"person": "霍去病"})
+        task_id = submit.json()["task_id"]
+        snapshot = None
+        for _ in range(40):
+            response = await client.get("/task", params={"id": task_id})
+            snapshot = response.json()
+            if snapshot.get("status") == "failed":
+                break
+            await anyio.sleep(0.05)
+
+    assert snapshot is not None
+    assert snapshot["status"] == "failed"
+    assert snapshot["status_info"]["code"] == "failed"
+    assert snapshot["result"]["failed_count"] == 1
+    assert snapshot["result"]["results"][0]["homepage_refresh_failed"] is True
+    assert snapshot["result"]["files"][0]["html"].endswith("/tmp/霍去病.html") or snapshot["result"]["files"][0]["html"] == "tmp/霍去病.html"
 
 
 async def test_task_debug_surface_partial_failed_status(monkeypatch):

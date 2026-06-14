@@ -3172,6 +3172,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
           return `<div class="${cls}"><div class="pixel-progress-agent-name">${item.label}</div><div class="pixel-progress-agent-role">${item.role}</div><div class="pixel-progress-agent-status">${stateText}</div></div>`;
         }).join("");
       };
+      const escapePixelLogHtml = (value) => {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      };
       const renderPixelProgressLog = (status, progress) => {
         if (!$pixelGenLog) return;
         const items = (Array.isArray(progress) ? progress : []).slice(-5);
@@ -3186,8 +3194,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const detail = String((item && item.detail) || "").trim();
           const time = String((item && item.time) || "").trim();
           const labelText = time ? `${label} · ${time}` : label;
-          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${detail}</div>` : "";
-          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${labelText}</div>${detailHtml}</div>`;
+          const safeLabelText = escapePixelLogHtml(labelText);
+          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${escapePixelLogHtml(detail)}</div>` : "";
+          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${safeLabelText}</div>${detailHtml}</div>`;
         }).join("");
       };
       const updatePixelProgressPanel = (patch = {}) => {
@@ -3298,6 +3307,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
         $genStatus.classList.remove("hidden");
       };
       const clearGenTask = () => {
+        clearTaskPoll();
         try { localStorage.removeItem("stellar_gen_task_v1"); } catch (_) {}
       };
       const setGeneratingUI = (isGenerating) => {
@@ -3326,6 +3336,58 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const id = setTimeout(() => controller.abort(), ms || 12000);
         return fetch(url, { cache: "no-store", signal: controller.signal }).finally(() => clearTimeout(id));
       };
+      const normalizeRelativeHtmlFile = (file) => {
+        const raw = String(file || "").trim().replace(/^[.\/]+/, "");
+        if (!raw) return "";
+        return /\.html?$/i.test(raw) ? raw : "";
+      };
+      const navigateToRelativeHtml = (file) => {
+        const target = normalizeRelativeHtmlFile(file);
+        if (!target) return false;
+        window.location.href = "./" + encodeURIComponent(target);
+        return true;
+      };
+      const resolveTaskResultHtml = (result, fallbackPerson) => {
+        const files = Array.isArray(result && result.files) ? result.files : [];
+        for (const item of files) {
+          const html = normalizeRelativeHtmlFile(item && item.html);
+          if (html) return html;
+        }
+        const multiHtml = normalizeRelativeHtmlFile(result && result.multi ? result.multi.html : "");
+        if (multiHtml) return multiHtml;
+        const people = Array.isArray(result && result.people) ? result.people : [];
+        const preferredNames = [];
+        const primaryName = String(people.length ? people[0] : (fallbackPerson || "")).trim();
+        const fallbackName = String(fallbackPerson || "").trim();
+        if (primaryName) preferredNames.push(primaryName);
+        if (fallbackName && !preferredNames.includes(fallbackName)) preferredNames.push(fallbackName);
+        for (const name of preferredNames) {
+          const found = nodes.find((n) => n && String(n.person || "").trim() === name) || null;
+          const html = normalizeRelativeHtmlFile(found && found.file ? found.file : (name ? (name + ".html") : ""));
+          if (html) return html;
+        }
+        return "";
+      };
+      let activeTaskPollId = "";
+      let activeTaskPollGeneration = 0;
+      let activeTaskPollTimer = 0;
+      const clearTaskPoll = () => {
+        activeTaskPollId = "";
+        activeTaskPollGeneration += 1;
+        if (activeTaskPollTimer) {
+          clearTimeout(activeTaskPollTimer);
+          activeTaskPollTimer = 0;
+        }
+      };
+      const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {
+        if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
+        if (activeTaskPollTimer) clearTimeout(activeTaskPollTimer);
+        activeTaskPollTimer = setTimeout(() => {
+          activeTaskPollTimer = 0;
+          if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
+          tick();
+        }, ms);
+      };
 
       const openPerson = (name) => {
         const q = String(name || "").trim();
@@ -3337,10 +3399,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           return;
         }
         const file = found && found.file ? String(found.file) : "";
-        if (file) {
-          window.location.href = "./" + encodeURIComponent(file);
-          return;
-        }
+        if (navigateToRelativeHtml(file)) return;
         ensurePersonGenerated(q);
       };
       window.__openPerson = openPerson;
@@ -3348,8 +3407,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
       const pollTask = (taskId, personName) => {
         const id = String(taskId || "").trim();
         if (!id) return;
+        if (activeTaskPollId === id) return;
+        clearTaskPoll();
+        activeTaskPollId = id;
+        activeTaskPollGeneration += 1;
+        const generation = activeTaskPollGeneration;
         const person = String(personName || "").trim();
         const tick = async () => {
+          if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
           try {
             const resp = await fetchWithTimeout(apiUrl("task?id=" + encodeURIComponent(id)), 12000);
@@ -3385,7 +3450,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
               stageKey: "queued",
             });
             setGeneratingUI(true);
-            return setTimeout(tick, 900);
+            scheduleTaskPoll(id, generation, tick, 900);
+            return;
           }
           if (st === "running") {
             const ptxt = lastDetail ? (lastTxt + "：" + lastDetail) : lastTxt;
@@ -3402,7 +3468,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
               stageKey: resolvePixelStageKey(st, lastTxt, lastDetail, progress),
             });
             setGeneratingUI(true);
-            return setTimeout(tick, 900);
+            scheduleTaskPoll(id, generation, tick, 900);
+            return;
           }
           if (st === "failed") {
             const summary = "分析失败：" + String(snapshot.error || "未知错误");
@@ -3466,7 +3533,10 @@ const buildPersonTooltipModel = (node, options = {}) => {
               stageKey: "deliver",
             });
             setGeneratingUI(false);
-            window.location.href = "./" + encodeURIComponent(person + ".html");
+            const targetHtml = resolveTaskResultHtml(result, person);
+            if (!navigateToRelativeHtml(targetHtml)) {
+              setGenStatus("分析完成，但未找到可打开的人物页");
+            }
             return;
           }
           setGenStatus("分析任务状态异常，请稍后重试");
@@ -3497,7 +3567,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if (headResp && headResp.ok) {
             setGenStatus("");
             setGeneratingUI(false);
-            window.location.href = "./" + encodeURIComponent(person + ".html");
+            navigateToRelativeHtml(person + ".html");
             return;
           }
         } catch (_) {}
@@ -4278,19 +4348,32 @@ const buildPersonTooltipModel = (node, options = {}) => {
             const quote = stripMd(String(n.quote || "").trim());
             const review = stripMd(String(n.review || "").trim());
             const tagline = stripOuterQuotes(review || quote);
-            const personJs = String(n.person || "")
-              .replace(/\\/g, "\\\\")
-              .replace(/'/g, "\\'");
-            let html = '';
-            html += '<div style="min-width:220px;max-width:280px">';
-            html += '<div style="font-weight:800;color:#0f172a;font-size:14px">' + esc(n.person) + '</div>';
-            html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">生卒：' + esc(years) + '</div>';
-            if (dynasty) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">时代：' + esc(dynasty) + '</div>';
-            if (bp) html += '<div style="margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px">籍贯：' + esc(bp) + '</div>';
-            if (tagline) html += '<div style="margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4">“' + esc(tagline) + '”</div>';
-            html += "<div style=\"margin-top:8px\"><button onclick=\"window.__openPerson && window.__openPerson('" + personJs + "')\" style=\"background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer\">打开人物页</button></div>";
-            html += '</div>';
-            return html;
+            const root = document.createElement("div");
+            root.style.minWidth = "220px";
+            root.style.maxWidth = "280px";
+            const appendLine = (text, cssText) => {
+              const el = document.createElement("div");
+              el.style.cssText = cssText;
+              el.textContent = text;
+              root.appendChild(el);
+            };
+            appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
+            appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (bp) appendLine("籍贯：" + bp, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (tagline) appendLine("“" + tagline + "”", "margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4");
+            const actions = document.createElement("div");
+            actions.style.marginTop = "8px";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "打开人物页";
+            button.style.cssText = "background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer";
+            button.addEventListener("click", () => {
+              openPerson(n && n.person ? n.person : "");
+            });
+            actions.appendChild(button);
+            root.appendChild(actions);
+            return root;
           };
 
           const openMarkerInfo = (n, lng, lat) => {

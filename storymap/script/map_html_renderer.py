@@ -1,19 +1,32 @@
 import hashlib
 import json
 import os
-import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     from .env_utils import apply_story_map_env_aliases, env_flag
-    from .person_registry import canonical_person_name, person_redirects
+    from .graph_service import (
+        build_home_graph_file_fallback,
+        get_related_people_graph,
+        get_related_people_graph_from_payload,
+        invalidate_graph_service_cache,
+        load_home_graph_payload,
+    )
+    from .person_registry import person_redirects
     from .person_tooltip_js import person_tooltip_js
     from .project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
 except ImportError:
     from env_utils import apply_story_map_env_aliases, env_flag
-    from person_registry import canonical_person_name, person_redirects
+    from graph_service import (
+        build_home_graph_file_fallback,
+        get_related_people_graph,
+        get_related_people_graph_from_payload,
+        invalidate_graph_service_cache,
+        load_home_graph_payload,
+    )
+    from person_registry import person_redirects
     from person_tooltip_js import person_tooltip_js
     from project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
 
@@ -24,8 +37,7 @@ apply_story_map_env_aliases()
 _TEMPLATE_DIR = Path(__file__).resolve().with_name("templates")
 _REPO_ROOT = project_root_path()
 _DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
-_PEOPLE_MASTER_JSON = _REPO_ROOT / "data" / "people_master.json"
-_KNOWLEDGE_GRAPH_JSON = _REPO_ROOT / "data" / "people_knowledge_graph.json"
+STELLAR_HOME_DATA_JSON = story_artifacts_dir_path() / "stellar_home_data.json"
 
 
 @lru_cache(maxsize=None)
@@ -46,6 +58,7 @@ def profile_render_dependency_paths(root: Optional[Path] = None) -> tuple[Path, 
         base_root / "storymap" / "script" / "parsers.py",
         base_root / "storymap" / "script" / "person_registry.py",
         base_root / "storymap" / "script" / "person_tooltip_js.py",
+        base_root / "storymap" / "script" / "graph_service.py",
         base_root / "storymap" / "script" / "profile_builder.py",
         _TEMPLATE_DIR / "profile_page.html",
         _TEMPLATE_DIR / "design_tokens.css",
@@ -461,311 +474,20 @@ window.__MAP_STORY_GEOVIS__ = {
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-STELLAR_HOME_DATA_JSON = story_artifacts_dir_path() / "stellar_home_data.json"
-
-
-def _to_int(value: Any) -> Optional[int]:
-    try:
-        if value is None:
-            return None
-        if isinstance(value, bool):
-            return None
-        if isinstance(value, int):
-            return int(value)
-        if isinstance(value, float):
-            return int(value)
-        text = str(value).strip()
-        if not text:
-            return None
-        m = re.search(r"(公元前|前)?\s*(-?\d{1,4})\s*年?", text)
-        if m:
-            num = int(m.group(2))
-            if m.group(1):
-                return -abs(num)
-            return num
-        m2 = re.search(r"-?\d{1,4}", text)
-        if m2:
-            return int(m2.group(0))
-    except Exception:
-        return None
-    return None
-
-
-def _normalize_dynasty(value: Any) -> str:
-    s = str(value or "").strip()
-    if not s:
-        return ""
-    for sep in ("（", "("):
-        if sep in s:
-            s = s.split(sep, 1)[0].strip()
-    for suffix in ("时期", "时代", "王朝"):
-        s = s.replace(suffix, "")
-    return s.strip()
-
-
-def _same_dynasty(a: Any, b: Any) -> bool:
-    sa = _normalize_dynasty(a)
-    sb = _normalize_dynasty(b)
-    if not sa or not sb:
-        return False
-    if sa == sb:
-        return True
-    if sa in sb or sb in sa:
-        return True
-    return len(sa) >= 2 and len(sb) >= 2 and sa[:2] == sb[:2]
-
-
-def _pick_year_range(person: Dict[str, Any], node: Optional[Dict[str, Any]] = None) -> tuple[Optional[int], Optional[int]]:
-    node = node or {}
-    birth = _to_int(((person.get("birth") or {}) if isinstance(person.get("birth"), dict) else {}).get("date"))
-    death = _to_int(((person.get("death") or {}) if isinstance(person.get("death"), dict) else {}).get("date"))
-    if birth is None:
-        birth = _to_int(node.get("birth_year"))
-    if death is None:
-        death = _to_int(node.get("death_year"))
-    if birth is None:
-        birth = _to_int(node.get("time_year"))
-    if death is None and birth is not None:
-        life_raw = str(person.get("lifespan") or "").strip()
-        life_years = _to_int(life_raw)
-        if life_years and 0 < life_years < 130:
-            death = birth + life_years
-    return birth, death
+def invalidate_stellar_home_data_cache() -> None:
+    _load_stellar_home_data.cache_clear()
+    _build_stellar_home_fallback.cache_clear()
+    invalidate_graph_service_cache()
 
 
 @lru_cache(maxsize=1)
 def _load_stellar_home_data() -> Dict[str, Any]:
-    try:
-        if STELLAR_HOME_DATA_JSON.exists():
-            payload = json.loads(STELLAR_HOME_DATA_JSON.read_text(encoding="utf-8"))
-            if isinstance(payload, dict) and isinstance(payload.get("nodes"), list) and isinstance(payload.get("edges"), list):
-                return payload
-    except Exception:
-        pass
-    return _build_stellar_home_fallback()
-
-
-def _read_json_file(path: Path) -> Dict[str, Any]:
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        return payload if isinstance(payload, dict) else {}
-    except Exception:
-        return {}
+    return load_home_graph_payload(STELLAR_HOME_DATA_JSON)
 
 
 @lru_cache(maxsize=1)
 def _build_stellar_home_fallback() -> Dict[str, Any]:
-    master = _read_json_file(_PEOPLE_MASTER_JSON)
-    people = master.get("people") if isinstance(master.get("people"), list) else []
-    nodes: List[Dict[str, Any]] = []
-    person_to_idx: Dict[str, int] = {}
-    for item in people:
-        if not isinstance(item, dict):
-            continue
-        if not bool(item.get("has_story")):
-            continue
-        name = str(item.get("person") or "").strip()
-        if not name or name in person_to_idx:
-            continue
-        person_to_idx[name] = len(nodes)
-        nodes.append(
-            {
-                "person": name,
-                "file": f"{name}.html",
-                "dynasty": str(item.get("dynasty") or "").strip(),
-                "birth_year": item.get("birth_year"),
-                "death_year": item.get("death_year"),
-                "aliases": [],
-                "domain_tags": [],
-            }
-        )
-
-    raw_graph = _read_json_file(_KNOWLEDGE_GRAPH_JSON)
-    raw_edges = raw_graph.get("edges") if isinstance(raw_graph.get("edges"), list) else []
-    edges: List[Dict[str, Any]] = []
-    for item in raw_edges:
-        if not isinstance(item, dict):
-            continue
-        source = str(item.get("source") or "").strip()
-        target = str(item.get("target") or "").strip()
-        if not source or not target or source == target:
-            continue
-        a = person_to_idx.get(source)
-        b = person_to_idx.get(target)
-        if a is None or b is None:
-            continue
-        edge_type = str(item.get("type") or "").strip().lower()
-        try:
-            weight = int(item.get("weight") or 0)
-        except Exception:
-            weight = 0
-        if edge_type not in {"manual", "same_book"} or weight < 2:
-            continue
-        if edge_type == "manual":
-            label = "人工关系"
-            confidence = 0.9
-        else:
-            label = "同册共现"
-            confidence = max(0.15, min(0.60, 0.15 + 0.07 * max(0, weight - 2)))
-        edges.append(
-            {
-                "a": a,
-                "b": b,
-                "type": edge_type,
-                "label": label,
-                "confidence": confidence,
-                "weight": weight,
-            }
-        )
-    return {"nodes": nodes, "edges": edges}
-
-
-def invalidate_stellar_home_data_cache() -> None:
-    _load_stellar_home_data.cache_clear()
-    _build_stellar_home_fallback.cache_clear()
-
-
-def _extract_markdown_title(markdown: str) -> str:
-    text = str(markdown or "")
-    m = re.search(r"^\s*#\s+([^\n#]+)", text, flags=re.MULTILINE)
-    return str(m.group(1) or "").strip() if m else ""
-
-
-def _normalize_person_token(value: Any) -> str:
-    s = str(value or "").strip()
-    if not s:
-        return ""
-    s = re.sub(r"[（(].*?[）)]", "", s).strip()
-    s = re.sub(r"[《》【】\[\]<>\"“”‘’·•\s]+", "", s)
-    return s.strip()
-
-
-def _canonical_person_name(value: Any, available_names: Optional[Iterable[str]] = None) -> str:
-    return canonical_person_name(value, available_names=available_names)
-
-
-def _collect_node_aliases(node: Dict[str, Any]) -> List[str]:
-    out: List[str] = []
-    seen = set()
-    alias_noise = re.compile(r"存疑|待考|说法不一|史料|一说|本名|原名|今译|误作|未详")
-
-    def push(value: Any, *, primary: bool = False) -> None:
-        raw = str(value or "").strip()
-        if not raw:
-            return
-        norm = _normalize_person_token(raw)
-        if len(norm) < 2 or norm in seen:
-            return
-        if alias_noise.search(norm):
-            return
-        if not primary and len(norm) < 3:
-            return
-        seen.add(norm)
-        # 展示层要保留原始字形；这里只用归一化结果做去重，避免把中点、
-        # 连字符等真实姓名样式压平成检索 token。
-        out.append(raw)
-
-    push(node.get("person"), primary=True)
-    for item in node.get("aliases") or []:
-        push(item)
-    return out
-
-
-def _guess_relation_label(context: str) -> str:
-    text = str(context or "")
-    if re.search(r"禅位|禅让|受禅|代汉", text):
-        return "禅让"
-    if re.search(r"父亲|母亲|兄长|弟弟|姐姐|妹妹|儿子|女儿|宗亲|皇叔|叔父|叔侄|兄弟|姐妹", text):
-        return "宗亲"
-    if re.search(r"师从|师事|老师|导师|弟子|门生|从学", text):
-        return "师生"
-    if re.search(r"好友|友人|朋友|结交|交游|唱和|酬答|相会", text):
-        return "好友"
-    if re.search(r"并称|齐名", text):
-        return "并称"
-    if re.search(r"拥立|废.*立|立.*为帝|挟天子|奉天子|迎.*至|迎.*都|控制|挟持|辅佐|主公|君臣|幕僚|部下|麾下|丞相", text):
-        return "君臣"
-    if re.search(r"政敌|对手|征讨|讨伐|反对|攻打|兵败|作乱", text):
-        return "对手"
-    return "人物关联"
-
-
-def _extract_markdown_relation_candidates(
-    markdown: str,
-    alias_to_idx: Dict[str, int],
-    nodes: List[Dict[str, Any]],
-    current_aliases: List[str],
-) -> List[tuple[float, str, Dict[str, Any], Optional[float]]]:
-    text = str(markdown or "")
-    if not text:
-        return []
-
-    current_set = {_normalize_person_token(x) for x in current_aliases if _normalize_person_token(x)}
-    hits: Dict[int, Dict[str, Any]] = {}
-    alias_items = sorted(alias_to_idx.items(), key=lambda item: len(item[0]), reverse=True)
-    for alias, idx in alias_items:
-        norm_alias = _normalize_person_token(alias)
-        if not norm_alias or norm_alias in current_set:
-            continue
-        start = 0
-        while True:
-            pos = text.find(alias, start)
-            if pos < 0:
-                break
-            start = pos + len(alias)
-            prefix = text[max(0, pos - 8):pos]
-            suffix = text[pos + len(alias):min(len(text), pos + len(alias) + 12)]
-            lo = max(0, pos - 10)
-            hi = min(len(text), pos + len(alias) + 10)
-            context = text[lo:hi]
-            item = hits.get(idx)
-            label = "人物关联"
-            suppress_sentence = False
-            if re.search(r"禅位于|禅让给|受禅于", prefix) or re.search(r"^(受禅|代汉|继位)", suffix):
-                label = "禅让"
-            elif "去世后" in suffix and "禅位" in suffix:
-                suppress_sentence = True
-            elif re.search(r"关系密切|联系紧密|交往密切|往来密切|来往密切", prefix + suffix + context):
-                label = "相关人物"
-            elif re.search(r"迎|挟持|控制|辅佐|拥立|废|立|奉天子|挟天子", prefix + suffix):
-                label = "君臣"
-            else:
-                label = _guess_relation_label(context)
-            used_sentence = False
-            if label == "人物关联" and not suppress_sentence:
-                left = max(text.rfind("。", 0, pos), text.rfind("\n", 0, pos), text.rfind("！", 0, pos), text.rfind("？", 0, pos))
-                right_candidates = [x for x in [text.find("。", pos), text.find("\n", pos), text.find("！", pos), text.find("？", pos)] if x >= 0]
-                right = min(right_candidates) if right_candidates else len(text)
-                sentence = text[(left + 1) if left >= 0 else 0:right]
-                label = _guess_relation_label(sentence)
-                used_sentence = label != "人物关联"
-            if label == "人物关联":
-                continue
-            score = 88.0
-            if label == "禅让":
-                score = 99.0
-            elif label == "君臣":
-                score = 97.0
-            elif label == "宗亲":
-                score = 96.0
-            elif label == "师生":
-                score = 95.0
-            elif label == "好友":
-                score = 94.0
-            elif label == "并称":
-                score = 93.0
-            elif label == "对手":
-                score = 92.0
-            if used_sentence:
-                score = min(score, 91.0)
-            if item is None or score > float(item.get("score") or 0):
-                hits[idx] = {"score": score, "label": label}
-    out: List[tuple[float, str, Dict[str, Any], Optional[float]]] = []
-    for idx, meta in hits.items():
-        if 0 <= idx < len(nodes):
-            out.append((float(meta["score"]), str(meta["label"]), nodes[idx], None))
-    out.sort(key=lambda item: (item[0], str(item[2].get("person") or "")), reverse=True)
-    return out
+    return build_home_graph_file_fallback()
 
 
 def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[str, Any]:
@@ -774,265 +496,16 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
     if not person_name:
         return {"center": {}, "nodes": [], "links": []}
 
-    payload = _load_stellar_home_data()
-    raw_nodes = payload.get("nodes") if isinstance(payload.get("nodes"), list) else []
-    raw_edges = payload.get("edges") if isinstance(payload.get("edges"), list) else []
-
     markdown = str(data.get("markdown") or "")
-    display_name = _extract_markdown_title(markdown) or person_name
-    current_aliases = [x for x in [person_name, display_name] if str(x or "").strip()]
+    try:
+        graph_result = get_related_people_graph(person, markdown=markdown, limit=limit)
+    except Exception:
+        graph_result = {}
+    if isinstance(graph_result, dict) and isinstance(graph_result.get("nodes"), list) and graph_result.get("nodes"):
+        return graph_result
 
-    nodes: List[Dict[str, Any]] = []
-    raw_idx_to_idx: Dict[int, int] = {}
-    person_to_idx: Dict[str, int] = {}
-    alias_to_idx: Dict[str, int] = {}
-    normalized_alias_to_idx: Dict[str, int] = {}
-    for idx, raw in enumerate(raw_nodes):
-        if not isinstance(raw, dict):
-            continue
-        item = dict(raw)
-        item["_idx"] = idx
-        compact_idx = len(nodes)
-        raw_idx_to_idx[idx] = compact_idx
-        name = str(item.get("person") or "").strip()
-        if name:
-            person_to_idx[name] = compact_idx
-        for alias in _collect_node_aliases(item):
-            alias_to_idx.setdefault(alias, compact_idx)
-            normalized = _normalize_person_token(alias)
-            if normalized:
-                normalized_alias_to_idx.setdefault(normalized, compact_idx)
-        nodes.append(item)
-    available_person_names = [str(node.get("person") or "").strip() for node in nodes if str(node.get("person") or "").strip()]
-
-    adjacency: Dict[int, List[tuple[int, Dict[str, Any]]]] = {}
-    for raw in raw_edges:
-        if not isinstance(raw, dict):
-            continue
-        try:
-            a = int(raw.get("a"))
-            b = int(raw.get("b"))
-        except Exception:
-            continue
-        if a < 0 or b < 0 or a == b:
-            continue
-        a_idx = raw_idx_to_idx.get(a)
-        b_idx = raw_idx_to_idx.get(b)
-        if a_idx is None or b_idx is None or a_idx == b_idx:
-            continue
-        adjacency.setdefault(a_idx, []).append((b_idx, raw))
-        adjacency.setdefault(b_idx, []).append((a_idx, raw))
-
-    current_idx = None
-    for alias in current_aliases:
-        normalized = _normalize_person_token(alias)
-        current_idx = normalized_alias_to_idx.get(normalized)
-        if current_idx is None:
-            current_idx = person_to_idx.get(str(alias).strip())
-        if current_idx is not None:
-            break
-    if current_idx is None:
-        current_idx = person_to_idx.get(person_name)
-    if current_idx is None and display_name:
-        current_idx = person_to_idx.get(display_name)
-    current_node = nodes[current_idx] if current_idx is not None else {}
-    current_dynasty = str(person.get("dynasty") or current_node.get("dynasty") or "").strip()
-    current_birth, current_death = _pick_year_range(person, current_node)
-    current_tags = {
-        str(x).strip()
-        for x in (current_node.get("domain_tags") if isinstance(current_node.get("domain_tags"), list) else [])
-        if str(x).strip()
-    }
-
-    selected: List[Dict[str, Any]] = []
-    seen_names = {person_name, display_name, str(current_node.get("person") or "").strip()}
-    seen_canonical_names = {
-        canonical
-        for canonical in (_canonical_person_name(name, available_person_names) for name in seen_names)
-        if canonical
-    }
-
-    def add_candidate(node: Dict[str, Any], relation_label: str, score: float, source_type: str, confidence: Optional[float] = None) -> None:
-        name = str(node.get("person") or "").strip()
-        canonical_name = _canonical_person_name(name, available_person_names)
-        if not name or name in seen_names or (canonical_name and canonical_name in seen_canonical_names):
-            return
-        file_name = str(node.get("file") or f"{name}.html").strip()
-        aliases = [x for x in _collect_node_aliases(node) if str(x or "").strip() and str(x).strip() != name][:4]
-        selected.append(
-            {
-                "id": name,
-                "name": name,
-                "file": file_name,
-                "dynasty": str(node.get("dynasty") or "").strip(),
-                "aliases": aliases,
-                "birth_year": _to_int(node.get("birth_year")),
-                "death_year": _to_int(node.get("death_year")),
-                "quote": str(node.get("quote") or "").strip(),
-                "review": str(node.get("review") or "").strip(),
-                "foreign_name": str(node.get("foreign_name") or "").strip(),
-                "main_role_label": str(node.get("main_role_label") or "").strip(),
-                "birthplace": str(node.get("birthplace") or "").strip(),
-                "birthplace_modern": str(node.get("birthplace_modern") or "").strip(),
-                "domain_tags": [str(x).strip() for x in (node.get("domain_tags") if isinstance(node.get("domain_tags"), list) else []) if str(x).strip()][:4],
-                "has_story": bool(node.get("has_story", True)),
-                "relationLabel": str(relation_label or "相关人物").strip() or "相关人物",
-                "sourceType": source_type,
-                "confidence": round(float(confidence), 2) if confidence is not None else None,
-                "_score": float(score),
-            }
-        )
-        seen_names.add(name)
-        if canonical_name:
-            seen_canonical_names.add(canonical_name)
-
-    if current_idx is not None:
-        explicit_edges = sorted(
-            adjacency.get(current_idx, []),
-            key=lambda item: (
-                float(item[1].get("confidence") or 0),
-                float(item[1].get("weight") or 0),
-                str(nodes[item[0]].get("person") or ""),
-            ),
-            reverse=True,
-        )
-        deferred_same_book_edges: List[tuple[int, Dict[str, Any]]] = []
-        for other_idx, edge in explicit_edges:
-            other = nodes[other_idx]
-            label = str(edge.get("label") or "相关人物").strip() or "相关人物"
-            edge_type = str(edge.get("type") or "graph").strip()
-            try:
-                confidence = float(edge.get("confidence"))
-            except Exception:
-                confidence = None
-            if edge_type == "same_book":
-                # “同册共现”只是弱信号，先暂存起来，避免把正文里明确提到的人物
-                # 或更高置信的人物边挤出有限名额。
-                deferred_same_book_edges.append((other_idx, edge))
-                continue
-            base_score = 100.0
-            if edge_type == "manual":
-                base_score = 104.0
-            score = base_score + (confidence or 0.0) * 10.0
-            try:
-                score += float(edge.get("weight") or 0)
-            except Exception:
-                pass
-            add_candidate(other, label, score, edge_type, confidence)
-            if len(selected) >= limit:
-                break
-
-    if len(selected) < limit:
-        for score, label, node, confidence in _extract_markdown_relation_candidates(markdown, alias_to_idx, nodes, current_aliases):
-            add_candidate(node, label, score, "markdown", confidence)
-            if len(selected) >= limit:
-                break
-
-    if current_idx is not None and len(selected) < limit:
-        # 只有更强的图谱边和正文关系都用完后，才用同册共现补齐剩余名额。
-        for other_idx, edge in deferred_same_book_edges:
-            other = nodes[other_idx]
-            label = str(edge.get("label") or "相关人物").strip() or "相关人物"
-            try:
-                confidence = float(edge.get("confidence"))
-            except Exception:
-                confidence = None
-            score = 78.0 + (confidence or 0.0) * 10.0
-            try:
-                score += float(edge.get("weight") or 0)
-            except Exception:
-                pass
-            add_candidate(other, label, score, "same_book", confidence)
-            if len(selected) >= limit:
-                break
-
-    if len(selected) < limit:
-        fallback: List[tuple[float, str, Dict[str, Any], Optional[float]]] = []
-        for node in nodes:
-            name = str(node.get("person") or "").strip()
-            if not name or name in seen_names:
-                continue
-            score = 0.0
-            same_dynasty = _same_dynasty(current_dynasty, node.get("dynasty"))
-            cand_tags = {
-                str(x).strip()
-                for x in (node.get("domain_tags") if isinstance(node.get("domain_tags"), list) else [])
-                if str(x).strip()
-            }
-            shared_tags = current_tags & cand_tags
-            cand_birth = _to_int(node.get("birth_year")) or _to_int(node.get("time_year"))
-            cand_death = _to_int(node.get("death_year"))
-            overlap = False
-            if current_birth is not None and current_death is not None and cand_birth is not None and cand_death is not None:
-                overlap = max(current_birth, cand_birth) <= min(current_death, cand_death)
-            if same_dynasty:
-                score += 60.0
-            if overlap:
-                score += 24.0
-            elif current_birth is not None and cand_birth is not None:
-                diff = abs(current_birth - cand_birth)
-                if diff <= 30:
-                    score += 18.0
-                elif diff <= 80:
-                    score += 10.0
-                elif diff <= 160:
-                    score += 4.0
-            if shared_tags:
-                score += 10.0 + min(12.0, 4.0 * len(shared_tags))
-            if score <= 0:
-                continue
-            if same_dynasty and shared_tags:
-                label = "同朝同领域"
-            elif same_dynasty:
-                label = "同时代人物"
-            elif shared_tags:
-                label = "同领域人物"
-            elif overlap:
-                label = "同时代人物"
-            else:
-                label = "相关人物"
-            fallback.append((score, label, node, None))
-        fallback.sort(key=lambda item: (item[0], str(item[2].get("person") or "")), reverse=True)
-        for score, label, node, confidence in fallback:
-            add_candidate(node, label, score, "fallback", confidence)
-            if len(selected) >= limit:
-                break
-
-    selected = sorted(selected, key=lambda item: item.get("_score", 0), reverse=True)[:limit]
-    for item in selected:
-        item.pop("_score", None)
-
-    center_file = str(current_node.get("file") or f"{display_name}.html").strip()
-    center = {
-        "id": display_name,
-        "name": display_name,
-        "file": center_file,
-        "dynasty": current_dynasty,
-        "aliases": [x for x in _collect_node_aliases(current_node) if str(x or "").strip() and str(x).strip() != display_name][:4],
-        "birth_year": current_birth,
-        "death_year": current_death,
-        "quote": str(current_node.get("quote") or person.get("quote") or "").strip(),
-        "review": str(current_node.get("review") or person.get("shortReview") or "").strip(),
-        "foreign_name": str(current_node.get("foreign_name") or "").strip(),
-        "main_role_label": str(current_node.get("main_role_label") or person.get("title") or "").strip(),
-        "birthplace": str(current_node.get("birthplace") or person.get("birthplace") or "").strip(),
-        "birthplace_modern": str(current_node.get("birthplace_modern") or "").strip(),
-        "domain_tags": [str(x).strip() for x in (current_node.get("domain_tags") if isinstance(current_node.get("domain_tags"), list) else []) if str(x).strip()][:4],
-        "has_story": bool(current_node.get("has_story", True)),
-        "relationLabel": "中心人物",
-        "isCenter": True,
-    }
-    links = [
-        {
-            "source": display_name,
-            "target": item["name"],
-            "label": item.get("relationLabel") or "相关人物",
-            "confidence": item.get("confidence"),
-        }
-        for item in selected
-    ]
-    nodes_out = [center] + [{**item, "isCenter": False} for item in selected]
-    return {"center": center, "nodes": nodes_out, "links": links}
+    payload = _load_stellar_home_data()
+    return get_related_people_graph_from_payload(person, payload, markdown=markdown, limit=limit)
 
 
 def build_info_panel_html(_title: str, fields: Dict[str, str]) -> str:

@@ -300,7 +300,7 @@ def _try_write_runtime_map_configs(
     logger: object,
     build_amap_config_js: Optional[Callable[[], bytes]] = None,
     build_geovis_config_js: Optional[Callable[[], bytes]] = None,
-) -> None:
+) -> str:
     try:
         _write_runtime_map_configs(
             html_path,
@@ -308,8 +308,10 @@ def _try_write_runtime_map_configs(
             build_amap_config_js=build_amap_config_js,
             build_geovis_config_js=build_geovis_config_js,
         )
+        return ""
     except Exception as exc:
         logger.warning("runtime_map_config_write_failed html_path=%s error=%s", html_path, exc)
+        return str(exc).strip() or "运行时地图配置写入失败"
 
 
 def _runtime_map_configs_missing(html_path: str) -> bool:
@@ -320,6 +322,52 @@ def _runtime_map_configs_missing(html_path: str) -> bool:
         os.path.exists(os.path.join(output_dir, "amap-config.js"))
         and os.path.exists(os.path.join(output_dir, "geovis-config.js"))
     )
+
+
+def _build_runtime_config_degraded_result(
+    *,
+    person: str,
+    html_path: str,
+    config_error: str,
+    steps: List[Dict[str, object]],
+    duration: Dict[str, str],
+    profile: object,
+    validation: object,
+    markdown_path: str = "",
+    cached: bool = False,
+    refreshed: bool = False,
+    used_existing_markdown: bool = False,
+    agent_runtime: Optional[Dict[str, object]] = None,
+) -> Dict[str, object]:
+    quality_issues = _validation_issues(validation)
+    summary = f"运行时地图配置写入失败：{str(config_error or '').strip() or '未知错误'}"
+    if quality_issues:
+        summary = f"{summary}；{'；'.join(quality_issues[:2])}"
+    result: Dict[str, object] = {
+        "ok": False,
+        "status": "degraded",
+        "degraded": True,
+        "person": person,
+        "error": summary,
+        "warning": summary,
+        "html_path": html_path,
+        "steps": steps,
+        "duration": duration,
+        "_profile": profile,
+        "_validation": validation,
+        "cached": bool(cached),
+        "refreshed": bool(refreshed),
+        "used_existing_markdown": bool(used_existing_markdown),
+        "runtime_config_failed": True,
+        "runtime_config_error": str(config_error or "").strip(),
+    }
+    if markdown_path:
+        result["markdown_path"] = markdown_path
+    if quality_issues:
+        result["quality_issue_summary"] = "；".join(quality_issues[:3])
+    if agent_runtime:
+        result["_agent_runtime"] = agent_runtime
+    return result
 
 
 def generate_for_person(
@@ -368,7 +416,7 @@ def generate_for_person(
         needs_refresh = (
             ("export-bar" in cached_html)
             or ("leaflet" in cached_html)
-            or ("/amap-config.js" not in cached_html)
+            or ("amap-config.js" not in cached_html)
             or cache_stale_by_code
             or cache_stale_by_markdown
         )
@@ -387,13 +435,26 @@ def generate_for_person(
                     export_data["markdown"] = md
                     validation = validate_story_markdown_tool(md)
             if _is_usable_export_profile(export_data):
+                config_error = ""
                 if _runtime_map_configs_missing(html_path):
-                    _try_write_runtime_map_configs(
+                    config_error = _try_write_runtime_map_configs(
                         html_path,
                         write_text=write_text,
                         logger=logger,
                         build_amap_config_js=build_amap_config_js,
                         build_geovis_config_js=build_geovis_config_js,
+                    )
+                if config_error:
+                    return _build_runtime_config_degraded_result(
+                        person=person,
+                        html_path=html_path,
+                        markdown_path=md_path if os.path.exists(md_path) else "",
+                        config_error=config_error,
+                        steps=[{"label": "命中缓存", "duration": "0.00s"}],
+                        duration={"total": "0.00s"},
+                        profile=export_data,
+                        validation=validation,
+                        cached=True,
                     )
                 if _validation_issues(validation):
                     return _build_quality_degraded_result(
@@ -423,7 +484,7 @@ def generate_for_person(
                 export_data["markdown"] = md
             html = render_profile_html(export_data)
             write_text(html_path, html)
-            _try_write_runtime_map_configs(
+            config_error = _try_write_runtime_map_configs(
                 html_path,
                 write_text=write_text,
                 logger=logger,
@@ -431,6 +492,19 @@ def generate_for_person(
                 build_geovis_config_js=build_geovis_config_js,
             )
             validation = validate_story_markdown_tool(md) if md else {"metrics": {}, "issues": []}
+            if config_error:
+                return _build_runtime_config_degraded_result(
+                    person=person,
+                    html_path=html_path,
+                    markdown_path=md_path if os.path.exists(md_path) else "",
+                    config_error=config_error,
+                    steps=[{"label": "刷新缓存", "duration": "0.00s"}],
+                    duration={"total": "0.00s"},
+                    profile=export_data,
+                    validation=validation,
+                    cached=True,
+                    refreshed=True,
+                )
             if _validation_issues(validation):
                 return _build_quality_degraded_result(
                     person=person,
@@ -460,7 +534,7 @@ def generate_for_person(
                 profile["markdown"] = md
                 html = render_profile_html(profile)
                 write_text(html_path, html)
-                _try_write_runtime_map_configs(
+                config_error = _try_write_runtime_map_configs(
                     html_path,
                     write_text=write_text,
                     logger=logger,
@@ -468,6 +542,19 @@ def generate_for_person(
                     build_geovis_config_js=build_geovis_config_js,
                 )
                 validation = validate_story_markdown_tool(md)
+                if config_error:
+                    return _build_runtime_config_degraded_result(
+                        person=person,
+                        html_path=html_path,
+                        markdown_path=md_path,
+                        config_error=config_error,
+                        steps=[{"label": "刷新缓存", "duration": "0.00s"}],
+                        duration={"total": "0.00s"},
+                        profile=profile,
+                        validation=validation,
+                        cached=True,
+                        refreshed=True,
+                    )
                 if _validation_issues(validation):
                     return _build_quality_degraded_result(
                         person=person,
@@ -529,7 +616,7 @@ def generate_for_person(
             progress(f"{person} 文件写入")
         t_step = time.perf_counter()
         out = save_html(person, html)
-        _try_write_runtime_map_configs(
+        config_error = _try_write_runtime_map_configs(
             out,
             write_text=write_text,
             logger=logger,
@@ -552,6 +639,18 @@ def generate_for_person(
                 render_error=render_error,
                 fallback_html_path=out,
                 markdown_path=md_path,
+                steps=steps,
+                duration=duration,
+                profile=profile,
+                validation=validation,
+                used_existing_markdown=True,
+            )
+        if config_error:
+            return _build_runtime_config_degraded_result(
+                person=person,
+                html_path=out,
+                markdown_path=md_path,
+                config_error=config_error,
                 steps=steps,
                 duration=duration,
                 profile=profile,
@@ -626,7 +725,7 @@ def generate_for_person(
         progress(f"{person} 保存分析产物")
     t_step = time.perf_counter()
     out = save_html(person, html)
-    _try_write_runtime_map_configs(
+    config_error = _try_write_runtime_map_configs(
         out,
         write_text=write_text,
         logger=logger,
@@ -649,6 +748,23 @@ def generate_for_person(
             render_error=render_error,
             fallback_html_path=out,
             markdown_path=saved,
+            steps=[
+                {"label": "生成人物档案", "duration": format_seconds(t_md)},
+                {"label": "解析地点坐标", "duration": format_seconds(t_geo)},
+                {"label": "构建时空结果", "duration": format_seconds(t_render)},
+                {"label": "保存分析产物", "duration": format_seconds(t_save)},
+            ],
+            duration=duration,
+            profile=profile,
+            validation=validation,
+            agent_runtime=agent_runtime,
+        )
+    if config_error:
+        return _build_runtime_config_degraded_result(
+            person=person,
+            html_path=out,
+            markdown_path=saved,
+            config_error=config_error,
             steps=[
                 {"label": "生成人物档案", "duration": format_seconds(t_md)},
                 {"label": "解析地点坐标", "duration": format_seconds(t_geo)},

@@ -109,6 +109,18 @@ def _write_text(path: str, content: str) -> None:
         f.write(content)
 
 
+_HOMEPAGE_REFRESH_LOCK = threading.Lock()
+
+
+def _homepage_refresh_timeout_seconds() -> int:
+    raw = str(os.getenv("STORY_MAP_HOMEPAGE_REFRESH_TIMEOUT", "120") or "120").strip()
+    try:
+        timeout_s = int(raw)
+    except Exception:
+        timeout_s = 120
+    return max(1, timeout_s)
+
+
 def _extract_export_data_from_html(html_text: str) -> Optional[Dict[str, object]]:
     if not isinstance(html_text, str) or not html_text.strip():
         return None
@@ -232,22 +244,40 @@ def refresh_stellar_homepage(person: str = "") -> Dict[str, object]:
     ]
     outputs = []
     completed = None
-    for command in commands:
-        completed = subprocess.run(
-            command,
-            cwd=_project_root(),
-            capture_output=True,
-            text=True,
-        )
-        command_output = "\n".join(
-            part.strip()
-            for part in (completed.stdout or "", completed.stderr or "")
-            if part and part.strip()
-        ).strip()
-        if command_output:
-            outputs.append(command_output)
-        if completed.returncode != 0:
-            break
+    timeout_s = _homepage_refresh_timeout_seconds()
+    with _HOMEPAGE_REFRESH_LOCK:
+        for command in commands:
+            try:
+                completed = subprocess.run(
+                    command,
+                    cwd=_project_root(),
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_s,
+                )
+            except subprocess.TimeoutExpired as exc:
+                timeout_output = "\n".join(
+                    part.strip()
+                    for part in (
+                        str(exc.stdout or "").strip(),
+                        str(exc.stderr or "").strip(),
+                        f"Command timed out after {timeout_s}s: {' '.join(command)}",
+                    )
+                    if part and part.strip()
+                ).strip()
+                if timeout_output:
+                    outputs.append(timeout_output)
+                completed = type("CompletedTimeout", (), {"returncode": 124, "stdout": "", "stderr": ""})()
+                break
+            command_output = "\n".join(
+                part.strip()
+                for part in (completed.stdout or "", completed.stderr or "")
+                if part and part.strip()
+            ).strip()
+            if command_output:
+                outputs.append(command_output)
+            if completed.returncode != 0:
+                break
     output = "\n".join(outputs).strip()
     returncode = int(getattr(completed, "returncode", 1) or 0)
     if returncode == 0:
