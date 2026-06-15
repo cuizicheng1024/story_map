@@ -248,6 +248,282 @@ def _extract_location_points(text: str) -> list[tuple[str, str]]:
     return points
 
 
+def _normalize_place_match_key(text: str) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    raw = re.sub(r"[（(].*?[）)]", "", raw)
+    raw = re.sub(r"^(今|现|今称|现称)\s*", "", raw)
+    raw = re.sub(r"[，,。.;；:：、】【\\[\\]{}<>《》\"'“”‘’·•/\\\\|-]+", "", raw)
+    raw = re.sub(r"(省|市|县|区|州|郡|府|道|路|镇|乡|村|国)$", "", raw)
+    raw = re.sub(r"\s+", "", raw)
+    return raw.strip()
+
+
+def _location_alias_tokens(text: str) -> list[str]:
+    raw = str(text or "").strip()
+    if not raw:
+        return []
+    tokens: list[str] = []
+    for candidate in [raw, re.sub(r"[（(].*?[）)]", "", raw).strip()]:
+        candidate = str(candidate or "").strip()
+        if candidate and candidate not in tokens:
+            tokens.append(candidate)
+    for inner in re.findall(r"[（(]([^）)]+)[）)]", raw):
+        for part in re.split(r"[、，,；;/]|或", inner):
+            clean = str(part or "").strip()
+            if clean and clean not in tokens:
+                tokens.append(clean)
+    return tokens
+
+
+def _is_placeholder_place(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw:
+        return False
+    return any(token in raw for token in ("出生地", "去世地", "重要地点", "存疑", "说法不一"))
+
+
+def _extract_year_value(text: str) -> int | None:
+    raw = str(text or "").strip()
+    if not raw:
+        return None
+    match = re.search(r"(公元前|前)?\s*(\d{1,4})", raw)
+    if not match:
+        return None
+    value = int(match.group(2))
+    if match.group(1):
+        return -value
+    return value
+
+
+def _extract_year_range(text: str) -> tuple[int, int] | None:
+    raw = str(text or "").strip()
+    if not raw:
+        return None
+    values: list[int] = []
+    for match in re.finditer(r"(公元前|前)?\s*(\d{1,4})", raw):
+        value = int(match.group(2))
+        if match.group(1):
+            value = -value
+        values.append(value)
+    if not values:
+        return None
+    return min(values), max(values)
+
+
+def _extract_ancient_modern_from_position(name: str, position: str) -> tuple[str, str]:
+    label = _normalize_location_label(name)
+    if any(token in label for token in ("出生地", "去世地", "重要地点", "存疑", "说法不一")):
+        label = ""
+    raw_position = str(position or "").strip()
+    modern = ""
+    modern_match = re.search(r"[（(]\s*今\s*([^）)]+)[）)]", raw_position)
+    if modern_match:
+        modern_candidate = modern_match.group(1).strip()
+        if _is_safe_geocode_candidate(modern_candidate):
+            modern = _clean_geocode_candidate(modern_candidate)
+    if not modern:
+        modern_candidate = _clean_geocode_candidate(raw_position)
+        if _is_safe_geocode_candidate(modern_candidate):
+            modern = modern_candidate
+    if not label:
+        ancient_candidate = re.sub(r"[（(]\s*今\s*[^）)]+[）)]", "", raw_position).strip()
+        ancient_candidate = re.sub(r"^(说法不一[，,、；;]\s*)", "", ancient_candidate)
+        ancient_candidate = re.sub(r"^(?:一说|又说|或说|一作|一为)\s*", "", ancient_candidate)
+        for sep in ("，一说", ",一说", "；", ";", "，", ",", "、", "或", "/"):
+            if sep in ancient_candidate:
+                ancient_candidate = ancient_candidate.split(sep, 1)[0].strip()
+                break
+        ancient_candidate = re.sub(r"^(?:地点|位置)[:：]\s*", "", ancient_candidate)
+        ancient_candidate = re.sub(r"^(?:说法不一|存疑)\s*", "", ancient_candidate).strip("：: ，,")
+        if ancient_candidate:
+            label = ancient_candidate
+    return label, modern
+
+
+def _extract_location_point_records(text: str) -> list[dict[str, object]]:
+    match = LOCATION_SECTION_RE.search(text)
+    if not match:
+        return []
+    start = match.end()
+    tail = text[start:]
+    next_section = re.search(r"^##\s+", tail, re.M)
+    section = tail[: next_section.start()] if next_section else tail
+    records: list[dict[str, object]] = []
+    current_label = ""
+    current_name = ""
+    current_time = ""
+    current_event = ""
+    current_position = ""
+    for raw in section.splitlines():
+        stripped = raw.strip()
+        heading = LOCATION_HEADING_RE.match(stripped)
+        if heading:
+            if current_name:
+                ancient, modern = _extract_ancient_modern_from_position(current_name, current_position)
+                records.append(
+                    {
+                        "label": current_label,
+                        "name": current_name,
+                        "time": current_time,
+                        "event": current_event,
+                        "position": current_position,
+                        "ancient": ancient,
+                        "modern": modern,
+                        "year_range": _extract_year_range(current_time),
+                    }
+                )
+            current_label = heading.group(1).strip()
+            current_name = _normalize_location_label(current_label)
+            current_time = ""
+            current_event = ""
+            current_position = ""
+            continue
+        position = POSITION_RE.match(stripped)
+        if position and not current_position:
+            current_position = position.group(1).strip()
+            continue
+        field = FIELD_RE.match(stripped)
+        if not field:
+            continue
+        key, value = field.groups()
+        value = value.strip()
+        if key in {"时间", "公元纪年"} and not current_time:
+            current_time = value
+        elif key in {"事件", "事迹", "经过"} and not current_event:
+            current_event = value
+    if current_name:
+        ancient, modern = _extract_ancient_modern_from_position(current_name, current_position)
+        records.append(
+            {
+                "label": current_label,
+                "name": current_name,
+                "time": current_time,
+                "event": current_event,
+                "position": current_position,
+                "ancient": ancient,
+                "modern": modern,
+                "year_range": _extract_year_range(current_time),
+            }
+        )
+    return records
+
+
+def _score_timeline_location_match(
+    year_text: str,
+    event_text: str,
+    point: dict[str, object],
+) -> tuple[int, bool]:
+    score = 0
+    explicit = False
+    raw_event = str(event_text or "").strip()
+    normalized_event = _normalize_place_match_key(raw_event)
+    for candidate in (
+        point.get("name"),
+        point.get("ancient"),
+        point.get("modern"),
+        point.get("position"),
+    ):
+        for text in _location_alias_tokens(str(candidate or "").strip()):
+            if len(text) >= 2 and text in raw_event:
+                score = max(score, 8)
+                explicit = True
+                break
+            normalized_candidate = _normalize_place_match_key(text)
+            if normalized_candidate and len(normalized_candidate) >= 2 and normalized_candidate in normalized_event:
+                score = max(score, 6)
+                explicit = True
+                break
+        if explicit:
+            break
+    year_value = _extract_year_value(year_text)
+    year_range = point.get("year_range")
+    if year_value is not None and isinstance(year_range, tuple) and len(year_range) == 2:
+        start, end = year_range
+        if start <= year_value <= end:
+            score += 4 if start == end == year_value else 3
+    label = str(point.get("label") or "")
+    if ("出生地" in label) and any(token in raw_event for token in ("生于", "出生")):
+        score += 3
+    if ("去世地" in label) and any(token in raw_event for token in ("去世", "病逝", "逝于", "卒于")):
+        score += 3
+    return score, explicit
+
+
+def _fill_timeline_locations_from_sections(text: str) -> str:
+    points = _extract_location_point_records(text)
+    if not points:
+        return text
+    timeline_match = TIMELINE_SECTION_RE.search(text)
+    if not timeline_match:
+        return text
+    start = timeline_match.end()
+    tail = text[start:]
+    next_section = re.search(r"^##\s+", tail, re.M)
+    end = start + next_section.start() if next_section else len(text)
+    body = text[start:end]
+    lines = body.splitlines()
+    table_lines = [line for line in lines if line.strip().startswith("|")]
+    if len(table_lines) < 2:
+        return text
+    header = [cell.strip() for cell in table_lines[0].strip().strip("|").split("|")]
+    if len(header) < 4 or "古称" not in header[1] or "现称" not in header[2] or "事件" not in header[3]:
+        return text
+
+    rebuilt: list[str] = []
+    changed = False
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            rebuilt.append(line)
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            rebuilt.append(line)
+            continue
+        if cells == header:
+            rebuilt.append(line)
+            continue
+        if len(cells) < 4:
+            rebuilt.append(line)
+            continue
+        ancient = cells[1]
+        modern = cells[2]
+        if ancient and modern and not _is_placeholder_place(ancient):
+            rebuilt.append(line)
+            continue
+        scored: list[tuple[int, bool, int, dict[str, object]]] = []
+        for idx, point in enumerate(points):
+            score, explicit = _score_timeline_location_match(cells[0], cells[3], point)
+            if score > 0:
+                scored.append((score, explicit, idx, point))
+        scored.sort(key=lambda item: (item[0], item[1], -item[2]), reverse=True)
+        if not scored:
+            rebuilt.append(line)
+            continue
+        best_score, best_explicit, _best_idx, best_point = scored[0]
+        second_score = scored[1][0] if len(scored) > 1 else -1
+        if best_score < 8 and not (best_explicit and best_score >= 6) and not (best_score >= 7 and second_score < best_score):
+            rebuilt.append(line)
+            continue
+        candidate_ancient = str(best_point.get("ancient") or "").strip()
+        if (not ancient) or _is_placeholder_place(ancient):
+            new_ancient = candidate_ancient or ancient
+        else:
+            new_ancient = ancient
+        new_modern = modern or str(best_point.get("modern") or "").strip()
+        if not new_ancient and not new_modern:
+            rebuilt.append(line)
+            continue
+        updated = [cells[0], new_ancient, new_modern, cells[3]]
+        rebuilt.append(f"| {updated[0]} | {updated[1]} | {updated[2]} | {updated[3]} |")
+        changed = True
+    if not changed:
+        return text
+    return text[:start] + "\n" + "\n".join(rebuilt).strip("\n") + "\n\n" + text[end:]
+
+
 def _clean_geocode_candidate(text: str) -> str:
     raw = str(text or "").strip()
     raw = re.sub(r"^今", "", raw)
@@ -482,6 +758,98 @@ def _upgrade_two_column_timeline(text: str) -> str:
     return text[:start] + "\n" + "\n".join(rebuilt).strip("\n") + "\n\n" + text[end:]
 
 
+def _upgrade_legacy_three_column_timeline(text: str) -> str:
+    timeline_match = TIMELINE_SECTION_RE.search(text)
+    if not timeline_match:
+        return text
+    start = timeline_match.end()
+    tail = text[start:]
+    next_section = re.search(r"^##\s+", tail, re.M)
+    end = start + next_section.start() if next_section else len(text)
+    body = text[start:end]
+    lines = body.splitlines()
+    table_lines = [line for line in lines if line.strip().startswith("|")]
+    if len(table_lines) < 2:
+        return text
+
+    header = [cell.strip() for cell in table_lines[0].strip().strip("|").split("|")]
+    if len(header) != 3 or "年份" not in header[0]:
+        return text
+    if any("古称" in cell or "现称" in cell for cell in header):
+        return text
+    if not any("事件" in cell for cell in header):
+        return text
+
+    middle_label = header[1] or "补充信息"
+    rebuilt: list[str] = []
+    converted = False
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            rebuilt.append(line)
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) == 3:
+            if not converted:
+                rebuilt.append("| 年份 | 古称 | 现称 | 事件 |")
+                converted = True
+            elif all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+                rebuilt.append("| --- | --- | --- | --- |")
+            else:
+                year = cells[0]
+                context = cells[1]
+                event = cells[2]
+                if context and context not in {"—", "-"}:
+                    event = f"（{middle_label}：{context}）{event}" if event else f"{middle_label}：{context}"
+                rebuilt.append(f"| {year} |  |  | {event} |")
+            continue
+        rebuilt.append(line)
+    if not converted:
+        return text
+    return text[:start] + "\n" + "\n".join(rebuilt).strip("\n") + "\n\n" + text[end:]
+
+
+def _upgrade_single_column_timeline(text: str) -> str:
+    timeline_match = TIMELINE_SECTION_RE.search(text)
+    if not timeline_match:
+        return text
+    start = timeline_match.end()
+    tail = text[start:]
+    next_section = re.search(r"^##\s+", tail, re.M)
+    end = start + next_section.start() if next_section else len(text)
+    body = text[start:end]
+    lines = body.splitlines()
+    table_lines = [line for line in lines if line.strip().startswith("|")]
+    if len(table_lines) < 2:
+        return text
+
+    header = [cell.strip() for cell in table_lines[0].strip().strip("|").split("|")]
+    if len(header) != 1 or not any("事件" in cell for cell in header):
+        return text
+
+    rebuilt: list[str] = []
+    converted = False
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            rebuilt.append(line)
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) == 1:
+            if not converted:
+                rebuilt.append("| 年份 | 古称 | 现称 | 事件 |")
+                converted = True
+            elif re.fullmatch(r":?-{3,}:?", cells[0]):
+                rebuilt.append("| --- | --- | --- | --- |")
+            else:
+                rebuilt.append(f"|  |  |  | {cells[0]} |")
+            continue
+        rebuilt.append(line)
+    if not converted:
+        return text
+    return text[:start] + "\n" + "\n".join(rebuilt).strip("\n") + "\n\n" + text[end:]
+
+
 def fix_file(path: Path) -> bool:
     original = path.read_text(encoding="utf-8")
     updated = original
@@ -490,6 +858,9 @@ def fix_file(path: Path) -> bool:
     updated = _normalize_location_headings(updated)
     updated = _ensure_timeline_section(updated)
     updated = _upgrade_two_column_timeline(updated)
+    updated = _upgrade_legacy_three_column_timeline(updated)
+    updated = _upgrade_single_column_timeline(updated)
+    updated = _fill_timeline_locations_from_sections(updated)
     updated = _ensure_coords_section(updated)
     updated = _populate_coords_table(updated)
     updated = _align_coords_table_with_location_headings(updated)

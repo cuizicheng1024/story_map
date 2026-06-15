@@ -346,7 +346,7 @@ def test_get_related_people_graph_returns_empty_on_neo4j_failure(monkeypatch):
     assert related == {}
 
 
-def test_get_related_people_graph_from_payload_preserves_story_alias_pages():
+def test_get_related_people_graph_from_payload_dedupes_story_alias_pages():
     payload = {
         "nodes": [
             {"person": "王安石", "file": "王安石.html", "dynasty": "北宋", "birth_year": 1021, "death_year": 1086, "domain_tags": ["文学"]},
@@ -367,4 +367,4 @@ def test_get_related_people_graph_from_payload_preserves_story_alias_pages():
 
     names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
     assert names.count("苏轼") == 1
-    assert names.count("苏东坡") == 1
+    assert names.count("苏东坡") == 0

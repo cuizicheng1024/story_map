@@ -9,7 +9,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from env_utils import apply_story_map_env_aliases
-from runtime_support import collect_startup_issues
+from runtime_support import collect_startup_issues, strict_startup_enabled
 
 
 def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
@@ -67,3 +67,16 @@ def test_collect_startup_issues_reports_missing_story_dir(tmp_path):
     issues = collect_startup_issues(str(tmp_path))
 
     assert any("缺少人物故事目录" in item for item in issues["errors"])
+
+
+def test_strict_startup_enabled_defaults_to_true(monkeypatch):
+    monkeypatch.delenv("STORY_MAP_STRICT_STARTUP", raising=False)
+    monkeypatch.delenv("MAP_STORY_STRICT_STARTUP", raising=False)
+
+    assert strict_startup_enabled() is True
+
+
+def test_strict_startup_enabled_respects_explicit_false(monkeypatch):
+    monkeypatch.setenv("STORY_MAP_STRICT_STARTUP", "0")
+
+    assert strict_startup_enabled() is False

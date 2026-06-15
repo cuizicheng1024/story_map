@@ -423,6 +423,7 @@ def test_proxy_service_resets_executor_after_timeout(monkeypatch):
         assert payload["choices"][0]["message"]["content"] == "fallback"
         assert payload["meta"]["used_fallback"] is True
         assert payload["meta"]["source"] == "fallback"
+        assert payload["meta"]["fallback_reason"] == "timeout"
         assert service._executor is not original_executor
     finally:
         service.shutdown()

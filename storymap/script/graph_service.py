@@ -1018,13 +1018,13 @@ def get_related_people_graph_from_payload(
     seen_names = {person_name, display_name, str(current_node.get("person") or "").strip()}
     seen_canonical_names = {
         canonical
-        for canonical in (canonical_person_name(name, available_names=available_person_names) for name in seen_names)
+        for canonical in (canonical_person_name(name) for name in seen_names)
         if canonical
     }
 
     def add_candidate(node: Dict[str, Any], relation_label: str, score: float, source_type: str, confidence: Optional[float] = None) -> None:
         name = str(node.get("person") or "").strip()
-        canonical_name = canonical_person_name(name, available_names=available_person_names)
+        canonical_name = canonical_person_name(name)
         if not name or name in seen_names or (canonical_name and canonical_name in seen_canonical_names):
             return
         file_name = str(node.get("file") or f"{name}.html").strip()

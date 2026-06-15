@@ -228,6 +228,7 @@ def test_profile_template_marks_posthumous_events_instead_of_fake_age():
     assert "const deathYear = useMemo(() => extractYear(deathDate), [deathDate]);" in html
     assert "if (deathYear && year > deathYear) return null;" in html
     assert "if (isPosthumousEvent(loc)) return '身后';" in html
+    assert "if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';" in html
     assert "return badgeText && name ? `${badgeText}\\n${name}` : (badgeText || name);" in html
     assert 'class="map-point-label-badge"' in html
     assert 'class="map-point-label-name"' in html
@@ -296,7 +297,7 @@ def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     assert hints["return"] is str
 
 
-def test_related_people_graph_preserves_real_story_alias_pages(monkeypatch):
+def test_related_people_graph_dedupes_real_story_alias_pages(monkeypatch):
     renderer._load_stellar_home_data.cache_clear()
     payload = {
         "nodes": [
@@ -341,7 +342,7 @@ def test_related_people_graph_preserves_real_story_alias_pages(monkeypatch):
 
     names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
     assert names.count("苏轼") == 1
-    assert names.count("苏东坡") == 1
+    assert names.count("苏东坡") == 0
 
 
 def test_related_people_graph_preserves_raw_alias_display_for_foreign_names(monkeypatch):
@@ -690,8 +691,8 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "const getAmapBoundsPadding = (containerWidth) => {" in html
     assert "const getAmapFocusPadding = (containerWidth) => {" in html
     assert "const getMapPointLabelOffset = (idx) => {" in html
-    assert "maplibre: [0, isEndpoint ? -20 : -16]," in html
-    assert "amap: [0, isEndpoint ? -30 : -24]," in html
+    assert "maplibre: [0, isEndpoint ? -24 : -20]," in html
+    assert "amap: [0, isEndpoint ? -34 : -28]," in html
     assert "offset: new AMap.Pixel(labelOffset.amap[0], labelOffset.amap[1])," in html
     assert "const amapEl = document.getElementById('map-amap');" in html
     assert "map = new AMap.Map('map-amap', {" in html
@@ -792,14 +793,23 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert "related-graph-edge-line" not in html
     assert "const getPresetSlots = (side, size) => {" not in html
     assert "edgePath: `M 50 50 Q ${controlX} ${controlY} ${placed.x} ${placed.y}`," not in html
+    assert "const normalizePersonToken = (value) => (" in html
+    assert "const centerPersonNameTokens = useMemo(() => new Set(" in html
     assert "const normalizePromptPlaceName = (loc) => {" in html
     assert "/(存疑|说法不一|不详|待考|未详|一说|或说|另说)/.test(raw)" in html
     assert "const placeName = findPromptPlaceName();" in html
     assert ".related-graph-board::before {" in html
     assert ".related-graph-board::after {" in html
     assert "grid-template-columns: minmax(0, 1fr) 160px minmax(0, 1fr);" in html
-    assert "width: 136px;" in html
-    assert '<div className="related-graph-core-name">{RELATED_GRAPH_CENTER_COPY}</div>' in html
+    assert "width: 156px;" in html
+    assert ".related-graph-core-subtitle {" in html
+    assert "font-size: 21px;" in html
+    assert "0 0 0 10px color-mix(in srgb, var(--graph-accent) 10%, transparent)," in html
+    assert "const relatedGraphCenterTitle = useMemo(" in html
+    assert "const relatedGraphCenterSubtitle = relatedGraphCenterTitle === RELATED_GRAPH_CENTER_COPY ? '' : '人物生平';" in html
+    assert '<div className="related-graph-core-name">{relatedGraphCenterTitle}</div>' in html
+    assert '<div className="related-graph-core-subtitle">{relatedGraphCenterSubtitle}</div>' in html
+    assert '<div className="related-graph-core-name">{RELATED_GRAPH_CENTER_COPY}</div>' not in html
     assert '<div className="related-graph-entry-name">{node.name}</div>' in html
     assert '<div className="related-graph-entry-dot" />' in html
     assert '<div className="related-graph-board">' in html
@@ -815,6 +825,17 @@ def test_profile_page_template_removes_chat_llm_explanation_copy():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "优先调用 LLM 进行人物对话；若接口暂不可用，则自动回退到人物档案库回答。" not in html
+    assert "const getChatFallbackNotice = (meta, error) => {" in html
+    assert "当前对话服务不可达，已切换为人物档案库回答。" in html
+    assert "LLM 响应超时，已切换为人物档案库回答。" in html
+    assert "LLM 调用失败，已切换为人物档案库回答。" in html
+    assert "当前未接通 LLM 接口，已切换为人物档案库回答。" not in html
+
+
+def test_profile_page_template_supports_h3_chat_markdown():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const heading = t.match(/^(#{1,6})\\s+(.*)$/);" in html
 
 
 def test_profile_page_template_removes_floating_chat_button_and_keeps_inline_entry():
@@ -971,6 +992,16 @@ def test_profile_page_template_shows_age_and_city_name_on_map_node_labels():
     assert 'class="map-point-label-text"' in html
     assert 'class="map-point-label-badge"' in html
     assert 'class="map-point-label-name"' in html
+    assert "font-size: 11px;" in html
+    assert "maplibre: [0, isEndpoint ? -24 : -20]," in html
+    assert "amap: [0, isEndpoint ? -34 : -28]," in html
+
+
+def test_profile_page_template_does_not_fake_zero_age_for_unknown_start_age():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const ageText = getAgeText(loc) || (idx === 0 ? '年龄待考' : (idx === totalEvents - 1 ? '终章' : '年龄待考'));" in html
+    assert "return ageText || '0岁';" not in html
 
 
 def test_profile_page_template_uses_high_contrast_amap_text_label_style():

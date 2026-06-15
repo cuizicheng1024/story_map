@@ -45,7 +45,8 @@ def test_create_agent_tools_expose_expected_names():
         "validate_markdown",
     }
     assert tools["search_person_info"].__tool__.retry_count == 2
-    assert tools["generate_markdown"].__tool__.timeout_seconds == 25.0
+    assert tools["search_person_info"].__tool__.timeout_seconds == 60.0
+    assert tools["generate_markdown"].__tool__.timeout_seconds == 60.0
     assert tools["generate_markdown"].__tool__.retry_count == 0
     assert "llm" not in tools["search_person_info"].__tool__.tags
     assert tools["generate_markdown"].__tool__.permission == "read"
@@ -172,10 +173,10 @@ def test_default_agent_llm_calls_bound_runtime_requests():
     )
 
     assert markdown == "# 李白\n"
-    assert llm.calls[0]["timeout"] == 20
-    assert llm.calls[0]["max_retries"] == 1
-    assert llm.calls[1]["timeout"] == 22
-    assert llm.calls[1]["max_retries"] == 1
+    assert llm.calls[0]["timeout"] == 60
+    assert llm.calls[0]["max_retries"] == 2
+    assert llm.calls[1]["timeout"] == 60
+    assert llm.calls[1]["max_retries"] == 2
 
 
 def test_story_markdown_agent_revises_after_critic_feedback():

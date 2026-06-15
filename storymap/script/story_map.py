@@ -126,7 +126,7 @@ if not _LOGGER.handlers:
 _STARTUP_ISSUES = runtime_support_utils.validate_startup_or_raise(
     _LOGGER,
     _project_root(),
-    strict=runtime_support_utils.env_flag("STORY_MAP_STRICT_STARTUP", "MAP_STORY_STRICT_STARTUP"),
+    strict=runtime_support_utils.strict_startup_enabled(),
 )
 
 
@@ -296,7 +296,7 @@ def _build_conclusion(results: List[Dict[str, object]], multi: bool) -> str:
     return runtime_support_utils.build_conclusion(results, multi)
 
 
-_MAX_CONCURRENCY = 5
+_MAX_CONCURRENCY = 10
 _COLOR_PALETTE = ("#1e40af", "#c2410c", "#15803d", "#7c3aed", "#0f766e", "#b91c1c")
 _RUNTIME_API = story_runtime_api_utils.create_runtime_api(
     app_factory_utils=app_factory_utils,

@@ -337,6 +337,37 @@ def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_ex
     assert "四川省眉山市" in str(profile["locations"][0]["modernName"] or "")
 
 
+def test_sort_profile_locations_keeps_unknown_birth_before_dated_death():
+    loc_items = [
+        {
+            "name": "巴西郡（阆中）",
+            "type": "normal",
+            "time": "214年-221年",
+            "event": "长期镇守此地。",
+            "significance": "",
+        },
+        {
+            "name": "阆中",
+            "type": "death",
+            "time": "221年",
+            "event": "遇害。",
+            "significance": "",
+        },
+        {
+            "name": "涿郡",
+            "type": "birth",
+            "time": "生年不详",
+            "event": "出生。",
+            "significance": "",
+        },
+    ]
+
+    ordered = profile_builder._sort_profile_locations(loc_items)
+
+    assert [item["type"] for item in ordered] == ["birth", "normal", "death"]
+    assert [item["name"] for item in ordered] == ["涿郡", "巴西郡（阆中）", "阆中"]
+
+
 def test_build_profile_data_uses_coords_table_as_last_resort_when_info_exists_but_no_locations():
     md = """# 测试人物
 

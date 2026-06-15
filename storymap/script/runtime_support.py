@@ -20,6 +20,13 @@ def env_flag(*names: str) -> bool:
     return first_env(*names).strip().lower() in {"1", "true", "yes", "on", "y"}
 
 
+def strict_startup_enabled() -> bool:
+    raw = first_env("STORY_MAP_STRICT_STARTUP", "MAP_STORY_STRICT_STARTUP")
+    if not raw:
+        return True
+    return raw.strip().lower() in {"1", "true", "yes", "on", "y"}
+
+
 def apply_minimax_env_aliases() -> None:
     key = first_env(
         "LLM_API_KEY",

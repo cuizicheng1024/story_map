@@ -44,6 +44,7 @@ class ProxyService:
         content = ""
         used_fallback = False
         source = "llm"
+        fallback_reason = ""
         future = None
         try:
             client = self._get_llm_client()
@@ -55,9 +56,11 @@ class ProxyService:
                 future.cancel()
             self._reset_executor()
             self._logger.warning("llm_proxy_primary_timeout error=%s", exc)
+            fallback_reason = "timeout"
             content = ""
         except Exception as exc:
             self._logger.warning("llm_proxy_primary_failed error=%s", exc)
+            fallback_reason = "llm_request_failed"
             content = ""
         if not content:
             local_result = {}
@@ -78,11 +81,17 @@ class ProxyService:
                 content = self._local_history_reply(messages)
                 used_fallback = True
                 source = "fallback"
+                if not fallback_reason:
+                    fallback_reason = "empty_response"
         if content:
             content = content.encode("utf-8", "replace").decode("utf-8", "replace")
         payload = {
             "choices": [{"message": {"content": content or ""}}],
-            "meta": {"used_fallback": used_fallback, "source": source},
+            "meta": {
+                "used_fallback": used_fallback,
+                "source": source,
+                "fallback_reason": fallback_reason,
+            },
         }
         if source == "local_agent":
             payload["meta"]["person_name"] = str(local_result.get("person_name") or "").strip()

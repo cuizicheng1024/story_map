@@ -209,7 +209,7 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'id="pixelGenScene"' in html
     assert 'id="pixelGenSceneTitle"' in html
     assert "Story Console" in html
-    assert ">飞飞</div>" in html
+    assert ">橙子Agent</div>" in html
     assert ">空闲中</div>" in html
     assert 'aria-expanded="false"' in html
     assert 'id="pixelGenBody" class="pixel-progress-body" style="display:none"' in html
@@ -254,15 +254,20 @@ def test_render_index_html_hides_hu_huanyong_midpoint_dot():
     assert 'speechText: next.speech,' in html
 
 
-def test_render_index_html_uses_leopard_cat_pixel_palette_for_workbench_pet():
+def test_render_index_html_uses_orange_image_workbench_pet():
     module = importlib.import_module("tools.build_stellar_homepage")
 
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
-    assert "--ocelot-base: #b98a52;" in html
-    assert "--ocelot-spot: #4f3624;" in html
-    assert "--ocelot-eye: #90bf47;" in html
-    assert "box-shadow: 8px -3px 0 -1px rgba(107, 74, 51, 0.82);" in html
+    assert module.HOMEPAGE_PET_ASSET_OUTPUT_NAME == "orange.png"
+    assert 'class="pixel-orange-pet-wrap"' in html
+    assert 'class="pixel-orange-pet-img"' in html
+    assert './orange.png' in html
+    assert 'alt="橙子工位形象"' in html
+    assert "pixel-orange-pet-fallback" in html
+    assert '>橙子Agent<' in html
+    assert "吃猫条" not in html
+    assert 'data-idle-scene="idle"' in html
     assert "box-shadow:" in html
 
 
@@ -272,9 +277,35 @@ def test_render_index_html_uses_post_generate_for_missing_people():
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     assert 'const fetchWithTimeout = (url, ms, init) => {' in html
-    assert 'fetchWithTimeout(apiUrl("generate"), 12000, { method: "POST"' in html
+    assert 'const generateUrl = apiUrl("generate");' in html
+    assert 'fetchWithTimeout(generateUrl, 12000, { method: "POST"' in html
     assert 'body: JSON.stringify({ person })' in html
     assert 'apiUrl("generate?person="' not in html
+
+
+def test_render_index_html_falls_back_to_local_fastapi_api_base_for_static_preview():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'const resolvedApiBase = (() => {' in html
+    assert 'const isLocalHost = host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".localhost");' in html
+    assert 'const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);' in html
+    assert 'const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith(".local");' in html
+    assert 'return loc.protocol + "//" + runtimeHost + ":8765";' in html
+    assert 'if (resolvedApiBase) {' in html
+    assert 'return resolvedApiBase.replace(/\\/+$/, "") + "/" + rel;' in html
+
+
+def test_render_index_html_normalizes_generated_html_paths_to_leaf_filename():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'const cleaned = raw.split("#")[0].split("?")[0].replace(/\\\\/g, "/").replace(/^[.\\/]+/, "");' in html
+    assert 'const parts = cleaned.split("/").filter(Boolean);' in html
+    assert 'const leaf = parts.length ? parts[parts.length - 1] : "";' in html
+    assert 'return /\\.html?$/i.test(leaf) ? leaf : "";' in html
 
 
 def test_render_index_html_uses_google_palette_for_pixel_progress_panel():

@@ -72,6 +72,14 @@ GRAPH_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "graph"
 SPOTLIGHT_JSON = REPO_ROOT / "data" / "pep_people_spotlight.json"
 KNOWLEDGE_GRAPH_JSON = REPO_ROOT / "data" / "people_knowledge_graph.json"
 BIRTH_COORDS_WGS84_JSON = REPO_ROOT / "data" / "people_birth_coords_wgs84.json"
+HOMEPAGE_PET_ASSET_OUTPUT_NAME = "orange.png"
+HOMEPAGE_PET_ASSET_CANDIDATES = [
+    REPO_ROOT / "tools" / "orange.png",
+    REPO_ROOT / "orange.png",
+    REPO_ROOT / "orange.PNG",
+    REPO_ROOT / "tools" / "orange-avatar.png",
+    REPO_ROOT / "orange-avatar.png",
+]
 MIN_YEAR = -800
 MAX_YEAR = 2000
 DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
@@ -1451,7 +1459,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         opacity: 0.58;
         pointer-events: none;
       }}
-      .pixel-progress-scene[data-idle-scene="snack"] {{
+      .pixel-progress-scene[data-idle-scene="idle"] {{
         background:
           radial-gradient(circle at 18% 18%, rgba(255, 204, 128, 0.24), transparent 28%),
           radial-gradient(circle at 82% 24%, rgba(255, 146, 84, 0.14), transparent 22%),
@@ -1552,6 +1560,57 @@ def _render_index_html(title: str, data_file: str) -> str:
         width: 138px;
         height: 112px;
         flex: 0 0 auto;
+      }}
+      .pixel-orange-pet-wrap {{
+        position: relative;
+        width: 138px;
+        height: 112px;
+        flex: 0 0 auto;
+        transition: transform 0.28s ease, filter 0.28s ease;
+      }}
+      .pixel-orange-pet-img {{
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 6px;
+        width: calc(100% - 20px);
+        height: auto;
+        max-height: 94px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.22));
+        z-index: 2;
+      }}
+      .pixel-orange-pet-fallback {{
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 12px;
+        height: 74px;
+        border-radius: 50% 50% 46% 46%;
+        background: radial-gradient(circle at 34% 30%, #ffd19b 0 16%, #ff9f43 17% 44%, #f97316 45% 78%, #ea580c 79% 100%);
+        box-shadow: inset -8px -10px 0 rgba(194, 65, 12, 0.22), 0 12px 24px rgba(15, 23, 42, 0.18);
+        z-index: 1;
+      }}
+      .pixel-orange-pet-fallback::before {{
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: -8px;
+        width: 18px;
+        height: 12px;
+        border-radius: 12px 12px 2px 12px;
+        background: linear-gradient(180deg, #4d7c0f 0%, #3f6212 100%);
+        transform: translateX(-50%) rotate(-18deg);
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.14);
+      }}
+      .pixel-orange-pet-wrap[data-idle-scene="nap"] {{
+        transform: translateY(4px) rotate(-3deg);
+      }}
+      .pixel-orange-pet-wrap[data-idle-scene="stroll"] {{
+        transform: translateX(3px) rotate(2deg);
+      }}
+      .pixel-orange-pet-wrap[data-idle-scene="idle"] {{
+        transform: translateY(-2px);
       }}
       .pixel-ocelot-cat {{
         position: absolute;
@@ -2260,7 +2319,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         .pixel-progress-workbench {{
           gap: 10px;
         }}
-        .pixel-ocelot-wrap {{
+        .pixel-ocelot-wrap,
+        .pixel-orange-pet-wrap {{
           width: 110px;
           transform: scale(0.9);
           transform-origin: left bottom;
@@ -2297,7 +2357,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
-          <div id="searchHint" class="home-title-sub mt-2">内置人教版教材500+历史人物</div>
+          <div id="searchHint" class="home-title-sub mt-2">1. 内置人教版教材500+历史人物，可以直接访问<br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
             <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
@@ -2315,7 +2375,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               <div id="pixelGenLamp" class="pixel-progress-lamp"></div>
               <div class="pixel-progress-meta">
                 <div class="pixel-progress-caption">Story Console</div>
-                <div id="pixelGenPerson" class="pixel-progress-person">飞飞</div>
+                <div id="pixelGenPerson" class="pixel-progress-person">橙子Agent</div>
               </div>
               <div id="pixelGenStatusBadge" class="pixel-progress-badge is-idle">待命</div>
             </div>
@@ -2332,29 +2392,9 @@ def _render_index_html(title: str, data_file: str) -> str:
                 <div class="pixel-progress-scene-light"></div>
               </div>
               <div class="pixel-progress-workbench">
-                <div id="pixelOcelotWrap" class="pixel-ocelot-wrap" data-idle-scene="snack">
-                  <div class="pixel-ocelot-cat">
-                    <div class="pixel-ocelot-ear left"></div>
-                    <div class="pixel-ocelot-ear right"></div>
-                    <div class="pixel-ocelot-head">
-                      <div class="pixel-ocelot-spot head-left"></div>
-                      <div class="pixel-ocelot-spot head-right"></div>
-                      <div class="pixel-ocelot-eyes"><span></span><span></span></div>
-                      <div class="pixel-ocelot-face"></div>
-                      <div class="pixel-ocelot-whiskers"></div>
-                    </div>
-                    <div class="pixel-ocelot-body"></div>
-                    <div class="pixel-ocelot-spot body-center"></div>
-                    <div class="pixel-ocelot-tail"></div>
-                    <div class="pixel-ocelot-treat"></div>
-                    <div class="pixel-ocelot-dream">Zz</div>
-                    <div class="pixel-ocelot-footprints"></div>
-                  <div class="pixel-ocelot-lamp"></div>
-                  <div class="pixel-ocelot-mug"></div>
-                    <div class="pixel-ocelot-paw left"></div>
-                    <div class="pixel-ocelot-paw right"></div>
-                    <div class="pixel-ocelot-desk"></div>
-                  </div>
+                <div id="pixelOcelotWrap" class="pixel-orange-pet-wrap" data-idle-scene="idle">
+                  <img class="pixel-orange-pet-img" src="./{HOMEPAGE_PET_ASSET_OUTPUT_NAME}" alt="橙子工位形象" loading="eager" decoding="async" onerror="this.style.display='none';" />
+                  <div class="pixel-orange-pet-fallback" aria-hidden="true"></div>
                 </div>
                 <div class="pixel-progress-bubble">
                   <div class="pixel-progress-bubble-title">状态</div>
@@ -2506,11 +2546,26 @@ def _render_index_html(title: str, data_file: str) -> str:
       const DATA_FILE = "{data_file}";
       const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
       const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
+      const resolvedApiBase = (() => {{
+        if (API_BASE) return API_BASE;
+        try {{
+          const loc = window.location;
+          const host = String(loc && loc.hostname ? loc.hostname : "").trim().toLowerCase();
+          const isLocalHost = host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".localhost");
+          const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+          const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith(".local");
+          if (!loc || loc.protocol === "file:" || !isDevHost) return "";
+          const runtimeHost = host === "::1" ? "127.0.0.1" : (loc.hostname || "127.0.0.1");
+          return loc.protocol + "//" + runtimeHost + ":8765";
+        }} catch (_) {{
+          return "";
+        }}
+      }})();
       const apiUrl = (path) => {{
         const rel = String(path || "").replace(/^\/+/, "");
         if (!rel) return "./";
-        if (API_BASE) {{
-          return API_BASE.replace(/\/+$/, "") + "/" + rel;
+        if (resolvedApiBase) {{
+          return resolvedApiBase.replace(/\/+$/, "") + "/" + rel;
         }}
         return "./" + rel;
       }};
@@ -3621,17 +3676,17 @@ def _render_index_html(title: str, data_file: str) -> str:
       ];
       const PIXEL_IDLE_STATES = [
         {{
-          key: "snack",
-          person: "飞飞",
-          sceneTitle: "补能",
-          stage: "吃猫条",
-          speech: "吃猫条中",
-          summary: "暂无任务，正在补充能量。",
+          key: "idle",
+          person: "橙子Agent",
+          sceneTitle: "待命",
+          stage: "待命",
+          speech: "待命中",
+          summary: "暂无任务，正在工位待命。",
           footer: "空闲中",
         }},
         {{
           key: "nap",
-          person: "飞飞",
+          person: "橙子Agent",
           sceneTitle: "小睡",
           stage: "打盹",
           speech: "打盹中",
@@ -3640,7 +3695,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         }},
         {{
           key: "stroll",
-          person: "飞飞",
+          person: "橙子Agent",
           sceneTitle: "巡查",
           stage: "遛弯",
           speech: "巡查中",
@@ -3655,7 +3710,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       let pixelIdleSceneTimer = null;
       let pixelGenState = {{
         visible: true,
-        person: "飞飞",
+        person: "橙子Agent",
         status: "idle",
         sceneTitle: "工位",
         idleStageLabel: "空闲中",
@@ -3664,7 +3719,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         progress: [],
         stageKey: "queued",
         speechText: "",
-        idleSceneKey: "snack",
+        idleSceneKey: "idle",
       }};
       const pickPixelIdleState = (excludeKey = "") => {{
         const states = PIXEL_IDLE_STATES.filter((item) => item && item.key !== excludeKey);
@@ -3673,7 +3728,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         return pool[idx] || PIXEL_IDLE_STATES[0];
       }};
       const applyPixelIdleScene = (key) => {{
-        const safeKey = String(key || "snack").trim() || "snack";
+        const safeKey = String(key || "idle").trim() || "idle";
         if ($pixelOcelotWrap) $pixelOcelotWrap.dataset.idleScene = safeKey;
         if ($pixelGenScene) $pixelGenScene.dataset.idleScene = safeKey;
       }};
@@ -3893,8 +3948,8 @@ def _render_index_html(title: str, data_file: str) -> str:
             ? 100
             : Math.round(((stageIdx + (status === "queued" ? 0 : 1)) / PIXEL_STAGE_FLOW.length) * 100));
         $pixelGenPanel.classList.remove("hidden");
-        applyPixelIdleScene(String(pixelGenState.idleSceneKey || "snack"));
-        if ($pixelGenPerson) $pixelGenPerson.textContent = person || "飞飞";
+        applyPixelIdleScene(String(pixelGenState.idleSceneKey || "idle"));
+        if ($pixelGenPerson) $pixelGenPerson.textContent = person || "橙子Agent";
         if ($pixelGenSceneTitle) {{
           $pixelGenSceneTitle.textContent = status === "idle"
             ? (String(pixelGenState.sceneTitle || "").trim() || "工位")
@@ -3916,7 +3971,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               ? "产物已生成，正在准备打开页面"
               : (status === "failed" || status === "partial_failed"
                 ? "任务已停止，请查看上方错误信息"
-                : "飞飞正在持续汇报 agent 的执行进度")));
+                : "橙子Agent 正在持续汇报 agent 的执行进度")));
         }}
         if ($pixelGenPercent) $pixelGenPercent.textContent = `${{basePercent}}%`;
         if ($pixelGenFill) $pixelGenFill.style.width = `${{basePercent}}%`;
@@ -4007,9 +4062,13 @@ def _render_index_html(title: str, data_file: str) -> str:
         return fetch(url, Object.assign({{ cache: "no-store", signal: controller.signal }}, init || {{}})).finally(() => clearTimeout(id));
       }};
       const normalizeRelativeHtmlFile = (file) => {{
-        const raw = String(file || "").trim().replace(/^[.\/]+/, "");
+        const raw = String(file || "").trim();
         if (!raw) return "";
-        return /\.html?$/i.test(raw) ? raw : "";
+        const cleaned = raw.split("#")[0].split("?")[0].replace(/\\/g, "/").replace(/^[.\/]+/, "");
+        if (!cleaned) return "";
+        const parts = cleaned.split("/").filter(Boolean);
+        const leaf = parts.length ? parts[parts.length - 1] : "";
+        return /\.html?$/i.test(leaf) ? leaf : "";
       }};
       const navigateToRelativeHtml = (file) => {{
         const target = normalizeRelativeHtmlFile(file);
@@ -4087,9 +4146,10 @@ def _render_index_html(title: str, data_file: str) -> str:
           if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
           try {{
-            const resp = await fetchWithTimeout(apiUrl("task?id=" + encodeURIComponent(id)), 12000);
+            const taskUrl = apiUrl("task?id=" + encodeURIComponent(id));
+            const resp = await fetchWithTimeout(taskUrl, 12000);
             snapshot = await resp.json();
-          }} catch (_) {{
+          }} catch (e) {{
             snapshot = null;
           }}
           if (!snapshot || snapshot.exists !== true) {{
@@ -4252,7 +4312,8 @@ def _render_index_html(title: str, data_file: str) -> str:
           stageKey: "queued",
         }});
         try {{
-          const resp = await fetchWithTimeout(apiUrl("generate"), 12000, {{ method: "POST", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify({{ person }}) }});
+          const generateUrl = apiUrl("generate");
+          const resp = await fetchWithTimeout(generateUrl, 12000, {{ method: "POST", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify({{ person }}) }});
           const data = await resp.json();
           if (!data || data.ok !== true || !data.task_id) {{
             const msg = data && data.error ? String(data.error) : "分析任务创建失败";
@@ -4318,7 +4379,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const setSearchHint = () => {{
         if (!$searchHint) return;
-        $searchHint.textContent = "内置人教版教材500+历史人物";
+        $searchHint.innerHTML = '1. 内置人教版教材500+历史人物，可以直接访问<br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a>';
       }};
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
@@ -5567,6 +5628,13 @@ def _sync_vendor_assets(story_map_dir: Path) -> None:
     shutil.copytree(src, story_map_dir / "vendor", dirs_exist_ok=True)
 
 
+def _sync_homepage_pet_asset(story_map_dir: Path) -> None:
+    for src in HOMEPAGE_PET_ASSET_CANDIDATES:
+        if src.is_file():
+            shutil.copy2(src, story_map_dir / HOMEPAGE_PET_ASSET_OUTPUT_NAME)
+            return
+
+
 def _prepare_home_payload_for_output(base_payload: Dict[str, Any], *, default_start: int, default_end: int) -> Dict[str, Any]:
     try:
         min_year = int(base_payload.get("min_year")) if base_payload.get("min_year") not in (None, "") else None
@@ -5632,6 +5700,7 @@ def _write_homepage_outputs(
         except Exception:
             pass
     _sync_vendor_assets(story_map_dir)
+    _sync_homepage_pet_asset(story_map_dir)
     return {
         "index": str(out_index),
         "data": str(out_data),

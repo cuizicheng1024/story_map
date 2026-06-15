@@ -102,10 +102,10 @@ _DYNASTY_TOKENS = (
 _QUOTE_LABEL_HINT_RE = re.compile(r"^\s*-\s*\*\*名篇名句\*\*：\s*(.+?)\s*$", re.MULTILINE)
 _TRUTH_QUOTE = "吾爱吾师，吾更爱真理"
 _APPROXIMATE_MARKERS = ("约", "约公元", "大约", "约于", "传为", "一说", "说法不一", "生年不详", "卒年不详")
-_SEARCH_LLM_TIMEOUT_SECONDS = 20
-_EDITOR_LLM_TIMEOUT_SECONDS = 22
+_SEARCH_LLM_TIMEOUT_SECONDS = 60
+_EDITOR_LLM_TIMEOUT_SECONDS = 60
 _FACT_CHECK_LLM_TIMEOUT_SECONDS = 18
-_TOOL_MANAGED_LLM_MAX_RETRIES = 1
+_TOOL_MANAGED_LLM_MAX_RETRIES = 2
 _BROAD_ANCIENT_REGION_TOKENS = frozenset(
     {
         "河西",
@@ -1044,7 +1044,7 @@ def create_agent_tools(
             "type": "object",
             "required": ["person", "summary", "identities", "achievements", "timeline", "places", "cautions"],
         },
-        timeout_seconds=25.0,
+        timeout_seconds=float(_SEARCH_LLM_TIMEOUT_SECONDS),
         retry_count=2,
         cost_tier="medium",
         permission="network_read",
@@ -1096,7 +1096,7 @@ def create_agent_tools(
             "required": ["person", "plan", "search_result", "place_maps", "critic_feedback", "previous_draft"],
         },
         output_schema={"type": "string"},
-        timeout_seconds=25.0,
+        timeout_seconds=float(_EDITOR_LLM_TIMEOUT_SECONDS),
         retry_count=0,
         cost_tier="high",
         permission=editor_permission,

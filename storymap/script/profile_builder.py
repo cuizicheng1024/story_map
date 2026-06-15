@@ -326,7 +326,11 @@ def _sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str
             rank = 2
         else:
             rank = 1
-        year_key = start_year if start_year is not None else 10**9
+        if rank == 0 and start_year is None:
+            # Keep birth nodes at the head of the journey even when the source only says "生年不详".
+            year_key = -(10**9)
+        else:
+            year_key = start_year if start_year is not None else 10**9
         end_key = end_year if end_year is not None else year_key
         return (year_key, rank, end_key, idx)
 
