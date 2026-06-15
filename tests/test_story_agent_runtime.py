@@ -269,6 +269,39 @@ def test_aggregate_result_runtime_meta_marks_watch_when_people_need_attention():
     assert meta["status_info"]["code"] == "watch"
 
 
+def test_aggregate_result_runtime_meta_prefers_clean_final_validation_over_process_watch():
+    meta = story_agent_runtime.aggregate_result_runtime_meta(
+        [
+            {
+                "person": "霍去病",
+                "_validation": {"pass": True, "issues": [], "metrics": {"coords": 3}},
+                "_agent_runtime": {
+                    "person": "霍去病",
+                    "state": {
+                        "llm_calls_used": 1,
+                        "llm_calls_limit": 4,
+                        "revision_count": 1,
+                        "max_revisions": 2,
+                        "degraded_reasons": [],
+                        "execution_trace": ["supervisor", "search_agent"],
+                        "tool_traces": [{"tool_name": "search_person_info", "agent_step": "search_agent"}],
+                        "memory_hits": {"search": 1},
+                        "memory_misses": {"place_map": 1},
+                        "validation": {"pass": True, "issues": [], "metrics": {"coords": 3}},
+                    },
+                },
+            }
+        ]
+    )
+
+    assert meta["has_runtime"] is True
+    assert meta["status"] == "ok"
+    assert meta["runtime_people_count"] == 1
+    assert meta["watch_people_count"] == 0
+    assert meta["degraded_people_count"] == 0
+    assert meta["status_info"]["code"] == "ok"
+
+
 def test_aggregate_result_runtime_meta_preserves_result_level_degraded_signal():
     meta = story_agent_runtime.aggregate_result_runtime_meta(
         [

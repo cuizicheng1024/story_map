@@ -479,7 +479,7 @@ class TaskService:
                 if "模型ID、API密钥和服务地址必须被提供或在.env文件中定义" in error_message:
                     error_message = (
                         "缺少大模型配置：请在项目根目录创建 .env 并填写 "
-                        "LLM_API_KEY、LLM_BASE_URL、LLM_MODEL_ID（或 MINIMAX_API_KEY/MINIMAX_BASE_URL/MINIMAX_MODEL），"
+                        "LLM_API_KEY、LLM_BASE_URL、LLM_MODEL_ID，"
                         "然后重启服务。"
                     )
                 self._update_task(task_id, status="failed", error=error_message)

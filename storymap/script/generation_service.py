@@ -141,6 +141,28 @@ def render_html(
     return render_amap_html(title, points, "")
 
 
+def _coerce_validation_dict(validation: object) -> Dict[str, object]:
+    if not isinstance(validation, dict):
+        return {}
+    return dict(validation)
+
+
+def _sync_runtime_final_validation(
+    agent_runtime: Optional[Dict[str, object]],
+    validation: object,
+) -> Optional[Dict[str, object]]:
+    if not isinstance(agent_runtime, dict) or not agent_runtime:
+        return agent_runtime
+    runtime = dict(agent_runtime)
+    state = dict(runtime.get("state") or {})
+    final_validation = _coerce_validation_dict(validation)
+    if final_validation:
+        state["validation"] = final_validation
+        state["validation_stage"] = "final_output"
+    runtime["state"] = state
+    return runtime
+
+
 def _build_render_failure_result(
     *,
     person: str,
@@ -708,6 +730,7 @@ def generate_for_person(
     )
     t_geo = time.perf_counter() - t_step
     validation = validate_story_markdown_tool(md)
+    agent_runtime = _sync_runtime_final_validation(agent_runtime, validation)
     saved = save_markdown(person, md)
     if progress:
         progress(f"{person} 构建时空结果")

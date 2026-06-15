@@ -620,6 +620,56 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
         service.shutdown()
 
 
+def test_task_service_uses_final_validation_to_suppress_runtime_watch_noise(tmp_path):
+    service = _build_service(
+        tmp_path,
+        generate_for_person=lambda _client, person, **_kwargs: {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_validation": {"pass": True, "issues": [], "metrics": {"coords": 4}},
+            "_agent_runtime": {
+                "person": person,
+                "state": {
+                    "llm_calls_used": 1,
+                    "llm_calls_limit": 4,
+                    "revision_count": 1,
+                    "max_revisions": 2,
+                    "degraded_reasons": [],
+                    "execution_trace": ["supervisor", "search_agent"],
+                    "tool_traces": [{"tool_name": "search_person_info", "agent_step": "search_agent"}],
+                    "memory_hits": {"search": 1},
+                    "memory_misses": {"place_map": 1},
+                    "validation": {"pass": True, "issues": [], "metrics": {"coords": 4}},
+                },
+            },
+            "_profile": {
+                "person": {"name": person},
+                "locations": [],
+                "mapStyle": {},
+            },
+        },
+    )
+    try:
+        submit = service.submit_task("霍去病")
+        _wait_for_task(service, submit["task_id"])
+        debug_snapshot = service.task_debug_snapshot(submit["task_id"])
+        query_payload = service.list_tasks(limit=10)
+
+        assert debug_snapshot["debug"]["meta"]["status"] == "ok"
+        assert debug_snapshot["debug"]["meta"]["status_info"]["code"] == "ok"
+        assert debug_snapshot["debug"]["ui"]["runtime_status"]["code"] == "ok"
+        assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "completed"
+        assert debug_snapshot["debug"]["people"][0]["status_info"]["code"] == "ok"
+        assert debug_snapshot["debug"]["people"][0]["runtime_reflection"]["status"] == "watch"
+        list_item = next(item for item in query_payload["tasks"] if item["id"] == submit["task_id"])
+        assert list_item["status"] == "completed"
+        assert list_item["status_info"]["code"] == "completed"
+    finally:
+        service.shutdown()
+
+
 def test_task_debug_ui_banner_prefers_runtime_degraded_signal(tmp_path):
     service = _build_service(
         tmp_path,

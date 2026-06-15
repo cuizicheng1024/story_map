@@ -146,6 +146,11 @@ def _is_usable_result_item(item: Dict[str, object]) -> bool:
     return str(item.get("status") or "").strip() == "degraded"
 
 
+def _item_validation_is_clean(item: Dict[str, object]) -> bool:
+    validation = item.get("_validation")
+    return isinstance(validation, dict) and bool(validation) and bool(validation.get("pass"))
+
+
 def _build_person_status_info(
     item: Dict[str, object],
     runtime: Dict[str, object],
@@ -164,6 +169,10 @@ def _build_person_status_info(
         bottlenecks = [str(item) for item in list(runtime_reflection.get("bottlenecks") or []) if str(item).strip()]
         return build_status_info("degraded", hint=(bottlenecks[0] if bottlenecks else "该人物 runtime 已出现降级信号。"))
     if reflection_status == "watch":
+        if _item_validation_is_clean(item):
+            if bool(runtime.get("has_runtime")):
+                return dict(runtime.get("status_info") or {})
+            return build_status_info("completed", hint="该人物最终稿校验通过。")
         bottlenecks = [str(item) for item in list(runtime_reflection.get("bottlenecks") or []) if str(item).strip()]
         return build_status_info("watch", hint=(bottlenecks[0] if bottlenecks else "该人物 runtime 需要关注。"))
     if bool(runtime.get("has_runtime")):

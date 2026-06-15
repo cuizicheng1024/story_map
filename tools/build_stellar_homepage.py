@@ -2357,7 +2357,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
-          <div id="searchHint" class="home-title-sub mt-2">1. 内置人教版教材500+历史人物，可以直接访问<br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a></div>
+          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
             <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
@@ -4379,7 +4379,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const setSearchHint = () => {{
         if (!$searchHint) return;
-        $searchHint.innerHTML = '1. 内置人教版教材500+历史人物，可以直接访问<br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a>';
+        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a>';
       }};
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();

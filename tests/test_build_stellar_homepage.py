@@ -297,6 +297,15 @@ def test_render_index_html_falls_back_to_local_fastapi_api_base_for_static_previ
     assert 'return resolvedApiBase.replace(/\\/+$/, "") + "/" + rel;' in html
 
 
+def test_render_index_html_omits_runtime_api_base_when_env_missing(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    monkeypatch.delenv("MAP_STORY_API_BASE", raising=False)
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "window.MAP_STORY_API_BASE=" not in html
+
+
 def test_render_index_html_normalizes_generated_html_paths_to_leaf_filename():
     module = importlib.import_module("tools.build_stellar_homepage")
 

@@ -382,6 +382,9 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert result["_agent_runtime"]["state"]["tool_traces"] == [{"tool_name": "search_person_info"}]
     assert result["_agent_runtime"]["state"]["memory_hits"] == {"search": 1}
     assert result["_agent_runtime"]["state"]["memory_misses"] == {"place_map": 1}
+    assert result["_agent_runtime"]["state"]["validation"]["issues"] == []
+    assert result["_agent_runtime"]["state"]["validation"]["metrics"]["coords"] == 1
+    assert result["_agent_runtime"]["state"]["validation_stage"] == "final_output"
     assert result["_state"]["agent_runtime"]["state"]["llm_calls_limit"] == 4
     assert result["_state"]["agent_runtime"]["tool_specs"] == [{"name": "search_person_info"}]
     assert refreshed == [person]

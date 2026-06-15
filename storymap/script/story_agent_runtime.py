@@ -286,6 +286,16 @@ def _memory_summary(memory_hits: Dict[str, int], memory_misses: Dict[str, int]) 
     }
 
 
+def _final_validation_is_clean(result: Dict[str, object], runtime_snapshot: StoryAgentRuntimeSnapshot) -> bool:
+    validation = result.get("_validation")
+    if not isinstance(validation, dict):
+        state = dict(runtime_snapshot.get("state") or {})
+        validation = state.get("validation")
+    if not isinstance(validation, dict) or not validation:
+        return False
+    return bool(validation.get("pass"))
+
+
 def _runtime_state_from_source(source: object) -> Dict[str, object]:
     runtime = getattr(source, "last_agent_runtime", source)
     if not isinstance(runtime, dict) or not runtime:
@@ -715,9 +725,10 @@ def aggregate_result_runtime_meta(results: List[Dict[str, object]]) -> Aggregate
         reflection = build_runtime_reflection(runtime_snapshot)
         reflection_status = str(reflection.get("status") or "").strip()
         runtime_status = str(runtime.get("status") or "").strip()
+        final_validation_clean = _final_validation_is_clean(result, runtime_snapshot)
         if result_is_degraded or runtime_status == "degraded" or reflection_status == "degraded":
             degraded_people_count += 1
-        elif reflection_status == "watch":
+        elif reflection_status == "watch" and not final_validation_clean:
             watch_people_count += 1
         person = str(result.get("person") or runtime.get("person") or "").strip()
         trace = runtime.get("execution_trace") or []
