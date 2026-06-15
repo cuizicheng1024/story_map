@@ -1559,6 +1559,20 @@ def _render_index_html(title: str, data_file: str) -> str:
         right: 8px;
         bottom: 0;
         height: 108px;
+        --ocelot-outline: #3f2c20;
+        --ocelot-base: #b98a52;
+        --ocelot-base-dark: #8a5f35;
+        --ocelot-cream: #e9d7bc;
+        --ocelot-cream-soft: #d7bf9f;
+        --ocelot-spot: #4f3624;
+        --ocelot-spot-soft: #6b4a33;
+        --ocelot-eye: #90bf47;
+        --ocelot-eye-shadow: #5f7d2c;
+        --ocelot-nose: #8e6258;
+        --ocelot-deskwood: #7b4d30;
+        --ocelot-deskwood-dark: #53311e;
+        --ocelot-monitor: #b8aa94;
+        --ocelot-mug: #7a9891;
         transition: transform 0.28s ease, opacity 0.28s ease, filter 0.28s ease;
       }}
       .pixel-ocelot-ear {{
@@ -1566,8 +1580,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         top: 4px;
         width: 18px;
         height: 18px;
-        background: #f09a42;
-        border: 2px solid #5a321d;
+        background: var(--ocelot-base);
+        border: 2px solid var(--ocelot-outline);
         transform: rotate(45deg);
         border-radius: 2px;
         z-index: 2;
@@ -1578,7 +1592,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         content: "";
         position: absolute;
         inset: 4px;
-        background: #ffd6b3;
+        background: var(--ocelot-cream);
       }}
       .pixel-ocelot-head {{
         position: absolute;
@@ -1586,8 +1600,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         top: 10px;
         width: 48px;
         height: 38px;
-        border: 2px solid #5a321d;
-        background: linear-gradient(180deg, #f2a34a, #df7e35);
+        border: 2px solid var(--ocelot-outline);
+        background: linear-gradient(180deg, var(--ocelot-base) 0 56%, var(--ocelot-base-dark) 56% 100%);
         border-radius: 14px 14px 12px 12px;
         z-index: 3;
         transition: transform 0.28s ease;
@@ -1599,7 +1613,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         top: 8px;
         width: 5px;
         height: 10px;
-        background: rgba(153, 83, 31, 0.9);
+        background: var(--ocelot-spot);
         border-radius: 3px;
       }}
       .pixel-ocelot-head::before {{ left: 7px; }}
@@ -1611,7 +1625,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         bottom: 4px;
         height: 16px;
         border-radius: 7px 7px 10px 10px;
-        background: #fff6ed;
+        background: linear-gradient(180deg, var(--ocelot-cream) 0 72%, var(--ocelot-cream-soft) 72% 100%);
       }}
       .pixel-ocelot-face::before {{
         content: "";
@@ -1621,8 +1635,11 @@ def _render_index_html(title: str, data_file: str) -> str:
         width: 6px;
         height: 5px;
         margin-left: -3px;
-        background: #c86a4d;
+        background: var(--ocelot-nose);
         border-radius: 999px 999px 2px 2px;
+        box-shadow:
+          -7px 1px 0 -1px rgba(79, 54, 36, 0.42),
+          7px 1px 0 -1px rgba(79, 54, 36, 0.42);
       }}
       .pixel-ocelot-face::after {{
         content: "";
@@ -1632,7 +1649,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         width: 14px;
         height: 5px;
         margin-left: -7px;
-        border-bottom: 2px solid rgba(90, 50, 29, 0.68);
+        border-bottom: 2px solid rgba(63, 44, 32, 0.72);
         border-radius: 0 0 14px 14px;
       }}
       .pixel-ocelot-eyes {{
@@ -1646,8 +1663,12 @@ def _render_index_html(title: str, data_file: str) -> str:
       .pixel-ocelot-eyes span {{
         width: 6px;
         height: 7px;
-        background: #2d221d;
         border-radius: 999px;
+        background: linear-gradient(180deg, #bde16f 0 38%, var(--ocelot-eye) 38% 100%);
+        box-shadow:
+          inset 0 0 0 1px var(--ocelot-eye-shadow),
+          inset 0 -2px 0 0 rgba(45, 34, 29, 0.48),
+          0 0 0 1px rgba(28, 18, 12, 0.2);
       }}
       .pixel-ocelot-whiskers {{
         position: absolute;
@@ -1664,7 +1685,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         top: 2px;
         width: 14px;
         height: 2px;
-        border-top: 2px solid rgba(255, 248, 238, 0.95);
+        border-top: 2px solid rgba(244, 235, 221, 0.95);
       }}
       .pixel-ocelot-whiskers::before {{
         left: 0;
@@ -1680,8 +1701,8 @@ def _render_index_html(title: str, data_file: str) -> str:
         bottom: 16px;
         width: 64px;
         height: 34px;
-        border: 2px solid #5a321d;
-        background: linear-gradient(180deg, #ef7e52, #d55338);
+        border: 2px solid var(--ocelot-outline);
+        background: linear-gradient(180deg, var(--ocelot-base) 0 52%, var(--ocelot-base-dark) 52% 100%);
         border-radius: 14px 14px 9px 9px;
         z-index: 1;
         transition: transform 0.28s ease, height 0.28s ease, border-radius 0.28s ease, opacity 0.28s ease;
@@ -1689,22 +1710,27 @@ def _render_index_html(title: str, data_file: str) -> str:
       .pixel-ocelot-body::before {{
         content: "";
         position: absolute;
-        left: 17px;
-        right: 17px;
-        top: 6px;
-        bottom: 5px;
-        background: rgba(255, 243, 230, 0.18);
-        border-radius: 8px;
+        left: 9px;
+        top: 5px;
+        width: 10px;
+        height: 7px;
+        background: rgba(79, 54, 36, 0.82);
+        border-radius: 4px;
+        box-shadow:
+          12px 7px 0 0 rgba(79, 54, 36, 0.82),
+          23px 1px 0 -1px rgba(107, 74, 51, 0.84),
+          34px 8px 0 0 rgba(79, 54, 36, 0.82),
+          41px 2px 0 -1px rgba(107, 74, 51, 0.8);
       }}
       .pixel-ocelot-body::after {{
         content: "";
         position: absolute;
-        left: 20px;
-        right: 20px;
-        top: 12px;
-        height: 8px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.18);
+        left: 18px;
+        right: 12px;
+        top: 14px;
+        height: 10px;
+        border-radius: 8px 10px 8px 12px;
+        background: rgba(233, 215, 188, 0.58);
       }}
       .pixel-ocelot-tail {{
         position: absolute;
@@ -1712,9 +1738,9 @@ def _render_index_html(title: str, data_file: str) -> str:
         bottom: 28px;
         width: 26px;
         height: 12px;
-        border: 2px solid #5a321d;
+        border: 2px solid var(--ocelot-outline);
         border-radius: 999px;
-        background: linear-gradient(180deg, #f0a04c, #da7b35);
+        background: linear-gradient(180deg, var(--ocelot-base) 0 52%, var(--ocelot-base-dark) 52% 100%);
         transform-origin: left center;
         animation: pixel-tail-wave 1.8s steps(2, end) infinite;
         z-index: 0;
@@ -1727,7 +1753,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         top: 1px;
         width: 3px;
         height: 6px;
-        background: rgba(124, 71, 39, 0.72);
+        background: rgba(79, 54, 36, 0.86);
       }}
       .pixel-ocelot-tail::before {{ left: 6px; }}
       .pixel-ocelot-tail::after {{ left: 15px; }}
@@ -1742,57 +1768,16 @@ def _render_index_html(title: str, data_file: str) -> str:
         bottom: 0;
         height: 18px;
         border: 2px solid #3f2618;
-        background: linear-gradient(180deg, #8b5837, #5b361f);
+        background: linear-gradient(180deg, var(--ocelot-deskwood), var(--ocelot-deskwood-dark));
         box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18);
-      }}
-      .pixel-ocelot-monitor {{
-        position: absolute;
-        left: 42px;
-        bottom: 20px;
-        width: 56px;
-        height: 42px;
-        border: 2px solid #7b6e60;
-        background: #cdbba7;
-        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.06);
-        z-index: 4;
-        transition: left 0.28s ease, opacity 0.28s ease, transform 0.28s ease;
-      }}
-      .pixel-ocelot-monitor::before {{
-        content: "";
-        position: absolute;
-        left: 5px;
-        right: 5px;
-        top: 5px;
-        bottom: 10px;
-        background:
-          linear-gradient(180deg, rgba(56, 102, 164, 0.26), rgba(12, 27, 53, 0.2)),
-          repeating-linear-gradient(
-            180deg,
-            rgba(90, 144, 219, 0.2) 0,
-            rgba(90, 144, 219, 0.2) 2px,
-            rgba(11, 24, 45, 0.02) 2px,
-            rgba(11, 24, 45, 0.02) 6px
-          ),
-          linear-gradient(90deg, rgba(66,133,244,0.16) 0 26%, rgba(187,104,84,0.16) 26% 54%, rgba(83,160,136,0.16) 54% 100%);
-        transition: background 0.28s ease, opacity 0.28s ease;
-      }}
-      .pixel-ocelot-monitor::after {{
-        content: "";
-        position: absolute;
-        left: 17px;
-        right: 17px;
-        bottom: -8px;
-        height: 8px;
-        background: #9c8e7d;
-        border: 2px solid #7b6e60;
       }}
       .pixel-ocelot-paw {{
         position: absolute;
         bottom: 18px;
         width: 16px;
         height: 10px;
-        border: 2px solid #5a321d;
-        background: #f6b570;
+        border: 2px solid var(--ocelot-outline);
+        background: linear-gradient(180deg, var(--ocelot-base), var(--ocelot-base-dark));
         border-radius: 4px;
         z-index: 5;
         transition: transform 0.28s ease, left 0.28s ease, bottom 0.28s ease, opacity 0.28s ease;
@@ -1807,27 +1792,32 @@ def _render_index_html(title: str, data_file: str) -> str:
       }}
       .pixel-ocelot-spot {{
         position: absolute;
-        background: rgba(176, 84, 34, 0.72);
+        background: rgba(79, 54, 36, 0.82);
         border-radius: 3px;
       }}
       .pixel-ocelot-spot.head-left {{
-        left: 43px;
-        top: 17px;
-        width: 4px;
+        left: 41px;
+        top: 16px;
+        width: 5px;
         height: 8px;
+        box-shadow: 8px -3px 0 -1px rgba(107, 74, 51, 0.82);
       }}
       .pixel-ocelot-spot.head-right {{
-        right: 43px;
-        top: 17px;
-        width: 4px;
+        right: 41px;
+        top: 16px;
+        width: 5px;
         height: 8px;
+        box-shadow: -8px -3px 0 -1px rgba(107, 74, 51, 0.82);
       }}
       .pixel-ocelot-spot.body-center {{
-        left: 51px;
-        top: 63px;
-        width: 12px;
+        left: 47px;
+        top: 61px;
+        width: 10px;
         height: 7px;
-        background: rgba(255,255,255,0.18);
+        background: rgba(79, 54, 36, 0.82);
+        box-shadow:
+          -14px 5px 0 0 rgba(107, 74, 51, 0.82),
+          14px 2px 0 0 rgba(107, 74, 51, 0.8);
       }}
       .pixel-ocelot-lamp {{
         position: absolute;
@@ -1846,7 +1836,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         height: 8px;
         border-radius: 999px;
         background: #af7c4c;
-        border: 2px solid #5a321d;
+        border: 2px solid var(--ocelot-outline);
       }}
       .pixel-ocelot-lamp::after {{
         content: "";
@@ -1868,7 +1858,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         height: 12px;
         border: 2px solid #5f7f78;
         border-radius: 2px 2px 4px 4px;
-        background: #7aa39a;
+        background: var(--ocelot-mug);
         z-index: 3;
         transition: transform 0.28s ease, opacity 0.28s ease;
       }}
@@ -1970,17 +1960,6 @@ def _render_index_html(title: str, data_file: str) -> str:
         animation-duration: 2.8s;
         opacity: 0.72;
       }}
-      .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-monitor::before {{
-        background:
-          linear-gradient(180deg, rgba(84, 108, 160, 0.14), rgba(8, 16, 35, 0.24)),
-          repeating-linear-gradient(
-            180deg,
-            rgba(104, 126, 175, 0.08) 0,
-            rgba(104, 126, 175, 0.08) 2px,
-            rgba(11, 24, 45, 0.03) 2px,
-            rgba(11, 24, 45, 0.03) 6px
-          );
-      }}
       .pixel-ocelot-wrap[data-idle-scene="nap"] .pixel-ocelot-lamp::after {{
         opacity: 0.6;
         box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(155, 171, 255, 0.28);
@@ -1998,14 +1977,6 @@ def _render_index_html(title: str, data_file: str) -> str:
       .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-paw.right {{
         left: 70px;
         bottom: 15px;
-      }}
-      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-monitor {{
-        left: 34px;
-      }}
-      .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-monitor::before {{
-        background:
-          linear-gradient(180deg, rgba(70, 151, 214, 0.2), rgba(13, 37, 58, 0.18)),
-          linear-gradient(90deg, transparent 0 18%, rgba(138, 233, 197, 0.26) 18% 22%, transparent 22% 52%, rgba(138, 233, 197, 0.2) 52% 56%, transparent 56% 100%);
       }}
       .pixel-ocelot-wrap[data-idle-scene="stroll"] .pixel-ocelot-lamp::after {{
         box-shadow: 5px 4px 0 0 #af7c4c, 5px 18px 0 0 rgba(132, 183, 255, 0.86);
@@ -2379,7 +2350,6 @@ def _render_index_html(title: str, data_file: str) -> str:
                     <div class="pixel-ocelot-dream">Zz</div>
                     <div class="pixel-ocelot-footprints"></div>
                   <div class="pixel-ocelot-lamp"></div>
-                    <div class="pixel-ocelot-monitor"></div>
                   <div class="pixel-ocelot-mug"></div>
                     <div class="pixel-ocelot-paw left"></div>
                     <div class="pixel-ocelot-paw right"></div>
@@ -4031,10 +4001,10 @@ def _render_index_html(title: str, data_file: str) -> str:
           }}
         }} catch (_) {{}}
       }};
-      const fetchWithTimeout = (url, ms) => {{
+      const fetchWithTimeout = (url, ms, init) => {{
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), ms || 12000);
-        return fetch(url, {{ cache: "no-store", signal: controller.signal }}).finally(() => clearTimeout(id));
+        return fetch(url, Object.assign({{ cache: "no-store", signal: controller.signal }}, init || {{}})).finally(() => clearTimeout(id));
       }};
       const normalizeRelativeHtmlFile = (file) => {{
         const raw = String(file || "").trim().replace(/^[.\/]+/, "");
@@ -4282,7 +4252,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           stageKey: "queued",
         }});
         try {{
-          const resp = await fetchWithTimeout(apiUrl("generate?person=" + encodeURIComponent(person)), 12000);
+          const resp = await fetchWithTimeout(apiUrl("generate"), 12000, {{ method: "POST", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify({{ person }}) }});
           const data = await resp.json();
           if (!data || data.ok !== true || !data.task_id) {{
             const msg = data && data.error ? String(data.error) : "分析任务创建失败";
@@ -4996,19 +4966,6 @@ def _render_index_html(title: str, data_file: str) -> str:
               zIndex: 320,
             }});
             label.setMap(amap);
-            try {{
-              const dot = new window.AMap.CircleMarker({{
-                center: mid,
-                radius: 5,
-                strokeColor: "rgba(255,255,255,0.65)",
-                strokeWeight: 1,
-                fillColor: "rgba(249,115,22,0.92)",
-                fillOpacity: 1,
-                zIndex: 330,
-              }});
-              dot.setMap(amap);
-            }} catch (_) {{}}
-
             const mkText = (text, pos) => {{
               const t = new window.AMap.Text({{
                 text,

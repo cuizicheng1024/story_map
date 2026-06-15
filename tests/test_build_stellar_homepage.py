@@ -204,7 +204,7 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'id="pixelGenSpeech"' in html
     assert 'id="pixelGenAgents"' in html
     assert 'id="pixelGenDetailCard"' in html
-    assert "pixel-ocelot-monitor" in html
+    assert "pixel-ocelot-monitor" not in html
     assert "pixel-progress-scene-light" in html
     assert 'id="pixelGenScene"' in html
     assert 'id="pixelGenSceneTitle"' in html
@@ -227,6 +227,16 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'const $pixelGenSpeech = document.getElementById("pixelGenSpeech");' in html
     assert 'const $pixelGenDetailCard = document.getElementById("pixelGenDetailCard");' in html
     assert 'let pixelGenCollapsed = true;' in html
+
+
+def test_render_index_html_hides_hu_huanyong_midpoint_dot():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "胡焕庸线" in html
+    assert "new window.AMap.CircleMarker({" not in html
+    assert 'fillColor: "rgba(249,115,22,0.92)"' not in html
     assert 'visible: true,' in html
     assert 'setPixelPanelCollapsed(true);' in html
     assert 'updatePixelProgressPanel(pixelGenState);' in html
@@ -242,6 +252,29 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'escapePixelLogHtml(detail)' in html
     assert 'renderPixelProgressLog(status, progress);' in html
     assert 'speechText: next.speech,' in html
+
+
+def test_render_index_html_uses_leopard_cat_pixel_palette_for_workbench_pet():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "--ocelot-base: #b98a52;" in html
+    assert "--ocelot-spot: #4f3624;" in html
+    assert "--ocelot-eye: #90bf47;" in html
+    assert "box-shadow: 8px -3px 0 -1px rgba(107, 74, 51, 0.82);" in html
+    assert "box-shadow:" in html
+
+
+def test_render_index_html_uses_post_generate_for_missing_people():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'const fetchWithTimeout = (url, ms, init) => {' in html
+    assert 'fetchWithTimeout(apiUrl("generate"), 12000, { method: "POST"' in html
+    assert 'body: JSON.stringify({ person })' in html
+    assert 'apiUrl("generate?person="' not in html
 
 
 def test_render_index_html_uses_google_palette_for_pixel_progress_panel():

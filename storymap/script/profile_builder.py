@@ -510,17 +510,32 @@ def extract_title_from_text(text: str) -> str:
     raw = str(text or "").strip()
     if not raw:
         return ""
+    def _is_valid_title(value: str) -> bool:
+        t = str(value or "").strip().strip("“”\"'「」『』")
+        if not t:
+            return False
+        if len(t) > 12:
+            return False
+        # Filter out reign-era / macro historical phrases that are not person honorifics.
+        blocked_patterns = (
+            r"(?:之治|盛世|中兴|变法|政变|之乱|革命|战争|时代|时期|遗风)$",
+            r"^(?:贞观之治|开元盛世|文景之治|光武中兴|百家争鸣|楚汉战争)$",
+        )
+        return not any(re.search(pattern, t) for pattern in blocked_patterns)
     honor_patterns = [
         r"(?:后世)?(?:被|为|并)?(?:尊为|誉为|奉为|称为|尊称为)[“\"「『]([^”\"」』]+)[”\"」』]",
         r"[，,]\s*([^，。；、]{1,12})\s*[，。；、]?(?:与|并与).{0,20}(?:并列|齐名)",
     ]
     for pattern in honor_patterns:
         m = re.search(pattern, raw)
-        if m and str(m.group(1) or "").strip():
-            return str(m.group(1) or "").strip()
+        candidate = str(m.group(1) or "").strip() if m else ""
+        if candidate and _is_valid_title(candidate):
+            return candidate
     m = re.search(r"“([^”]+)”", raw)
     if m:
-        return m.group(1).strip()
+        candidate = m.group(1).strip()
+        if _is_valid_title(candidate):
+            return candidate
     return ""
 
 

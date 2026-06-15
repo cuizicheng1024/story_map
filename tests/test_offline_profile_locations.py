@@ -217,4 +217,4 @@ def test_profile_locations_are_sorted_chronologically_for_huoqubing_bce_years():
 
     assert profile is not None
     names = [str(item.get("name") or "") for item in profile["locations"]]
-    assert names[:4] == ["平阳", "长安", "河西走廊", "长安"]
+    assert names == ["平阳", "长安", "陇西", "河西走廊", "漠北", "长安"]

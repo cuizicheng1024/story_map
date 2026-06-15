@@ -396,6 +396,12 @@ def test_extract_title_from_text_prefers_honorific_title_over_generic_quote():
     assert profile_builder.extract_title_from_text(text) == "武圣"
 
 
+def test_extract_title_from_text_ignores_regnal_era_phrase():
+    text = "中国历史上唯一正统的女皇帝，其统治上承“贞观之治”，下启“开元盛世”。"
+
+    assert profile_builder.extract_title_from_text(text) == ""
+
+
 def test_build_profile_data_infers_location_significance_when_missing():
     md = """# 关羽
 

@@ -470,6 +470,14 @@ def test_load_profile_prefers_external_literary_review_for_non_literary_person()
     assert str(profile["person"].get("shortReview") or "") == "画图省识春风面，环佩空归月夜魂。"
 
 
+def test_load_profile_prefers_explicit_short_review_for_wu_zhao():
+    md = (REPO_ROOT / "storymap" / "examples" / "story" / "武则天.md").read_text(encoding="utf-8")
+
+    profile = story_map.load_profile_from_md(md, allow_geocode=False)
+
+    assert str(profile["person"].get("shortReview") or "") == "千秋功过，后人评说。"
+
+
 def test_choose_short_review_prefers_personal_sharp_remark_for_non_literary_fallback():
     review = profile_builder.choose_short_review(
         info={"主要身份": "政治家、将领"},
@@ -695,8 +703,8 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert 'aria-label="关闭底图提示"' in html
     assert "我知道了" in html
     assert '>→</button>\n                  </div>' in html
-    assert "related-graph-edge-line" in html
-    assert "getRelatedGraphEdgeLabel(node)" in html
+    assert "related-graph-board" in html
+    assert "getRelatedGraphEdgeLabel(node)" not in html
     assert 'className="journey-map-column relative flex-1 min-w-0"' in html
     assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
     assert 'className="flex min-h-full flex-col justify-end gap-3"' in html
@@ -758,34 +766,49 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert "const getCanonicalPersonName = (name) => {" in html
     assert "const redirects = data?.personRedirects && typeof data.personRedirects === 'object' ? data.personRedirects : {};" in html
     assert "const getPersonAliasList = (personName, aliases = []) => {" in html
-    assert "const RelatedGraphTooltip = ({ node, isCenter = false }) => {" in html
-    assert ".related-graph-tooltip {" in html
-    assert ".related-graph-dot {" in html
-    assert ".related-graph-dot::before," in html
-    assert ".related-graph-dot::after {" in html
-    assert "width: 18px;" in html
-    assert ".related-graph-card.center .related-graph-dot {" in html
-    assert "width: 22px;" in html
-    assert "悬浮查看详情，点击人物名跳转" in html
+    assert "const isSameBookGraphRelation = (node) => {" in html
+    assert "sourceType === 'same_book' || /同册共现/.test(relationLabel)" in html
+    assert "const RELATED_GRAPH_CENTER_COPY = '人物生平\\n传记与足迹';" in html
+    assert "const relatedGraphColumns = useMemo(() => {" in html
+    assert "const payload = { ...node, isLeft: idx % 2 === 0 };" in html
+    assert "const getRelatedGraphNodeMeta = (node) => {" in html
+    assert ".related-graph-core {" in html
+    assert ".related-graph-core-dot {" in html
+    assert ".related-graph-board {" in html
+    assert ".related-graph-layout {" in html
+    assert ".related-graph-entry {" in html
+    assert ".related-graph-entry.is-left {" in html
+    assert ".related-graph-entry-meta {" in html
+    assert "人物关系一览，点击人物名跳转" in html
     assert "return getCanonicalPersonName(rawName) !== getCanonicalPersonName(data.person?.name);" in html
+    assert "if (isSameBookGraphRelation(node)) return false;" in html
     assert "'苏东坡'" not in html.split("const centerPersonAliases = useMemo", 1)[1].split("const relatedCenterNode = useMemo", 1)[0]
     assert "related-graph-legend" not in html
     assert "中心人物在中间，相关人物按左右列展开" not in html
     assert "关系标签直接贴在人物卡片上，点击可跳转" not in html
     assert "纵向位置仅用于排版避让，不代表年代、亲疏或地理方向" not in html
-    assert "radial-gradient(1200px 720px at 10% 0%, rgba(26,115,232,0.2), transparent 56%)" in html
-    assert "linear-gradient(140deg, #0f172a 0%, #14213d 56%, #10253f 100%)" in html
-    assert "related-graph-edge-line" in html
-    assert "getRelatedGraphEdgeLabel(node)" in html
-    assert ".related-graph-stage::after {" in html
-    assert "width: 118px;" in html
-    assert "<RelatedGraphTooltip node={mergedRelatedCenterNode} isCenter />" in html
-    assert "<RelatedGraphTooltip node={node} />" in html
-    assert '<div className="related-graph-label center">{mergedRelatedCenterNode.name}</div>' in html
-    assert '<div className="related-graph-label">{node.name}</div>' in html
+    assert "radial-gradient(920px 520px at 8% 4%, rgba(26,115,232,0.18), transparent 56%)" in html
+    assert "linear-gradient(140deg, #0f172a 0%, #14213d 58%, #10253f 100%)" in html
+    assert "related-graph-edge-line" not in html
+    assert "const getPresetSlots = (side, size) => {" not in html
+    assert "edgePath: `M 50 50 Q ${controlX} ${controlY} ${placed.x} ${placed.y}`," not in html
+    assert "const normalizePromptPlaceName = (loc) => {" in html
+    assert "/(存疑|说法不一|不详|待考|未详|一说|或说|另说)/.test(raw)" in html
+    assert "const placeName = findPromptPlaceName();" in html
+    assert ".related-graph-board::before {" in html
+    assert ".related-graph-board::after {" in html
+    assert "grid-template-columns: minmax(0, 1fr) 160px minmax(0, 1fr);" in html
+    assert "width: 136px;" in html
+    assert '<div className="related-graph-core-name">{RELATED_GRAPH_CENTER_COPY}</div>' in html
+    assert '<div className="related-graph-entry-name">{node.name}</div>' in html
+    assert '<div className="related-graph-entry-dot" />' in html
+    assert '<div className="related-graph-board">' in html
     assert "related-graph-avatar" not in html
-    assert "related-graph-edge-label-text" in html
+    assert "related-graph-edge-label-text" not in html
+    assert "getRelatedGraphEdgeLabel(node)" not in html
     assert "related-graph-meta" not in html
+    assert "const labelRatio = 0.42;" not in html
+    assert "if (size === 3) return side === 'left' ? [225, 180, 135] : [-45, 0, 45];" not in html
 
 
 def test_profile_page_template_removes_chat_llm_explanation_copy():
@@ -804,7 +827,7 @@ def test_profile_page_template_removes_floating_chat_button_and_keeps_inline_ent
     assert ">NEW</span>" not in html
 
 
-def test_profile_page_template_uses_recommended_question_cards_and_color_teaching_points():
+def test_profile_page_template_uses_recommended_question_cards_and_plain_teaching_points():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "推荐问题" in html
@@ -815,9 +838,12 @@ def test_profile_page_template_uses_recommended_question_cards_and_color_teachin
     assert "recommended-question-grid" in html
     assert "recommended-question-card" in html
     assert "recommended-question-kicker" in html
+    assert "teaching-point-heading-inline" in html
+    assert "teaching-point-subheading-inline" in html
+    assert "teaching-point-line" in html
+    assert "teaching-point-inline-bullet" in html
+    assert "teaching-point-paragraph" in html
     assert "teaching-point-card" in html
-    assert "teaching-point-heading" in html
-    assert "teaching-point-note" in html
     assert "text-left" in html
 
 
@@ -945,3 +971,14 @@ def test_profile_page_template_shows_age_and_city_name_on_map_node_labels():
     assert 'class="map-point-label-text"' in html
     assert 'class="map-point-label-badge"' in html
     assert 'class="map-point-label-name"' in html
+
+
+def test_profile_page_template_uses_high_contrast_amap_text_label_style():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const buildAmapPointLabelStyle = (visual) => ({" in html
+    assert "color: visual.textColor," in html
+    assert "textShadow: visual.isActive ? '0 1px 0 rgba(255,255,255,0.92)' : '0 1px 0 rgba(255,255,255,0.86)'" in html
+    assert "style: buildAmapPointLabelStyle(visual)" in html
+    assert "entry.label.setStyle(buildAmapPointLabelStyle(visual));" in html
+    assert "color: pointColor," not in html
