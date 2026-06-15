@@ -172,6 +172,8 @@ def _safe_float(value: object, default: float = 0.0) -> float:
 
 def _is_usable_result_item(item: object) -> bool:
     data = dict(item or {}) if isinstance(item, dict) else {}
+    if bool(data.get("homepage_refresh_failed")):
+        return False
     if bool(data.get("ok")):
         return True
     return str(data.get("status") or "").strip() == "degraded"

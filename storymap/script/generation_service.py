@@ -417,6 +417,7 @@ def generate_for_person(
             ("export-bar" in cached_html)
             or ("leaflet" in cached_html)
             or ("amap-config.js" not in cached_html)
+            or ("geovis-config.js" not in cached_html)
             or cache_stale_by_code
             or cache_stale_by_markdown
         )

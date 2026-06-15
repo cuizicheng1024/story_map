@@ -203,7 +203,7 @@ def test_generate_for_person_hits_cache_for_new_runtime_config_loader_html(tmp_p
     html_path = tmp_path / f"{person}.html"
     md_path.write_text("# 霍去病\n\nNEW_MARKDOWN\n", encoding="utf-8")
     html_path.write_text(
-        '<html><head><script src="./amap-config.js"></script></head>'
+        '<html><head><script src="./amap-config.js"></script><script src="./geovis-config.js"></script></head>'
         '<body><script>const data = {"person":{"name":"霍去病"},"locations":[]}; window.__EXPORT_DATA__ = data;</script>OLD</body></html>',
         encoding="utf-8",
     )
@@ -242,6 +242,51 @@ def test_generate_for_person_hits_cache_for_new_runtime_config_loader_html(tmp_p
     assert result["cached"] is True
     assert result.get("refreshed") is not True
     assert html_path.read_text(encoding="utf-8").endswith("OLD</body></html>")
+
+
+def test_generate_for_person_refreshes_cache_when_geovis_loader_is_missing(tmp_path):
+    person = "霍去病"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    md_path.write_text("# 霍去病\n\nNEW_MARKDOWN\n", encoding="utf-8")
+    html_path.write_text(
+        '<html><head><script src="./amap-config.js"></script></head>'
+        '<body><script>const data = {"person":{"name":"霍去病"},"locations":[]}; window.__EXPORT_DATA__ = data;</script>OLD</body></html>',
+        encoding="utf-8",
+    )
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person=person,
+        allow_cache=True,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {"person": {"name": person}, "locations": []},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html><body>{profile.get('markdown','')}|GEOVIS</body></html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "mapStyle": {}, "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: str(md_path),
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: str(html_path),
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is True
+    assert result["cached"] is True
+    assert result["refreshed"] is True
+    assert "GEOVIS" in html_path.read_text(encoding="utf-8")
 
 
 def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, monkeypatch):
@@ -1056,7 +1101,8 @@ def test_generate_for_person_refreshes_cached_html_when_template_signature_is_st
         (
             '<script>const data = {"person":{"name":"旧诸葛亮"},"templateSignature":"old-sign"};\n'
             "window.__EXPORT_DATA__ = data;</script>\n"
-            '<script src="/amap-config.js"></script>'
+            '<script src="/amap-config.js"></script>\n'
+            '<script src="/geovis-config.js"></script>'
         ),
         encoding="utf-8",
     )

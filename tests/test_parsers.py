@@ -79,3 +79,25 @@ def test_normalize_markdown_tables_inserts_missing_separator():
 
     assert lines[1] == "| 年份 | 现称 | 事件 |"
     assert lines[2] == "| --- | --- | --- |"
+
+
+def test_parse_story_document_prefers_timeline_table_over_coords_table():
+    md = """# 人物甲
+
+## 四、生平时间线
+
+| 年份 | 阶段 | 关键事件 |
+| --- | --- | --- |
+| 1900 | 出生 | 生于甲地 |
+
+## 五、地点坐标
+
+| 现称 | 现代搜索地名 | 纬度 | 经度 |
+| --- | --- | --- | --- |
+| 甲地 | 甲市 | 30.000000 | 120.000000 |
+"""
+
+    parsed = parsers.parse_story_document(md)
+
+    assert parsed.timeline_header == ["年份", "阶段", "关键事件"]
+    assert parsed.timeline_rows == [["1900", "出生", "生于甲地"]]

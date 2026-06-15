@@ -252,6 +252,15 @@ async def test_task_is_marked_failed_when_homepage_refresh_failed(monkeypatch):
     assert snapshot["result"]["results"][0]["homepage_refresh_failed"] is True
     assert snapshot["result"]["files"][0]["html"].endswith("/tmp/霍去病.html") or snapshot["result"]["files"][0]["html"] == "tmp/霍去病.html"
 
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        list_response = await client.get("/tasks", params={"limit": 10})
+
+    assert list_response.status_code == 200
+    items = list_response.json()["tasks"]
+    target = next(item for item in items if item["id"] == task_id)
+    assert target["status"] == "failed"
+    assert target["result_ok"] is False
+
 
 async def test_task_debug_surface_partial_failed_status(monkeypatch):
     def _fake_generate(_client, person, **_kwargs):

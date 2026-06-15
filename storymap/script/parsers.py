@@ -185,7 +185,7 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
     for line in lines:
         if line.strip().startswith("## "):
             title = line.strip().lstrip("#").strip()
-            in_sec = title.startswith("年份")
+            in_sec = ("生平时间线" in title) or title.startswith("年份")
             table_started = False
             header = []
             continue
@@ -221,13 +221,13 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
                 rows.append([c.strip() for c in stripped.strip("|").split("|")])
             else:
                 if header and rows and any(
-                    any(k in c for k in ("现称", "事件", "年号", "公元")) for c in header
+                    any(k in c for k in ("年份", "事件", "年号", "公元")) for c in header
                 ):
                     return header, rows
                 header = []
                 rows = []
                 table_started = False
-    if header and rows and any(any(k in c for k in ("现称", "事件", "年号", "公元")) for c in header):
+    if header and rows and any(any(k in c for k in ("年份", "事件", "年号", "公元")) for c in header):
         return header, rows
     return [], []
 

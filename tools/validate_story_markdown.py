@@ -17,7 +17,9 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import geocode_service as gs
+import map_client as mc
 import parsers as ps
+from project_paths import classify_story_markdown_authenticity
 
 
 REQUIRED_SECTION_PATTERNS = {
@@ -50,6 +52,7 @@ VAGUE_LOCATION_PATTERNS = [
         r"^(北方|南方|西方|东方|中原|关中|江南|塞外|岭南)(?:诸地|各地|一带|地区)?$",
     ]
 ]
+ENABLE_GEOCODE_FALLBACK = False
 
 
 @dataclass
@@ -57,16 +60,25 @@ class ValidationResult:
     file_path: Path
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    publishable: bool = True
+    skip_reason: str = ""
 
     @property
     def ok(self) -> bool:
         return not self.errors
+
+    @property
+    def skipped(self) -> bool:
+        return not self.publishable
 
 
 def _result_to_dict(result: ValidationResult) -> dict:
     return {
         "file": str(result.file_path.relative_to(REPO_ROOT)),
         "ok": result.ok,
+        "publishable": result.publishable,
+        "skipped": result.skipped,
+        "skip_reason": result.skip_reason,
         "errors": list(result.errors),
         "warnings": list(result.warnings),
     }
@@ -96,6 +108,13 @@ def _is_vague_location(text: str) -> bool:
     if not raw:
         return False
     return any(pattern.search(raw) for pattern in VAGUE_LOCATION_PATTERNS)
+
+
+def _is_living_marker(text: str) -> bool:
+    raw = str(text or "").strip()
+    if not raw:
+        return False
+    return any(token in raw for token in ("在世", "健在", "至今", "现居"))
 
 
 def _resolve_location_offline_candidates(
@@ -131,10 +150,25 @@ def _resolve_location_offline_candidates(
     )
     if not coord:
         coord = gs.lookup_coords_from_historical_index(geo, search_name, modern, location, fallback_name)
+    if ENABLE_GEOCODE_FALLBACK and not coord:
+        for candidate in [search_name, geo, modern, fallback_name, ancient]:
+            candidate_text = str(candidate or "").strip()
+            if not candidate_text:
+                continue
+            coord = mc.geocode_city(candidate_text)
+            if coord:
+                break
     return coord is not None, modern or ancient or location
 
 
 def validate_markdown(file_path: Path) -> ValidationResult:
+    accepted, reason = classify_story_markdown_authenticity(file_path)
+    if not accepted:
+        return ValidationResult(
+            file_path=file_path,
+            publishable=False,
+            skip_reason=reason or "non_publishable",
+        )
     text = file_path.read_text(encoding="utf-8")
     result = ValidationResult(file_path=file_path)
     parsed_doc = ps.parse_story_document(text)
@@ -213,10 +247,17 @@ def validate_markdown(file_path: Path) -> ValidationResult:
                 result.errors.append(f"`生平时间线` 表头列数不足：{header_text}")
 
     locations = []
+    precise_locations = []
+    actionable_sections = []
     for item in location_sections:
         loc_text = str(item.get("location") or item.get("name") or "").strip()
         if not loc_text:
             continue
+        if _is_placeholder_location(loc_text) or _is_living_marker(loc_text):
+            continue
+        actionable_sections.append(item)
+        if (not _is_placeholder_location(loc_text)) and (not _is_vague_location(loc_text)):
+            precise_locations.append(item)
         resolved, _ = _resolve_location_offline_candidates(
             loc_text,
             str(item.get("name") or "").strip(),
@@ -225,23 +266,37 @@ def validate_markdown(file_path: Path) -> ValidationResult:
         )
         if resolved:
             locations.append(item)
-    if not locations:
+    precise_resolved = 0
+    for item in precise_locations:
+        loc_text = str(item.get("location") or item.get("name") or "").strip()
+        resolved, _ = _resolve_location_offline_candidates(
+            loc_text,
+            str(item.get("name") or "").strip(),
+            coords_cache=coords_cache,
+            coords_search_map=coords_search_map,
+        )
+        if resolved:
+            precise_resolved += 1
+    if actionable_sections and not locations:
         result.warnings.append("未解析出任何地点，静态人物页可能显示为空时间轴")
-    if location_sections:
-        expected = len(location_sections)
+    if actionable_sections:
+        expected = len(actionable_sections)
         actual = len(locations)
         if actual < expected:
             result.warnings.append(f"地点解析存在落差：结构化地点 {expected} 个，但离线模式仅保留 {actual} 个")
-        if expected >= 5 and actual <= max(1, expected // 3):
-            result.errors.append(f"离线命中率过低：{expected} 个地点仅命中 {actual} 个，请补充地点词典或修正地点字段")
+        precise_expected = len(precise_locations)
+        if precise_expected >= 4 and precise_resolved < max(1, precise_expected // 2):
+            result.errors.append(
+                f"离线命中率过低：{precise_expected} 个可精确定位地点仅命中 {precise_resolved} 个，请补充地点词典或修正地点字段"
+            )
 
     birth_text = str(parsed_doc.basic_info_map.get("出生", "") or "")
     death_text = str(parsed_doc.basic_info_map.get("去世", "") or "")
     _, birth_loc = ps._parse_date_location(birth_text, ["出生于", "生于"])
     _, death_loc = ps._parse_date_location(death_text, ["卒于", "去世于", "卒"])
-    if not birth_loc:
+    if not birth_loc and not _is_placeholder_location(birth_text):
         result.warnings.append("未解析出出生地")
-    if not death_loc:
+    if not death_loc and not (_is_placeholder_location(death_text) or _is_living_marker(death_text)):
         result.warnings.append("未解析出去世地")
 
     return result
@@ -272,6 +327,7 @@ def _resolve_input_files(story_dir: Path, raw_files: List[str]) -> List[Path]:
 
 
 def main() -> int:
+    global ENABLE_GEOCODE_FALLBACK
     parser = argparse.ArgumentParser(description="校验人物 Markdown 是否符合 StoryMap 推荐格式")
     parser.add_argument(
         "--story-dir",
@@ -280,8 +336,14 @@ def main() -> int:
     )
     parser.add_argument("--files", nargs="*", default=[], help="只校验指定 Markdown 文件")
     parser.add_argument("--strict", action="store_true", help="有 warning 也返回非 0")
+    parser.add_argument(
+        "--enable-geocode-fallback",
+        action="store_true",
+        help="允许在离线索引未命中时尝试在线 geocode 回退（更慢，且可能有歧义）",
+    )
     parser.add_argument("--report-json", default="", help="将校验结果写入 JSON 报告")
     args = parser.parse_args()
+    ENABLE_GEOCODE_FALLBACK = bool(args.enable_geocode_fallback)
 
     story_dir = Path(args.story_dir).resolve()
     files = _resolve_input_files(story_dir, list(args.files or []))
@@ -292,9 +354,15 @@ def main() -> int:
     report_items = []
     error_count = 0
     warning_count = 0
+    publishable_count = 0
+    skipped_count = 0
     for file_path in files:
         result = validate_markdown(file_path)
         report_items.append(_result_to_dict(result))
+        if result.skipped:
+            skipped_count += 1
+            continue
+        publishable_count += 1
         if result.errors:
             error_count += 1
         if result.warnings:
@@ -307,7 +375,10 @@ def main() -> int:
         for message in result.warnings:
             print(f"  WARN : {message}")
 
-    print(f"\nSummary: files={len(files)} error_files={error_count} warning_files={warning_count}")
+    print(
+        f"\nSummary: files={len(files)} publishable_files={publishable_count} "
+        f"skipped_non_publishable_files={skipped_count} error_files={error_count} warning_files={warning_count}"
+    )
     if args.report_json:
         report_path = Path(args.report_json)
         if not report_path.is_absolute():
@@ -319,6 +390,8 @@ def main() -> int:
                     "generated_at": __import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "summary": {
                         "files": len(files),
+                        "publishable_files": publishable_count,
+                        "skipped_non_publishable_files": skipped_count,
                         "error_files": error_count,
                         "warning_files": warning_count,
                     },

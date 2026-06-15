@@ -124,6 +124,68 @@ def test_validator_reports_low_offline_hit_rate(tmp_path):
     assert any("离线命中率过低" in msg for msg in result.errors)
 
 
+def test_validator_allows_exactly_half_of_precise_locations_to_resolve(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物乙半数命中.md"
+    file_path.write_text(
+        """# 人物乙半数命中
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物乙半数命中
+- **时代**：近现代
+- **出生**：1900年，甲地（今甲市）
+- **去世**：1980年，乙地（今乙市）
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：甲地
+- **公元纪年**：1900年
+- **位置**：甲地（今甲市）
+- **事迹**：出生。
+- **意义**：起点。
+
+### 📍 重要地点：丙地
+- **公元纪年**：1920年
+- **位置**：丙地（今丙市）
+- **事迹**：求学。
+- **意义**：成长。
+
+### 📍 重要地点：丁地
+- **公元纪年**：1940年
+- **位置**：丁地（今丁市）
+- **事迹**：任职。
+- **意义**：发展。
+
+### 🔴 去世地：乙地
+- **公元纪年**：1980年
+- **位置**：乙地（今乙市）
+- **经过**：去世。
+- **意义**：终点。
+
+## 四、生平时间线
+
+| 年份 | 阶段 | 关键事件 |
+| :--- | :--- | :--- |
+| 1900年 | 出生 | 出生。 |
+| 1980年 | 去世 | 去世。 |
+
+## 地点坐标
+| 现称 | 现代搜索地名 | 纬度 | 经度 |
+| --- | --- | --- | --- |
+| 甲地 | 甲市 | 30.000000 | 120.000000 |
+| 乙地 | 乙市 | 31.000000 | 121.000000 |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert not any("离线命中率过低" in msg for msg in result.errors)
+    assert any("地点解析存在落差" in msg for msg in result.warnings)
+
+
 def test_validator_accepts_extended_timeline_header_used_by_story_examples(tmp_path):
     validator = _load_validator_module()
     file_path = tmp_path / "人物丙.md"
@@ -310,3 +372,104 @@ def test_validator_allows_sparse_single_site_without_generic_count_warning(tmp_p
     result = validator.validate_markdown(file_path)
 
     assert not any("仅解析出 1 个地点" in msg for msg in result.warnings)
+
+
+def test_validator_skips_death_warning_for_living_people(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物庚.md"
+    file_path.write_text(
+        """# 人物庚
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物庚
+- **时代**：当代
+- **出生**：1960年，甲地（今甲市）
+- **去世**：健在（截至2026年）
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：甲地
+- **公元纪年**：1960年
+- **位置**：甲地（今甲市）
+- **事迹**：出生。
+- **意义**：起点。
+
+### 📍 重要地点：乙地
+- **公元纪年**：2000年
+- **位置**：乙地（今乙市）
+- **事迹**：工作。
+- **意义**：发展。
+
+### 🔴 现居地：乙地
+- **公元纪年**：至今
+- **位置**：乙地（今乙市）
+- **经过**：仍在此生活。
+- **意义**：当前生活中心。
+
+## 四、生平时间线
+
+| 年份 | 年龄 | 关键事件 |
+| --- | --- | --- |
+| 1960年 | 0岁 | 出生。 |
+| 2000年 | 40岁 | 工作。 |
+| 至今 | - | 仍在世。 |
+
+## 地点坐标
+| 现称 | 现代搜索地名 | 纬度 | 经度 |
+| --- | --- | --- | --- |
+| 甲地 | 甲市 | 30.000000 | 120.000000 |
+| 乙地 | 乙市 | 31.000000 | 121.000000 |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert "未解析出去世地" not in result.warnings
+
+
+def test_validator_skips_placeholder_birth_death_and_count_gap(tmp_path):
+    validator = _load_validator_module()
+    file_path = tmp_path / "人物辛.md"
+    file_path.write_text(
+        """# 人物辛
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：人物辛
+- **时代**：存疑
+- **出生**：存疑/说法不一/待考
+- **去世**：存疑/说法不一/待考
+
+## 三、人生历程与重要地点（按时间顺序）
+
+### 🟢 出生地：存疑
+- **公元纪年**：不详
+- **位置**：存疑/说法不一/待考
+- **事迹**：无考。
+- **意义**：无考。
+
+### 🔴 去世地：存疑
+- **公元纪年**：不详
+- **位置**：存疑/说法不一/待考
+- **经过**：无考。
+- **意义**：无考。
+
+## 四、生平时间线
+
+| 年份 | 年龄 | 关键事件 |
+| --- | --- | --- |
+| 不详 | 不详 | 生平失考。 |
+""",
+        encoding="utf-8",
+    )
+
+    result = validator.validate_markdown(file_path)
+
+    assert "未解析出出生地" not in result.warnings
+    assert "未解析出去世地" not in result.warnings
+    assert not any("未解析出任何地点" in msg for msg in result.warnings)
+    assert not any("地点解析存在落差" in msg for msg in result.warnings)
