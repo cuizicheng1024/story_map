@@ -30,3 +30,28 @@ def test_place_aliases_can_resolve_direct_coords_without_network(monkeypatch):
     assert coord is not None
     assert round(coord[0], 4) == 40.0030
     assert round(coord[1], 4) == 116.3269
+
+
+def test_place_aliases_can_resolve_foreign_historical_places_without_network(monkeypatch):
+    monkeypatch.setattr(gs, "_PLACE_ALIASES", None)
+    monkeypatch.setattr(gs, "_HISTORICAL_INDEX", {})
+    monkeypatch.setattr(
+        gs,
+        "_tgaz_query",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not call tgaz")),
+    )
+    monkeypatch.setattr(
+        gs,
+        "geocode_city",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not call geocode_city")),
+    )
+
+    island_coord = sm.resolve_place_coord("优卑亚岛")
+    city_coord = sm.resolve_place_coord("哈尔基斯（优卑亚岛）")
+
+    assert island_coord is not None
+    assert round(island_coord[0], 4) == 38.5236
+    assert round(island_coord[1], 4) == 23.8585
+    assert city_coord is not None
+    assert round(city_coord[0], 4) == 38.4667
+    assert round(city_coord[1], 4) == 23.6000
