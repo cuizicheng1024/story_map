@@ -287,9 +287,17 @@ class StoryAgentLLM:
             response_excerpt=_safe_excerpt(response.text),
         )
 
-    def think(self, messages: List[Dict[str, str]], temperature: float = 0) -> Optional[str]:
+    def think(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0,
+        *,
+        timeout: Optional[int] = None,
+        max_retries: Optional[int] = None,
+    ) -> Optional[str]:
         silent = (os.getenv("STORY_AGENT_SILENT") or "").strip().lower() in {"1", "true", "yes", "y", "on"}
-        max_retries = 3
+        effective_retries = max(1, int(max_retries or 3))
+        effective_timeout = max(1, int(timeout or self.timeout))
         provider = "minimax"
 
         if not silent:
@@ -303,13 +311,19 @@ class StoryAgentLLM:
             "base_url": self.baseUrl,
             "temperature": float(temperature),
             "message_stats": _message_stats(messages),
-            "max_retries": max_retries,
+            "max_retries": effective_retries,
+            "timeout": effective_timeout,
         }
 
-        for attempt in range(1, max_retries + 1):
+        for attempt in range(1, effective_retries + 1):
             started = time.perf_counter()
             try:
-                content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
+                original_timeout = self.timeout
+                try:
+                    self.timeout = effective_timeout
+                    content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
+                finally:
+                    self.timeout = original_timeout
                 duration_ms = int((time.perf_counter() - started) * 1000)
                 trace = {
                     **base_trace,
@@ -352,8 +366,8 @@ class StoryAgentLLM:
                 }
                 self._store_trace(trace)
                 if not silent:
-                    print(f"⚠️ 第 {attempt}/{max_retries} 次尝试失败 [{classification}]: {e}")
-                if attempt < max_retries and retryable:
+                    print(f"⚠️ 第 {attempt}/{effective_retries} 次尝试失败 [{classification}]: {e}")
+                if attempt < effective_retries and retryable:
                     wait_time = 2 * attempt  # 简单的指数退避
                     if not silent:
                         print(f"⏳ {wait_time} 秒后重试...")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import re
@@ -101,6 +102,10 @@ _DYNASTY_TOKENS = (
 _QUOTE_LABEL_HINT_RE = re.compile(r"^\s*-\s*\*\*名篇名句\*\*：\s*(.+?)\s*$", re.MULTILINE)
 _TRUTH_QUOTE = "吾爱吾师，吾更爱真理"
 _APPROXIMATE_MARKERS = ("约", "约公元", "大约", "约于", "传为", "一说", "说法不一", "生年不详", "卒年不详")
+_SEARCH_LLM_TIMEOUT_SECONDS = 20
+_EDITOR_LLM_TIMEOUT_SECONDS = 22
+_FACT_CHECK_LLM_TIMEOUT_SECONDS = 18
+_TOOL_MANAGED_LLM_MAX_RETRIES = 1
 _BROAD_ANCIENT_REGION_TOKENS = frozenset(
     {
         "河西",
@@ -614,11 +619,54 @@ def _llm_fact_check(
         summary_excerpt=(parsed_doc.overview or "")[:400],
         timeline_excerpt=json.dumps(parsed_doc.timeline_rows[:8], ensure_ascii=False),
     )
-    raw = llm.think([{"role": "system", "content": prompt}], temperature=0)
+    raw = _llm_think(
+        llm,
+        [{"role": "system", "content": prompt}],
+        temperature=0,
+        timeout_seconds=_FACT_CHECK_LLM_TIMEOUT_SECONDS,
+    )
     payload = parse_json_payload(raw or "")
     if not payload:
         return []
     return coerce_issue_list(payload.get("issues") or [])
+
+
+def _llm_supports_runtime_overrides(llm: object) -> bool:
+    think = getattr(llm, "think", None)
+    if not callable(think):
+        return False
+    try:
+        signature = inspect.signature(think)
+    except (TypeError, ValueError):
+        return False
+    parameters = signature.parameters.values()
+    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters):
+        return True
+    names = set(signature.parameters)
+    return "timeout" in names and "max_retries" in names
+
+
+def _llm_think(
+    llm: object,
+    messages: List[Dict[str, str]],
+    *,
+    temperature: float = 0,
+    timeout_seconds: Optional[int] = None,
+    max_retries: int = _TOOL_MANAGED_LLM_MAX_RETRIES,
+) -> object:
+    if llm is None:
+        return ""
+    think = getattr(llm, "think", None)
+    if not callable(think):
+        return ""
+    if _llm_supports_runtime_overrides(llm):
+        return think(
+            messages,
+            temperature=temperature,
+            timeout=timeout_seconds,
+            max_retries=max_retries,
+        )
+    return think(messages, temperature=temperature)
 
 
 def _clean_short_review_candidate(text: object, *, limit: int = 60) -> str:
@@ -878,12 +926,14 @@ def default_search_person_info(
         "有外部资料片段时优先基于片段整理；没有片段时可依据常识谨慎整理，但不确定信息必须写入 cautions。"
     )
     user_prompt = f"人物：{person_name}\n\n外部资料片段：\n{snippets or '暂无外部资料片段，请谨慎整理。'}"
-    raw = llm.think(
+    raw = _llm_think(
+        llm,
         [
             {"role": "system", "content": search_prompt},
             {"role": "user", "content": user_prompt},
         ],
         temperature=0,
+        timeout_seconds=_SEARCH_LLM_TIMEOUT_SECONDS,
     )
     payload = parse_json_payload(raw or "")
     if not payload:
@@ -944,12 +994,14 @@ def default_generate_markdown(structure: Dict[str, object], *, llm: object = Non
         "5. 如果检索资料里有 short_review_candidate，优先把它放入“### 历史评价”的第一条，保持一句话短评风格；\n"
         "6. 优先吸收运行时反思里的瓶颈与下一步动作，避免重复上一轮失败模式。"
     )
-    markdown = llm.think(
+    markdown = _llm_think(
+        llm,
         [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.1,
+        timeout_seconds=_EDITOR_LLM_TIMEOUT_SECONDS,
     ) or ""
     candidate = dict(structure.get("search_result") or {}).get("short_review_candidate")
     return _ensure_short_review_in_markdown(markdown, candidate)
@@ -1044,8 +1096,8 @@ def create_agent_tools(
             "required": ["person", "plan", "search_result", "place_maps", "critic_feedback", "previous_draft"],
         },
         output_schema={"type": "string"},
-        timeout_seconds=60.0,
-        retry_count=1,
+        timeout_seconds=25.0,
+        retry_count=0,
         cost_tier="high",
         permission=editor_permission,
         tags=editor_tags,

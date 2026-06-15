@@ -25,6 +25,26 @@ def _make_transport() -> httpx.ASGITransport:
     return httpx.ASGITransport(app=APP)
 
 
+@pytest.fixture(autouse=True)
+def _reset_task_service_state():
+    service = story_map._TASK_SERVICE
+    with service._task_lock:
+        removed_ids = list(service._tasks.keys())
+        service._tasks.clear()
+        service._delete_tasks_locked(removed_ids)
+    with service._queue_lock:
+        service._pending = 0
+        service._active = 0
+    yield
+    with service._task_lock:
+        removed_ids = list(service._tasks.keys())
+        service._tasks.clear()
+        service._delete_tasks_locked(removed_ids)
+    with service._queue_lock:
+        service._pending = 0
+        service._active = 0
+
+
 async def test_health_endpoint_returns_ok():
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         response = await client.get("/health")

@@ -47,11 +47,18 @@ def test_supervisor_prefers_editor_when_tools_are_unstable_during_revision():
             "llm_calls_used": 1,
             "llm_calls_limit": 4,
             "execution_trace": ["supervisor", "search_agent", "editor_agent", "critic_agent"],
-            "tool_traces": [{"tool_name": "generate_markdown", "success": False, "timed_out": True}],
+            "tool_traces": [
+                {
+                    "tool_name": "generate_markdown",
+                    "agent_step": "editor_agent",
+                    "success": False,
+                    "timed_out": True,
+                }
+            ],
         }
     )
 
-    assert update["next_step"] == "editor_agent"
+    assert update["next_step"] == "finish_agent"
 
 
 def test_supervisor_does_not_retry_map_when_location_feedback_coexists_with_failed_map_call():

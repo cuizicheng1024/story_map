@@ -679,6 +679,7 @@ class TaskService:
                 progress=_progress,
                 allow_cache=allow_cache,
                 event_callback=_llm_event,
+                refresh_homepage=False,
             )
             generated_results.append(result)
             if _is_usable_result(result) and result.get("_profile"):

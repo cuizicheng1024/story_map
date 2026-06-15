@@ -140,3 +140,48 @@ def test_story_agent_health_check_collects_results(monkeypatch):
     assert report["success_count"] == 2
     assert len(report["results"]) == 2
     assert report["results"][0]["trace"]["classification"] == "ok"
+
+
+def test_story_agent_llm_supports_per_call_timeout_override(monkeypatch):
+    client = _build_client()
+    observed = []
+
+    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+        _ = (temperature, request_id)
+        observed.append(client.timeout)
+        return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 6}
+
+    monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
+
+    content = client.think([{"role": "user", "content": "ping"}], temperature=0, timeout=7, max_retries=1)
+
+    assert content == "OK"
+    assert observed == [7]
+    assert client.timeout == 1
+    assert client.latest_trace()["timeout"] == 7
+    assert client.latest_trace()["max_retries"] == 1
+
+
+def test_story_agent_llm_supports_per_call_retry_override(monkeypatch):
+    client = _build_client()
+    calls = {"count": 0}
+
+    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+        _ = temperature
+        calls["count"] += 1
+        raise story_agents.LLMRequestError(
+            "timeout",
+            classification="timeout",
+            request_id=request_id or "req",
+            provider="minimax",
+            endpoint="https://api.minimaxi.com/v1/chat/completions",
+            retryable=True,
+        )
+
+    monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
+
+    content = client.think([{"role": "user", "content": "ping"}], temperature=0, max_retries=1)
+
+    assert content is None
+    assert calls["count"] == 1
+    assert client.latest_trace()["max_retries"] == 1

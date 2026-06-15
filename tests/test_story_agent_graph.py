@@ -45,7 +45,8 @@ def test_create_agent_tools_expose_expected_names():
         "validate_markdown",
     }
     assert tools["search_person_info"].__tool__.retry_count == 2
-    assert tools["generate_markdown"].__tool__.timeout_seconds == 60.0
+    assert tools["generate_markdown"].__tool__.timeout_seconds == 25.0
+    assert tools["generate_markdown"].__tool__.retry_count == 0
     assert "llm" not in tools["search_person_info"].__tool__.tags
     assert tools["generate_markdown"].__tool__.permission == "read"
     assert "llm" not in tools["generate_markdown"].__tool__.tags
@@ -131,6 +132,50 @@ def test_default_search_person_info_collects_short_review_candidate_from_llm():
 
     assert result["summary"] == "李白，唐代诗人。"
     assert result["short_review_candidate"] == "天才诗人，浪漫主义高峰。"
+
+
+def test_default_agent_llm_calls_bound_runtime_requests():
+    class DummyLLM:
+        def __init__(self):
+            self.calls = []
+
+        def think(self, messages, temperature=0, timeout=None, max_retries=None):
+            self.calls.append(
+                {
+                    "messages": messages,
+                    "temperature": temperature,
+                    "timeout": timeout,
+                    "max_retries": max_retries,
+                }
+            )
+            if len(self.calls) == 1:
+                return (
+                    '{"dynasty":"唐朝","summary":"李白，唐代诗人。",'
+                    '"short_review_candidate":"天才诗人，浪漫主义高峰。",'
+                    '"identities":["诗人"],"achievements":["诗歌创作"],'
+                    '"timeline":[],"places":[],"cautions":[]}'
+                )
+            return "# 李白\n"
+
+    llm = DummyLLM()
+    search_result = story_agent_graph.default_search_person_info("李白", llm=llm)
+    markdown = story_agent_graph.default_generate_markdown(
+        {
+            "person": "李白",
+            "plan": [],
+            "search_result": search_result,
+            "place_maps": [],
+            "critic_feedback": [],
+            "previous_draft": "",
+        },
+        llm=llm,
+    )
+
+    assert markdown == "# 李白\n"
+    assert llm.calls[0]["timeout"] == 20
+    assert llm.calls[0]["max_retries"] == 1
+    assert llm.calls[1]["timeout"] == 22
+    assert llm.calls[1]["max_retries"] == 1
 
 
 def test_story_markdown_agent_revises_after_critic_feedback():

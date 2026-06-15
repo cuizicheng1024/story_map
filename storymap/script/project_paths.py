@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from functools import lru_cache
 from pathlib import Path
 
 BAD_PERSON_NAMES = frozenset(
@@ -66,13 +67,27 @@ def classify_story_markdown_authenticity(path: Path) -> tuple[bool, str]:
         text = Path(path).read_text(encoding="utf-8", errors="ignore")
     except Exception:
         return True, ""
-    head = text[:4000]
-    if _NON_AUTHENTIC_TITLE_RE.search(head):
+    # Only inspect early declaration-style lines to avoid false positives from
+    # later references to fictional side characters in otherwise real biographies.
+    declaration_lines = []
+    for raw_line in text.splitlines()[:40]:
+        line = str(raw_line or "").strip()
+        if not line:
+            continue
+        if (
+            line.startswith("#")
+            or line.startswith(">")
+            or any(token in line for token in ("说明", "提示", "警告", "属性"))
+            or (name and name in line)
+        ):
+            declaration_lines.append(line)
+    declaration = "\n".join(declaration_lines)
+    if _NON_AUTHENTIC_TITLE_RE.search(declaration):
         return False, "non_authentic_title"
-    if "神话人物" in head:
+    if "神话人物" in declaration:
         return False, "mythological_character"
     for marker in _NON_AUTHENTIC_STORY_MARKERS:
-        if marker in head:
+        if marker in declaration:
             return False, "non_authentic_marker"
     return True, ""
 
@@ -129,27 +144,39 @@ def _collect_people_from_json(path: Path) -> set[str]:
 
 
 def _collect_rejected_story_people(story_dir: Path) -> set[str]:
-    rejected: set[str] = set()
-    if not story_dir.exists() or not story_dir.is_dir():
-        return rejected
-    for path in story_dir.glob("*.md"):
-        name = str(path.stem or "").strip()
+    return set(_scan_story_person_markdown_cached(str(story_dir.resolve()))[1])
+
+
+@lru_cache(maxsize=16)
+def _scan_story_person_markdown_cached(base_dir_str: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    base_dir = Path(base_dir_str)
+    if not base_dir.exists():
+        return (), ()
+    publishable: list[str] = []
+    rejected: list[str] = []
+    for path in sorted(base_dir.glob("*.md")):
+        if not path.is_file():
+            continue
+        name = path.stem.strip()
         if not is_valid_person_name(name):
             continue
         accepted, _ = classify_story_markdown_authenticity(path)
-        if not accepted:
-            rejected.add(name)
-    return rejected
+        if accepted:
+            publishable.append(name)
+        else:
+            rejected.append(name)
+    return tuple(publishable), tuple(rejected)
 
 
-def known_authentic_person_names(project_root: Path | None = None, story_dir: Path | None = None) -> set[str]:
-    base_story_dir = Path(story_dir or (Path(project_root or project_root_path()) / "storymap" / "examples" / "story"))
-    root = Path(project_root or project_root_path())
-    if project_root is None:
-        for parent in base_story_dir.resolve().parents:
-            if (parent / "data").exists() and (parent / "storymap").exists():
-                root = parent
-                break
+@lru_cache(maxsize=16)
+def _story_person_names_cached(base_dir_str: str) -> tuple[str, ...]:
+    return _scan_story_person_markdown_cached(base_dir_str)[0]
+
+
+@lru_cache(maxsize=16)
+def _known_authentic_person_names_cached(base_story_dir_str: str, root_str: str) -> frozenset[str]:
+    base_story_dir = Path(base_story_dir_str)
+    root = Path(root_str)
     names = set()
     data_dir = root / "data"
     for filename in (
@@ -173,7 +200,18 @@ def known_authentic_person_names(project_root: Path | None = None, story_dir: Pa
         redirects = dict(person_redirects(sorted(publishable_names)) or {})
         names.update(str(alias or "").strip() for alias in redirects.keys() if is_valid_person_name(alias))
         names.update(str(canonical or "").strip() for canonical in redirects.values() if is_valid_person_name(canonical))
-    return names
+    return frozenset(names)
+
+
+def known_authentic_person_names(project_root: Path | None = None, story_dir: Path | None = None) -> set[str]:
+    base_story_dir = Path(story_dir or (Path(project_root or project_root_path()) / "storymap" / "examples" / "story"))
+    root = Path(project_root or project_root_path())
+    if project_root is None:
+        for parent in base_story_dir.resolve().parents:
+            if (parent / "data").exists() and (parent / "storymap").exists():
+                root = parent
+                break
+    return set(_known_authentic_person_names_cached(str(base_story_dir.resolve()), str(root.resolve())))
 
 
 def classify_story_person_authenticity(
@@ -213,13 +251,7 @@ def classify_story_person_authenticity(
 
 def story_person_names(story_dir: Path | None = None) -> list[str]:
     base_dir = Path(story_dir or story_md_dir_path())
-    if not base_dir.exists():
-        return []
-    names: list[str] = []
-    for path in sorted(base_dir.glob("*.md")):
-        if path.is_file() and is_publishable_person_markdown(path):
-            names.append(path.stem.strip())
-    return names
+    return list(_story_person_names_cached(str(base_dir.resolve())))
 
 
 def person_name_from_filename(name: str) -> str:

@@ -40,7 +40,15 @@ def _resolve_revision_step(state: StoryAgentState) -> tuple[str, str]:
         isinstance(item, dict) and item.get("lat") is not None and item.get("lng") is not None
         for item in list(state.get("place_maps") or [])
     )
+    editor_call_failed = any(
+        isinstance(item, dict)
+        and str(item.get("agent_step") or "").strip() == "editor_agent"
+        and not bool(item.get("success"))
+        for item in list(state.get("tool_traces") or [])
+    )
 
+    if editor_call_failed and state.get("draft_markdown"):
+        return "finish_agent", "🧭 Supervisor：Editor 工具超时，直接交付当前最佳稿"
     if failed_calls > 0 or timed_out_calls > 0:
         if usable_place_maps or state.get("draft_markdown"):
             return "editor_agent", "🧭 Supervisor：工具不稳定，优先复用现有资料修稿"

@@ -57,6 +57,23 @@ def test_story_person_names_filters_virtual_example_story(tmp_path):
     assert project_paths.story_person_names(story_dir) == ["苏轼"]
 
 
+def test_authentic_biography_is_not_rejected_by_late_fiction_reference(tmp_path):
+    story_dir = tmp_path / "story"
+    story_dir.mkdir(parents=True)
+    (story_dir / "董卓.md").write_text(
+        "# 董卓\n\n"
+        "## 人物档案\n\n"
+        "- **姓名**：董卓\n"
+        "- **时代**：东汉末年\n\n"
+        "## 人教版教材知识点\n"
+        "- 与吕布、貂蝉（文学虚构人物）的连环计故事常被后世提及。\n",
+        encoding="utf-8",
+    )
+
+    assert project_paths.classify_story_person_authenticity("董卓", story_dir) == (True, "")
+    assert project_paths.story_person_names(story_dir) == ["董卓"]
+
+
 def test_known_authentic_person_names_ignores_derived_people_master_outputs(tmp_path, monkeypatch):
     repo_root = tmp_path / "repo"
     story_dir = repo_root / "storymap" / "examples" / "story"

@@ -124,6 +124,35 @@ def test_task_service_marks_task_failed_when_all_people_return_errors(tmp_path):
         service.shutdown()
 
 
+def test_task_service_disables_blocking_homepage_refresh_for_generate_tasks(tmp_path):
+    captured = {}
+
+    def _generate(_client, person, **kwargs):
+        captured["person"] = person
+        captured["refresh_homepage"] = kwargs.get("refresh_homepage")
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert snapshot["status"] == "completed"
+        assert captured == {"person": "霍去病", "refresh_homepage": False}
+    finally:
+        service.shutdown()
+
+
 def test_task_service_builds_multi_person_summary(tmp_path):
     service = _build_service(tmp_path)
     try:
