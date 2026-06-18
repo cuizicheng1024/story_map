@@ -24,11 +24,16 @@ def test_render_index_html_emits_valid_regex_literals():
     assert '<link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />' in html
     assert "const clearTaskPoll = () => {" in html
     assert "const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {" in html
+    assert "const probeGeneratedPersonHtml = async (personName) => {" in html
     assert "const resolveTaskResultHtml = (result, fallbackPerson) => {" in html
     assert "if (activeTaskPollId === id) return;" in html
     assert "scheduleTaskPoll(id, generation, tick, 900);" in html
     assert "const targetHtml = resolveTaskResultHtml(result, person);" in html
     assert "snapshot.exists !== true" in html
+    assert "let missingSnapshotCount = 0;" in html
+    assert "if (missingSnapshotCount <= 8) {" in html
+    assert "const summary = \"任务状态同步中，请稍候…\";" in html
+    assert "const generatedHtml = await probeGeneratedPersonHtml(person);" in html
     assert 'if (st === "partial_failed")' in html
 
 

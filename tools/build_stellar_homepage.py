@@ -4132,6 +4132,16 @@ def _render_index_html(title: str, data_file: str) -> str:
         window.location.href = targetUrl;
         return true;
       }};
+      const probeGeneratedPersonHtml = async (personName) => {{
+        const person = String(personName || "").trim();
+        if (!person) return "";
+        const target = person + ".html";
+        try {{
+          const resp = await fetch("./" + encodeURIComponent(target), {{ method: "HEAD", cache: "no-store" }});
+          if (resp && resp.ok) return target;
+        }} catch (_) {{}}
+        return "";
+      }};
       const resolveTaskResultHtml = (result, fallbackPerson) => {{
         const files = Array.isArray(result && result.files) ? result.files : [];
         for (const item of files) {{
@@ -4198,6 +4208,10 @@ def _render_index_html(title: str, data_file: str) -> str:
         activeTaskPollGeneration += 1;
         const generation = activeTaskPollGeneration;
         const person = String(personName || "").trim();
+        let missingSnapshotCount = 0;
+        let lastKnownProgress = [];
+        let lastKnownSummary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…";
+        let lastKnownStageKey = "queued";
         const tick = async () => {{
           if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
@@ -4209,11 +4223,54 @@ def _render_index_html(title: str, data_file: str) -> str:
             snapshot = null;
           }}
           if (!snapshot || snapshot.exists !== true) {{
-            setGenStatus("分析任务查询失败，请稍后重试");
+            missingSnapshotCount += 1;
+            const generatedHtml = await probeGeneratedPersonHtml(person);
+            if (generatedHtml) {{
+              clearGenTask();
+              const summary = "分析完成，正在打开人物页…";
+              setGenStatus(summary);
+              updatePixelProgressPanel({{
+                visible: true,
+                person,
+                status: "completed",
+                summary,
+                progress: lastKnownProgress,
+                stageKey: "deliver",
+              }});
+              setGeneratingUI(false);
+              navigateToRelativeHtml(generatedHtml);
+              return;
+            }}
+            if (missingSnapshotCount <= 8) {{
+              const summary = "任务状态同步中，请稍候…";
+              setGenStatus(summary);
+              updatePixelProgressPanel({{
+                visible: true,
+                person,
+                status: "running",
+                summary,
+                progress: lastKnownProgress,
+                stageKey: lastKnownStageKey,
+              }});
+              setGeneratingUI(true);
+              scheduleTaskPoll(id, generation, tick, missingSnapshotCount >= 3 ? 1800 : 1100);
+              return;
+            }}
+            const summary = lastKnownSummary ? (lastKnownSummary + "；任务状态同步失败，请稍后重试。") : "分析任务查询失败，请稍后重试";
+            setGenStatus(summary);
+            updatePixelProgressPanel({{
+              visible: true,
+              person,
+              status: "failed",
+              summary,
+              progress: lastKnownProgress,
+              stageKey: "deliver",
+            }});
             setGeneratingUI(false);
             clearGenTask();
             return;
           }}
+          missingSnapshotCount = 0;
           const st = String(snapshot.status || "").trim();
           const queue = snapshot.queue || {{}};
           const pos = queue.position ? String(queue.position) : "";
@@ -4236,6 +4293,9 @@ def _render_index_html(title: str, data_file: str) -> str:
               stageKey: "queued",
             }});
             setGeneratingUI(true);
+            lastKnownProgress = progress;
+            lastKnownSummary = summary;
+            lastKnownStageKey = "queued";
             scheduleTaskPoll(id, generation, tick, 900);
             return;
           }}
@@ -4254,6 +4314,9 @@ def _render_index_html(title: str, data_file: str) -> str:
               stageKey: resolvePixelStageKey(st, lastTxt, lastDetail, progress),
             }});
             setGeneratingUI(true);
+            lastKnownProgress = progress;
+            lastKnownSummary = summary;
+            lastKnownStageKey = resolvePixelStageKey(st, lastTxt, lastDetail, progress);
             scheduleTaskPoll(id, generation, tick, 900);
             return;
           }}
@@ -4349,11 +4412,11 @@ def _render_index_html(title: str, data_file: str) -> str:
           return;
         }}
         try {{
-          const headResp = await fetch("./" + encodeURIComponent(person + ".html"), {{ method: "HEAD", cache: "no-store" }});
-          if (headResp && headResp.ok) {{
+          const existingHtml = await probeGeneratedPersonHtml(person);
+          if (existingHtml) {{
             setGenStatus("");
             setGeneratingUI(false);
-            navigateToRelativeHtml(person + ".html");
+            navigateToRelativeHtml(existingHtml);
             return;
           }}
         }} catch (_) {{}}
