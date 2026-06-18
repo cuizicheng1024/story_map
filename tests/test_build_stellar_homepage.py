@@ -19,6 +19,9 @@ def test_render_index_html_emits_valid_regex_literals():
     assert r'replace(/^约\s*/g, "")' in html
     assert r'replace(/^公元前?\d+年\s*/g, "")' in html
     assert r'window.__openPerson(\'' not in html
+    assert '<link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />' in html
+    assert '<link rel="shortcut icon" href="./orange.png?v=20260617-tab" />' in html
+    assert '<link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />' in html
     assert "const clearTaskPoll = () => {" in html
     assert "const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {" in html
     assert "const resolveTaskResultHtml = (result, fallbackPerson) => {" in html
@@ -306,6 +309,15 @@ def test_render_index_html_omits_runtime_api_base_when_env_missing(monkeypatch):
     assert "window.MAP_STORY_API_BASE=" not in html
 
 
+def test_render_index_html_omits_legacy_placeholder_api_base(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    monkeypatch.setenv("MAP_STORY_API_BASE", "http://legacy.example")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert "window.MAP_STORY_API_BASE=" not in html
+
+
 def test_render_index_html_normalizes_generated_html_paths_to_leaf_filename():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -398,7 +410,11 @@ def test_render_index_html_shows_person_info_on_map_marker_hover():
     assert "const createMarkerContent = (n, lng, lat) => {" in html
     assert "const active = inWindow(n);" in html
     assert "const initialFill = active ? accent : accentSoft;" in html
-    assert "el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);" in html
+    assert 'const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";' in html
+    assert "const sunMarkerHtml = (sz, glow, emph) => {" in html
+    assert "el.innerHTML = isSpecialSunMarker(n)" in html
+    assert "? sunMarkerHtml(initialSize, initialGlow, active)" in html
+    assert ": markerSvg(initialSize, initialFill, initialGlow, active);" in html
     assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
     assert 'el.addEventListener("mouseenter", show);' in html
     assert 'plugin=AMap.Geocoder' in html
@@ -408,6 +424,19 @@ def test_render_index_html_shows_person_info_on_map_marker_hover():
     assert 'const button = document.createElement("button");' in html
     assert 'button.addEventListener("click", () => {' in html
     assert 'openPerson(n && n.person ? n.person : "");' in html
+
+
+def test_render_index_html_opens_person_pages_in_new_tab_from_homepage():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'const navigateToRelativeHtml = (file, options = {}) => {' in html
+    assert 'const targetUrl = "./" + encodeURIComponent(target);' in html
+    assert 'const useNewTab = !!(options && options.newTab);' in html
+    assert 'link.target = "_blank";' in html
+    assert 'link.rel = "noopener noreferrer";' in html
+    assert 'if (navigateToRelativeHtml(file, { newTab: true })) return;' in html
 
 
 def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_window_visibility():
@@ -420,7 +449,9 @@ def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_windo
     assert "const accent = base.startsWith(\"#\") ? hexToRgba(base, 0.92) : base;" in html
     assert "const accentSoft = base.startsWith(\"#\") ? hexToRgba(base, 0.62) : base;" in html
     assert "const initialFill = active ? accent : accentSoft;" in html
-    assert "el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);" in html
+    assert "el.innerHTML = isSpecialSunMarker(n)" in html
+    assert "? sunMarkerHtml(initialSize, initialGlow, active)" in html
+    assert ": markerSvg(initialSize, initialFill, initialGlow, active);" in html
     assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
     assert "try { mk.hide(); } catch (_) {}" in html
 
@@ -431,12 +462,17 @@ def test_render_index_html_keeps_marker_svg_in_shared_scope_for_map_refresh():
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     marker_svg_idx = html.index("const markerSvg = (sz, fill, glow, emph) => {")
+    sun_marker_idx = html.index("const sunMarkerHtml = (sz, glow, emph) => {")
     init_map_idx = html.index("const initMapOnce = () => {")
     update_markers_idx = html.index("const updateMapMarkers = () => {")
 
     assert marker_svg_idx < init_map_idx
     assert marker_svg_idx < update_markers_idx
-    assert "it.el.innerHTML = markerSvg(sz, fill, glow, emph);" in html
+    assert sun_marker_idx < init_map_idx
+    assert sun_marker_idx < update_markers_idx
+    assert "it.el.innerHTML = isSpecialSunMarker(n)" in html
+    assert "? sunMarkerHtml(sz, glow, emph)" in html
+    assert ": markerSvg(sz, fill, glow, emph);" in html
 
 
 def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag():
@@ -446,8 +482,12 @@ def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag()
 
     assert "const offsetDeg = 1.32;" in html
     assert 'offset: new window.AMap.Pixel(0, -5),' in html
-    assert "mohe[0] + (tengchong[0] - mohe[0]) / 3" in html
-    assert "mohe[1] + (tengchong[1] - mohe[1]) / 3" in html
+    assert "const heihe = [127.500, 50.250];" in html
+    assert 'path: [heihe, tengchong],' in html
+    assert "heihe[0] + (tengchong[0] - heihe[0]) / 3" in html
+    assert "heihe[1] + (tengchong[1] - heihe[1]) / 3" in html
+    assert 'mkText("黑河", heihe);' in html
+    assert 'mkText("腾冲", tengchong);' in html
     assert 'borderRadius: "2px",' in html
 
 
@@ -556,6 +596,32 @@ def test_scan_people_from_story_md_filters_non_authentic_markdown(tmp_path):
     people = module._scan_people_from_story_md(story_dir)
 
     assert people == ["苏轼"]
+
+
+def test_normalize_dynasty_label_prefers_raw_text_over_coarse_bucket():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    dynasty = module._normalize_dynasty_label(
+        person="张飞",
+        dynasty_raw="东汉末年·三国",
+        birth_year=None,
+        death_year=221,
+    )
+
+    assert dynasty == "东汉末年·三国"
+
+
+def test_normalize_dynasty_label_falls_back_to_year_bucket_when_raw_missing():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    dynasty = module._normalize_dynasty_label(
+        person="张飞",
+        dynasty_raw="",
+        birth_year=None,
+        death_year=221,
+    )
+
+    assert dynasty == "魏晋南北"
 
 
 def test_clean_review_text_strips_short_review_prefixes():

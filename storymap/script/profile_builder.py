@@ -241,7 +241,7 @@ def _extract_location_time_bounds(raw: object) -> Tuple[Optional[int], Optional[
     if not text:
         return None, None
     years: List[int] = []
-    year_pattern = re.compile(r"(公元前|前)?\s*(\d{1,4})(?=年)")
+    year_pattern = re.compile(r"(公元前|前)?\s*(\d{1,4})(?=年(?!代))")
     for match in year_pattern.finditer(text):
         try:
             value = int(match.group(2))
@@ -249,8 +249,11 @@ def _extract_location_time_bounds(raw: object) -> Tuple[Optional[int], Optional[
             continue
         era = str(match.group(1) or "").strip()
         years.append(-value if era else value)
+    has_explicit_year = bool(re.search(r"(?:公元前|前)?\s*\d{1,4}\s*年(?!代)", text))
+    if not years and ("世纪" in text or "年代" in text) and not has_explicit_year:
+        return None, None
     if not years:
-        for match in re.finditer(r"(?<!\d)(-?\d{1,4})(?!\d)", text):
+        for match in re.finditer(r"(?<!\d)(-?\d{1,4})(?!\d)(?!\s*世纪)", text):
             try:
                 years.append(int(match.group(1)))
             except Exception:
@@ -438,10 +441,19 @@ def _register_work_context(store: Dict[str, str], title: str, text: str) -> None
     _register_work_text(store, clean_title, clean_text)
 
 
-def _merge_derived_work_texts(store: Dict[str, str]) -> Dict[str, str]:
+def _merge_derived_work_texts(store: Dict[str, str], mentioned_titles: Optional[List[str]] = None) -> Dict[str, str]:
     merged = dict(store or {})
+    mentioned_aliases = set()
+    for raw_title in mentioned_titles or []:
+        for alias in _work_title_aliases(str(raw_title or "")):
+            mentioned_aliases.add(alias)
     for title, derived_text in _DERIVED_WORK_TEXT_LIBRARY.items():
         aliases = _work_title_aliases(title)
+        # Only backfill excerpts for works already mentioned on the current page.
+        if mentioned_aliases and not any(alias in mentioned_aliases for alias in aliases):
+            continue
+        if not mentioned_aliases and not any(alias in merged for alias in aliases):
+            continue
         has_good_excerpt = any(_extract_work_excerpt_candidate(str(merged.get(alias) or "")) for alias in aliases)
         if has_good_excerpt:
             continue
@@ -453,10 +465,19 @@ def extract_work_texts(md: str) -> Dict[str, str]:
     if not isinstance(md, str) or not md.strip():
         return {}
     work_texts: Dict[str, str] = {}
+    mentioned_titles: List[str] = []
+
+    def remember_titles(raw_titles: List[str]) -> None:
+        for raw_title in raw_titles:
+            title = str(raw_title or "").strip()
+            if title and title not in mentioned_titles:
+                mentioned_titles.append(title)
+
     for raw_line in md.splitlines():
         line = str(raw_line or "").strip().lstrip("-").strip()
         if "《" not in line:
             continue
+        remember_titles(re.findall(r"《([^》]{1,80})》", line))
         for title, quote in re.findall(r"《([^》]{1,80})》\s*[：:]\s*[“\"「](.+?)[”\"」]", line):
             _register_work_text(work_texts, title, quote)
     for raw_line in md.splitlines():
@@ -468,6 +489,7 @@ def extract_work_texts(md: str) -> Dict[str, str]:
             titles = re.findall(r"《([^》]{1,80})》", clause)
             if not titles:
                 continue
+            remember_titles(titles)
             context = re.sub(r"^\s*[-*•]\s*", "", clause)
             context = re.sub(r"\*\*", "", context).strip()
             context = re.sub(r"\s+", " ", context)
@@ -478,7 +500,7 @@ def extract_work_texts(md: str) -> Dict[str, str]:
                 # Multiple works in one clause often carry different quotes; avoid cross-assigning them.
                 continue
             _register_work_context(work_texts, titles[0], context)
-    return _merge_derived_work_texts(work_texts)
+    return _merge_derived_work_texts(work_texts, mentioned_titles)
 
 
 def split_quote_lines(text: str) -> List[str]:

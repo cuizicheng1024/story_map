@@ -4,7 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>故事地图</title>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-74J5L22QGX"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-74J5L22QGX");</script>
+    <link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
+    <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
+    <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8F24PMY4F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-B8F24PMY4F");</script>
     <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script>
     <script>window.MAP_STORY_STATIC_SITE=false;</script>
     <style>
@@ -359,6 +362,17 @@ select {
         line-height: 1.5;
         color: var(--color-text-secondary);
         max-width: 760px;
+      }
+      .home-bili-highlight {
+        font-size: 15px;
+        line-height: 1.75;
+        font-weight: 700;
+        color: var(--color-text);
+      }
+      .home-bili-highlight a {
+        color: #1d4ed8;
+        text-decoration: underline;
+        font-weight: 800;
       }
       .home-search-row {
         display: flex;
@@ -1559,7 +1573,7 @@ select {
       <div class="glass card theme-card home-search-card px-6 py-5 relative z-30 overflow-visible">
         <div class="home-title-wrap">
           <div class="home-title-mark">STORY MAP</div>
-          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noreferrer">
+          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noreferrer">
             <span class="home-title-char">故</span>
             <span class="home-title-char">事</span>
             <span class="home-title-char">地</span>
@@ -1579,7 +1593,7 @@ select {
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
-          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a></div>
+          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
             <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
@@ -2099,6 +2113,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let spotlightIdx = -1;
       let spotlight = null;
       let _clickTimer = null;
+
+      const isSpecialSunPerson = (n) => String((n && n.person) || "").trim() === "毛泽东";
 
       let camScale = 1.0;
       let camOffX = 0.0;
@@ -2763,6 +2779,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
         for (const n of nodes) {
           const p = (typeof n.p === "number") ? clamp(n.p, 0, 1) : (inWindow(n) ? 1 : 0);
           const active = p > 0.55;
+          const specialSun = isSpecialSunPerson(n);
           let r = (4.4 + p * 2.8) * camScale;
           let alpha = 0.10 + p * 0.88;
           let col = p > 0 ? colorByYear(mainYear(n)) : "rgba(255,255,255,0.30)";
@@ -2794,24 +2811,53 @@ const buildPersonTooltipModel = (node, options = {}) => {
             col = "#fbbf24";
           }
           const pt = worldToScreen(n.x, n.y);
-          ctx.beginPath();
-          ctx.fillStyle = col;
-          ctx.globalAlpha = alpha;
-          ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
-          ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
-          ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
-          ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
-          ctx.stroke();
-          if (active) {
+          if (specialSun) {
+            const rayOuter = r + 4.2 * camScale;
+            const rayInner = r + 1.1 * camScale;
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = "rgba(251,191,36,0.98)";
+            ctx.lineWidth = Math.max(1.4, 1.8 * camScale);
+            for (let rayIdx = 0; rayIdx < 8; rayIdx += 1) {
+              const angle = (Math.PI * 2 * rayIdx) / 8 - Math.PI / 2;
+              const x1 = pt.x + Math.cos(angle) * rayInner;
+              const y1 = pt.y + Math.sin(angle) * rayInner;
+              const x2 = pt.x + Math.cos(angle) * rayOuter;
+              const y2 = pt.y + Math.sin(angle) * rayOuter;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
             ctx.beginPath();
-            ctx.strokeStyle = "rgba(255,255,255,0.22)";
-            ctx.globalAlpha = 0.35 + p * 0.35;
-            ctx.lineWidth = 1 * camScale;
-            ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(250,204,21,0.98)";
+            ctx.arc(pt.x, pt.y, Math.max(1.2, r - 0.3 * camScale), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(255,255,255,0.92)";
+            ctx.globalAlpha = Math.min(1, alpha * 0.95);
+            ctx.lineWidth = Math.max(1.1, 1.5 * camScale);
+            ctx.arc(pt.x, pt.y, Math.max(0.8, r - 0.55 * camScale), 0, Math.PI * 2);
             ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.fillStyle = col;
+            ctx.globalAlpha = alpha;
+            ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
+            ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
+            ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
+            ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
+            ctx.stroke();
+            if (active) {
+              ctx.beginPath();
+              ctx.strokeStyle = "rgba(255,255,255,0.22)";
+              ctx.globalAlpha = 0.35 + p * 0.35;
+              ctx.lineWidth = 1 * camScale;
+              ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
+              ctx.stroke();
+            }
           }
         }
         ctx.globalAlpha = 1.0;
@@ -2821,9 +2867,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const n = hover || selected;
           const pt = worldToScreen(n.x, n.y);
           ctx.beginPath();
-          ctx.strokeStyle = "rgba(255,255,255,0.75)";
+          ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
           ctx.lineWidth = 2 * camScale;
-          ctx.arc(pt.x, pt.y, 10 * camScale, 0, Math.PI * 2);
+          ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
           ctx.stroke();
         }
       };
@@ -3362,10 +3408,25 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const leaf = parts.length ? parts[parts.length - 1] : "";
         return /\.html?$/i.test(leaf) ? leaf : "";
       };
-      const navigateToRelativeHtml = (file) => {
+      const navigateToRelativeHtml = (file, options = {}) => {
         const target = normalizeRelativeHtmlFile(file);
         if (!target) return false;
-        window.location.href = "./" + encodeURIComponent(target);
+        const targetUrl = "./" + encodeURIComponent(target);
+        const useNewTab = !!(options && options.newTab);
+        if (useNewTab) {
+          try {
+            const link = document.createElement("a");
+            link.href = targetUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            return true;
+          } catch (_) {}
+        }
+        window.location.href = targetUrl;
         return true;
       };
       const resolveTaskResultHtml = (result, fallbackPerson) => {
@@ -3420,7 +3481,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           return;
         }
         const file = found && found.file ? String(found.file) : "";
-        if (navigateToRelativeHtml(file)) return;
+        if (navigateToRelativeHtml(file, { newTab: true })) return;
         ensurePersonGenerated(q);
       };
       window.__openPerson = openPerson;
@@ -3671,7 +3732,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
       };
       const setSearchHint = () => {
         if (!$searchHint) return;
-        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a>';
+        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>';
       };
       const scoreNodeMatch = (n, rawQuery) => {
         const qRaw = String(rawQuery || "").trim();
@@ -4227,9 +4288,29 @@ const buildPersonTooltipModel = (node, options = {}) => {
 
       const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
       const CHINA_OVERVIEW_ZOOM = 3.9;
+      const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";
+
       const markerSvg = (sz, fill, glow, emph) => {
         const glowRadius = emph ? 10 : 6;
         return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${fill}"></circle><circle cx="12" cy="12" r="6.0" fill="${fill}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+      };
+
+      const sunMarkerHtml = (sz, glow, emph) => {
+        const glowRadius = emph ? 12 : 8;
+        const core = Math.max(7.2, sz * 0.4);
+        const rayOuter = Math.max(core + 3.4, sz * 0.48);
+        const rayInner = Math.max(core + 1.0, sz * 0.32);
+        const stroke = Math.max(1.5, sz * 0.1);
+        const center = sz / 2;
+        const rays = Array.from({ length: 8 }, (_, idx) => {
+          const angle = (Math.PI * 2 * idx) / 8 - Math.PI / 2;
+          const x1 = center + Math.cos(angle) * rayInner;
+          const y1 = center + Math.sin(angle) * rayInner;
+          const x2 = center + Math.cos(angle) * rayOuter;
+          const y2 = center + Math.sin(angle) * rayOuter;
+          return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="rgba(251,191,36,0.98)" stroke-width="${stroke.toFixed(2)}" stroke-linecap="round"></line>`;
+        }).join("");
+        return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><circle cx="${center}" cy="${center}" r="${core.toFixed(2)}" fill="rgba(250,204,21,0.98)" stroke="rgba(255,255,255,0.92)" stroke-width="${Math.max(1.4, sz * 0.08).toFixed(2)}"></circle>${rays}</svg>`;
       };
 
       const applyChinaOverview = () => {
@@ -4280,14 +4361,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
             }
           } catch (_) {}
           try {
-            const mohe = [122.340, 53.480];
+            const heihe = [127.500, 50.250];
             const tengchong = [98.490, 25.020];
             const mid = [
-              mohe[0] + (tengchong[0] - mohe[0]) / 3,
-              mohe[1] + (tengchong[1] - mohe[1]) / 3,
+              heihe[0] + (tengchong[0] - heihe[0]) / 3,
+              heihe[1] + (tengchong[1] - heihe[1]) / 3,
             ];
             const line = new window.AMap.Polyline({
-              path: [mohe, tengchong],
+              path: [heihe, tengchong],
               strokeColor: "rgba(249,115,22,0.92)",
               strokeWeight: 3,
               strokeStyle: "dashed",
@@ -4295,8 +4376,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
               zIndex: 300,
             });
             line.setMap(amap);
-            const dx = tengchong[0] - mohe[0];
-            const dy = tengchong[1] - mohe[1];
+            const dx = tengchong[0] - heihe[0];
+            const dy = tengchong[1] - heihe[1];
             const len = Math.hypot(dx, dy) || 1;
             let nx = (-dy) / len;
             let ny = dx / len;
@@ -4338,7 +4419,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
               t.setMap(amap);
               return t;
             };
-            mkText("漠河", mohe);
+            mkText("黑河", heihe);
             mkText("腾冲", tengchong);
           } catch (_) {}
           const coordCache = readCoordCache();
@@ -4418,7 +4499,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
             el.style.justifyContent = "center";
             el.style.cursor = "pointer";
             el.style.pointerEvents = "auto";
-            el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);
+            el.innerHTML = isSpecialSunMarker(n)
+              ? sunMarkerHtml(initialSize, initialGlow, active)
+              : markerSvg(initialSize, initialFill, initialGlow, active);
             el.style.animation = active ? "twinkle 2.2s ease-in-out infinite" : "none";
             const show = (evt) => {
               const pos = resolveMapTipClientPoint(evt, lng, lat);
@@ -4536,13 +4619,19 @@ const buildPersonTooltipModel = (node, options = {}) => {
             if (it.el) {
               it.el.style.width = `${sz}px`;
               it.el.style.height = `${sz}px`;
-              it.el.innerHTML = markerSvg(sz, fill, glow, emph);
+              it.el.innerHTML = isSpecialSunMarker(n)
+                ? sunMarkerHtml(sz, glow, emph)
+                : markerSvg(sz, fill, glow, emph);
               it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
               try {
                 it.mk.setContent(it.el);
               } catch (_) {}
             } else {
-              it.mk.setContent(markerSvg(sz, fill, glow, emph));
+              it.mk.setContent(
+                isSpecialSunMarker(n)
+                  ? sunMarkerHtml(sz, glow, emph)
+                  : markerSvg(sz, fill, glow, emph)
+              );
             }
             it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
           }

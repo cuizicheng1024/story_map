@@ -49,7 +49,7 @@ class ProxyService:
         try:
             client = self._get_llm_client()
             future = self._executor.submit(client.think, messages, temperature=temperature)
-            timeout_s = int(os.getenv(self._timeout_env_name, "25") or "25")
+            timeout_s = max(1, int(os.getenv(self._timeout_env_name, "60") or "60"))
             content = future.result(timeout=timeout_s)
         except FutureTimeoutError as exc:
             if future is not None:

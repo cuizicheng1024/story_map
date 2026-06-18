@@ -30,6 +30,9 @@ def test_render_profile_html_uses_external_template():
     assert "__TITLE__" not in html
     assert "__DATA__" not in html
     assert "测试人物的人生足迹地图" in html
+    assert '<link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />' in html
+    assert '<link rel="shortcut icon" href="./orange.png?v=20260617-tab" />' in html
+    assert '<link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />' in html
     assert "window.__EXPORT_DATA__ = data;" in html
     assert "personName: String(data?.person?.name || '').trim()" in html
     payload = _extract_export_data_from_html(html)
@@ -55,8 +58,37 @@ def test_render_profile_html_builds_person_redirects_from_filtered_story_people(
 def test_render_profile_html_includes_google_analytics_snippet():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
-    assert "googletagmanager.com/gtag/js?id=G-74J5L22QGX" in html
-    assert "gtag('config', \"G-74J5L22QGX\")" in html
+    assert "googletagmanager.com/gtag/js?id=G-B8F24PMY4F" in html
+    assert "gtag('config', \"G-B8F24PMY4F\")" in html
+
+
+def test_render_profile_html_precompiles_profile_app_and_omits_runtime_babel_script():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert '<script src="./vendor/babel.min.js"></script>' not in html
+    assert '<script type="text/babel"' not in html
+    assert "window.__EXPORT_DATA__ = data;" in html
+
+
+def test_render_profile_html_falls_back_to_runtime_babel_when_precompile_is_unavailable(monkeypatch):
+    renderer._compiled_profile_template.cache_clear()
+    renderer._compiled_profile_app_js.cache_clear()
+    monkeypatch.setattr(renderer, "_compiled_profile_app_js", lambda: (_ for _ in ()).throw(RuntimeError("boom")))
+
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert '<script src="./vendor/babel.min.js"></script>' in html
+    assert '<script type="text/babel"' in html
+    assert "window.__EXPORT_DATA__ = data;" in html
+    renderer._compiled_profile_template.cache_clear()
+
+
+def test_render_profile_html_omits_legacy_placeholder_api_base(monkeypatch):
+    monkeypatch.setenv("MAP_STORY_API_BASE", "http://legacy.example")
+
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "window.MAP_STORY_API_BASE=" not in html
 
 
 def test_profile_template_signature_covers_render_dependency_sources():
@@ -202,36 +234,63 @@ def test_render_profile_html_injects_shared_person_tooltip_helper():
 
     assert "__PERSON_TOOLTIP_JS__" not in html
     assert "const buildPersonTooltipModel = (node, options = {}) => {" in html
-    assert "const uniqStrings = (items) => {" in html
-    assert "const tipModel = buildPersonTooltipModel(node, { fallbackName: '相关人物' });" in html
-    assert "tipModel.rows.map((row) => (" in html
+    assert "const uniqStrings = items => {" in html
+    assert "const tipModel = buildPersonTooltipModel(node, {" in html
+    assert "fallbackName: '相关人物'" in html
+    assert "tipModel.rows.map(row => React.createElement(" in html
 
 
 def test_timeline_card_click_uses_strict_map_focus():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
-    assert "const normalizeFocusOptions = (raw) => {" in html
-    assert "controller.focusIndex(idx, { pulse: pulseNow, strict });" in html
-    assert "applySelectionToMap(idx, loc, { pulse: true, stabilize: true, strict: true });" in html
+    assert "const normalizeFocusOptions = raw => {" in html
+    assert "controller.focusIndex(idx, {" in html
+    assert "pulse: pulseNow" in html
+    assert "strict" in html
+    assert "applySelectionToMap(idx, loc, {" in html
+    assert "stabilize: true" in html
 
 
 def test_profile_template_declares_curved_segment_builder_before_usage():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "function buildCurvedSegmentPath(from, to, idx, prev, next) {" in html
-    assert html.index("function buildCurvedSegmentPath(from, to, idx, prev, next) {") < html.index("const buildRenderedSegmentPath = (idx) => {")
+    assert html.index("function buildCurvedSegmentPath(from, to, idx, prev, next) {") < html.index("const buildRenderedSegmentPath = idx => {")
 
 
 def test_profile_template_marks_posthumous_events_instead_of_fake_age():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
+    assert "const compact = raw.replace(/\\s+/g, '');" in html
+    assert "const match = compact.match(/((?:约|大约|约莫|约公元前|公元前|前)?)(\\d{1,4})年/);" in html
     assert "const deathYear = useMemo(() => extractYear(deathDate), [deathDate]);" in html
     assert "if (deathYear && year > deathYear) return null;" in html
     assert "if (isPosthumousEvent(loc)) return '身后';" in html
     assert "if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';" in html
-    assert "return badgeText && name ? `${badgeText}\\n${name}` : (badgeText || name);" in html
+    assert "return badgeText && name ? `${badgeText}\\n${name}` : badgeText || name;" in html
     assert 'class="map-point-label-badge"' in html
     assert 'class="map-point-label-name"' in html
+
+
+def test_profile_template_defines_birthplace_label_before_intro_tags_use_it():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    birthplace_idx = html.index("const birthplaceLabel = useMemo(() => {")
+    intro_tags_idx = html.index("const introTags = useMemo(() => {")
+
+    assert birthplace_idx < intro_tags_idx
+    assert "if (birthplaceLabel) push(`籍贯：${birthplaceLabel}`);" in html
+
+
+def test_profile_template_defines_journey_panel_sizes_before_effect_uses_them():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    panel_height_idx = html.index("const journeyPanelHeight = journeyFullscreenActive")
+    sync_effect_idx = html.index("const syncMapViewport = () => {")
+
+    assert panel_height_idx < sync_effect_idx
+    assert "mapEl.style.height = journeyPanelHeight;" in html
+    assert "mapEl.style.minHeight = journeyPanelMinHeight;" in html
 
 
 def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_arrows():
@@ -240,7 +299,7 @@ def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_
     assert "const getPersistentLabelIndexes = () => {" in html
     assert "const stageRatios = total >= 10 ? [0.2, 0.4, 0.6, 0.8] : [0.25, 0.5, 0.75];" in html
     assert "const essential = getPersistentLabelIndexes();" in html
-    assert "const stride = totalSegments >= 12 ? 3 : (totalSegments >= 7 ? 2 : 1);" in html
+    assert "const stride = totalSegments >= 12 ? 3 : totalSegments >= 7 ? 2 : 1;" in html
     assert "if (item.distance >= 80 && order % stride === 0) keep.add(item.idx);" in html
     assert "showArrow: true," in html
 
@@ -251,17 +310,19 @@ def test_profile_template_zooms_out_single_point_story_to_show_basemap():
     assert "const defaultFocusZoom = locations.length <= 1 ? 5.6 : 10;" in html
     assert "const v = Number.isFinite(z) ? z : defaultFocusZoom;" in html
     assert "if (boundsPoints.length === 1) {" in html
-    assert "map.easeTo({ center: boundsPoints[0], zoom: focusZoom, duration: 420 });" in html
+    assert "map.easeTo({" in html
+    assert "center: boundsPoints[0]" in html
+    assert "zoom: focusZoom" in html
 
 
 def test_profile_template_only_uses_fallback_overlay_when_maplibre_artifacts_are_missing():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "if (hasRenderableOverlayArtifacts()) {" in html
-    assert "try { map.on('movestart', clearFallbackOverlay); } catch (_) {}" in html
-    assert "try { map.on('zoomstart', clearFallbackOverlay); } catch (_) {}" in html
-    assert "try { map.on('move', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('move'); }); } catch (_) {}" in html
-    assert "try { map.on('zoom', () => { if (!hasRenderableOverlayArtifacts()) scheduleFallbackOverlayRender('zoom'); }); } catch (_) {}" in html
+    assert "map.on('movestart', clearFallbackOverlay);" in html
+    assert "map.on('zoomstart', clearFallbackOverlay);" in html
+    assert "scheduleFallbackOverlayRender('move');" in html
+    assert "scheduleFallbackOverlayRender('zoom');" in html
 
 
 def test_static_site_notice_hides_on_localhost(monkeypatch):
@@ -545,7 +606,7 @@ def test_render_profile_html_hides_tool_layer_section():
 def test_render_profile_html_limits_teaching_review_subtitle_to_short_lines():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
-    assert "const extractTeachingReviewSubtitle = (raw) => {" in html
+    assert "const extractTeachingReviewSubtitle = raw => {" in html
     assert "const splitRe = new RegExp(`${CR}${LF}|${CR}|${LF}|${BS}${BS}n`, 'g');" in html
     assert "if (t.length > 80) return true;" in html
 
@@ -554,8 +615,33 @@ def test_render_profile_html_prefers_short_review_and_work_hover_helpers():
     html = render_profile_html({"person": {"name": "测试人物", "shortReview": "短评"}, "locations": [], "highlights": {}})
 
     assert "const shortReview = String(data.person?.shortReview || data.person?.quote || '').trim();" in html
-    assert "const WorkTitleWithTooltip = ({ fullTitle, className }) => {" in html
-    assert "const renderWorkTitleWithTooltip = (fullTitle, key, className) => (" in html
+    assert "const WorkTitleWithTooltip = ({" in html
+    assert "const renderWorkTitleWithTooltip = (fullTitle, key, className) => React.createElement(WorkTitleWithTooltip" in html
+
+
+def test_render_profile_html_prefers_shared_work_tooltips_before_local_and_fallback():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const SHARED_WORK_TOOLTIP_TEXTS = {" in html
+    assert "'隆中对': '“天下有变，则命一上将将荆州之军以向宛、洛，将军身率益州之众出于秦川。”\\n“诚如是，则霸业可成，汉室可兴矣。”'" in html
+    assert "'出师表': '“鞠躬尽瘁，死而后已。”'" in html
+    assert "'滕王阁序': '“落霞与孤鹜齐飞，秋水共长天一色。”'" in html
+    assert "'岳阳楼记': '“先天下之忧而忧，后天下之乐而乐。”'" in html
+    assert "'醉翁亭记': '“醉翁之意不在酒，在乎山水之间也。”'" in html
+    assert "'桃花源记': '“土地平旷，屋舍俨然，有良田、美池、桑竹之属。”'" in html
+    assert "'师说': '“师者，所以传道受业解惑也。”'" in html
+    assert "'兰亭集序': '“后之视今，亦犹今之视昔。”'" in html
+    assert "'赤壁赋': '“寄蜉蝣于天地，渺沧海之一粟。”'" in html
+    assert "'陋室铭': '“斯是陋室，惟吾德馨。”'" in html
+    assert "'阿房宫赋': '“灭六国者六国也，非秦也；族秦者秦也，非天下也。”'" in html
+    assert "'小石潭记': '“潭中鱼可百许头，皆若空游无所依。”'" in html
+    assert "const sharedWorkTextLibrary = buildWorkTooltipLibrary(SHARED_WORK_TOOLTIP_TEXTS);" in html
+    assert "const workTextLibrary = buildWorkTooltipLibrary(rawWorkTexts);" in html
+    assert "const sharedText = String(sharedWorkTextLibrary[alias] || '').trim();" in html
+    assert "const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');" in html
+    assert "const fallbackText = getWorkTooltipFallbackText(title);" in html
+    assert html.index("const sharedText = String(sharedWorkTextLibrary[alias] || '').trim();") < html.index("const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');")
+    assert html.index("const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');") < html.index("const fallbackText = getWorkTooltipFallbackText(title);")
 
 
 def test_profile_page_template_places_work_tooltips_above_inline_links():
@@ -563,10 +649,13 @@ def test_profile_page_template_places_work_tooltips_above_inline_links():
 
     assert "const WorkTitleWithTooltip = ({ fullTitle, className }) => {" in html
     assert "const [placement, setPlacement] = useState({ vertical: 'up', horizontal: 'left' });" in html
-    assert "horizontal: (spaceRight < tooltipWidth && spaceLeft > spaceRight) ? 'right' : 'left'," in html
-    assert "vertical: (spaceAbove < tooltipHeight + 20 && spaceBelow > spaceAbove) ? 'down' : 'up'," in html
-    assert "placement.vertical === 'down' ? 'top-full mt-2' : 'bottom-full mb-2'" in html
-    assert "placement.horizontal === 'right' ? 'right-0' : 'left-0'" in html
+    assert "const horizontal = (spaceRight < tooltipWidth && spaceLeft > spaceRight) ? 'right' : 'left';" in html
+    assert "const vertical = (spaceAbove < tooltipHeight + 20 && spaceBelow > spaceAbove) ? 'down' : 'up';" in html
+    assert "const [open, setOpen] = useState(false);" in html
+    assert "const [portalStyle, setPortalStyle] = useState({ left: 0, top: 0, visibility: 'hidden' });" in html
+    assert "ReactDOM.createPortal(" in html
+    assert 'className="pointer-events-none fixed z-[1400]' in html
+    assert "window.addEventListener('scroll', sync, true);" in html
 
 
 def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
@@ -753,8 +842,8 @@ def test_profile_page_template_simplifies_selected_location_popup_header():
 def test_profile_page_template_work_tooltip_avoids_duplicate_title_and_escapes_panel_clipping():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
-    assert 'className="relative z-0 inline-flex align-baseline group hover:z-[120] focus-within:z-[120]"' in html
-    assert "style={{ maxWidth: 'min(420px, calc(100vw - 2rem))' }}" in html
+    assert 'className="relative z-0 inline-flex align-baseline"' in html
+    assert "maxWidth: 'min(420px, calc(100vw - 2rem))'" in html
     assert "bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]" in html
     assert '<span className="mb-1 block font-semibold text-[#7c2d12]">{fullTitle}</span>' not in html
     assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
@@ -829,6 +918,8 @@ def test_profile_page_template_removes_chat_llm_explanation_copy():
     assert "当前对话服务不可达，已切换为人物档案库回答。" in html
     assert "LLM 响应超时，已切换为人物档案库回答。" in html
     assert "LLM 调用失败，已切换为人物档案库回答。" in html
+    assert "LLM 响应超时，已切换为人物档案智能回答。" in html
+    assert "LLM 调用失败，已切换为人物档案智能回答。" in html
     assert "当前未接通 LLM 接口，已切换为人物档案库回答。" not in html
 
 

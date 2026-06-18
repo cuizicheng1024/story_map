@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
+<link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
+<link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
+<link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
 __ANALYTICS_HEAD__
 <script src="./vendor/tailwindcss.js"></script>
 <script src="./vendor/react.production.min.js"></script>
@@ -2074,17 +2077,36 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 const extractYear = (text) => {
   if (!text) return null;
   const raw = String(text);
-  const match = raw.match(/(\d{1,4})\s*年/);
+  const compact = raw.replace(/\s+/g, '');
+  const match = compact.match(/((?:约|大约|约莫|约公元前|公元前|前)?)(\d{1,4})年/);
   if (!match) return null;
-  const y = parseInt(match[1], 10);
+  const y = parseInt(match[2], 10);
   if (!Number.isFinite(y)) return null;
-  if (raw.includes('公元前') || raw.trim().startsWith('前')) return -y;
+  if (String(match[1] || '').includes('前')) return -y;
   return y;
 };
 
 const normalizeWorkTitle = (title) => String(title || '').replace(/[《》]/g, '').trim();
 const NO_WORK_TOOLTIP_TITLES = new Set(['水经', '水经注']);
+const SHARED_WORK_TOOLTIP_TEXTS = {
+  '隆中对': '“天下有变，则命一上将将荆州之军以向宛、洛，将军身率益州之众出于秦川。”\n“诚如是，则霸业可成，汉室可兴矣。”',
+  '出师表': '“鞠躬尽瘁，死而后已。”',
+  '滕王阁序': '“落霞与孤鹜齐飞，秋水共长天一色。”',
+  '岳阳楼记': '“先天下之忧而忧，后天下之乐而乐。”',
+  '醉翁亭记': '“醉翁之意不在酒，在乎山水之间也。”',
+  '桃花源记': '“土地平旷，屋舍俨然，有良田、美池、桑竹之属。”',
+  '师说': '“师者，所以传道受业解惑也。”',
+  '兰亭集序': '“后之视今，亦犹今之视昔。”',
+  '赤壁赋': '“寄蜉蝣于天地，渺沧海之一粟。”',
+  '陋室铭': '“斯是陋室，惟吾德馨。”',
+  '阿房宫赋': '“灭六国者六国也，非秦也；族秦者秦也，非天下也。”',
+  '小石潭记': '“潭中鱼可百许头，皆若空游无所依。”'
+};
 const WORK_TOOLTIP_FALLBACK_QUOTES = {
+  '隆中对': [
+    '天下有变，则命一上将将荆州之军以向宛、洛，将军身率益州之众出于秦川。',
+    '诚如是，则霸业可成，汉室可兴矣。'
+  ],
   '中国石拱桥': [
     '桥的设计完全合乎科学原理，施工技术更是巧妙绝伦。',
     '赵州桥不但形式优美，而且结构坚固。'
@@ -2114,9 +2136,9 @@ const shouldDisableWorkTooltip = (title, workText) => {
   if (aliases.some((item) => NO_WORK_TOOLTIP_TITLES.has(item))) return true;
   return !String(workText || '').trim();
 };
-const workTextLibrary = (() => {
+const buildWorkTooltipLibrary = (source) => {
   const out = {};
-  for (const [title, text] of Object.entries(rawWorkTexts)) {
+  for (const [title, text] of Object.entries(source && typeof source === 'object' ? source : {})) {
     const cleanText = String(text || '').trim();
     const aliases = getWorkTitleAliases(title);
     if (!aliases.length || !cleanText) continue;
@@ -2127,7 +2149,9 @@ const workTextLibrary = (() => {
     }
   }
   return out;
-})();
+};
+const sharedWorkTextLibrary = buildWorkTooltipLibrary(SHARED_WORK_TOOLTIP_TEXTS);
+const workTextLibrary = buildWorkTooltipLibrary(rawWorkTexts);
 const extractWorkOriginalSentence = (rawText) => {
   const text = String(rawText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   if (!text) return '';
@@ -2252,8 +2276,20 @@ const getWorkTooltipFallbackText = (title) => {
 const getWorkTooltipText = (title) => {
   const aliases = getWorkTitleAliases(title);
   for (const alias of aliases) {
-    const sentence = extractWorkOriginalSentence(workTextLibrary[alias] || '');
-    if (sentence) {
+    const sharedText = String(sharedWorkTextLibrary[alias] || '').trim();
+    if (sharedText) {
+      debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip from shared library', {
+        title: String(title || ''),
+        alias: String(alias || ''),
+        source: 'shared-library',
+        text: String(sharedText || '').slice(0, 120)
+      });
+      return sharedText;
+    }
+  }
+  for (const alias of aliases) {
+    const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');
+    if (localText) {
       // #region debug-point B:tooltip-before-debugemit
       debugBootEmit('B', 'profile_page.html:getWorkTooltipText', 'before debugEmit library path', {
         title: String(title || ''),
@@ -2266,10 +2302,10 @@ const getWorkTooltipText = (title) => {
         title: String(title || ''),
         alias: String(alias || ''),
         source: 'library',
-        text: String(sentence || '').slice(0, 120)
+        text: String(localText || '').slice(0, 120)
       });
       // #endregion
-      return sentence;
+      return localText;
     }
   }
   const fallbackText = getWorkTooltipFallbackText(title);
@@ -2293,6 +2329,8 @@ const WorkTitleWithTooltip = ({ fullTitle, className }) => {
   const title = normalizeWorkTitle(fullTitle);
   const workText = getWorkTooltipText(title);
   const [placement, setPlacement] = useState({ vertical: 'up', horizontal: 'left' });
+  const [open, setOpen] = useState(false);
+  const [portalStyle, setPortalStyle] = useState({ left: 0, top: 0, visibility: 'hidden' });
   const rootRef = useRef(null);
   const tooltipRef = useRef(null);
   const updatePlacement = React.useCallback(() => {
@@ -2308,37 +2346,75 @@ const WorkTitleWithTooltip = ({ fullTitle, className }) => {
     const spaceRight = viewportWidth - rect.right;
     const spaceAbove = rect.top;
     const spaceBelow = viewportHeight - rect.bottom;
-    setPlacement({
-      horizontal: (spaceRight < tooltipWidth && spaceLeft > spaceRight) ? 'right' : 'left',
-      vertical: (spaceAbove < tooltipHeight + 20 && spaceBelow > spaceAbove) ? 'down' : 'up',
+    const horizontal = (spaceRight < tooltipWidth && spaceLeft > spaceRight) ? 'right' : 'left';
+    const vertical = (spaceAbove < tooltipHeight + 20 && spaceBelow > spaceAbove) ? 'down' : 'up';
+    const left = horizontal === 'right'
+      ? Math.max(12, rect.right - tooltipWidth)
+      : Math.min(Math.max(12, rect.left), Math.max(12, viewportWidth - tooltipWidth - 12));
+    const top = vertical === 'down'
+      ? Math.min(Math.max(12, rect.bottom + 8), Math.max(12, viewportHeight - tooltipHeight - 12))
+      : Math.max(12, rect.top - tooltipHeight - 8);
+    setPlacement({ horizontal, vertical });
+    setPortalStyle({
+      left: Math.round(left),
+      top: Math.round(top),
+      visibility: 'visible',
     });
   }, []);
+  React.useEffect(() => {
+    if (!open || typeof window === 'undefined') return undefined;
+    const sync = () => updatePlacement();
+    sync();
+    window.addEventListener('resize', sync);
+    window.addEventListener('scroll', sync, true);
+    return () => {
+      window.removeEventListener('resize', sync);
+      window.removeEventListener('scroll', sync, true);
+    };
+  }, [open, updatePlacement]);
   if (shouldDisableWorkTooltip(title, workText)) {
     if (!className) return <React.Fragment>{fullTitle}</React.Fragment>;
     return <span className={className}>{fullTitle}</span>;
   }
-  const tooltipPositionClass = [
-    placement.vertical === 'down' ? 'top-full mt-2' : 'bottom-full mb-2',
-    placement.horizontal === 'right' ? 'right-0' : 'left-0',
-  ].join(' ');
+  const tooltipNode = open && typeof document !== 'undefined' && typeof ReactDOM !== 'undefined'
+    ? ReactDOM.createPortal(
+        <span
+          ref={tooltipRef}
+          className="pointer-events-none fixed z-[1400] max-h-[240px] min-w-[260px] max-w-[420px] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]"
+          style={{
+            left: `${portalStyle.left}px`,
+            top: `${portalStyle.top}px`,
+            maxWidth: 'min(420px, calc(100vw - 2rem))',
+            visibility: portalStyle.visibility || 'hidden',
+          }}
+        >
+          <span>{workText}</span>
+        </span>,
+        document.body
+      )
+    : null;
   return (
+    <React.Fragment>
     <span
       ref={rootRef}
-      className="relative z-0 inline-flex align-baseline group hover:z-[120] focus-within:z-[120]"
-      onMouseEnter={updatePlacement}
-      onFocus={updatePlacement}
+      className="relative z-0 inline-flex align-baseline"
+      onMouseEnter={() => {
+        setPortalStyle((prev) => ({ ...prev, visibility: 'hidden' }));
+        setOpen(true);
+      }}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => {
+        setPortalStyle((prev) => ({ ...prev, visibility: 'hidden' }));
+        setOpen(true);
+      }}
+      onBlur={() => setOpen(false)}
     >
       <span className={className || "text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800 cursor-help"}>
         {fullTitle}
       </span>
-      <span
-        ref={tooltipRef}
-        className={`pointer-events-none absolute z-[140] hidden max-h-[240px] min-w-[260px] max-w-[420px] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)] group-hover:block group-focus-within:block ${tooltipPositionClass}`}
-        style={{ maxWidth: 'min(420px, calc(100vw - 2rem))' }}
-      >
-        <span>{workText}</span>
-      </span>
     </span>
+    {tooltipNode}
+    </React.Fragment>
   );
 };
 const renderWorkTitleWithTooltip = (fullTitle, key, className) => (
@@ -3043,6 +3119,12 @@ const App = () => {
     if (stats.yearsValue != null) return `${stats.yearsValue}岁`;
     return String(data.person?.lifespan || '').trim();
   }, [stats.yearsValue, data.person?.lifespan]);
+  const birthplaceLabel = useMemo(() => {
+    const ancient = String(birthplaceParts.ancient || '').trim();
+    const modern = String(birthplaceParts.modern || '').trim();
+    if (ancient && modern) return `${ancient}（${modern}）`;
+    return ancient || modern || '';
+  }, [birthplaceParts]);
   const introTags = useMemo(() => {
     const out = [];
     const push = (text) => {
@@ -3057,12 +3139,6 @@ const App = () => {
     if (lifeDates) push(`生卒：${lifeDates}`);
     return out.slice(0, 6);
   }, [data.person?.dynasty, ageLabel, birthplaceLabel, lifeDates]);
-  const birthplaceLabel = useMemo(() => {
-    const ancient = String(birthplaceParts.ancient || '').trim();
-    const modern = String(birthplaceParts.modern || '').trim();
-    if (ancient && modern) return `${ancient}（${modern}）`;
-    return ancient || modern || '';
-  }, [birthplaceParts]);
   const introFactLines = useMemo(() => {
     const out = [];
     const push = (label, value) => {
@@ -6022,6 +6098,10 @@ const LIFE_GRADIENT_END = '#5D4037';
     fullscreenChatRestoreRef.current = null;
   }, [isJourneyFullscreen]);
   const journeyFullscreenActive = isJourneyFullscreen || isJourneyExportFullscreenLayout;
+  const journeyPanelHeight = journeyFullscreenActive
+    ? '100%'
+    : '620px';
+  const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
@@ -6487,6 +6567,12 @@ const LIFE_GRADIENT_END = '#5D4037';
   const getChatFallbackNotice = (meta, error) => {
     const source = String(meta?.source || '').trim();
     const reason = String(meta?.fallback_reason || '').trim();
+    if (source === 'local_agent' && reason === 'timeout') {
+      return 'LLM 响应超时，已切换为人物档案智能回答。';
+    }
+    if (source === 'local_agent' && reason === 'llm_request_failed') {
+      return 'LLM 调用失败，已切换为人物档案智能回答。';
+    }
     if (source === 'local_agent') {
       return '当前对话已切换为人物档案智能回答。';
     }
@@ -6533,10 +6619,6 @@ const LIFE_GRADIENT_END = '#5D4037';
       setChatLoading(false);
     }
   };
-  const journeyPanelHeight = journeyFullscreenActive
-    ? '100%'
-    : '620px';
-  const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const isTerrain3DActive = mapLayerType === 'terrain-3d';
   const mapStatusTopOffset = mapStatusNotice ? (journeyFullscreenActive ? '8.75rem' : '6.25rem') : (journeyFullscreenActive ? '3.5rem' : '1rem');
   const timelineZoom = 1;

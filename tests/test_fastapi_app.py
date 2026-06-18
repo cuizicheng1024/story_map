@@ -403,7 +403,7 @@ def test_proxy_service_resets_executor_after_timeout(monkeypatch):
     class _SlowClient:
         def think(self, _messages, temperature=0.1):
             assert temperature == 0.1
-            time.sleep(0.05)
+            time.sleep(1.2)
             return "slow"
 
     service = ProxyService(
@@ -414,7 +414,7 @@ def test_proxy_service_resets_executor_after_timeout(monkeypatch):
         max_workers=1,
         timeout_env_name="TEST_PROXY_TIMEOUT",
     )
-    monkeypatch.setenv("TEST_PROXY_TIMEOUT", "0")
+    monkeypatch.setenv("TEST_PROXY_TIMEOUT", "1")
     original_executor = service._executor
     try:
         status, payload = service.proxy_llm({"messages": [{"role": "user", "content": "介绍一下他"}]})

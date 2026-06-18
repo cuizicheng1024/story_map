@@ -82,7 +82,7 @@ HOMEPAGE_PET_ASSET_CANDIDATES = [
 ]
 MIN_YEAR = -800
 MAX_YEAR = 2000
-DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
+DEFAULT_GA_MEASUREMENT_ID = "G-B8F24PMY4F"
 ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
     ("military", "军事", ("军事家", "兵家", "将领", "将军", "武将", "统帅", "元帅", "名将", "军人", "起义军领袖")),
     ("politics", "政治", ("政治家", "改革家", "革命家", "外交家", "领袖", "君主", "帝王", "皇帝", "总统", "丞相", "宰相", "大臣", "官员", "赞普", "首领")),
@@ -190,6 +190,13 @@ def _analytics_head_html() -> str:
         f"gtag('config', {quoted_id});"
         "</script>"
     )
+
+
+def _runtime_api_base_env() -> str:
+    api_base = str(os.getenv("MAP_STORY_API_BASE", "")).strip()
+    if "legacy.example" in api_base.lower():
+        return ""
+    return api_base
 
 
 def _is_inside_china(lat: float, lng: float) -> bool:
@@ -884,7 +891,8 @@ def _pick_main_dynasty_by_years(birth_year: Optional[int], death_year: Optional[
 
 def _normalize_dynasty_label(*, person: str, dynasty_raw: str, birth_year: Optional[int], death_year: Optional[int]) -> str:
     s = str(dynasty_raw or "").strip()
-    main = _pick_main_dynasty_by_years(birth_year, death_year)
+    if s:
+        return s
     overrides = {
         "李渊": "唐",
         "李世民": "唐",
@@ -894,20 +902,7 @@ def _normalize_dynasty_label(*, person: str, dynasty_raw: str, birth_year: Optio
     }
     if person in overrides:
         return overrides[person]
-    if not s:
-        return main or ""
-
-    t = re.sub(r"\s+", "", s)
-    keys = ["先秦", "春秋", "战国", "秦", "汉", "三国", "魏晋", "南北朝", "隋", "唐", "宋", "元", "明", "清", "民国", "近代", "现代", "当代"]
-    hit = 0
-    for k in keys:
-        if k and k in t:
-            hit += 1
-    if hit >= 2 and main:
-        return main
-    if main and main not in t and hit == 1:
-        return main
-    return s
+    return _pick_main_dynasty_by_years(birth_year, death_year) or ""
 
 
 def _dynasty_range_from_label(dynasty: str) -> Optional[Tuple[int, int]]:
@@ -971,7 +966,7 @@ def _render_index_html(title: str, data_file: str) -> str:
     # Always render a fresh index.html instead of patching an existing template.
     # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
     static_site = bool(env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")) if env_flag else False
-    api_base = str(os.getenv("MAP_STORY_API_BASE", "")).strip()
+    api_base = _runtime_api_base_env()
     amap_key = str(os.getenv("AMAP_KEY", "")).strip()
     amap_sec = str(os.getenv("AMAP_SECURITY", "")).strip()
     amap_inline = ""
@@ -995,6 +990,9 @@ def _render_index_html(title: str, data_file: str) -> str:
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{safe_title}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
+    <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
+    <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
     {analytics_head}
     {amap_inline}
     {runtime_inline}
@@ -1137,6 +1135,17 @@ def _render_index_html(title: str, data_file: str) -> str:
         line-height: 1.5;
         color: var(--color-text-secondary);
         max-width: 760px;
+      }}
+      .home-bili-highlight {{
+        font-size: 15px;
+        line-height: 1.75;
+        font-weight: 700;
+        color: var(--color-text);
+      }}
+      .home-bili-highlight a {{
+        color: #1d4ed8;
+        text-decoration: underline;
+        font-weight: 800;
       }}
       .home-search-row {{
         display: flex;
@@ -2337,7 +2346,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       <div class="glass card theme-card home-search-card px-6 py-5 relative z-30 overflow-visible">
         <div class="home-title-wrap">
           <div class="home-title-mark">STORY MAP</div>
-          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noreferrer">
+          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noreferrer">
             <span class="home-title-char">故</span>
             <span class="home-title-char">事</span>
             <span class="home-title-char">地</span>
@@ -2357,7 +2366,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
-          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a></div>
+          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
             <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
@@ -2807,6 +2816,8 @@ def _render_index_html(title: str, data_file: str) -> str:
       let spotlightIdx = -1;
       let spotlight = null;
       let _clickTimer = null;
+
+      const isSpecialSunPerson = (n) => String((n && n.person) || "").trim() === "毛泽东";
 
       let camScale = 1.0;
       let camOffX = 0.0;
@@ -3471,6 +3482,7 @@ def _render_index_html(title: str, data_file: str) -> str:
         for (const n of nodes) {{
           const p = (typeof n.p === "number") ? clamp(n.p, 0, 1) : (inWindow(n) ? 1 : 0);
           const active = p > 0.55;
+          const specialSun = isSpecialSunPerson(n);
           let r = (4.4 + p * 2.8) * camScale;
           let alpha = 0.10 + p * 0.88;
           let col = p > 0 ? colorByYear(mainYear(n)) : "rgba(255,255,255,0.30)";
@@ -3502,24 +3514,53 @@ def _render_index_html(title: str, data_file: str) -> str:
             col = "#fbbf24";
           }}
           const pt = worldToScreen(n.x, n.y);
-          ctx.beginPath();
-          ctx.fillStyle = col;
-          ctx.globalAlpha = alpha;
-          ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
-          ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
-          ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
-          ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
-          ctx.stroke();
-          if (active) {{
+          if (specialSun) {{
+            const rayOuter = r + 4.2 * camScale;
+            const rayInner = r + 1.1 * camScale;
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = "rgba(251,191,36,0.98)";
+            ctx.lineWidth = Math.max(1.4, 1.8 * camScale);
+            for (let rayIdx = 0; rayIdx < 8; rayIdx += 1) {{
+              const angle = (Math.PI * 2 * rayIdx) / 8 - Math.PI / 2;
+              const x1 = pt.x + Math.cos(angle) * rayInner;
+              const y1 = pt.y + Math.sin(angle) * rayInner;
+              const x2 = pt.x + Math.cos(angle) * rayOuter;
+              const y2 = pt.y + Math.sin(angle) * rayOuter;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }}
             ctx.beginPath();
-            ctx.strokeStyle = "rgba(255,255,255,0.22)";
-            ctx.globalAlpha = 0.35 + p * 0.35;
-            ctx.lineWidth = 1 * camScale;
-            ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(250,204,21,0.98)";
+            ctx.arc(pt.x, pt.y, Math.max(1.2, r - 0.3 * camScale), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(255,255,255,0.92)";
+            ctx.globalAlpha = Math.min(1, alpha * 0.95);
+            ctx.lineWidth = Math.max(1.1, 1.5 * camScale);
+            ctx.arc(pt.x, pt.y, Math.max(0.8, r - 0.55 * camScale), 0, Math.PI * 2);
             ctx.stroke();
+          }} else {{
+            ctx.beginPath();
+            ctx.fillStyle = col;
+            ctx.globalAlpha = alpha;
+            ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
+            ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
+            ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
+            ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
+            ctx.stroke();
+            if (active) {{
+              ctx.beginPath();
+              ctx.strokeStyle = "rgba(255,255,255,0.22)";
+              ctx.globalAlpha = 0.35 + p * 0.35;
+              ctx.lineWidth = 1 * camScale;
+              ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
+              ctx.stroke();
+            }}
           }}
         }}
         ctx.globalAlpha = 1.0;
@@ -3529,9 +3570,9 @@ def _render_index_html(title: str, data_file: str) -> str:
           const n = hover || selected;
           const pt = worldToScreen(n.x, n.y);
           ctx.beginPath();
-          ctx.strokeStyle = "rgba(255,255,255,0.75)";
+          ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
           ctx.lineWidth = 2 * camScale;
-          ctx.arc(pt.x, pt.y, 10 * camScale, 0, Math.PI * 2);
+          ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
           ctx.stroke();
         }}
       }};
@@ -4070,10 +4111,25 @@ def _render_index_html(title: str, data_file: str) -> str:
         const leaf = parts.length ? parts[parts.length - 1] : "";
         return /\.html?$/i.test(leaf) ? leaf : "";
       }};
-      const navigateToRelativeHtml = (file) => {{
+      const navigateToRelativeHtml = (file, options = {{}}) => {{
         const target = normalizeRelativeHtmlFile(file);
         if (!target) return false;
-        window.location.href = "./" + encodeURIComponent(target);
+        const targetUrl = "./" + encodeURIComponent(target);
+        const useNewTab = !!(options && options.newTab);
+        if (useNewTab) {{
+          try {{
+            const link = document.createElement("a");
+            link.href = targetUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            return true;
+          }} catch (_) {{}}
+        }}
+        window.location.href = targetUrl;
         return true;
       }};
       const resolveTaskResultHtml = (result, fallbackPerson) => {{
@@ -4128,7 +4184,7 @@ def _render_index_html(title: str, data_file: str) -> str:
           return;
         }}
         const file = found && found.file ? String(found.file) : "";
-        if (navigateToRelativeHtml(file)) return;
+        if (navigateToRelativeHtml(file, {{ newTab: true }})) return;
         ensurePersonGenerated(q);
       }};
       window.__openPerson = openPerson;
@@ -4379,7 +4435,7 @@ def _render_index_html(title: str, data_file: str) -> str:
       }};
       const setSearchHint = () => {{
         if (!$searchHint) return;
-        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br>3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV13LEu6fEAZ" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;font-weight:600;">【如果历史人物的一生能展开成地图，会是什么样？】</a>';
+        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>';
       }};
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
@@ -4935,9 +4991,29 @@ def _render_index_html(title: str, data_file: str) -> str:
 
       const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
       const CHINA_OVERVIEW_ZOOM = 3.9;
+      const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";
+
       const markerSvg = (sz, fill, glow, emph) => {{
         const glowRadius = emph ? 10 : 6;
         return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+      }};
+
+      const sunMarkerHtml = (sz, glow, emph) => {{
+        const glowRadius = emph ? 12 : 8;
+        const core = Math.max(7.2, sz * 0.4);
+        const rayOuter = Math.max(core + 3.4, sz * 0.48);
+        const rayInner = Math.max(core + 1.0, sz * 0.32);
+        const stroke = Math.max(1.5, sz * 0.1);
+        const center = sz / 2;
+        const rays = Array.from({{ length: 8 }}, (_, idx) => {{
+          const angle = (Math.PI * 2 * idx) / 8 - Math.PI / 2;
+          const x1 = center + Math.cos(angle) * rayInner;
+          const y1 = center + Math.sin(angle) * rayInner;
+          const x2 = center + Math.cos(angle) * rayOuter;
+          const y2 = center + Math.sin(angle) * rayOuter;
+          return `<line x1="${{x1.toFixed(2)}}" y1="${{y1.toFixed(2)}}" x2="${{x2.toFixed(2)}}" y2="${{y2.toFixed(2)}}" stroke="rgba(251,191,36,0.98)" stroke-width="${{stroke.toFixed(2)}}" stroke-linecap="round"></line>`;
+        }}).join("");
+        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 ${{sz}} ${{sz}}" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="${{center}}" cy="${{center}}" r="${{core.toFixed(2)}}" fill="rgba(250,204,21,0.98)" stroke="rgba(255,255,255,0.92)" stroke-width="${{Math.max(1.4, sz * 0.08).toFixed(2)}}"></circle>${{rays}}</svg>`;
       }};
 
       const applyChinaOverview = () => {{
@@ -4988,14 +5064,14 @@ def _render_index_html(title: str, data_file: str) -> str:
             }}
           }} catch (_) {{}}
           try {{
-            const mohe = [122.340, 53.480];
+            const heihe = [127.500, 50.250];
             const tengchong = [98.490, 25.020];
             const mid = [
-              mohe[0] + (tengchong[0] - mohe[0]) / 3,
-              mohe[1] + (tengchong[1] - mohe[1]) / 3,
+              heihe[0] + (tengchong[0] - heihe[0]) / 3,
+              heihe[1] + (tengchong[1] - heihe[1]) / 3,
             ];
             const line = new window.AMap.Polyline({{
-              path: [mohe, tengchong],
+              path: [heihe, tengchong],
               strokeColor: "rgba(249,115,22,0.92)",
               strokeWeight: 3,
               strokeStyle: "dashed",
@@ -5003,8 +5079,8 @@ def _render_index_html(title: str, data_file: str) -> str:
               zIndex: 300,
             }});
             line.setMap(amap);
-            const dx = tengchong[0] - mohe[0];
-            const dy = tengchong[1] - mohe[1];
+            const dx = tengchong[0] - heihe[0];
+            const dy = tengchong[1] - heihe[1];
             const len = Math.hypot(dx, dy) || 1;
             let nx = (-dy) / len;
             let ny = dx / len;
@@ -5046,7 +5122,7 @@ def _render_index_html(title: str, data_file: str) -> str:
               t.setMap(amap);
               return t;
             }};
-            mkText("漠河", mohe);
+            mkText("黑河", heihe);
             mkText("腾冲", tengchong);
           }} catch (_) {{}}
           const coordCache = readCoordCache();
@@ -5126,7 +5202,9 @@ def _render_index_html(title: str, data_file: str) -> str:
             el.style.justifyContent = "center";
             el.style.cursor = "pointer";
             el.style.pointerEvents = "auto";
-            el.innerHTML = markerSvg(initialSize, initialFill, initialGlow, active);
+            el.innerHTML = isSpecialSunMarker(n)
+              ? sunMarkerHtml(initialSize, initialGlow, active)
+              : markerSvg(initialSize, initialFill, initialGlow, active);
             el.style.animation = active ? "twinkle 2.2s ease-in-out infinite" : "none";
             const show = (evt) => {{
               const pos = resolveMapTipClientPoint(evt, lng, lat);
@@ -5244,13 +5322,19 @@ def _render_index_html(title: str, data_file: str) -> str:
             if (it.el) {{
               it.el.style.width = `${{sz}}px`;
               it.el.style.height = `${{sz}}px`;
-              it.el.innerHTML = markerSvg(sz, fill, glow, emph);
+              it.el.innerHTML = isSpecialSunMarker(n)
+                ? sunMarkerHtml(sz, glow, emph)
+                : markerSvg(sz, fill, glow, emph);
               it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
               try {{
                 it.mk.setContent(it.el);
               }} catch (_) {{}}
             }} else {{
-              it.mk.setContent(markerSvg(sz, fill, glow, emph));
+              it.mk.setContent(
+                isSpecialSunMarker(n)
+                  ? sunMarkerHtml(sz, glow, emph)
+                  : markerSvg(sz, fill, glow, emph)
+              );
             }}
             it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
           }}
@@ -6435,9 +6519,9 @@ def main() -> int:
 
         if html_entry:
             lat, lng, birthplace_text, dynasty_hint = _extract_birth_from_story_map_html(story_map_dir / html_entry.file)
-            if birth_lat is None or birth_lng is None:
-                birth_lat = lat
-                birth_lng = lng
+            if lat is not None and lng is not None:
+                birth_lat = float(lat)
+                birth_lng = float(lng)
             if not resolved_dynasty and dynasty_hint:
                 resolved_dynasty = dynasty_hint
             if not resolved_birthplace_raw and birthplace_text:

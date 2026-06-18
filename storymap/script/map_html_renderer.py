@@ -1,6 +1,8 @@
 import hashlib
 import json
 import os
+import re
+import subprocess
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -36,7 +38,7 @@ apply_story_map_env_aliases()
 
 _TEMPLATE_DIR = Path(__file__).resolve().with_name("templates")
 _REPO_ROOT = project_root_path()
-_DEFAULT_GA_MEASUREMENT_ID = "G-74J5L22QGX"
+_DEFAULT_GA_MEASUREMENT_ID = "G-B8F24PMY4F"
 STELLAR_HOME_DATA_JSON = story_artifacts_dir_path() / "stellar_home_data.json"
 
 
@@ -98,12 +100,80 @@ def _render_html_template(
     )
 
 
+_PROFILE_BABEL_SCRIPT_RE = re.compile(
+    r'<script\s+type="text/babel"\s+data-presets="env,react">\s*(.*?)\s*</script>',
+    re.S,
+)
+
+
+@lru_cache(maxsize=1)
+def _compiled_profile_app_js() -> str:
+    template = _load_html_template("profile_page.html")
+    match = _PROFILE_BABEL_SCRIPT_RE.search(template)
+    if not match:
+        raise RuntimeError("profile_page.html missing text/babel app script")
+    source = str(match.group(1) or "").strip()
+    if not source:
+        raise RuntimeError("profile_page.html text/babel app script is empty")
+    vendor_babel = _REPO_ROOT / "artifacts" / "story_map" / "vendor" / "babel.min.js"
+    if not vendor_babel.exists():
+        raise RuntimeError(f"missing Babel runtime for build-time compilation: {vendor_babel}")
+    node_script = f"""
+const fs = require('fs');
+const Babel = require({json.dumps(str(vendor_babel))});
+const source = fs.readFileSync(0, 'utf8');
+const result = Babel.transform(source, {{
+  presets: ['react'],
+  comments: false,
+  minified: false,
+  compact: false,
+}});
+process.stdout.write(String((result && result.code) || ''));
+""".strip()
+    proc = subprocess.run(
+        ["node", "-e", node_script],
+        input=source,
+        text=True,
+        capture_output=True,
+        cwd=str(_REPO_ROOT),
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"build-time Babel transform failed: {proc.stderr.strip() or proc.stdout.strip()}")
+    compiled = str(proc.stdout or "").strip()
+    if not compiled:
+        raise RuntimeError("build-time Babel transform returned empty output")
+    return compiled
+
+
+@lru_cache(maxsize=1)
+def _compiled_profile_template() -> str:
+    raw_template = _load_html_template("profile_page.html")
+    try:
+        compiled_script = "<script>\n" + _compiled_profile_app_js() + "\n</script>"
+    except (FileNotFoundError, RuntimeError, OSError, subprocess.SubprocessError):
+        return raw_template
+
+    template = raw_template.replace('<script src="./vendor/babel.min.js"></script>\n', "")
+    template, count = _PROFILE_BABEL_SCRIPT_RE.subn(lambda _m: compiled_script, template, count=1)
+    if count != 1:
+        return raw_template
+    return template
+
+
 def _first_env(*names: str) -> str:
     for name in names:
         value = os.getenv(name)
         if value is not None and str(value).strip():
             return str(value).strip()
     return ""
+
+
+def _runtime_api_base_env() -> str:
+    api_base = _first_env("MAP_STORY_API_BASE")
+    if "legacy.example" in api_base.lower():
+        return ""
+    return api_base
 
 
 def _analytics_head_html() -> str:
@@ -124,7 +194,7 @@ def _analytics_head_html() -> str:
 
 def _runtime_page_config_html() -> str:
     static_site = env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")
-    api_base = _first_env("MAP_STORY_API_BASE")
+    api_base = _runtime_api_base_env()
     ai_endpoint = _first_env("MAP_STORY_AI_ENDPOINT")
     parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
     if api_base:
@@ -553,7 +623,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     amap_bootstrap = _amap_bootstrap_html() + _profile_map_bootstrap_html()
     analytics_head = _analytics_head_html()
     return _render_html_template(
-        _load_html_template("profile_page.html"),
+        _compiled_profile_template(),
         title=title,
         data=payload.replace("</script>", "<\\/script>"),
         runtime_config=runtime_config,

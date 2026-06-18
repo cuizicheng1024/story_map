@@ -57,6 +57,17 @@ def test_extract_work_texts_uses_derived_quote_for_ji_chengtian_si_ye_you_when_m
     assert "庭下如积水空明" in work_texts["记承天寺夜游"]
 
 
+def test_extract_work_texts_for_liuhui_excludes_jiuzhang_suanshu_source_text():
+    md_path = REPO_ROOT / "storymap" / "examples" / "story" / "刘徽.md"
+    md = md_path.read_text(encoding="utf-8")
+
+    work_texts = profile_builder.extract_work_texts(md)
+
+    assert "九章算术注" in work_texts
+    assert "海岛算经" in work_texts
+    assert "九章算术" not in work_texts
+
+
 def test_split_quote_lines_keeps_semicolon_inside_single_quote():
     parts = profile_builder.split_quote_lines("《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”；临刑前感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”")
 
@@ -366,6 +377,36 @@ def test_sort_profile_locations_keeps_unknown_birth_before_dated_death():
 
     assert [item["type"] for item in ordered] == ["birth", "normal", "death"]
     assert [item["name"] for item in ordered] == ["涿郡", "巴西郡（阆中）", "阆中"]
+
+
+def test_sort_profile_locations_does_not_treat_century_text_as_year_12():
+    loc_items = [
+        {
+            "name": "克烈部王汗驻地",
+            "type": "normal",
+            "time": "约12世纪80年代",
+            "event": "早期依附王汗。",
+            "significance": "",
+        },
+        {
+            "name": "漠北斡难河上游",
+            "type": "birth",
+            "time": "约1162年",
+            "event": "出生。",
+            "significance": "",
+        },
+        {
+            "name": "斡难河源",
+            "type": "normal",
+            "time": "1206年",
+            "event": "建国。",
+            "significance": "",
+        },
+    ]
+
+    ordered = profile_builder._sort_profile_locations(loc_items)
+
+    assert [item["name"] for item in ordered] == ["漠北斡难河上游", "斡难河源", "克烈部王汗驻地"]
 
 
 def test_build_profile_data_uses_coords_table_as_last_resort_when_info_exists_but_no_locations():
