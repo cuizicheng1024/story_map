@@ -1,7 +1,12 @@
+import json
+import os
+import threading
 import uvicorn
+from datetime import date
 from fastapi import FastAPI, HTTPException, Request as FastAPIRequest, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from pathlib import Path
 
 try:
     from .story_task_debug import render_task_debug_html
@@ -13,6 +18,104 @@ def _enforce_origin(request: FastAPIRequest, resolve_cors_origin) -> None:
     origin = request.headers.get("origin", "")
     if origin and not resolve_cors_origin(origin):
         raise HTTPException(status_code=403, detail="origin not allowed")
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_GENERATE_DAILY_LIMIT_PATH = _REPO_ROOT / "artifacts" / "runtime" / "generate_daily_quota.json"
+_GENERATE_DAILY_LIMIT_ENV_KEYS = ("MAP_STORY_GENERATE_DAILY_LIMIT", "STORY_MAP_GENERATE_DAILY_LIMIT")
+_GENERATE_DAILY_LIMIT_PATH_ENV_KEYS = (
+    "MAP_STORY_GENERATE_DAILY_LIMIT_PATH",
+    "STORY_MAP_GENERATE_DAILY_LIMIT_PATH",
+)
+
+
+def _first_env(*keys: str) -> str:
+    for key in keys:
+        value = str(os.getenv(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _generate_daily_limit() -> int:
+    raw = _first_env(*_GENERATE_DAILY_LIMIT_ENV_KEYS)
+    if not raw:
+        return 0
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 0
+
+
+def _generate_daily_limit_path() -> Path:
+    raw = _first_env(*_GENERATE_DAILY_LIMIT_PATH_ENV_KEYS)
+    return Path(raw).expanduser().resolve() if raw else _DEFAULT_GENERATE_DAILY_LIMIT_PATH
+
+
+def _request_client_bucket(request: FastAPIRequest) -> str:
+    forwarded = str(request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+    real_ip = str(request.headers.get("x-real-ip") or "").strip()
+    client_host = str(getattr(getattr(request, "client", None), "host", "") or "").strip()
+    return forwarded or real_ip or client_host or "unknown"
+
+
+class _GenerateDailyQuotaStore:
+    def __init__(self, target_path: Path) -> None:
+        self._target_path = Path(target_path)
+        self._lock = threading.Lock()
+
+    def _load_locked(self) -> dict:
+        if not self._target_path.exists():
+            return {}
+        try:
+            payload = json.loads(self._target_path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    def _save_locked(self, payload: dict) -> None:
+        self._target_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = self._target_path.with_suffix(self._target_path.suffix + ".tmp")
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp_path.replace(self._target_path)
+
+    def consume(self, bucket: str, limit: int) -> dict:
+        if limit <= 0:
+            return {"allowed": True, "limit": 0, "used": 0, "remaining": None, "reset_on": date.today().isoformat()}
+        bucket_key = str(bucket or "").strip() or "unknown"
+        today = date.today().isoformat()
+        with self._lock:
+            payload = self._load_locked()
+            if str(payload.get("date") or "") != today:
+                payload = {"date": today, "counters": {}}
+            counters = payload.get("counters")
+            if not isinstance(counters, dict):
+                counters = {}
+                payload["counters"] = counters
+            used = int(counters.get(bucket_key) or 0)
+            if used >= limit:
+                return {"allowed": False, "limit": limit, "used": used, "remaining": 0, "reset_on": today}
+            counters[bucket_key] = used + 1
+            self._save_locked(payload)
+            return {
+                "allowed": True,
+                "limit": limit,
+                "used": used + 1,
+                "remaining": max(0, limit - used - 1),
+                "reset_on": today,
+            }
+
+
+_GENERATE_DAILY_QUOTA_STORES: dict[str, _GenerateDailyQuotaStore] = {}
+
+
+def _generate_daily_quota_store() -> _GenerateDailyQuotaStore:
+    path = str(_generate_daily_limit_path())
+    store = _GENERATE_DAILY_QUOTA_STORES.get(path)
+    if store is None:
+        store = _GenerateDailyQuotaStore(Path(path))
+        _GENERATE_DAILY_QUOTA_STORES[path] = store
+    return store
 
 
 def create_app(
@@ -131,6 +234,21 @@ def create_app(
             value = str(data.get("person") or data.get("text") or "").strip()
         if not value:
             return JSONResponse(status_code=400, content={"ok": False, "error": "person required"})
+        daily_limit = _generate_daily_limit()
+        if daily_limit > 0:
+            quota = _generate_daily_quota_store().consume(_request_client_bucket(request), daily_limit)
+            if not quota.get("allowed"):
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "ok": False,
+                        "error": f"daily generate limit exceeded ({daily_limit}/day)",
+                        "limit": daily_limit,
+                        "used": quota.get("used", daily_limit),
+                        "remaining": 0,
+                        "reset_on": quota.get("reset_on"),
+                    },
+                )
         result = task_service.submit_task(value)
         status = 200 if result.get("ok") else 400
         return JSONResponse(status_code=status, content=result)

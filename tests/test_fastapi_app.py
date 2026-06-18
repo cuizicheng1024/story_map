@@ -179,6 +179,48 @@ async def test_generate_then_poll_task_flow(monkeypatch):
     assert snapshot["result"]["meta"]["memory_misses"] == {"place_map": 1}
 
 
+async def test_generate_daily_limit_rejects_second_request_from_same_ip(monkeypatch, tmp_path):
+    calls = []
+
+    def _fake_submit(value):
+        calls.append(value)
+        return {"ok": True, "task_id": f"task-{len(calls)}"}
+
+    monkeypatch.setenv("MAP_STORY_GENERATE_DAILY_LIMIT", "1")
+    monkeypatch.setenv("MAP_STORY_GENERATE_DAILY_LIMIT_PATH", str(tmp_path / "quota.json"))
+    monkeypatch.setattr(story_map._TASK_SERVICE, "submit_task", _fake_submit)
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        first = await client.post("/generate", json={"person": "霍去病"}, headers={"x-forwarded-for": "1.2.3.4"})
+        second = await client.post("/generate", json={"person": "李白"}, headers={"x-forwarded-for": "1.2.3.4"})
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["error"] == "daily generate limit exceeded (1/day)"
+    assert second.json()["used"] == 1
+    assert calls == ["霍去病"]
+
+
+async def test_generate_daily_limit_is_scoped_per_ip(monkeypatch, tmp_path):
+    calls = []
+
+    def _fake_submit(value):
+        calls.append(value)
+        return {"ok": True, "task_id": f"task-{len(calls)}"}
+
+    monkeypatch.setenv("MAP_STORY_GENERATE_DAILY_LIMIT", "1")
+    monkeypatch.setenv("MAP_STORY_GENERATE_DAILY_LIMIT_PATH", str(tmp_path / "quota.json"))
+    monkeypatch.setattr(story_map._TASK_SERVICE, "submit_task", _fake_submit)
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        first = await client.post("/generate", json={"person": "霍去病"}, headers={"x-forwarded-for": "1.2.3.4"})
+        second = await client.post("/generate", json={"person": "李白"}, headers={"x-forwarded-for": "5.6.7.8"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert calls == ["霍去病", "李白"]
+
+
 async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     def _fake_generate(_client, person, **_kwargs):
         return {"ok": False, "person": person, "error": f"{person} failed"}
