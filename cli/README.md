@@ -9,7 +9,7 @@
 - `generate_pure_story_map.py`
   - 当前仍在主流程内
   - 用于单人物渲染、批量重渲染、补齐缺失人物页
-  - `tools/build_all.py` 也会调用它
+  - `tools/build/build_all.py` 会通过旧入口 `tools/build_all.py` 调用它
 
 ## 维护原则
 

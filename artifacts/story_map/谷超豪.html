@@ -1038,6 +1038,84 @@ body {
   visibility: hidden;
   pointer-events: none;
 }
+.map-lazy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 320px at 18% 12%, rgba(59, 130, 246, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.86), rgba(241, 245, 249, 0.92));
+  backdrop-filter: blur(2px);
+}
+.map-lazy-card {
+  width: min(520px, 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(171, 140, 94, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  padding: 20px 22px;
+}
+.map-lazy-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(124, 45, 18, 0.84);
+}
+.map-lazy-title {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.map-lazy-copy {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.map-lazy-skeleton {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.map-lazy-skeleton > span {
+  display: block;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.78), rgba(241, 245, 249, 0.96));
+  border: 1px solid rgba(203, 213, 225, 0.78);
+}
+.map-lazy-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.map-lazy-trigger {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #9d7c4e, #c18d4d);
+  box-shadow: 0 10px 22px rgba(157, 124, 78, 0.24);
+}
+.map-lazy-trigger:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+.map-lazy-hint {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+}
 .map-fallback-overlay {
   position: absolute;
   inset: 0;
@@ -1181,6 +1259,11 @@ body {
 }
 .map-point-label.is-start .map-point-label-text {
   color: var(--color-success);
+}
+.map-point-label.is-start .map-point-label-badge {
+  background: rgba(30, 122, 58, 0.24);
+  color: #166534;
+  box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 .map-point-label.is-start .map-point-label-name {
   color: var(--color-success);
@@ -2066,8 +2149,63 @@ const {
   useRef,
   useMemo
 } = React;
-const data = {"person": {"name": "谷超豪", "title": "", "description": "谷超豪出生于浙江温州，少年时即展现出卓越的数学天赋。他早年求学于浙江大学，师从著名数学家苏步青，并留校任教。1950年，他调入中国科学院数学研究所参与筹建工作。1952年，他调入复旦大学数学系。1957年，他赴苏联莫斯科大学留学，获得物理数学科学博士学位。1960年归国后长期在复旦大学工作，历任数学系主任、副校长等职。他在**偏微分方程**、**微分几何**和**数学物理**等多个领域取得国际领先的成就，其研究紧密联系航空航天等国家重大需求。作为教育家，他培养了包括多位院士在内的杰出人才，为中国现代数学事业的发展做出了不可磨灭的贡献。", "quote": "", "shortReview": "", "dynasty": "中国现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "温州（今浙江省温州市）", "avatar": "", "birth": {"date": "1926年", "location": "温州（今浙江省温州市）", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84"}, "death": {"date": "2012年", "location": "上海（今上海市）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84"}, "lifespan": "86岁", "highlights": {"honor": "", "status": "中国现代数学的代表人物之一，在偏微分方程、数学物理等领域做出开创性贡献。", "identities": "数学家、教育家、社会活动家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "温州", "ancientName": "温州", "modernName": "浙江省温州市", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84", "type": "birth", "event": "出生于温州城区，童年与小学教育在此度过。", "time": "1926年", "duration": "约12年", "significance": "故乡启蒙，培养了对数学的早期兴趣。", "works": [], "quoteLines": []}, {"name": "温州中学", "ancientName": "温州", "modernName": "浙江省温州市", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84", "type": "normal", "event": "就读于浙江省立温州中学，数学才华崭露头角。", "time": "1938年-1943年", "duration": "5年", "significance": "接受了系统的中学教育，为日后学术生涯打下坚实基础。", "works": [], "quoteLines": []}, {"name": "浙江大学（龙泉分校/本部）", "ancientName": "龙泉/杭州", "modernName": "浙江省丽水市龙泉市", "lat": 28.0743, "lng": 119.1417, "coordSystem": "WGS84", "type": "normal", "event": "考入浙江大学数学系，师从**苏步青**、**陈建功**等大师；毕业后留校任助教。", "time": "1943年-1948年", "duration": "5年", "significance": "正式走上数学研究道路，深受“浙大学派”严谨学风熏陶。", "works": [], "quoteLines": []}, {"name": "中国科学院数学研究所", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "调入中国科学院数学研究所，参与筹建工作。", "time": "1950年-1952年", "duration": "约2年", "significance": "进入国家级科研平台，拓展学术视野。", "works": [], "quoteLines": []}, {"name": "复旦大学", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "自浙江大学调入复旦大学，历任数学系教授、系主任、数学研究所所长、副校长等职。", "time": "1952年起（主要工作阶段）", "duration": "数十年", "significance": "学术生涯的核心基地，在此建立了**偏微分方程**研究团队，取得系列重大成果，并培养了大量人才。", "works": [], "quoteLines": []}, {"name": "莫斯科大学", "ancientName": "莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "赴苏联莫斯科大学力学数学系攻读研究生，师从**拉舍夫斯基**和**菲尼科夫**教授，获物理数学科学博士学位。", "time": "1957年-1960年", "duration": "3年", "significance": "在**微分几何**领域取得突破性成果，学术水平跃居国际前沿。", "works": [], "quoteLines": []}, {"name": "上海世博会（学术活动）", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "作为杰出科学家代表，参与上海世博会相关活动。", "time": "2010年", "duration": "短期", "significance": "晚年仍关心国家发展与科技普及事业。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效在上海逝世。", "time": "2012年", "duration": "长期居住", "significance": "学术生涯的终点，其精神与学术遗产留存于复旦大学及中国数学界。", "works": [], "quoteLines": []}, {"name": "酒泉卫星发射中心（学术关联）", "ancientName": "酒泉", "modernName": "甘肃省酒泉市", "lat": 39.7329, "lng": 98.4944, "coordSystem": "WGS84", "type": "normal", "event": "为解决**航天器**再入大气层的数学问题，曾赴相关基地进行调研与合作。", "time": "1970年代", "duration": "短期考察", "significance": "体现了其“学以致用”的科研理念，将高深数学理论与国家重大战略需求相结合。", "works": [], "quoteLines": []}, {"name": "中国科学技术大学（学术交流）", "ancientName": "合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "赴中国科学技术大学进行学术讲座与交流。", "time": "晚年多次", "duration": "短期访问", "significance": "推动国内数学研究的交流与合作。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。", "examPoints": "### 考点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。", "workTexts": {}, "markdown": "# 谷超豪\n\n## 人物档案\n\n### 基本信息\n- **姓名**：谷超豪\n- **时代**：中国现代\n- **出生**：1926年5月15日，温州（今浙江省温州市）\n- **去世**：2012年6月24日，上海（今上海市）\n- **享年**：86岁\n- **主要身份**：数学家、教育家、社会活动家\n- **历史地位**：中国现代数学的代表人物之一，在偏微分方程、数学物理等领域做出开创性贡献。\n- **主要成就**：\n    - 在**偏微分方程**领域取得一系列重要成果，特别是对**混合型方程**和**规范场理论**的数学研究。\n    - 开创性地将**微分几何**方法应用于偏微分方程研究。\n    - 长期担任**复旦大学**数学研究所所长，培养了大批数学人才。\n    - 曾获**国家最高科学技术奖**（2009年度）。\n\n### 生平概述\n谷超豪出生于浙江温州，少年时即展现出卓越的数学天赋。他早年求学于浙江大学，师从著名数学家苏步青，并留校任教。1950年，他调入中国科学院数学研究所参与筹建工作。1952年，他调入复旦大学数学系。1957年，他赴苏联莫斯科大学留学，获得物理数学科学博士学位。1960年归国后长期在复旦大学工作，历任数学系主任、副校长等职。他在**偏微分方程**、**微分几何**和**数学物理**等多个领域取得国际领先的成就，其研究紧密联系航空航天等国家重大需求。作为教育家，他培养了包括多位院士在内的杰出人才，为中国现代数学事业的发展做出了不可磨灭的贡献。\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要分布于中国东部沿海（浙江、上海）及莫斯科，核心活动围绕学术研究与教育。\n- ⏱️ **时间跨度**：1926年至2012年，共86年。\n- 📍 **地理范围**：主要覆盖中国浙江省、上海市，以及俄罗斯莫斯科。\n- 🌟 **重要节点数量**：10个核心地点。\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：温州\n- **时间**：1926年\n- **停留时间**：约12年\n- **地点**：温州（今浙江省温州市）\n- **事件**：出生于温州城区，童年与小学教育在此度过。\n- **意义**：故乡启蒙，培养了对数学的早期兴趣。\n\n### 📍 重要地点：温州中学\n- **时间**：1938年-1943年\n- **停留时间**：5年\n- **地点**：温州（今浙江省温州市）\n- **事件**：就读于浙江省立温州中学，数学才华崭露头角。\n- **意义**：接受了系统的中学教育，为日后学术生涯打下坚实基础。\n\n### 📍 重要地点：浙江大学（龙泉分校/本部）\n- **时间**：1943年-1948年\n- **停留时间**：5年\n- **地点**：龙泉（今浙江省丽水市龙泉市）/杭州（今浙江省杭州市）\n- **事件**：考入浙江大学数学系，师从**苏步青**、**陈建功**等大师；毕业后留校任助教。\n- **意义**：正式走上数学研究道路，深受“浙大学派”严谨学风熏陶。\n\n### 📍 重要地点：中国科学院数学研究所\n- **时间**：1950年-1952年\n- **停留时间**：约2年\n- **地点**：北京（今北京市）\n- **事件**：调入中国科学院数学研究所，参与筹建工作。\n- **意义**：进入国家级科研平台，拓展学术视野。\n\n### 📍 重要地点：莫斯科大学\n- **时间**：1957年-1960年\n- **停留时间**：3年\n- **地点**：莫斯科（今俄罗斯莫斯科）\n- **事件**：赴苏联莫斯科大学力学数学系攻读研究生，师从**拉舍夫斯基**和**菲尼科夫**教授，获物理数学科学博士学位。\n- **意义**：在**微分几何**领域取得突破性成果，学术水平跃居国际前沿。\n\n### 📍 重要地点：复旦大学\n- **时间**：1952年起（主要工作阶段）\n- **停留时间**：数十年\n- **地点**：上海（今上海市）\n- **事件**：自浙江大学调入复旦大学，历任数学系教授、系主任、数学研究所所长、副校长等职。\n- **意义**：学术生涯的核心基地，在此建立了**偏微分方程**研究团队，取得系列重大成果，并培养了大量人才。\n\n### 📍 重要地点：酒泉卫星发射中心（学术关联）\n- **时间**：1970年代\n- **停留时间**：短期考察\n- **地点**：酒泉（今甘肃省酒泉市）\n- **事件**：为解决**航天器**再入大气层的数学问题，曾赴相关基地进行调研与合作。\n- **意义**：体现了其“学以致用”的科研理念，将高深数学理论与国家重大战略需求相结合。\n\n### 📍 重要地点：上海世博会（学术活动）\n- **时间**：2010年\n- **停留时间**：短期\n- **地点**：上海（今上海市）\n- **事件**：作为杰出科学家代表，参与上海世博会相关活动。\n- **意义**：晚年仍关心国家发展与科技普及事业。\n\n### 📍 重要地点：中国科学技术大学（学术交流）\n- **时间**：晚年多次\n- **停留时间**：短期访问\n- **地点**：合肥（今安徽省合肥市）\n- **事件**：赴中国科学技术大学进行学术讲座与交流。\n- **意义**：推动国内数学研究的交流与合作。\n\n### 🔴 去世地：上海\n- **时间**：2012年\n- **停留时间**：长期居住\n- **地点**：上海（今上海市）\n- **事件**：因病医治无效在上海逝世。\n- **意义**：学术生涯的终点，其精神与学术遗产留存于复旦大学及中国数学界。\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1926 | 温州 | 浙江省温州市 | （年龄：0）出生于浙江温州 |\n| 1938 | 温州中学 | 浙江省温州市 | （年龄：12）入读浙江省立温州中学 |\n| 1943 | 浙江大学（龙泉分校/本部） | 浙江省丽水市龙泉市 | （年龄：17）考入浙江大学数学系 |\n| 1948 | 浙江大学（龙泉分校/本部） | 浙江省丽水市龙泉市 | （年龄：22）浙江大学毕业并留校任教 |\n| 1950 | 中国科学院数学研究所 | 北京市 | （年龄：24）调入中国科学院数学研究所 |\n| 1952 | 复旦大学 | 上海市 | （年龄：26）调入复旦大学数学系 |\n| 1957 | 莫斯科大学 | 俄罗斯莫斯科 | （年龄：31）赴苏联莫斯科大学攻读研究生 |\n| 1960 | 莫斯科大学 | 俄罗斯莫斯科 | （年龄：34）获莫斯科大学物理数学科学博士学位后归国 |\n| 1980 |  |  | （年龄：54）当选中国科学院学部委员（院士） |\n| 1993 |  |  | （年龄：67）当选第三世界科学院院士 |\n| 2009 |  |  | （年龄：83）获国家最高科学技术奖 |\n| 2012 | 上海 | 上海市 | （年龄：86）在上海逝世 |\n\n## 人教版教材知识点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 温州市 | 28.0006 | 120.6729 |\n| 丽水市龙泉市 | 28.0743 | 119.1417 |\n| 杭州市 | 30.2741 | 120.1551 |\n| 北京市 | 39.9042 | 116.4074 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 上海市 | 31.2304 | 121.4737 |\n| 酒泉市 | 39.7329 | 98.4944 |\n| 合肥市 | 31.8206 | 117.2272 |", "relatedGraph": {"center": {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "“做学问就像下棋，要有大眼界”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏步青", "name": "苏步青", "file": "苏步青.html", "dynasty": "现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1902, "death_year": 2003, "quote": "“**微分几何学派**”", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "浙江省温州府平阳县", "birthplace_modern": "浙江省温州市平阳县", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "“微分几何之父”", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "“小二黑好比一枝花，可惜开在粪堆旁。”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”", "review": "*聂荣臻题词**：“赵一曼同志永垂不朽！”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "袁隆平", "name": "袁隆平", "file": "袁隆平.html", "dynasty": "现代（中华人民共和国）", "aliases": [], "birth_year": 1930, "death_year": 2021, "quote": "“**杂交水稻之父**”", "review": "", "foreign_name": "", "main_role_label": "农业科学家", "birthplace": "北平", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "谷超豪", "target": "苏步青", "label": "师生", "confidence": null}, {"source": "谷超豪", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "袁隆平", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "18bb89b8b60f"};
+const data = {"person": {"name": "谷超豪", "title": "", "description": "谷超豪出生于浙江温州，少年时即展现出卓越的数学天赋。他早年求学于浙江大学，师从著名数学家苏步青，并留校任教。1950年，他调入中国科学院数学研究所参与筹建工作。1952年，他调入复旦大学数学系。1957年，他赴苏联莫斯科大学留学，获得物理数学科学博士学位。1960年归国后长期在复旦大学工作，历任数学系主任、副校长等职。他在**偏微分方程**、**微分几何**和**数学物理**等多个领域取得国际领先的成就，其研究紧密联系航空航天等国家重大需求。作为教育家，他培养了包括多位院士在内的杰出人才，为中国现代数学事业的发展做出了不可磨灭的贡献。", "quote": "做学问就像下棋，要有大眼界", "shortReview": "做学问就像下棋，要有大眼界", "dynasty": "中国现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "温州（今浙江省温州市）", "avatar": "", "birth": {"date": "1926年", "location": "温州（今浙江省温州市）", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84"}, "death": {"date": "2012年", "location": "上海（今上海市）", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84"}, "lifespan": "86岁", "highlights": {"honor": "", "status": "中国现代数学的代表人物之一，在偏微分方程、数学物理等领域做出开创性贡献。", "identities": "数学家、教育家、社会活动家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "温州", "ancientName": "温州", "modernName": "浙江省温州市", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84", "type": "birth", "event": "出生于温州城区，童年与小学教育在此度过。", "time": "1926年", "duration": "约12年", "significance": "故乡启蒙，培养了对数学的早期兴趣。", "works": [], "quoteLines": []}, {"name": "温州中学", "ancientName": "温州", "modernName": "浙江省温州市", "lat": 28.0006, "lng": 120.6729, "coordSystem": "WGS84", "type": "normal", "event": "就读于浙江省立温州中学，数学才华崭露头角。", "time": "1938年-1943年", "duration": "5年", "significance": "接受了系统的中学教育，为日后学术生涯打下坚实基础。", "works": [], "quoteLines": []}, {"name": "浙江大学（龙泉分校/本部）", "ancientName": "龙泉/杭州", "modernName": "浙江省丽水市龙泉市", "lat": 28.0743, "lng": 119.1417, "coordSystem": "WGS84", "type": "normal", "event": "考入浙江大学数学系，师从**苏步青**、**陈建功**等大师；毕业后留校任助教。", "time": "1943年-1948年", "duration": "5年", "significance": "正式走上数学研究道路，深受“浙大学派”严谨学风熏陶。", "works": [], "quoteLines": []}, {"name": "中国科学院数学研究所", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "调入中国科学院数学研究所，参与筹建工作。", "time": "1950年-1952年", "duration": "约2年", "significance": "进入国家级科研平台，拓展学术视野。", "works": [], "quoteLines": []}, {"name": "复旦大学", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "自浙江大学调入复旦大学，历任数学系教授、系主任、数学研究所所长、副校长等职。", "time": "1952年起（主要工作阶段）", "duration": "数十年", "significance": "学术生涯的核心基地，在此建立了**偏微分方程**研究团队，取得系列重大成果，并培养了大量人才。", "works": [], "quoteLines": []}, {"name": "莫斯科大学", "ancientName": "莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "赴苏联莫斯科大学力学数学系攻读研究生，师从**拉舍夫斯基**和**菲尼科夫**教授，获物理数学科学博士学位。", "time": "1957年-1960年", "duration": "3年", "significance": "在**微分几何**领域取得突破性成果，学术水平跃居国际前沿。", "works": [], "quoteLines": []}, {"name": "酒泉卫星发射中心（学术关联）", "ancientName": "酒泉", "modernName": "甘肃省酒泉市", "lat": 39.7329, "lng": 98.4944, "coordSystem": "WGS84", "type": "normal", "event": "为解决**航天器**再入大气层的数学问题，曾赴相关基地进行调研与合作。", "time": "1970年代", "duration": "短期考察", "significance": "体现了其“学以致用”的科研理念，将高深数学理论与国家重大战略需求相结合。", "works": [], "quoteLines": []}, {"name": "上海世博会（学术活动）", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "作为杰出科学家代表，参与上海世博会相关活动。", "time": "2010年", "duration": "短期", "significance": "晚年仍关心国家发展与科技普及事业。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效在上海逝世。", "time": "2012年", "duration": "长期居住", "significance": "学术生涯的终点，其精神与学术遗产留存于复旦大学及中国数学界。", "works": [], "quoteLines": []}, {"name": "中国科学技术大学（学术交流）", "ancientName": "合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "赴中国科学技术大学进行学术讲座与交流。", "time": "晚年多次", "duration": "短期访问", "significance": "推动国内数学研究的交流与合作。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。", "examPoints": "### 考点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。", "workTexts": {}, "workSummaries": {}, "markdown": "# 谷超豪\n\n## 人物档案\n\n### 基本信息\n- **姓名**：谷超豪\n- **时代**：中国现代\n- **出生**：1926年5月15日，温州（今浙江省温州市）\n- **去世**：2012年6月24日，上海（今上海市）\n- **享年**：86岁\n- **主要身份**：数学家、教育家、社会活动家\n- **历史地位**：中国现代数学的代表人物之一，在偏微分方程、数学物理等领域做出开创性贡献。\n- **主要成就**：\n    - 在**偏微分方程**领域取得一系列重要成果，特别是对**混合型方程**和**规范场理论**的数学研究。\n    - 开创性地将**微分几何**方法应用于偏微分方程研究。\n    - 长期担任**复旦大学**数学研究所所长，培养了大批数学人才。\n    - 曾获**国家最高科学技术奖**（2009年度）。\n\n### 生平概述\n谷超豪出生于浙江温州，少年时即展现出卓越的数学天赋。他早年求学于浙江大学，师从著名数学家苏步青，并留校任教。1950年，他调入中国科学院数学研究所参与筹建工作。1952年，他调入复旦大学数学系。1957年，他赴苏联莫斯科大学留学，获得物理数学科学博士学位。1960年归国后长期在复旦大学工作，历任数学系主任、副校长等职。他在**偏微分方程**、**微分几何**和**数学物理**等多个领域取得国际领先的成就，其研究紧密联系航空航天等国家重大需求。作为教育家，他培养了包括多位院士在内的杰出人才，为中国现代数学事业的发展做出了不可磨灭的贡献。\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要分布于中国东部沿海（浙江、上海）及莫斯科，核心活动围绕学术研究与教育。\n- ⏱️ **时间跨度**：1926年至2012年，共86年。\n- 📍 **地理范围**：主要覆盖中国浙江省、上海市，以及俄罗斯莫斯科。\n- 🌟 **重要节点数量**：10个核心地点。\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：温州\n- **时间**：1926年\n- **停留时间**：约12年\n- **地点**：温州（今浙江省温州市）\n- **事件**：出生于温州城区，童年与小学教育在此度过。\n- **意义**：故乡启蒙，培养了对数学的早期兴趣。\n\n### 📍 重要地点：温州中学\n- **时间**：1938年-1943年\n- **停留时间**：5年\n- **地点**：温州（今浙江省温州市）\n- **事件**：就读于浙江省立温州中学，数学才华崭露头角。\n- **意义**：接受了系统的中学教育，为日后学术生涯打下坚实基础。\n\n### 📍 重要地点：浙江大学（龙泉分校/本部）\n- **时间**：1943年-1948年\n- **停留时间**：5年\n- **地点**：龙泉（今浙江省丽水市龙泉市）/杭州（今浙江省杭州市）\n- **事件**：考入浙江大学数学系，师从**苏步青**、**陈建功**等大师；毕业后留校任助教。\n- **意义**：正式走上数学研究道路，深受“浙大学派”严谨学风熏陶。\n\n### 📍 重要地点：中国科学院数学研究所\n- **时间**：1950年-1952年\n- **停留时间**：约2年\n- **地点**：北京（今北京市）\n- **事件**：调入中国科学院数学研究所，参与筹建工作。\n- **意义**：进入国家级科研平台，拓展学术视野。\n\n### 📍 重要地点：莫斯科大学\n- **时间**：1957年-1960年\n- **停留时间**：3年\n- **地点**：莫斯科（今俄罗斯莫斯科）\n- **事件**：赴苏联莫斯科大学力学数学系攻读研究生，师从**拉舍夫斯基**和**菲尼科夫**教授，获物理数学科学博士学位。\n- **意义**：在**微分几何**领域取得突破性成果，学术水平跃居国际前沿。\n\n### 📍 重要地点：复旦大学\n- **时间**：1952年起（主要工作阶段）\n- **停留时间**：数十年\n- **地点**：上海（今上海市）\n- **事件**：自浙江大学调入复旦大学，历任数学系教授、系主任、数学研究所所长、副校长等职。\n- **意义**：学术生涯的核心基地，在此建立了**偏微分方程**研究团队，取得系列重大成果，并培养了大量人才。\n\n### 📍 重要地点：酒泉卫星发射中心（学术关联）\n- **时间**：1970年代\n- **停留时间**：短期考察\n- **地点**：酒泉（今甘肃省酒泉市）\n- **事件**：为解决**航天器**再入大气层的数学问题，曾赴相关基地进行调研与合作。\n- **意义**：体现了其“学以致用”的科研理念，将高深数学理论与国家重大战略需求相结合。\n\n### 📍 重要地点：上海世博会（学术活动）\n- **时间**：2010年\n- **停留时间**：短期\n- **地点**：上海（今上海市）\n- **事件**：作为杰出科学家代表，参与上海世博会相关活动。\n- **意义**：晚年仍关心国家发展与科技普及事业。\n\n### 📍 重要地点：中国科学技术大学（学术交流）\n- **时间**：晚年多次\n- **停留时间**：短期访问\n- **地点**：合肥（今安徽省合肥市）\n- **事件**：赴中国科学技术大学进行学术讲座与交流。\n- **意义**：推动国内数学研究的交流与合作。\n\n### 🔴 去世地：上海\n- **时间**：2012年\n- **停留时间**：长期居住\n- **地点**：上海（今上海市）\n- **事件**：因病医治无效在上海逝世。\n- **意义**：学术生涯的终点，其精神与学术遗产留存于复旦大学及中国数学界。\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1926 | 温州 | 浙江省温州市 | （年龄：0）出生于浙江温州 |\n| 1938 | 温州中学 | 浙江省温州市 | （年龄：12）入读浙江省立温州中学 |\n| 1943 | 浙江大学（龙泉分校/本部） | 浙江省丽水市龙泉市 | （年龄：17）考入浙江大学数学系 |\n| 1948 | 浙江大学（龙泉分校/本部） | 浙江省丽水市龙泉市 | （年龄：22）浙江大学毕业并留校任教 |\n| 1950 | 中国科学院数学研究所 | 北京市 | （年龄：24）调入中国科学院数学研究所 |\n| 1952 | 复旦大学 | 上海市 | （年龄：26）调入复旦大学数学系 |\n| 1957 | 莫斯科大学 | 俄罗斯莫斯科 | （年龄：31）赴苏联莫斯科大学攻读研究生 |\n| 1960 | 莫斯科大学 | 俄罗斯莫斯科 | （年龄：34）获莫斯科大学物理数学科学博士学位后归国 |\n| 1980 |  |  | （年龄：54）当选中国科学院学部委员（院士） |\n| 1993 |  |  | （年龄：67）当选第三世界科学院院士 |\n| 2009 |  |  | （年龄：83）获国家最高科学技术奖 |\n| 2012 | 上海 | 上海市 | （年龄：86）在上海逝世 |\n\n## 人教版教材知识点\n【强制要求：必须单列此章节】\n### 语文（课文/词作）\n- 课文/词作：谷超豪作为现代数学家，其事迹与精神常见于**科学家传记**、**议论文**素材及**爱国主义教育**读本中，而非传统语文课文。其名言“做学问就像下棋，要有大眼界”常被引用。\n- 核心要点：\n    - **重点**：其生平体现了**爱国情怀**与**科学精神**的完美结合，是“**科教兴国**”战略的生动例证。\n    - **重点**：其学术成就展示了**基础研究**对国家**战略科技**的支撑作用。\n    - **重点**：其教育生涯诠释了**师德**与**学术传承**的重要性。\n    - 其人生轨迹是**现代中国知识分子**追求真理、报效国家的典范。\n    - 其跨学科研究（数学与物理）体现了**交叉学科**的创新价值。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：谷超豪是**中国现代数学**发展史上的关键人物，其研究领域（**偏微分方程**、**数学物理**）处于国际前沿。\n    - **重点**：他的成长与成就，与**浙江大学**、**复旦大学**等中国现代高等教育及科研机构的发展紧密相连。\n    - 他的留学经历（**莫斯科大学**）反映了20世纪50年代中苏科技交流的一个侧面。\n    - 其晚年获得**国家最高科学技术奖**，标志着国家对基础科学研究的最高肯定。\n- 核心要点：\n    - **重点**：作为**中国科学院院士**，他是新中国自己培养的科学家的杰出代表。\n    - **重点**：其科研工作始终面向国家重大需求（如**航天事业**），体现了科学家的**国家使命**。\n    - 他长期担任**复旦大学**领导职务，对中国高等教育特别是**数学学科建设**有深远影响。\n    - 他与老师**苏步青**共同代表了中国微分几何学派的传承与发展。\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 温州市 | 28.0006 | 120.6729 |\n| 丽水市龙泉市 | 28.0743 | 119.1417 |\n| 杭州市 | 30.2741 | 120.1551 |\n| 北京市 | 39.9042 | 116.4074 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 上海市 | 31.2304 | 121.4737 |\n| 酒泉市 | 39.7329 | 98.4944 |\n| 合肥市 | 31.8206 | 117.2272 |", "relatedGraph": {"center": {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "做学问就像下棋，要有大眼界", "review": "做学问就像下棋，要有大眼界", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "做学问就像下棋，要有大眼界", "review": "做学问就像下棋，要有大眼界", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "苏步青", "name": "苏步青", "file": "苏步青.html", "dynasty": "现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1902, "death_year": 2003, "quote": "**微分几何学派**", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "浙江省温州府平阳县", "birthplace_modern": "浙江省温州市平阳县", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "横扫清华图书馆", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "小二黑好比一枝花，可惜开在粪堆旁。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "袁隆平", "name": "袁隆平", "file": "袁隆平.html", "dynasty": "现代（中华人民共和国）", "aliases": [], "birth_year": 1930, "death_year": 2021, "quote": "**杂交水稻之父**", "review": "", "foreign_name": "", "main_role_label": "农业科学家", "birthplace": "北平", "birthplace_modern": "北京市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "谷超豪", "target": "苏步青", "label": "师生", "confidence": null}, {"source": "谷超豪", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "谷超豪", "target": "袁隆平", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "b79db12970f5"};
 window.__EXPORT_DATA__ = data;
+const __BUILD_META__ = {
+  version: "b79db12970f5",
+  builtAt: "2026-06-21T01:53:10Z"
+};
+window.__BUILD_META__ = __BUILD_META__;
+const openFeedbackDialog = anchor => {
+  try {
+    const personName = String(data && data.person && data.person.name || document.title || '').trim();
+    const url = (typeof window !== 'undefined' && window.location ? window.location.href : '') || '';
+    const meta = window.__BUILD_META__ || {};
+    const lines = [];
+    lines.push('请尽量保留以下信息，便于我们快速复现问题：');
+    lines.push('--- 自动附带的可复现信息 ---');
+    lines.push('人物：' + personName);
+    lines.push('页面：' + url);
+    lines.push('反馈位置：' + String(anchor || 'header'));
+    lines.push('构建版本：' + String(meta.version || 'unknown'));
+    lines.push('构建时间：' + String(meta.builtAt || 'unknown'));
+    lines.push('提交时间：' + new Date().toISOString());
+    lines.push('--- 请在下方描述具体问题 ---');
+    lines.push('错误类型（例：作品摘要错误 / 出生地错误 / 朝代错误 / 地图标记错误 / 其他）：');
+    lines.push('');
+    lines.push('详细描述：');
+    lines.push('');
+    const body = lines.join('\n');
+    const fallbackInstruction = '请复制以下内容并发送给维护者：\n\n' + body;
+    const subject = '[StoryMap 反馈] ' + (personName || '人物页') + ' / ' + (meta.version || 'unknown');
+    const mailToTarget = (window.__FEEDBACK_MAILTO__ || '').trim();
+    if (mailToTarget) {
+      const href = 'mailto:' + encodeURIComponent(mailToTarget) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      window.open(href, '_blank');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(body).then(() => {
+        try {
+          window.alert('已复制反馈模板到剪贴板，请粘贴到反馈渠道。\n\n' + body);
+        } catch (_) {}
+      }).catch(() => {
+        try {
+          window.alert(fallbackInstruction);
+        } catch (_) {}
+      });
+      return;
+    }
+    try {
+      window.alert(fallbackInstruction);
+    } catch (_) {}
+  } catch (err) {
+    try {
+      window.alert('反馈窗口打开失败：' + (err && err.message ? err.message : err));
+    } catch (_) {}
+  }
+};
+window.openFeedbackDialog = openFeedbackDialog;
 const waitForMs = ms => new Promise(resolve => window.setTimeout(resolve, Math.max(0, Number(ms || 0))));
 const stopMediaStream = stream => {
   try {
@@ -2455,6 +2593,7 @@ const relatedGraph = data.relatedGraph || {};
 const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
 const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const rawWorkTexts = data.workTexts && typeof data.workTexts === 'object' ? data.workTexts : {};
+const rawWorkSummaries = data.workSummaries && typeof data.workSummaries === 'object' ? data.workSummaries : {};
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\\n\\n');
 const dedupeTeachingMarkdown = raw => {
   const LF = String.fromCharCode(10);
@@ -2631,12 +2770,6 @@ const getWorkTitleAliases = title => {
   return aliases;
 };
 const WORK_TOOLTIP_BAD_PATTERNS = [/^(主要成就|核心要点|关键史实|历史地位|历史影响|历史评价|时代背景|代表作品|作品简介|主题思想|写作背景|作者简介|艺术特色|内容简介)\s*[：:]/, /^无[。；;!！]?$/, /^暂无[。；;!！]?$/];
-const shouldDisableWorkTooltip = (title, workText) => {
-  const aliases = getWorkTitleAliases(title);
-  if (!aliases.length) return true;
-  if (aliases.some(item => NO_WORK_TOOLTIP_TITLES.has(item))) return true;
-  return !String(workText || '').trim();
-};
 const buildWorkTooltipLibrary = source => {
   const out = {};
   for (const [title, text] of Object.entries(source && typeof source === 'object' ? source : {})) {
@@ -2651,8 +2784,60 @@ const buildWorkTooltipLibrary = source => {
   }
   return out;
 };
+const uniqTrimmed = items => {
+  const out = [];
+  const seen = new Set();
+  for (const item of Array.isArray(items) ? items : []) {
+    const text = String(item || '').trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+  }
+  return out;
+};
+const normalizeWorkSummaryItem = (title, raw) => {
+  const item = raw && typeof raw === 'object' ? raw : {};
+  const displayTitle = String(item.title || title || '').trim();
+  return {
+    title: displayTitle,
+    aliases: uniqTrimmed(item.aliases),
+    authors: uniqTrimmed(item.authors),
+    relatedPeople: uniqTrimmed(item.related_people),
+    sourcePages: uniqTrimmed(item.source_pages),
+    era: String(item.era || '').trim(),
+    genre: String(item.genre || '').trim(),
+    oneLiner: String(item.one_liner || '').trim(),
+    summary: String(item.summary || '').trim(),
+    quote: String(item.quote || '').trim(),
+    quotes: uniqTrimmed(item.quotes),
+    quotePolicy: String(item.quote_policy || '').trim()
+  };
+};
+const hasWorkSummaryContent = item => {
+  if (!item || typeof item !== 'object') return false;
+  return Boolean(String(item.oneLiner || '').trim() || String(item.summary || '').trim() || String(item.quote || '').trim() || uniqTrimmed(item.quotes).length || String(item.era || '').trim() || String(item.genre || '').trim() || uniqTrimmed(item.authors).length || uniqTrimmed(item.relatedPeople).length);
+};
+const buildWorkSummaryLibrary = source => {
+  const out = {};
+  for (const [title, value] of Object.entries(source && typeof source === 'object' ? source : {})) {
+    const item = normalizeWorkSummaryItem(title, value);
+    if (!item.title) continue;
+    const aliases = uniqTrimmed([item.title, ...item.aliases].flatMap(alias => getWorkTitleAliases(alias)));
+    if (!aliases.length) continue;
+    const score = String(item.oneLiner || '').length + String(item.summary || '').length + String(item.quote || '').length + uniqTrimmed(item.quotes).join('').length + uniqTrimmed(item.authors).join('').length + uniqTrimmed(item.relatedPeople).join('').length;
+    for (const alias of aliases) {
+      const existing = out[alias];
+      const existingScore = existing ? String(existing.oneLiner || '').length + String(existing.summary || '').length + String(existing.quote || '').length + uniqTrimmed(existing.quotes).join('').length : -1;
+      if (!existing || score > existingScore) {
+        out[alias] = item;
+      }
+    }
+  }
+  return out;
+};
 const sharedWorkTextLibrary = buildWorkTooltipLibrary(SHARED_WORK_TOOLTIP_TEXTS);
 const workTextLibrary = buildWorkTooltipLibrary(rawWorkTexts);
+const workSummaryLibrary = buildWorkSummaryLibrary(rawWorkSummaries);
 const extractWorkOriginalSentence = rawText => {
   const text = String(rawText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   if (!text) return '';
@@ -2766,61 +2951,136 @@ const getWorkTooltipFallbackText = title => {
   for (const alias of aliases) {
     const quotes = WORK_TOOLTIP_FALLBACK_QUOTES[alias];
     if (Array.isArray(quotes) && quotes.length) {
-      return quotes.slice(0, 2).map(item => `“${String(item || '').trim()}”`).join('\n');
+      return quotes.slice(0, 2).map(item => String(item || '').trim()).join('\n');
     }
   }
   return '';
 };
-const getWorkTooltipText = title => {
+const getWorkTooltipPayload = title => {
   const aliases = getWorkTitleAliases(title);
+  for (const alias of aliases) {
+    const summaryItem = workSummaryLibrary[alias];
+    if (summaryItem && hasWorkSummaryContent(summaryItem)) {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from summary index', {
+        title: String(title || ''),
+        alias: String(alias || ''),
+        source: 'summary-index'
+      });
+      return {
+        summary: summaryItem,
+        text: ''
+      };
+    }
+  }
   for (const alias of aliases) {
     const sharedText = String(sharedWorkTextLibrary[alias] || '').trim();
     if (sharedText) {
-      debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip from shared library', {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from shared library', {
         title: String(title || ''),
         alias: String(alias || ''),
         source: 'shared-library',
         text: String(sharedText || '').slice(0, 120)
       });
-      return sharedText;
+      return {
+        summary: null,
+        text: sharedText
+      };
     }
   }
   for (const alias of aliases) {
     const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');
     if (localText) {
-      debugBootEmit('B', 'profile_page.html:getWorkTooltipText', 'before debugEmit library path', {
+      debugBootEmit('B', 'profile_page.html:getWorkTooltipPayload', 'before debugEmit library path', {
         title: String(title || ''),
         alias: String(alias || ''),
         hasDebugEmit: typeof debugEmit !== 'undefined'
       });
-      debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip from library', {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from library', {
         title: String(title || ''),
         alias: String(alias || ''),
         source: 'library',
         text: String(localText || '').slice(0, 120)
       });
-      return localText;
+      return {
+        summary: null,
+        text: localText
+      };
     }
   }
   const fallbackText = getWorkTooltipFallbackText(title);
-  debugBootEmit('B', 'profile_page.html:getWorkTooltipText', 'before debugEmit fallback path', {
+  debugBootEmit('B', 'profile_page.html:getWorkTooltipPayload', 'before debugEmit fallback path', {
     title: String(title || ''),
     hasDebugEmit: typeof debugEmit !== 'undefined',
     hasFallbackText: Boolean(fallbackText)
   });
-  debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip fallback resolved', {
+  debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip fallback resolved', {
     title: String(title || ''),
     source: fallbackText ? 'fallback' : 'empty',
     text: String(fallbackText || '').slice(0, 120)
   });
-  return fallbackText;
+  return {
+    summary: null,
+    text: fallbackText
+  };
+};
+const shouldDisableWorkTooltip = (title, payload) => {
+  const aliases = getWorkTitleAliases(title);
+  if (!aliases.length) return true;
+  if (aliases.some(item => NO_WORK_TOOLTIP_TITLES.has(item))) return true;
+  return !hasWorkSummaryContent(payload?.summary) && !String(payload?.text || '').trim();
+};
+const WorkTooltipCard = ({
+  title,
+  summary,
+  text
+}) => {
+  const authors = uniqTrimmed(summary?.authors);
+  const relatedPeople = uniqTrimmed(summary?.relatedPeople).filter(item => item !== authors[0]);
+  const quotes = uniqTrimmed(summary?.quotes);
+  const quotePolicy = String(summary?.quotePolicy || '').trim();
+  const rows = [{
+    label: '作者',
+    value: authors.join(' / ')
+  }, {
+    label: '时代',
+    value: String(summary?.era || '').trim()
+  }, {
+    label: '体裁',
+    value: String(summary?.genre || '').trim()
+  }, {
+    label: '关联人物',
+    value: relatedPeople.slice(0, 3).join(' / ')
+  }].filter(row => String(row.value || '').trim());
+  const lead = String(summary?.oneLiner || summary?.summary || text || '').trim();
+  const singleQuote = String(summary?.quote || '').trim();
+  const quoteItems = quotes.length ? quotes.slice(0, 3) : singleQuote ? [singleQuote] : [];
+  return React.createElement("span", {
+    className: "block max-h-[260px] min-w-[260px] max-w-[420px] overflow-y-auto rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]"
+  }, React.createElement("span", {
+    className: "flex flex-col gap-1.5"
+  }, React.createElement("span", {
+    className: "text-[13px] font-semibold leading-5 text-gray-900"
+  }, title), lead ? React.createElement("span", {
+    className: "whitespace-pre-wrap leading-6"
+  }, lead) : null, rows.length ? React.createElement("span", {
+    className: "flex flex-col gap-1 text-[11px] leading-5 text-gray-500"
+  }, rows.map(row => React.createElement("span", {
+    key: row.label
+  }, row.label, "\uFF1A", row.value))) : null, quoteItems.length ? React.createElement("span", {
+    className: "flex flex-col gap-1 border-t border-[#e7d9bf]/70 pt-1.5 mt-0.5"
+  }, quoteItems.map((item, idx) => React.createElement("span", {
+    key: `${title}-quote-${idx}`,
+    className: "whitespace-pre-wrap text-[12.5px] leading-6 font-semibold text-gray-900 tracking-wide"
+  }, item))) : null, quotePolicy === 'summary_only' && !quoteItems.length ? React.createElement("span", {
+    className: "text-[11px] leading-5 text-gray-400"
+  }, "\u540D\u53E5\u5C55\u793A\uFF1A\u6B64\u7C7B\u4F5C\u54C1\u9ED8\u8BA4\u4EC5\u5C55\u793A\u6458\u8981") : null));
 };
 const WorkTitleWithTooltip = ({
   fullTitle,
   className
 }) => {
   const title = normalizeWorkTitle(fullTitle);
-  const workText = getWorkTooltipText(title);
+  const tooltipPayload = getWorkTooltipPayload(title);
   const [placement, setPlacement] = useState({
     vertical: 'up',
     horizontal: 'left'
@@ -2871,7 +3131,7 @@ const WorkTitleWithTooltip = ({
       window.removeEventListener('scroll', sync, true);
     };
   }, [open, updatePlacement]);
-  if (shouldDisableWorkTooltip(title, workText)) {
+  if (shouldDisableWorkTooltip(title, tooltipPayload)) {
     if (!className) return React.createElement(React.Fragment, null, fullTitle);
     return React.createElement("span", {
       className: className
@@ -2879,14 +3139,18 @@ const WorkTitleWithTooltip = ({
   }
   const tooltipNode = open && typeof document !== 'undefined' && typeof ReactDOM !== 'undefined' ? ReactDOM.createPortal(React.createElement("span", {
     ref: tooltipRef,
-    className: "pointer-events-none fixed z-[1400] max-h-[240px] min-w-[260px] max-w-[420px] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]",
+    className: "pointer-events-none fixed z-[1400]",
     style: {
       left: `${portalStyle.left}px`,
       top: `${portalStyle.top}px`,
       maxWidth: 'min(420px, calc(100vw - 2rem))',
       visibility: portalStyle.visibility || 'hidden'
     }
-  }, React.createElement("span", null, workText)), document.body) : null;
+  }, React.createElement(WorkTooltipCard, {
+    title: title,
+    summary: tooltipPayload.summary,
+    text: tooltipPayload.text
+  })), document.body) : null;
   return React.createElement(React.Fragment, null, React.createElement("span", {
     ref: rootRef,
     className: "relative z-0 inline-flex align-baseline",
@@ -3536,6 +3800,8 @@ const App = () => {
   const [mapLayerType, setMapLayerType] = useState('vector');
   const [mapRecoveryTick, setMapRecoveryTick] = useState(0);
   const [mapReadyTick, setMapReadyTick] = useState(0);
+  const [mapLoadState, setMapLoadState] = useState('idle');
+  const [mapInitRequestTick, setMapInitRequestTick] = useState(0);
   const [isJourneyFullscreen, setIsJourneyFullscreen] = useState(false);
   const [isJourneyExportFullscreenLayout, setIsJourneyExportFullscreenLayout] = useState(false);
   const [terrainCompassState, setTerrainCompassState] = useState({
@@ -3564,13 +3830,138 @@ const App = () => {
   const splitRef = useRef(null);
   const shellContentRef = useRef(null);
   const journeyShellRef = useRef(null);
+  const mapViewportRef = useRef(null);
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
+  const chatAbortControllerRef = useRef(null);
+  const chatFlushTimerRef = useRef(null);
+  const chatPendingTextRef = useRef('');
+  const chatPendingMessageIdRef = useRef('');
+  const chatDisplayQueueRef = useRef([]);
+  const chatDisplayedTextRef = useRef('');
   const locItemRefs = useRef([]);
+  const clearChatFlushTimer = React.useCallback(() => {
+    if (chatFlushTimerRef.current) {
+      window.clearTimeout(chatFlushTimerRef.current);
+      chatFlushTimerRef.current = null;
+    }
+  }, []);
+  const splitStreamDeltaForDisplay = React.useCallback(text => {
+    const raw = String(text || '').replace(/\r/g, '');
+    if (!raw) return [];
+    const pieces = [];
+    let buffer = '';
+    const flush = () => {
+      if (!buffer) return;
+      pieces.push(buffer);
+      buffer = '';
+    };
+    for (const ch of Array.from(raw)) {
+      buffer += ch;
+      if (/\s/.test(ch)) {
+        flush();
+        continue;
+      }
+      if (/[。！？!?；;，,、：:）)\]】》”"'’]/.test(ch)) {
+        flush();
+        continue;
+      }
+      const hasCjk = /[\u3400-\u9fff]/.test(buffer);
+      const limit = hasCjk ? 3 : 8;
+      if (buffer.length >= limit) {
+        flush();
+      }
+    }
+    flush();
+    return pieces;
+  }, []);
+  const flushStreamedChatMessage = React.useCallback((messageId, {
+    streaming = true
+  } = {}) => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    clearChatFlushTimer();
+    const content = String(chatPendingTextRef.current || '');
+    setChatMessages(prev => prev.map(item => item && item.id === targetId ? {
+      ...item,
+      content,
+      streaming: !!streaming
+    } : item));
+  }, [clearChatFlushTimer]);
+  const pumpStreamedChatDisplay = React.useCallback((messageId, {
+    streaming = true,
+    forceAll = false
+  } = {}) => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    clearChatFlushTimer();
+    const queue = Array.isArray(chatDisplayQueueRef.current) ? chatDisplayQueueRef.current : [];
+    let appended = '';
+    if (forceAll) {
+      appended = queue.join('');
+      queue.length = 0;
+    } else {
+      let charBudget = 0;
+      while (queue.length) {
+        const next = String(queue.shift() || '');
+        if (!next) continue;
+        if (appended && charBudget + next.length > 12) {
+          queue.unshift(next);
+          break;
+        }
+        appended += next;
+        charBudget += next.length;
+        if (/[。！？!?；;，,、：:）)\]】》”"'’]\s*$/.test(appended) || charBudget >= 9) {
+          break;
+        }
+      }
+    }
+    if (appended) {
+      chatDisplayedTextRef.current = `${String(chatDisplayedTextRef.current || '')}${appended}`;
+    }
+    chatPendingTextRef.current = String(chatDisplayedTextRef.current || '');
+    flushStreamedChatMessage(targetId, {
+      streaming
+    });
+    if (!forceAll && queue.length) {
+      chatFlushTimerRef.current = window.setTimeout(() => {
+        const pendingId = String(chatPendingMessageIdRef.current || '').trim() || targetId;
+        pumpStreamedChatDisplay(pendingId, {
+          streaming: true,
+          forceAll: false
+        });
+      }, 24);
+    }
+  }, [clearChatFlushTimer, flushStreamedChatMessage]);
+  const scheduleStreamedChatFlush = React.useCallback(messageId => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    chatPendingMessageIdRef.current = targetId;
+    if (chatFlushTimerRef.current) return;
+    chatFlushTimerRef.current = window.setTimeout(() => {
+      const pendingId = String(chatPendingMessageIdRef.current || '').trim() || targetId;
+      pumpStreamedChatDisplay(pendingId, {
+        streaming: true,
+        forceAll: false
+      });
+    }, 24);
+  }, [pumpStreamedChatDisplay]);
+  const abortCurrentChatRequest = React.useCallback(() => {
+    const controller = chatAbortControllerRef.current;
+    chatAbortControllerRef.current = null;
+    if (controller && typeof controller.abort === 'function') {
+      try {
+        controller.abort();
+      } catch (_err) {}
+    }
+    clearChatFlushTimer();
+    chatDisplayQueueRef.current = [];
+    chatDisplayedTextRef.current = '';
+  }, [clearChatFlushTimer]);
   const totalEvents = locations.length;
   const getOverviewPadding = containerWidth => {
     const width = Number(containerWidth || 0) || (typeof window !== 'undefined' ? Number(window.innerWidth || 0) : 0) || 1200;
@@ -4558,6 +4949,17 @@ const App = () => {
     if (el) el.textContent = text;
     setMapStatusNotice(next);
   };
+  const requestMapInitialization = React.useCallback((reason = 'manual') => {
+    if (mapRef.current || mapLoadState === 'loading') return false;
+    setMapLoadState('loading');
+    setMapInitRequestTick(value => value + 1);
+    try {
+      if (typeof window !== 'undefined') {
+        window.__MAP_LAZY_TRIGGER__ = String(reason || 'manual');
+      }
+    } catch (_) {}
+    return true;
+  }, [mapLoadState]);
   const retryPreferredMapProvider = targetLayerType => {
     const nextLayerType = String(targetLayerType || mapLayerType || 'vector');
     mapProviderRef.current = isTerrain3DMode(nextLayerType) ? 'cesium' : 'geovis';
@@ -4570,6 +4972,29 @@ const App = () => {
     }
     setMapRecoveryTick(value => value + 1);
   };
+  useEffect(() => {
+    hideBootFallback();
+  }, []);
+  useEffect(() => {
+    if (mapInitRequestTick > 0 || mapRef.current) return undefined;
+    const target = mapViewportRef.current;
+    if (!target) return undefined;
+    if (typeof window === 'undefined' || typeof window.IntersectionObserver !== 'function') {
+      requestMapInitialization('fallback');
+      return undefined;
+    }
+    const observer = new window.IntersectionObserver(entries => {
+      const visible = entries.some(entry => entry && entry.isIntersecting);
+      if (!visible) return;
+      observer.disconnect();
+      requestMapInitialization('viewport');
+    }, {
+      rootMargin: '240px 0px',
+      threshold: 0.12
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [mapInitRequestTick, requestMapInitialization]);
   const handleMapNoticeAction = action => {
     if (!action || typeof action !== 'object') return;
     const kind = String(action.kind || '');
@@ -4913,6 +5338,7 @@ const App = () => {
     syncMapCanvasVisibility(nextMode);
     amapControllerRef.current.applyBaseLayer(nextMode);
     mapRef.current = amapControllerRef.current;
+    setMapLoadState('ready');
     if (typeof window !== 'undefined') {
       window.__STORY_MAP_TEST__ = {
         setBasemap: nextType => {
@@ -4996,12 +5422,12 @@ const App = () => {
     return () => clearTimeout(timer);
   }, [isAutoPlaying, activeIndex, totalEvents]);
   useEffect(() => {
-    hideBootFallback();
     let disposed = false;
-    if (mapRef.current) return () => {
+    if (mapInitRequestTick <= 0 || mapRef.current) return () => {
       disposed = true;
     };
     const initMap = async () => {
+      setMapLoadState('loading');
       const first = locations[0] || {
         lat: 35,
         lng: 105
@@ -5011,6 +5437,7 @@ const App = () => {
         try {
           await activateAmapFallback(preferredMode, reason || 'GeoVis 服务暂不可用，已回退到高德地图');
         } catch (err) {
+          setMapLoadState('error');
           setMapNotice(`${String(reason || 'GeoVis 服务暂不可用')}；高德地图加载失败：${String(err?.message || err)}`);
         }
       };
@@ -6018,6 +6445,7 @@ const App = () => {
           } catch (_) {}
           applyMapViewMode(map, 'vector', true);
           renderStoryOverlays();
+          setMapLoadState('ready');
           setMapReadyTick(value => value + 1);
         }
       });
@@ -6065,7 +6493,7 @@ const App = () => {
       cesiumControllerRef.current = null;
       mapRef.current = null;
     };
-  }, []);
+  }, [mapInitRequestTick]);
   useEffect(() => {
     const geovis = window.__MAP_STORY_GEOVIS__;
     let cancelled = false;
@@ -6766,6 +7194,11 @@ const App = () => {
   const journeyFullscreenActive = isJourneyFullscreen || isJourneyExportFullscreenLayout;
   const journeyPanelHeight = journeyFullscreenActive ? '100%' : '620px';
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
+  const mapReady = mapLoadState === 'ready';
+  const mapLoading = mapLoadState === 'loading';
+  const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图';
+  const mapLazyCopy = mapLoading ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。' : mapLoadState === 'error' ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。' : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。';
+  const mapLazyActionLabel = mapLoading ? '正在加载地图…' : mapLoadState === 'error' ? '重试加载地图' : '立即加载地图';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
@@ -7051,16 +7484,19 @@ const App = () => {
     const firstWork = relatedWorks.map(item => String(item || '').trim()).find(Boolean) || '';
     const firstQuote = (locations || []).flatMap(loc => Array.isArray(loc.quoteLines) ? loc.quoteLines : []).map(item => String(item || '').trim()).find(Boolean) || '';
     const roleText = String(relatedIdentities || relatedStatus || '').trim();
-    const questionPool = [roleText, description, data?.person?.dynasty, firstWork, firstQuote].filter(Boolean).join(' ');
-    const detectPromptProfile = () => {
-      if (/(将军|将领|统帅|武将|领兵|统军|用兵|出征|征战|战役|战场|守边|军旅|军功|行伍|骑兵|北伐|东征|西征|南征)/.test(questionPool)) return 'military';
-      if (/(诗人|词人|作家|文学|文豪|诗|词|赋|文章|书法|画家|文选)/.test(questionPool)) return 'literary';
-      if (/(政治家|宰相|皇帝|君主|帝王|改革|变法|执政|官员|丞相|大臣|首相)/.test(questionPool)) return 'statesman';
-      if (/(思想家|学者|教育家|经学|哲学|史学|史家|学术|理学|科学家|数学|天文|医学)/.test(questionPool)) return 'scholar';
-      if (/(使者|外交|航海|探险|旅行|出使|西域|海上|地理)/.test(questionPool)) return 'explorer';
-      return 'general';
+    const rolePool = [roleText, relatedHonor, relatedStatus, relatedIdentities].filter(Boolean).join(' ');
+    const descPool = [description, shortReview, data?.person?.dynasty, ...relatedReviews.slice(0, 2)].filter(Boolean).join(' ');
+    const profileScores = {
+      ruler: 0,
+      military: 0,
+      reformer: 0,
+      literary: 0,
+      scholar: 0,
+      artist: 0,
+      explorer: 0,
+      religious: 0,
+      revolutionary: 0
     };
-    const promptProfile = detectPromptProfile();
     const push = (label, question, tone = 'slate') => {
       const val = String(question || '').trim();
       const tag = String(label || '').trim();
@@ -7072,6 +7508,28 @@ const App = () => {
         tone
       });
     };
+    const addScore = (profile, score, pattern, pool) => {
+      if (pattern.test(pool)) profileScores[profile] += score;
+    };
+    addScore('ruler', 6, /(皇帝|帝王|国王|女王|君主|王朝|王室|可汗|汗王|摄政|登基|加冕|称帝|即位|统治者|皇后|王后)/, rolePool);
+    addScore('ruler', 3, /(帝国|王权|教权|继承|都城|疆域|宫廷|封臣|封建|加冕|王国)/, descPool);
+    addScore('military', 6, /(将军|将领|统帅|武将|元帅|领兵|统军|用兵|征服者|军旅|军功)/, rolePool);
+    addScore('military', 3, /(出征|征战|远征|战役|战场|边疆|平叛|围攻|征服|攻陷|军队|北伐|东征|西征|南征|萨克森|龙塞斯瓦列斯)/, descPool);
+    addScore('reformer', 5, /(改革家|变法|新政|制度|法制|法典|治国|施政|行政)/, rolePool);
+    addScore('reformer', 3, /(改革|制度|法典|行政|学校|教育|文艺复兴|秩序|治理|抄录|规范|选官|新政|改制)/, descPool);
+    addScore('literary', 6, /(诗人|词人|作家|文学家|文豪|散文家|小说家|剧作家|诗词家)/, rolePool);
+    addScore('literary', 3, /(诗|词|赋|文章|写作|文学|叙事|抒情|名句|文风|作品)/, descPool);
+    addScore('scholar', 6, /(思想家|学者|教育家|史学家|哲学家|科学家|数学家|天文学家|医学家|经学家|理学家)/, rolePool);
+    addScore('scholar', 3, /(学术|思想|理论|考证|观察|实验|推演|著述|研究|史学|哲学|数学|天文|医学)/, descPool);
+    addScore('artist', 6, /(画家|书法家|音乐家|作曲家|雕塑家|艺术家|琴师)/, rolePool);
+    addScore('artist', 3, /(绘画|书法|笔法|构图|旋律|乐章|雕塑|色彩|笔墨|审美)/, descPool);
+    addScore('explorer', 6, /(航海家|探险家|旅行家|使者|外交家|地理学家)/, rolePool);
+    addScore('explorer', 3, /(航海|探险|旅行|出使|西域|海上|地理|远行|航线|异域)/, descPool);
+    addScore('religious', 6, /(僧人|高僧|教皇|修士|传教士|神学家|宗教改革家|圣徒)/, rolePool);
+    addScore('religious', 3, /(信仰|教会|教廷|传教|教义|修道院|宗教|圣像)/, descPool);
+    addScore('revolutionary', 6, /(革命家|起义领袖|革命者|领袖|革命先驱)/, rolePool);
+    addScore('revolutionary', 3, /(革命|起义|救亡|宣传|组织|动员|独立|解放|群众运动|地下工作)/, descPool);
+    const rankedProfiles = Object.entries(profileScores).filter(([, score]) => Number(score || 0) > 0).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0)).map(([profile]) => profile);
     const normalizePromptPlaceName = loc => {
       const raw = String(getSelectedLocDisplayName(loc) || '').trim();
       if (!raw) return '';
@@ -7087,39 +7545,72 @@ const App = () => {
       return '';
     };
     const placeName = findPromptPlaceName();
-    if (promptProfile === 'military') {
-      push('战局判断', placeName ? `你在${placeName}这一站经历了什么？这一步为何会影响后面的战局？` : '哪一场战事最能体现你的判断力与代价？', 'rose');
-      push('关键抉择', roleText ? `作为${roleText}，你最看重的一次取舍，是用兵、结盟，还是守住底线？` : '你最不后悔的一次用兵或判断是什么？', 'amber');
-      if (firstQuote) push('当时心境', `你说过“${firstQuote}”，那更像是在自励、告诫，还是回应时局？`, 'slate');
-      push('时代压力', '若回到当时的局势里，你最想让后人理解你面对的哪一种压力？', 'blue');
-    } else if (promptProfile === 'literary') {
-      push('写作缘起', firstWork ? `写《${firstWork}》时，你最想留下的不是名句，而是什么？` : '你写作时最在意先写情绪、意象，还是时代处境？', 'purple');
-      if (firstQuote) push('名句背后', `你说过“${firstQuote}”，这句最接近你当时的哪种真实心境？`, 'amber');
-      push('作品与人生', '你更希望后人先读懂你的作品，还是先读懂你的人生遭际？', 'blue');
-      if (placeName) push('此地触发', `${placeName}这处经历如何改变了你的表达方式或作品气质？`, 'green');
-    } else if (promptProfile === 'statesman') {
-      push('政务判断', roleText ? `作为${roleText}，你最难的一次判断，是稳住局面、推动改革，还是取舍人心？` : '你最难的一次政治判断是什么？', 'blue');
-      push('权衡取舍', '面对理想与现实冲突时，你当时最先守住的是什么？', 'amber');
-      if (placeName) push('关键现场', `在${placeName}这一站，你看到的局势变化，后来怎样影响了你的决定？`, 'green');
-      push('后世误解', '如果只能纠正后人对你的一种误解，你最想先纠正哪一点？', 'slate');
-    } else if (promptProfile === 'scholar') {
-      push('学术方法', '你观察世界、整理材料、形成判断时，最倚重的方法是什么？', 'purple');
-      push('核心问题', '你一生真正反复追问的核心问题是什么？', 'blue');
-      if (firstWork) push('代表成果', `如果只拿《${firstWork}》来理解你，会抓住重点，还是会遗漏你更想表达的部分？`, 'green');
-      push('时代对话', '若把你放回今天，你最想参与哪一场讨论？', 'amber');
-    } else if (promptProfile === 'explorer') {
-      push('远行原因', '你为什么一定要走出去看更远的世界？', 'green');
-      if (placeName) push('这一站', `${placeName}这一站最让你重新认识了什么？`, 'blue');
-      push('陌生世界', '第一次进入陌生地域时，你最先观察的是人、地形，还是秩序？', 'amber');
-      push('带回什么', '你真正带回来的，除了见闻与路线，还有什么更重要的东西？', 'slate');
-    }
+    const addPromptSet = profile => {
+      if (profile === 'ruler') {
+        push('帝国治理', roleText ? `作为${roleText}，你最难稳住的是疆域、人心，还是继承秩序？` : '你最难的一次统治判断是什么？', 'blue');
+        push('权力来源', '你如何理解王权、教权与正统性之间的关系？', 'amber');
+        if (placeName) push('关键现场', `在${placeName}这一站，哪一个决定最能体现你怎样统治整个局面？`, 'green');
+        push('身后遗产', '你更希望后人记住你的武功、制度，还是你留下的时代秩序？', 'slate');
+        return;
+      }
+      if (profile === 'military') {
+        push('战局判断', placeName ? `你在${placeName}这一站经历了什么？这一步为何会影响后面的战局？` : '哪一场战事最能体现你的判断力与代价？', 'rose');
+        push('征服代价', roleText ? `作为${roleText}，你最看重的一次取舍，是扩张、结盟，还是稳住后方？` : '你最不后悔的一次用兵或判断是什么？', 'amber');
+        if (firstQuote) push('当时心境', `你说过“${firstQuote}”，那更像是在自励、告诫，还是回应时局？`, 'slate');
+        return;
+      }
+      if (profile === 'reformer') {
+        push('制度建设', '如果武功终会过去，你最希望留下的是哪一套制度、秩序或做事方法？', 'green');
+        push('改革阻力', '你推动改革或整顿秩序时，最大的阻力来自旧利益、地方力量，还是时代观念？', 'blue');
+        if (placeName) push('改革现场', `${placeName}这一站的经历，后来怎样改变了你的治理方式？`, 'amber');
+        return;
+      }
+      if (profile === 'literary') {
+        push('写作缘起', firstWork ? `写《${firstWork}》时，你最想留下的不是名句，而是什么？` : '你写作时最在意先写情绪、意象，还是时代处境？', 'purple');
+        if (firstQuote) push('名句背后', `你说过“${firstQuote}”，这句最接近你当时的哪种真实心境？`, 'amber');
+        push('作品与人生', '你更希望后人先读懂你的作品，还是先读懂你的人生遭际？', 'blue');
+        if (placeName) push('此地触发', `${placeName}这处经历如何改变了你的表达方式或作品气质？`, 'green');
+        return;
+      }
+      if (profile === 'scholar') {
+        push('学术方法', '你观察世界、整理材料、形成判断时，最倚重的方法是什么？', 'purple');
+        push('核心问题', '你一生真正反复追问的核心问题是什么？', 'blue');
+        if (firstWork) push('代表成果', `如果只拿《${firstWork}》来理解你，会抓住重点，还是会遗漏你更想表达的部分？`, 'green');
+        push('时代对话', '若把你放回今天，你最想参与哪一场讨论？', 'amber');
+        return;
+      }
+      if (profile === 'artist') {
+        push('创作取舍', '你最看重的是形式之美、技法突破，还是作品背后的精神力量？', 'purple');
+        push('风格形成', '你的风格真正成熟，是因为天赋、训练，还是某次人生冲击？', 'rose');
+        if (placeName) push('灵感来源', `${placeName}这一站给过你怎样的审美或创作刺激？`, 'green');
+        return;
+      }
+      if (profile === 'explorer') {
+        push('远行原因', '你为什么一定要走出去看更远的世界？', 'green');
+        if (placeName) push('这一站', `${placeName}这一站最让你重新认识了什么？`, 'blue');
+        push('陌生世界', '第一次进入陌生地域时，你最先观察的是人、地形，还是秩序？', 'amber');
+        return;
+      }
+      if (profile === 'religious') {
+        push('信仰选择', '在信仰、现实和权力发生冲突时，你最先守住的是什么？', 'slate');
+        push('精神秩序', '你真正想建立的，是个人修行、教义传播，还是一种更大的精神秩序？', 'blue');
+        if (placeName) push('关键地点', `${placeName}这一站为何会成为你信仰道路上的关键节点？`, 'amber');
+        return;
+      }
+      if (profile === 'revolutionary') {
+        push('动员与判断', '你最关键的一次组织、动员或判断，靠的是什么？', 'rose');
+        push('理想代价', '面对理想与现实的落差时，你当时最不愿放弃的是什么？', 'amber');
+        if (placeName) push('斗争现场', `${placeName}这一站最能体现你当时面临的哪种压力？`, 'green');
+      }
+    };
+    rankedProfiles.slice(0, 3).forEach(profile => addPromptSet(profile));
     if (!out.length) {
-      push('人生转折', '你一生中最重要的转折是什么？', 'blue');
+      push('人生转折', `${personName}一生中最重要的转折是什么？`, 'blue');
     }
     if (out.length < 4 && roleText) {
       push('身份抉择', `作为${roleText}，你最看重的抉择是什么？`, 'amber');
     }
-    if (out.length < 4 && firstWork) {
+    if (out.length < 4 && rankedProfiles.includes('literary') && firstWork) {
       push('代表作品', `《${firstWork}》最能体现你怎样的心思或创造？`, 'purple');
     }
     if (out.length < 4 && firstQuote) {
@@ -7134,9 +7625,12 @@ const App = () => {
     if (out.length < 4 && locations.length >= 2) {
       push('迁徙变化', '你哪一次迁徙最能体现那个时代的处境？', 'rose');
     }
+    if (out.length < 4) {
+      push('后世误解', '如果只能纠正后人对你的一种误解，你最想先纠正哪一点？', 'slate');
+    }
     return out.slice(0, 4);
-  }, [data?.person?.name, selectedLoc, locations, relatedWorks, relatedIdentities, relatedStatus, totalEvents]);
-  const _postChat = async messages => {
+  }, [data?.person?.name, data?.person?.dynasty, selectedLoc, locations, relatedWorks, relatedReviews, relatedHonor, relatedIdentities, relatedStatus, shortReview, totalEvents]);
+  const _resolveChatProxyUrls = () => {
     const toUrl = u => String(u || '').trim();
     const tryUrls = [];
     const pushUrl = u => {
@@ -7163,6 +7657,25 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    return tryUrls;
+  };
+  const _parseSsePayloads = rawChunk => {
+    return String(rawChunk || '').split(/\n\n+/).map(block => {
+      const lines = String(block || '').split('\n');
+      const dataLines = lines.map(line => String(line || '').trim()).filter(line => line.startsWith('data:')).map(line => line.slice(5).trim());
+      if (!dataLines.length) return null;
+      try {
+        return JSON.parse(dataLines.join('\n'));
+      } catch (_err) {
+        return null;
+      }
+    }).filter(Boolean);
+  };
+  const _postChat = async (messages, {
+    onDelta,
+    signal
+  } = {}) => {
+    const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
@@ -7172,30 +7685,107 @@ const App = () => {
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream, application/json'
           },
+          signal,
           body: JSON.stringify({
             messages,
-            temperature: 0.2,
+            temperature: 0.5,
+            stream: true,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
           })
         });
-        const text = await resp.text();
         if (!resp.ok) {
+          const text = await resp.text();
           throw new Error(text || `HTTP ${resp.status}`);
         }
-        return JSON.parse(text);
+        const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
+        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+          const text = await resp.text();
+          return JSON.parse(text);
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let fullText = '';
+        let meta = {};
+        while (true) {
+          const {
+            done,
+            value
+          } = await reader.read();
+          buffer += decoder.decode(value || new Uint8Array(), {
+            stream: !done
+          });
+          const parts = buffer.split(/\n\n+/);
+          buffer = done ? '' : parts.pop() || '';
+          for (const part of parts) {
+            const payloads = _parseSsePayloads(part);
+            for (const payload of payloads) {
+              if (payload?.type === 'delta') {
+                const delta = String(payload.delta || '');
+                if (!delta) continue;
+                fullText += delta;
+                if (typeof onDelta === 'function') {
+                  onDelta(fullText, delta);
+                }
+              } else if (payload?.type === 'meta') {
+                meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : {};
+              } else if (payload?.type === 'error') {
+                throw new Error(String(payload.error || 'STREAM_ERROR'));
+              }
+            }
+          }
+          if (done) {
+            const payloads = _parseSsePayloads(buffer);
+            for (const payload of payloads) {
+              if (payload?.type === 'delta') {
+                const delta = String(payload.delta || '');
+                if (!delta) continue;
+                fullText += delta;
+                if (typeof onDelta === 'function') {
+                  onDelta(fullText, delta);
+                }
+              } else if (payload?.type === 'meta') {
+                meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : {};
+              } else if (payload?.type === 'error') {
+                throw new Error(String(payload.error || 'STREAM_ERROR'));
+              }
+            }
+            break;
+          }
+        }
+        return {
+          choices: [{
+            message: {
+              content: fullText
+            }
+          }],
+          meta
+        };
       } catch (e) {
         lastErr = e;
       }
     }
     throw lastErr || new Error('LLM_ENDPOINT_UNAVAILABLE');
   };
+  useEffect(() => {
+    return () => {
+      abortCurrentChatRequest();
+    };
+  }, [abortCurrentChatRequest]);
   const getChatFallbackNotice = (meta, error) => {
     const source = String(meta?.source || '').trim();
     const reason = String(meta?.fallback_reason || '').trim();
+    if (source === 'local_agent' && reason === 'timeout') {
+      return 'LLM 响应超时，已切换为人物档案智能回答。';
+    }
+    if (source === 'local_agent' && reason === 'llm_request_failed') {
+      return 'LLM 调用失败，已切换为人物档案智能回答。';
+    }
     if (source === 'local_agent') {
       return '当前对话已切换为人物档案智能回答。';
     }
@@ -7217,37 +7807,114 @@ const App = () => {
   const sendChat = async content => {
     const text = String(content || '').trim();
     if (!text || chatLoading) return;
+    abortCurrentChatRequest();
     setChatError('');
     setChatLoading(true);
     const nextMessages = [...chatMessages, {
       role: 'user',
       content: text
     }];
-    setChatMessages(nextMessages);
+    const assistantId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    chatAbortControllerRef.current = controller;
+    chatPendingMessageIdRef.current = assistantId;
+    chatPendingTextRef.current = '';
+    chatDisplayQueueRef.current = [];
+    chatDisplayedTextRef.current = '';
+    let streamedReply = '';
+    setChatMessages([...nextMessages, {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      streaming: true
+    }]);
     setChatDraft('');
     try {
       const llmMessages = [{
         role: 'system',
         content: historyChatSystemPrompt
       }, ...nextMessages.slice(-14)];
-      const resp = await _postChat(llmMessages);
+      const resp = await _postChat(llmMessages, {
+        signal: controller ? controller.signal : undefined,
+        onDelta: (fullText, delta) => {
+          const isFirstStreamChunk = !streamedReply;
+          streamedReply = String(fullText || '');
+          chatPendingMessageIdRef.current = assistantId;
+          const displayPieces = splitStreamDeltaForDisplay(delta);
+          if (displayPieces.length) {
+            chatDisplayQueueRef.current.push(...displayPieces);
+          }
+          if (isFirstStreamChunk) {
+            pumpStreamedChatDisplay(assistantId, {
+              streaming: true,
+              forceAll: false
+            });
+          } else {
+            scheduleStreamedChatFlush(assistantId);
+          }
+        }
+      });
+      if (controller && controller.signal && controller.signal.aborted) return;
+      if (String(streamedReply || '').trim()) {
+        pumpStreamedChatDisplay(assistantId, {
+          streaming: true,
+          forceAll: true
+        });
+      }
       const meta = resp?.meta || {};
       const reply = String(resp?.choices?.[0]?.message?.content || '').trim();
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: reply || '（史料未载，我不敢妄言。）'
-      }]);
+      setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+        ...item,
+        content: reply || '（史料未载，我不敢妄言。）',
+        streaming: false
+      } : item));
       if (meta?.used_fallback) {
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
-      const fallbackReply = buildArchiveFallbackAnswer(text);
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: fallbackReply
-      }]);
+      const aborted = !!(controller && controller.signal && controller.signal.aborted || String(e?.name || '').trim() === 'AbortError');
+      if (aborted) {
+        clearChatFlushTimer();
+        if (String(streamedReply || '').trim()) {
+          chatPendingTextRef.current = streamedReply;
+          chatDisplayedTextRef.current = streamedReply;
+          chatDisplayQueueRef.current = [];
+          flushStreamedChatMessage(assistantId, {
+            streaming: false
+          });
+        } else {
+          setChatMessages(prev => prev.filter(item => !(item && item.id === assistantId)));
+        }
+        return;
+      }
+      if (String(streamedReply || '').trim()) {
+        chatPendingTextRef.current = streamedReply;
+        chatDisplayedTextRef.current = streamedReply;
+        chatDisplayQueueRef.current = [];
+        flushStreamedChatMessage(assistantId, {
+          streaming: true
+        });
+      }
+      if (String(streamedReply || '').trim()) {
+        setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+          ...item,
+          content: `${streamedReply}\n\n（回答中断）`,
+          streaming: false
+        } : item));
+      } else {
+        const fallbackReply = buildArchiveFallbackAnswer(text);
+        setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+          ...item,
+          content: fallbackReply,
+          streaming: false
+        } : item));
+      }
       setChatError(getChatFallbackNotice(null, e));
     } finally {
+      if (chatAbortControllerRef.current === controller) {
+        chatAbortControllerRef.current = null;
+      }
+      clearChatFlushTimer();
       setChatLoading(false);
     }
   };
@@ -7330,7 +7997,16 @@ const App = () => {
     className: "font-bold"
   }, "\u7C4D\u8D2F\u5B58\u7591\uFF1A"), birthplaceMeta.candidates.slice(0, 4).map((t, i) => React.createElement("span", {
     key: i
-  }, i ? '、' : '', t))) : null)))), React.createElement("div", {
+  }, i ? '、' : '', t))) : null, React.createElement("div", {
+    className: "pt-1 flex justify-end",
+    "data-feedback-anchor": "intro-footer"
+  }, React.createElement("button", {
+    type: "button",
+    onClick: () => openFeedbackDialog('intro-footer'),
+    className: "theme-chip-muted text-[10px] font-medium px-2.5 py-0.5 rounded-full border border-[rgba(26,115,232,0.14)] hover:bg-[rgba(26,115,232,0.06)] transition leading-snug opacity-80 hover:opacity-100",
+    "data-testid": "feedback-button",
+    "aria-label": "\u53CD\u9988\u672C\u9875\u5185\u5BB9\u9519\u8BEF"
+  }, "\u26A0\uFE0F \u53CD\u9988\u9519\u8BEF")))))), React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", {
     ref: journeyShellRef,
@@ -7560,6 +8236,7 @@ const App = () => {
     className: "journey-map-column relative flex-1 min-w-0"
   }, React.createElement("div", {
     id: "map",
+    ref: mapViewportRef,
     style: {
       height: journeyPanelHeight,
       minHeight: journeyPanelMinHeight
@@ -7573,7 +8250,31 @@ const App = () => {
   }), React.createElement("div", {
     id: "map-cesium",
     className: "map-canvas is-hidden"
-  })), React.createElement("div", {
+  }), !mapReady ? React.createElement("div", {
+    className: "map-lazy-overlay",
+    "data-map-state": mapLoadState,
+    "data-testid": "profile-map-lazy-overlay"
+  }, React.createElement("div", {
+    className: "map-lazy-card"
+  }, React.createElement("div", {
+    className: "map-lazy-kicker"
+  }, "\u6309\u9700\u52A0\u8F7D"), React.createElement("div", {
+    className: "map-lazy-title"
+  }, mapLazyTitle), React.createElement("p", {
+    className: "map-lazy-copy"
+  }, mapLazyCopy), React.createElement("div", {
+    className: "map-lazy-skeleton",
+    "aria-hidden": "true"
+  }, React.createElement("span", null), React.createElement("span", null), React.createElement("span", null)), React.createElement("div", {
+    className: "map-lazy-actions"
+  }, React.createElement("button", {
+    type: "button",
+    onClick: () => requestMapInitialization('manual'),
+    className: "map-lazy-trigger",
+    disabled: mapLoading
+  }, mapLazyActionLabel), React.createElement("span", {
+    className: "map-lazy-hint"
+  }, "\u5730\u56FE\u8FDB\u5165\u89C6\u53E3\u540E\u4E5F\u4F1A\u81EA\u52A8\u52A0\u8F7D")))) : null), mapReady ? React.createElement("div", {
     className: "absolute top-4 right-4 z-[1000] map-floating-controls flex flex-col gap-3 items-end",
     "data-export-ignore": "true"
   }, isTerrain3DActive ? React.createElement("div", {
@@ -7682,7 +8383,7 @@ const App = () => {
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })), React.createElement("span", null, "\u751F\u6210\u56FE\u7247")) : null))), mapStatusNotice ? React.createElement("div", {
+  })), React.createElement("span", null, "\u751F\u6210\u56FE\u7247")) : null))) : null, mapReady && mapStatusNotice ? React.createElement("div", {
     className: "absolute top-4 left-4 z-[1001] max-w-[min(560px,calc(100%-8.5rem))]",
     "data-export-ignore": "true"
   }, React.createElement("div", {
@@ -7715,7 +8416,7 @@ const App = () => {
     type: "button",
     onClick: clearMapNotice,
     className: "inline-flex items-center justify-center rounded-lg border border-[rgba(218,220,224,0.9)] bg-white/80 px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)]"
-  }, "\u6211\u77E5\u9053\u4E86")))) : null, React.createElement("div", {
+  }, "\u6211\u77E5\u9053\u4E86")))) : null, mapReady ? React.createElement("div", {
     className: "absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2",
     "data-export-ignore": "true"
   }, React.createElement(MapDropdown, {
@@ -7769,7 +8470,7 @@ const App = () => {
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })))), selectedLoc && React.createElement("div", {
+  })))) : null, selectedLoc && React.createElement("div", {
     className: "absolute left-4 z-[1000] w-72 max-w-[calc(100%-2rem)] overflow-y-auto custom-scrollbar glass-panel theme-float-panel p-4 rounded-xl shadow-xl border-t-4 theme-accent-strip",
     style: {
       top: mapStatusTopOffset,

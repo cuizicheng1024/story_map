@@ -21,15 +21,17 @@
   - 加载 `.env`
   - 做启动校验
   - 汇总对外兼容导出
-- `storymap/script/story_runtime_api.py`
+- `storymap/script/runtime/api.py`
   - 运行时装配包装层
   - 负责 `_APP_RUNTIME`、`APP`、服务句柄和关闭钩子
-- `storymap/script/story_runtime_helpers.py`
+- `storymap/script/runtime/helpers.py`
   - 运行时 helper 装配层
   - 负责 LLM client、local agent、vendor 资源、CORS 和输入校验包装
-- `storymap/script/story_entrypoints.py`
+- `storymap/script/cli/entrypoints.py`
   - CLI / serve 入口包装层
   - 负责 `main()` 和启动分发
+- `storymap/script/story_runtime_api.py` / `storymap/script/story_runtime_helpers.py` / `storymap/script/story_entrypoints.py`
+  - 以上旧平铺路径仍保留兼容转发，排障时优先看新子包实现
 - `storymap/script/agent/`
   - 面向 agent 架构的目录入口
   - 以 `core / generation / knowledge / runtime` 分组聚合能力
@@ -37,11 +39,13 @@
 
 ### 运行时装配关系
 
-- `storymap/script/app_factory.py`
+- `storymap/script/api/runtime_factory.py`
   - 把 `TaskService`、`ProxyService`、`StaticService` 装到一个 runtime 里
-- `storymap/script/api.py`
+- `storymap/script/api/app.py`
   - 对外暴露 HTTP 接口
   - 主要包括 `/generate`、`/task`、`/api/ai/proxy`、静态页访问
+- `storymap/script/api/runtime_factory.py`
+  - 运行时装配主入口；旧 `storymap/script/app_factory.py` 兼容层已移除
 
 ## 核心模块分工
 
@@ -57,33 +61,37 @@
   - 生成人物 Markdown
   - 地点解析
   - 渲染人物页
-- `storymap/script/story_generation_api.py`
+- `storymap/script/api/generation_api.py`
   - 单人物生成装配层
   - 汇总 generation tools、状态对象和 `generate_for_person` 兼容导出
   - 当前已按 LangGraph 可迁移的 state 形状整理
-- `storymap/script/story_artifact_api.py`
+- `storymap/script/api/artifact_api.py`
   - 产物导出装配层
   - 对外整理 profile / multi 导出包装，继续减轻 `story_map.py` 入口负担
-- `storymap/script/profile_builder.py`
+- `storymap/script/profile/builder.py`
   - 把人物 Markdown 转成前端可消费的数据结构
   - 这里适合做“知识点、作品、时间线、引用”的结构化增强
-- `storymap/script/story_geocode_api.py`
+- `storymap/script/map/geocode_api.py`
   - 地点解析包装层
   - 对外整理 `resolve_place_coord`、古今地名切分与坐标兜底能力
-- `storymap/script/story_profile_api.py`
-  - `profile_builder.py` 与 `generation_service.py` 的装配层
+- `storymap/script/api/profile_api.py`
+  - `profile/builder.py` 与 `generation_service.py` 的装配层
   - 对外提供 `load_profile_from_md`、`build_points`、`render_html` 等兼容导出
-- `storymap/script/map_html_renderer.py`
+- `storymap/script/profile/renderer.py`
   - 首页与多人物页的 HTML 生成
-- `storymap/script/templates/profile_page.html`
+- `storymap/script/profile/templates/profile_page.html`
   - 人物页模板
   - 这里承载大部分前端交互、知识点、地图、对话区逻辑
+- `storymap/script/story_generation_api.py` / `storymap/script/story_artifact_api.py` / `storymap/script/story_geocode_api.py` / `storymap/script/story_profile_api.py`
+  - 以上旧平铺 API 入口仍保留兼容转发
+- `storymap/script/profile_builder.py` / `storymap/script/map_html_renderer.py` / `storymap/script/templates/profile_page.html`
+  - 以上旧平铺 profile 路径仍保留兼容转发或兼容副本，维护时优先查看新子包实现
 
 ### 2. 地图与地理解析
 
-- `storymap/script/geocode_service.py`
+- `storymap/script/map/geocode_service.py`
   - 历史地名与坐标解析
-- `storymap/script/map_client.py`
+- `storymap/script/map/map_client.py`
   - 地理编码、坐标补全和地图相关辅助逻辑
 
 ### 3. 问答与代理
@@ -127,6 +135,7 @@
 
 - `tools/`
   - 构建、校验、索引工具
+  - 真实实现已拆到 `build/`、`reports/`、`debug/`、`extras/`、`oneshot/`
   - 目录边界说明见 `tools/README.md`
 - `tests/`
   - 回归测试
@@ -138,12 +147,12 @@
 ## 常见改动应该去哪里
 
 - **改首页文案 / 交互**
-  - `tools/build_stellar_homepage.py`
+  - `tools/build/build_stellar_homepage.py`
 - **改人物页 UI / 知识点 / 对话区**
-  - `storymap/script/templates/profile_page.html`
+  - `storymap/script/profile/templates/profile_page.html`
 - **改人物 Markdown 解析逻辑**
   - `storymap/script/parsers.py`
-  - `storymap/script/profile_builder.py`
+  - `storymap/script/profile/builder.py`
 - **改生成流程或任务进度**
   - `storymap/script/task.py`
   - `storymap/script/generation_service.py`
@@ -151,14 +160,14 @@
   - `storymap/script/history_qa_agent.py`
   - `storymap/script/proxy.py`
 - **改接口路由**
-  - `storymap/script/api.py`
+  - `storymap/script/api/app.py`
 
 ## 建议的维护原则
 
 - 尽量把“运行时逻辑”放在 `storymap/script/`
 - 尽量把“批处理脚本”放在 `tools/` 或 `cli/`
 - 页面 UI 变更优先只改模板，不先动生成链路
-- 结构化数据增强优先放到 `profile_builder.py`
+- 结构化数据增强优先放到 `storymap/script/profile/builder.py`
 - 改完后优先跑：
 
 ```bash

@@ -1,3 +1,5 @@
+"""storymap.script.agent 子包：故事生成、生成编排与离线评估实现。"""
+
 from __future__ import annotations
 
 from .core import GenerationState, ToolSpec, tool

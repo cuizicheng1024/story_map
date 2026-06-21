@@ -260,6 +260,44 @@ select {
         box-shadow: 0 18px 34px rgba(0,0,0,0.26);
         z-index: 50;
       }
+      .home-work-chip {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        color: #1d4ed8;
+        font-size: 11px;
+        line-height: 1.2;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: help;
+      }
+      .home-work-chip:hover {
+        background: rgba(37, 99, 235, 0.12);
+        border-color: rgba(37, 99, 235, 0.26);
+      }
+      .home-work-tooltip {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 180;
+        min-width: 260px;
+        max-width: min(420px, calc(100vw - 24px));
+        max-height: min(280px, calc(100vh - 24px));
+        overflow-y: auto;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(255,255,255,0.98);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+        padding: 10px 12px;
+        color: #334155;
+        font-size: 12px;
+        line-height: 1.55;
+        pointer-events: none;
+      }
       input[type="range"] {
         accent-color: rgba(255,255,255,0.85);
       }
@@ -384,22 +422,23 @@ select {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 64px;
-        height: 64px;
+        width: 54px;
+        height: 54px;
         flex: 0 0 auto;
-        border: 1px solid rgba(15, 23, 42, 0.1);
+        border: 1px solid rgba(37, 99, 235, 0.22);
         border-radius: 999px;
-        background: linear-gradient(180deg, #1a1d22, #111317);
+        background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
         color: #ffffff;
         box-shadow:
-          0 14px 28px rgba(15, 23, 42, 0.22),
-          inset 0 -2px 0 rgba(255, 255, 255, 0.04);
+          0 12px 22px rgba(37, 99, 235, 0.28),
+          inset 0 -2px 0 rgba(15, 23, 42, 0.08);
         transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
       }
       .home-search-submit:hover {
         transform: translateY(-1px);
+        background: linear-gradient(180deg, #4f8ff8 0%, #2f6ded 100%);
         box-shadow:
-          0 18px 30px rgba(15, 23, 42, 0.26),
+          0 16px 26px rgba(37, 99, 235, 0.32),
           inset 0 -2px 0 rgba(255, 255, 255, 0.05);
       }
       .home-search-submit:active {
@@ -417,15 +456,15 @@ select {
         cursor: not-allowed;
       }
       .home-search-submit[data-loading="true"] {
-        background: linear-gradient(180deg, #202124, #17181c);
+        background: linear-gradient(180deg, #4f8ff8 0%, #2f6ded 100%);
         animation: home-submit-pulse 1.05s ease-in-out infinite;
       }
       .home-search-submit-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         transition: transform 0.18s ease, opacity 0.18s ease;
       }
       .home-search-submit[data-loading="true"] .home-search-submit-icon {
@@ -1539,12 +1578,12 @@ select {
           gap: 10px;
         }
         .home-search-submit {
-          width: 56px;
-          height: 56px;
+          width: 48px;
+          height: 48px;
         }
         .home-search-submit-icon {
-          width: 26px;
-          height: 26px;
+          width: 21px;
+          height: 21px;
         }
         .pixel-progress-shell {
           right: 12px;
@@ -1703,7 +1742,14 @@ select {
             <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ff7043"></span><span>近代</span></div>
             <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#c0ca33"></span><span>现代</span></div>
           </div>
-          <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70">
+          <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70 relative">
+            <div class="relative">
+              <input id="mapSearchInput" type="text" placeholder="按省份/城市查找"
+                class="pl-2 pr-6 py-1 rounded-lg bg-white/10 border border-white/15 text-white/85 placeholder-white/40 outline-none focus:ring-2 focus:ring-white/20 w-[160px]"
+                autocomplete="off" />
+              <button id="mapSearchClear" class="hidden absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 leading-[14px] text-center rounded-full bg-white/15 text-white/70 hover:bg-white/25" type="button" aria-label="清除">×</button>
+              <div id="mapSearchSuggest" class="hidden absolute right-0 top-full mt-1 z-30 w-[240px] max-h-[240px] overflow-y-auto rounded-xl bg-[rgba(8,15,36,0.92)] border border-white/15 shadow-2xl backdrop-blur-md"></div>
+            </div>
             <button id="resetMap" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15">重置视图</button>
           </div>
         </div>
@@ -1777,9 +1823,11 @@ select {
       </div>
 
     </div>
+    <div id="workTip" class="home-work-tooltip hidden"></div>
 
     <script>
       const DATA_FILE = "stellar_home_data.json";
+      const DATA_DETAIL_FILE = "stellar_home_data_detail.json";
       const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
       const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
       const resolvedApiBase = (() => {
@@ -1818,6 +1866,7 @@ select {
       const ctx = $c.getContext("2d");
       const $tip = document.getElementById("tip");
       const $mapTip = document.getElementById("mapTip");
+      const $workTip = document.getElementById("workTip");
       const $h1 = document.getElementById("h1");
       const $h2 = document.getElementById("h2");
       const $sel = document.getElementById("sel");
@@ -1870,6 +1919,9 @@ select {
       const $resetMap = document.getElementById("resetMap");
       const $mapStyle = document.getElementById("mapStyle");
       const $mapToolbar = document.getElementById("mapToolbar");
+      const $mapSearchInput = document.getElementById("mapSearchInput");
+      const $mapSearchClear = document.getElementById("mapSearchClear");
+      const $mapSearchSuggest = document.getElementById("mapSearchSuggest");
       const $presetBar = document.getElementById("presetBar");
 
       let W = $c.width;
@@ -2074,6 +2126,96 @@ const buildPersonTooltipModel = (node, options = {}) => {
         }
         return out;
       };
+      const normalizeHomeWorkTitle = (value) => {
+        let text = String(value || "").trim();
+        if (!text) return "";
+        text = text.replace(/[*_`]+/g, "").trim();
+        if (text.startsWith("《") && text.endsWith("》") && text.length > 2) {
+          text = text.slice(1, -1).trim();
+        }
+        return text.replace(/\s+/g, " ").trim();
+      };
+      const cleanWorkTooltipText = (value, maxLen = 120) => {
+        let text = String(value || "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
+        if (!text) return "";
+        if (text.length > maxLen) text = text.slice(0, maxLen).trimEnd() + "…";
+        return text;
+      };
+      const resolveNodeWorkSummary = (node, title) => {
+        const cleanTitle = normalizeHomeWorkTitle(title);
+        if (!cleanTitle || !node || typeof node !== "object") return null;
+        const summaries = node.work_summaries && typeof node.work_summaries === "object" ? node.work_summaries : {};
+        for (const [key, value] of Object.entries(summaries)) {
+          if (normalizeHomeWorkTitle(key) === cleanTitle && value && typeof value === "object") {
+            return value;
+          }
+        }
+        return null;
+      };
+      const hasWorkSummaryContent = (item) => {
+        if (!item || typeof item !== "object") return false;
+        return Boolean(
+          cleanWorkTooltipText(item.one_liner, 160) ||
+          cleanWorkTooltipText(item.summary, 180) ||
+          cleanWorkTooltipText(item.quote, 120) ||
+          uniqStrings(Array.isArray(item.quotes) ? item.quotes : []).length ||
+          cleanWorkTooltipText(item.era, 60) ||
+          cleanWorkTooltipText(item.genre, 40) ||
+          uniqStrings(Array.isArray(item.authors) ? item.authors : []).length
+        );
+      };
+      const buildWorkTooltipInnerHtml = (title, item) => {
+        const cleanTitle = normalizeHomeWorkTitle(title) || "相关作品";
+        const authors = uniqStrings(Array.isArray(item?.authors) ? item.authors : []).join(" / ");
+        const era = cleanWorkTooltipText(item?.era, 60);
+        const genre = cleanWorkTooltipText(item?.genre, 40);
+        const lead = cleanWorkTooltipText(item?.one_liner || item?.summary, 140);
+        const quotePolicy = String(item?.quote_policy || '').trim();
+        const quoteItems = uniqStrings(Array.isArray(item?.quotes) ? item.quotes : [])
+          .map((value) => cleanWorkTooltipText(value, 96))
+          .filter(Boolean)
+          .slice(0, 3);
+        const singleQuote = cleanWorkTooltipText(item?.quote, 96);
+        if (!quoteItems.length && singleQuote) quoteItems.push(singleQuote);
+        const rows = [
+          authors ? `<div class="text-slate-500 text-[11px] mt-1">作者：${esc(authors)}</div>` : "",
+          era ? `<div class="text-slate-500 text-[11px] mt-1">时代：${esc(era)}</div>` : "",
+          genre ? `<div class="text-slate-500 text-[11px] mt-1">体裁：${esc(genre)}</div>` : "",
+        ].filter(Boolean).join("");
+        const leadHtml = lead ? `<div class="text-slate-700 text-[12px] mt-1 whitespace-pre-wrap">${esc(lead)}</div>` : "";
+        const quoteHtml = quoteItems.length
+          ? `<div class="text-slate-500 text-[11px] mt-1 whitespace-pre-wrap">${quoteItems.map((quote) => esc(quote)).join("<br>")}</div>`
+          : "";
+        const quotePolicyHtml = quotePolicy === "summary_only" && !quoteItems.length
+          ? `<div class="text-slate-400 text-[11px] mt-1">名句展示：此类作品默认仅展示摘要</div>`
+          : "";
+        return `<div class="font-semibold text-slate-900">${esc(cleanTitle)}</div>${leadHtml}${rows}${quoteHtml}${quotePolicyHtml}`;
+      };
+      const hideWorkTip = () => {
+        if ($workTip) $workTip.classList.add("hidden");
+      };
+      const placeWorkTip = (clientX, clientY) => {
+        if (!$workTip) return;
+        const pad = 12;
+        const rect = $workTip.getBoundingClientRect();
+        const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+        const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+        let left = Number(clientX) + 12;
+        let top = Number(clientY) + 12;
+        if (left + rect.width > vw - pad) left = Math.max(pad, Number(clientX) - rect.width - 12);
+        if (top + rect.height > vh - pad) top = Math.max(pad, Number(clientY) - rect.height - 12);
+        $workTip.style.left = `${left}px`;
+        $workTip.style.top = `${top}px`;
+      };
+      const showWorkTip = (title, item, clientX, clientY) => {
+        if (!$workTip || !hasWorkSummaryContent(item)) {
+          hideWorkTip();
+          return;
+        }
+        $workTip.innerHTML = buildWorkTooltipInnerHtml(title, item);
+        $workTip.classList.remove("hidden");
+        placeWorkTip(clientX, clientY);
+      };
       const searchSummaryLabel = (reason) => {
         const r = String(reason || "").trim();
         if (r === "person_exact") return "本名精确";
@@ -2113,6 +2255,58 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let spotlightIdx = -1;
       let spotlight = null;
       let _clickTimer = null;
+      let homeDetailLoaded = false;
+      let homeDetailPending = false;
+
+      const detailNodeKey = (node) => {
+        if (!node || typeof node !== "object") return "";
+        const person = String(node.person || "").trim();
+        if (person) return "person:" + person;
+        const file = String(node.file || "").trim();
+        return file ? "file:" + file : "";
+      };
+      const mergeNodeDetail = (node, patch) => {
+        if (!node || typeof node !== "object" || !patch || typeof patch !== "object") return node;
+        Object.assign(node, patch);
+        return node;
+      };
+      const applyHomeDetailData = (detailData) => {
+        if (!detailData || typeof detailData !== "object") return;
+        const detailNodes = Array.isArray(detailData.nodes) ? detailData.nodes : [];
+        if (!detailNodes.length || !nodes.length) {
+          homeDetailLoaded = true;
+          return;
+        }
+        const nodeMap = new Map();
+        nodes.forEach((node) => {
+          const key = detailNodeKey(node);
+          if (key) nodeMap.set(key, node);
+        });
+        detailNodes.forEach((detailNode) => {
+          const key = detailNodeKey(detailNode);
+          if (!key || !nodeMap.has(key)) return;
+          mergeNodeDetail(nodeMap.get(key), detailNode);
+        });
+        homeDetailLoaded = true;
+        try {
+          if ($q && String($q.value || "").trim()) renderSearchSuggest($q.value);
+        } catch (_) {}
+        try { draw(); } catch (_) {}
+      };
+      const loadHomeDetailData = () => {
+        if (!DATA_DETAIL_FILE || homeDetailLoaded || homeDetailPending) return Promise.resolve(null);
+        homeDetailPending = true;
+        return fetch(DATA_DETAIL_FILE)
+          .then((r) => (r && r.ok ? r.json() : null))
+          .then((detail) => {
+            if (detail) applyHomeDetailData(detail);
+            return detail;
+          })
+          .catch(() => null)
+          .finally(() => {
+            homeDetailPending = false;
+          });
+      };
 
       const isSpecialSunPerson = (n) => String((n && n.person) || "").trim() === "毛泽东";
 
@@ -2555,6 +2749,156 @@ const buildPersonTooltipModel = (node, options = {}) => {
         return "";
       };
 
+      const cityOf = (n) => {
+        const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
+        if (!raw) return "";
+        // Strip leading "今"; take first segment before separators; remove parentheses.
+        let s = raw.replace(/^今\s*/g, "");
+        s = s.split(/[；;，,、]/)[0].replace(/[（(].*?[）)]/g, "").trim();
+        // After province prefix (xx省 / xx市 / xx自治区 / xx特别行政区), pull out the city / 地级 / 县级 token.
+        const m = s.match(/(?:[^省市区]+?省|[^省市区]+?自治区|[^省市区]+?特别行政区)?\s*([\u4e00-\u9fa5]{2,}?(?:市|地区|盟|州|县|区))/);
+        if (m && m[1]) {
+          return String(m[1]).trim();
+        }
+        // If string itself ends with 市/县/州/区/地区/盟, return the whole short token.
+        const m2 = s.match(/^([\u4e00-\u9fa5]{2,}?(?:市|地区|盟|州|县|区))$/);
+        if (m2 && m2[1]) return String(m2[1]).trim();
+        return "";
+      };
+
+      let mapSearchQuery = "";
+      let mapSearchSuggestIdx = -1;
+      const mapSearchHighlightSet = new Set();
+      const _normalizeMapSearch = (raw) => {
+        const txt = String(raw == null ? "" : raw).trim();
+        if (!txt) return "";
+        return txt.replace(/^今\s*/g, "").replace(/(省|市|地区|盟|州|县|区|特别行政区|自治区)$/g, "").trim();
+      };
+      const matchPersonByPlace = (n, qNorm) => {
+        if (!qNorm) return false;
+        const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "");
+        if (!raw) return false;
+        const hay = raw.replace(/\s+/g, "");
+        if (hay.indexOf(qNorm) >= 0) return true;
+        const prov = provinceOf(n);
+        if (prov && prov.indexOf(qNorm) >= 0) return true;
+        const city = cityOf(n);
+        if (city && _normalizeMapSearch(city).indexOf(qNorm) >= 0) return true;
+        return false;
+      };
+      const collectMapSearchMatches = (qRaw, limit) => {
+        const qNorm = _normalizeMapSearch(qRaw);
+        const out = [];
+        if (!qNorm) return out;
+        const cap = Math.max(1, Number(limit) || 30);
+        for (const n of nodes) {
+          if (!n) continue;
+          if (!matchPersonByPlace(n, qNorm)) continue;
+          out.push(n);
+          if (out.length >= cap) break;
+        }
+        return out;
+      };
+      const _hexColorByYearOrDefault = (n) => {
+        try {
+          const c = colorByYear(n && n.time_year);
+          return c || "rgba(148,163,184,0.85)";
+        } catch (_) {
+          return "rgba(148,163,184,0.85)";
+        }
+      };
+      const renderMapSearchSuggest = () => {
+        if (!$mapSearchSuggest) return;
+        const matches = collectMapSearchMatches(mapSearchQuery, 30);
+        if (!matches.length) {
+          if (!mapSearchQuery) {
+            $mapSearchSuggest.classList.add("hidden");
+            $mapSearchSuggest.innerHTML = "";
+            return;
+          }
+          $mapSearchSuggest.classList.remove("hidden");
+          $mapSearchSuggest.innerHTML = '<div class="px-3 py-2 text-[11px] text-white/55">未匹配到人物</div>';
+          return;
+        }
+        const parts = [];
+        for (let i = 0; i < matches.length; i += 1) {
+          const n = matches[i];
+          const active = i === mapSearchSuggestIdx ? "bg-white/15" : "hover:bg-white/10";
+          const color = _hexColorByYearOrDefault(n);
+          const place = String(n.birthplace_modern || n.birthplace || n.birthplace_raw || "").replace(/^今\s*/g, "");
+          parts.push(
+            '<div data-msi="' + String(i) + '" data-mperson="' + esc(String(n.person || "")) + '" class="cursor-pointer px-3 py-1.5 ' + active + ' flex items-center gap-2">' +
+              '<span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:' + esc(String(color)) + '"></span>' +
+              '<span class="text-[12px] text-white/90 truncate">' + esc(String(n.person || "")) + '</span>' +
+              '<span class="ml-auto text-[10px] text-white/55 truncate max-w-[120px]" title="' + esc(place) + '">' + esc(place) + '</span>' +
+            '</div>'
+          );
+        }
+        $mapSearchSuggest.innerHTML = parts.join("");
+        $mapSearchSuggest.classList.remove("hidden");
+      };
+      const recomputeMapSearchHighlights = () => {
+        mapSearchHighlightSet.clear();
+        const qNorm = _normalizeMapSearch(mapSearchQuery);
+        if (!qNorm) return;
+        for (const n of nodes) {
+          if (n && typeof n._idx === "number" && matchPersonByPlace(n, qNorm)) {
+            mapSearchHighlightSet.add(n._idx);
+          }
+        }
+      };
+      const focusMapOnSearchMatch = () => {
+        if (!amap || currentTab !== "map") return;
+        const matches = collectMapSearchMatches(mapSearchQuery, 200);
+        if (!matches.length) return;
+        try {
+          const positions = [];
+          for (const n of matches) {
+            const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
+            const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
+            if (!Number.isFinite(latW) || !Number.isFinite(lngW)) continue;
+            const p = wgs84ToGcj02(latW, lngW);
+            if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) positions.push([p.lng, p.lat]);
+          }
+          if (!positions.length) return;
+          if (positions.length === 1) {
+            const z = Math.max(7, Number(amap.getZoom ? amap.getZoom() : 7) || 7);
+            amap.setZoomAndCenter(Math.min(10, z), positions[0]);
+            mapCameraTouched = true;
+            return;
+          }
+          if (window.AMap && window.AMap.Bounds) {
+            let minLng = positions[0][0], maxLng = positions[0][0];
+            let minLat = positions[0][1], maxLat = positions[0][1];
+            for (const pos of positions) {
+              if (pos[0] < minLng) minLng = pos[0];
+              if (pos[0] > maxLng) maxLng = pos[0];
+              if (pos[1] < minLat) minLat = pos[1];
+              if (pos[1] > maxLat) maxLat = pos[1];
+            }
+            const bounds = new window.AMap.Bounds([minLng, minLat], [maxLng, maxLat]);
+            try { amap.setBounds(bounds, false, [56, 56, 56, 56]); } catch (_) {}
+            mapCameraTouched = true;
+          }
+        } catch (_) {}
+      };
+      const applyMapSearch = (raw, opts) => {
+        const next = String(raw == null ? "" : raw);
+        const same = next === mapSearchQuery;
+        mapSearchQuery = next;
+        if ($mapSearchClear) {
+          if (mapSearchQuery) $mapSearchClear.classList.remove("hidden");
+          else $mapSearchClear.classList.add("hidden");
+        }
+        recomputeMapSearchHighlights();
+        mapSearchSuggestIdx = -1;
+        renderMapSearchSuggest();
+        if (currentTab === "map") {
+          updateMapMarkers();
+          if (opts && opts.fit && !same) focusMapOnSearchMatch();
+        }
+      };
+
       const _curvePathFromPoints = (pts) => {
         if (!Array.isArray(pts) || pts.length < 2) return "";
         const p = pts.map((x) => [Number(x[0]), Number(x[1])]).filter((x) => Number.isFinite(x[0]) && Number.isFinite(x[1]));
@@ -2776,10 +3120,29 @@ const buildPersonTooltipModel = (node, options = {}) => {
         }
 
         ctx.globalCompositeOperation = "source-over";
+        const drawForeignRect = (pt, size, fillStyle, strokeStyle, lineAlpha, activeGlowAlpha) => {
+          const w = size * 2;
+          const h = size * 2;
+          const x = pt.x - w / 2;
+          const y = pt.y - h / 2;
+          ctx.fillStyle = fillStyle;
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = strokeStyle;
+          ctx.globalAlpha = lineAlpha;
+          ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
+          ctx.strokeRect(x + 0.4, y + 0.4, Math.max(0.8, w - 0.8), Math.max(0.8, h - 0.8));
+          if (activeGlowAlpha > 0) {
+            ctx.strokeStyle = "rgba(255,255,255,0.22)";
+            ctx.globalAlpha = activeGlowAlpha;
+            ctx.lineWidth = 1 * camScale;
+            ctx.strokeRect(x - 2.2 * camScale, y - 2.2 * camScale, w + 4.4 * camScale, h + 4.4 * camScale);
+          }
+        };
         for (const n of nodes) {
           const p = (typeof n.p === "number") ? clamp(n.p, 0, 1) : (inWindow(n) ? 1 : 0);
           const active = p > 0.55;
           const specialSun = isSpecialSunPerson(n);
+          const foreignPerson = isForeignPerson(n);
           let r = (4.4 + p * 2.8) * camScale;
           let alpha = 0.10 + p * 0.88;
           let col = p > 0 ? colorByYear(mainYear(n)) : "rgba(255,255,255,0.30)";
@@ -2838,6 +3201,16 @@ const buildPersonTooltipModel = (node, options = {}) => {
             ctx.lineWidth = Math.max(1.1, 1.5 * camScale);
             ctx.arc(pt.x, pt.y, Math.max(0.8, r - 0.55 * camScale), 0, Math.PI * 2);
             ctx.stroke();
+          } else if (foreignPerson) {
+            ctx.globalAlpha = alpha;
+            drawForeignRect(
+              pt,
+              r,
+              col,
+              active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)",
+              Math.min(1, alpha * (active ? 0.80 : 0.62)),
+              active ? (0.35 + p * 0.35) : 0
+            );
           } else {
             ctx.beginPath();
             ctx.fillStyle = col;
@@ -2866,11 +3239,18 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (hover || (selectedIdx >= 0 && selected)) {
           const n = hover || selected;
           const pt = worldToScreen(n.x, n.y);
-          ctx.beginPath();
-          ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
-          ctx.lineWidth = 2 * camScale;
-          ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
-          ctx.stroke();
+          if (isForeignPerson(n) && !isSpecialSunPerson(n)) {
+            const size = 10 * camScale;
+            ctx.strokeStyle = "rgba(255,255,255,0.75)";
+            ctx.lineWidth = 2 * camScale;
+            ctx.strokeRect(pt.x - size, pt.y - size, size * 2, size * 2);
+          } else {
+            ctx.beginPath();
+            ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
+            ctx.lineWidth = 2 * camScale;
+            ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         }
       };
 
@@ -3509,6 +3889,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
         let lastKnownProgress = [];
         let lastKnownSummary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…";
         let lastKnownStageKey = "queued";
+      let personPageOpened = false;
         const tick = async () => {
           if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
@@ -3652,6 +4033,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if (st === "completed") {
             const result = snapshot.result || {};
             const ok = result && result.ok === true;
+            const archive = result.archive || {};
+            const archiveState = String(archive.state || "").trim();
             if (!ok) {
               const summary = "分析失败：" + String(result.conclusion || snapshot.error || "未生成成功");
               setGenStatus(summary);
@@ -3667,8 +4050,44 @@ const buildPersonTooltipModel = (node, options = {}) => {
               clearGenTask();
               return;
             }
+            const targetHtml = resolveTaskResultHtml(result, person);
+            if (!targetHtml) {
+              setGenStatus("分析完成，但未找到可打开的人物页");
+              setGeneratingUI(false);
+              clearGenTask();
+              return;
+            }
+            if (!personPageOpened) {
+              personPageOpened = navigateToRelativeHtml(targetHtml, { newTab: true });
+            }
+            if (!personPageOpened) {
+              setGenStatus("分析完成，但未找到可打开的人物页");
+              setGeneratingUI(false);
+              clearGenTask();
+              return;
+            }
+            if (archiveState === "queued" || archiveState === "running") {
+              const summary = "人物页已打开，群星首页与知识图谱正在后台补齐…";
+              setGenStatus(summary);
+              updatePixelProgressPanel({
+                visible: true,
+                person,
+                status: "running",
+                summary,
+                progress,
+                stageKey: "deliver",
+              });
+              setGeneratingUI(false);
+              lastKnownProgress = progress;
+              lastKnownSummary = summary;
+              lastKnownStageKey = "deliver";
+              scheduleTaskPoll(id, generation, tick, 1200);
+              return;
+            }
             clearGenTask();
-            const summary = "分析完成，正在打开人物页…";
+            const summary = archiveState === "completed"
+              ? "人物页已打开，群星首页与知识图谱已补齐，正在刷新首页…"
+              : "分析完成，人物页已打开";
             setGenStatus(summary);
             updatePixelProgressPanel({
               visible: true,
@@ -3679,9 +4098,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
               stageKey: "deliver",
             });
             setGeneratingUI(false);
-            const targetHtml = resolveTaskResultHtml(result, person);
-            if (!navigateToRelativeHtml(targetHtml)) {
-              setGenStatus("分析完成，但未找到可打开的人物页");
+            if (archiveState === "completed") {
+              setTimeout(() => {
+                try {
+                  window.location.reload();
+                } catch (_err) {}
+              }, 320);
             }
             return;
           }
@@ -3786,6 +4208,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
       setTimeout(resumeGenTask, 300);
 
       const hideSearchSuggest = () => {
+        hideWorkTip();
         searchSuggestItems = [];
         searchSuggestActive = -1;
         if ($searchSuggest) {
@@ -3871,6 +4294,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const foreignText = String(n.foreign_name || "").trim();
           const meta = [aliasText, foreignText].filter(Boolean).join(" · ");
           const metaLine = meta ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate">${esc(meta)}</div>` : "";
+          const works = uniqStrings(Array.isArray(n.works) ? n.works : [])
+            .filter((work) => hasWorkSummaryContent(resolveNodeWorkSummary(n, work)))
+            .slice(0, 3);
+          const worksHtml = works.length
+            ? `<div class="mt-2 flex flex-wrap gap-1.5">${works.map((work) => `<span class="home-work-chip" data-search-idx="${idx}" data-work-title="${esc(normalizeHomeWorkTitle(work))}">《${esc(normalizeHomeWorkTitle(work))}》</span>`).join("")}</div>`
+            : "";
           const badge = n.has_story === false
             ? '<span class="ml-2 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-medium">暂未生成</span>'
             : "";
@@ -3882,6 +4311,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
                   `<div class="text-sm font-semibold text-slate-800 truncate">${person}${badge}</div>` +
                   `<div class="text-[11px] text-slate-400 mt-0.5">${years}</div>` +
                   `${metaLine}` +
+                  `${worksHtml}` +
                 `</div>` +
                 `<div class="shrink-0 text-[11px] text-slate-400">${reason}</div>` +
               `</div>` +
@@ -3964,6 +4394,30 @@ const buildPersonTooltipModel = (node, options = {}) => {
       });
       if ($searchSuggest) {
         $searchSuggest.addEventListener("mousedown", (e) => e.preventDefault());
+        const syncSearchSuggestWorkTip = (e) => {
+          const chip = e && e.target && e.target.closest ? e.target.closest("[data-work-title][data-search-idx]") : null;
+          if (!chip || !$searchSuggest.contains(chip)) {
+            hideWorkTip();
+            return;
+          }
+          const idx = Number(chip.getAttribute("data-search-idx"));
+          const workTitle = normalizeHomeWorkTitle(chip.getAttribute("data-work-title") || "");
+          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length || !workTitle) {
+            hideWorkTip();
+            return;
+          }
+          const item = searchSuggestItems[idx] && searchSuggestItems[idx].node
+            ? resolveNodeWorkSummary(searchSuggestItems[idx].node, workTitle)
+            : null;
+          if (!item) {
+            hideWorkTip();
+            return;
+          }
+          showWorkTip(workTitle, item, e.clientX, e.clientY);
+        };
+        $searchSuggest.addEventListener("mouseover", syncSearchSuggestWorkTip);
+        $searchSuggest.addEventListener("mousemove", syncSearchSuggestWorkTip);
+        $searchSuggest.addEventListener("mouseleave", () => hideWorkTip());
         $searchSuggest.addEventListener("click", (e) => {
           const btn = e.target && e.target.closest ? e.target.closest("[data-search-idx]") : null;
           if (!btn) return;
@@ -3985,6 +4439,10 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if ($searchSuggest && t && $searchSuggest.contains(t)) return;
           hideSearchSuggest();
         });
+      } catch (_) {}
+      try {
+        window.addEventListener("resize", () => hideWorkTip());
+        document.addEventListener("scroll", () => hideWorkTip(), true);
       } catch (_) {}
 
       let currentTab = "graph";
@@ -4339,6 +4797,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if (tab === "map") $mapToolbar.classList.remove("hidden");
           else $mapToolbar.classList.add("hidden");
         }
+        if (tab !== "map" && $mapSearchSuggest) {
+          $mapSearchSuggest.classList.add("hidden");
+        }
         if ($provinceCurvePanel) {
           if (tab === "map") {
             $provinceCurvePanel.classList.remove("hidden");
@@ -4352,10 +4813,20 @@ const buildPersonTooltipModel = (node, options = {}) => {
       const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
       const CHINA_OVERVIEW_ZOOM = 3.9;
       const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";
+      const isForeignPerson = (n) => Boolean(n && n.is_foreign);
 
       const markerSvg = (sz, fill, glow, emph) => {
         const glowRadius = emph ? 10 : 6;
         return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${fill}"></circle><circle cx="12" cy="12" r="6.0" fill="${fill}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+      };
+      const foreignMarkerSvg = (sz, fill, glow, emph) => {
+        const glowRadius = emph ? 10 : 6;
+        return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><rect x="2.5" y="2.5" width="19" height="19" rx="2.2" fill="rgba(255,255,255,0.001)"></rect><rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.8" fill="${fill}"></rect><rect x="5.8" y="5.8" width="12.4" height="12.4" rx="1.6" fill="${fill}" stroke="rgba(255,255,255,0.28)" stroke-width="0.9"></rect></svg>`;
+      };
+      const markerHtml = (n, sz, fill, glow, emph) => {
+        if (isSpecialSunMarker(n)) return sunMarkerHtml(sz, glow, emph);
+        if (isForeignPerson(n)) return foreignMarkerSvg(sz, fill, glow, emph);
+        return markerSvg(sz, fill, glow, emph);
       };
 
       const sunMarkerHtml = (sz, glow, emph) => {
@@ -4562,9 +5033,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
             el.style.justifyContent = "center";
             el.style.cursor = "pointer";
             el.style.pointerEvents = "auto";
-            el.innerHTML = isSpecialSunMarker(n)
-              ? sunMarkerHtml(initialSize, initialGlow, active)
-              : markerSvg(initialSize, initialFill, initialGlow, active);
+            el.innerHTML = markerHtml(n, initialSize, initialFill, initialGlow, active);
             el.style.animation = active ? "twinkle 2.2s ease-in-out infinite" : "none";
             const show = (evt) => {
               const pos = resolveMapTipClientPoint(evt, lng, lat);
@@ -4653,6 +5122,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
             for (const j of (neigh[hiIdx] || [])) s.add(j);
             return s;
           })() : null;
+          const searchActive = mapSearchHighlightSet.size > 0;
           let shownCount = 0;
           let hiddenCount = 0;
           let forcedVisibleCount = 0;
@@ -4661,16 +5131,18 @@ const buildPersonTooltipModel = (node, options = {}) => {
             const idx = typeof n._idx === "number" ? n._idx : -1;
             const active = inWindow(n);
             const forceVisible = idx >= 0 && idx === hiIdx;
+            const searchHit = searchActive && idx >= 0 && mapSearchHighlightSet.has(idx);
             if (forceVisible) forcedVisibleCount += 1;
-            if (onlyActiveMarkers && !active && !forceVisible) {
+            if (onlyActiveMarkers && !active && !forceVisible && !searchHit) {
               hiddenCount += 1;
               try { it.mk.hide(); } catch (_) {}
               continue;
             }
             shownCount += 1;
             try { it.mk.show(); } catch (_) {}
-            const dim = focusSet && idx >= 0 && !focusSet.has(idx);
-            const emph = active || forceVisible;
+            const searchDim = searchActive && !searchHit && !forceVisible;
+            const dim = (focusSet && idx >= 0 && !focusSet.has(idx)) || searchDim;
+            const emph = (active || forceVisible || (searchActive && searchHit)) && !searchDim;
             const sz = dim ? 16 : (emph ? 20 : 18);
             const base = colorByYear(n.time_year);
             const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
@@ -4682,19 +5154,13 @@ const buildPersonTooltipModel = (node, options = {}) => {
             if (it.el) {
               it.el.style.width = `${sz}px`;
               it.el.style.height = `${sz}px`;
-              it.el.innerHTML = isSpecialSunMarker(n)
-                ? sunMarkerHtml(sz, glow, emph)
-                : markerSvg(sz, fill, glow, emph);
+              it.el.innerHTML = markerHtml(n, sz, fill, glow, emph);
               it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
               try {
                 it.mk.setContent(it.el);
               } catch (_) {}
             } else {
-              it.mk.setContent(
-                isSpecialSunMarker(n)
-                  ? sunMarkerHtml(sz, glow, emph)
-                  : markerSvg(sz, fill, glow, emph)
-              );
+              it.mk.setContent(markerHtml(n, sz, fill, glow, emph));
             }
             it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
           }
@@ -4731,6 +5197,79 @@ const buildPersonTooltipModel = (node, options = {}) => {
         } catch (_) {}
       };
       if ($resetMap) $resetMap.addEventListener("click", resetMapView);
+
+      let _mapSearchTimer = null;
+      const _scheduleMapSearch = (val, opts) => {
+        if (_mapSearchTimer) clearTimeout(_mapSearchTimer);
+        _mapSearchTimer = setTimeout(() => {
+          applyMapSearch(val, opts || {});
+        }, 140);
+      };
+      if ($mapSearchInput) {
+        $mapSearchInput.addEventListener("input", (e) => {
+          const v = e && e.target ? String(e.target.value || "") : "";
+          // 输入时同步缩放到匹配人物的边界框
+          _scheduleMapSearch(v, { fit: true });
+        });
+        $mapSearchInput.addEventListener("focus", () => {
+          if (mapSearchQuery) renderMapSearchSuggest();
+        });
+        $mapSearchInput.addEventListener("keydown", (e) => {
+          if (!$mapSearchSuggest) return;
+          const key = e && e.key ? String(e.key) : "";
+          if (key === "Enter") {
+            applyMapSearch($mapSearchInput.value || "", { fit: true });
+            if (mapSearchSuggestIdx >= 0) {
+              const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
+              const pick = items[mapSearchSuggestIdx];
+              if (pick && pick.person) {
+                try { openPerson(pick.person); } catch (_) {}
+              }
+            }
+            if (e.preventDefault) e.preventDefault();
+            return;
+          }
+          if (key === "Escape") {
+            $mapSearchInput.value = "";
+            applyMapSearch("", {});
+            if (e.preventDefault) e.preventDefault();
+            return;
+          }
+          if (key === "ArrowDown" || key === "ArrowUp") {
+            const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
+            if (!items.length) return;
+            if (key === "ArrowDown") mapSearchSuggestIdx = Math.min(items.length - 1, mapSearchSuggestIdx + 1);
+            else mapSearchSuggestIdx = Math.max(0, mapSearchSuggestIdx - 1);
+            renderMapSearchSuggest();
+            if (e.preventDefault) e.preventDefault();
+          }
+        });
+      }
+      if ($mapSearchClear) {
+        $mapSearchClear.addEventListener("click", () => {
+          if ($mapSearchInput) $mapSearchInput.value = "";
+          applyMapSearch("", {});
+          if ($mapSearchInput) $mapSearchInput.focus();
+        });
+      }
+      if ($mapSearchSuggest) {
+        $mapSearchSuggest.addEventListener("mousedown", (e) => {
+          const t = e && e.target ? e.target : null;
+          const row = t && t.closest ? t.closest("[data-mperson]") : null;
+          if (!row) return;
+          const person = String(row.getAttribute("data-mperson") || "").trim();
+          if (!person) return;
+          try { openPerson(person); } catch (_) {}
+        });
+      }
+      document.addEventListener("click", (e) => {
+        if (!$mapSearchSuggest || $mapSearchSuggest.classList.contains("hidden")) return;
+        const t = e && e.target ? e.target : null;
+        if ($mapSearchInput && t === $mapSearchInput) return;
+        if (t && $mapSearchSuggest.contains(t)) return;
+        $mapSearchSuggest.classList.add("hidden");
+      });
+
       setTab("graph");
 
       const onMouseMove = (e) => {
@@ -5058,6 +5597,13 @@ const buildPersonTooltipModel = (node, options = {}) => {
         updateCoordCount();
         prefillCoordsNoMap();
         window.requestAnimationFrame(animate);
+        if (DATA_DETAIL_FILE) {
+          if (typeof window.requestIdleCallback === "function") {
+            window.requestIdleCallback(() => loadHomeDetailData(), { timeout: 1200 });
+          } else {
+            window.setTimeout(() => loadHomeDetailData(), 180);
+          }
+        }
       });
     </script>
   </body>

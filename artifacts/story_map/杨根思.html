@@ -1038,6 +1038,84 @@ body {
   visibility: hidden;
   pointer-events: none;
 }
+.map-lazy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 320px at 18% 12%, rgba(59, 130, 246, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.86), rgba(241, 245, 249, 0.92));
+  backdrop-filter: blur(2px);
+}
+.map-lazy-card {
+  width: min(520px, 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(171, 140, 94, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  padding: 20px 22px;
+}
+.map-lazy-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(124, 45, 18, 0.84);
+}
+.map-lazy-title {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.map-lazy-copy {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.map-lazy-skeleton {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.map-lazy-skeleton > span {
+  display: block;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.78), rgba(241, 245, 249, 0.96));
+  border: 1px solid rgba(203, 213, 225, 0.78);
+}
+.map-lazy-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.map-lazy-trigger {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #9d7c4e, #c18d4d);
+  box-shadow: 0 10px 22px rgba(157, 124, 78, 0.24);
+}
+.map-lazy-trigger:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+.map-lazy-hint {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+}
 .map-fallback-overlay {
   position: absolute;
   inset: 0;
@@ -1181,6 +1259,11 @@ body {
 }
 .map-point-label.is-start .map-point-label-text {
   color: var(--color-success);
+}
+.map-point-label.is-start .map-point-label-badge {
+  background: rgba(30, 122, 58, 0.24);
+  color: #166534;
+  box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 .map-point-label.is-start .map-point-label-name {
   color: var(--color-success);
@@ -2066,8 +2149,63 @@ const {
   useRef,
   useMemo
 } = React;
-const data = {"person": {"name": "杨根思", "title": "三不相信", "description": "杨根思出生于贫苦农民家庭，幼年经历坎坷。1944年参加新四军，在抗日战争和解放战争中，他作战英勇，从一名普通战士成长为出色的爆破能手，多次荣立大功。1950年9月，随部队改编为中国人民志愿军第20军58师172团3连连长，赴朝参战。在极端严寒的长津湖战役中，他奉命率一个排坚守下碣隅里外围的小高岭阵地，切断敌人南逃退路。在打退敌人八次进攻后，阵地上只剩他一人，面对蜂拥而上的美军，他抱起炸药包冲入敌群，与敌人同归于尽，用生命守住了阵地，年仅28岁。", "quote": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "shortReview": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏省泰兴县羊货郎店（今泰兴市根思乡）", "avatar": "", "birth": {"date": "1922年", "location": "江苏省泰兴县羊货郎店（今泰兴市根思乡）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1950年", "location": "朝鲜咸镜南道长津郡下碣隅里南小高岭", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84"}, "lifespan": "28岁", "highlights": {"honor": "三不相信", "status": "中国人民志愿军特级英雄，中国人民解放军全国战斗英雄，其“三不相信”精神成为革命英雄主义的象征。", "identities": "中国人民志愿军战士、爆破英雄、特级英雄", "achievements": "在历次战斗中屡立战功，擅长爆破；在抗美援朝战争长津湖战役中，率部坚守小高岭阵地，最后抱起炸药包与敌人同归于尽。", "works": [], "reviews": ["**官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国英雄”称号、金星奖章和一级国旗勋章。", "**后世评价**：被誉为“国际主义的光辉典范”，其“三不相信”精神被概括为“杨根思精神”，是中华民族不畏强暴、敢于斗争精神的集中体现。"]}}, "locations": [{"name": "江苏泰兴羊货郎店", "ancientName": "江苏省泰兴县羊货郎店", "modernName": "泰兴市根思乡根思村", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，度过贫苦的童年与少年时期，给地主家放过牛，到上海做过童工。", "time": "1922年—1944年", "duration": "约22年", "significance": "苦难的出身塑造了他坚韧不屈的性格，为其日后走上革命道路奠定了阶级基础。", "works": [], "quoteLines": []}, {"name": "江苏泰兴（参加新四军）", "ancientName": "江苏泰兴（参加新四军）", "modernName": "江苏省泰兴县", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "normal", "event": "1944年3月，在泰兴参加新四军，从此走上革命道路。入伍后，他将名字从“羊庚玺”改为“杨根思”。", "time": "1944年", "duration": "1944年3月（参军入伍）", "significance": "人生的重大转折点，从农民转变为一名革命战士。", "works": [], "quoteLines": []}, {"name": "山东泰安、兖州（解放战争战场）", "ancientName": "山东泰安、兖州（解放战争战场）", "modernName": "山东省泰安市、山东省济宁市兖州区", "lat": 36.201534, "lng": 117.080896, "coordSystem": "WGS84", "type": "normal", "event": "在解放战争中，杨根思屡建奇功。1946年6月，在攻打泰安的战斗中，他用18颗手榴弹攻下制高点，被评为“战斗模范”。同年10月，在鲁南郭里集战斗中，他连续三次爆破敌军碉堡成功，被誉为“爆破大王”。", "time": "1946年—1949年", "duration": "转战期间", "significance": "在此期间，他的军事才能，特别是爆破技术得到充分发挥，成长为著名的战斗英雄。", "works": [], "quoteLines": []}, {"name": "江苏（多地转战）", "ancientName": "江苏（多地转战）", "modernName": "江苏省（具体市县待考）", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "normal", "event": "参加淮海战役等重大战役，继续立功。1950年5月，被评为“全国战斗英雄”，出席全国战斗英雄代表会议，受到毛泽东等领导人接见。", "time": "1947年—1950年", "duration": "随部队在江苏活动", "significance": "荣誉的顶峰，标志着他从一名优秀战士成长为全军楷模，为其后赴朝作战奠定了精神基础。", "works": [], "quoteLines": []}, {"name": "朝鲜咸镜南道长津郡下碣隅里", "ancientName": "朝鲜咸镜南道长津郡下碣隅里", "modernName": "朝鲜咸镜南道长津郡下碣隅里（古土里以北）", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84", "type": "normal", "event": "1950年11月，率3连参加长津湖战役。29日，奉命坚守下碣隅里外围的1071.1高地东南小高岭，负责切断美军南逃退路。在极端恶劣的天气下，他指挥全排打退美军八次进攻。当阵地上只剩他一人时，他抱起炸药包，拉燃导火索，冲入敌群，与敌人同归于尽。", "time": "1950年11月", "duration": "约一周（战斗期间）", "significance": "英勇牺牲之地，用生命践行了“人在阵地在”的誓言，完成了阻击任务。", "works": [], "quoteLines": []}, {"name": "朝鲜咸镜南道长津郡小高岭", "ancientName": "朝鲜咸镜南道长津郡小高岭", "modernName": "朝鲜咸镜南道长津郡下碣隅里南小高岭（1071.1高地附近）", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84", "type": "death", "event": "在战斗的最后时刻，面对蜂拥而至的敌人，杨根思抱起仅有的一包炸药，拉燃导火索，毅然冲向敌群，与敌人同归于尽，壮烈牺牲。", "time": "1950年11月29日", "duration": "战斗至牺牲", "significance": "英雄生命的终点，也是其精神永恒的起点。他的牺牲确保了小高岭阵地未失，为整个战役的胜利作出了关键贡献。", "works": [], "quoteLines": ["**“不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。”**（杨根思的“三不相信”精神格言）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**抗美援朝战争**（1950-1953），保家卫国。\n- **关键事件**：**长津湖战役**，中国人民志愿军在极端艰苦条件下与美军作战。\n- **代表精神**：**革命英雄主义**、**爱国主义**、**国际主义**精神。\n- **英雄称号**：**特级英雄**杨根思（与黄继光等并列）。\n- **核心事迹**：在**小高岭**阵地战斗至最后一人，**抱起炸药包与敌人同归于尽**。\n- **精神格言**：**“三不相信”精神**。\n- **常见对比点**：与**黄继光**（堵枪眼）、**邱少云**（纪律重于生命）同为抗美援朝“三大英雄”。\n\n### 高中阶段\n- **历史背景**：**冷战**格局下，新中国为维护国家安全和国际地位进行的**立国之战**。\n- **战役分析**：**长津湖战役**的战略意义（东线关键阻击战），其惨烈程度体现了**钢铁意志与钢铁装备的对抗**。\n- **精神内涵**：深入理解“三不相信”精神作为**人民军队战斗精神**的集中体现，及其在**现代化强军**征程中的时代价值。\n- **人物定位**：从**全国战斗英雄**到**志愿军特级英雄**的成长轨迹，体现中国共产党领导下的人民军队**英雄辈出**的传统。\n- **易混点/对比点**：区分志愿军英雄荣誉等级（特级英雄、一级英雄等）；对比**解放战争**与**抗美援朝战争**中英雄事迹的异同（如作战对象、国际环境）。\n\n---", "examPoints": "### 初中阶段考点\n- 杨根思是中国人民志愿军**特级英雄**。\n- 他牺牲于**抗美援朝**战争中的**长津湖战役**。\n- 他牺牲的具体地点是**小高岭**阵地。\n- 他的英雄壮举是**抱起炸药包冲入敌群，与敌人同归于尽**。\n- 他代表的精神是**革命英雄主义**和**爱国主义**精神。\n- 他的名言是“**三不相信**”精神。\n\n### 高中阶段考点\n- 杨根思事迹所体现的**抗美援朝精神**的内涵（祖国和人民利益高于一切、为了祖国和民族的尊严而奋不顾身的爱国主义精神等）。\n- **长津湖战役**在抗美援朝战争第二次战役中的**战略地位**（东线分割包围，为西线主力反击创造条件）。\n- 杨根思从**解放战争**战斗英雄到**抗美援朝**特级英雄的**成长历程**，反映人民军队的传承。\n- **“杨根思连”** 作为英模单位的**当代意义**与军队荣誉体系。\n- 关于其牺牲时具体细节（如炸药包数量、最后时刻的对话）在不同回忆录中说法不一，但核心事实一致。\n\n---", "workTexts": {"英雄儿女": "教育典范：作为爱国主义和革命英雄主义的永恒教材，其事迹被写入课本，电影《英雄儿女》中王成的艺术形象被认为融合了包括杨根思在内的多位英雄的事迹，教育和影响了一代又一代中国人。"}, "markdown": "# 杨根思\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：杨根思（原名羊庚玺）\n- **时代**：中国现代（抗日战争、解放战争、抗美援朝战争时期）\n- **出生**：1922年，江苏省泰兴县羊货郎店（今泰兴市根思乡）\n- **去世**：1950年11月29日，朝鲜咸镜南道长津郡下碣隅里南小高岭\n- **享年**：28岁\n- **主要身份**：中国人民志愿军战士、爆破英雄、特级英雄\n- **历史地位**：中国人民志愿军特级英雄，中国人民解放军全国战斗英雄，其“三不相信”精神成为革命英雄主义的象征。\n- **主要成就**：在历次战斗中屡立战功，擅长爆破；在抗美援朝战争长津湖战役中，率部坚守小高岭阵地，最后抱起炸药包与敌人同归于尽。\n\n### 生平概述\n杨根思出生于贫苦农民家庭，幼年经历坎坷。1944年参加新四军，在抗日战争和解放战争中，他作战英勇，从一名普通战士成长为出色的爆破能手，多次荣立大功。1950年9月，随部队改编为中国人民志愿军第20军58师172团3连连长，赴朝参战。在极端严寒的长津湖战役中，他奉命率一个排坚守下碣隅里外围的小高岭阵地，切断敌人南逃退路。在打退敌人八次进攻后，阵地上只剩他一人，面对蜂拥而上的美军，他抱起炸药包冲入敌群，与敌人同归于尽，用生命守住了阵地，年仅28岁。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从江苏泰兴故乡出发，转战山东、江苏等地，最终牺牲于朝鲜东北部长津湖地区。\n- ⏱️ **时间跨度**：1922年—1950年，共28年。\n- 📍 **地理范围**：中国江苏省、山东省，朝鲜民主主义人民共和国咸镜南道。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：江苏泰兴羊货郎店\n- **公元纪年**：1922年—1944年\n- **停留时间**：约22年\n- **位置**：江苏省泰兴县羊货郎店（今泰兴市根思乡根思村）\n- **事迹**：出生于此，度过贫苦的童年与少年时期，给地主家放过牛，到上海做过童工。\n- **意义**：苦难的出身塑造了他坚韧不屈的性格，为其日后走上革命道路奠定了阶级基础。\n\n### 📍 重要地点：江苏泰兴（参加新四军）\n- **公元纪年**：1944年\n- **停留时间**：1944年3月（参军入伍）\n- **位置**：江苏省泰兴县\n- **事迹**：1944年3月，在泰兴参加新四军，从此走上革命道路。入伍后，他将名字从“羊庚玺”改为“杨根思”。\n- **意义**：人生的重大转折点，从农民转变为一名革命战士。\n\n### 📍 重要地点：山东泰安、兖州（解放战争战场）\n- **公元纪年**：1946年—1949年\n- **停留时间**：转战期间\n- **位置**：山东省泰安市、山东省济宁市兖州区\n- **事迹**：在解放战争中，杨根思屡建奇功。1946年6月，在攻打泰安的战斗中，他用18颗手榴弹攻下制高点，被评为“战斗模范”。同年10月，在鲁南郭里集战斗中，他连续三次爆破敌军碉堡成功，被誉为“爆破大王”。\n- **意义**：在此期间，他的军事才能，特别是爆破技术得到充分发挥，成长为著名的战斗英雄。\n\n### 📍 重要地点：江苏（多地转战）\n- **公元纪年**：1947年—1950年\n- **停留时间**：随部队在江苏活动\n- **位置**：江苏省（具体市县待考）\n- **事迹**：参加淮海战役等重大战役，继续立功。1950年5月，被评为“全国战斗英雄”，出席全国战斗英雄代表会议，受到毛泽东等领导人接见。\n- **意义**：荣誉的顶峰，标志着他从一名优秀战士成长为全军楷模，为其后赴朝作战奠定了精神基础。\n\n### 📍 重要地点：朝鲜咸镜南道长津郡下碣隅里\n- **公元纪年**：1950年11月\n- **停留时间**：约一周（战斗期间）\n- **位置**：朝鲜咸镜南道长津郡下碣隅里（古土里以北）\n- **事迹**：1950年11月，率3连参加长津湖战役。29日，奉命坚守下碣隅里外围的1071.1高地东南小高岭，负责切断美军南逃退路。在极端恶劣的天气下，他指挥全排打退美军八次进攻。当阵地上只剩他一人时，他抱起炸药包，拉燃导火索，冲入敌群，与敌人同归于尽。\n- **意义**：英勇牺牲之地，用生命践行了“人在阵地在”的誓言，完成了阻击任务。\n\n### 🔴 去世地：朝鲜咸镜南道长津郡小高岭\n- **公元纪年**：1950年11月29日\n- **停留时间**：战斗至牺牲\n- **位置**：朝鲜咸镜南道长津郡下碣隅里南小高岭（1071.1高地附近）\n- **经过**：在战斗的最后时刻，面对蜂拥而至的敌人，杨根思抱起仅有的一包炸药，拉燃导火索，毅然冲向敌群，与敌人同归于尽，壮烈牺牲。\n- **意义**：英雄生命的终点，也是其精神永恒的起点。他的牺牲确保了小高岭阵地未失，为整个战役的胜利作出了关键贡献。\n- **名篇名句**：**“不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。”**（杨根思的“三不相信”精神格言）\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1922 | 江苏泰兴羊货郎店 | 泰兴市根思乡根思村 | （年龄：0岁）出生于江苏省泰兴县羊货郎店。 |\n| 1944 | 江苏泰兴（参加新四军） | 江苏省泰兴县 | （年龄：22岁）3月，在泰兴参加新四军，改名杨根思。 |\n| 1945 |  |  | （年龄：23岁）11月，加入中国共产党。 |\n| 1946 |  |  | （年龄：24岁）6月，在泰安战斗中首获“战斗模范”称号；10月，在郭里集战斗中荣获“爆破大王”称号。 |\n| 1947-1949 |  |  | （年龄：25-27岁）参加解放战争，多次立功。 |\n| 1950 |  |  | （年龄：28岁）5月，出席全国战斗英雄代表会议；9月，随部队改编为中国人民志愿军第20军58师172团3连连长赴朝作战；11月29日，在长津湖战役小高岭战斗中壮烈牺牲。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n杨根思的牺牲极大地鼓舞了志愿军全体将士的士气。他的英雄事迹迅速在朝鲜前线和祖国后方传颂，成为“最可爱的人”的杰出代表之一，激励着无数军民投身于抗美援朝、保家卫国的伟大斗争中。他所在的连队被命名为“杨根思连”，其精神成为这支部队的灵魂。\n\n### 对后世的影响\n- **精神象征**：“三不相信”精神（不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人）成为中国人民解放军一脉相承的战斗精神和宝贵的精神财富。\n- **教育典范**：作为爱国主义和革命英雄主义的永恒教材，其事迹被写入课本，电影《英雄儿女》中王成的艺术形象被认为融合了包括杨根思在内的多位英雄的事迹，教育和影响了一代又一代中国人。\n- **荣誉传承**：“杨根思连”至今仍是解放军英模单位，延续着英雄的血脉和精神。\n\n### 历史评价\n- **官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国英雄”称号、金星奖章和一级国旗勋章。\n- **后世评价**：被誉为“国际主义的光辉典范”，其“三不相信”精神被概括为“杨根思精神”，是中华民族不畏强暴、敢于斗争精神的集中体现。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**抗美援朝战争**（1950-1953），保家卫国。\n- **关键事件**：**长津湖战役**，中国人民志愿军在极端艰苦条件下与美军作战。\n- **代表精神**：**革命英雄主义**、**爱国主义**、**国际主义**精神。\n- **英雄称号**：**特级英雄**杨根思（与黄继光等并列）。\n- **核心事迹**：在**小高岭**阵地战斗至最后一人，**抱起炸药包与敌人同归于尽**。\n- **精神格言**：**“三不相信”精神**。\n- **常见对比点**：与**黄继光**（堵枪眼）、**邱少云**（纪律重于生命）同为抗美援朝“三大英雄”。\n\n### 高中阶段\n- **历史背景**：**冷战**格局下，新中国为维护国家安全和国际地位进行的**立国之战**。\n- **战役分析**：**长津湖战役**的战略意义（东线关键阻击战），其惨烈程度体现了**钢铁意志与钢铁装备的对抗**。\n- **精神内涵**：深入理解“三不相信”精神作为**人民军队战斗精神**的集中体现，及其在**现代化强军**征程中的时代价值。\n- **人物定位**：从**全国战斗英雄**到**志愿军特级英雄**的成长轨迹，体现中国共产党领导下的人民军队**英雄辈出**的传统。\n- **易混点/对比点**：区分志愿军英雄荣誉等级（特级英雄、一级英雄等）；对比**解放战争**与**抗美援朝战争**中英雄事迹的异同（如作战对象、国际环境）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 杨根思是中国人民志愿军**特级英雄**。\n- 他牺牲于**抗美援朝**战争中的**长津湖战役**。\n- 他牺牲的具体地点是**小高岭**阵地。\n- 他的英雄壮举是**抱起炸药包冲入敌群，与敌人同归于尽**。\n- 他代表的精神是**革命英雄主义**和**爱国主义**精神。\n- 他的名言是“**三不相信**”精神。\n\n### 高中阶段考点\n- 杨根思事迹所体现的**抗美援朝精神**的内涵（祖国和人民利益高于一切、为了祖国和民族的尊严而奋不顾身的爱国主义精神等）。\n- **长津湖战役**在抗美援朝战争第二次战役中的**战略地位**（东线分割包围，为西线主力反击创造条件）。\n- 杨根思从**解放战争**战斗英雄到**抗美援朝**特级英雄的**成长历程**，反映人民军队的传承。\n- **“杨根思连”** 作为英模单位的**当代意义**与军队荣誉体系。\n- 关于其牺牲时具体细节（如炸药包数量、最后时刻的对话）在不同回忆录中说法不一，但核心事实一致。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 江苏泰兴羊货郎店 | 江苏省泰兴市根思乡 | 32.252770 | 120.011477 |\n| 江苏泰兴（参加新四军） | 江苏省泰兴市 | 32.174974 | 120.046511 |\n| 山东泰安、兖州（解放战争战场） | 山东省泰安市 | 36.201534 | 117.080896 |\n| 朝鲜咸镜南道长津郡下碣隅里 | 朝鲜咸镜南道长津郡下碣隅里 | 40.395257 | 127.260505 |\n| 朝鲜咸镜南道长津郡小高岭 | 朝鲜咸镜南道长津郡下碣隅里 | 40.395257 | 127.260505 |\n", "relatedGraph": {"center": {"id": "杨根思", "name": "杨根思", "file": "杨根思.html", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "aliases": [], "birth_year": 1922, "death_year": 1950, "quote": "“全国战斗英雄”", "review": "*官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国…", "foreign_name": "", "main_role_label": "其他", "birthplace": "江苏省泰兴县羊货郎店", "birthplace_modern": "泰兴市根思乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨根思", "name": "杨根思", "file": "杨根思.html", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "aliases": [], "birth_year": 1922, "death_year": 1950, "quote": "“全国战斗英雄”", "review": "*官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国…", "foreign_name": "", "main_role_label": "其他", "birthplace": "江苏省泰兴县羊货郎店", "birthplace_modern": "泰兴市根思乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "“微分几何之父”", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "“横扫清华图书馆”", "review": "夏志清（文学史家）：“《围城》是中国近代文学中最有趣和最用心经营的小说，可能亦是最伟大的一部。”", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "“小二黑好比一枝花，可惜开在粪堆旁。”", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”", "review": "*聂荣臻题词**：“赵一曼同志永垂不朽！”", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "“纪律重于生命”", "review": "*中国人民志愿军领导机关**：追授邱少云“一级英雄”称号，记特等功。", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "罗盛教", "name": "罗盛教", "file": "罗盛教.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "“一级爱民模范”", "review": "*官方评价**：伟大的国际主义战士，中国人民志愿军一级爱民模范。", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省娄底市新化县", "birthplace_modern": "松山乡桐子村", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "杨根思", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "邱少云", "label": "同册共现", "confidence": 0.15}, {"source": "杨根思", "target": "罗盛教", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "18bb89b8b60f"};
+const data = {"person": {"name": "杨根思", "title": "三不相信", "description": "杨根思出生于贫苦农民家庭，幼年经历坎坷。1944年参加新四军，在抗日战争和解放战争中，他作战英勇，从一名普通战士成长为出色的爆破能手，多次荣立大功。1950年9月，随部队改编为中国人民志愿军第20军58师172团3连连长，赴朝参战。在极端严寒的长津湖战役中，他奉命率一个排坚守下碣隅里外围的小高岭阵地，切断敌人南逃退路。在打退敌人八次进攻后，阵地上只剩他一人，面对蜂拥而上的美军，他抱起炸药包冲入敌群，与敌人同归于尽，用生命守住了阵地，年仅28岁。", "quote": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "shortReview": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏省泰兴县羊货郎店（今泰兴市根思乡）", "avatar": "", "birth": {"date": "1922年", "location": "江苏省泰兴县羊货郎店（今泰兴市根思乡）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1950年", "location": "朝鲜咸镜南道长津郡下碣隅里南小高岭", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84"}, "lifespan": "28岁", "highlights": {"honor": "三不相信", "status": "中国人民志愿军特级英雄，中国人民解放军全国战斗英雄，其“三不相信”精神成为革命英雄主义的象征。", "identities": "中国人民志愿军战士、爆破英雄、特级英雄", "achievements": "在历次战斗中屡立战功，擅长爆破；在抗美援朝战争长津湖战役中，率部坚守小高岭阵地，最后抱起炸药包与敌人同归于尽。", "works": [], "reviews": ["*官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国英…", "*后世评价**：被誉为“国际主义的光辉典范”，其“三不相信”精神被概括为“杨根思精神”，是中华民族不畏强暴、敢于斗争精神的集中体现。", "**官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国英雄”称号、金星奖章和一级国旗勋章。", "**后世评价**：被誉为“国际主义的光辉典范”，其“三不相信”精神被概括为“杨根思精神”，是中华民族不畏强暴、敢于斗争精神的集中体现。"]}}, "locations": [{"name": "江苏泰兴羊货郎店", "ancientName": "江苏省泰兴县羊货郎店", "modernName": "泰兴市根思乡根思村", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，度过贫苦的童年与少年时期，给地主家放过牛，到上海做过童工。", "time": "1922年—1944年", "duration": "约22年", "significance": "苦难的出身塑造了他坚韧不屈的性格，为其日后走上革命道路奠定了阶级基础。", "works": [], "quoteLines": []}, {"name": "江苏泰兴（参加新四军）", "ancientName": "江苏泰兴（参加新四军）", "modernName": "江苏省泰兴县", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "normal", "event": "1944年3月，在泰兴参加新四军，从此走上革命道路。入伍后，他将名字从“羊庚玺”改为“杨根思”。", "time": "1944年", "duration": "1944年3月（参军入伍）", "significance": "人生的重大转折点，从农民转变为一名革命战士。", "works": [], "quoteLines": []}, {"name": "山东泰安、兖州（解放战争战场）", "ancientName": "山东泰安、兖州（解放战争战场）", "modernName": "山东省泰安市、山东省济宁市兖州区", "lat": 36.201534, "lng": 117.080896, "coordSystem": "WGS84", "type": "normal", "event": "在解放战争中，杨根思屡建奇功。1946年6月，在攻打泰安的战斗中，他用18颗手榴弹攻下制高点，被评为“战斗模范”。同年10月，在鲁南郭里集战斗中，他连续三次爆破敌军碉堡成功，被誉为“爆破大王”。", "time": "1946年—1949年", "duration": "转战期间", "significance": "在此期间，他的军事才能，特别是爆破技术得到充分发挥，成长为著名的战斗英雄。", "works": [], "quoteLines": []}, {"name": "江苏（多地转战）", "ancientName": "江苏（多地转战）", "modernName": "江苏省（具体市县待考）", "lat": 32.25277, "lng": 120.011477, "coordSystem": "WGS84", "type": "normal", "event": "参加淮海战役等重大战役，继续立功。1950年5月，被评为“全国战斗英雄”，出席全国战斗英雄代表会议，受到毛泽东等领导人接见。", "time": "1947年—1950年", "duration": "随部队在江苏活动", "significance": "荣誉的顶峰，标志着他从一名优秀战士成长为全军楷模，为其后赴朝作战奠定了精神基础。", "works": [], "quoteLines": []}, {"name": "朝鲜咸镜南道长津郡下碣隅里", "ancientName": "朝鲜咸镜南道长津郡下碣隅里", "modernName": "朝鲜咸镜南道长津郡下碣隅里（古土里以北）", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84", "type": "normal", "event": "1950年11月，率3连参加长津湖战役。29日，奉命坚守下碣隅里外围的1071.1高地东南小高岭，负责切断美军南逃退路。在极端恶劣的天气下，他指挥全排打退美军八次进攻。当阵地上只剩他一人时，他抱起炸药包，拉燃导火索，冲入敌群，与敌人同归于尽。", "time": "1950年11月", "duration": "约一周（战斗期间）", "significance": "英勇牺牲之地，用生命践行了“人在阵地在”的誓言，完成了阻击任务。", "works": [], "quoteLines": []}, {"name": "朝鲜咸镜南道长津郡小高岭", "ancientName": "朝鲜咸镜南道长津郡小高岭", "modernName": "朝鲜咸镜南道长津郡下碣隅里南小高岭（1071.1高地附近）", "lat": 40.395257, "lng": 127.260505, "coordSystem": "WGS84", "type": "death", "event": "在战斗的最后时刻，面对蜂拥而至的敌人，杨根思抱起仅有的一包炸药，拉燃导火索，毅然冲向敌群，与敌人同归于尽，壮烈牺牲。", "time": "1950年11月29日", "duration": "战斗至牺牲", "significance": "英雄生命的终点，也是其精神永恒的起点。他的牺牲确保了小高岭阵地未失，为整个战役的胜利作出了关键贡献。", "works": [], "quoteLines": ["**“不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。”**（杨根思的“三不相信”精神格言）"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**抗美援朝战争**（1950-1953），保家卫国。\n- **关键事件**：**长津湖战役**，中国人民志愿军在极端艰苦条件下与美军作战。\n- **代表精神**：**革命英雄主义**、**爱国主义**、**国际主义**精神。\n- **英雄称号**：**特级英雄**杨根思（与黄继光等并列）。\n- **核心事迹**：在**小高岭**阵地战斗至最后一人，**抱起炸药包与敌人同归于尽**。\n- **精神格言**：**“三不相信”精神**。\n- **常见对比点**：与**黄继光**（堵枪眼）、**邱少云**（纪律重于生命）同为抗美援朝“三大英雄”。\n\n### 高中阶段\n- **历史背景**：**冷战**格局下，新中国为维护国家安全和国际地位进行的**立国之战**。\n- **战役分析**：**长津湖战役**的战略意义（东线关键阻击战），其惨烈程度体现了**钢铁意志与钢铁装备的对抗**。\n- **精神内涵**：深入理解“三不相信”精神作为**人民军队战斗精神**的集中体现，及其在**现代化强军**征程中的时代价值。\n- **人物定位**：从**全国战斗英雄**到**志愿军特级英雄**的成长轨迹，体现中国共产党领导下的人民军队**英雄辈出**的传统。\n- **易混点/对比点**：区分志愿军英雄荣誉等级（特级英雄、一级英雄等）；对比**解放战争**与**抗美援朝战争**中英雄事迹的异同（如作战对象、国际环境）。\n\n---", "examPoints": "### 初中阶段考点\n- 杨根思是中国人民志愿军**特级英雄**。\n- 他牺牲于**抗美援朝**战争中的**长津湖战役**。\n- 他牺牲的具体地点是**小高岭**阵地。\n- 他的英雄壮举是**抱起炸药包冲入敌群，与敌人同归于尽**。\n- 他代表的精神是**革命英雄主义**和**爱国主义**精神。\n- 他的名言是“**三不相信**”精神。\n\n### 高中阶段考点\n- 杨根思事迹所体现的**抗美援朝精神**的内涵（祖国和人民利益高于一切、为了祖国和民族的尊严而奋不顾身的爱国主义精神等）。\n- **长津湖战役**在抗美援朝战争第二次战役中的**战略地位**（东线分割包围，为西线主力反击创造条件）。\n- 杨根思从**解放战争**战斗英雄到**抗美援朝**特级英雄的**成长历程**，反映人民军队的传承。\n- **“杨根思连”** 作为英模单位的**当代意义**与军队荣誉体系。\n- 关于其牺牲时具体细节（如炸药包数量、最后时刻的对话）在不同回忆录中说法不一，但核心事实一致。\n\n---", "workTexts": {"英雄儿女": "教育典范：作为爱国主义和革命英雄主义的永恒教材，其事迹被写入课本，电影《英雄儿女》中王成的艺术形象被认为融合了包括杨根思在内的多位英雄的事迹，教育和影响了一代又一代中国人。"}, "workSummaries": {"英雄儿女": {"title": "英雄儿女", "aliases": [], "authors": ["巴金"], "related_people": ["巴金", "杨根思"], "source_pages": ["巴金", "杨根思"], "era": "中国现当代", "genre": "", "one_liner": "巴金生于成都一个封建官僚家庭，少年时代目睹旧家庭的腐朽与青年的挣扎，这成为其日后创作的核心源泉", "summary": "巴金生于成都一个封建官僚家庭，少年时代目睹旧家庭的腐朽与青年的挣扎，这成为其日后创作的核心源泉", "quote": "事件：新中国成立后，担任上海文联、作协领导等职务，参与众多社会活动。", "quotes": ["事件：新中国成立后，担任上海文联、作协领导等职务，参与众多社会活动。", "创作了反映新生活的《团圆》（后被改编为电影《英雄儿女》）等作品。"], "quote_policy": "preferred"}}, "markdown": "# 杨根思\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：杨根思（原名羊庚玺）\n- **时代**：中国现代（抗日战争、解放战争、抗美援朝战争时期）\n- **出生**：1922年，江苏省泰兴县羊货郎店（今泰兴市根思乡）\n- **去世**：1950年11月29日，朝鲜咸镜南道长津郡下碣隅里南小高岭\n- **享年**：28岁\n- **主要身份**：中国人民志愿军战士、爆破英雄、特级英雄\n- **历史地位**：中国人民志愿军特级英雄，中国人民解放军全国战斗英雄，其“三不相信”精神成为革命英雄主义的象征。\n- **主要成就**：在历次战斗中屡立战功，擅长爆破；在抗美援朝战争长津湖战役中，率部坚守小高岭阵地，最后抱起炸药包与敌人同归于尽。\n\n### 生平概述\n杨根思出生于贫苦农民家庭，幼年经历坎坷。1944年参加新四军，在抗日战争和解放战争中，他作战英勇，从一名普通战士成长为出色的爆破能手，多次荣立大功。1950年9月，随部队改编为中国人民志愿军第20军58师172团3连连长，赴朝参战。在极端严寒的长津湖战役中，他奉命率一个排坚守下碣隅里外围的小高岭阵地，切断敌人南逃退路。在打退敌人八次进攻后，阵地上只剩他一人，面对蜂拥而上的美军，他抱起炸药包冲入敌群，与敌人同归于尽，用生命守住了阵地，年仅28岁。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从江苏泰兴故乡出发，转战山东、江苏等地，最终牺牲于朝鲜东北部长津湖地区。\n- ⏱️ **时间跨度**：1922年—1950年，共28年。\n- 📍 **地理范围**：中国江苏省、山东省，朝鲜民主主义人民共和国咸镜南道。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：江苏泰兴羊货郎店\n- **公元纪年**：1922年—1944年\n- **停留时间**：约22年\n- **位置**：江苏省泰兴县羊货郎店（今泰兴市根思乡根思村）\n- **事迹**：出生于此，度过贫苦的童年与少年时期，给地主家放过牛，到上海做过童工。\n- **意义**：苦难的出身塑造了他坚韧不屈的性格，为其日后走上革命道路奠定了阶级基础。\n\n### 📍 重要地点：江苏泰兴（参加新四军）\n- **公元纪年**：1944年\n- **停留时间**：1944年3月（参军入伍）\n- **位置**：江苏省泰兴县\n- **事迹**：1944年3月，在泰兴参加新四军，从此走上革命道路。入伍后，他将名字从“羊庚玺”改为“杨根思”。\n- **意义**：人生的重大转折点，从农民转变为一名革命战士。\n\n### 📍 重要地点：山东泰安、兖州（解放战争战场）\n- **公元纪年**：1946年—1949年\n- **停留时间**：转战期间\n- **位置**：山东省泰安市、山东省济宁市兖州区\n- **事迹**：在解放战争中，杨根思屡建奇功。1946年6月，在攻打泰安的战斗中，他用18颗手榴弹攻下制高点，被评为“战斗模范”。同年10月，在鲁南郭里集战斗中，他连续三次爆破敌军碉堡成功，被誉为“爆破大王”。\n- **意义**：在此期间，他的军事才能，特别是爆破技术得到充分发挥，成长为著名的战斗英雄。\n\n### 📍 重要地点：江苏（多地转战）\n- **公元纪年**：1947年—1950年\n- **停留时间**：随部队在江苏活动\n- **位置**：江苏省（具体市县待考）\n- **事迹**：参加淮海战役等重大战役，继续立功。1950年5月，被评为“全国战斗英雄”，出席全国战斗英雄代表会议，受到毛泽东等领导人接见。\n- **意义**：荣誉的顶峰，标志着他从一名优秀战士成长为全军楷模，为其后赴朝作战奠定了精神基础。\n\n### 📍 重要地点：朝鲜咸镜南道长津郡下碣隅里\n- **公元纪年**：1950年11月\n- **停留时间**：约一周（战斗期间）\n- **位置**：朝鲜咸镜南道长津郡下碣隅里（古土里以北）\n- **事迹**：1950年11月，率3连参加长津湖战役。29日，奉命坚守下碣隅里外围的1071.1高地东南小高岭，负责切断美军南逃退路。在极端恶劣的天气下，他指挥全排打退美军八次进攻。当阵地上只剩他一人时，他抱起炸药包，拉燃导火索，冲入敌群，与敌人同归于尽。\n- **意义**：英勇牺牲之地，用生命践行了“人在阵地在”的誓言，完成了阻击任务。\n\n### 🔴 去世地：朝鲜咸镜南道长津郡小高岭\n- **公元纪年**：1950年11月29日\n- **停留时间**：战斗至牺牲\n- **位置**：朝鲜咸镜南道长津郡下碣隅里南小高岭（1071.1高地附近）\n- **经过**：在战斗的最后时刻，面对蜂拥而至的敌人，杨根思抱起仅有的一包炸药，拉燃导火索，毅然冲向敌群，与敌人同归于尽，壮烈牺牲。\n- **意义**：英雄生命的终点，也是其精神永恒的起点。他的牺牲确保了小高岭阵地未失，为整个战役的胜利作出了关键贡献。\n- **名篇名句**：**“不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。”**（杨根思的“三不相信”精神格言）\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1922 | 江苏泰兴羊货郎店 | 泰兴市根思乡根思村 | （年龄：0岁）出生于江苏省泰兴县羊货郎店。 |\n| 1944 | 江苏泰兴（参加新四军） | 江苏省泰兴县 | （年龄：22岁）3月，在泰兴参加新四军，改名杨根思。 |\n| 1945 |  |  | （年龄：23岁）11月，加入中国共产党。 |\n| 1946 |  |  | （年龄：24岁）6月，在泰安战斗中首获“战斗模范”称号；10月，在郭里集战斗中荣获“爆破大王”称号。 |\n| 1947-1949 |  |  | （年龄：25-27岁）参加解放战争，多次立功。 |\n| 1950 |  |  | （年龄：28岁）5月，出席全国战斗英雄代表会议；9月，随部队改编为中国人民志愿军第20军58师172团3连连长赴朝作战；11月29日，在长津湖战役小高岭战斗中壮烈牺牲。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n杨根思的牺牲极大地鼓舞了志愿军全体将士的士气。他的英雄事迹迅速在朝鲜前线和祖国后方传颂，成为“最可爱的人”的杰出代表之一，激励着无数军民投身于抗美援朝、保家卫国的伟大斗争中。他所在的连队被命名为“杨根思连”，其精神成为这支部队的灵魂。\n\n### 对后世的影响\n- **精神象征**：“三不相信”精神（不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人）成为中国人民解放军一脉相承的战斗精神和宝贵的精神财富。\n- **教育典范**：作为爱国主义和革命英雄主义的永恒教材，其事迹被写入课本，电影《英雄儿女》中王成的艺术形象被认为融合了包括杨根思在内的多位英雄的事迹，教育和影响了一代又一代中国人。\n- **荣誉传承**：“杨根思连”至今仍是解放军英模单位，延续着英雄的血脉和精神。\n\n### 历史评价\n- **官方评价**：中国人民志愿军领导机关追记杨根思特等功，授予“特级英雄”称号（志愿军最高荣誉），其所在连队命名为“杨根思连”。朝鲜民主主义人民共和国授予他“朝鲜民主主义人民共和国英雄”称号、金星奖章和一级国旗勋章。\n- **后世评价**：被誉为“国际主义的光辉典范”，其“三不相信”精神被概括为“杨根思精神”，是中华民族不畏强暴、敢于斗争精神的集中体现。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**抗美援朝战争**（1950-1953），保家卫国。\n- **关键事件**：**长津湖战役**，中国人民志愿军在极端艰苦条件下与美军作战。\n- **代表精神**：**革命英雄主义**、**爱国主义**、**国际主义**精神。\n- **英雄称号**：**特级英雄**杨根思（与黄继光等并列）。\n- **核心事迹**：在**小高岭**阵地战斗至最后一人，**抱起炸药包与敌人同归于尽**。\n- **精神格言**：**“三不相信”精神**。\n- **常见对比点**：与**黄继光**（堵枪眼）、**邱少云**（纪律重于生命）同为抗美援朝“三大英雄”。\n\n### 高中阶段\n- **历史背景**：**冷战**格局下，新中国为维护国家安全和国际地位进行的**立国之战**。\n- **战役分析**：**长津湖战役**的战略意义（东线关键阻击战），其惨烈程度体现了**钢铁意志与钢铁装备的对抗**。\n- **精神内涵**：深入理解“三不相信”精神作为**人民军队战斗精神**的集中体现，及其在**现代化强军**征程中的时代价值。\n- **人物定位**：从**全国战斗英雄**到**志愿军特级英雄**的成长轨迹，体现中国共产党领导下的人民军队**英雄辈出**的传统。\n- **易混点/对比点**：区分志愿军英雄荣誉等级（特级英雄、一级英雄等）；对比**解放战争**与**抗美援朝战争**中英雄事迹的异同（如作战对象、国际环境）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 杨根思是中国人民志愿军**特级英雄**。\n- 他牺牲于**抗美援朝**战争中的**长津湖战役**。\n- 他牺牲的具体地点是**小高岭**阵地。\n- 他的英雄壮举是**抱起炸药包冲入敌群，与敌人同归于尽**。\n- 他代表的精神是**革命英雄主义**和**爱国主义**精神。\n- 他的名言是“**三不相信**”精神。\n\n### 高中阶段考点\n- 杨根思事迹所体现的**抗美援朝精神**的内涵（祖国和人民利益高于一切、为了祖国和民族的尊严而奋不顾身的爱国主义精神等）。\n- **长津湖战役**在抗美援朝战争第二次战役中的**战略地位**（东线分割包围，为西线主力反击创造条件）。\n- 杨根思从**解放战争**战斗英雄到**抗美援朝**特级英雄的**成长历程**，反映人民军队的传承。\n- **“杨根思连”** 作为英模单位的**当代意义**与军队荣誉体系。\n- 关于其牺牲时具体细节（如炸药包数量、最后时刻的对话）在不同回忆录中说法不一，但核心事实一致。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 江苏泰兴羊货郎店 | 江苏省泰兴市根思乡 | 32.252770 | 120.011477 |\n| 江苏泰兴（参加新四军） | 江苏省泰兴市 | 32.174974 | 120.046511 |\n| 山东泰安、兖州（解放战争战场） | 山东省泰安市 | 36.201534 | 117.080896 |\n| 朝鲜咸镜南道长津郡下碣隅里 | 朝鲜咸镜南道长津郡下碣隅里 | 40.395257 | 127.260505 |\n| 朝鲜咸镜南道长津郡小高岭 | 朝鲜咸镜南道长津郡下碣隅里 | 40.395257 | 127.260505 |\n", "relatedGraph": {"center": {"id": "杨根思", "name": "杨根思", "file": "杨根思.html", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "aliases": [], "birth_year": 1922, "death_year": 1950, "quote": "全国战斗英雄", "review": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "foreign_name": "", "main_role_label": "其他", "birthplace": "江苏省泰兴县羊货郎店", "birthplace_modern": "泰兴市根思乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨根思", "name": "杨根思", "file": "杨根思.html", "dynasty": "中国现代（抗日战争、解放战争、抗美援朝战争时期）", "aliases": [], "birth_year": 1922, "death_year": 1950, "quote": "全国战斗英雄", "review": "不相信有完不成的任务，不相信有克服不了的困难，不相信有战胜不了的敌人。", "foreign_name": "", "main_role_label": "其他", "birthplace": "江苏省泰兴县羊货郎店", "birthplace_modern": "泰兴市根思乡", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "横扫清华图书馆", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "小二黑好比一枝花，可惜开在粪堆旁。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "纪律重于生命", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "罗盛教", "name": "罗盛教", "file": "罗盛教.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "一级爱民模范", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省娄底市新化县", "birthplace_modern": "松山乡桐子村", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "杨根思", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "杨根思", "target": "邱少云", "label": "同册共现", "confidence": 0.15}, {"source": "杨根思", "target": "罗盛教", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "b79db12970f5"};
 window.__EXPORT_DATA__ = data;
+const __BUILD_META__ = {
+  version: "b79db12970f5",
+  builtAt: "2026-06-21T01:53:00Z"
+};
+window.__BUILD_META__ = __BUILD_META__;
+const openFeedbackDialog = anchor => {
+  try {
+    const personName = String(data && data.person && data.person.name || document.title || '').trim();
+    const url = (typeof window !== 'undefined' && window.location ? window.location.href : '') || '';
+    const meta = window.__BUILD_META__ || {};
+    const lines = [];
+    lines.push('请尽量保留以下信息，便于我们快速复现问题：');
+    lines.push('--- 自动附带的可复现信息 ---');
+    lines.push('人物：' + personName);
+    lines.push('页面：' + url);
+    lines.push('反馈位置：' + String(anchor || 'header'));
+    lines.push('构建版本：' + String(meta.version || 'unknown'));
+    lines.push('构建时间：' + String(meta.builtAt || 'unknown'));
+    lines.push('提交时间：' + new Date().toISOString());
+    lines.push('--- 请在下方描述具体问题 ---');
+    lines.push('错误类型（例：作品摘要错误 / 出生地错误 / 朝代错误 / 地图标记错误 / 其他）：');
+    lines.push('');
+    lines.push('详细描述：');
+    lines.push('');
+    const body = lines.join('\n');
+    const fallbackInstruction = '请复制以下内容并发送给维护者：\n\n' + body;
+    const subject = '[StoryMap 反馈] ' + (personName || '人物页') + ' / ' + (meta.version || 'unknown');
+    const mailToTarget = (window.__FEEDBACK_MAILTO__ || '').trim();
+    if (mailToTarget) {
+      const href = 'mailto:' + encodeURIComponent(mailToTarget) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      window.open(href, '_blank');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(body).then(() => {
+        try {
+          window.alert('已复制反馈模板到剪贴板，请粘贴到反馈渠道。\n\n' + body);
+        } catch (_) {}
+      }).catch(() => {
+        try {
+          window.alert(fallbackInstruction);
+        } catch (_) {}
+      });
+      return;
+    }
+    try {
+      window.alert(fallbackInstruction);
+    } catch (_) {}
+  } catch (err) {
+    try {
+      window.alert('反馈窗口打开失败：' + (err && err.message ? err.message : err));
+    } catch (_) {}
+  }
+};
+window.openFeedbackDialog = openFeedbackDialog;
 const waitForMs = ms => new Promise(resolve => window.setTimeout(resolve, Math.max(0, Number(ms || 0))));
 const stopMediaStream = stream => {
   try {
@@ -2455,6 +2593,7 @@ const relatedGraph = data.relatedGraph || {};
 const relatedGraphNodes = Array.isArray(relatedGraph.nodes) ? relatedGraph.nodes : [];
 const relatedGraphLinks = Array.isArray(relatedGraph.links) ? relatedGraph.links : [];
 const rawWorkTexts = data.workTexts && typeof data.workTexts === 'object' ? data.workTexts : {};
+const rawWorkSummaries = data.workSummaries && typeof data.workSummaries === 'object' ? data.workSummaries : {};
 const mergedTeachingPoints = [textbookPoints, examPoints].filter(Boolean).join('\\n\\n');
 const dedupeTeachingMarkdown = raw => {
   const LF = String.fromCharCode(10);
@@ -2631,12 +2770,6 @@ const getWorkTitleAliases = title => {
   return aliases;
 };
 const WORK_TOOLTIP_BAD_PATTERNS = [/^(主要成就|核心要点|关键史实|历史地位|历史影响|历史评价|时代背景|代表作品|作品简介|主题思想|写作背景|作者简介|艺术特色|内容简介)\s*[：:]/, /^无[。；;!！]?$/, /^暂无[。；;!！]?$/];
-const shouldDisableWorkTooltip = (title, workText) => {
-  const aliases = getWorkTitleAliases(title);
-  if (!aliases.length) return true;
-  if (aliases.some(item => NO_WORK_TOOLTIP_TITLES.has(item))) return true;
-  return !String(workText || '').trim();
-};
 const buildWorkTooltipLibrary = source => {
   const out = {};
   for (const [title, text] of Object.entries(source && typeof source === 'object' ? source : {})) {
@@ -2651,8 +2784,60 @@ const buildWorkTooltipLibrary = source => {
   }
   return out;
 };
+const uniqTrimmed = items => {
+  const out = [];
+  const seen = new Set();
+  for (const item of Array.isArray(items) ? items : []) {
+    const text = String(item || '').trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+  }
+  return out;
+};
+const normalizeWorkSummaryItem = (title, raw) => {
+  const item = raw && typeof raw === 'object' ? raw : {};
+  const displayTitle = String(item.title || title || '').trim();
+  return {
+    title: displayTitle,
+    aliases: uniqTrimmed(item.aliases),
+    authors: uniqTrimmed(item.authors),
+    relatedPeople: uniqTrimmed(item.related_people),
+    sourcePages: uniqTrimmed(item.source_pages),
+    era: String(item.era || '').trim(),
+    genre: String(item.genre || '').trim(),
+    oneLiner: String(item.one_liner || '').trim(),
+    summary: String(item.summary || '').trim(),
+    quote: String(item.quote || '').trim(),
+    quotes: uniqTrimmed(item.quotes),
+    quotePolicy: String(item.quote_policy || '').trim()
+  };
+};
+const hasWorkSummaryContent = item => {
+  if (!item || typeof item !== 'object') return false;
+  return Boolean(String(item.oneLiner || '').trim() || String(item.summary || '').trim() || String(item.quote || '').trim() || uniqTrimmed(item.quotes).length || String(item.era || '').trim() || String(item.genre || '').trim() || uniqTrimmed(item.authors).length || uniqTrimmed(item.relatedPeople).length);
+};
+const buildWorkSummaryLibrary = source => {
+  const out = {};
+  for (const [title, value] of Object.entries(source && typeof source === 'object' ? source : {})) {
+    const item = normalizeWorkSummaryItem(title, value);
+    if (!item.title) continue;
+    const aliases = uniqTrimmed([item.title, ...item.aliases].flatMap(alias => getWorkTitleAliases(alias)));
+    if (!aliases.length) continue;
+    const score = String(item.oneLiner || '').length + String(item.summary || '').length + String(item.quote || '').length + uniqTrimmed(item.quotes).join('').length + uniqTrimmed(item.authors).join('').length + uniqTrimmed(item.relatedPeople).join('').length;
+    for (const alias of aliases) {
+      const existing = out[alias];
+      const existingScore = existing ? String(existing.oneLiner || '').length + String(existing.summary || '').length + String(existing.quote || '').length + uniqTrimmed(existing.quotes).join('').length : -1;
+      if (!existing || score > existingScore) {
+        out[alias] = item;
+      }
+    }
+  }
+  return out;
+};
 const sharedWorkTextLibrary = buildWorkTooltipLibrary(SHARED_WORK_TOOLTIP_TEXTS);
 const workTextLibrary = buildWorkTooltipLibrary(rawWorkTexts);
+const workSummaryLibrary = buildWorkSummaryLibrary(rawWorkSummaries);
 const extractWorkOriginalSentence = rawText => {
   const text = String(rawText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   if (!text) return '';
@@ -2766,61 +2951,136 @@ const getWorkTooltipFallbackText = title => {
   for (const alias of aliases) {
     const quotes = WORK_TOOLTIP_FALLBACK_QUOTES[alias];
     if (Array.isArray(quotes) && quotes.length) {
-      return quotes.slice(0, 2).map(item => `“${String(item || '').trim()}”`).join('\n');
+      return quotes.slice(0, 2).map(item => String(item || '').trim()).join('\n');
     }
   }
   return '';
 };
-const getWorkTooltipText = title => {
+const getWorkTooltipPayload = title => {
   const aliases = getWorkTitleAliases(title);
+  for (const alias of aliases) {
+    const summaryItem = workSummaryLibrary[alias];
+    if (summaryItem && hasWorkSummaryContent(summaryItem)) {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from summary index', {
+        title: String(title || ''),
+        alias: String(alias || ''),
+        source: 'summary-index'
+      });
+      return {
+        summary: summaryItem,
+        text: ''
+      };
+    }
+  }
   for (const alias of aliases) {
     const sharedText = String(sharedWorkTextLibrary[alias] || '').trim();
     if (sharedText) {
-      debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip from shared library', {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from shared library', {
         title: String(title || ''),
         alias: String(alias || ''),
         source: 'shared-library',
         text: String(sharedText || '').slice(0, 120)
       });
-      return sharedText;
+      return {
+        summary: null,
+        text: sharedText
+      };
     }
   }
   for (const alias of aliases) {
     const localText = extractWorkOriginalSentence(workTextLibrary[alias] || '');
     if (localText) {
-      debugBootEmit('B', 'profile_page.html:getWorkTooltipText', 'before debugEmit library path', {
+      debugBootEmit('B', 'profile_page.html:getWorkTooltipPayload', 'before debugEmit library path', {
         title: String(title || ''),
         alias: String(alias || ''),
         hasDebugEmit: typeof debugEmit !== 'undefined'
       });
-      debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip from library', {
+      debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip from library', {
         title: String(title || ''),
         alias: String(alias || ''),
         source: 'library',
         text: String(localText || '').slice(0, 120)
       });
-      return localText;
+      return {
+        summary: null,
+        text: localText
+      };
     }
   }
   const fallbackText = getWorkTooltipFallbackText(title);
-  debugBootEmit('B', 'profile_page.html:getWorkTooltipText', 'before debugEmit fallback path', {
+  debugBootEmit('B', 'profile_page.html:getWorkTooltipPayload', 'before debugEmit fallback path', {
     title: String(title || ''),
     hasDebugEmit: typeof debugEmit !== 'undefined',
     hasFallbackText: Boolean(fallbackText)
   });
-  debugEmit('D', 'profile_page.html:getWorkTooltipText', 'work tooltip fallback resolved', {
+  debugEmit('D', 'profile_page.html:getWorkTooltipPayload', 'work tooltip fallback resolved', {
     title: String(title || ''),
     source: fallbackText ? 'fallback' : 'empty',
     text: String(fallbackText || '').slice(0, 120)
   });
-  return fallbackText;
+  return {
+    summary: null,
+    text: fallbackText
+  };
+};
+const shouldDisableWorkTooltip = (title, payload) => {
+  const aliases = getWorkTitleAliases(title);
+  if (!aliases.length) return true;
+  if (aliases.some(item => NO_WORK_TOOLTIP_TITLES.has(item))) return true;
+  return !hasWorkSummaryContent(payload?.summary) && !String(payload?.text || '').trim();
+};
+const WorkTooltipCard = ({
+  title,
+  summary,
+  text
+}) => {
+  const authors = uniqTrimmed(summary?.authors);
+  const relatedPeople = uniqTrimmed(summary?.relatedPeople).filter(item => item !== authors[0]);
+  const quotes = uniqTrimmed(summary?.quotes);
+  const quotePolicy = String(summary?.quotePolicy || '').trim();
+  const rows = [{
+    label: '作者',
+    value: authors.join(' / ')
+  }, {
+    label: '时代',
+    value: String(summary?.era || '').trim()
+  }, {
+    label: '体裁',
+    value: String(summary?.genre || '').trim()
+  }, {
+    label: '关联人物',
+    value: relatedPeople.slice(0, 3).join(' / ')
+  }].filter(row => String(row.value || '').trim());
+  const lead = String(summary?.oneLiner || summary?.summary || text || '').trim();
+  const singleQuote = String(summary?.quote || '').trim();
+  const quoteItems = quotes.length ? quotes.slice(0, 3) : singleQuote ? [singleQuote] : [];
+  return React.createElement("span", {
+    className: "block max-h-[260px] min-w-[260px] max-w-[420px] overflow-y-auto rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]"
+  }, React.createElement("span", {
+    className: "flex flex-col gap-1.5"
+  }, React.createElement("span", {
+    className: "text-[13px] font-semibold leading-5 text-gray-900"
+  }, title), lead ? React.createElement("span", {
+    className: "whitespace-pre-wrap leading-6"
+  }, lead) : null, rows.length ? React.createElement("span", {
+    className: "flex flex-col gap-1 text-[11px] leading-5 text-gray-500"
+  }, rows.map(row => React.createElement("span", {
+    key: row.label
+  }, row.label, "\uFF1A", row.value))) : null, quoteItems.length ? React.createElement("span", {
+    className: "flex flex-col gap-1 border-t border-[#e7d9bf]/70 pt-1.5 mt-0.5"
+  }, quoteItems.map((item, idx) => React.createElement("span", {
+    key: `${title}-quote-${idx}`,
+    className: "whitespace-pre-wrap text-[12.5px] leading-6 font-semibold text-gray-900 tracking-wide"
+  }, item))) : null, quotePolicy === 'summary_only' && !quoteItems.length ? React.createElement("span", {
+    className: "text-[11px] leading-5 text-gray-400"
+  }, "\u540D\u53E5\u5C55\u793A\uFF1A\u6B64\u7C7B\u4F5C\u54C1\u9ED8\u8BA4\u4EC5\u5C55\u793A\u6458\u8981") : null));
 };
 const WorkTitleWithTooltip = ({
   fullTitle,
   className
 }) => {
   const title = normalizeWorkTitle(fullTitle);
-  const workText = getWorkTooltipText(title);
+  const tooltipPayload = getWorkTooltipPayload(title);
   const [placement, setPlacement] = useState({
     vertical: 'up',
     horizontal: 'left'
@@ -2871,7 +3131,7 @@ const WorkTitleWithTooltip = ({
       window.removeEventListener('scroll', sync, true);
     };
   }, [open, updatePlacement]);
-  if (shouldDisableWorkTooltip(title, workText)) {
+  if (shouldDisableWorkTooltip(title, tooltipPayload)) {
     if (!className) return React.createElement(React.Fragment, null, fullTitle);
     return React.createElement("span", {
       className: className
@@ -2879,14 +3139,18 @@ const WorkTitleWithTooltip = ({
   }
   const tooltipNode = open && typeof document !== 'undefined' && typeof ReactDOM !== 'undefined' ? ReactDOM.createPortal(React.createElement("span", {
     ref: tooltipRef,
-    className: "pointer-events-none fixed z-[1400] max-h-[240px] min-w-[260px] max-w-[420px] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#c8b496]/78 bg-white px-3 py-2 text-xs leading-6 text-gray-700 shadow-[0_18px_40px_rgba(15,23,42,0.22)]",
+    className: "pointer-events-none fixed z-[1400]",
     style: {
       left: `${portalStyle.left}px`,
       top: `${portalStyle.top}px`,
       maxWidth: 'min(420px, calc(100vw - 2rem))',
       visibility: portalStyle.visibility || 'hidden'
     }
-  }, React.createElement("span", null, workText)), document.body) : null;
+  }, React.createElement(WorkTooltipCard, {
+    title: title,
+    summary: tooltipPayload.summary,
+    text: tooltipPayload.text
+  })), document.body) : null;
   return React.createElement(React.Fragment, null, React.createElement("span", {
     ref: rootRef,
     className: "relative z-0 inline-flex align-baseline",
@@ -3536,6 +3800,8 @@ const App = () => {
   const [mapLayerType, setMapLayerType] = useState('vector');
   const [mapRecoveryTick, setMapRecoveryTick] = useState(0);
   const [mapReadyTick, setMapReadyTick] = useState(0);
+  const [mapLoadState, setMapLoadState] = useState('idle');
+  const [mapInitRequestTick, setMapInitRequestTick] = useState(0);
   const [isJourneyFullscreen, setIsJourneyFullscreen] = useState(false);
   const [isJourneyExportFullscreenLayout, setIsJourneyExportFullscreenLayout] = useState(false);
   const [terrainCompassState, setTerrainCompassState] = useState({
@@ -3564,13 +3830,138 @@ const App = () => {
   const splitRef = useRef(null);
   const shellContentRef = useRef(null);
   const journeyShellRef = useRef(null);
+  const mapViewportRef = useRef(null);
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
+  const chatAbortControllerRef = useRef(null);
+  const chatFlushTimerRef = useRef(null);
+  const chatPendingTextRef = useRef('');
+  const chatPendingMessageIdRef = useRef('');
+  const chatDisplayQueueRef = useRef([]);
+  const chatDisplayedTextRef = useRef('');
   const locItemRefs = useRef([]);
+  const clearChatFlushTimer = React.useCallback(() => {
+    if (chatFlushTimerRef.current) {
+      window.clearTimeout(chatFlushTimerRef.current);
+      chatFlushTimerRef.current = null;
+    }
+  }, []);
+  const splitStreamDeltaForDisplay = React.useCallback(text => {
+    const raw = String(text || '').replace(/\r/g, '');
+    if (!raw) return [];
+    const pieces = [];
+    let buffer = '';
+    const flush = () => {
+      if (!buffer) return;
+      pieces.push(buffer);
+      buffer = '';
+    };
+    for (const ch of Array.from(raw)) {
+      buffer += ch;
+      if (/\s/.test(ch)) {
+        flush();
+        continue;
+      }
+      if (/[。！？!?；;，,、：:）)\]】》”"'’]/.test(ch)) {
+        flush();
+        continue;
+      }
+      const hasCjk = /[\u3400-\u9fff]/.test(buffer);
+      const limit = hasCjk ? 3 : 8;
+      if (buffer.length >= limit) {
+        flush();
+      }
+    }
+    flush();
+    return pieces;
+  }, []);
+  const flushStreamedChatMessage = React.useCallback((messageId, {
+    streaming = true
+  } = {}) => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    clearChatFlushTimer();
+    const content = String(chatPendingTextRef.current || '');
+    setChatMessages(prev => prev.map(item => item && item.id === targetId ? {
+      ...item,
+      content,
+      streaming: !!streaming
+    } : item));
+  }, [clearChatFlushTimer]);
+  const pumpStreamedChatDisplay = React.useCallback((messageId, {
+    streaming = true,
+    forceAll = false
+  } = {}) => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    clearChatFlushTimer();
+    const queue = Array.isArray(chatDisplayQueueRef.current) ? chatDisplayQueueRef.current : [];
+    let appended = '';
+    if (forceAll) {
+      appended = queue.join('');
+      queue.length = 0;
+    } else {
+      let charBudget = 0;
+      while (queue.length) {
+        const next = String(queue.shift() || '');
+        if (!next) continue;
+        if (appended && charBudget + next.length > 12) {
+          queue.unshift(next);
+          break;
+        }
+        appended += next;
+        charBudget += next.length;
+        if (/[。！？!?；;，,、：:）)\]】》”"'’]\s*$/.test(appended) || charBudget >= 9) {
+          break;
+        }
+      }
+    }
+    if (appended) {
+      chatDisplayedTextRef.current = `${String(chatDisplayedTextRef.current || '')}${appended}`;
+    }
+    chatPendingTextRef.current = String(chatDisplayedTextRef.current || '');
+    flushStreamedChatMessage(targetId, {
+      streaming
+    });
+    if (!forceAll && queue.length) {
+      chatFlushTimerRef.current = window.setTimeout(() => {
+        const pendingId = String(chatPendingMessageIdRef.current || '').trim() || targetId;
+        pumpStreamedChatDisplay(pendingId, {
+          streaming: true,
+          forceAll: false
+        });
+      }, 24);
+    }
+  }, [clearChatFlushTimer, flushStreamedChatMessage]);
+  const scheduleStreamedChatFlush = React.useCallback(messageId => {
+    const targetId = String(messageId || '').trim();
+    if (!targetId) return;
+    chatPendingMessageIdRef.current = targetId;
+    if (chatFlushTimerRef.current) return;
+    chatFlushTimerRef.current = window.setTimeout(() => {
+      const pendingId = String(chatPendingMessageIdRef.current || '').trim() || targetId;
+      pumpStreamedChatDisplay(pendingId, {
+        streaming: true,
+        forceAll: false
+      });
+    }, 24);
+  }, [pumpStreamedChatDisplay]);
+  const abortCurrentChatRequest = React.useCallback(() => {
+    const controller = chatAbortControllerRef.current;
+    chatAbortControllerRef.current = null;
+    if (controller && typeof controller.abort === 'function') {
+      try {
+        controller.abort();
+      } catch (_err) {}
+    }
+    clearChatFlushTimer();
+    chatDisplayQueueRef.current = [];
+    chatDisplayedTextRef.current = '';
+  }, [clearChatFlushTimer]);
   const totalEvents = locations.length;
   const getOverviewPadding = containerWidth => {
     const width = Number(containerWidth || 0) || (typeof window !== 'undefined' ? Number(window.innerWidth || 0) : 0) || 1200;
@@ -4558,6 +4949,17 @@ const App = () => {
     if (el) el.textContent = text;
     setMapStatusNotice(next);
   };
+  const requestMapInitialization = React.useCallback((reason = 'manual') => {
+    if (mapRef.current || mapLoadState === 'loading') return false;
+    setMapLoadState('loading');
+    setMapInitRequestTick(value => value + 1);
+    try {
+      if (typeof window !== 'undefined') {
+        window.__MAP_LAZY_TRIGGER__ = String(reason || 'manual');
+      }
+    } catch (_) {}
+    return true;
+  }, [mapLoadState]);
   const retryPreferredMapProvider = targetLayerType => {
     const nextLayerType = String(targetLayerType || mapLayerType || 'vector');
     mapProviderRef.current = isTerrain3DMode(nextLayerType) ? 'cesium' : 'geovis';
@@ -4570,6 +4972,29 @@ const App = () => {
     }
     setMapRecoveryTick(value => value + 1);
   };
+  useEffect(() => {
+    hideBootFallback();
+  }, []);
+  useEffect(() => {
+    if (mapInitRequestTick > 0 || mapRef.current) return undefined;
+    const target = mapViewportRef.current;
+    if (!target) return undefined;
+    if (typeof window === 'undefined' || typeof window.IntersectionObserver !== 'function') {
+      requestMapInitialization('fallback');
+      return undefined;
+    }
+    const observer = new window.IntersectionObserver(entries => {
+      const visible = entries.some(entry => entry && entry.isIntersecting);
+      if (!visible) return;
+      observer.disconnect();
+      requestMapInitialization('viewport');
+    }, {
+      rootMargin: '240px 0px',
+      threshold: 0.12
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [mapInitRequestTick, requestMapInitialization]);
   const handleMapNoticeAction = action => {
     if (!action || typeof action !== 'object') return;
     const kind = String(action.kind || '');
@@ -4913,6 +5338,7 @@ const App = () => {
     syncMapCanvasVisibility(nextMode);
     amapControllerRef.current.applyBaseLayer(nextMode);
     mapRef.current = amapControllerRef.current;
+    setMapLoadState('ready');
     if (typeof window !== 'undefined') {
       window.__STORY_MAP_TEST__ = {
         setBasemap: nextType => {
@@ -4996,12 +5422,12 @@ const App = () => {
     return () => clearTimeout(timer);
   }, [isAutoPlaying, activeIndex, totalEvents]);
   useEffect(() => {
-    hideBootFallback();
     let disposed = false;
-    if (mapRef.current) return () => {
+    if (mapInitRequestTick <= 0 || mapRef.current) return () => {
       disposed = true;
     };
     const initMap = async () => {
+      setMapLoadState('loading');
       const first = locations[0] || {
         lat: 35,
         lng: 105
@@ -5011,6 +5437,7 @@ const App = () => {
         try {
           await activateAmapFallback(preferredMode, reason || 'GeoVis 服务暂不可用，已回退到高德地图');
         } catch (err) {
+          setMapLoadState('error');
           setMapNotice(`${String(reason || 'GeoVis 服务暂不可用')}；高德地图加载失败：${String(err?.message || err)}`);
         }
       };
@@ -6018,6 +6445,7 @@ const App = () => {
           } catch (_) {}
           applyMapViewMode(map, 'vector', true);
           renderStoryOverlays();
+          setMapLoadState('ready');
           setMapReadyTick(value => value + 1);
         }
       });
@@ -6065,7 +6493,7 @@ const App = () => {
       cesiumControllerRef.current = null;
       mapRef.current = null;
     };
-  }, []);
+  }, [mapInitRequestTick]);
   useEffect(() => {
     const geovis = window.__MAP_STORY_GEOVIS__;
     let cancelled = false;
@@ -6766,6 +7194,11 @@ const App = () => {
   const journeyFullscreenActive = isJourneyFullscreen || isJourneyExportFullscreenLayout;
   const journeyPanelHeight = journeyFullscreenActive ? '100%' : '620px';
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
+  const mapReady = mapLoadState === 'ready';
+  const mapLoading = mapLoadState === 'loading';
+  const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图';
+  const mapLazyCopy = mapLoading ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。' : mapLoadState === 'error' ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。' : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。';
+  const mapLazyActionLabel = mapLoading ? '正在加载地图…' : mapLoadState === 'error' ? '重试加载地图' : '立即加载地图';
   useEffect(() => {
     const syncMapViewport = () => {
       try {
@@ -7051,16 +7484,19 @@ const App = () => {
     const firstWork = relatedWorks.map(item => String(item || '').trim()).find(Boolean) || '';
     const firstQuote = (locations || []).flatMap(loc => Array.isArray(loc.quoteLines) ? loc.quoteLines : []).map(item => String(item || '').trim()).find(Boolean) || '';
     const roleText = String(relatedIdentities || relatedStatus || '').trim();
-    const questionPool = [roleText, description, data?.person?.dynasty, firstWork, firstQuote].filter(Boolean).join(' ');
-    const detectPromptProfile = () => {
-      if (/(将军|将领|统帅|武将|领兵|统军|用兵|出征|征战|战役|战场|守边|军旅|军功|行伍|骑兵|北伐|东征|西征|南征)/.test(questionPool)) return 'military';
-      if (/(诗人|词人|作家|文学|文豪|诗|词|赋|文章|书法|画家|文选)/.test(questionPool)) return 'literary';
-      if (/(政治家|宰相|皇帝|君主|帝王|改革|变法|执政|官员|丞相|大臣|首相)/.test(questionPool)) return 'statesman';
-      if (/(思想家|学者|教育家|经学|哲学|史学|史家|学术|理学|科学家|数学|天文|医学)/.test(questionPool)) return 'scholar';
-      if (/(使者|外交|航海|探险|旅行|出使|西域|海上|地理)/.test(questionPool)) return 'explorer';
-      return 'general';
+    const rolePool = [roleText, relatedHonor, relatedStatus, relatedIdentities].filter(Boolean).join(' ');
+    const descPool = [description, shortReview, data?.person?.dynasty, ...relatedReviews.slice(0, 2)].filter(Boolean).join(' ');
+    const profileScores = {
+      ruler: 0,
+      military: 0,
+      reformer: 0,
+      literary: 0,
+      scholar: 0,
+      artist: 0,
+      explorer: 0,
+      religious: 0,
+      revolutionary: 0
     };
-    const promptProfile = detectPromptProfile();
     const push = (label, question, tone = 'slate') => {
       const val = String(question || '').trim();
       const tag = String(label || '').trim();
@@ -7072,6 +7508,28 @@ const App = () => {
         tone
       });
     };
+    const addScore = (profile, score, pattern, pool) => {
+      if (pattern.test(pool)) profileScores[profile] += score;
+    };
+    addScore('ruler', 6, /(皇帝|帝王|国王|女王|君主|王朝|王室|可汗|汗王|摄政|登基|加冕|称帝|即位|统治者|皇后|王后)/, rolePool);
+    addScore('ruler', 3, /(帝国|王权|教权|继承|都城|疆域|宫廷|封臣|封建|加冕|王国)/, descPool);
+    addScore('military', 6, /(将军|将领|统帅|武将|元帅|领兵|统军|用兵|征服者|军旅|军功)/, rolePool);
+    addScore('military', 3, /(出征|征战|远征|战役|战场|边疆|平叛|围攻|征服|攻陷|军队|北伐|东征|西征|南征|萨克森|龙塞斯瓦列斯)/, descPool);
+    addScore('reformer', 5, /(改革家|变法|新政|制度|法制|法典|治国|施政|行政)/, rolePool);
+    addScore('reformer', 3, /(改革|制度|法典|行政|学校|教育|文艺复兴|秩序|治理|抄录|规范|选官|新政|改制)/, descPool);
+    addScore('literary', 6, /(诗人|词人|作家|文学家|文豪|散文家|小说家|剧作家|诗词家)/, rolePool);
+    addScore('literary', 3, /(诗|词|赋|文章|写作|文学|叙事|抒情|名句|文风|作品)/, descPool);
+    addScore('scholar', 6, /(思想家|学者|教育家|史学家|哲学家|科学家|数学家|天文学家|医学家|经学家|理学家)/, rolePool);
+    addScore('scholar', 3, /(学术|思想|理论|考证|观察|实验|推演|著述|研究|史学|哲学|数学|天文|医学)/, descPool);
+    addScore('artist', 6, /(画家|书法家|音乐家|作曲家|雕塑家|艺术家|琴师)/, rolePool);
+    addScore('artist', 3, /(绘画|书法|笔法|构图|旋律|乐章|雕塑|色彩|笔墨|审美)/, descPool);
+    addScore('explorer', 6, /(航海家|探险家|旅行家|使者|外交家|地理学家)/, rolePool);
+    addScore('explorer', 3, /(航海|探险|旅行|出使|西域|海上|地理|远行|航线|异域)/, descPool);
+    addScore('religious', 6, /(僧人|高僧|教皇|修士|传教士|神学家|宗教改革家|圣徒)/, rolePool);
+    addScore('religious', 3, /(信仰|教会|教廷|传教|教义|修道院|宗教|圣像)/, descPool);
+    addScore('revolutionary', 6, /(革命家|起义领袖|革命者|领袖|革命先驱)/, rolePool);
+    addScore('revolutionary', 3, /(革命|起义|救亡|宣传|组织|动员|独立|解放|群众运动|地下工作)/, descPool);
+    const rankedProfiles = Object.entries(profileScores).filter(([, score]) => Number(score || 0) > 0).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0)).map(([profile]) => profile);
     const normalizePromptPlaceName = loc => {
       const raw = String(getSelectedLocDisplayName(loc) || '').trim();
       if (!raw) return '';
@@ -7087,39 +7545,72 @@ const App = () => {
       return '';
     };
     const placeName = findPromptPlaceName();
-    if (promptProfile === 'military') {
-      push('战局判断', placeName ? `你在${placeName}这一站经历了什么？这一步为何会影响后面的战局？` : '哪一场战事最能体现你的判断力与代价？', 'rose');
-      push('关键抉择', roleText ? `作为${roleText}，你最看重的一次取舍，是用兵、结盟，还是守住底线？` : '你最不后悔的一次用兵或判断是什么？', 'amber');
-      if (firstQuote) push('当时心境', `你说过“${firstQuote}”，那更像是在自励、告诫，还是回应时局？`, 'slate');
-      push('时代压力', '若回到当时的局势里，你最想让后人理解你面对的哪一种压力？', 'blue');
-    } else if (promptProfile === 'literary') {
-      push('写作缘起', firstWork ? `写《${firstWork}》时，你最想留下的不是名句，而是什么？` : '你写作时最在意先写情绪、意象，还是时代处境？', 'purple');
-      if (firstQuote) push('名句背后', `你说过“${firstQuote}”，这句最接近你当时的哪种真实心境？`, 'amber');
-      push('作品与人生', '你更希望后人先读懂你的作品，还是先读懂你的人生遭际？', 'blue');
-      if (placeName) push('此地触发', `${placeName}这处经历如何改变了你的表达方式或作品气质？`, 'green');
-    } else if (promptProfile === 'statesman') {
-      push('政务判断', roleText ? `作为${roleText}，你最难的一次判断，是稳住局面、推动改革，还是取舍人心？` : '你最难的一次政治判断是什么？', 'blue');
-      push('权衡取舍', '面对理想与现实冲突时，你当时最先守住的是什么？', 'amber');
-      if (placeName) push('关键现场', `在${placeName}这一站，你看到的局势变化，后来怎样影响了你的决定？`, 'green');
-      push('后世误解', '如果只能纠正后人对你的一种误解，你最想先纠正哪一点？', 'slate');
-    } else if (promptProfile === 'scholar') {
-      push('学术方法', '你观察世界、整理材料、形成判断时，最倚重的方法是什么？', 'purple');
-      push('核心问题', '你一生真正反复追问的核心问题是什么？', 'blue');
-      if (firstWork) push('代表成果', `如果只拿《${firstWork}》来理解你，会抓住重点，还是会遗漏你更想表达的部分？`, 'green');
-      push('时代对话', '若把你放回今天，你最想参与哪一场讨论？', 'amber');
-    } else if (promptProfile === 'explorer') {
-      push('远行原因', '你为什么一定要走出去看更远的世界？', 'green');
-      if (placeName) push('这一站', `${placeName}这一站最让你重新认识了什么？`, 'blue');
-      push('陌生世界', '第一次进入陌生地域时，你最先观察的是人、地形，还是秩序？', 'amber');
-      push('带回什么', '你真正带回来的，除了见闻与路线，还有什么更重要的东西？', 'slate');
-    }
+    const addPromptSet = profile => {
+      if (profile === 'ruler') {
+        push('帝国治理', roleText ? `作为${roleText}，你最难稳住的是疆域、人心，还是继承秩序？` : '你最难的一次统治判断是什么？', 'blue');
+        push('权力来源', '你如何理解王权、教权与正统性之间的关系？', 'amber');
+        if (placeName) push('关键现场', `在${placeName}这一站，哪一个决定最能体现你怎样统治整个局面？`, 'green');
+        push('身后遗产', '你更希望后人记住你的武功、制度，还是你留下的时代秩序？', 'slate');
+        return;
+      }
+      if (profile === 'military') {
+        push('战局判断', placeName ? `你在${placeName}这一站经历了什么？这一步为何会影响后面的战局？` : '哪一场战事最能体现你的判断力与代价？', 'rose');
+        push('征服代价', roleText ? `作为${roleText}，你最看重的一次取舍，是扩张、结盟，还是稳住后方？` : '你最不后悔的一次用兵或判断是什么？', 'amber');
+        if (firstQuote) push('当时心境', `你说过“${firstQuote}”，那更像是在自励、告诫，还是回应时局？`, 'slate');
+        return;
+      }
+      if (profile === 'reformer') {
+        push('制度建设', '如果武功终会过去，你最希望留下的是哪一套制度、秩序或做事方法？', 'green');
+        push('改革阻力', '你推动改革或整顿秩序时，最大的阻力来自旧利益、地方力量，还是时代观念？', 'blue');
+        if (placeName) push('改革现场', `${placeName}这一站的经历，后来怎样改变了你的治理方式？`, 'amber');
+        return;
+      }
+      if (profile === 'literary') {
+        push('写作缘起', firstWork ? `写《${firstWork}》时，你最想留下的不是名句，而是什么？` : '你写作时最在意先写情绪、意象，还是时代处境？', 'purple');
+        if (firstQuote) push('名句背后', `你说过“${firstQuote}”，这句最接近你当时的哪种真实心境？`, 'amber');
+        push('作品与人生', '你更希望后人先读懂你的作品，还是先读懂你的人生遭际？', 'blue');
+        if (placeName) push('此地触发', `${placeName}这处经历如何改变了你的表达方式或作品气质？`, 'green');
+        return;
+      }
+      if (profile === 'scholar') {
+        push('学术方法', '你观察世界、整理材料、形成判断时，最倚重的方法是什么？', 'purple');
+        push('核心问题', '你一生真正反复追问的核心问题是什么？', 'blue');
+        if (firstWork) push('代表成果', `如果只拿《${firstWork}》来理解你，会抓住重点，还是会遗漏你更想表达的部分？`, 'green');
+        push('时代对话', '若把你放回今天，你最想参与哪一场讨论？', 'amber');
+        return;
+      }
+      if (profile === 'artist') {
+        push('创作取舍', '你最看重的是形式之美、技法突破，还是作品背后的精神力量？', 'purple');
+        push('风格形成', '你的风格真正成熟，是因为天赋、训练，还是某次人生冲击？', 'rose');
+        if (placeName) push('灵感来源', `${placeName}这一站给过你怎样的审美或创作刺激？`, 'green');
+        return;
+      }
+      if (profile === 'explorer') {
+        push('远行原因', '你为什么一定要走出去看更远的世界？', 'green');
+        if (placeName) push('这一站', `${placeName}这一站最让你重新认识了什么？`, 'blue');
+        push('陌生世界', '第一次进入陌生地域时，你最先观察的是人、地形，还是秩序？', 'amber');
+        return;
+      }
+      if (profile === 'religious') {
+        push('信仰选择', '在信仰、现实和权力发生冲突时，你最先守住的是什么？', 'slate');
+        push('精神秩序', '你真正想建立的，是个人修行、教义传播，还是一种更大的精神秩序？', 'blue');
+        if (placeName) push('关键地点', `${placeName}这一站为何会成为你信仰道路上的关键节点？`, 'amber');
+        return;
+      }
+      if (profile === 'revolutionary') {
+        push('动员与判断', '你最关键的一次组织、动员或判断，靠的是什么？', 'rose');
+        push('理想代价', '面对理想与现实的落差时，你当时最不愿放弃的是什么？', 'amber');
+        if (placeName) push('斗争现场', `${placeName}这一站最能体现你当时面临的哪种压力？`, 'green');
+      }
+    };
+    rankedProfiles.slice(0, 3).forEach(profile => addPromptSet(profile));
     if (!out.length) {
-      push('人生转折', '你一生中最重要的转折是什么？', 'blue');
+      push('人生转折', `${personName}一生中最重要的转折是什么？`, 'blue');
     }
     if (out.length < 4 && roleText) {
       push('身份抉择', `作为${roleText}，你最看重的抉择是什么？`, 'amber');
     }
-    if (out.length < 4 && firstWork) {
+    if (out.length < 4 && rankedProfiles.includes('literary') && firstWork) {
       push('代表作品', `《${firstWork}》最能体现你怎样的心思或创造？`, 'purple');
     }
     if (out.length < 4 && firstQuote) {
@@ -7134,9 +7625,12 @@ const App = () => {
     if (out.length < 4 && locations.length >= 2) {
       push('迁徙变化', '你哪一次迁徙最能体现那个时代的处境？', 'rose');
     }
+    if (out.length < 4) {
+      push('后世误解', '如果只能纠正后人对你的一种误解，你最想先纠正哪一点？', 'slate');
+    }
     return out.slice(0, 4);
-  }, [data?.person?.name, selectedLoc, locations, relatedWorks, relatedIdentities, relatedStatus, totalEvents]);
-  const _postChat = async messages => {
+  }, [data?.person?.name, data?.person?.dynasty, selectedLoc, locations, relatedWorks, relatedReviews, relatedHonor, relatedIdentities, relatedStatus, shortReview, totalEvents]);
+  const _resolveChatProxyUrls = () => {
     const toUrl = u => String(u || '').trim();
     const tryUrls = [];
     const pushUrl = u => {
@@ -7163,6 +7657,25 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    return tryUrls;
+  };
+  const _parseSsePayloads = rawChunk => {
+    return String(rawChunk || '').split(/\n\n+/).map(block => {
+      const lines = String(block || '').split('\n');
+      const dataLines = lines.map(line => String(line || '').trim()).filter(line => line.startsWith('data:')).map(line => line.slice(5).trim());
+      if (!dataLines.length) return null;
+      try {
+        return JSON.parse(dataLines.join('\n'));
+      } catch (_err) {
+        return null;
+      }
+    }).filter(Boolean);
+  };
+  const _postChat = async (messages, {
+    onDelta,
+    signal
+  } = {}) => {
+    const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
@@ -7172,30 +7685,107 @@ const App = () => {
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream, application/json'
           },
+          signal,
           body: JSON.stringify({
             messages,
-            temperature: 0.2,
+            temperature: 0.5,
+            stream: true,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
           })
         });
-        const text = await resp.text();
         if (!resp.ok) {
+          const text = await resp.text();
           throw new Error(text || `HTTP ${resp.status}`);
         }
-        return JSON.parse(text);
+        const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
+        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+          const text = await resp.text();
+          return JSON.parse(text);
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let fullText = '';
+        let meta = {};
+        while (true) {
+          const {
+            done,
+            value
+          } = await reader.read();
+          buffer += decoder.decode(value || new Uint8Array(), {
+            stream: !done
+          });
+          const parts = buffer.split(/\n\n+/);
+          buffer = done ? '' : parts.pop() || '';
+          for (const part of parts) {
+            const payloads = _parseSsePayloads(part);
+            for (const payload of payloads) {
+              if (payload?.type === 'delta') {
+                const delta = String(payload.delta || '');
+                if (!delta) continue;
+                fullText += delta;
+                if (typeof onDelta === 'function') {
+                  onDelta(fullText, delta);
+                }
+              } else if (payload?.type === 'meta') {
+                meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : {};
+              } else if (payload?.type === 'error') {
+                throw new Error(String(payload.error || 'STREAM_ERROR'));
+              }
+            }
+          }
+          if (done) {
+            const payloads = _parseSsePayloads(buffer);
+            for (const payload of payloads) {
+              if (payload?.type === 'delta') {
+                const delta = String(payload.delta || '');
+                if (!delta) continue;
+                fullText += delta;
+                if (typeof onDelta === 'function') {
+                  onDelta(fullText, delta);
+                }
+              } else if (payload?.type === 'meta') {
+                meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : {};
+              } else if (payload?.type === 'error') {
+                throw new Error(String(payload.error || 'STREAM_ERROR'));
+              }
+            }
+            break;
+          }
+        }
+        return {
+          choices: [{
+            message: {
+              content: fullText
+            }
+          }],
+          meta
+        };
       } catch (e) {
         lastErr = e;
       }
     }
     throw lastErr || new Error('LLM_ENDPOINT_UNAVAILABLE');
   };
+  useEffect(() => {
+    return () => {
+      abortCurrentChatRequest();
+    };
+  }, [abortCurrentChatRequest]);
   const getChatFallbackNotice = (meta, error) => {
     const source = String(meta?.source || '').trim();
     const reason = String(meta?.fallback_reason || '').trim();
+    if (source === 'local_agent' && reason === 'timeout') {
+      return 'LLM 响应超时，已切换为人物档案智能回答。';
+    }
+    if (source === 'local_agent' && reason === 'llm_request_failed') {
+      return 'LLM 调用失败，已切换为人物档案智能回答。';
+    }
     if (source === 'local_agent') {
       return '当前对话已切换为人物档案智能回答。';
     }
@@ -7217,37 +7807,114 @@ const App = () => {
   const sendChat = async content => {
     const text = String(content || '').trim();
     if (!text || chatLoading) return;
+    abortCurrentChatRequest();
     setChatError('');
     setChatLoading(true);
     const nextMessages = [...chatMessages, {
       role: 'user',
       content: text
     }];
-    setChatMessages(nextMessages);
+    const assistantId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    chatAbortControllerRef.current = controller;
+    chatPendingMessageIdRef.current = assistantId;
+    chatPendingTextRef.current = '';
+    chatDisplayQueueRef.current = [];
+    chatDisplayedTextRef.current = '';
+    let streamedReply = '';
+    setChatMessages([...nextMessages, {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      streaming: true
+    }]);
     setChatDraft('');
     try {
       const llmMessages = [{
         role: 'system',
         content: historyChatSystemPrompt
       }, ...nextMessages.slice(-14)];
-      const resp = await _postChat(llmMessages);
+      const resp = await _postChat(llmMessages, {
+        signal: controller ? controller.signal : undefined,
+        onDelta: (fullText, delta) => {
+          const isFirstStreamChunk = !streamedReply;
+          streamedReply = String(fullText || '');
+          chatPendingMessageIdRef.current = assistantId;
+          const displayPieces = splitStreamDeltaForDisplay(delta);
+          if (displayPieces.length) {
+            chatDisplayQueueRef.current.push(...displayPieces);
+          }
+          if (isFirstStreamChunk) {
+            pumpStreamedChatDisplay(assistantId, {
+              streaming: true,
+              forceAll: false
+            });
+          } else {
+            scheduleStreamedChatFlush(assistantId);
+          }
+        }
+      });
+      if (controller && controller.signal && controller.signal.aborted) return;
+      if (String(streamedReply || '').trim()) {
+        pumpStreamedChatDisplay(assistantId, {
+          streaming: true,
+          forceAll: true
+        });
+      }
       const meta = resp?.meta || {};
       const reply = String(resp?.choices?.[0]?.message?.content || '').trim();
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: reply || '（史料未载，我不敢妄言。）'
-      }]);
+      setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+        ...item,
+        content: reply || '（史料未载，我不敢妄言。）',
+        streaming: false
+      } : item));
       if (meta?.used_fallback) {
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
-      const fallbackReply = buildArchiveFallbackAnswer(text);
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: fallbackReply
-      }]);
+      const aborted = !!(controller && controller.signal && controller.signal.aborted || String(e?.name || '').trim() === 'AbortError');
+      if (aborted) {
+        clearChatFlushTimer();
+        if (String(streamedReply || '').trim()) {
+          chatPendingTextRef.current = streamedReply;
+          chatDisplayedTextRef.current = streamedReply;
+          chatDisplayQueueRef.current = [];
+          flushStreamedChatMessage(assistantId, {
+            streaming: false
+          });
+        } else {
+          setChatMessages(prev => prev.filter(item => !(item && item.id === assistantId)));
+        }
+        return;
+      }
+      if (String(streamedReply || '').trim()) {
+        chatPendingTextRef.current = streamedReply;
+        chatDisplayedTextRef.current = streamedReply;
+        chatDisplayQueueRef.current = [];
+        flushStreamedChatMessage(assistantId, {
+          streaming: true
+        });
+      }
+      if (String(streamedReply || '').trim()) {
+        setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+          ...item,
+          content: `${streamedReply}\n\n（回答中断）`,
+          streaming: false
+        } : item));
+      } else {
+        const fallbackReply = buildArchiveFallbackAnswer(text);
+        setChatMessages(prev => prev.map(item => item && item.id === assistantId ? {
+          ...item,
+          content: fallbackReply,
+          streaming: false
+        } : item));
+      }
       setChatError(getChatFallbackNotice(null, e));
     } finally {
+      if (chatAbortControllerRef.current === controller) {
+        chatAbortControllerRef.current = null;
+      }
+      clearChatFlushTimer();
       setChatLoading(false);
     }
   };
@@ -7330,7 +7997,16 @@ const App = () => {
     className: "font-bold"
   }, "\u7C4D\u8D2F\u5B58\u7591\uFF1A"), birthplaceMeta.candidates.slice(0, 4).map((t, i) => React.createElement("span", {
     key: i
-  }, i ? '、' : '', t))) : null)))), React.createElement("div", {
+  }, i ? '、' : '', t))) : null, React.createElement("div", {
+    className: "pt-1 flex justify-end",
+    "data-feedback-anchor": "intro-footer"
+  }, React.createElement("button", {
+    type: "button",
+    onClick: () => openFeedbackDialog('intro-footer'),
+    className: "theme-chip-muted text-[10px] font-medium px-2.5 py-0.5 rounded-full border border-[rgba(26,115,232,0.14)] hover:bg-[rgba(26,115,232,0.06)] transition leading-snug opacity-80 hover:opacity-100",
+    "data-testid": "feedback-button",
+    "aria-label": "\u53CD\u9988\u672C\u9875\u5185\u5BB9\u9519\u8BEF"
+  }, "\u26A0\uFE0F \u53CD\u9988\u9519\u8BEF")))))), React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", {
     ref: journeyShellRef,
@@ -7560,6 +8236,7 @@ const App = () => {
     className: "journey-map-column relative flex-1 min-w-0"
   }, React.createElement("div", {
     id: "map",
+    ref: mapViewportRef,
     style: {
       height: journeyPanelHeight,
       minHeight: journeyPanelMinHeight
@@ -7573,7 +8250,31 @@ const App = () => {
   }), React.createElement("div", {
     id: "map-cesium",
     className: "map-canvas is-hidden"
-  })), React.createElement("div", {
+  }), !mapReady ? React.createElement("div", {
+    className: "map-lazy-overlay",
+    "data-map-state": mapLoadState,
+    "data-testid": "profile-map-lazy-overlay"
+  }, React.createElement("div", {
+    className: "map-lazy-card"
+  }, React.createElement("div", {
+    className: "map-lazy-kicker"
+  }, "\u6309\u9700\u52A0\u8F7D"), React.createElement("div", {
+    className: "map-lazy-title"
+  }, mapLazyTitle), React.createElement("p", {
+    className: "map-lazy-copy"
+  }, mapLazyCopy), React.createElement("div", {
+    className: "map-lazy-skeleton",
+    "aria-hidden": "true"
+  }, React.createElement("span", null), React.createElement("span", null), React.createElement("span", null)), React.createElement("div", {
+    className: "map-lazy-actions"
+  }, React.createElement("button", {
+    type: "button",
+    onClick: () => requestMapInitialization('manual'),
+    className: "map-lazy-trigger",
+    disabled: mapLoading
+  }, mapLazyActionLabel), React.createElement("span", {
+    className: "map-lazy-hint"
+  }, "\u5730\u56FE\u8FDB\u5165\u89C6\u53E3\u540E\u4E5F\u4F1A\u81EA\u52A8\u52A0\u8F7D")))) : null), mapReady ? React.createElement("div", {
     className: "absolute top-4 right-4 z-[1000] map-floating-controls flex flex-col gap-3 items-end",
     "data-export-ignore": "true"
   }, isTerrain3DActive ? React.createElement("div", {
@@ -7682,7 +8383,7 @@ const App = () => {
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })), React.createElement("span", null, "\u751F\u6210\u56FE\u7247")) : null))), mapStatusNotice ? React.createElement("div", {
+  })), React.createElement("span", null, "\u751F\u6210\u56FE\u7247")) : null))) : null, mapReady && mapStatusNotice ? React.createElement("div", {
     className: "absolute top-4 left-4 z-[1001] max-w-[min(560px,calc(100%-8.5rem))]",
     "data-export-ignore": "true"
   }, React.createElement("div", {
@@ -7715,7 +8416,7 @@ const App = () => {
     type: "button",
     onClick: clearMapNotice,
     className: "inline-flex items-center justify-center rounded-lg border border-[rgba(218,220,224,0.9)] bg-white/80 px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)]"
-  }, "\u6211\u77E5\u9053\u4E86")))) : null, React.createElement("div", {
+  }, "\u6211\u77E5\u9053\u4E86")))) : null, mapReady ? React.createElement("div", {
     className: "absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2",
     "data-export-ignore": "true"
   }, React.createElement(MapDropdown, {
@@ -7769,7 +8470,7 @@ const App = () => {
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })))), selectedLoc && React.createElement("div", {
+  })))) : null, selectedLoc && React.createElement("div", {
     className: "absolute left-4 z-[1000] w-72 max-w-[calc(100%-2rem)] overflow-y-auto custom-scrollbar glass-panel theme-float-panel p-4 rounded-xl shadow-xl border-t-4 theme-accent-strip",
     style: {
       top: mapStatusTopOffset,

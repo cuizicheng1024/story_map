@@ -88,6 +88,11 @@ scripts/start_storymap.sh 8766
 
 其中 `#loc=N` 表示人物页左侧时间轴中第 `N` 个地点节点，从 `0` 开始计数。
 
+补充：
+
+- 人物页中的地图现在默认按需加载，正文和时间轴会优先渲染；滚动到地图区域后再初始化底图与轨迹。
+- 首页数据也已经拆成 `core + detail` 两个 JSON，首页会先加载轻量首包，再在浏览器空闲时补载详情。
+
 ## 快速开始
 
 如果你已经装好依赖并配置好 `.env`，最短路径就是：
@@ -117,10 +122,17 @@ storymap/
 │   └── maintenance_map.md  # 仓库维护地图
 cli/                        # 面向人物/HTML 生成的命令行入口
 scripts/                    # 本地启动等便捷脚本
-tools/                      # 数据构建、校验、索引生成工具
-data/                       # 人物主索引、坐标缓存、教材人物聚合结果
+tools/                      # 构建/校验/调试工具；旧顶层入口多为兼容 shim
+data/                       # 已分层为 corpus/reports/runtime；旧根路径软链暂保留兼容
 .env                        # 地图与 LLM 的本地配置
 ```
+
+其中首页相关的关键构建产物现在包括：
+
+- `artifacts/story_map/index.html`
+- `artifacts/story_map/stellar_home_data.json`
+- `artifacts/story_map/stellar_home_data_detail.json`
+- `data/reports/performance_baseline.json`
 
 ## 维护入口
 
@@ -130,20 +142,32 @@ data/                       # 人物主索引、坐标缓存、教材人物聚�
   - 本地启动入口，优先使用当前已激活环境，其次尝试仓库内 `.venv311` / `.venv`，再回退到系统 `python3`
 - `storymap/script/story_map.py`
   - 运行时总入口，负责组装 `FastAPI`、任务服务、静态资源和问答代理
-- `storymap/script/app_factory.py`
+- `storymap/script/api/runtime_factory.py`
   - 运行时装配层，适合看清服务之间的依赖关系
 - `storymap/script/task.py`
   - 生成人物页、多人物合并页、任务状态轮询的主流程
-- `storymap/script/profile_builder.py`
+- `storymap/script/profile/builder.py`
   - Markdown -> 人物页结构化数据的主入口
-- `storymap/script/templates/profile_page.html`
+  - 旧入口 `storymap/script/profile_builder.py` 仍保留兼容转发
+- `storymap/script/profile/templates/profile_page.html`
   - 人物页模板与大部分前端交互逻辑
-- `tools/build_all.py`
-  - 数据与首页构建入口
-- `tools/run_storymap_checks.py`
+- `tools/build/build_all.py`
+  - 数据与首页统一构建入口
+  - 旧命令 `python3 tools/build_all.py` 仍可继续使用
+  - 完整跑完后会额外生成 `data/reports/performance_baseline.json`
+- `tools/build/build_stellar_homepage.py`
+  - 首页定向构建入口
+  - 旧命令 `python3 tools/build_stellar_homepage.py` 仍可继续使用
+  - 适合只验证首页拆包或前端产物时单独执行
+- `tools/reports/run_storymap_checks.py`
   - 本地统一自检入口
+  - 旧命令 `python3 tools/run_storymap_checks.py` 仍可继续使用
 - `scripts/test_storymap.sh`
   - 默认测试入口，本地修改后优先执行
+
+- `data/`
+  - 新写入路径优先使用 `data/corpus/`、`data/reports/`、`data/runtime/`
+  - 旧根路径如 `data/people_master.json`、`data/markdown_smoke_report.json`、`data/hard_place_review_queue.json` 仍作为兼容入口保留
 
 ## 未收录人物
 
@@ -169,6 +193,36 @@ data/                       # 人物主索引、坐标缓存、教材人物聚�
 scripts/start_storymap.sh
 ```
 
+发布到火山云线上服务器：
+
+```bash
+scripts/deploy_storymap_release.sh
+```
+
+只先打包上传，不切换线上版本：
+
+```bash
+scripts/deploy_storymap_release.sh --skip-remote
+```
+
+发布前先跑本地自检：
+
+```bash
+scripts/deploy_storymap_release.sh --run-checks
+```
+
+发布完成后补跑公网验收：
+
+```bash
+scripts/deploy_storymap_release.sh --verify-public
+```
+
+回滚到最近一版备份：
+
+```bash
+scripts/rollback_storymap_release.sh
+```
+
 运行默认自检：
 
 ```bash
@@ -181,10 +235,116 @@ scripts/test_storymap.sh
 scripts/test_storymap.sh --all-tests
 ```
 
+## 火山云发布流
+
+当前仓库已经内置一套“本地打包 -> 上传火山云 -> 远端解压切换 -> 重启服务 -> 健康检查”的发布脚本。
+
+本地入口：
+
+```bash
+scripts/deploy_storymap_release.sh
+```
+
+远端执行脚本：
+
+```text
+scripts/remote_deploy_storymap.sh
+```
+
+默认约定如下：
+
+- 服务器：`root@124.174.16.20`
+- 私钥：仓库根目录 `storymap-key.pem`
+- 线上目录：`/opt/storymap`
+- 线上压缩包：`/opt/storymap-deploy.tar.gz`
+- 线上部署脚本：`/opt/storymap-remote-deploy.sh`
+- 服务名：`storymap.service`
+- 健康检查：`http://127.0.0.1:8765/health`
+
+脚本会自动做这些事：
+
+1. 在本地生成干净的发布压缩包，默认排除 `.git`、`.env`、`.venv311`、缓存目录和私钥。
+2. 把压缩包与远端部署脚本上传到火山云服务器。
+3. 在远端新建 release 目录并解压压缩包。
+4. 从当前线上版本继承 `.env`、`.venv311`、`artifacts/runtime`、`cache` 和 `.cache`。
+5. 停止 `storymap.service`，把原目录备份为 `storymap.bak.<时间戳>`，再切换到新版本。
+6. 执行 `pip install -r requirements.txt`，启动服务并做健康检查。
+7. 默认只保留最近 `3` 份备份目录。
+
+常见参数：
+
+```bash
+scripts/deploy_storymap_release.sh --run-checks
+scripts/deploy_storymap_release.sh --verify-public
+scripts/deploy_storymap_release.sh --skip-upload
+scripts/deploy_storymap_release.sh --skip-verify
+scripts/deploy_storymap_release.sh --public-base-url http://124.174.16.20
+scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <pem>
+scripts/deploy_storymap_release.sh --app-dir /opt/storymap --service storymap.service
+```
+
+也可以通过环境变量覆盖默认值：
+
+```bash
+STORYMAP_DEPLOY_HOST=1.2.3.4 \
+STORYMAP_DEPLOY_USER=root \
+STORYMAP_DEPLOY_KEY=/path/to/key.pem \
+scripts/deploy_storymap_release.sh
+```
+
+说明：
+
+- `--run-checks` 会先执行 `scripts/test_storymap.sh`
+- `--verify-public` 会在部署完成后，用公网入口校验首页、查理曼页和李白页的关键内容
+- `--skip-upload` 适合你已经把压缩包和远端脚本传上去，只想重跑一次远端切换
+- `--skip-remote` 适合先把包传上去，稍后再手动触发切换
+- `--skip-verify` 会跳过部署后的健康检查
+- 如果线上有新的持久化目录需要保留，可以继续在 `scripts/remote_deploy_storymap.sh` 里扩展继承逻辑
+
+## 回滚与验收
+
+公网验收脚本：
+
+```bash
+scripts/verify_storymap_public.sh
+```
+
+默认会校验：
+
+- `http://124.174.16.20/health`
+- 首页是否包含 `人类群星闪耀时`、`李白聊天`
+- `查理曼.html` 是否包含 `帝国治理`、`权力来源`、`splitStreamDeltaForDisplay`
+- `李白.html` 是否包含 `床前明月光`、`举头望明月`、`黄河之水天上来`
+
+回滚脚本：
+
+```bash
+scripts/rollback_storymap_release.sh
+```
+
+说明：
+
+- 不带参数时，默认回滚到最近一版 `storymap.bak.*`
+- 也可以显式指定某个备份目录：
+
+```bash
+scripts/rollback_storymap_release.sh /opt/storymap.bak.20260619234714
+```
+
+- 回滚完成后同样会重启 `storymap.service` 并执行健康检查
+
 重建首页数据：
 
 ```bash
 python tools/build_all.py --concurrency 8
+```
+
+只重建首页与首页数据拆包产物：
+
+```bash
+python tools/build_stellar_homepage.py \
+  --story-map-dir artifacts/story_map \
+  --story-md-dir storymap/examples/story
 ```
 
 重渲染全部人物页：
@@ -226,10 +386,20 @@ python tools/build_all.py --concurrency 8
 
 这个脚本会统一重建：
 
-- `data/people_master.json`
-- `data/people_master_pep.json`
+- `data/corpus/people_master.json`
+- `data/corpus/people_master_pep.json`
 - `artifacts/story_map/stellar_home_data.json`
+- `artifacts/story_map/stellar_home_data_detail.json`
 - `artifacts/story_map/index.html`
+- `data/reports/performance_baseline.json`
+
+如果你只想验证首页性能与数据体积，而不想等待整套人物页重渲染，优先执行：
+
+```bash
+python tools/build_stellar_homepage.py \
+  --story-map-dir artifacts/story_map \
+  --story-md-dir storymap/examples/story
+```
 
 如果你只想重渲染全部人物页 HTML：
 
@@ -241,9 +411,28 @@ MAP_STORY_RENDER_CONCURRENCY=8 python cli/generate_pure_story_map.py --render-al
 
 - `build_all.py` 默认是幂等的，适合在你更新了 `story/*.md` 后重新同步首页数据与人物索引。
 - `build_all.py` 默认会先对当前 git 变更中的 Markdown 跑一次冒烟校验；若结构性错误会直接中止，避免把坏数据继续发布。
+- 批量人物页重渲染现在默认走 `nogeocode`，适合模板或前端改动后的快速重建；只有专门补地点坐标时再显式传 `pure`。
+- geocode 失败结果现在也会写入本地负缓存文件，短时间内重复构建不会反复对同一批难命中地名重试超时。
+- 首页 JSON 现在已拆成 `stellar_home_data.json` 首包和 `stellar_home_data_detail.json` 详情包，首包优先服务首页首屏与搜索。
+- `data/reports/performance_baseline.json` 会记录首页 HTML、首页 core/detail 数据包以及典型人物页体积，便于构建后直接对比性能变化。
 - `--all-mode nogeocode` 适合快速重渲染已有人物页，不额外触发新的地理编码请求。
+- `tools/review_hard_places.py` 可把低覆盖地点和 geocode 失败地点汇总成待审核队列，并可选调用 MiniMax 生成古今地名候选与建议写回位置。
 - 本地服务会直接放行 `artifacts/story_map/` 下的 `HTML / GeoJSON / CSV` 导出文件，便于浏览器直接查看或下载。
 - 人物页和首页依赖的 `vendor/*.js` 会优先从本地静态目录读取；只有本地不存在时才会回退远程抓取。
+
+生成疑难地点审核队列：
+
+```bash
+python3 tools/review_hard_places.py --limit 20 --llm-mode auto
+```
+
+人工确认 `data/runtime/hard_place_review_queue.json` 中的 `human_decision` / `approved_*` 字段后，自动写回：
+
+```bash
+python3 tools/review_hard_places.py \
+  --apply-confirmed \
+  --queue-json data/runtime/hard_place_review_queue.json
+```
 - 若你已经配置 geocode key，想尽量补全地点坐标，可执行：
 
 ```bash
@@ -252,9 +441,9 @@ MAP_STORY_RENDER_CONCURRENCY=2 python cli/generate_pure_story_map.py --render-al
 
 - 如果只是本地体验现有仓库内容，通常只需要启动 `story_map.py --serve`，不必每次都重建。
 - 每次 `build_all.py` 完成后，还会刷新：
-  - `data/markdown_smoke_report.json`
-  - `data/low_coverage_story_report.json`
-  - `data/low_coverage_story_report.md`
+  - `data/reports/markdown_smoke_report.json`
+  - `data/reports/low_coverage_story_report.json`
+  - `data/reports/low_coverage_story_report.md`
 
 ## 人物 Markdown 规范
 

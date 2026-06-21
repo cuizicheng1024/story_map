@@ -195,11 +195,11 @@ def accept_person_html(person: str, *, mode: str = "pure", no_browser: bool = Tr
     return result
 
 
-def impact_render_html(*, mode: str = "pure", max_people: int = 0) -> int:
+def impact_render_html(*, mode: str = "nogeocode", max_people: int = 0) -> int:
     return render_changed_people_html(mode=mode, max_people=max_people)
 
 
-def publish_all_html(*, mode: str = "pure") -> int:
+def publish_all_html(*, mode: str = "nogeocode") -> int:
     return render_all_people_html(mode=mode)
 
 
@@ -404,7 +404,7 @@ def _sync_alias_redirect_pages(html_dir: Path) -> None:
             continue
 
 
-def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> int:
+def render_missing_people_html(*, max_people: int = 0, mode: str = "nogeocode") -> int:
     md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
     md_people = _scan_people_from_story_md(md_dir)
@@ -423,7 +423,7 @@ def render_missing_people_html(*, max_people: int = 0, mode: str = "pure") -> in
     return rc if rc != 0 or homepage_ok else 2
 
 
-def render_all_people_html(*, mode: str = "pure") -> int:
+def render_all_people_html(*, mode: str = "nogeocode") -> int:
     md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
 
@@ -437,7 +437,7 @@ def render_all_people_html(*, mode: str = "pure") -> int:
     return rc if rc != 0 or homepage_ok else 2
 
  
-def render_changed_people_html(*, mode: str = "pure", max_people: int = 0) -> int:
+def render_changed_people_html(*, mode: str = "nogeocode", max_people: int = 0) -> int:
     md_dir = story_md_dir_path()
     html_dir = Path(_story_artifacts_dir()).resolve()
     changed = _changed_people(md_dir, html_dir)
@@ -475,13 +475,13 @@ def main() -> None:
     parser.add_argument("--accept-person", type=str, help="单页验收：生成并覆盖 artifacts/story_map/<person>.html")
     parser.add_argument("--accept-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="单页验收模式：nogeocode=不做地理编码；pure=正常渲染；cache=走完整缓存刷新链路")
     parser.add_argument("--impact-render", action="store_true", help="影响面渲染：只重建受 Markdown 或模板变更影响的人物页")
-    parser.add_argument("--impact-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="影响面渲染模式：nogeocode=最快；pure=正常渲染；cache=强制刷新缓存")
+    parser.add_argument("--impact-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="影响面渲染模式：nogeocode=最快；pure=正常渲染；cache=强制刷新缓存")
     parser.add_argument("--publish-all", action="store_true", help="全量发布：重建所有人物页到 artifacts/story_map/<person>.html")
-    parser.add_argument("--publish-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="全量发布模式：nogeocode=最快；pure=正常渲染；cache=强制刷新缓存")
+    parser.add_argument("--publish-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="全量发布模式：nogeocode=最快；pure=正常渲染；cache=强制刷新缓存")
     parser.add_argument("--missing-limit", type=int, default=0, help="批量渲染时，最多处理多少人（0 表示不限制）")
-    parser.add_argument("--missing-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="nogeocode=不做地理编码（最快）；pure=正常渲染（可能触发地理编码）；cache=复用 Markdown 并做地理编码+渲染（最慢）")
-    parser.add_argument("--all-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="render-all 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
-    parser.add_argument("--changed-mode", type=str, default="pure", choices=["nogeocode", "pure", "cache"], help="render-changed 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
+    parser.add_argument("--missing-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="nogeocode=不做地理编码（最快）；pure=正常渲染（可能触发地理编码）；cache=复用 Markdown 并做地理编码+渲染（最慢）")
+    parser.add_argument("--all-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="render-all 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
+    parser.add_argument("--changed-mode", type=str, default="nogeocode", choices=["nogeocode", "pure", "cache"], help="render-changed 时的模式：nogeocode=最快；pure=可能触发地理编码；cache=强制刷新缓存")
     parser.add_argument("--changed-limit", type=int, default=0, help="render-changed 时最多处理多少人（0 表示不限制）")
     parser.add_argument("--no-geocode", action="store_true", help="生成单人 HTML 时不触发地理编码（只渲染现有坐标）")
     parser.add_argument("--no-browser", action="store_true", help="生成单人 HTML 后不自动打开浏览器")
@@ -490,9 +490,9 @@ def main() -> None:
     accept_person = getattr(args, "accept_person", None)
     accept_mode = getattr(args, "accept_mode", "pure")
     impact_render = bool(getattr(args, "impact_render", False))
-    impact_mode = getattr(args, "impact_mode", "pure")
+    impact_mode = getattr(args, "impact_mode", "nogeocode")
     publish_all = bool(getattr(args, "publish_all", False))
-    publish_mode = getattr(args, "publish_mode", "pure")
+    publish_mode = getattr(args, "publish_mode", "nogeocode")
 
     if accept_person:
         result = accept_person_html(
@@ -513,11 +513,11 @@ def main() -> None:
     if publish_all:
         raise SystemExit(publish_all_html(mode=str(publish_mode or "pure")))
     if args.render_missing:
-        raise SystemExit(render_missing_people_html(max_people=int(args.missing_limit or 0), mode=str(args.missing_mode or "pure")))
+        raise SystemExit(render_missing_people_html(max_people=int(args.missing_limit or 0), mode=str(args.missing_mode or "nogeocode")))
     if args.render_all:
-        raise SystemExit(render_all_people_html(mode=str(args.all_mode or "pure")))
+        raise SystemExit(render_all_people_html(mode=str(args.all_mode or "nogeocode")))
     if args.render_changed:
-        raise SystemExit(render_changed_people_html(mode=str(args.changed_mode or "pure"), max_people=int(args.changed_limit or 0)))
+        raise SystemExit(render_changed_people_html(mode=str(args.changed_mode or "nogeocode"), max_people=int(args.changed_limit or 0)))
 
     md_path: Optional[str] = args.md
     if not md_path:

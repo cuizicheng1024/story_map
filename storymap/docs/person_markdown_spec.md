@@ -47,11 +47,15 @@
 python tools/validate_story_markdown.py
 ```
 
+> 兼容说明：上述旧命令仍可继续使用；真实实现已位于 `tools/reports/validate_story_markdown.py`。
+
 只校验当前改动文件：
 
 ```bash
 python tools/build_all.py --markdown-smoke-check changed
 ```
+
+> 兼容说明：上述旧命令仍可继续使用；真实实现已位于 `tools/build/build_all.py`。
 
 ## 说明
 

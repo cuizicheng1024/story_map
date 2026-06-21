@@ -1,63 +1,9 @@
-import os
-from dotenv import load_dotenv
+"""转发层：实际实现已迁移至 storymap.script.core.env_utils。"""
 
+from __future__ import annotations
 
-def _first_env(*names: str) -> str:
-    for name in names:
-        value = os.getenv(name)
-        if value is not None and str(value).strip():
-            return str(value).strip()
-    return ""
+import sys as _sys
+from storymap.script.core.env_utils import *  # noqa: F401,F403
+from storymap.script.core import env_utils as _impl
 
-
-def env_flag(*names: str) -> bool:
-    return _first_env(*names).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def apply_story_map_env_aliases() -> None:
-    canonical_map = {
-        "AMAP_KEY": ("AMAP_KEY", "AMAP_JS_KEY", "AMAP_WEB_KEY", "Amap_API_Key", "AMAP_API_KEY"),
-        "AMAP_SECURITY": (
-            "AMAP_SECURITY",
-            "AMAP_SECURITY_JSCODE",
-            "AMAP_SECURITY_JS_CODE",
-            "Amap_API_Security",
-            "AMAP_API_SECURITY",
-            "Amap_API_Secret",
-            "AMAP_SCODE",
-        ),
-        "MAP_STORY_API_BASE": ("MAP_STORY_API_BASE", "STORY_MAP_API_BASE"),
-        "MAP_STORY_AI_ENDPOINT": ("MAP_STORY_AI_ENDPOINT", "STORY_MAP_AI_ENDPOINT"),
-    }
-    for canonical, aliases in canonical_map.items():
-        value = _first_env(*aliases)
-        if value:
-            os.environ[canonical] = value
-
-
-def project_root(from_file: str) -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(from_file), "..", ".."))
-
-
-def load_project_env(*, from_file: str, override: bool = False) -> None:
-    local_env = os.path.join(os.path.dirname(from_file), ".env")
-    try:
-        load_dotenv(dotenv_path=local_env, override=override)
-    except Exception:
-        pass
-    root = project_root(from_file)
-    env_candidates = [
-        os.path.join(root, ".env"),
-        os.path.join(root, "data", ".env"),
-        os.path.join(root, "map_story_poster", ".env"),
-        os.path.join(root, "external", "map_story_poster", ".env"),
-        os.path.abspath(os.path.join(root, "..", ".env")),
-        os.path.abspath(os.path.join(root, "..", "..", ".env")),
-    ]
-    for p in env_candidates:
-        try:
-            if p and os.path.isfile(p):
-                load_dotenv(dotenv_path=p, override=override)
-        except Exception:
-            pass
-    apply_story_map_env_aliases()
+_sys.modules[__name__] = _impl
