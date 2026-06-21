@@ -53,7 +53,7 @@ data/
 | 跑一次本地自检 | `scripts/test_storymap.sh` |
 | 全量构建（人物页 + 首页 + 索引） | `python3 tools/build_all.py` |
 | 校验 Markdown 语料 | `python3 tools/validate_story_markdown.py --report-json data/reports/markdown_smoke_report.json` |
-| 部署到火山云 ECS | `scripts/deploy_storymap_release.sh --identity <key.pem> --verify-public` |
+| 部署到火山云 ECS | `scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <key.pem> --verify-public` |
 | 回滚上一版本 | `scripts/rollback_storymap_release.sh` |
 
 ## 测试分层速查

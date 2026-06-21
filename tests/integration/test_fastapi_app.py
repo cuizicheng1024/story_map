@@ -84,6 +84,33 @@ async def test_runtime_health_endpoint_returns_llm_and_geocode_snapshots(monkeyp
     assert payload["geocode"]["metrics"]["lookups"] == 10
 
 
+async def test_runtime_debug_endpoints_reject_remote_requests_without_debug_token():
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        runtime_response = await client.get("/health/runtime", headers={"x-forwarded-for": "8.8.8.8"})
+        static_response = await client.get("/debug_static", headers={"x-forwarded-for": "8.8.8.8"})
+
+    assert runtime_response.status_code == 403
+    assert runtime_response.json()["detail"] == "runtime debug access denied"
+    assert static_response.status_code == 403
+    assert static_response.json()["detail"] == "runtime debug access denied"
+
+
+async def test_runtime_health_endpoint_allows_remote_requests_with_debug_token(monkeypatch):
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get(
+            "/health/runtime",
+            headers={
+                "x-forwarded-for": "8.8.8.8",
+                "x-storymap-debug-token": "secret-token",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+
+
 async def test_root_serves_homepage_html(monkeypatch, tmp_path):
     homepage = tmp_path / "index.html"
     homepage.write_text("<html><body>StoryMap Home</body></html>", encoding="utf-8")

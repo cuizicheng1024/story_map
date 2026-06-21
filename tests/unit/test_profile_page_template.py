@@ -8,7 +8,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-TEMPLATE_PATH = REPO_ROOT / "storymap" / "script" / "templates" / "profile_page.html"
+TEMPLATE_PATH = REPO_ROOT / "storymap" / "script" / "profile" / "templates" / "profile_page.html"
 
 import map_html_renderer as renderer
 from map_html_renderer import render_profile_html
@@ -1209,3 +1209,21 @@ def test_render_profile_html_exposes_feedback_button_and_build_meta():
     assert "__BUILD_VERSION__" not in html
     assert "__BUILD_AT__" not in html
     assert renderer.profile_template_signature() in html
+
+
+def test_profile_page_template_supports_subtle_narrative_emphasis_for_description():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "renderNarrativeInline" in html
+    assert "NARRATIVE_TRANSITION_RE" in html
+    assert "NARRATIVE_TIME_RE" in html
+    assert "NARRATIVE_IDENTITY_RE" in html
+    assert "NARRATIVE_TURNING_SENTENCE_RE" in html
+    assert "narrative-description" in html
+    assert "idx < 2 ? 'is-lead' : 'is-body'" in html
+    assert "narrative-sentence" in html
+    assert "narrative-inline-identity" in html
+    assert "narrative-inline-strong" in html
+    assert "narrative-inline-time" in html
+    assert "narrative-inline-place" in html
+    assert "renderNarrativeLine(seg, idx)" in html

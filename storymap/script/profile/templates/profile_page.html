@@ -655,6 +655,78 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.narrative-description {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.95;
+  letter-spacing: 0.012em;
+}
+.narrative-description-line {
+  display: block;
+  margin-bottom: 0.48rem;
+}
+.narrative-description-line:last-child {
+  margin-bottom: 0;
+}
+.narrative-description-line.is-lead {
+  color: var(--color-text-primary);
+}
+.narrative-description-line.is-body {
+  color: color-mix(in srgb, var(--color-text-secondary) 92%, #64748b 8%);
+}
+.narrative-sentence {
+  display: inline;
+}
+.narrative-sentence.is-turning {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.narrative-inline-strong {
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.narrative-inline-em {
+  font-style: italic;
+  color: color-mix(in srgb, var(--color-text-secondary) 88%, var(--color-primary) 12%);
+}
+.narrative-inline-accent {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-primary) 82%, #1d4ed8 18%);
+}
+.narrative-inline-time {
+  font-weight: 700;
+  color: #b45309;
+}
+.narrative-inline-place {
+  font-weight: 600;
+  color: #166534;
+}
+.narrative-inline-identity {
+  font-weight: 800;
+  color: color-mix(in srgb, #7c2d12 72%, var(--color-primary) 28%);
+}
+.narrative-inline-quote {
+  color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary) 18%);
+  font-style: italic;
+}
+.narrative-description-line.is-lead .narrative-inline-accent,
+.narrative-description-line.is-lead .narrative-inline-time,
+.narrative-description-line.is-lead .narrative-inline-place,
+.narrative-description-line.is-lead .narrative-inline-identity {
+  filter: saturate(1.08);
+}
+.narrative-description-line.is-body .narrative-inline-accent {
+  color: color-mix(in srgb, var(--color-primary) 68%, #475569 32%);
+}
+.narrative-description-line.is-body .narrative-inline-time {
+  color: #b7791f;
+}
+.narrative-description-line.is-body .narrative-inline-place {
+  color: #2f855a;
+}
+.narrative-description-line.is-body .narrative-inline-identity {
+  color: color-mix(in srgb, #7c2d12 58%, var(--color-text-secondary) 42%);
+}
 .age-marker {
   background: transparent;
   border: none;
@@ -2724,6 +2796,105 @@ const renderInline = (text) => {
   });
 };
 
+const NARRATIVE_TRANSITION_RE = /(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/g;
+const NARRATIVE_TIME_RE = /(公元前?\d{1,4}年|\d{1,4}年|约\d{1,3}岁|年仅\d{1,3}岁|\d{1,3}岁|少年时期|青年时期|中年时期|晚年|幼年|早年)/g;
+const NARRATIVE_PLACE_RE = /(在[^，。；]{2,14}(?:定居|起兵|求学|隐居|任职|出生|成长|驻留|作战|讲学|写作|辞世))/g;
+const NARRATIVE_IDENTITY_RE = /(诗人|词人|文学家|思想家|政治家|军事家|改革家|史学家|哲学家|教育家|科学家|数学家|物理学家|化学家|生物学家|发明家|航海家|探险家|外交家|将领|名将|皇帝|君主|帝王|将军|统帅|名臣|宰相|大臣|圣人|民族英雄|革命家|艺术家|画家|音乐家|作家|史官|学者|天主教圣人)/g;
+const NARRATIVE_QUOTE_RE = /(“[^”]{2,24}”|《[^》]{1,24}》)/g;
+const NARRATIVE_TURNING_SENTENCE_RE = /^(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/;
+
+const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
+  const raw = String(text || '');
+  if (!raw) return null;
+  const pattern = new RegExp(
+    `${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_IDENTITY_RE.source}|${NARRATIVE_QUOTE_RE.source}`,
+    'g'
+  );
+  const out = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(raw)) !== null) {
+    const token = match[0];
+    const start = match.index;
+    if (start > lastIndex) {
+      out.push(
+        <span key={`${keyPrefix}-txt-${lastIndex}`}>
+          {renderWorkTokens(raw.slice(lastIndex, start), `${keyPrefix}-txt-${lastIndex}`)}
+        </span>
+      );
+    }
+    let className = 'narrative-inline-accent';
+    if (new RegExp(`^${NARRATIVE_TIME_RE.source}$`).test(token)) {
+      className = 'narrative-inline-time';
+    } else if (new RegExp(`^${NARRATIVE_PLACE_RE.source}$`).test(token)) {
+      className = 'narrative-inline-place';
+    } else if (new RegExp(`^${NARRATIVE_IDENTITY_RE.source}$`).test(token)) {
+      className = 'narrative-inline-identity';
+    } else if (new RegExp(`^${NARRATIVE_QUOTE_RE.source}$`).test(token)) {
+      className = 'narrative-inline-quote';
+    }
+    out.push(
+      <span key={`${keyPrefix}-accent-${start}`} className={className}>
+        {renderWorkTokens(token, `${keyPrefix}-accent-${start}`)}
+      </span>
+    );
+    lastIndex = start + token.length;
+  }
+  if (lastIndex < raw.length) {
+    out.push(
+      <span key={`${keyPrefix}-tail-${lastIndex}`}>
+        {renderWorkTokens(raw.slice(lastIndex), `${keyPrefix}-tail-${lastIndex}`)}
+      </span>
+    );
+  }
+  return out;
+};
+
+const renderNarrativeInline = (text, keyPrefix = 'narrative-inline') => {
+  const raw = String(text || '');
+  const parts = raw.split(/(\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
+  return parts.map((p, idx) => {
+    const strong = p.match(/^\*\*(.+?)\*\*$/);
+    if (strong) {
+      return (
+        <strong key={idx} className="narrative-inline-strong">
+          {renderNarrativeFragment(strong[1], `${keyPrefix}-strong-${idx}`)}
+        </strong>
+      );
+    }
+    const italic = p.match(/^\*(.+?)\*$/);
+    if (italic) {
+      return (
+        <em key={idx} className="narrative-inline-em">
+          {renderNarrativeFragment(italic[1], `${keyPrefix}-em-${idx}`)}
+        </em>
+      );
+    }
+    return (
+      <span key={idx}>
+        {renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `${keyPrefix}-${idx}`)}
+      </span>
+    );
+  });
+};
+
+const renderNarrativeLine = (text, lineIdx) => {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+  const sentences = raw.match(/[^。！？]+[。！？]?/g) || [raw];
+  return sentences.map((sentence, idx) => {
+    const trimmed = String(sentence || '').trim();
+    if (!trimmed) return null;
+    const turning = NARRATIVE_TURNING_SENTENCE_RE.test(trimmed);
+    const className = `narrative-sentence${turning ? ' is-turning' : ''}`;
+    return (
+      <span key={`line-${lineIdx}-sentence-${idx}`} className={className}>
+        {renderNarrativeInline(trimmed, `narrative-line-${lineIdx}-sentence-${idx}`)}
+      </span>
+    );
+  });
+};
+
 const normalizeDisplayText = (text) => {
   return String(text || '')
     .replace(/\\r\\n/g, '\n')
@@ -4086,13 +4257,14 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (!description) return null;
     return (
       <div>
-        <div className={`text-gray-600 leading-7 ${showFullDesc ? '' : 'desc-clamp'}`}>
+        <div className={`narrative-description ${showFullDesc ? '' : 'desc-clamp'}`}>
           {descSegments.map((seg, idx) => {
             const t = String(seg || '').trim();
             if (/^-{3,}$/.test(t)) {
               return <hr key={idx} className="my-2 border-gray-200" />;
             }
-            return <span key={idx} className="block">{renderInline(seg)}</span>;
+            const lineClassName = `narrative-description-line ${idx < 2 ? 'is-lead' : 'is-body'}`;
+            return <span key={idx} className={lineClassName}>{renderNarrativeLine(seg, idx)}</span>;
           })}
         </div>
         {isLongDesc ? (

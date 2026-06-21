@@ -8,30 +8,17 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-try:
-    from ..env_utils import apply_story_map_env_aliases, env_flag
-    from .graph_service import (
-        build_home_graph_file_fallback,
-        get_related_people_graph,
-        get_related_people_graph_from_payload,
-        invalidate_graph_service_cache,
-        load_home_graph_payload,
-    )
-    from ..person_registry import person_redirects
-    from .tooltip_js import person_tooltip_js
-    from ..project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
-except ImportError:
-    from env_utils import apply_story_map_env_aliases, env_flag
-    from graph_service import (
-        build_home_graph_file_fallback,
-        get_related_people_graph,
-        get_related_people_graph_from_payload,
-        invalidate_graph_service_cache,
-        load_home_graph_payload,
-    )
-    from person_registry import person_redirects
-    from person_tooltip_js import person_tooltip_js
-    from project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
+from ..core.env_utils import apply_story_map_env_aliases, env_flag
+from ..core.person_registry import person_redirects
+from ..core.project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
+from .graph_service import (
+    build_home_graph_file_fallback,
+    get_related_people_graph,
+    get_related_people_graph_from_payload,
+    invalidate_graph_service_cache,
+    load_home_graph_payload,
+)
+from .tooltip_js import person_tooltip_js
 
 
 apply_story_map_env_aliases()

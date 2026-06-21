@@ -4,12 +4,8 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Callable, Dict, List, Optional
 
-try:
-    from ..person_registry import canonical_person_name
-    from .. import story_generation_tools as story_generation_tools_utils
-except ImportError:
-    from person_registry import canonical_person_name
-    import story_generation_tools as story_generation_tools_utils
+from ..agent import generation_tools as story_generation_tools_utils
+from ..core.person_registry import canonical_person_name
 
 
 @dataclass

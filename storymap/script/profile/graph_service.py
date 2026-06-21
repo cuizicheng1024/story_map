@@ -11,14 +11,9 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     GraphDatabase = None
 
-try:
-    from ..env_utils import apply_story_map_env_aliases, env_flag
-    from ..person_registry import canonical_person_name
-    from ..project_paths import data_corpus_file_path, project_root_path, story_artifacts_dir_path
-except ImportError:
-    from env_utils import apply_story_map_env_aliases, env_flag
-    from person_registry import canonical_person_name
-    from project_paths import data_corpus_file_path, project_root_path, story_artifacts_dir_path
+from ..core.env_utils import apply_story_map_env_aliases, env_flag
+from ..core.person_registry import canonical_person_name
+from ..core.project_paths import data_corpus_file_path, project_root_path, story_artifacts_dir_path
 
 
 apply_story_map_env_aliases()

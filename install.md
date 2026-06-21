@@ -196,7 +196,7 @@ scripts/start_storymap.sh
 发布到火山云线上服务器：
 
 ```bash
-scripts/deploy_storymap_release.sh
+scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <pem>
 ```
 
 只先打包上传，不切换线上版本：
@@ -214,7 +214,7 @@ scripts/deploy_storymap_release.sh --run-checks
 发布完成后补跑公网验收：
 
 ```bash
-scripts/deploy_storymap_release.sh --verify-public
+scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <pem> --verify-public
 ```
 
 回滚到最近一版备份：
@@ -238,6 +238,8 @@ scripts/test_storymap.sh --all-tests
 ## 火山云发布流
 
 当前仓库已经内置一套“本地打包 -> 上传火山云 -> 远端解压切换 -> 重启服务 -> 健康检查”的发布脚本。
+
+为避免误把本地改动直接发布到脚本内置的生产默认目标，`scripts/deploy_storymap_release.sh` 现在要求显式传入 `--host/--user`（或对应环境变量）。只有在你明确知道自己要复用内置默认生产目标时，才使用 `--allow-default-target`。
 
 本地入口：
 

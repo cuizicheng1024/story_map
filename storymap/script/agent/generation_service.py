@@ -5,14 +5,9 @@ import re
 import time
 from typing import Callable, Dict, List, Optional
 
-try:
-    from .. import parsers as parser_utils
-    from ..story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
-    from ..story_agent_runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
-except ImportError:
-    import parsers as parser_utils
-    from story_agent_runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
-    from story_agent_runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
+from ..core import parsers as parser_utils
+from ..runtime.legacy_agent.runtime import extract_agent_runtime_metadata as _extract_agent_runtime_metadata
+from ..runtime.legacy_agent.runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
 
 
 def summarize_samples(items: List[str], limit: int = 3) -> str:

@@ -9,40 +9,22 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-try:
-    from ..project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
-    from ..story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
-    from .task_debug import build_task_debug_payload
-    from .task_schema import (
-        TaskFileEntry,
-        TaskListItem,
-        TaskMultiEntry,
-        TaskResultSummary,
-        TaskSnapshot,
-        TaskStorageMaintenanceResult,
-        TaskStorageQueryResult,
-        TaskStorageStats,
-        build_task_list_item,
-        build_task_result_summary,
-        build_task_snapshot,
-    )
-except ImportError:
-    from project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
-    from story_agent_runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
-    from runtime.task_debug import build_task_debug_payload
-    from runtime.task_schema import (
-        TaskFileEntry,
-        TaskListItem,
-        TaskMultiEntry,
-        TaskResultSummary,
-        TaskSnapshot,
-        TaskStorageMaintenanceResult,
-        TaskStorageQueryResult,
-        TaskStorageStats,
-        build_task_list_item,
-        build_task_result_summary,
-        build_task_snapshot,
-    )
+from ..core.project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
+from ..runtime.legacy_agent.runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
+from .task_debug import build_task_debug_payload
+from .task_schema import (
+    TaskFileEntry,
+    TaskListItem,
+    TaskMultiEntry,
+    TaskResultSummary,
+    TaskSnapshot,
+    TaskStorageMaintenanceResult,
+    TaskStorageQueryResult,
+    TaskStorageStats,
+    build_task_list_item,
+    build_task_result_summary,
+    build_task_snapshot,
+)
 
 
 _TASK_LIKE_TOKENS = (
@@ -68,6 +50,10 @@ _TASK_LIKE_TOKENS = (
     "活动",
 )
 _TERMINAL_TASK_STATUSES = {"completed", "failed", "partial_failed"}
+
+
+def _task_status_value(task: Dict[str, object]) -> str:
+    return str(task.get("status") or "").strip()
 
 
 def _collect_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str, object]:
@@ -172,15 +158,31 @@ class TaskService:
                 """
                 CREATE TABLE IF NOT EXISTS tasks (
                     id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL DEFAULT '',
                     updated_at REAL NOT NULL,
                     payload TEXT NOT NULL
                 )
                 """
             )
+        columns = {
+            str(row[1] or "").strip()
+            for row in self._db.execute("PRAGMA table_info(tasks)").fetchall()
+            if len(row) >= 2
+        }
+        if "status" not in columns:
+            with self._db:
+                self._db.execute("ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT ''")
+        with self._db:
             self._db.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_tasks_updated_at
                 ON tasks(updated_at)
+                """
+            )
+            self._db.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_tasks_status_updated_at
+                ON tasks(status, updated_at DESC)
                 """
             )
 
@@ -258,7 +260,25 @@ class TaskService:
         normalized_status = str(status or "").strip()
         safe_limit = max(1, min(int(limit), 200))
         safe_offset = max(0, int(offset))
-        rows = self._db.execute("SELECT payload FROM tasks ORDER BY updated_at DESC").fetchall()
+        if normalized_status:
+            rows = self._db.execute(
+                """
+                SELECT payload FROM tasks
+                WHERE status = ?
+                ORDER BY updated_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (normalized_status, safe_limit, safe_offset),
+            ).fetchall()
+            total = int(
+                self._db.execute("SELECT COUNT(*) FROM tasks WHERE status = ?", (normalized_status,)).fetchone()[0]
+            )
+        else:
+            rows = self._db.execute(
+                "SELECT payload FROM tasks ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+                (safe_limit, safe_offset),
+            ).fetchall()
+            total = int(self._db.execute("SELECT COUNT(*) FROM tasks").fetchone()[0])
         filtered: List[Dict[str, object]] = []
         for (payload_text,) in rows:
             try:
@@ -267,11 +287,8 @@ class TaskService:
                 continue
             if not isinstance(payload, dict):
                 continue
-            if normalized_status and str(payload.get("status") or "").strip() != normalized_status:
-                continue
             filtered.append(payload)
-        total = len(filtered)
-        return filtered[safe_offset : safe_offset + safe_limit], total
+        return filtered, total
 
     def list_tasks(
         self,
@@ -408,11 +425,12 @@ class TaskService:
         if not task_id:
             return
         payload_text = json.dumps(task, ensure_ascii=False)
+        status = _task_status_value(task)
         updated_at = float(task.get("updated_at") or 0)
         with self._db:
             self._db.execute(
-                "REPLACE INTO tasks (id, updated_at, payload) VALUES (?, ?, ?)",
-                (task_id, updated_at, payload_text),
+                "REPLACE INTO tasks (id, status, updated_at, payload) VALUES (?, ?, ?, ?)",
+                (task_id, status, updated_at, payload_text),
             )
 
     def _delete_tasks_locked(self, task_ids: List[str]) -> None:
@@ -426,10 +444,11 @@ class TaskService:
         with self._db:
             self._db.execute("DELETE FROM tasks")
             self._db.executemany(
-                "REPLACE INTO tasks (id, updated_at, payload) VALUES (?, ?, ?)",
+                "REPLACE INTO tasks (id, status, updated_at, payload) VALUES (?, ?, ?, ?)",
                 (
                     (
                         str(task.get("id") or ""),
+                        _task_status_value(task),
                         float(task.get("updated_at") or 0),
                         json.dumps(task, ensure_ascii=False),
                     )

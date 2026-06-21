@@ -1,5 +1,7 @@
+import ipaddress
 import json
 import os
+import secrets
 import threading
 import uvicorn
 from datetime import date
@@ -15,6 +17,10 @@ def _enforce_origin(request: FastAPIRequest, resolve_cors_origin) -> None:
     origin = request.headers.get("origin", "")
     if origin and not resolve_cors_origin(origin):
         raise HTTPException(status_code=403, detail="origin not allowed")
+
+
+_RUNTIME_DEBUG_TOKEN_ENV_KEYS = ("STORYMAP_RUNTIME_DEBUG_TOKEN", "MAP_STORY_RUNTIME_DEBUG_TOKEN")
+_RUNTIME_DEBUG_TOKEN_HEADER_KEYS = ("x-storymap-debug-token", "x-runtime-debug-token")
 
 
 def _runtime_health_snapshot(proxy_service: object) -> dict:
@@ -70,6 +76,47 @@ def _first_env(*keys: str) -> str:
     return ""
 
 
+def _request_client_host(request: FastAPIRequest) -> str:
+    forwarded = str(request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+    real_ip = str(request.headers.get("x-real-ip") or "").strip()
+    client_host = str(getattr(getattr(request, "client", None), "host", "") or "").strip()
+    return forwarded or real_ip or client_host or ""
+
+
+def _is_internal_debug_request(request: FastAPIRequest) -> bool:
+    host = _request_client_host(request).split("%", 1)[0].strip().lower()
+    if not host:
+        return False
+    if host in {"127.0.0.1", "::1", "localhost", "testserver"}:
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return bool(ip.is_loopback or ip.is_private or ip.is_link_local)
+
+
+def _runtime_debug_token() -> str:
+    return _first_env(*_RUNTIME_DEBUG_TOKEN_ENV_KEYS)
+
+
+def _has_runtime_debug_token(request: FastAPIRequest) -> bool:
+    expected = _runtime_debug_token()
+    if not expected:
+        return False
+    for header_name in _RUNTIME_DEBUG_TOKEN_HEADER_KEYS:
+        value = str(request.headers.get(header_name) or "").strip()
+        if value and secrets.compare_digest(value, expected):
+            return True
+    return False
+
+
+def _enforce_runtime_debug_access(request: FastAPIRequest) -> None:
+    if _is_internal_debug_request(request) or _has_runtime_debug_token(request):
+        return
+    raise HTTPException(status_code=403, detail="runtime debug access denied")
+
+
 def _generate_daily_limit() -> int:
     raw = _first_env(*_GENERATE_DAILY_LIMIT_ENV_KEYS)
     if not raw:
@@ -86,10 +133,7 @@ def _generate_daily_limit_path() -> Path:
 
 
 def _request_client_bucket(request: FastAPIRequest) -> str:
-    forwarded = str(request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    real_ip = str(request.headers.get("x-real-ip") or "").strip()
-    client_host = str(getattr(getattr(request, "client", None), "host", "") or "").strip()
-    return forwarded or real_ip or client_host or "unknown"
+    return _request_client_host(request) or "unknown"
 
 
 class _GenerateDailyQuotaStore:
@@ -183,6 +227,7 @@ def create_app(
     @app.get("/health/runtime")
     async def health_runtime(request: FastAPIRequest) -> JSONResponse:
         _enforce_origin(request, resolve_cors_origin)
+        _enforce_runtime_debug_access(request)
         payload = _runtime_health_snapshot(proxy_service)
         payload["service"] = "story_map"
         payload["version"] = "1"
@@ -191,6 +236,7 @@ def create_app(
     @app.get("/debug_static")
     async def debug_static(request: FastAPIRequest) -> JSONResponse:
         _enforce_origin(request, resolve_cors_origin)
+        _enforce_runtime_debug_access(request)
         return JSONResponse(content=static_service.debug_static_payload())
 
     @app.get("/amap-config.js", include_in_schema=False)

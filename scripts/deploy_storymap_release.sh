@@ -25,6 +25,11 @@ SERVICE_NAME="${STORYMAP_DEPLOY_SERVICE:-${DEFAULT_SERVICE_NAME}}"
 HEALTHCHECK_URL="${STORYMAP_DEPLOY_HEALTHCHECK_URL:-${DEFAULT_HEALTHCHECK_URL}}"
 KEEP_RELEASES="${STORYMAP_DEPLOY_KEEP_RELEASES:-${DEFAULT_KEEP_RELEASES}}"
 PUBLIC_BASE_URL="${STORYMAP_DEPLOY_PUBLIC_BASE_URL:-${DEFAULT_PUBLIC_BASE_URL}}"
+ALLOW_DEFAULT_TARGET="${STORYMAP_DEPLOY_ALLOW_DEFAULT_TARGET:-0}"
+REMOTE_HOST_EXPLICIT=0
+REMOTE_USER_EXPLICIT=0
+REMOTE_APP_DIR_EXPLICIT=0
+PUBLIC_BASE_URL_EXPLICIT=0
 RUN_CHECKS=0
 SKIP_UPLOAD=0
 SKIP_REMOTE=0
@@ -55,6 +60,7 @@ usage() {
   --skip-upload                 只重新执行远端部署脚本，不重新上传压缩包
   --skip-remote                 只打包并上传，不执行远端切换
   --skip-verify                 跳过部署后的远端 health 校验
+  --allow-default-target        允许直接使用脚本内置默认生产目标
   -h, --help                    显示帮助
 
 环境变量：
@@ -69,6 +75,7 @@ usage() {
   STORYMAP_DEPLOY_HEALTHCHECK_URL
   STORYMAP_DEPLOY_PUBLIC_BASE_URL
   STORYMAP_DEPLOY_KEEP_RELEASES
+  STORYMAP_DEPLOY_ALLOW_DEFAULT_TARGET
 EOF
 }
 
@@ -94,10 +101,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --host)
       REMOTE_HOST="$2"
+      REMOTE_HOST_EXPLICIT=1
       shift 2
       ;;
     --user)
       REMOTE_USER="$2"
+      REMOTE_USER_EXPLICIT=1
       shift 2
       ;;
     --port)
@@ -110,6 +119,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --app-dir)
       REMOTE_APP_DIR="$2"
+      REMOTE_APP_DIR_EXPLICIT=1
       shift 2
       ;;
     --archive-path)
@@ -130,6 +140,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --public-base-url)
       PUBLIC_BASE_URL="$2"
+      PUBLIC_BASE_URL_EXPLICIT=1
       shift 2
       ;;
     --keep-releases)
@@ -160,6 +171,10 @@ while [[ $# -gt 0 ]]; do
       SKIP_VERIFY=1
       shift
       ;;
+    --allow-default-target)
+      ALLOW_DEFAULT_TARGET=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -169,6 +184,27 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ -n "${STORYMAP_DEPLOY_HOST+x}" ]]; then
+  REMOTE_HOST_EXPLICIT=1
+fi
+if [[ -n "${STORYMAP_DEPLOY_USER+x}" ]]; then
+  REMOTE_USER_EXPLICIT=1
+fi
+if [[ -n "${STORYMAP_DEPLOY_APP_DIR+x}" ]]; then
+  REMOTE_APP_DIR_EXPLICIT=1
+fi
+if [[ -n "${STORYMAP_DEPLOY_PUBLIC_BASE_URL+x}" ]]; then
+  PUBLIC_BASE_URL_EXPLICIT=1
+fi
+
+if [[ "${ALLOW_DEFAULT_TARGET}" != "1" \
+  && "${REMOTE_HOST_EXPLICIT}" != "1" \
+  && "${REMOTE_USER_EXPLICIT}" != "1" \
+  && "${REMOTE_APP_DIR_EXPLICIT}" != "1" \
+  && "${PUBLIC_BASE_URL_EXPLICIT}" != "1" ]]; then
+  fail "refusing to deploy to built-in default target; pass --host/--user (or set STORYMAP_DEPLOY_HOST/STORYMAP_DEPLOY_USER), or add --allow-default-target"
+fi
 
 require_command ssh
 require_command scp
