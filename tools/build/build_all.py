@@ -26,7 +26,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from storymap.script.project_paths import (
+from storymap.script.core.project_paths import (
     BAD_PERSON_NAMES,
     classify_story_markdown_authenticity,
     data_reports_output_path,
@@ -35,7 +35,7 @@ from storymap.script.project_paths import (
     story_md_dir_path,
     story_person_names,
 )
-from storymap.script.map_html_renderer import profile_template_signature
+from storymap.script.profile.renderer import profile_template_signature
 
 REPO_ROOT = project_root_path()
 STORY_DIR = story_md_dir_path()

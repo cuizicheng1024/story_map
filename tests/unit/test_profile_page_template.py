@@ -10,11 +10,11 @@ if str(SCRIPT_DIR) not in sys.path:
 
 TEMPLATE_PATH = REPO_ROOT / "storymap" / "script" / "profile" / "templates" / "profile_page.html"
 
-import map_html_renderer as renderer
-from map_html_renderer import render_profile_html
-from artifacts import _extract_export_data_from_html
-import profile_builder
-import story_map
+from storymap.script.cli import story_map
+from storymap.script.core.artifacts import _extract_export_data_from_html
+from storymap.script.profile import builder as profile_builder
+from storymap.script.profile import renderer
+from storymap.script.profile.renderer import render_profile_html
 
 
 def test_render_profile_html_uses_external_template():
@@ -54,11 +54,23 @@ def test_render_profile_html_builds_person_redirects_from_filtered_story_people(
     assert captured["names"] == ["苏轼"]
 
 
-def test_render_profile_html_includes_google_analytics_snippet():
+def test_render_profile_html_omits_google_analytics_snippet_without_explicit_config(monkeypatch):
+    monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)
+    monkeypatch.delenv("GA_MEASUREMENT_ID", raising=False)
+
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
-    assert "googletagmanager.com/gtag/js?id=G-B8F24PMY4F" in html
-    assert "gtag('config', \"G-B8F24PMY4F\")" in html
+    assert "googletagmanager.com/gtag/js?id=" not in html
+    assert "gtag('config'," not in html
+
+
+def test_render_profile_html_includes_google_analytics_snippet_when_explicitly_configured(monkeypatch):
+    monkeypatch.setenv("MAP_STORY_GA_MEASUREMENT_ID", "G-TEST123456")
+
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "googletagmanager.com/gtag/js?id=G-TEST123456" in html
+    assert "gtag('config', \"G-TEST123456\")" in html
 
 
 def test_render_profile_html_precompiles_profile_app_and_omits_runtime_babel_script():
@@ -406,7 +418,7 @@ def test_static_profile_page_tries_local_ai_proxy_on_localhost():
 
 
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
-    registry = importlib.import_module("storymap.script.person_registry")
+    registry = importlib.import_module("storymap.script.core.person_registry")
     hints = typing.get_type_hints(registry.canonical_person_name)
 
     assert "available_names" in hints
@@ -1208,6 +1220,8 @@ def test_render_profile_html_exposes_feedback_button_and_build_meta():
     assert "__BUILD_META__" in html
     assert "__BUILD_VERSION__" not in html
     assert "__BUILD_AT__" not in html
+    assert "__BUILD_SOURCE_COMMIT__" not in html
+    assert "__BUILD_COMPONENT__" not in html
     assert renderer.profile_template_signature() in html
 
 

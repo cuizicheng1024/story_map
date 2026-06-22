@@ -12,16 +12,10 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-try:
-    from ..artifacts import _project_root
-    from ..env_utils import apply_story_map_env_aliases, load_project_env
-    from .map_client import geocode_city
-    from ..story_agents import StoryAgentLLM
-except ImportError:
-    from artifacts import _project_root
-    from env_utils import apply_story_map_env_aliases, load_project_env
-    from map_client import geocode_city
-    from story_agents import StoryAgentLLM
+from ..agent.registry import StoryAgentLLM
+from ..core.artifacts import _project_root
+from ..core.env_utils import apply_story_map_env_aliases, load_project_env
+from .map_client import geocode_city
 
 
 load_project_env(from_file=__file__, override=False)

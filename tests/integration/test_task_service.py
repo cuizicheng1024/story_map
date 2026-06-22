@@ -11,7 +11,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from task import TaskService
+from storymap.script.runtime.task_service import TaskService
 
 
 def _make_story_dir(tmp_path: Path, *names: str) -> Path:
@@ -69,7 +69,7 @@ def _wait_for_task(service: TaskService, task_id: str, *, timeout: float = 2.0) 
     end = time.time() + timeout
     while time.time() < end:
         snapshot = service.snapshot_task(task_id)
-        if snapshot.get("status") in {"completed", "failed", "partial_failed"}:
+        if snapshot.get("status") in {"completed", "failed", "partial_failed", "interrupted", "cancelled", "timed_out"}:
             return snapshot
         time.sleep(0.02)
     raise AssertionError(f"task {task_id} did not finish in time")
@@ -194,6 +194,106 @@ def test_task_service_archives_homepage_in_background_after_person_page_is_ready
         assert archived["data_path"] == "/tmp/stellar_home_data.json"
     finally:
         release_archive.set()
+        service.shutdown()
+
+
+def test_task_service_dedupes_active_requests(tmp_path):
+    release = threading.Event()
+
+    def _generate(_client, person, **_kwargs):
+        release.wait(timeout=1.0)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate, max_concurrency=1)
+    try:
+        first = service.submit_task("霍去病")
+        second = service.submit_task("霍去病")
+
+        assert first["ok"] is True
+        assert second["ok"] is True
+        assert second["deduped"] is True
+        assert second["task_id"] == first["task_id"]
+        assert service.runtime_metrics_snapshot()["counters"]["deduped"] == 1
+
+        release.set()
+        snapshot = _wait_for_task(service, first["task_id"])
+        assert snapshot["status"] == "completed"
+    finally:
+        release.set()
+        service.shutdown()
+
+
+def test_task_service_cancels_running_task(tmp_path):
+    release = threading.Event()
+
+    def _generate(_client, person, **_kwargs):
+        release.wait(timeout=1.0)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate, max_concurrency=1)
+    try:
+        submit = service.submit_task("霍去病")
+        time.sleep(0.05)
+        payload = service.cancel_task(submit["task_id"], reason="测试取消")
+
+        assert payload["ok"] is True
+        assert payload["status"] in {"cancelling", "cancelled"}
+
+        release.set()
+        snapshot = _wait_for_task(service, submit["task_id"])
+        assert snapshot["status"] == "cancelled"
+        assert "测试取消" in snapshot["error"]
+    finally:
+        release.set()
+        service.shutdown()
+
+
+def test_task_service_marks_long_running_task_timed_out(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAP_STORY_TASK_TIMEOUT_SECONDS", "1")
+
+    def _slow_generate(_client, person, **_kwargs):
+        time.sleep(1.2)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_slow_generate)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"], timeout=3.0)
+
+        assert snapshot["status"] == "timed_out"
+        assert snapshot["status_info"]["code"] == "timed_out"
+        assert "超时" in snapshot["error"]
+    finally:
         service.shutdown()
 
 
@@ -342,6 +442,112 @@ def test_task_service_rebuilds_exports_after_profile_refresh(tmp_path):
         assert export_calls == [{"person": "霍去病", "allow_cache": False}]
     finally:
         service.shutdown()
+
+
+def test_task_service_runtime_metrics_capture_bulk_completion(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        task_ids = [service.submit_task(person)["task_id"] for person in ("霍去病", "李白", "杜甫")]
+        for task_id in task_ids:
+            snapshot = _wait_for_task(service, task_id)
+            assert snapshot["status"] == "completed"
+
+        metrics = service.runtime_metrics_snapshot()
+        assert metrics["ok"] is True
+        assert metrics["queue"]["pending"] == 0
+        assert metrics["counters"]["submitted"] == 3
+        assert metrics["counters"]["completed"] == 3
+        assert metrics["counters"]["duration_seconds_total"] >= 0
+    finally:
+        service.shutdown()
+
+
+def test_task_service_marks_restart_recovery_as_interrupted_and_allows_manual_retry(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "0")
+    release = threading.Event()
+
+    def _generate(_client, person, **_kwargs):
+        release.wait(timeout=1.0)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate, max_concurrency=1)
+    submit = service.submit_task("霍去病")
+    original_task_id = submit["task_id"]
+    service.shutdown()
+
+    recovered = _build_service(tmp_path)
+    try:
+        snapshot = recovered.snapshot_task(original_task_id)
+        assert snapshot["status"] == "interrupted"
+        assert snapshot["status_info"]["code"] == "interrupted"
+        assert "可重试恢复" in snapshot["error"]
+
+        retry = recovered.retry_task(original_task_id, reason="手动恢复")
+        assert retry["ok"] is True
+        retried_snapshot = _wait_for_task(recovered, retry["task_id"])
+        assert retried_snapshot["status"] == "completed"
+    finally:
+        release.set()
+        recovered.shutdown()
+
+
+def test_task_service_auto_retries_interrupted_task_on_restart(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "1")
+    monkeypatch.setenv("MAP_STORY_INTERRUPTED_RETRY_LIMIT", "1")
+    release = threading.Event()
+
+    def _generate(_client, person, **_kwargs):
+        release.wait(timeout=1.0)
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": f"/tmp/{person}.md",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {
+                "person": {"name": person},
+                "locations": [{"name": "长安", "modernName": "西安", "lat": 34.26, "lng": 108.95}],
+                "mapStyle": {},
+            },
+        }
+
+    service = _build_service(tmp_path, generate_for_person=_generate, max_concurrency=1)
+    submit = service.submit_task("霍去病")
+    original_task_id = submit["task_id"]
+    service.shutdown()
+
+    recovered = _build_service(tmp_path)
+    try:
+        end = time.time() + 2.0
+        retry_task_id = ""
+        while time.time() < end:
+            with recovered._task_lock:
+                raw = dict(recovered._tasks.get(original_task_id) or {})
+                retry_task_id = str(raw.get("retry_task_id") or "").strip()
+            if retry_task_id:
+                break
+            time.sleep(0.02)
+
+        assert retry_task_id
+        original_snapshot = recovered.snapshot_task(original_task_id)
+        assert original_snapshot["status"] == "interrupted"
+        retried_snapshot = _wait_for_task(recovered, retry_task_id)
+        assert retried_snapshot["status"] == "completed"
+        metrics = recovered.runtime_metrics_snapshot()
+        assert metrics["counters"]["interrupted"] >= 1
+        assert metrics["counters"]["auto_retried"] >= 1
+    finally:
+        release.set()
+        recovered.shutdown()
 
 
 def test_task_service_accepts_unknown_plain_person_name(tmp_path):
@@ -520,7 +726,8 @@ def test_task_service_recovers_completed_task_from_disk(tmp_path):
         restored.shutdown()
 
 
-def test_task_service_marks_inflight_tasks_failed_after_restart(tmp_path):
+def test_task_service_marks_inflight_tasks_interrupted_after_restart(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "0")
     service = _build_service(tmp_path)
     try:
         task_id = service._create_task("霍去病")
@@ -533,7 +740,8 @@ def test_task_service_marks_inflight_tasks_failed_after_restart(tmp_path):
         snapshot = restored.snapshot_task(task_id)
         assert snapshot["exists"] is True
         assert snapshot["ok"] is False
-        assert snapshot["status"] == "failed"
+        assert snapshot["status"] == "interrupted"
+        assert snapshot["status_info"]["code"] == "interrupted"
         assert "服务重启导致任务中断" in snapshot["error"]
         labels = [event["label"] for event in snapshot["progress"]]
         assert labels[-1] == "中断"
@@ -872,3 +1080,113 @@ def test_task_service_refreshes_waiting_queue_positions(tmp_path):
     finally:
         release_first.set()
         service.shutdown()
+
+
+def test_task_service_housekeep_interrupts_orphaned_running_task_and_auto_retries(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "1")
+    monkeypatch.setenv("MAP_STORY_INTERRUPTED_RETRY_LIMIT", "2")
+    service = _build_service(tmp_path)
+    try:
+        task_id = service._create_task("霍去病")
+        stale_at = time.time() - max(service._task_timeout_seconds, 60)
+        with service._task_lock:
+            task = service._tasks[task_id]
+            task["status"] = "running"
+            task["updated_at"] = stale_at
+            task["created_at"] = stale_at
+            service._upsert_task_locked(task)
+
+        report = service.housekeep_runtime(force=True, auto_retry=True)
+
+        assert report["ran"] is True
+        assert report["repaired_interrupted_count"] == 1
+        assert report["auto_retried_count"] == 1
+        repaired = service.snapshot_task(task_id)
+        assert repaired["status"] == "interrupted"
+        retry_task_id = service._tasks[task_id]["retry_task_id"]
+        retried = _wait_for_task(service, retry_task_id)
+        assert retried["status"] == "completed"
+    finally:
+        service.shutdown()
+
+
+def test_task_debug_payload_exposes_generation_state_fields():
+    """看板应展示单人物的 stage / retry / checkpoint / error 分类 / 首页刷新状态。"""
+
+    from storymap.script.runtime.task_debug import build_task_debug_payload, render_task_debug_html
+
+    snapshot = {
+        "id": "task-state-1",
+        "status": "completed",
+        "status_info": {"code": "completed", "label": "已完成", "level": "success"},
+        "result": {
+            "ok": True,
+            "status": "completed",
+            "status_info": {"code": "completed", "label": "已完成", "level": "success"},
+            "people": ["李白"],
+            "results": [
+                {
+                    "ok": True,
+                    "person": "李白",
+                    "_state": {
+                        "person": "李白",
+                        "stage": "render_done",
+                        "retry_count": 1,
+                        "checkpoint_stage": "build_profile",
+                        "checkpoint_source": "markdown_file",
+                        "error_classification": "rate_limit",
+                        "error_retryable": True,
+                        "homepage_refresh_state": "queued",
+                        "cached": False,
+                        "refreshed": True,
+                        "used_existing_markdown": False,
+                    },
+                }
+            ],
+        },
+    }
+
+    payload = build_task_debug_payload(snapshot)
+    person_state = payload["people"][0]["state"]
+    assert person_state["stage"] == "render_done"
+    assert person_state["retry_count"] == 1
+    assert person_state["checkpoint_stage"] == "build_profile"
+    assert person_state["checkpoint_source"] == "markdown_file"
+    assert person_state["error_classification"] == "rate_limit"
+    assert person_state["error_retryable"] is True
+    assert person_state["homepage_refresh_state"] == "queued"
+
+    page_html = render_task_debug_html(snapshot)
+    assert "Generation State" in page_html
+    # 各个 chip 都应出现在页面上
+    assert "render_done" in page_html
+    assert "1 次" in page_html
+    assert "build_profile" in page_html
+    assert "markdown_file" in page_html
+    assert "rate_limit" in page_html
+    assert "queued" in page_html
+
+
+def test_task_debug_payload_handles_missing_generation_state_gracefully():
+    """没有 _state 时 payload 仍应包含安全的默认 state 子结构。"""
+
+    from storymap.script.runtime.task_debug import build_task_debug_payload
+
+    snapshot = {
+        "id": "task-state-2",
+        "status": "completed",
+        "status_info": {"code": "completed"},
+        "result": {
+            "ok": True,
+            "status": "completed",
+            "people": ["李白"],
+            "results": [{"ok": True, "person": "李白"}],
+        },
+    }
+
+    payload = build_task_debug_payload(snapshot)
+    person_state = payload["people"][0]["state"]
+    assert person_state["stage"] == ""
+    assert person_state["retry_count"] == 0
+    assert person_state["error_classification"] == ""
+    assert person_state["homepage_refresh_state"] == ""

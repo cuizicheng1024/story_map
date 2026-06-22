@@ -5,7 +5,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import offline_eval
+from storymap.script.agent import offline_eval
 
 
 GT_MD = """# 李白

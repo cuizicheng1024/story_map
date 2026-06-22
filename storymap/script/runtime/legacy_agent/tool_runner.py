@@ -2,20 +2,12 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Optional, TypedDict
 
-try:
-    from .state import StoryAgentState
-    from .telemetry import (
-        attach_memory_access_to_trace,
-        consume_memory_access,
-    )
-    from ...story_tooling import invoke_tool
-except ImportError:
-    from story_agent_state import StoryAgentState
-    from story_agent_telemetry import (
-        attach_memory_access_to_trace,
-        consume_memory_access,
-    )
-    from story_tooling import invoke_tool
+from ...cli.tooling import invoke_tool
+from .state import StoryAgentState
+from .telemetry import (
+    attach_memory_access_to_trace,
+    consume_memory_access,
+)
 
 
 class ToolCallError(RuntimeError):

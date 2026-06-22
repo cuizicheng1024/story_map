@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多人物合并视图</title>
+<script src="./vendor/tailwindcss.js"></script>
+<script>window.MAP_STORY_STATIC_SITE=false;</script>
+<script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script><script>
+(() => {
+  try {
+    const host = String(window.location?.hostname || '').trim().toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
+    const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
+    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
+      window.__MAP_STORY_AMAP_CONFIG__ = true;
+      const cfg = document.createElement('script');
+      cfg.src = new URL('./amap-config.js', window.location.href).toString();
+      cfg.async = false;
+      document.head.appendChild(cfg);
+    }
+  } catch (_) {}
+})();
+let amapLoading = false;
+const _getAmapKey = () => {
+  let k = '';
+  try {
+    k = (new URLSearchParams(window.location.search).get('amapKey') || '').trim();
+  } catch (_) {}
+  if (!k) k = String(window.AMAP_KEY || '').trim();
+  try {
+    if (!k) k = String(localStorage.getItem('AMAP_KEY') || '').trim();
+  } catch (_) {}
+  return k;
+};
+const _getAmapSecurity = () => {
+  let s = '';
+  try {
+    s = (new URLSearchParams(window.location.search).get('amapSec') || '').trim();
+  } catch (_) {}
+  if (!s) s = String(window.AMAP_SECURITY || '').trim();
+  try {
+    if (!s) s = String(localStorage.getItem('AMAP_SECURITY') || '').trim();
+  } catch (_) {}
+  return s;
+};
+const _ensureAmap = () => new Promise((resolve, reject) => {
+  if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+  const key = _getAmapKey();
+  if (!key) return reject(new Error('AMAP_KEY_REQUIRED'));
+  const sec = _getAmapSecurity();
+  if (sec) {
+    window._AMapSecurityConfig = { securityJsCode: sec };
+  }
+  if (amapLoading) {
+    const t0 = Date.now();
+    const tick = () => {
+      if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
+      if (Date.now() - t0 > 12000) return reject(new Error('AMAP_LOAD_TIMEOUT'));
+      setTimeout(tick, 80);
+    };
+    return tick();
+  }
+  amapLoading = true;
+  const sEl = document.createElement('script');
+  sEl.async = true;
+  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.TileLayer.Satellite,AMap.TerrainLayer`;
+  sEl.onload = () => {
+    amapLoading = false;
+    if (window.AMap && typeof window.AMap.Map === 'function') resolve(true);
+    else reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  sEl.onerror = () => {
+    amapLoading = false;
+    reject(new Error('AMAP_LOAD_FAILED'));
+  };
+  document.head.appendChild(sEl);
+});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B8F24PMY4F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-B8F24PMY4F");</script>
+<style>
+body{font-family:'Noto Serif SC',serif;background-color:#fdf6e3;color:#2c3e50;}
+#map{height:80vh;width:100%;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.12);}
+.legend{position:fixed;left:16px;top:16px;background:rgba(255,255,255,0.9);border:1px solid rgba(200,180,150,0.5);border-radius:10px;padding:10px 12px;z-index:9999;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px;}
+.legend-color{width:10px;height:10px;border-radius:999px;}
+</style>
+</head>
+<body class="p-4 md:p-8">
+
+<div id="legend" class="legend"></div>
+<div id="map"></div>
+<script>
+const data = {"title": "多人物合并视图", "people": [{"person": {"name": "李白", "title": "诗仙", "description": "李白生于盛唐，自幼聪颖，博览百家。他怀有远大的政治抱负，却一生仕途坎坷。青年时出蜀漫游，足迹遍及大半个中国。天宝初年曾供奉翰林，但不久便遭谗言离京。安史之乱中，因入永王李璘幕府而受牵连，流放夜郎，途中遇赦。晚年漂泊于江南，最终在当涂病逝。其诗歌豪放飘逸、想象瑰丽，充满了对自由、理想和山河的热爱，深刻反映了盛唐的时代精神与个人际遇的冲突。", "quote": "犬吠水声中，桃花带露浓。", "shortReview": "犬吠水声中，桃花带露浓。", "dynasty": "唐朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "说法不一（一说碎叶城", "avatar": "", "birth": {"date": "701年", "location": "说法不一（一说碎叶城", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "762年", "location": "当涂（今安徽省马鞍山市当涂县）", "lat": 31.571, "lng": 118.498, "coordSystem": "WGS84"}, "lifespan": "约62岁", "highlights": {"honor": "诗仙", "status": "中国文学史上最伟大的浪漫主义诗人之一，被后人誉为“诗仙”。", "identities": "诗人、文学家", "achievements": "将浪漫主义诗歌推向高峰；创作了大量脍炙人口的诗篇；其诗歌风格对后世影响深远；与杜甫并称“李杜”。", "works": [], "reviews": []}}, "locations": [{"name": "出生地（存疑）", "ancientName": "说法不一，一说碎叶城，一说蜀中", "modernName": "吉尔吉斯斯坦托克马克市", "lat": 42.7667, "lng": 75.3, "coordSystem": "WGS84", "type": "birth", "event": "李白出生于此，其家族在此经商。", "time": "公元701年", "duration": "约5岁前", "significance": "李白人生的起点，其多元的文化背景可能源于此地。", "works": [], "quoteLines": []}, {"name": "蜀中（昌隆/青莲）", "ancientName": "昌隆县", "modernName": "四川省江油市青莲镇", "lat": 31.7781, "lng": 104.7456, "coordSystem": "WGS84", "type": "normal", "event": "随父迁居至此，在蜀中度过青少年时期，读书习剑，游览山水，接受道教思想。", "time": "约公元705年 - 724年", "duration": "约19年", "significance": "奠定了其文学基础和豪放性格的形成期，自称“五岳寻仙不辞远，一生好入名山游”。", "works": [], "quoteLines": ["《访戴天山道士不遇》：“犬吠水声中，桃花带露浓。”"]}, {"name": "江陵", "ancientName": "荆州江陵", "modernName": "湖北省荆州市", "lat": 30.3351, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "出蜀后第一站，遇道教大师司马承祯，受其赞誉，写下《大鹏遇稀有鸟赋》（又名《大鹏赋》）。", "time": "约公元725年", "duration": "短暂", "significance": "开启了漫游天下的旅程，以“大鹏”自喻，展现非凡气概。", "works": ["大鹏遇稀有鸟赋", "大鹏赋"], "quoteLines": ["《渡荆门送别》：“山随平野尽，江入大荒流。”"]}, {"name": "金陵", "ancientName": "金陵", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "游览六朝古都，广交朋友，挥金如土，创作了大量怀古诗篇。", "time": "约公元726年及多次重游", "duration": "多次短期停留", "significance": "感受历史兴衰，抒发人生感慨，诗风更显深沉。", "works": [], "quoteLines": ["《登金陵凤凰台》：“总为浮云能蔽日，长安不见使人愁。”"]}, {"name": "安陆", "ancientName": "安州安陆", "modernName": "湖北省安陆市", "lat": 31.2556, "lng": 113.6833, "coordSystem": "WGS84", "type": "normal", "event": "娶故宰相许圉师孙女，婚后在此定居，期间多次干谒地方长官，寻求仕途机会未果。", "time": "约公元727年 - 735年", "duration": "约8年", "significance": "人生中一段相对稳定的时期，但仕途追求屡屡受挫。", "works": [], "quoteLines": ["《山中问答》：“问余何意栖碧山，笑而不答心自闲。”"]}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "首次入京干谒无果。天宝元年应诏入京，供奉翰林，写下《清平调》等诗，但因不羁性格遭权贵谗毁，被“赐金放还”。", "time": "约公元730年首次入京；公元742年-744年供奉翰林", "duration": "首次短暂；二次约2年", "significance": "人生政治生涯的顶点与转折点，深刻体验了宫廷的荣光与黑暗。", "works": ["清平调"], "quoteLines": ["《清平调》：“云想衣裳花想容，春风拂槛露华浓。”"]}, {"name": "东鲁（任城）", "ancientName": "任城", "modernName": "山东省济宁市", "lat": 35.4149, "lng": 116.5871, "coordSystem": "WGS84", "type": "normal", "event": "曾在此安家，寓居时间较长，与孔巢父等隐士交游，号“竹溪六逸”。", "time": "约公元736年 - 740年及后期", "duration": "断续居住数年", "significance": "体现了李白思想中儒家与道家交织的另一面。", "works": [], "quoteLines": ["《五月东鲁行答汶上翁》：“顾余不及仕，学剑来山东。”"]}, {"name": "梁园（宋州）", "ancientName": "宋州梁园", "modernName": "河南省商丘市", "lat": 34.4142, "lng": 115.6569, "coordSystem": "WGS84", "type": "normal", "event": "与杜甫、高适同游，饮酒赋诗。在此期间与宗氏结婚，并以此为中心继续漫游。", "time": "约公元744年 - 755年（多次往返）", "duration": "多次长期居住", "significance": "“李杜”相会的重要地点，文学史上的佳话。也是李白后期相对稳定的家庭所在地。", "works": [], "quoteLines": ["《梁园吟》：“人生达命岂暇愁，且饮美酒登高楼。”"]}, {"name": "宣城", "ancientName": "宣城", "modernName": "安徽省宣城市", "lat": 30.9407, "lng": 118.7587, "coordSystem": "WGS84", "type": "normal", "event": "晚年多次游历宣城，登敬亭山，泛舟宛溪，留下众多诗篇。", "time": "约公元753年 - 755年（多次）", "duration": "多次短期游历", "significance": "李白晚年重要的精神栖息地，诗歌风格更趋清新自然与深沉。", "works": [], "quoteLines": ["《独坐敬亭山》：“相看两不厌，只有敬亭山。”"]}, {"name": "浔阳（庐山）", "ancientName": "浔阳庐山", "modernName": "江西省九江市", "lat": 29.7052, "lng": 116.0017, "coordSystem": "WGS84", "type": "normal", "event": "安史之乱爆发后，隐居庐山屏风叠。", "time": "公元756年", "duration": "短暂隐居", "significance": "在乱世中寻求避难，但为后续卷入永王事件埋下伏笔。", "works": [], "quoteLines": ["《望庐山瀑布》：“飞流直下三千尺，疑是银河落九天。”（此诗为李白咏庐山名篇，常与此地关联）"]}, {"name": "夜郎", "ancientName": "夜郎", "modernName": "贵州省遵义市桐梓县", "lat": 28.1333, "lng": 106.825, "coordSystem": "WGS84", "type": "normal", "event": "因从永王璘获罪，流放夜郎，行至巫山遇赦。", "time": "公元758年 - 759年（流放途中）", "duration": "未至，途中赦还", "significance": "人生最大的政治挫折与生命危机，诗歌中充满悲愤与希望交织的复杂情感。", "works": [], "quoteLines": ["《早发白帝城》：“朝辞白帝彩云间，千里江陵一日还。”（赦后返回时作）"]}, {"name": "当涂", "ancientName": "当涂", "modernName": "安徽省马鞍山市当涂县", "lat": 31.571, "lng": 118.498, "coordSystem": "WGS84", "type": "death", "event": "晚年投奔族叔、当涂县令李阳冰，临终前将诗稿托付于他，赋《临终歌》而卒。", "time": "公元762年", "duration": "约1年", "significance": "诗仙生命的终点，其诗歌遗产得以整理和流传。", "works": ["临终歌"], "quoteLines": ["《临终歌》：“大鹏飞兮振八裔，中天摧兮力不济。”"]}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "color": "#1e40af"}, {"person": {"name": "杜甫", "title": "诗圣", "description": "杜甫生于盛唐由盛转衰的关键时期。他出身于“奉儒守官”的家庭，早年抱有“致君尧舜上”的政治理想，漫游吴越、齐赵。中年困居长安十年，仕途失意，亲历社会危机。安史之乱爆发后，他颠沛流离，被叛军俘获又脱险，奔赴肃宗行在，任左拾遗。后弃官入蜀，于成都营建草堂，度过了一段相对安定的时光。晚年携家出蜀，漂泊于荆湘一带，最终病逝于舟中。其一生坎坷，却以如椽巨笔深刻记录了时代的动荡与民间的苦难。", "quote": "朱门酒肉臭，路有冻死骨。", "shortReview": "朱门酒肉臭，路有冻死骨。", "dynasty": "唐代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "巩县（今河南省郑州市巩义市）", "avatar": "", "birth": {"date": "712年", "location": "巩县（今河南省郑州市巩义市）", "lat": 34.748, "lng": 112.984, "coordSystem": "WGS84"}, "death": {"date": "770年", "location": "潭州往岳阳途中", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "59岁", "highlights": {"honor": "诗圣", "status": "中国历史上最伟大的现实主义诗人之一，被后世尊为“诗圣”，其诗被誉为“诗史”。", "identities": "诗人、官员", "achievements": "将现实主义诗歌推向高峰；创作了大量反映社会动荡与人民疾苦的“诗史”篇章；集古典诗歌艺术之大成，众体兼备；对后世诗歌发展产生深远影响。", "works": [], "reviews": []}}, "locations": [{"name": "巩县", "ancientName": "巩县", "modernName": "河南省郑州市巩义市", "lat": 34.748, "lng": 112.984, "coordSystem": "WGS84", "type": "birth", "event": "出生于“奉儒守官”之家，祖父杜审言为著名诗人。早年丧母，寄居于洛阳姑母家。", "time": "公元712年", "duration": "童年及青少年时期（约至20岁）", "significance": "奠定了杜甫的儒家思想根基与文学世家背景。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.159, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "应试不第，困居长安，献赋求官，仅获右卫率府胄曹参军等微职。目睹朝政腐败与社会危机。", "time": "746年-755年", "duration": "约10年", "significance": "人生理想受挫的关键时期，创作风格转向深沉现实，写下《兵车行》《丽人行》等名篇。", "works": ["兵车行", "丽人行"], "quoteLines": ["《自京赴奉先县咏怀五百字》：“朱门酒肉臭，路有冻死骨。”"]}, {"name": "奉先/鄜州", "ancientName": "奉先/鄜州", "modernName": "陕西省渭南市蒲城县", "lat": 34.956, "lng": 109.586, "coordSystem": "WGS84", "type": "normal", "event": "安史之乱爆发，将家小安置于奉先，后只身奔赴灵武投肃宗，途中被叛军俘获，押解至长安。后逃脱，奔赴凤翔。", "time": "755年-756年", "duration": "安史之乱初期", "significance": "亲历战乱，与家人离散，写下《月夜》《春望》等忧国思家之作。", "works": ["月夜", "春望"], "quoteLines": ["《春望》：“国破山河在，城春草木深。”"]}, {"name": "凤翔", "ancientName": "凤翔", "modernName": "陕西省宝鸡市凤翔区", "lat": 34.522, "lng": 107.399, "coordSystem": "WGS84", "type": "normal", "event": "抵达肃宗行在，被授予左拾遗之职。因房琯事件直言进谏，触怒肃宗。", "time": "757年", "duration": "数月", "significance": "仕途达到顶点（谏官），但也因此获罪，政治生涯遭受重大挫折。", "works": [], "quoteLines": []}, {"name": "华州", "ancientName": "华州", "modernName": "陕西省渭南市华州区", "lat": 34.497, "lng": 109.771, "coordSystem": "WGS84", "type": "normal", "event": "任华州司功参军。因关中大饥，对仕途失望，弃官西去。", "time": "758年-759年", "duration": "约1年", "significance": "创作了“三吏”（《新安吏》《石壕吏》《潼关吏》）“三别”（《新婚别》《垂老别》《无家别》）等不朽史诗。", "works": ["新安吏", "石壕吏", "潼关吏", "新婚别", "垂老别", "无家别"], "quoteLines": ["《石壕吏》：“暮投石壕村，有吏夜捉人。”"]}, {"name": "秦州/同谷", "ancientName": "秦州/同谷", "modernName": "甘肃省天水市", "lat": 34.581, "lng": 105.724, "coordSystem": "WGS84", "type": "normal", "event": "携家西行，经秦州，赴同谷，生活陷入极度困顿，靠拾橡栗、挖土芋为生。", "time": "759年", "duration": "数月", "significance": "人生最艰难困苦的时期之一，诗作充满饥寒交迫的悲怆感。", "works": [], "quoteLines": []}, {"name": "成都草堂", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.664, "lng": 104.056, "coordSystem": "WGS84", "type": "normal", "event": "在严武等友人资助下，于成都西郊浣花溪畔建草堂。其间曾入严武幕府任节度参谋、检校工部员外郎（故称“杜工部”）。", "time": "759年底-765年", "duration": "约5年（中间有短暂离开）", "significance": "一生中相对安定、惬意的时期，创作了大量清新自然的田园诗和即景抒怀诗。", "works": [], "quoteLines": ["《茅屋为秋风所破歌》：“安得广厦千万间，大庇天下寒士俱欢颜。”", "《客至》：“花径不曾缘客扫，蓬门今始为君开。”"]}, {"name": "夔州", "ancientName": "夔州", "modernName": "重庆市奉节县", "lat": 31.018, "lng": 109.464, "coordSystem": "WGS84", "type": "normal", "event": "受夔州都督柏茂琳照顾，暂居于此。管理公田，生活稍安。", "time": "766年-768年", "duration": "约2年", "significance": "诗歌创作的又一高峰，写下《秋兴八首》《咏怀古迹五首》《登高》等大量精纯之作，律诗艺术登峰造极。", "works": ["秋兴八首", "咏怀古迹五首", "登高"], "quoteLines": ["《登高》：“无边落木萧萧下，不尽长江滚滚来。”"]}, {"name": "荆湘（江陵、公安、潭州等）", "ancientName": "荆湘", "modernName": "湖北省江陵县、公安县，湖南省长沙市等地", "lat": 30.042, "lng": 112.411, "coordSystem": "WGS84", "type": "normal", "event": "离夔州，欲北归故里，因战乱阻隔，遂漂泊于湖北、湖南一带。流寓潭州时，遇臧玠兵乱，再度逃难。", "time": "768年-770年", "duration": "约2年", "significance": "晚年漂泊无依，贫病交加，诗作多抒发羁旅哀思与家国之痛。", "works": [], "quoteLines": []}, {"name": "潭州往岳阳途中", "ancientName": "潭州往岳阳途中", "modernName": "湖南省长沙市至岳阳市之间，具体地点存疑", "lat": 28.235, "lng": 112.938, "coordSystem": "WGS84", "type": "death", "event": "在由潭州前往岳阳的一条小船上病逝。", "time": "公元770年冬", "duration": "在漂泊的舟中", "significance": "一代诗圣在孤独与漂泊中走完了人生旅程，归葬于岳阳。", "works": [], "quoteLines": []}], "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "color": "#c2410c"}], "overlaps": [{"name": "陕西省西安市", "count": 2}]};
+window.__EXPORT_DATA__ = data;
+const people = data.people || [];
+const legend = document.getElementById('legend');
+const overlap = data.overlaps || [];
+const overlapText = overlap.length ? overlap.map(o => o.name).join('、') : '暂无';
+legend.innerHTML = `<div class="text-sm font-semibold">人物轨迹</div>` + people.map(p => `
+  <div class="legend-item">
+    <span class="legend-color" style="background:${p.color || '#1e40af'}"></span>
+    <span>${p.person?.name || ''}</span>
+  </div>
+`).join('') + `<div class="text-[11px] text-slate-500 mt-2">交集地点：${overlapText}</div>`;
+const initMap = async () => {
+  await _ensureAmap();
+  const map = new AMap.Map('map', {
+    zoom: 4,
+    center: [105, 35],
+    viewMode: '2D',
+    resizeEnable: true
+  });
+  const overlays = [];
+  const infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -18) });
+  people.forEach((p) => {
+    const color = p.color || '#1e40af';
+    const locations = p.locations || [];
+    const line = locations.map((loc) => [loc.lng, loc.lat]);
+    if (line.length > 1) {
+      const polyline = new AMap.Polyline({
+        path: line,
+        strokeColor: color,
+        strokeWeight: 4,
+        strokeOpacity: 0.75,
+        lineJoin: 'round',
+        lineCap: 'round'
+      });
+      map.add(polyline);
+      overlays.push(polyline);
+    }
+    locations.forEach((loc) => {
+      const marker = new AMap.CircleMarker({
+        center: [loc.lng, loc.lat],
+        radius: 8,
+        strokeColor: color,
+        strokeWeight: 2,
+        fillColor: color,
+        fillOpacity: 0.35,
+        bubble: true
+      });
+      marker.on('click', () => {
+        infoWindow.setContent(`<div style="font-size:12px;line-height:1.5;"><strong>${p.person?.name || ''}</strong><br/>${loc.name || ''}</div>`);
+        infoWindow.open(map, [loc.lng, loc.lat]);
+      });
+      map.add(marker);
+      overlays.push(marker);
+    });
+  });
+  if (overlays.length > 0) {
+    try {
+      map.setFitView(overlays);
+    } catch (_) {}
+  }
+};
+initMap().catch((err) => {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;right:16px;top:16px;z-index:9999;background:rgba(255,255,255,0.94);padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);font-size:12px;color:#7c2d12;';
+  box.textContent = `高德地图加载失败：${String(err?.message || err)}`;
+  document.body.appendChild(box);
+});
+</script>
+</body>
+</html>

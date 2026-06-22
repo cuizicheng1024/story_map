@@ -2,8 +2,8 @@ import argparse
 import json
 from pathlib import Path
 
-from storymap.script.graph_service import sync_graph_payload_to_neo4j, write_normalized_graph_json
-from storymap.script.project_paths import project_root_path
+from storymap.script.profile.graph_service import sync_graph_payload_to_neo4j, write_normalized_graph_json
+from storymap.script.core.project_paths import project_root_path
 
 
 REPO_ROOT = project_root_path()

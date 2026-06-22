@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 import sys
 
 from tests_support import REPO_ROOT
@@ -6,13 +8,42 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import map_client
+from storymap.script.map import map_client
+
+
+def test_geocode_min_interval_invalid_env_falls_back_to_default(monkeypatch):
+    monkeypatch.setenv("MAP_STORY_GEOCODE_MIN_INTERVAL", "invalid")
+    monkeypatch.setenv("MAP_STORY_AMAP_MIN_INTERVAL", "oops")
+
+    assert map_client._geocode_rate_limit() is None
+    assert map_client._amap_rate_limit() is None
+
+
+def test_map_client_import_tolerates_invalid_http_concurrency_env():
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from storymap.script.map import map_client; print(bool(map_client))",
+        ],
+        cwd=str(REPO_ROOT),
+        env={
+            **dict(os.environ),
+            "MAP_STORY_GEOCODE_HTTP_CONCURRENCY": "oops",
+        },
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "True" in result.stdout
 
 
 def test_geocode_city_falls_back_to_public_geocoder_without_qveris(monkeypatch):
     monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
     monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: False)
 
     calls = []
 
@@ -56,6 +87,7 @@ def test_geocode_city_falls_back_to_wikidata_for_foreign_place(monkeypatch):
     monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
     monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: False)
     monkeypatch.setattr(
         map_client,
         "_geocode_nominatim",
@@ -82,6 +114,7 @@ def test_geocode_city_retries_without_cn_bias_for_foreign_city_written_in_chines
     monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
     monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: False)
     monkeypatch.setattr(map_client, "_geocode_wikidata", lambda _name: None)
 
     calls = []
@@ -106,6 +139,7 @@ def test_geocode_city_negative_cache_short_circuits_repeated_failures(monkeypatc
     monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
     monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: False)
     monkeypatch.setattr(map_client, "_geocode_wikidata", lambda _name: None)
     calls = {"count": 0}
 
@@ -158,6 +192,7 @@ def test_geocode_city_uses_persisted_negative_cache_after_runtime_reset(monkeypa
     monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
     monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: False)
     monkeypatch.setattr(map_client, "_geocode_wikidata", lambda _name: None)
     calls = {"count": 0}
 
@@ -219,3 +254,67 @@ def test_fetch_json_uses_configured_timeout(monkeypatch):
 
     assert map_client._fetch_json("https://example.com") == {}
     assert observed == [7]
+
+
+def test_geocode_city_uses_monid_before_public_geocoder(monkeypatch):
+    map_client._reset_geocode_runtime_state()
+    monkeypatch.setattr(map_client, "_geocode_cache_get", lambda _name: None)
+    monkeypatch.setattr(map_client, "_geocode_cache_set", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(map_client, "_amap_webservice_geocode", lambda _name: None)
+    monkeypatch.setattr(map_client, "_monid_geocode_enabled", lambda: True)
+    monkeypatch.setattr(map_client, "_geocode_wikidata", lambda _name: None)
+    calls = []
+
+    def _fake_monid(name: str):
+        calls.append(name)
+        return (31.2304, 121.4737)
+
+    monkeypatch.setattr(map_client, "_monid_geocode", _fake_monid)
+    monkeypatch.setattr(
+        map_client,
+        "_geocode_nominatim",
+        lambda _name, force_cn=False: (_ for _ in ()).throw(AssertionError("monid result should short-circuit nominatim")),
+    )
+
+    result = map_client.geocode_city("上海")
+
+    assert result == (31.2304, 121.4737)
+    assert calls
+
+
+def test_monid_geocode_posts_expected_payload(monkeypatch):
+    requests = []
+    monkeypatch.setenv("MONID_API_KEY", "monid_live_test")
+
+    def _fake_post_json(url: str, payload: object, *, headers=None, timeout=None):
+        requests.append(
+            {
+                "url": url,
+                "payload": payload,
+                "headers": dict(headers or {}),
+                "timeout": timeout,
+            }
+        )
+        return {
+            "status": "COMPLETED",
+            "providerResponse": {"httpStatus": 200},
+            "output": {"found": True, "latitude": 39.9027, "longitude": 116.3914},
+        }
+
+    monkeypatch.setattr(map_client, "_post_json", _fake_post_json)
+
+    result = map_client._monid_geocode("北京市东城区天安门广场")
+
+    assert result == (39.9027, 116.3914)
+    assert requests == [
+        {
+            "url": "https://api.monid.ai/v1/run",
+            "payload": {
+                "provider": "api.strale.io",
+                "endpoint": "/x402/address-geocode",
+                "input": {"queryParams": {"address": "北京市东城区天安门广场"}},
+            },
+            "headers": {"Authorization": "Bearer monid_live_test"},
+            "timeout": map_client._monid_timeout_seconds(),
+        }
+    ]

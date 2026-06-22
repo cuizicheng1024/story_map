@@ -2,12 +2,8 @@ from __future__ import annotations
 
 from typing import Callable, Optional
 
-try:
-    from .state import StoryAgentState, VALID_AGENT_STEPS, append_trace, feedback_fields, max_revisions_limit
-    from .runtime import build_runtime_reflection
-except ImportError:
-    from story_agent_state import StoryAgentState, VALID_AGENT_STEPS, append_trace, feedback_fields, max_revisions_limit
-    from story_agent_runtime import build_runtime_reflection
+from .state import StoryAgentState, VALID_AGENT_STEPS, append_trace, feedback_fields, max_revisions_limit
+from .runtime import build_runtime_reflection
 
 
 DEFAULT_AGENT_PLAN = [

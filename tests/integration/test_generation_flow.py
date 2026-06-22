@@ -8,12 +8,21 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import map_client
-import generation_service
-import runtime_support
-import story_agents
-import story_cli
-import story_map as sm
+from storymap.script.agent import generation_service
+from storymap.script.agent.generation_pipeline import (
+    FileGenerationCheckpointStore,
+    GenerationStages,
+    build_generation_checkpoint,
+)
+from storymap.script.agent import registry as story_agents
+from storymap.script.cli import interactive as story_cli
+from storymap.script.cli import story_map as sm
+from storymap.script.map import map_client
+from storymap.script.runtime import support as runtime_support
+
+
+def _run_background_job_inline(job, **_kwargs):
+    return job()
 
 
 def test_generation_tools_expose_tool_metadata():
@@ -44,6 +53,7 @@ def test_generate_for_person_can_render_existing_markdown_offline(tmp_path, monk
         return str(out_html)
 
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda person: refreshed.append(person) or {"ok": True, "person": person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
     monkeypatch.setattr(sm, "save_html", _save_html)
 
     result = sm.generate_for_person(client=None, person="霍去病", allow_cache=True)
@@ -61,6 +71,28 @@ def test_generate_for_person_can_render_existing_markdown_offline(tmp_path, monk
     html = out_html.read_text(encoding="utf-8")
     assert "霍去病" in html
     assert "河西走廊" in html
+
+
+def test_render_html_builds_profile_without_online_geocode():
+    calls = []
+
+    def _build_profile_data(md, **kwargs):
+        calls.append({"md": md, **kwargs})
+        return {"person": {"name": "蒙恬"}, "locations": []}
+
+    html = generation_service.render_html(
+        "蒙恬",
+        [],
+        md="# 蒙恬",
+        build_profile_data=_build_profile_data,
+        extract_intro_fields=lambda _md: {},
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        build_info_panel_html=lambda title, fields: f"{title}|{fields}",
+        render_amap_html=lambda title, points, info_html: f"{title}|{len(points)}|{info_html}",
+    )
+
+    assert html == "<html>蒙恬</html>"
+    assert calls == [{"md": "# 蒙恬", "fallback_person": "蒙恬", "allow_geocode": False}]
 
 
 def test_generate_for_person_refreshes_cached_html_when_markdown_is_newer(tmp_path, monkeypatch):
@@ -93,7 +125,7 @@ def test_render_html_uses_title_as_profile_name_fallback():
         "李四光",
         [],
         md="## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖北黄冈 | 30.45 | 114.87 |\n",
-        build_profile_data=lambda md, fallback_person="": {
+        build_profile_data=lambda md, fallback_person="", **_kwargs: {
             "person": {"name": fallback_person},
             "locations": [],
             "highlights": {},
@@ -365,6 +397,7 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{title}|{len(points)}|{md}</body></html>")
     monkeypatch.setattr(sm, "save_html", _save_html)
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: refreshed.append(requested_person) or {"ok": True, "person": requested_person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=client, person=person, allow_cache=False)
 
@@ -422,6 +455,7 @@ def test_story_map_generate_for_person_canonicalizes_alias_request(tmp_path, mon
     monkeypatch.setattr(sm, "save_html", lambda _person, content: (out_html.write_text(content, encoding="utf-8"), str(out_html))[1])
     monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{title}|{md}</body></html>")
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda person: refreshed.append(person) or {"ok": True, "person": person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=object(), person=requested_person, allow_cache=False)
 
@@ -462,6 +496,7 @@ def test_story_map_generate_for_person_preserves_alias_when_alias_is_real_story_
     monkeypatch.setattr(sm, "save_html", lambda person, content: ((tmp_path / f"{person}.html").write_text(content, encoding="utf-8"), str(tmp_path / f"{person}.html"))[1])
     monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{title}|{md}</body></html>")
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda person: refreshed.append(person) or {"ok": True, "person": person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=object(), person=requested_person, allow_cache=False)
 
@@ -524,6 +559,7 @@ def test_generate_for_person_inserts_distance_intro_after_geocoding(tmp_path, mo
     monkeypatch.setattr(sm, "save_html", _save_html)
     monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{md}</body></html>")
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: {"ok": True, "person": requested_person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
 
@@ -615,6 +651,46 @@ def test_generate_for_person_marks_render_failure_as_degraded_for_new_generation
     assert result["degraded"] is True
     assert result["fallback_html_path"] == str(html_path)
     assert result["render_error"] == "render failed"
+
+
+def test_generate_for_person_loads_profile_without_online_geocode_for_new_generation(tmp_path):
+    person = "蒙恬"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    load_calls = []
+
+    result = generation_service.generate_for_person(
+        client=object(),
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **kwargs: load_calls.append({"md": md, **kwargs}) or {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, requested_person: f"# {requested_person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前221年 | 咸阳 | 陕西咸阳 | 出生 |\n",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is True
+    assert load_calls
+    assert load_calls[-1]["fallback_person"] == person
+    assert load_calls[-1]["allow_geocode"] is False
 
 
 def test_generate_for_person_marks_quality_issues_as_degraded_when_reusing_markdown(tmp_path):
@@ -722,6 +798,7 @@ def test_story_map_wrapper_refreshes_homepage_for_degraded_result(tmp_path, monk
     )
     monkeypatch.setattr(sm, "render_amap_html", lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>")
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: refreshed.append(requested_person) or {"ok": True})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=None, person=person, allow_cache=True)
 
@@ -755,6 +832,7 @@ def test_story_map_wrapper_preserves_quality_degraded_result_as_usable(tmp_path,
     monkeypatch.setattr(sm, "save_markdown", lambda _person, content: (md_path.write_text(content, encoding="utf-8"), str(md_path))[1])
     monkeypatch.setattr(sm, "save_html", lambda _person, content: (html_path.write_text(content, encoding="utf-8"), str(html_path))[1])
     monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: refreshed.append(requested_person) or {"ok": True})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
 
@@ -792,6 +870,7 @@ def test_story_map_wrapper_marks_homepage_refresh_failure_as_degraded(tmp_path, 
         "refresh_stellar_homepage",
         lambda requested_person: {"ok": False, "person": requested_person, "returncode": 124, "output": "timeout"},
     )
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
 
@@ -801,6 +880,45 @@ def test_story_map_wrapper_marks_homepage_refresh_failure_as_degraded(tmp_path, 
     assert result["homepage_refresh_error"] == "timeout"
     assert "首页刷新失败" in result["error"]
     assert result["_homepage_refresh"]["ok"] is False
+
+
+def test_story_map_wrapper_schedules_homepage_refresh_in_background(tmp_path, monkeypatch):
+    person = "霍去病"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    refreshed = []
+    queued = []
+
+    monkeypatch.setattr(sm, "_story_paths", lambda _person: (str(md_path), str(html_path)))
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "geocode_markdown", lambda md: md)
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "validate_story_markdown", lambda _md: {"metrics": {}, "issues": []})
+    monkeypatch.setitem(sm._GENERATION_TOOLS, "parse_story_markdown", lambda _md: {"points": []})
+    monkeypatch.setattr(
+        sm,
+        "generate_historical_markdown",
+        lambda _client, requested_person: f"# {requested_person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前140年 | 平阳 | 山西临汾 | 出生 |\n",
+    )
+    monkeypatch.setattr(
+        sm,
+        "load_profile_from_md",
+        lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "mapStyle": {}, "markdown": md},
+    )
+    monkeypatch.setattr(sm, "save_markdown", lambda _person, content: (md_path.write_text(content, encoding="utf-8"), str(md_path))[1])
+    monkeypatch.setattr(sm, "save_html", lambda _person, content: (html_path.write_text(content, encoding="utf-8"), str(html_path))[1])
+    monkeypatch.setattr(sm, "render_html", lambda title, points, md="": f"<html><body>{title}|{md}</body></html>")
+    monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: refreshed.append(requested_person) or {"ok": True})
+    monkeypatch.setattr(sm, "_enqueue_background_job", lambda job, **kwargs: queued.append(kwargs) or True)
+
+    result = sm.generate_for_person(client=object(), person=person, allow_cache=False)
+
+    assert result["ok"] is True
+    assert result["homepage_refresh_scheduled"] is True
+    assert result["_homepage_refresh"]["state"] == "queued"
+    assert result["_homepage_refresh"]["async"] is True
+    assert result["_state"]["homepage_refresh_state"] == "queued"
+    assert refreshed == []
+    assert queued
+    assert queued[0]["label"] == f"homepage-refresh:{person}"
 
 
 def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(tmp_path):
@@ -843,6 +961,210 @@ def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(tmp_
     assert result["runtime_config_failed"] is True
     assert result["runtime_config_error"] == "amap config failed"
     assert "运行时地图配置写入失败" in result["error"]
+
+
+def test_generate_for_person_retries_retryable_markdown_failure_once(tmp_path):
+    person = "李四光"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    attempts = []
+
+    class _Client:
+        def __init__(self):
+            self._trace = {}
+            self.last_agent_runtime = {}
+
+        def latest_trace(self):
+            return dict(self._trace)
+
+    client = _Client()
+
+    def _generate_markdown(_client, requested_person):
+        attempts.append(requested_person)
+        if len(attempts) == 1:
+            client._trace = {"classification": "rate_limit", "retryable": True, "error": "HTTP 429"}
+            return ""
+        client._trace = {"classification": "ok", "retryable": False}
+        return (
+            f"# {requested_person}\n\n## 四、生平时间线\n\n"
+            "| 年份 | 古称 | 现称 | 事件 |\n"
+            "| --- | --- | --- | --- |\n"
+            "| 1889年 | 黄冈 | 湖北黄冈 | 出生 |\n"
+        )
+
+    result = generation_service.generate_for_person(
+        client=client,
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: client,
+        generate_historical_markdown=_generate_markdown,
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is True
+    assert attempts == [person, person]
+    assert result["retry_count"] == 1
+    assert result["stage"] == "done"
+    assert result["checkpoint"]["source"] == "generated_markdown"
+    assert result["checkpoint"]["resume_stage"] == "markdown_saved"
+
+
+def test_generate_for_person_exposes_non_retryable_markdown_failure(tmp_path):
+    person = "霍去病"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+
+    class _Client:
+        def __init__(self):
+            self._trace = {"classification": "auth", "retryable": False, "error": "HTTP 401"}
+            self.last_agent_runtime = {}
+
+        def latest_trace(self):
+            return dict(self._trace)
+
+    client = _Client()
+
+    result = generation_service.generate_for_person(
+        client=client,
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: client,
+        generate_historical_markdown=lambda _client, _requested_person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+    )
+
+    assert result["ok"] is False
+    assert result["stage"] == "markdown_generation"
+    assert result["retry_count"] == 0
+    assert result["error_classification"] == "auth"
+    assert result["error_retryable"] is False
+    assert result["checkpoint"]["source"] == "none"
+    assert result["checkpoint"]["resume_stage"] == "start"
+
+
+def test_generate_for_person_resumes_from_checkpoint_store_when_allow_cache_disabled(tmp_path):
+    person = "李白"
+    md_path = tmp_path / f"{person}.md"
+    html_path = tmp_path / f"{person}.html"
+    md_path.write_text(
+        f"# {person}\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 701年 | 绥州 | 四川江油 | 出生 |\n",
+        encoding="utf-8",
+    )
+    store = FileGenerationCheckpointStore(str(tmp_path / "generation_checkpoints.json"))
+    store.save(
+        person,
+        stage=GenerationStages.RENDERING,
+        checkpoint=build_generation_checkpoint(source="generated_markdown", resume_stage="markdown_saved"),
+        retry_count=1,
+        ok=False,
+    )
+
+    result = generation_service.generate_for_person(
+        client=None,
+        person=person,
+        allow_cache=False,
+        event_callback=None,
+        story_paths=lambda _person: (str(md_path), str(html_path)),
+        read_text=lambda path: Path(path).read_text(encoding="utf-8"),
+        extract_export_data_from_html=lambda _html: {},
+        write_text=lambda path, content: Path(path).write_text(content, encoding="utf-8"),
+        render_profile_html=lambda profile: f"<html>{profile['person']['name']}</html>",
+        load_profile_from_md=lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md},
+        normalize_markdown_tables=lambda md: md,
+        compute_total_distance_km=lambda _md: None,
+        insert_distance_intro=lambda md, _km: md,
+        save_markdown=lambda _person, content: (Path(md_path).write_text(content, encoding="utf-8"), str(md_path))[1],
+        geocode_markdown_tool=lambda md: md,
+        parse_story_markdown_tool=lambda _md: {"points": []},
+        validate_story_markdown_tool=lambda _md: {"metrics": {}, "issues": []},
+        render_html_fn=lambda title, points, md="": f"<html>{title}|{len(points)}|{md}</html>",
+        render_amap_html=lambda title, points, info_html: f"<html>{title}|fallback|{len(points)}|{info_html}</html>",
+        save_html=lambda _person, html: (Path(html_path).write_text(html, encoding="utf-8"), str(html_path))[1],
+        format_seconds=lambda sec: f"{sec:.2f}s",
+        get_llm_client=lambda **_kwargs: object(),
+        generate_historical_markdown=lambda _client, _requested_person: "",
+        cache_dependency_paths=[],
+        logger=type("Logger", (), {"warning": lambda *args, **kwargs: None})(),
+        checkpoint_store=store,
+    )
+
+    saved_state = store.load(person)
+
+    assert result["ok"] is True
+    assert result["used_existing_markdown"] is True
+    assert result["stage"] == "build_profile"
+    assert result["checkpoint"]["source"] == "checkpoint_store"
+    assert result["checkpoint"]["resume_stage"] == "markdown_saved"
+    assert saved_state["stage"] == "build_profile"
+    assert saved_state["checkpoint"]["source"] == "checkpoint_store"
+    assert saved_state["checkpoint"]["resume_stage"] == "markdown_saved"
+    assert saved_state["ok"] is True
+
+
+def test_story_map_wrapper_passes_checkpoint_store_into_generation_service(monkeypatch):
+    captured = {}
+
+    def _fake_generate_for_person(client, person, **kwargs):
+        captured["client"] = client
+        captured["person"] = person
+        captured["checkpoint_store"] = kwargs.get("checkpoint_store")
+        return {
+            "ok": True,
+            "person": person,
+            "markdown_path": "",
+            "html_path": f"/tmp/{person}.html",
+            "_profile": {"person": {"name": person}, "locations": [], "mapStyle": {}},
+        }
+
+    monkeypatch.setattr(sm.generation_service_utils, "generate_for_person", _fake_generate_for_person)
+    monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda person: {"ok": True, "person": person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
+
+    result = sm.generate_for_person(client=object(), person="李白", allow_cache=False)
+
+    assert result["ok"] is True
+    assert captured["person"] == "李白"
+    assert captured["checkpoint_store"].__class__.__name__ == "FileGenerationCheckpointStore"
+    assert hasattr(captured["checkpoint_store"], "load")
+    assert hasattr(captured["checkpoint_store"], "save")
 
 
 def test_should_refresh_stellar_home_when_homepage_artifacts_are_missing(tmp_path):
@@ -996,6 +1318,24 @@ def test_append_coords_section_rebuilds_existing_auto_coords_section(monkeypatch
     assert result.count("## 地点坐标（自动地理编码）") == 1
     assert "30.048300 | 103.831800" in result
     assert "39.913704" not in result
+
+
+def test_append_coords_section_reuses_valid_existing_auto_coords_section(monkeypatch):
+    md = """## 四、生平时间线
+
+| 年份 | 古称 | 现称 | 事件 |
+| --- | --- | --- | --- |
+| 1037年 | 眉州眉山 | 四川省眉山市东坡区 | 出生 |
+
+## 地点坐标（自动地理编码）
+| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |
+| --- | --- | --- | --- | --- |
+| 四川省眉山市东坡区 | 四川省眉山市东坡区 | 30.048300 | 103.831800 | WGS84 |
+"""
+
+    monkeypatch.setattr(map_client, "geocode_city", lambda _name: (_ for _ in ()).throw(AssertionError("should reuse existing coords")))
+
+    assert map_client.append_coords_section(md) == md
 
 
 def test_compute_total_distance_km_supports_auto_generated_coords_table():

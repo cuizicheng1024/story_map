@@ -8,9 +8,9 @@ try:
 except Exception:
     from homepage_search import normalize_search_text, pinyin_variants
 
-from storymap.script import parsers as parser_utils
-from storymap.script import profile_builder
-from storymap.script.project_paths import data_corpus_output_path, story_person_names
+from storymap.script.core import parsers as parser_utils
+from storymap.script.profile import builder as profile_builder
+from storymap.script.core.project_paths import data_corpus_output_path, story_person_names
 
 
 SUMMARY_INDEX_FILENAME = "work_summary_index.json"
@@ -320,6 +320,26 @@ _CURATED_WORK_SUMMARY_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "quote_policy": "summary_only",
     },
 }
+_CURATED_PERSON_WORKS: Dict[str, Tuple[str, ...]] = {
+    "苏轼": (
+        "水调歌头·明月几时有",
+        "江城子·密州出猎",
+        "记承天寺夜游",
+        "念奴娇·赤壁怀古",
+        "赤壁赋",
+        "前赤壁赋",
+        "寒食帖",
+    ),
+    "苏东坡": (
+        "水调歌头·明月几时有",
+        "江城子·密州出猎",
+        "记承天寺夜游",
+        "念奴娇·赤壁怀古",
+        "赤壁赋",
+        "前赤壁赋",
+        "寒食帖",
+    ),
+}
 
 
 def _uniq_preserve_order(items: List[str]) -> List[str]:
@@ -338,6 +358,13 @@ def _normalize_work_title(title: str) -> str:
     clean_title = str(title or "").replace("**", "").strip()
     clean_title = re.sub(r"^[“\"'‘《]+", "", clean_title)
     clean_title = re.sub(r"[”\"'’》]+$", "", clean_title)
+    clean_title = re.sub(r"（[^）]*天下第三行书[^）]*）$", "", clean_title).strip()
+    clean_title = re.sub(r"\([^)]*天下第三行书[^)]*\)$", "", clean_title).strip()
+    clean_title = {
+        "黄州寒食诗帖": "寒食帖",
+        "黄州寒食帖": "寒食帖",
+        "念奴娇·中秋": "水调歌头·明月几时有",
+    }.get(clean_title, clean_title)
     return clean_title.strip()
 
 
@@ -758,7 +785,10 @@ def main() -> int:
         dynasty = str(info.get("时代") or info.get("朝代") or _pick_basic_field(normalized_md, "时代") or "").strip()
         intro_line = _pick_intro_line(normalized_md)
         work_texts = profile_builder.extract_work_texts(normalized_md)
-        works = _uniq_preserve_order(profile_builder.extract_works(normalized_md))
+        works = _uniq_preserve_order(
+            profile_builder.extract_works(normalized_md)
+            + list(_CURATED_PERSON_WORKS.get(person, ()))
+        )
         for title in works:
             clean_title = _normalize_work_title(title)
             if not clean_title:

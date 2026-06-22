@@ -259,10 +259,7 @@ def _known_authentic_person_names_cached(base_story_dir_str: str, root_str: str)
     try:
         from .person_registry import person_redirects
     except Exception:
-        try:
-            from person_registry import person_redirects  # type: ignore
-        except Exception:
-            person_redirects = None  # type: ignore
+        person_redirects = None  # type: ignore
     if callable(person_redirects) and publishable_names:
         redirects = dict(person_redirects(sorted(publishable_names)) or {})
         names.update(str(alias or "").strip() for alias in redirects.keys() if is_valid_person_name(alias))
@@ -301,10 +298,7 @@ def classify_story_person_authenticity(
     try:
         from .person_registry import canonical_person_name
     except Exception:
-        try:
-            from person_registry import canonical_person_name  # type: ignore
-        except Exception:
-            canonical_person_name = None  # type: ignore
+        canonical_person_name = None  # type: ignore
     if callable(canonical_person_name):
         canonical = str(canonical_person_name(cleaned, known_names) or "").strip()
     if cleaned in rejected_names or canonical in rejected_names:

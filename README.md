@@ -124,6 +124,7 @@
 - 安装依赖
 - `.env` 配置
 - 本地启动
+- 双部署方式说明（火山云 ECS / OpenDeploy）
 - 快速开始
 - 首页定向构建
 - 性能基线文件
@@ -132,6 +133,23 @@
 - 开发自检
 - 数据重建与重渲染
 - 人物 Markdown 规范
+
+## 部署方式
+
+当前项目保留两条可用的线上部署路径：
+
+- `火山云 ECS`
+  - 适合继续沿用现有服务器、SSH 私钥和发布脚本的部署方式
+  - 主要入口见 [install.md](./install.md) 中的“火山云发布流”
+- `OpenDeploy`
+  - 适合直接托管到 OpenDeploy 平台并绑定到当前账号
+  - 当前线上地址为 [storymap.opendeploy.site](https://storymap.opendeploy.site)
+  - 经验与排障记录见 [opendeploy_deployment_notes.md](file:///Users/bytedance/Desktop/Trae/mapsotryforstudents/docs/opendeploy_deployment_notes.md)
+
+后续如果提到“部署”，默认需要先区分是：
+
+- 部署到 `火山云 ECS`
+- 部署到 `OpenDeploy`
 
 ## ✅ 无奖测试
 猜猜这些名句是谁写的？

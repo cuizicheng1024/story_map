@@ -9,8 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from storymap.script.person_registry import canonical_person_name
-from storymap.script.project_paths import (
+from storymap.script.core.person_registry import canonical_person_name
+from storymap.script.core.project_paths import (
     data_corpus_file_path,
     data_corpus_output_path,
     is_publishable_person_markdown,
@@ -275,7 +275,7 @@ def _ensure_story_md(
 
     _load_env()
     _add_storymap_to_syspath()
-    from story_agents import StoryAgentLLM, generate_historical_markdown, save_markdown  # type: ignore
+    from storymap.script.agent.registry import StoryAgentLLM, generate_historical_markdown, save_markdown  # type: ignore
 
     try:
         StoryAgentLLM()

@@ -10,7 +10,7 @@ DEFAULT_REMOTE_APP_DIR="/opt/storymap"
 DEFAULT_REMOTE_ARCHIVE_PATH="/opt/storymap-deploy.tar.gz"
 DEFAULT_REMOTE_SCRIPT_PATH="/opt/storymap-remote-deploy.sh"
 DEFAULT_SERVICE_NAME="storymap.service"
-DEFAULT_HEALTHCHECK_URL="http://127.0.0.1:8765/health"
+DEFAULT_HEALTHCHECK_URL="http://127.0.0.1:8765/health/ready"
 DEFAULT_KEEP_RELEASES="3"
 DEFAULT_PUBLIC_BASE_URL="http://124.174.16.20"
 
@@ -51,7 +51,7 @@ usage() {
   --archive-path <path>         远端压缩包路径，默认 /opt/storymap-deploy.tar.gz
   --remote-script-path <path>   远端部署脚本路径，默认 /opt/storymap-remote-deploy.sh
   --service <name>              systemd 服务名，默认 storymap.service
-  --health-url <url>            远端机内健康检查地址，默认 http://127.0.0.1:8765/health
+  --health-url <url>            远端机内 readiness 地址，默认 http://127.0.0.1:8765/health/ready
   --public-base-url <url>       公网验收地址，默认 http://124.174.16.20
   --keep-releases <n>           远端保留备份数量，默认 3
   --archive-output <path>       本地压缩包输出路径，默认自动生成到 /tmp

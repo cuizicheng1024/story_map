@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import parsers
+from storymap.script.core import parsers
 
 
 def test_parse_story_document_collects_core_sections():

@@ -1170,6 +1170,19 @@ body {
 .narrative-description-line:last-child {
   margin-bottom: 0;
 }
+.narrative-description-line.is-lead {
+  color: var(--color-text-primary);
+}
+.narrative-description-line.is-body {
+  color: color-mix(in srgb, var(--color-text-secondary) 92%, #64748b 8%);
+}
+.narrative-sentence {
+  display: inline;
+}
+.narrative-sentence.is-turning {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
 .narrative-inline-strong {
   font-weight: 800;
   color: var(--color-text-primary);
@@ -1190,9 +1203,31 @@ body {
   font-weight: 600;
   color: #166534;
 }
+.narrative-inline-identity {
+  font-weight: 800;
+  color: color-mix(in srgb, #7c2d12 72%, var(--color-primary) 28%);
+}
 .narrative-inline-quote {
   color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary) 18%);
   font-style: italic;
+}
+.narrative-description-line.is-lead .narrative-inline-accent,
+.narrative-description-line.is-lead .narrative-inline-time,
+.narrative-description-line.is-lead .narrative-inline-place,
+.narrative-description-line.is-lead .narrative-inline-identity {
+  filter: saturate(1.08);
+}
+.narrative-description-line.is-body .narrative-inline-accent {
+  color: color-mix(in srgb, var(--color-primary) 68%, #475569 32%);
+}
+.narrative-description-line.is-body .narrative-inline-time {
+  color: #b7791f;
+}
+.narrative-description-line.is-body .narrative-inline-place {
+  color: #2f855a;
+}
+.narrative-description-line.is-body .narrative-inline-identity {
+  color: color-mix(in srgb, #7c2d12 58%, var(--color-text-secondary) 42%);
 }
 .age-marker {
   background: transparent;
@@ -2186,11 +2221,13 @@ const {
   useRef,
   useMemo
 } = React;
-const data = {"person": {"name": "马致远", "title": "曲状元", "description": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官。他经历了南北漂泊，对社会现实和人生况味有深刻体会。中年以后，看透世事，选择归隐山林，寄情于戏曲与散曲创作。他的作品多抒发怀才不遇的悲哀、对隐逸生活的向往以及对历史兴亡的感慨，语言典雅清丽，情感深沉，代表了元代散曲创作的最高成就。", "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "shortReview": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "dynasty": "元代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）", "avatar": "", "birth": {"date": "1250年", "location": "出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1321年", "location": "后", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约七十余岁（具体生卒年存疑）", "highlights": {"honor": "曲状元", "status": "“元曲四大家”之一，被誉为“曲状元”，其散曲作品意境深远，影响极大。", "identities": "散曲家、杂剧家、戏曲作家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "存疑", "ancientName": "出生地存疑，可能为大都或东光", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "birth", "event": "出生于元代，早年求学，并开始进行文学创作的尝试。", "time": "约公元1250年", "duration": "青年时期", "significance": "其早期成长环境（无论是大都的都市文化还是东光的地方氛围）为其后来的创作奠定了基础。", "works": [], "quoteLines": []}, {"name": "大都（求取功名时期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "曾热衷仕进，参加过元初的科考或寻求荐举，但未能得志。", "time": "约1280年前", "duration": "约二十余年", "significance": "这段经历使其深刻体会到了元代知识分子仕进无门的苦闷，成为其作品中“怀才不遇”主题的重要来源。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "death", "event": "在隐居生活中去世，葬于杭州。", "time": "约公元1321年后", "duration": "晚年直至去世", "significance": "其一生从追求功名到失意漂泊，最终归于淡泊，完成了从“马神仙”到“曲状元”的升华。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "normal", "event": "在杭州定居，与当地的书会才人交往密切，从事杂剧和散曲的创作与演出活动。晚年隐居于此。", "time": "中年以后", "duration": "长期居住", "significance": "杭州是元代南方的戏曲中心，此地的生活使其创作进入全盛期，完成了大量杂剧和散曲作品。", "works": [], "quoteLines": ["《双调·夜行船·秋思》：“百岁光阴一梦蝶，重回首往事堪悲。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---", "workTexts": {"天净沙·秋思": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "天净沙": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "秋思": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "双调·夜行船·秋思": "百岁光阴一梦蝶，重回首往事堪悲。", "双调": "百岁光阴一梦蝶，重回首往事堪悲。", "夜行船": "百岁光阴一梦蝶，重回首往事堪悲。"}, "workSummaries": {"天净沙·秋思": {"title": "天净沙·秋思", "aliases": ["天净沙", "秋思"], "authors": ["马致远"], "related_people": ["马致远"], "source_pages": ["马致远"], "era": "元代", "genre": "", "one_liner": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "summary": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "quotes": ["枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。", "夕阳西下，断肠人在天涯。"], "quote_policy": "preferred"}, "汉宫秋": {"title": "汉宫秋", "aliases": [], "authors": ["马致远", "王昭君"], "related_people": ["马致远", "王昭君"], "source_pages": ["马致远", "王昭君"], "era": "元代", "genre": "", "one_liner": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官", "summary": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官", "quote": "文学艺术的母题：昭君故事成为历代诗词、戏曲、小说的重要题材，从杜甫《咏怀古迹》到马致远《汉宫秋》、郭沫若《王昭君》等，不断被再创作。", "quotes": ["文学艺术的母题：昭君故事成为历代诗词、戏曲、小说的重要题材，从杜甫《咏怀古迹》到马致远《汉宫秋》、郭沫若《王昭君》等，不断被再创作。", "2. 创作了思想与艺术成就俱佳的历史剧《汉宫秋》。"], "quote_policy": "preferred"}, "双调·夜行船·秋思": {"title": "双调·夜行船·秋思", "aliases": ["双调", "夜行船", "秋思"], "authors": ["马致远"], "related_people": ["马致远"], "source_pages": ["马致远"], "era": "元代", "genre": "", "one_liner": "百岁光阴一梦蝶，重回首往事堪悲。", "summary": "百岁光阴一梦蝶，重回首往事堪悲。", "quote": "百岁光阴一梦蝶，重回首往事堪悲。", "quotes": ["百岁光阴一梦蝶，重回首往事堪悲。"], "quote_policy": "preferred"}}, "markdown": "# 马致远\n\n## 人物档案\n\n### 基本信息\n- **姓名**：马致远\n- **时代**：元代\n- **出生**：约公元1250年，出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）\n- **去世**：约公元1321年后，杭州（今浙江省杭州市）\n- **享年**：约七十余岁（具体生卒年存疑）\n- **主要身份**：散曲家、杂剧家、戏曲作家\n- **历史地位**：“元曲四大家”之一，被誉为“曲状元”，其散曲作品意境深远，影响极大。\n- **主要成就**：\n    1. 创作了被推为“秋思之祖”的散曲名篇《天净沙·秋思》。\n    2. 创作了思想与艺术成就俱佳的历史剧《汉宫秋》。\n    3. 其散曲作品扩大了散曲的题材领域，提高了散曲的艺术境界。\n    4. 与关汉卿、白朴、郑光祖并称“元曲四大家”。\n\n### 生平概述\n马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官。他经历了南北漂泊，对社会现实和人生况味有深刻体会。中年以后，看透世事，选择归隐山林，寄情于戏曲与散曲创作。他的作品多抒发怀才不遇的悲哀、对隐逸生活的向往以及对历史兴亡的感慨，语言典雅清丽，情感深沉，代表了元代散曲创作的最高成就。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从北方政治中心大都（或东光）出发，南下宦游于江南地区，最终隐居并终老于杭州。\n- ⏱️ **时间跨度**：约公元1250年至1321年后，跨越约70年。\n- 📍 **地理范围**：主要覆盖今北京、河北、江苏、浙江等省市。\n- 🌟 **重要节点数量**：核心地点不少于2个（北京、杭州）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：存疑\n- **时间**：约公元1250年\n- **停留时间**：青年时期\n- **地点**：出生地存疑，可能为大都（今北京）或东光（今河北东光）\n- **事件**：出生于元代，早年求学，并开始进行文学创作的尝试。\n- **意义**：其早期成长环境（无论是大都的都市文化还是东光的地方氛围）为其后来的创作奠定了基础。\n\n### 📍 重要地点：大都（求取功名时期）\n- **时间**：约1280年前\n- **停留时间**：约二十余年\n- **地点**：大都（今北京市）\n- **事件**：曾热衷仕进，参加过元初的科考或寻求荐举，但未能得志。\n- **意义**：这段经历使其深刻体会到了元代知识分子仕进无门的苦闷，成为其作品中“怀才不遇”主题的重要来源。\n\n### 📍 重要地点：江南地区（任官时期）\n- **时间**：约1280年后\n- **停留时间**：约二十年\n- **地点**：曾任江浙行省务官，辗转于江南多地（具体地点不详）\n- **事件**：宦游江南，饱览风物，接触社会底层。\n- **意义**：创作风格开始转向沉郁与超脱，期间创作了《天净沙·秋思》等名篇。\n- **名篇名句**：《天净沙·秋思》：“枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。”\n\n### 📍 重要地点：杭州\n- **时间**：中年以后\n- **停留时间**：长期居住\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：在杭州定居，与当地的书会才人交往密切，从事杂剧和散曲的创作与演出活动。晚年隐居于此。\n- **意义**：杭州是元代南方的戏曲中心，此地的生活使其创作进入全盛期，完成了大量杂剧和散曲作品。\n- **名篇名句**：《双调·夜行船·秋思》：“百岁光阴一梦蝶，重回首往事堪悲。”\n\n### 🔴 去世地：杭州\n- **时间**：约公元1321年后\n- **停留时间**：晚年直至去世\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：在隐居生活中去世，葬于杭州。\n- **意义**：其一生从追求功名到失意漂泊，最终归于淡泊，完成了从“马神仙”到“曲状元”的升华。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约1250年 | 出生地存疑 | 北京 | （年龄：约0岁）出生地存疑（可能为大都或东光）。 |\n| 约1270-1280年 | 大都（求取功名时期） | 北京市 | （年龄：约20-30岁）在大都求取功名，未果。 |\n| 约1280年后 |  |  | （年龄：约30岁后）南下，任江浙行省务官，宦游江南。 |\n| 约1290-1320年 | 杭州 | 浙江省杭州市 | （年龄：约40-70岁）定居杭州，进入创作活跃期，完成《天净沙·秋思》、《汉宫秋》等代表作。 |\n| 约1321年后 | 杭州 | 浙江省杭州市 | （年龄：约70岁后）在杭州隐居并去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 北京市（出生地存疑） | 39.9042 | 116.4074 |\n| 杭州市 | 30.2741 | 120.1551 |", "relatedGraph": {"center": {"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "review": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "review": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "今北京市。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "元代", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "一回归年为365.2425日", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱世杰", "name": "朱世杰", "file": "朱世杰.html", "dynasty": "元代", "aliases": [], "birth_year": 1249, "death_year": 1314, "quote": "**三才运元**", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称燕山", "birthplace_modern": "北京", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "aliases": [], "birth_year": 1254, "death_year": 1324, "quote": "一个非常大而高贵的城市", "review": "", "foreign_name": "Marco Polo", "main_role_label": "作家", "birthplace": "威尼斯共和国", "birthplace_modern": "意大利威尼斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "窃尝设为问答以拟于用。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨辉", "name": "杨辉", "file": "杨辉.html", "dynasty": "南宋", "aliases": [], "birth_year": 1238, "death_year": 1300, "quote": "夫习算者，以乘法为主，乘除者，算法之纪纲。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古钱塘", "birthplace_modern": "浙江杭州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "马致远", "target": "关汉卿", "label": "并称", "confidence": 0.55}, {"source": "马致远", "target": "郭守敬", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "朱世杰", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "马可·波罗", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "杨辉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "3ecc1cd1b213"};
+const data = {"person": {"name": "马致远", "title": "曲状元", "description": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官。他经历了南北漂泊，对社会现实和人生况味有深刻体会。中年以后，看透世事，选择归隐山林，寄情于戏曲与散曲创作。他的作品多抒发怀才不遇的悲哀、对隐逸生活的向往以及对历史兴亡的感慨，语言典雅清丽，情感深沉，代表了元代散曲创作的最高成就。", "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "shortReview": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "dynasty": "元代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）", "avatar": "", "birth": {"date": "1250年", "location": "出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1321年", "location": "后", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约七十余岁（具体生卒年存疑）", "highlights": {"honor": "曲状元", "status": "“元曲四大家”之一，被誉为“曲状元”，其散曲作品意境深远，影响极大。", "identities": "散曲家、杂剧家、戏曲作家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "存疑", "ancientName": "出生地存疑，可能为大都或东光", "modernName": "北京", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "birth", "event": "出生于元代，早年求学，并开始进行文学创作的尝试。", "time": "约公元1250年", "duration": "青年时期", "significance": "其早期成长环境（无论是大都的都市文化还是东光的地方氛围）为其后来的创作奠定了基础。", "works": [], "quoteLines": []}, {"name": "大都（求取功名时期）", "ancientName": "大都", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "曾热衷仕进，参加过元初的科考或寻求荐举，但未能得志。", "time": "约1280年前", "duration": "约二十余年", "significance": "这段经历使其深刻体会到了元代知识分子仕进无门的苦闷，成为其作品中“怀才不遇”主题的重要来源。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "death", "event": "在隐居生活中去世，葬于杭州。", "time": "约公元1321年后", "duration": "晚年直至去世", "significance": "其一生从追求功名到失意漂泊，最终归于淡泊，完成了从“马神仙”到“曲状元”的升华。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "浙江省杭州市", "lat": 30.2741, "lng": 120.1551, "coordSystem": "WGS84", "type": "normal", "event": "在杭州定居，与当地的书会才人交往密切，从事杂剧和散曲的创作与演出活动。晚年隐居于此。", "time": "中年以后", "duration": "长期居住", "significance": "杭州是元代南方的戏曲中心，此地的生活使其创作进入全盛期，完成了大量杂剧和散曲作品。", "works": [], "quoteLines": ["《双调·夜行船·秋思》：“百岁光阴一梦蝶，重回首往事堪悲。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---", "workTexts": {"天净沙·秋思": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "天净沙": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "秋思": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "双调·夜行船·秋思": "百岁光阴一梦蝶，重回首往事堪悲。", "双调": "百岁光阴一梦蝶，重回首往事堪悲。", "夜行船": "百岁光阴一梦蝶，重回首往事堪悲。"}, "workSummaries": {"天净沙·秋思": {"title": "天净沙·秋思", "aliases": ["天净沙", "秋思"], "authors": ["马致远"], "related_people": ["马致远"], "source_pages": ["马致远"], "era": "元代", "genre": "", "one_liner": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "summary": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "quotes": ["枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。", "夕阳西下，断肠人在天涯。"], "quote_policy": "preferred"}, "汉宫秋": {"title": "汉宫秋", "aliases": [], "authors": ["马致远", "王昭君"], "related_people": ["马致远", "王昭君"], "source_pages": ["马致远", "王昭君"], "era": "元代", "genre": "", "one_liner": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官", "summary": "马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官", "quote": "文学艺术的母题：昭君故事成为历代诗词、戏曲、小说的重要题材，从杜甫《咏怀古迹》到马致远《汉宫秋》、郭沫若《王昭君》等，不断被再创作。", "quotes": ["文学艺术的母题：昭君故事成为历代诗词、戏曲、小说的重要题材，从杜甫《咏怀古迹》到马致远《汉宫秋》、郭沫若《王昭君》等，不断被再创作。", "2. 创作了思想与艺术成就俱佳的历史剧《汉宫秋》。"], "quote_policy": "preferred"}, "双调·夜行船·秋思": {"title": "双调·夜行船·秋思", "aliases": ["双调", "夜行船", "秋思"], "authors": ["马致远"], "related_people": ["马致远"], "source_pages": ["马致远"], "era": "元代", "genre": "", "one_liner": "百岁光阴一梦蝶，重回首往事堪悲。", "summary": "百岁光阴一梦蝶，重回首往事堪悲。", "quote": "百岁光阴一梦蝶，重回首往事堪悲。", "quotes": ["百岁光阴一梦蝶，重回首往事堪悲。"], "quote_policy": "preferred"}}, "markdown": "# 马致远\n\n## 人物档案\n\n### 基本信息\n- **姓名**：马致远\n- **时代**：元代\n- **出生**：约公元1250年，出生地存疑，可能为大都（今北京市）或东光（今河北省衡水市东光县）\n- **去世**：约公元1321年后，杭州（今浙江省杭州市）\n- **享年**：约七十余岁（具体生卒年存疑）\n- **主要身份**：散曲家、杂剧家、戏曲作家\n- **历史地位**：“元曲四大家”之一，被誉为“曲状元”，其散曲作品意境深远，影响极大。\n- **主要成就**：\n    1. 创作了被推为“秋思之祖”的散曲名篇《天净沙·秋思》。\n    2. 创作了思想与艺术成就俱佳的历史剧《汉宫秋》。\n    3. 其散曲作品扩大了散曲的题材领域，提高了散曲的艺术境界。\n    4. 与关汉卿、白朴、郑光祖并称“元曲四大家”。\n\n### 生平概述\n马致远生活在元朝由盛转衰的时期，早年曾热衷于功名，但仕途坎坷，仅做过地方小官。他经历了南北漂泊，对社会现实和人生况味有深刻体会。中年以后，看透世事，选择归隐山林，寄情于戏曲与散曲创作。他的作品多抒发怀才不遇的悲哀、对隐逸生活的向往以及对历史兴亡的感慨，语言典雅清丽，情感深沉，代表了元代散曲创作的最高成就。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从北方政治中心大都（或东光）出发，南下宦游于江南地区，最终隐居并终老于杭州。\n- ⏱️ **时间跨度**：约公元1250年至1321年后，跨越约70年。\n- 📍 **地理范围**：主要覆盖今北京、河北、江苏、浙江等省市。\n- 🌟 **重要节点数量**：核心地点不少于2个（北京、杭州）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：存疑\n- **时间**：约公元1250年\n- **停留时间**：青年时期\n- **地点**：出生地存疑，可能为大都（今北京）或东光（今河北东光）\n- **事件**：出生于元代，早年求学，并开始进行文学创作的尝试。\n- **意义**：其早期成长环境（无论是大都的都市文化还是东光的地方氛围）为其后来的创作奠定了基础。\n\n### 📍 重要地点：大都（求取功名时期）\n- **时间**：约1280年前\n- **停留时间**：约二十余年\n- **地点**：大都（今北京市）\n- **事件**：曾热衷仕进，参加过元初的科考或寻求荐举，但未能得志。\n- **意义**：这段经历使其深刻体会到了元代知识分子仕进无门的苦闷，成为其作品中“怀才不遇”主题的重要来源。\n\n### 📍 重要地点：江南地区（任官时期）\n- **时间**：约1280年后\n- **停留时间**：约二十年\n- **地点**：曾任江浙行省务官，辗转于江南多地（具体地点不详）\n- **事件**：宦游江南，饱览风物，接触社会底层。\n- **意义**：创作风格开始转向沉郁与超脱，期间创作了《天净沙·秋思》等名篇。\n- **名篇名句**：《天净沙·秋思》：“枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。”\n\n### 📍 重要地点：杭州\n- **时间**：中年以后\n- **停留时间**：长期居住\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：在杭州定居，与当地的书会才人交往密切，从事杂剧和散曲的创作与演出活动。晚年隐居于此。\n- **意义**：杭州是元代南方的戏曲中心，此地的生活使其创作进入全盛期，完成了大量杂剧和散曲作品。\n- **名篇名句**：《双调·夜行船·秋思》：“百岁光阴一梦蝶，重回首往事堪悲。”\n\n### 🔴 去世地：杭州\n- **时间**：约公元1321年后\n- **停留时间**：晚年直至去世\n- **地点**：杭州（今浙江省杭州市）\n- **事件**：在隐居生活中去世，葬于杭州。\n- **意义**：其一生从追求功名到失意漂泊，最终归于淡泊，完成了从“马神仙”到“曲状元”的升华。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约1250年 | 出生地存疑 | 北京 | （年龄：约0岁）出生地存疑（可能为大都或东光）。 |\n| 约1270-1280年 | 大都（求取功名时期） | 北京市 | （年龄：约20-30岁）在大都求取功名，未果。 |\n| 约1280年后 |  |  | （年龄：约30岁后）南下，任江浙行省务官，宦游江南。 |\n| 约1290-1320年 | 杭州 | 浙江省杭州市 | （年龄：约40-70岁）定居杭州，进入创作活跃期，完成《天净沙·秋思》、《汉宫秋》等代表作。 |\n| 约1321年后 | 杭州 | 浙江省杭州市 | （年龄：约70岁后）在杭州隐居并去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天净沙·秋思》**（入选中学语文教材）\n- 核心要点：\n    - **重点**：作品以**秋景**写**秋思**，通过“枯藤”、“老树”、“昏鸦”等密集的**意象**叠加，勾勒出苍凉萧瑟的深秋晚景。\n    - **重点**：运用**白描**与**情景交融**的手法，将“断肠人”的漂泊愁苦与天涯秋景完美融合，达到“景语皆情语”的境界。\n    - **重点**：被誉为“**秋思之祖**”，是元代散曲中表现羁旅乡愁的**巅峰之作**。\n    - 语言凝练，全篇仅28字，却意境深远，画面感极强。\n    - 结尾“夕阳西下，断肠人在天涯”是点睛之笔，将情感推向高潮。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：马致远是**元曲四大家**之一，在中国戏曲史与文学史上占有重要地位。\n    - 生活于**元代**，其仕途失意与人生经历是元代汉族知识分子命运的一个缩影。\n    - 其创作活动主要在**大都**和**杭州**这两个元代南北戏曲中心进行。\n- 核心要点：\n    - **重点**：其作品深刻反映了元代社会**文人地位下降**、仕进无门的**时代苦闷**。\n    - **重点**：作品主题常围绕**怀才不遇**、**向往归隐**、**感叹兴亡**，具有鲜明的**避世思想**倾向。\n    - **重点**：其艺术成就代表了**元代散曲**清丽典雅一派的最高水平，对后世戏曲、文学影响深远。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 北京市（出生地存疑） | 39.9042 | 116.4074 |\n| 杭州市 | 30.2741 | 120.1551 |", "relatedGraph": {"center": {"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "review": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "马致远", "name": "马致远", "file": "马致远.html", "dynasty": "元代", "aliases": [], "birth_year": 1250, "death_year": 1321, "quote": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "review": "枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "可能为大都", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "关汉卿", "name": "关汉卿", "file": "关汉卿.html", "dynasty": "元代", "aliases": ["已斋叟"], "birth_year": 1220, "death_year": 1300, "quote": "地也，你不分好歹何为地！天也，你错勘贤愚枉做天！", "review": "", "foreign_name": "", "main_role_label": "戏曲作家", "birthplace": "今北京市。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "郭守敬", "name": "郭守敬", "file": "郭守敬.html", "dynasty": "元代", "aliases": [], "birth_year": 1231, "death_year": 1316, "quote": "一回归年为365.2425日", "review": "", "foreign_name": "", "main_role_label": "天文学家", "birthplace": "邢州邢台县", "birthplace_modern": "河北省邢台市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱世杰", "name": "朱世杰", "file": "朱世杰.html", "dynasty": "元代", "aliases": [], "birth_year": 1249, "death_year": 1314, "quote": "**三才运元**", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称燕山", "birthplace_modern": "北京", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马可·波罗", "name": "马可·波罗", "file": "马可·波罗.html", "dynasty": "13世纪（欧洲中世纪，蒙古帝国时期）", "aliases": [], "birth_year": 1254, "death_year": 1324, "quote": "一个非常大而高贵的城市", "review": "", "foreign_name": "Marco Polo", "main_role_label": "作家", "birthplace": "威尼斯共和国", "birthplace_modern": "意大利威尼斯", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "窃尝设为问答以拟于用。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨辉", "name": "杨辉", "file": "杨辉.html", "dynasty": "南宋", "aliases": [], "birth_year": 1238, "death_year": 1300, "quote": "夫习算者，以乘法为主，乘除者，算法之纪纲。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古钱塘", "birthplace_modern": "浙江杭州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "马致远", "target": "关汉卿", "label": "并称", "confidence": 0.55}, {"source": "马致远", "target": "郭守敬", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "朱世杰", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "马可·波罗", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "马致远", "target": "杨辉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:54Z", "generated_at": "2026-06-22T11:31:54Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "3ecc1cd1b213",
-  builtAt: "2026-06-21T02:19:05Z"
+  version: "7355d343d41b",
+  builtAt: "2026-06-22T11:31:54Z",
+  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
 const openFeedbackDialog = anchor => {
@@ -3275,11 +3312,13 @@ const renderInline = text => {
 const NARRATIVE_TRANSITION_RE = /(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/g;
 const NARRATIVE_TIME_RE = /(公元前?\d{1,4}年|\d{1,4}年|约\d{1,3}岁|年仅\d{1,3}岁|\d{1,3}岁|少年时期|青年时期|中年时期|晚年|幼年|早年)/g;
 const NARRATIVE_PLACE_RE = /(在[^，。；]{2,14}(?:定居|起兵|求学|隐居|任职|出生|成长|驻留|作战|讲学|写作|辞世))/g;
+const NARRATIVE_IDENTITY_RE = /(诗人|词人|文学家|思想家|政治家|军事家|改革家|史学家|哲学家|教育家|科学家|数学家|物理学家|化学家|生物学家|发明家|航海家|探险家|外交家|将领|名将|皇帝|君主|帝王|将军|统帅|名臣|宰相|大臣|圣人|民族英雄|革命家|艺术家|画家|音乐家|作家|史官|学者|天主教圣人)/g;
 const NARRATIVE_QUOTE_RE = /(“[^”]{2,24}”|《[^》]{1,24}》)/g;
+const NARRATIVE_TURNING_SENTENCE_RE = /^(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/;
 const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   const raw = String(text || '');
   if (!raw) return null;
-  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
+  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_IDENTITY_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
   const out = [];
   let lastIndex = 0;
   let match;
@@ -3296,6 +3335,8 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
       className = 'narrative-inline-time';
     } else if (new RegExp(`^${NARRATIVE_PLACE_RE.source}$`).test(token)) {
       className = 'narrative-inline-place';
+    } else if (new RegExp(`^${NARRATIVE_IDENTITY_RE.source}$`).test(token)) {
+      className = 'narrative-inline-identity';
     } else if (new RegExp(`^${NARRATIVE_QUOTE_RE.source}$`).test(token)) {
       className = 'narrative-inline-quote';
     }
@@ -3312,7 +3353,7 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   }
   return out;
 };
-const renderNarrativeInline = text => {
+const renderNarrativeInline = (text, keyPrefix = 'narrative-inline') => {
   const raw = String(text || '');
   const parts = raw.split(/(\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
   return parts.map((p, idx) => {
@@ -3321,18 +3362,33 @@ const renderNarrativeInline = text => {
       return React.createElement("strong", {
         key: idx,
         className: "narrative-inline-strong"
-      }, renderNarrativeFragment(strong[1], `narrative-strong-${idx}`));
+      }, renderNarrativeFragment(strong[1], `${keyPrefix}-strong-${idx}`));
     }
     const italic = p.match(/^\*(.+?)\*$/);
     if (italic) {
       return React.createElement("em", {
         key: idx,
         className: "narrative-inline-em"
-      }, renderNarrativeFragment(italic[1], `narrative-em-${idx}`));
+      }, renderNarrativeFragment(italic[1], `${keyPrefix}-em-${idx}`));
     }
     return React.createElement("span", {
       key: idx
-    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `narrative-${idx}`));
+    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `${keyPrefix}-${idx}`));
+  });
+};
+const renderNarrativeLine = (text, lineIdx) => {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+  const sentences = raw.match(/[^。！？]+[。！？]?/g) || [raw];
+  return sentences.map((sentence, idx) => {
+    const trimmed = String(sentence || '').trim();
+    if (!trimmed) return null;
+    const turning = NARRATIVE_TURNING_SENTENCE_RE.test(trimmed);
+    const className = `narrative-sentence${turning ? ' is-turning' : ''}`;
+    return React.createElement("span", {
+      key: `line-${lineIdx}-sentence-${idx}`,
+      className: className
+    }, renderNarrativeInline(trimmed, `narrative-line-${lineIdx}-sentence-${idx}`));
   });
 };
 const normalizeDisplayText = text => {
@@ -3909,6 +3965,127 @@ const App = () => {
     pitchDeg: -45
   });
   const [mapStatusNotice, setMapStatusNotice] = useState(null);
+  const labelPrefsKey = useMemo(() => {
+    const personName = String(data?.person?.name || '').trim() || 'unknown';
+    return `storymap:mapLabelPrefs:v3:${personName}`;
+  }, [data?.person?.name]);
+  const defaultLabelPrefs = useMemo(() => ({
+    showIndex: true,
+    showLabel: false,
+    labelMode: 'custom',
+    customVisible: {}
+  }), []);
+  const [labelPrefs, setLabelPrefs] = useState(() => {
+    const fallback = defaultLabelPrefs;
+    if (typeof window === 'undefined') return fallback;
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(labelPrefsKey) : null;
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return fallback;
+      const merged = {
+        ...fallback,
+        ...parsed
+      };
+      const rawCustomVisible = parsed.customVisible && typeof parsed.customVisible === 'object' ? parsed.customVisible : {};
+      merged.customVisible = rawCustomVisible;
+      merged.showIndex = true;
+      const showLabelFromParsed = typeof parsed.showLabel === 'boolean' ? parsed.showLabel : parsed.showName !== false || Boolean(parsed.showAge);
+      merged.showLabel = typeof merged.showLabel === 'boolean' ? merged.showLabel : Boolean(showLabelFromParsed);
+      return merged;
+    } catch (_) {
+      return fallback;
+    }
+  });
+  const labelPrefsRef = useRef(defaultLabelPrefs);
+  labelPrefsRef.current = labelPrefs;
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(labelPrefsKey, JSON.stringify(labelPrefs));
+    } catch (_) {}
+  }, [labelPrefsKey, labelPrefs]);
+  useEffect(() => {
+    const controller = mapRef.current;
+    if (!controller || typeof controller.refreshLabels !== 'function') return;
+    try {
+      controller.refreshLabels(activeIndexRef.current);
+    } catch (_) {}
+  }, [labelPrefs]);
+  const setLabelPrefsPatch = React.useCallback(patch => {
+    setLabelPrefs(prev => ({
+      ...prev,
+      ...(patch && typeof patch === 'object' ? patch : {})
+    }));
+  }, []);
+  const toggleShowLabel = React.useCallback(() => {
+    setLabelPrefs(prev => {
+      const nextEnabled = prev?.showLabel !== true;
+      const customVisibleRaw = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      const hasAny = Object.keys(customVisibleRaw).some(idx => Boolean(customVisibleRaw[idx]));
+      if (!nextEnabled) {
+        return {
+          ...prev,
+          showLabel: false
+        };
+      }
+      if (!Object.keys(customVisibleRaw).length || !hasAny) {
+        const nextCustom = {};
+        for (let i = 0; i < locations.length; i += 1) nextCustom[String(i)] = true;
+        return {
+          ...prev,
+          showLabel: true,
+          customVisible: nextCustom
+        };
+      }
+      return {
+        ...prev,
+        showLabel: true,
+        customVisible: customVisibleRaw
+      };
+    });
+  }, [locations.length]);
+  const setLabelMode = React.useCallback(mode => {
+    const next = String(mode || 'smart');
+    setLabelPrefs(prev => {
+      const target = next === 'all' ? 'all' : next === 'custom' ? 'custom' : 'smart';
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (target === 'custom' && !Object.keys(customVisible).length) {
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = true;
+      }
+      return {
+        ...prev,
+        labelMode: target,
+        customVisible
+      };
+    });
+  }, []);
+  const toggleCustomLabelIndex = React.useCallback(idx => {
+    const targetIdx = Number(idx);
+    if (!Number.isFinite(targetIdx) || targetIdx < 0 || targetIdx >= locations.length) return;
+    setLabelPrefs(prev => {
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (!Object.keys(customVisible).length) {
+        const defaultValue = prev?.showLabel === true;
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = defaultValue;
+      }
+      const key = String(targetIdx);
+      customVisible[key] = !customVisible[key];
+      const anyVisible = Object.keys(customVisible).some(k => Boolean(customVisible[k]));
+      return {
+        ...prev,
+        showLabel: anyVisible,
+        labelMode: 'custom',
+        customVisible
+      };
+    });
+  }, []);
   const maplibreMapRef = useRef(null);
   const cesiumViewerRef = useRef(null);
   const amapMapRef = useRef(null);
@@ -3934,6 +4111,7 @@ const App = () => {
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
+  const didAutoFitOnLoadRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
@@ -4410,17 +4588,23 @@ const App = () => {
     if (age === null) return '';
     return `${age}岁`;
   };
-  const getMarkerBadgeText = (loc, idx) => {
-    if (isPosthumousEvent(loc)) return '身后';
+  const getAgeLabel = (loc, idx) => {
     const ageText = getAgeText(loc);
     if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';
+    if (isPosthumousEvent(loc)) return '身后';
     if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
-    return ageText || `第${idx + 1}站`;
+    return ageText || '年龄待考';
+  };
+  const getMarkerBadgeText = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
+    if (prefs.showLabel !== true) return '';
+    return getAgeLabel(loc, idx);
   };
   const getMapPointLabelName = (loc, idx) => String(loc.name || loc.ancientName || loc.modernName || `第${idx + 1}站`).trim();
   const getMapPointLabelParts = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
     const badgeText = String(getMarkerBadgeText(loc, idx) || '').trim();
-    const name = String(getMapPointLabelName(loc, idx) || '').trim();
+    const name = prefs.showLabel === true ? String(getMapPointLabelName(loc, idx) || '').trim() : '';
     return {
       badgeText,
       name
@@ -4433,6 +4617,29 @@ const App = () => {
       name
     } = getMapPointLabelParts(loc, idx);
     return badgeText && name ? `${badgeText}\n${name}` : badgeText || name;
+  };
+  const computeVisibleLabelIndexes = (activeIdx, {
+    detailLevel = 6,
+    isVisible,
+    projectToScreen
+  } = {}) => {
+    const prefs = labelPrefsRef.current || {};
+    const total = locations.length;
+    if (total <= 0) return new Set();
+    if (prefs.showLabel !== true) return new Set();
+    const visible = new Set();
+    const custom = prefs.customVisible && typeof prefs.customVisible === 'object' ? prefs.customVisible : {};
+    const keys = Object.keys(custom);
+    if (!keys.length) {
+      for (let i = 0; i < total; i += 1) visible.add(i);
+      return visible;
+    }
+    keys.forEach(key => {
+      if (!custom[key]) return;
+      const idx = Number(key);
+      if (Number.isFinite(idx) && idx >= 0 && idx < total) visible.add(idx);
+    });
+    return visible;
   };
   const getMapPointLabelVisualState = (loc, idx, activeIdx) => {
     const isActive = idx === activeIdx;
@@ -4775,10 +4982,11 @@ const App = () => {
           className: "my-2 border-gray-200"
         });
       }
+      const lineClassName = `narrative-description-line ${idx < 2 ? 'is-lead' : 'is-body'}`;
       return React.createElement("span", {
         key: idx,
-        className: "narrative-description-line"
-      }, renderNarrativeInline(seg));
+        className: lineClassName
+      }, renderNarrativeLine(seg, idx));
     })), isLongDesc ? React.createElement("button", {
       onClick: () => setShowFullDesc(!showFullDesc),
       className: "text-xs text-[#c0392b] mt-1"
@@ -5190,13 +5398,15 @@ const App = () => {
         if (!renderLoc) return;
         const isEndpoint = idx === 0 || idx === totalEvents - 1;
         const labelOffset = getMapPointLabelOffset(idx);
+        const pointColor = getLifeColor(loc, idx);
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
         const marker = new AMap.CircleMarker({
           center: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
-          radius: isEndpoint ? 8 : 6.5,
-          strokeColor: getLifeColor(loc, idx),
-          strokeWeight: 3,
-          fillColor: getLifeColor(loc, idx),
-          fillOpacity: 0.35,
+          radius: shouldShowIndex ? isEndpoint ? 10 : 9 : isEndpoint ? 8 : 6.5,
+          strokeColor: pointColor,
+          strokeWeight: shouldShowIndex ? 4 : 3,
+          fillColor: pointColor,
+          fillOpacity: shouldShowIndex ? 0 : 0.35,
           bubble: true,
           zIndex: 180 + idx
         });
@@ -5216,14 +5426,52 @@ const App = () => {
             amapControllerRef.current.focusIndex(idx, true);
           }
         };
+        let indexLabel = null;
+        try {
+          const isActive = idx === activeIndexRef.current;
+          const isPassed = idx < activeIndexRef.current;
+          indexLabel = new AMap.Text({
+            text: String(idx + 1),
+            position: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
+            offset: new AMap.Pixel(0, 0),
+            anchor: 'center',
+            style: {
+              height: '22px',
+              minWidth: '22px',
+              lineHeight: '22px',
+              textAlign: 'center',
+              borderRadius: '999px',
+              background: 'rgba(0,0,0,0)',
+              border: 'none',
+              color: '#111827',
+              fontSize: '14px',
+              fontWeight: '800',
+              textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+              opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+            }
+          });
+        } catch (_) {
+          indexLabel = null;
+        }
         marker.on('click', focusPoint);
         label.on('click', focusPoint);
-        map.add([marker, label]);
+        if (indexLabel && typeof indexLabel.on === 'function') {
+          try {
+            indexLabel.on('click', focusPoint);
+          } catch (_) {}
+        }
+        if (indexLabel && !shouldShowIndex && typeof indexLabel.hide === 'function') {
+          try {
+            indexLabel.hide();
+          } catch (_) {}
+        }
+        map.add(indexLabel ? [marker, label, indexLabel] : [marker, label]);
         pointEntries.push({
           idx,
           loc,
           marker,
           label,
+          indexLabel,
           isEndpoint
         });
       });
@@ -5246,7 +5494,7 @@ const App = () => {
       }
       const updateAmapLabelVisibility = activeIdx => {
         const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-        const visibleIndexes = getPreferredLabelIndexes({
+        const visibleIndexes = computeVisibleLabelIndexes(activeIdx, {
           activeIdx,
           detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
           isVisible: (lng, lat) => {
@@ -5283,6 +5531,48 @@ const App = () => {
           try {
             if (entry.label && typeof entry.label.show === 'function' && typeof entry.label.hide === 'function') {
               if (shouldShow) entry.label.show();else entry.label.hide();
+            }
+          } catch (_) {}
+        });
+      };
+      const updateAmapIndexLabels = activeIdx => {
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+        pointEntries.forEach(entry => {
+          if (!entry.indexLabel) return;
+          const isActive = entry.idx === activeIdx;
+          const isPassed = entry.idx < activeIdx;
+          const pointColor = getLifeColor(entry.loc, entry.idx);
+          try {
+            if (entry.marker && typeof entry.marker.setOptions === 'function') {
+              entry.marker.setOptions({
+                radius: shouldShowIndex ? entry.isEndpoint ? 10 : 9 : entry.isEndpoint ? 8 : 6.5,
+                strokeColor: pointColor,
+                strokeWeight: shouldShowIndex ? 4 : 3,
+                fillColor: pointColor,
+                fillOpacity: shouldShowIndex ? 0 : 0.35
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setStyle === 'function') {
+              entry.indexLabel.setStyle({
+                background: 'rgba(0,0,0,0)',
+                border: 'none',
+                color: '#111827',
+                fontWeight: '800',
+                textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+                opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.show === 'function' && typeof entry.indexLabel.hide === 'function') {
+              if (shouldShowIndex) entry.indexLabel.show();else entry.indexLabel.hide();
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setzIndex === 'function') {
+              entry.indexLabel.setzIndex(isActive ? 255 : 205 + entry.idx);
             }
           } catch (_) {}
         });
@@ -5344,6 +5634,7 @@ const App = () => {
           }
         }
         updateAmapLabelVisibility(activeIdx);
+        updateAmapIndexLabels(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -5419,6 +5710,19 @@ const App = () => {
         },
         focusIndex,
         setActive,
+        refreshLabels: activeIdx => {
+          const idx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+          pointEntries.forEach(entry => {
+            try {
+              const nextText = getMapPointLabelText(entry.loc, entry.idx);
+              if (entry.label && typeof entry.label.setText === 'function') entry.label.setText(nextText);else if (entry.label && typeof entry.label.setOptions === 'function') entry.label.setOptions({
+                text: nextText
+              });
+            } catch (_) {}
+          });
+          updateAmapLabelVisibility(idx);
+          updateAmapIndexLabels(idx);
+        },
         pulse: () => {},
         applyBaseLayer,
         getState: () => ({
@@ -5674,7 +5978,9 @@ const App = () => {
       };
       const pointSourceId = 'story-point-source';
       const pointHaloId = 'story-point-halo';
+      const pointRingOuterId = 'story-point-ring-outer';
       const pointCoreId = 'story-point-core';
+      const pointIndexLayerId = 'story-point-index';
       const pointLabelSourceId = 'story-point-label-source';
       const pointLabelLayerId = 'story-point-label';
       const isValidMapCoordinatePair = pair => {
@@ -5947,8 +6253,7 @@ const App = () => {
         const pointData = buildPointFeatureCollection(activeIndexRef.current);
         const buildMapLibreVisibleLabelIndexes = activeIdx => {
           const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-          return getPreferredLabelIndexes({
-            activeIdx,
+          return computeVisibleLabelIndexes(activeIdx, {
             detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
             isVisible: (lng, lat) => {
               if (!bounds || typeof bounds.contains !== 'function') return true;
@@ -5975,10 +6280,13 @@ const App = () => {
         if (pointData.features.length) {
           try {
             ensureLayerRemoved(pointHaloId);
+            ensureLayerRemoved(pointRingOuterId);
             ensureLayerRemoved(pointCoreId);
+            ensureLayerRemoved(pointIndexLayerId);
             ensureLayerRemoved(pointLabelLayerId);
             ensureSourceRemoved(pointLabelSourceId);
             ensureSourceRemoved(pointSourceId);
+            const initialShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
             map.addSource(pointSourceId, {
               type: 'geojson',
               data: pointData
@@ -5995,19 +6303,57 @@ const App = () => {
               }
             });
             map.addLayer({
+              id: pointRingOuterId,
+              type: 'circle',
+              source: pointSourceId,
+              layout: {
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'circle-radius': ['+', ['get', 'radius'], 2.6],
+                'circle-color': 'rgba(0,0,0,0)',
+                'circle-opacity': 0,
+                'circle-stroke-color': 'rgba(0,0,0,0.62)',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 5.6
+              }
+            });
+            map.addLayer({
               id: pointCoreId,
               type: 'circle',
               source: pointSourceId,
               paint: {
                 'circle-radius': ['get', 'radius'],
                 'circle-color': ['get', 'fillColor'],
-                'circle-opacity': ['get', 'fillOpacity'],
-                'circle-stroke-color': ['get', 'strokeColor'],
-                'circle-stroke-width': ['get', 'strokeWeight']
+                'circle-opacity': initialShowIndex ? 0 : ['get', 'fillOpacity'],
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 3.4
               }
             });
-            pointLayers.push(pointHaloId, pointCoreId);
-            extraLayerIds.push(pointHaloId, pointCoreId);
+            map.addLayer({
+              id: pointIndexLayerId,
+              type: 'symbol',
+              source: pointSourceId,
+              layout: {
+                'text-field': ['to-string', ['+', ['get', 'idx'], 1]],
+                'text-size': ['case', ['>=', ['get', 'idx'], 99], 11, ['>=', ['get', 'idx'], 9], 13, 14],
+                'text-anchor': 'center',
+                'text-offset': [0, 0],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'text-color': '#111827',
+                'text-halo-color': 'rgba(255,255,255,0.96)',
+                'text-halo-width': 1.8,
+                'text-halo-blur': 0.2,
+                'text-opacity': 1.0
+              }
+            });
+            pointLayers.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
+            extraLayerIds.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
             extraSourceIds.push(pointSourceId);
           } catch (error) {
             debugEmit('A', 'profile_page.html:renderStoryOverlays', 'point layers skipped after render failure', {
@@ -6067,6 +6413,20 @@ const App = () => {
             if (labelEl) updateMapPointLabelElement(labelEl, loc, idx, activeIdx);
             setMarkerZ(marker, idx === activeIdx ? 280 : idx === 0 || idx === totalEvents - 1 ? 240 : 220);
           });
+        };
+        const updateMapLibreIndexVisibility = () => {
+          const shouldShow = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+          try {
+            if (map.getLayer(pointRingOuterId)) {
+              map.setLayoutProperty(pointRingOuterId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointIndexLayerId)) {
+              map.setLayoutProperty(pointIndexLayerId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointCoreId)) {
+              map.setPaintProperty(pointCoreId, 'circle-opacity', shouldShow ? 0 : ['get', 'fillOpacity']);
+            }
+          } catch (_) {}
         };
         const setActive = activeIdx => {
           activeIndexRef.current = activeIdx;
@@ -6215,6 +6575,7 @@ const App = () => {
           lineIds,
           extraLayerIds,
           extraSourceIds,
+          markers,
           pointSourceId,
           pointCoreId,
           clear: () => {
@@ -6330,6 +6691,11 @@ const App = () => {
             focusTimelineIndex(nextIdx, pulse);
           },
           setActive,
+          refreshLabels: activeIdx => {
+            const nextIdx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+            updateMapLibreLabelVisibility(nextIdx);
+            updateMapLibreIndexVisibility();
+          },
           pulse: pulseByIndex,
           getState: () => ({
             engine: 'maplibre',
@@ -6348,6 +6714,7 @@ const App = () => {
         };
         maplibreControllerRef.current = controller;
         updateMapLibreLabelVisibility(activeIndexRef.current);
+        updateMapLibreIndexVisibility();
         if (!isTerrain3DMode(currentBaseLayerRef.current)) {
           mapRef.current = controller;
         }
@@ -7227,6 +7594,17 @@ const App = () => {
     };
   }, [mapLayerType, mapRecoveryTick]);
   useEffect(() => {
+    if (didAutoFitOnLoadRef.current) return;
+    if (mapLoadState !== 'ready') return;
+    if (initialLocFromHash || hasLocHash()) return;
+    const controller = mapRef.current;
+    if (!controller || typeof controller.fitAll !== 'function') return;
+    didAutoFitOnLoadRef.current = true;
+    try {
+      controller.fitAll(false);
+    } catch (_) {}
+  }, [mapLoadState, initialLocFromHash]);
+  useEffect(() => {
     if (typeof window === 'undefined' || !window.history) return;
     if (!skippedInitialHashWriteRef.current && !initialLocFromHash && activeIndex === initialLocIdx) {
       skippedInitialHashWriteRef.current = true;
@@ -7296,6 +7674,10 @@ const App = () => {
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const mapReady = mapLoadState === 'ready';
   const mapLoading = mapLoadState === 'loading';
+  const labelTotalCount = totalEvents;
+  const labelCustomVisible = labelPrefs?.customVisible && typeof labelPrefs.customVisible === 'object' ? labelPrefs.customVisible : null;
+  const labelCustomHasKeys = Boolean(labelCustomVisible && Object.keys(labelCustomVisible).length);
+  const labelSelectedCount = labelPrefs?.showLabel ? labelCustomHasKeys ? Object.keys(labelCustomVisible).filter(k => Boolean(labelCustomVisible[k])).length : labelTotalCount : 0;
   const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图';
   const mapLazyCopy = mapLoading ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。' : mapLoadState === 'error' ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。' : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。';
   const mapLazyActionLabel = mapLoading ? '正在加载地图…' : mapLoadState === 'error' ? '重试加载地图' : '立即加载地图';
@@ -7754,6 +8136,8 @@ const App = () => {
       }
     }
     if (!staticSite || isLocalHost) {
+      pushUrl('http://127.0.0.1:8877/api/ai/proxy');
+      pushUrl('http://localhost:8877/api/ai/proxy');
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -7771,6 +8155,29 @@ const App = () => {
       }
     }).filter(Boolean);
   };
+  const _chatCompositeAbortController = signal => {
+    if (typeof AbortController !== 'function') return null;
+    const controller = new AbortController();
+    const src = signal;
+    if (src && typeof src === 'object') {
+      if (src.aborted) {
+        try {
+          controller.abort();
+        } catch (_) {}
+      } else if (typeof src.addEventListener === 'function') {
+        try {
+          src.addEventListener('abort', () => {
+            try {
+              controller.abort();
+            } catch (_) {}
+          }, {
+            once: true
+          });
+        } catch (_) {}
+      }
+    }
+    return controller;
+  };
   const _postChat = async (messages, {
     onDelta,
     signal
@@ -7780,8 +8187,37 @@ const App = () => {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
-    for (const url of tryUrls) {
+    const _tryOnce = async (url, {
+      stream
+    }) => {
+      const controller = _chatCompositeAbortController(signal);
+      const requestSignal = controller ? controller.signal : signal;
+      let idleTimer = null;
+      let idleTimedOut = false;
+      let lastChunkAt = Date.now();
+      let hadAnyChunk = false;
+      const startIdleWatch = () => {
+        if (!controller) return;
+        idleTimer = setInterval(() => {
+          const elapsed = Date.now() - lastChunkAt;
+          const limit = hadAnyChunk ? 20000 : 9000;
+          if (elapsed >= limit) {
+            idleTimedOut = true;
+            try {
+              controller.abort();
+            } catch (_) {}
+          }
+        }, 500);
+      };
+      const stopIdleWatch = () => {
+        if (idleTimer) {
+          clearInterval(idleTimer);
+          idleTimer = null;
+        }
+      };
       try {
+        startIdleWatch();
+        const signal = requestSignal;
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -7792,7 +8228,7 @@ const App = () => {
           body: JSON.stringify({
             messages,
             temperature: 0.5,
-            stream: true,
+            stream: !!stream,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
@@ -7803,7 +8239,7 @@ const App = () => {
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
-        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+        if (!stream || !contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
           const text = await resp.text();
           return JSON.parse(text);
         }
@@ -7817,6 +8253,10 @@ const App = () => {
             done,
             value
           } = await reader.read();
+          if (value && value.length) {
+            hadAnyChunk = true;
+            lastChunkAt = Date.now();
+          }
           buffer += decoder.decode(value || new Uint8Array(), {
             stream: !done
           });
@@ -7867,6 +8307,34 @@ const App = () => {
           meta
         };
       } catch (e) {
+        if (idleTimedOut && !(signal && signal.aborted)) {
+          const err = new Error('STREAM_IDLE_TIMEOUT');
+          err.cause = e;
+          throw err;
+        }
+        throw e;
+      } finally {
+        stopIdleWatch();
+      }
+    };
+    for (const url of tryUrls) {
+      try {
+        return await _tryOnce(url, {
+          stream: true,
+          mode: 'sse'
+        });
+      } catch (e) {
+        if (!(signal && signal.aborted) && String(e?.message || '').trim() === 'STREAM_IDLE_TIMEOUT') {
+          try {
+            return await _tryOnce(url, {
+              stream: false,
+              mode: 'json'
+            });
+          } catch (retryErr) {
+            lastErr = retryErr;
+            continue;
+          }
+        }
         lastErr = e;
       }
     }
@@ -8145,7 +8613,23 @@ const App = () => {
     onClick: toggleAutoPlay,
     disabled: totalEvents <= 1,
     className: "theme-button-secondary px-3 py-1.5 rounded-lg text-xs text-[var(--color-text-secondary)] disabled:opacity-40"
-  }, isAutoPlaying ? '停止播放' : '自动播放'))), React.createElement("div", {
+  }, isAutoPlaying ? '停止播放' : '自动播放'), React.createElement("div", {
+    className: "w-px h-5 bg-[rgba(26,115,232,0.18)]"
+  }), React.createElement("div", {
+    className: "flex items-center gap-1.5 flex-wrap"
+  }, React.createElement("span", {
+    className: "text-[11px] text-[var(--color-text-tertiary)]"
+  }, "\u5730\u56FE\u6807\u8BB0"), React.createElement("label", {
+    className: `theme-chip-muted inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-normal shadow-sm ${labelPrefs?.showLabel ? 'border-[rgba(26,115,232,0.22)] bg-white/90 text-[var(--color-text-secondary)]' : ''} ${labelTotalCount <= 0 ? 'opacity-50' : ''}`,
+    title: labelTotalCount ? `标签：${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签'
+  }, React.createElement("span", null, "\u6807\u7B7E"), React.createElement("input", {
+    type: "checkbox",
+    checked: Boolean(labelPrefs?.showLabel),
+    disabled: labelTotalCount <= 0,
+    onChange: toggleShowLabel,
+    "aria-label": labelTotalCount ? `切换地图标签（年龄+地点），当前 ${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签',
+    className: "h-3.5 w-3.5 accent-[var(--color-primary)] cursor-pointer disabled:cursor-not-allowed"
+  }))))), React.createElement("div", {
     className: "mt-3 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between"
   }, React.createElement("div", {
     className: "flex items-center gap-3 min-w-0 flex-wrap"
@@ -8193,6 +8677,7 @@ const App = () => {
     }
   }, locations.map((loc, idx) => {
     const ageText = getAgeText(loc) || (idx === 0 ? '年龄待考' : idx === totalEvents - 1 ? '终章' : '年龄待考');
+    const ageBadgeText = isPosthumousEvent(loc) ? '身后' : ageText;
     const stageText = getLifeStage(loc, idx);
     const lifeColor = getLifeColor(loc, idx);
     const lifeProgress = Math.round(getLifeProgress(loc, idx) * 100);
@@ -8259,6 +8744,19 @@ const App = () => {
     }, React.createElement("div", {
       className: "flex items-center gap-2 flex-wrap"
     }, React.createElement("span", {
+      className: "inline-flex items-center justify-center font-bold text-white shrink-0",
+      style: {
+        width: `${Math.round(22 * timelineZoom)}px`,
+        height: `${Math.round(22 * timelineZoom)}px`,
+        borderRadius: '999px',
+        background: lifeColor,
+        border: `2px solid ${hexToRgba('#ffffff', idx === activeIndex ? 0.98 : 0.92)}`,
+        boxShadow: idx === activeIndex ? `0 12px 24px ${hexToRgba(lifeColor, 0.3)}` : `0 8px 18px ${hexToRgba(lifeColor, 0.2)}`,
+        fontSize: `${Math.round(12 * timelineZoom)}px`,
+        lineHeight: '1',
+        opacity: idx < activeIndex ? 0.86 : 1
+      }
+    }, idx + 1), React.createElement("span", {
       className: "font-bold truncate",
       style: {
         fontSize: `${Math.round(14 * timelineZoom)}px`
@@ -8271,7 +8769,7 @@ const App = () => {
         borderColor: hexToRgba(lifeColor, 0.3),
         background: hexToRgba(lifeColor, 0.08)
       }
-    }, ageText), React.createElement("span", {
+    }, ageBadgeText), React.createElement("span", {
       className: "px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
@@ -8284,12 +8782,28 @@ const App = () => {
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.ancientName, " : ", loc.modernName)), React.createElement("span", {
+    }, loc.ancientName, " : ", loc.modernName)), React.createElement("div", {
+      className: "flex flex-col items-end gap-2 shrink-0"
+    }, React.createElement("span", {
       className: "px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.time || '未知')), React.createElement("div", {
+    }, loc.time || '未知'), React.createElement("button", {
+      type: "button",
+      className: `theme-chip-muted inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-normal shadow-none transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.2)] bg-white/88 text-[var(--color-text-secondary)]' : 'border-transparent bg-white/55 text-gray-500 hover:bg-white/72'}`,
+      onClick: e => {
+        e.stopPropagation();
+        toggleCustomLabelIndex(idx);
+      },
+      "aria-label": `切换第${idx + 1}站标签`,
+      "aria-pressed": Boolean(labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false))
+    }, React.createElement("span", {
+      "aria-hidden": "true",
+      className: `inline-flex h-3 w-3 items-center justify-center rounded-[3px] border transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.4)] bg-[rgba(26,115,232,0.12)]' : 'border-[rgba(148,163,184,0.5)] bg-white/80'}`
+    }, React.createElement("span", {
+      className: `h-1.5 w-1.5 rounded-[2px] transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'bg-[var(--color-primary)]' : 'bg-transparent'}`
+    })), React.createElement("span", null, "\u6807\u7B7E")))), React.createElement("div", {
       className: "space-y-1 text-gray-500 mb-2",
       style: {
         fontSize: `${Math.round(11 * timelineZoom)}px`

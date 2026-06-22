@@ -1,15 +1,23 @@
-"""转发层：实际实现已迁移至 storymap.script.cli.story_map。"""
-
 from __future__ import annotations
 
-import sys as _sys
-from storymap.script.cli.story_map import *  # noqa: F401,F403
-from storymap.script.cli import story_map as _impl
+import sys
+from pathlib import Path
 
-# 兼容源码断言型测试：真实调用已在新实现中执行。
-# load_project_env(from_file=__file__, override=False)
-# strict=runtime_support_utils.strict_startup_enabled()
-_sys.modules[__name__] = _impl
+
+if __package__ in {None, ""}:
+    # Support legacy script execution: `python3 storymap/script/story_map.py`.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from storymap.script.cli.story_map import APP, create_app, generate_for_person, main, shutdown_services
+
+__all__ = [
+    "APP",
+    "create_app",
+    "generate_for_person",
+    "main",
+    "shutdown_services",
+]
+
 
 if __name__ == "__main__":
-    _impl.main()
+    main()

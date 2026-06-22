@@ -16,11 +16,11 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import geocode_service as gs
-import map_client as mc
-import parsers as ps
-from project_paths import data_corpus_file_path, data_reports_output_path, data_runtime_output_path
-from story_agents import StoryAgentLLM
+from storymap.script.agent.registry import StoryAgentLLM
+from storymap.script.core import parsers as ps
+from storymap.script.core.project_paths import data_corpus_file_path, data_reports_output_path, data_runtime_output_path
+from storymap.script.map import geocode_service as gs
+from storymap.script.map import map_client as mc
 
 
 JsonDict = Dict[str, object]

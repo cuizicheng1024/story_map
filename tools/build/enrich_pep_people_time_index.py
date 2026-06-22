@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
-from storymap.script.project_paths import data_corpus_file_path, data_corpus_output_path
+from storymap.script.core.project_paths import data_corpus_file_path, data_corpus_output_path
 
 
 def _repo_root() -> Path:

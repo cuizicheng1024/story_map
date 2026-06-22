@@ -11,10 +11,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 JsonDict = Dict[str, object]
 _HARD_PLACE_QUEUE_LOCK = threading.Lock()
 
-try:
-    from ..project_paths import data_runtime_output_path
-except ImportError:
-    from project_paths import data_runtime_output_path
+from ..core.project_paths import data_runtime_output_path
+from .geocode_candidates import reject_geocode_candidate_reason, trim_geocode_candidate
 
 
 def _project_root() -> Path:
@@ -22,20 +20,8 @@ def _project_root() -> Path:
 
 
 def _parser_utils():
-    try:
-        from .. import parsers as parser_utils
-    except ImportError:
-        import parsers as parser_utils
+    from ..core import parsers as parser_utils
     return parser_utils
-
-
-def _map_client_utils():
-    try:
-        from . import map_client as map_client_utils
-    except ImportError:
-        import map_client as map_client_utils
-    return map_client_utils
-
 
 def _dedupe_strings(values: List[object]) -> List[str]:
     seen = set()
@@ -85,9 +71,8 @@ def _looks_like_reviewable_place(place_name: str) -> bool:
     raw = str(place_name or "").strip()
     if not raw:
         return False
-    map_client_utils = _map_client_utils()
-    trimmed = getattr(map_client_utils, "_trim_geocode_candidate", lambda value: str(value or "").strip())(raw)
-    reject_reason = getattr(map_client_utils, "_reject_geocode_candidate_reason", lambda _value: "")(trimmed or raw)
+    trimmed = trim_geocode_candidate(raw)
+    reject_reason = reject_geocode_candidate_reason(trimmed or raw)
     return not bool(reject_reason)
 
 

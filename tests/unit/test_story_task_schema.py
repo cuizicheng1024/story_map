@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_task_schema
+from storymap.script.runtime import task_schema as story_task_schema
 
 
 def test_normalize_task_result_summary_preserves_degraded_success_when_status_is_missing():

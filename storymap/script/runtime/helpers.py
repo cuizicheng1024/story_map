@@ -68,8 +68,8 @@ def create_runtime_helpers(
     def resolve_cors_origin(origin: str) -> Optional[str]:
         return runtime_support_utils.resolve_cors_origin(origin, allowed_origins)
 
-    def get_llm_client(event_callback: Optional[callable] = None):
-        return client_factory.get_client(event_callback=event_callback)
+    def get_llm_client(event_callback: Optional[callable] = None, timeout_resolver: Optional[callable] = None):
+        return client_factory.get_client(event_callback=event_callback, timeout_resolver=timeout_resolver)
 
     def validate_input_text(text: object) -> Optional[str]:
         return runtime_support_utils.validate_input_text(text, max_text_len)

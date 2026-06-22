@@ -4,7 +4,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Callable, Dict, List, Optional
 
-from ..agent import generation_tools as story_generation_tools_utils
+from ..agent.generation_pipeline import FileGenerationCheckpointStore, GenerationCheckpointStore
 from ..core.person_registry import canonical_person_name
 
 
@@ -23,6 +23,11 @@ class GenerationState:
     refreshed: bool = False
     used_existing_markdown: bool = False
     agent_runtime: Optional[Dict[str, object]] = None
+    checkpoint_stage: str = ""
+    checkpoint_source: str = ""
+    error_classification: str = ""
+    error_retryable: bool = False
+    homepage_refresh_state: str = ""
 
 
 def _is_usable_result(result: Dict[str, object]) -> bool:
@@ -84,9 +89,14 @@ def create_generation_api(
     build_amap_config_js: Callable[[], bytes],
     build_geovis_config_js: Callable[[], bytes],
     refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
+    enqueue_background_job: Optional[Callable[..., object]],
     available_story_names: Optional[Callable[[], List[str]]],
     logger: object,
+    checkpoint_store: Optional[GenerationCheckpointStore] = None,
 ) -> Dict[str, object]:
+    # 延迟到函数内 import，避免与 agent 子包形成循环 import
+    from ..agent import generation_tools as story_generation_tools_utils
+
     generation_tools = story_generation_tools_utils.create_generation_tools(
         append_coords_section=append_coords_section,
         parse_places=parse_places,
@@ -96,6 +106,8 @@ def create_generation_api(
         validate_data_quality=validate_data_quality,
         print_quality_report=print_quality_report,
     )
+
+    checkpoint_store_impl = checkpoint_store or FileGenerationCheckpointStore()
 
     def build_generation_state(person: str, result: Dict[str, object], *, requested_person: str = "") -> GenerationState:
         markdown_path = str(result.get("markdown_path") or "")
@@ -114,21 +126,30 @@ def create_generation_api(
         profile_data = profile if isinstance(profile, dict) else None
         agent_runtime = result.get("_agent_runtime")
         agent_runtime_data = agent_runtime if isinstance(agent_runtime, dict) else None
+        checkpoint = result.get("checkpoint")
+        checkpoint_data = checkpoint if isinstance(checkpoint, dict) else {}
+        homepage_refresh = result.get("_homepage_refresh")
+        homepage_refresh_data = homepage_refresh if isinstance(homepage_refresh, dict) else {}
 
         return GenerationState(
             person=person,
             requested_person=str(requested_person or result.get("requested_person") or person or ""),
             md_draft=md_draft,
             quality_issues=issues,
-            retry_count=0,
+            retry_count=max(0, int(result.get("retry_count") or 0)),
             profile=profile_data,
             html_path=str(result.get("html_path") or ""),
             markdown_path=markdown_path,
-            stage=_resolve_stage(result),
+            stage=str(result.get("stage") or _resolve_stage(result)),
             cached=bool(result.get("cached")),
             refreshed=bool(result.get("refreshed")),
             used_existing_markdown=bool(result.get("used_existing_markdown")),
             agent_runtime=agent_runtime_data,
+            checkpoint_stage=str(checkpoint_data.get("resume_stage") or ""),
+            checkpoint_source=str(checkpoint_data.get("source") or ""),
+            error_classification=str(result.get("error_classification") or ""),
+            error_retryable=bool(result.get("error_retryable")),
+            homepage_refresh_state=str(homepage_refresh_data.get("state") or ""),
         )
 
     def list_generation_tools() -> List[Dict[str, str]]:
@@ -166,6 +187,42 @@ def create_generation_api(
         result["homepage_refresh_error"] = detail
         return result
 
+    def _dispatch_homepage_refresh(person: str) -> Dict[str, object]:
+        if not callable(refresh_stellar_homepage):
+            return {}
+        if not callable(enqueue_background_job):
+            return dict(refresh_stellar_homepage(person) or {})
+
+        def _job() -> Dict[str, object]:
+            return dict(refresh_stellar_homepage(person) or {})
+
+        submit_result = enqueue_background_job(
+            _job,
+            label=f"homepage-refresh:{person}",
+            metadata={"person": person, "kind": "homepage_refresh"},
+        )
+        if isinstance(submit_result, dict):
+            if not any(key in submit_result for key in ("queued", "state", "async", "accepted")):
+                return dict(submit_result)
+            accepted = bool(
+                submit_result.get("queued", submit_result.get("accepted", submit_result.get("ok", False)))
+            )
+            payload = dict(submit_result)
+            payload.setdefault("ok", accepted)
+            payload.setdefault("queued", accepted)
+            payload.setdefault("state", "queued" if accepted else "rejected")
+            payload.setdefault("async", True)
+            payload.setdefault("person", person)
+            return payload
+        accepted = bool(submit_result)
+        return {
+            "ok": accepted,
+            "queued": accepted,
+            "state": "queued" if accepted else "rejected",
+            "async": True,
+            "person": person,
+        }
+
     def should_refresh_stellar_home(result: Dict[str, object]) -> bool:
         if not _is_usable_result(result):
             return False
@@ -182,6 +239,7 @@ def create_generation_api(
         progress: Optional[callable] = None,
         allow_cache: bool = True,
         event_callback: Optional[callable] = None,
+        timeout_resolver: Optional[callable] = None,
         refresh_homepage: bool = True,
     ) -> Dict[str, object]:
         requested_person = str(person or "").strip()
@@ -198,6 +256,7 @@ def create_generation_api(
             progress=progress,
             allow_cache=allow_cache,
             event_callback=event_callback,
+            timeout_resolver=timeout_resolver,
             story_paths=story_paths,
             read_text=read_text,
             extract_export_data_from_html=extract_export_data_from_html,
@@ -222,10 +281,16 @@ def create_generation_api(
             current_profile_signature=current_profile_signature,
             build_amap_config_js=build_amap_config_js,
             build_geovis_config_js=build_geovis_config_js,
+            checkpoint_store=checkpoint_store_impl,
         )
         result["requested_person"] = requested_person
         if refresh_homepage and refresh_stellar_homepage and should_refresh_stellar_home(result):
-            result = _apply_homepage_refresh_result(result, refresh_stellar_homepage(canonical_person))
+            refresh_result = _dispatch_homepage_refresh(canonical_person)
+            if isinstance(refresh_result, dict) and refresh_result.get("async"):
+                result["_homepage_refresh"] = refresh_result
+                result["homepage_refresh_scheduled"] = bool(refresh_result.get("queued"))
+            else:
+                result = _apply_homepage_refresh_result(result, refresh_result)
         result["_state"] = asdict(build_generation_state(canonical_person, result, requested_person=requested_person))
         return result
 

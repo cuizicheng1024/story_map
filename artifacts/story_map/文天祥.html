@@ -1170,6 +1170,19 @@ body {
 .narrative-description-line:last-child {
   margin-bottom: 0;
 }
+.narrative-description-line.is-lead {
+  color: var(--color-text-primary);
+}
+.narrative-description-line.is-body {
+  color: color-mix(in srgb, var(--color-text-secondary) 92%, #64748b 8%);
+}
+.narrative-sentence {
+  display: inline;
+}
+.narrative-sentence.is-turning {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
 .narrative-inline-strong {
   font-weight: 800;
   color: var(--color-text-primary);
@@ -1190,9 +1203,31 @@ body {
   font-weight: 600;
   color: #166534;
 }
+.narrative-inline-identity {
+  font-weight: 800;
+  color: color-mix(in srgb, #7c2d12 72%, var(--color-primary) 28%);
+}
 .narrative-inline-quote {
   color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary) 18%);
   font-style: italic;
+}
+.narrative-description-line.is-lead .narrative-inline-accent,
+.narrative-description-line.is-lead .narrative-inline-time,
+.narrative-description-line.is-lead .narrative-inline-place,
+.narrative-description-line.is-lead .narrative-inline-identity {
+  filter: saturate(1.08);
+}
+.narrative-description-line.is-body .narrative-inline-accent {
+  color: color-mix(in srgb, var(--color-primary) 68%, #475569 32%);
+}
+.narrative-description-line.is-body .narrative-inline-time {
+  color: #b7791f;
+}
+.narrative-description-line.is-body .narrative-inline-place {
+  color: #2f855a;
+}
+.narrative-description-line.is-body .narrative-inline-identity {
+  color: color-mix(in srgb, #7c2d12 58%, var(--color-text-secondary) 42%);
 }
 .age-marker {
   background: transparent;
@@ -2186,11 +2221,13 @@ const {
   useRef,
   useMemo
 } = React;
-const data = {"person": {"name": "文天祥", "title": "", "description": "文天祥生于南宋末年，自幼仰慕忠烈，二十岁状元及第，因直言时弊屡遭贬斥。元军南侵，他于国家危难之际起兵勤王，官至右丞相。出使元营被扣押，后于镇江脱险，继续在东南沿海领导抗元斗争，兵败被俘。囚禁三年间，面对威逼利诱始终坚贞不屈，最终在元大都柴市从容就义。他的一生是爱国志士为国捐躯的壮烈写照，其诗文与人格光辉千古。", "quote": "天地有正气，杂然赋流形", "shortReview": "天地有正气，杂然赋流形", "dynasty": "南宋末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉州庐陵（今江西省吉安市）", "avatar": "", "birth": {"date": "1236年", "location": "吉州庐陵（今江西省吉安市）", "lat": 27.1134, "lng": 114.9927, "coordSystem": "WGS84"}, "death": {"date": "1283年", "location": "元大都（今北京市）", "lat": 39.9289, "lng": 116.4167, "coordSystem": "WGS84"}, "lifespan": "47岁", "highlights": {"honor": "", "status": "南宋末年坚持抗元的代表人物，以其崇高的气节和爱国精神被后世尊为民族英雄。", "identities": "政治家、文学家、抗元名臣、民族英雄", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "吉州庐陵", "ancientName": "吉州庐陵", "modernName": "江西省吉安市", "lat": 27.1134, "lng": 114.9927, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个书香门第，自幼受到良好教育。", "time": "公元1236年", "duration": "青少年时期", "significance": "塑造了他忠孝节义的思想基础，故乡的先贤如欧阳修、胡铨等成为其榜样。", "works": [], "quoteLines": []}, {"name": "临安", "ancientName": "临安", "modernName": "浙江省杭州市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "年仅二十一岁，状元及第。因父丧守制，后入仕，因直言批评宦官董宋臣等，多次被贬或辞官。", "time": "公元1256年", "duration": "科举及为官初期", "significance": "人生高光起点，展现了其刚直不阿的品格，也预示了其仕途的坎坷。", "works": [], "quoteLines": []}, {"name": "瑞州", "ancientName": "瑞州", "modernName": "江西省高安市", "lat": 28.4194, "lng": 115.3753, "coordSystem": "WGS84", "type": "normal", "event": "任江西提刑，后因得罪权臣贾似道再度被罢官。", "time": "约公元1270年-1273年", "duration": "数年", "significance": "地方任职经历，积累了行政经验，也更深刻认识到朝政腐败。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "赣州", "modernName": "江西省赣州市", "lat": 25.8318, "lng": 114.9334, "coordSystem": "WGS84", "type": "normal", "event": "闻元军渡江，奉诏起兵勤王，聚集义军万余人入卫临安。", "time": "公元1275年", "duration": "数月", "significance": "从文臣转向武将，投身抗元救亡的实际行动，是其军事生涯的起点。", "works": [], "quoteLines": []}, {"name": "临安（第二次）", "ancientName": "临安", "modernName": "浙江省杭州市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "临危受命，任右丞相兼枢密使，赴元营谈判被扣。南宋朝廷投降。", "time": "公元1276年", "duration": "数月", "significance": "代表南宋进行最后的外交努力，被俘使其抗争形式发生转变。", "works": [], "quoteLines": []}, {"name": "镇江", "ancientName": "镇江", "modernName": "江苏省镇江市", "lat": 26.6418, "lng": 118.1776, "coordSystem": "WGS84", "type": "normal", "event": "在被押解北上途中，于镇江乘夜逃脱。", "time": "公元1276年", "duration": "短暂", "significance": "虎口脱险，得以继续组织抗元斗争，展现了其机智与决心。", "works": [], "quoteLines": []}, {"name": "南剑州", "ancientName": "南剑州", "modernName": "福建省南平市", "lat": 22.9666, "lng": 115.3328, "coordSystem": "WGS84", "type": "normal", "event": "脱险后至此，开府聚兵，重建抗元指挥中心，收复多处州县。", "time": "公元1276年-1277年", "duration": "约一年", "significance": "抗元斗争的中兴时期，一度声势复振，鼓舞了各地军民。", "works": [], "quoteLines": []}, {"name": "五坡岭", "ancientName": "五坡岭", "modernName": "广东省海丰县北", "lat": 22.1927, "lng": 113.5539, "coordSystem": "WGS84", "type": "normal", "event": "在率部转移途中，于五坡岭吃饭时遭元军突袭，兵败被俘。", "time": "公元1278年", "duration": "被俘瞬间", "significance": "抗元军事生涯的终结点，从此开始囚徒生涯。", "works": [], "quoteLines": []}, {"name": "零丁洋", "ancientName": "零丁洋", "modernName": "广东省珠江口外，属珠海市海域", "lat": 22.2667, "lng": 113.75, "coordSystem": "WGS84", "type": "normal", "event": "被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。", "time": "公元1279年", "duration": "途经", "significance": "创作了千古绝唱“人生自古谁无死，留取丹心照汗青”，标志着其精神境界的升华。", "works": ["过零丁洋"], "quoteLines": []}, {"name": "元大都", "ancientName": "元大都", "modernName": "北京市", "lat": 39.9289, "lng": 116.4167, "coordSystem": "WGS84", "type": "death", "event": "被囚于兵马司土牢近三年，忽必烈亲自劝降，许以宰相高位，均遭严词拒绝。最终在柴市（今北京市东城区府学胡同西口，一说为菜市口，存疑）从容就义。", "time": "公元1283年", "duration": "约三年（囚禁）", "significance": "以生命践行了“丹心照汗青”的誓言，其殉国之举震动天下，成为后世忠义精神的最高象征。", "works": [], "quoteLines": ["《正气歌》：天地有正气，杂然赋流形", "《正气歌》：时穷节乃见，一一垂丹青。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---", "workTexts": {"正气歌": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "过零丁洋": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "宋史": "历史评价：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导忠君爱国的价值观。"}, "workSummaries": {"正气歌": {"title": "正气歌", "aliases": [], "authors": ["文天祥"], "related_people": ["文天祥"], "source_pages": ["文天祥"], "era": "南宋末期", "genre": "歌曲", "one_liner": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "summary": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "quote": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "quotes": ["被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "天地有正气，杂然赋流形；", "时穷节乃见，一一垂丹青。"], "quote_policy": "preferred"}, "过零丁洋": {"title": "过零丁洋", "aliases": [], "authors": ["文天祥"], "related_people": ["文天祥"], "source_pages": ["文天祥"], "era": "南宋末期", "genre": "", "one_liner": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "summary": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "quote": "| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；", "quotes": ["| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；", "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。"], "quote_policy": "preferred"}, "宋史": {"title": "宋史", "aliases": [], "authors": [], "related_people": ["苏舜钦", "苏辙", "文天祥"], "source_pages": ["苏舜钦", "苏辙", "文天祥"], "era": "", "genre": "", "one_liner": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "summary": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 文天祥\n\n## 人物档案\n\n### 基本信息\n- **姓名**：文天祥\n- **时代**：南宋末期\n- **出生**：公元1236年，吉州庐陵（今江西省吉安市）（出生日期有六月初二和五月二日等说法，存疑）\n- **去世**：公元1283年，元大都（今北京市）\n- **享年**：47岁\n- **主要身份**：政治家、文学家、抗元名臣、民族英雄\n- **历史地位**：南宋末年坚持抗元的代表人物，以其崇高的气节和爱国精神被后世尊为民族英雄。\n- **主要成就**：\n    - 状元及第，以忠直敢言著称。\n    - 在南宋危亡之际组织义军，坚持抗元斗争。\n    - 被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。\n    - 其“人生自古谁无死，留取丹心照汗青”的精神成为中华民族的宝贵财富。\n\n### 生平概述\n文天祥生于南宋末年，自幼仰慕忠烈，二十岁状元及第，因直言时弊屡遭贬斥。元军南侵，他于国家危难之际起兵勤王，官至右丞相。出使元营被扣押，后于镇江脱险，继续在东南沿海领导抗元斗争，兵败被俘。囚禁三年间，面对威逼利诱始终坚贞不屈，最终在元大都柴市从容就义。他的一生是爱国志士为国捐躯的壮烈写照，其诗文与人格光辉千古。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从江西出生地出发，辗转于南宋都城、东南沿海抗元战场，最终北上囚禁并就义于元大都。\n- ⏱️ **时间跨度**：公元1236年 - 1283年，共47年。\n- 📍 **地理范围**：主要覆盖今江西、浙江、江苏、福建、广东、北京等省市。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：吉州庐陵\n- **时间**：公元1236年\n- **停留时间**：青少年时期\n- **地点**：吉州庐陵（今江西省吉安市）\n- **事件**：出生于一个书香门第，自幼受到良好教育。\n- **意义**：塑造了他忠孝节义的思想基础，故乡的先贤如欧阳修、胡铨等成为其榜样。\n\n### 📍 重要地点：临安\n- **时间**：公元1256年\n- **停留时间**：科举及为官初期\n- **地点**：临安（今浙江省杭州市）\n- **事件**：年仅二十一岁，状元及第。因父丧守制，后入仕，因直言批评宦官董宋臣等，多次被贬或辞官。\n- **意义**：人生高光起点，展现了其刚直不阿的品格，也预示了其仕途的坎坷。\n\n### 📍 重要地点：瑞州\n- **时间**：约公元1270年-1273年\n- **停留时间**：数年\n- **地点**：瑞州（今江西省高安市）\n- **事件**：任江西提刑，后因得罪权臣贾似道再度被罢官。\n- **意义**：地方任职经历，积累了行政经验，也更深刻认识到朝政腐败。\n\n### 📍 重要地点：赣州\n- **时间**：公元1275年\n- **停留时间**：数月\n- **地点**：赣州（今江西省赣州市）\n- **事件**：闻元军渡江，奉诏起兵勤王，聚集义军万余人入卫临安。\n- **意义**：从文臣转向武将，投身抗元救亡的实际行动，是其军事生涯的起点。\n\n### 📍 重要地点：临安（第二次）\n- **时间**：公元1276年\n- **停留时间**：数月\n- **地点**：临安（今浙江省杭州市）\n- **事件**：临危受命，任右丞相兼枢密使，赴元营谈判被扣。南宋朝廷投降。\n- **意义**：代表南宋进行最后的外交努力，被俘使其抗争形式发生转变。\n\n### 📍 重要地点：镇江\n- **时间**：公元1276年\n- **停留时间**：短暂\n- **地点**：镇江（今江苏省镇江市）\n- **事件**：在被押解北上途中，于镇江乘夜逃脱。\n- **意义**：虎口脱险，得以继续组织抗元斗争，展现了其机智与决心。\n\n### 📍 重要地点：南剑州\n- **时间**：公元1276年-1277年\n- **停留时间**：约一年\n- **地点**：南剑州（今福建省南平市）\n- **事件**：脱险后至此，开府聚兵，重建抗元指挥中心，收复多处州县。\n- **意义**：抗元斗争的中兴时期，一度声势复振，鼓舞了各地军民。\n\n### 📍 重要地点：五坡岭\n- **时间**：公元1278年\n- **停留时间**：被俘瞬间\n- **地点**：五坡岭（今广东省海丰县北）\n- **事件**：在率部转移途中，于五坡岭吃饭时遭元军突袭，兵败被俘。\n- **意义**：抗元军事生涯的终结点，从此开始囚徒生涯。\n\n### 📍 重要地点：零丁洋\n- **时间**：公元1279年\n- **停留时间**：途经\n- **地点**：零丁洋（今广东省珠江口外，属珠海市海域）\n- **事件**：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。\n- **意义**：创作了千古绝唱“人生自古谁无死，留取丹心照汗青”，标志着其精神境界的升华。\n\n### 🔴 去世地：元大都\n- **时间**：公元1283年\n- **停留时间**：约三年（囚禁）\n- **地点**：元大都（今北京市）\n- **事件**：被囚于兵马司土牢近三年，忽必烈亲自劝降，许以宰相高位，均遭严词拒绝。最终在柴市（今北京市东城区府学胡同西口，一说为菜市口，存疑）从容就义。\n- **意义**：以生命践行了“丹心照汗青”的誓言，其殉国之举震动天下，成为后世忠义精神的最高象征。\n- **名篇名句**：《正气歌》：天地有正气，杂然赋流形；《正气歌》：时穷节乃见，一一垂丹青。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1236 | 吉州庐陵 | 江西省吉安市 | （年龄：1岁）出生于吉州庐陵（今江西吉安）。 |\n| 1256 |  |  | （年龄：21岁）状元及第，因父丧返乡守制。 |\n| 1259 |  |  | （年龄：24岁）补授承事郎、签书宁海军节度判官厅公事，开始仕途。 |\n| 1275 | 赣州 | 江西省赣州市 | （年龄：40岁）于赣州起兵勤王，率义军入卫临安。 |\n| 1276 | 镇江 | 江苏省镇江市 | （年龄：41岁）任右丞相，赴元营谈判被扣；同年于镇江脱险。 |\n| 1276-1277 | 南剑州 | 福建省南平市 | （年龄：41-42岁）在福建南剑州开府，领导抗元，一度收复多处失地。 |\n| 1278 | 五坡岭 | 广东省海丰县北 | （年龄：43岁）在广东五坡岭兵败被俘。 |\n| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；目睹崖山之战，南宋灭亡。 |\n| 1279-1282 | 元大都 | 北京市 | （年龄：44-47岁）被囚于元大都，作《正气歌》，拒绝投降。 |\n| 1283 | 元大都 | 北京市 | （年龄：47岁）于元大都柴市从容就义。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 吉州庐陵 | 江西省吉安市 | 27.1134 | 114.9927 |\n| 临安 | 浙江省杭州市 | 30.2741 | 120.1551 |\n| 瑞州 | 江西省高安市 | 28.4194 | 115.3753 |\n| 赣州 | 江西省赣州市 | 25.8318 | 114.9334 |\n| 临安（第二次） | 江苏省镇江市 | 32.1896 | 119.4253 |\n| 镇江 | 福建省南平市 | 26.6418 | 118.1776 |\n| 南剑州 | 广东省海丰县 | 22.9666 | 115.3328 |\n| 五坡岭 | 广东省珠江口外，属珠海市海域 | 22.1927 | 113.5539 |\n| 零丁洋 | 广东省珠海市（珠江口） | 22.2667 | 113.7500 |\n| 元大都 | 北京市（东城区） | 39.9289 | 116.4167 |\n", "relatedGraph": {"center": {"id": "文天祥", "name": "文天祥", "file": "文天祥.html", "dynasty": "南宋末期", "aliases": [], "birth_year": 1236, "death_year": 1283, "quote": "人生自古谁无死，留取丹心照汗青", "review": "天地有正气，杂然赋流形", "foreign_name": "", "main_role_label": "政治家", "birthplace": "吉州庐陵", "birthplace_modern": "江西省吉安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "文天祥", "name": "文天祥", "file": "文天祥.html", "dynasty": "南宋末期", "aliases": [], "birth_year": 1236, "death_year": 1283, "quote": "人生自古谁无死，留取丹心照汗青", "review": "天地有正气，杂然赋流形", "foreign_name": "", "main_role_label": "政治家", "birthplace": "吉州庐陵", "birthplace_modern": "江西省吉安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "窃尝设为问答以拟于用。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨辉", "name": "杨辉", "file": "杨辉.html", "dynasty": "南宋", "aliases": [], "birth_year": 1238, "death_year": 1300, "quote": "夫习算者，以乘法为主，乘除者，算法之纪纲。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古钱塘", "birthplace_modern": "浙江杭州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "岳飞", "name": "岳飞", "file": "岳飞.html", "dynasty": "南宋", "aliases": [], "birth_year": 1103, "death_year": 1142, "quote": "冻死不拆屋，饿死不掳掠", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "河北西路相州汤阴县", "birthplace_modern": "河南省安阳市汤阴县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "无一字无来处", "review": "", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "小楼一夜听春雨，深巷明朝卖杏花。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "壮岁旌旗拥万夫，锦襜突骑渡江初。", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "文天祥", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "杨辉", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "岳飞", "label": "同朝共现", "confidence": 0.25}, {"source": "文天祥", "target": "赵师秀", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "辛弃疾", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "3ecc1cd1b213"};
+const data = {"person": {"name": "文天祥", "title": "", "description": "文天祥生于南宋末年，自幼仰慕忠烈，二十岁状元及第，因直言时弊屡遭贬斥。元军南侵，他于国家危难之际起兵勤王，官至右丞相。出使元营被扣押，后于镇江脱险，继续在东南沿海领导抗元斗争，兵败被俘。囚禁三年间，面对威逼利诱始终坚贞不屈，最终在元大都柴市从容就义。他的一生是爱国志士为国捐躯的壮烈写照，其诗文与人格光辉千古。", "quote": "天地有正气，杂然赋流形", "shortReview": "天地有正气，杂然赋流形", "dynasty": "南宋末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "吉州庐陵（今江西省吉安市）", "avatar": "", "birth": {"date": "1236年", "location": "吉州庐陵（今江西省吉安市）", "lat": 27.1134, "lng": 114.9927, "coordSystem": "WGS84"}, "death": {"date": "1283年", "location": "元大都（今北京市）", "lat": 39.9289, "lng": 116.4167, "coordSystem": "WGS84"}, "lifespan": "47岁", "highlights": {"honor": "", "status": "南宋末年坚持抗元的代表人物，以其崇高的气节和爱国精神被后世尊为民族英雄。", "identities": "政治家、文学家、抗元名臣、民族英雄", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "吉州庐陵", "ancientName": "吉州庐陵", "modernName": "江西省吉安市", "lat": 27.1134, "lng": 114.9927, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个书香门第，自幼受到良好教育。", "time": "公元1236年", "duration": "青少年时期", "significance": "塑造了他忠孝节义的思想基础，故乡的先贤如欧阳修、胡铨等成为其榜样。", "works": [], "quoteLines": []}, {"name": "临安", "ancientName": "临安", "modernName": "浙江省杭州市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "年仅二十一岁，状元及第。因父丧守制，后入仕，因直言批评宦官董宋臣等，多次被贬或辞官。", "time": "公元1256年", "duration": "科举及为官初期", "significance": "人生高光起点，展现了其刚直不阿的品格，也预示了其仕途的坎坷。", "works": [], "quoteLines": []}, {"name": "瑞州", "ancientName": "瑞州", "modernName": "江西省高安市", "lat": 28.4194, "lng": 115.3753, "coordSystem": "WGS84", "type": "normal", "event": "任江西提刑，后因得罪权臣贾似道再度被罢官。", "time": "约公元1270年-1273年", "duration": "数年", "significance": "地方任职经历，积累了行政经验，也更深刻认识到朝政腐败。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "赣州", "modernName": "江西省赣州市", "lat": 25.8318, "lng": 114.9334, "coordSystem": "WGS84", "type": "normal", "event": "闻元军渡江，奉诏起兵勤王，聚集义军万余人入卫临安。", "time": "公元1275年", "duration": "数月", "significance": "从文臣转向武将，投身抗元救亡的实际行动，是其军事生涯的起点。", "works": [], "quoteLines": []}, {"name": "临安（第二次）", "ancientName": "临安", "modernName": "浙江省杭州市", "lat": 32.1896, "lng": 119.4253, "coordSystem": "WGS84", "type": "normal", "event": "临危受命，任右丞相兼枢密使，赴元营谈判被扣。南宋朝廷投降。", "time": "公元1276年", "duration": "数月", "significance": "代表南宋进行最后的外交努力，被俘使其抗争形式发生转变。", "works": [], "quoteLines": []}, {"name": "镇江", "ancientName": "镇江", "modernName": "江苏省镇江市", "lat": 26.6418, "lng": 118.1776, "coordSystem": "WGS84", "type": "normal", "event": "在被押解北上途中，于镇江乘夜逃脱。", "time": "公元1276年", "duration": "短暂", "significance": "虎口脱险，得以继续组织抗元斗争，展现了其机智与决心。", "works": [], "quoteLines": []}, {"name": "南剑州", "ancientName": "南剑州", "modernName": "福建省南平市", "lat": 22.9666, "lng": 115.3328, "coordSystem": "WGS84", "type": "normal", "event": "脱险后至此，开府聚兵，重建抗元指挥中心，收复多处州县。", "time": "公元1276年-1277年", "duration": "约一年", "significance": "抗元斗争的中兴时期，一度声势复振，鼓舞了各地军民。", "works": [], "quoteLines": []}, {"name": "五坡岭", "ancientName": "五坡岭", "modernName": "广东省海丰县北", "lat": 22.1927, "lng": 113.5539, "coordSystem": "WGS84", "type": "normal", "event": "在率部转移途中，于五坡岭吃饭时遭元军突袭，兵败被俘。", "time": "公元1278年", "duration": "被俘瞬间", "significance": "抗元军事生涯的终结点，从此开始囚徒生涯。", "works": [], "quoteLines": []}, {"name": "零丁洋", "ancientName": "零丁洋", "modernName": "广东省珠江口外，属珠海市海域", "lat": 22.2667, "lng": 113.75, "coordSystem": "WGS84", "type": "normal", "event": "被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。", "time": "公元1279年", "duration": "途经", "significance": "创作了千古绝唱“人生自古谁无死，留取丹心照汗青”，标志着其精神境界的升华。", "works": ["过零丁洋"], "quoteLines": []}, {"name": "元大都", "ancientName": "元大都", "modernName": "北京市", "lat": 39.9289, "lng": 116.4167, "coordSystem": "WGS84", "type": "death", "event": "被囚于兵马司土牢近三年，忽必烈亲自劝降，许以宰相高位，均遭严词拒绝。最终在柴市（今北京市东城区府学胡同西口，一说为菜市口，存疑）从容就义。", "time": "公元1283年", "duration": "约三年（囚禁）", "significance": "以生命践行了“丹心照汗青”的誓言，其殉国之举震动天下，成为后世忠义精神的最高象征。", "works": [], "quoteLines": ["《正气歌》：天地有正气，杂然赋流形", "《正气歌》：时穷节乃见，一一垂丹青。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---", "workTexts": {"正气歌": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "过零丁洋": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "宋史": "历史评价：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导忠君爱国的价值观。"}, "workSummaries": {"正气歌": {"title": "正气歌", "aliases": [], "authors": ["文天祥"], "related_people": ["文天祥"], "source_pages": ["文天祥"], "era": "南宋末期", "genre": "歌曲", "one_liner": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "summary": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "quote": "被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "quotes": ["被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。", "天地有正气，杂然赋流形；", "时穷节乃见，一一垂丹青。"], "quote_policy": "preferred"}, "过零丁洋": {"title": "过零丁洋", "aliases": [], "authors": ["文天祥"], "related_people": ["文天祥"], "source_pages": ["文天祥"], "era": "南宋末期", "genre": "", "one_liner": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "summary": "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "quote": "| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；", "quotes": ["| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；", "事件：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。", "元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。"], "quote_policy": "preferred"}, "宋史": {"title": "宋史", "aliases": [], "authors": [], "related_people": ["苏舜钦", "苏辙", "文天祥"], "source_pages": ["苏舜钦", "苏辙", "文天祥"], "era": "", "genre": "", "one_liner": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "summary": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 文天祥\n\n## 人物档案\n\n### 基本信息\n- **姓名**：文天祥\n- **时代**：南宋末期\n- **出生**：公元1236年，吉州庐陵（今江西省吉安市）（出生日期有六月初二和五月二日等说法，存疑）\n- **去世**：公元1283年，元大都（今北京市）\n- **享年**：47岁\n- **主要身份**：政治家、文学家、抗元名臣、民族英雄\n- **历史地位**：南宋末年坚持抗元的代表人物，以其崇高的气节和爱国精神被后世尊为民族英雄。\n- **主要成就**：\n    - 状元及第，以忠直敢言著称。\n    - 在南宋危亡之际组织义军，坚持抗元斗争。\n    - 被俘后拒不投降，从容就义，留下《正气歌》等不朽诗篇。\n    - 其“人生自古谁无死，留取丹心照汗青”的精神成为中华民族的宝贵财富。\n\n### 生平概述\n文天祥生于南宋末年，自幼仰慕忠烈，二十岁状元及第，因直言时弊屡遭贬斥。元军南侵，他于国家危难之际起兵勤王，官至右丞相。出使元营被扣押，后于镇江脱险，继续在东南沿海领导抗元斗争，兵败被俘。囚禁三年间，面对威逼利诱始终坚贞不屈，最终在元大都柴市从容就义。他的一生是爱国志士为国捐躯的壮烈写照，其诗文与人格光辉千古。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从江西出生地出发，辗转于南宋都城、东南沿海抗元战场，最终北上囚禁并就义于元大都。\n- ⏱️ **时间跨度**：公元1236年 - 1283年，共47年。\n- 📍 **地理范围**：主要覆盖今江西、浙江、江苏、福建、广东、北京等省市。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：吉州庐陵\n- **时间**：公元1236年\n- **停留时间**：青少年时期\n- **地点**：吉州庐陵（今江西省吉安市）\n- **事件**：出生于一个书香门第，自幼受到良好教育。\n- **意义**：塑造了他忠孝节义的思想基础，故乡的先贤如欧阳修、胡铨等成为其榜样。\n\n### 📍 重要地点：临安\n- **时间**：公元1256年\n- **停留时间**：科举及为官初期\n- **地点**：临安（今浙江省杭州市）\n- **事件**：年仅二十一岁，状元及第。因父丧守制，后入仕，因直言批评宦官董宋臣等，多次被贬或辞官。\n- **意义**：人生高光起点，展现了其刚直不阿的品格，也预示了其仕途的坎坷。\n\n### 📍 重要地点：瑞州\n- **时间**：约公元1270年-1273年\n- **停留时间**：数年\n- **地点**：瑞州（今江西省高安市）\n- **事件**：任江西提刑，后因得罪权臣贾似道再度被罢官。\n- **意义**：地方任职经历，积累了行政经验，也更深刻认识到朝政腐败。\n\n### 📍 重要地点：赣州\n- **时间**：公元1275年\n- **停留时间**：数月\n- **地点**：赣州（今江西省赣州市）\n- **事件**：闻元军渡江，奉诏起兵勤王，聚集义军万余人入卫临安。\n- **意义**：从文臣转向武将，投身抗元救亡的实际行动，是其军事生涯的起点。\n\n### 📍 重要地点：临安（第二次）\n- **时间**：公元1276年\n- **停留时间**：数月\n- **地点**：临安（今浙江省杭州市）\n- **事件**：临危受命，任右丞相兼枢密使，赴元营谈判被扣。南宋朝廷投降。\n- **意义**：代表南宋进行最后的外交努力，被俘使其抗争形式发生转变。\n\n### 📍 重要地点：镇江\n- **时间**：公元1276年\n- **停留时间**：短暂\n- **地点**：镇江（今江苏省镇江市）\n- **事件**：在被押解北上途中，于镇江乘夜逃脱。\n- **意义**：虎口脱险，得以继续组织抗元斗争，展现了其机智与决心。\n\n### 📍 重要地点：南剑州\n- **时间**：公元1276年-1277年\n- **停留时间**：约一年\n- **地点**：南剑州（今福建省南平市）\n- **事件**：脱险后至此，开府聚兵，重建抗元指挥中心，收复多处州县。\n- **意义**：抗元斗争的中兴时期，一度声势复振，鼓舞了各地军民。\n\n### 📍 重要地点：五坡岭\n- **时间**：公元1278年\n- **停留时间**：被俘瞬间\n- **地点**：五坡岭（今广东省海丰县北）\n- **事件**：在率部转移途中，于五坡岭吃饭时遭元军突袭，兵败被俘。\n- **意义**：抗元军事生涯的终结点，从此开始囚徒生涯。\n\n### 📍 重要地点：零丁洋\n- **时间**：公元1279年\n- **停留时间**：途经\n- **地点**：零丁洋（今广东省珠江口外，属珠海市海域）\n- **事件**：被元军押解过零丁洋，目睹南宋最后的行朝覆灭（崖山海战）。元将张弘范逼其写信招降张世杰，他写下《过零丁洋》诗以明志。\n- **意义**：创作了千古绝唱“人生自古谁无死，留取丹心照汗青”，标志着其精神境界的升华。\n\n### 🔴 去世地：元大都\n- **时间**：公元1283年\n- **停留时间**：约三年（囚禁）\n- **地点**：元大都（今北京市）\n- **事件**：被囚于兵马司土牢近三年，忽必烈亲自劝降，许以宰相高位，均遭严词拒绝。最终在柴市（今北京市东城区府学胡同西口，一说为菜市口，存疑）从容就义。\n- **意义**：以生命践行了“丹心照汗青”的誓言，其殉国之举震动天下，成为后世忠义精神的最高象征。\n- **名篇名句**：《正气歌》：天地有正气，杂然赋流形；《正气歌》：时穷节乃见，一一垂丹青。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1236 | 吉州庐陵 | 江西省吉安市 | （年龄：1岁）出生于吉州庐陵（今江西吉安）。 |\n| 1256 |  |  | （年龄：21岁）状元及第，因父丧返乡守制。 |\n| 1259 |  |  | （年龄：24岁）补授承事郎、签书宁海军节度判官厅公事，开始仕途。 |\n| 1275 | 赣州 | 江西省赣州市 | （年龄：40岁）于赣州起兵勤王，率义军入卫临安。 |\n| 1276 | 镇江 | 江苏省镇江市 | （年龄：41岁）任右丞相，赴元营谈判被扣；同年于镇江脱险。 |\n| 1276-1277 | 南剑州 | 福建省南平市 | （年龄：41-42岁）在福建南剑州开府，领导抗元，一度收复多处失地。 |\n| 1278 | 五坡岭 | 广东省海丰县北 | （年龄：43岁）在广东五坡岭兵败被俘。 |\n| 1279 | 零丁洋 | 广东省珠江口外，属珠海市海域 | （年龄：44岁）过零丁洋，作《过零丁洋》；目睹崖山之战，南宋灭亡。 |\n| 1279-1282 | 元大都 | 北京市 | （年龄：44-47岁）被囚于元大都，作《正气歌》，拒绝投降。 |\n| 1283 | 元大都 | 北京市 | （年龄：47岁）于元大都柴市从容就义。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《过零丁洋》**、**《正气歌》**（节选）\n- 核心要点：\n    - **重点**：**《过零丁洋》** 尾联“人生自古谁无死？留取丹心照汗青”是千古名句，集中体现了诗人**视死如归**的崇高气节和**忠贞爱国**的赤诚之心。\n    - **重点**：**《正气歌》** 通过列举历代忠臣义士的壮举，歌颂了充塞天地之间的“**正气**”，是诗人精神力量的集中宣言，也是其**坚贞不屈**人格的写照。\n    - 诗歌善用**比喻**和**典故**，如“山河破碎风飘絮，身世浮沉雨打萍”以自然景象喻国势与个人命运，形象沉痛。\n    - **情感线索**：从对个人身世飘零的慨叹（“辛苦遭逢起一经”），到对国家危亡的悲痛（“山河破碎”），最终升华为以死明志的决绝（“留取丹心”）。\n    - **风格**：诗风**慷慨悲壮**、**沉郁苍凉**，充满**浩然正气**，是爱国主义诗歌的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**南宋末年**，元军大举南下，文天祥是**主战派**的代表人物，组织**勤王**义军进行抵抗。\n    - 被俘后，面对元朝统治者的**威逼利诱**，始终**拒不投降**，体现了崇高的**民族气节**。\n    - **崖山海战**（1279年）标志着**南宋灭亡**，文天祥被俘后目睹此景，其抗争具有了为故国守节的悲壮色彩。\n- 核心要点：\n    - **重点**：文天祥与**陆秀夫**、**张世杰**并称为“**宋末三杰**”，是南宋抗元斗争最后的精神象征。\n    - **重点**：他的就义，使其从一位历史人物升华为**民族英雄**和**忠义精神**的文化符号，对后世（尤其是明清易代之际）产生了深远影响。\n    - **历史评价**：其事迹被载入正史《宋史》，历代统治者多加褒扬，以倡导**忠君爱国**的价值观。\n    - **重点**：其名言“**留取丹心照汗青**”超越了具体的历史语境，成为中华民族**爱国主义**和**牺牲精神**的永恒格言。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 吉州庐陵 | 江西省吉安市 | 27.1134 | 114.9927 |\n| 临安 | 浙江省杭州市 | 30.2741 | 120.1551 |\n| 瑞州 | 江西省高安市 | 28.4194 | 115.3753 |\n| 赣州 | 江西省赣州市 | 25.8318 | 114.9334 |\n| 临安（第二次） | 江苏省镇江市 | 32.1896 | 119.4253 |\n| 镇江 | 福建省南平市 | 26.6418 | 118.1776 |\n| 南剑州 | 广东省海丰县 | 22.9666 | 115.3328 |\n| 五坡岭 | 广东省珠江口外，属珠海市海域 | 22.1927 | 113.5539 |\n| 零丁洋 | 广东省珠海市（珠江口） | 22.2667 | 113.7500 |\n| 元大都 | 北京市（东城区） | 39.9289 | 116.4167 |\n", "relatedGraph": {"center": {"id": "文天祥", "name": "文天祥", "file": "文天祥.html", "dynasty": "南宋末期", "aliases": [], "birth_year": 1236, "death_year": 1283, "quote": "人生自古谁无死，留取丹心照汗青", "review": "天地有正气，杂然赋流形", "foreign_name": "", "main_role_label": "政治家", "birthplace": "吉州庐陵", "birthplace_modern": "江西省吉安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "文天祥", "name": "文天祥", "file": "文天祥.html", "dynasty": "南宋末期", "aliases": [], "birth_year": 1236, "death_year": 1283, "quote": "人生自古谁无死，留取丹心照汗青", "review": "天地有正气，杂然赋流形", "foreign_name": "", "main_role_label": "政治家", "birthplace": "吉州庐陵", "birthplace_modern": "江西省吉安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "秦九韶", "name": "秦九韶", "file": "秦九韶.html", "dynasty": "南宋", "aliases": [], "birth_year": 1208, "death_year": 1261, "quote": "窃尝设为问答以拟于用。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古称普州安岳", "birthplace_modern": "四川省资阳市安岳县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨辉", "name": "杨辉", "file": "杨辉.html", "dynasty": "南宋", "aliases": [], "birth_year": 1238, "death_year": 1300, "quote": "夫习算者，以乘法为主，乘除者，算法之纪纲。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "古钱塘", "birthplace_modern": "浙江杭州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "岳飞", "name": "岳飞", "file": "岳飞.html", "dynasty": "南宋", "aliases": [], "birth_year": 1103, "death_year": 1142, "quote": "冻死不拆屋，饿死不掳掠", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "河北西路相州汤阴县", "birthplace_modern": "河南省安阳市汤阴县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "赵师秀", "name": "赵师秀", "file": "赵师秀.html", "dynasty": "南宋", "aliases": [], "birth_year": 1170, "death_year": 1220, "quote": "无一字无来处", "review": "", "foreign_name": "", "main_role_label": "诗人（以五言律诗见长", "birthplace": "永嘉", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆游", "name": "陆游", "file": "陆游.html", "dynasty": "南宋", "aliases": ["陆务观"], "birth_year": 1125, "death_year": 1210, "quote": "小楼一夜听春雨，深巷明朝卖杏花。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "祖籍越州山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "壮岁旌旗拥万夫，锦襜突骑渡江初。", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "文天祥", "target": "秦九韶", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "杨辉", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "岳飞", "label": "同朝共现", "confidence": 0.25}, {"source": "文天祥", "target": "赵师秀", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "陆游", "label": "同时代人物", "confidence": null}, {"source": "文天祥", "target": "辛弃疾", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:25Z", "generated_at": "2026-06-22T11:31:25Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "3ecc1cd1b213",
-  builtAt: "2026-06-21T02:18:43Z"
+  version: "7355d343d41b",
+  builtAt: "2026-06-22T11:31:25Z",
+  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
 const openFeedbackDialog = anchor => {
@@ -3275,11 +3312,13 @@ const renderInline = text => {
 const NARRATIVE_TRANSITION_RE = /(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/g;
 const NARRATIVE_TIME_RE = /(公元前?\d{1,4}年|\d{1,4}年|约\d{1,3}岁|年仅\d{1,3}岁|\d{1,3}岁|少年时期|青年时期|中年时期|晚年|幼年|早年)/g;
 const NARRATIVE_PLACE_RE = /(在[^，。；]{2,14}(?:定居|起兵|求学|隐居|任职|出生|成长|驻留|作战|讲学|写作|辞世))/g;
+const NARRATIVE_IDENTITY_RE = /(诗人|词人|文学家|思想家|政治家|军事家|改革家|史学家|哲学家|教育家|科学家|数学家|物理学家|化学家|生物学家|发明家|航海家|探险家|外交家|将领|名将|皇帝|君主|帝王|将军|统帅|名臣|宰相|大臣|圣人|民族英雄|革命家|艺术家|画家|音乐家|作家|史官|学者|天主教圣人)/g;
 const NARRATIVE_QUOTE_RE = /(“[^”]{2,24}”|《[^》]{1,24}》)/g;
+const NARRATIVE_TURNING_SENTENCE_RE = /^(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/;
 const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   const raw = String(text || '');
   if (!raw) return null;
-  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
+  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_IDENTITY_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
   const out = [];
   let lastIndex = 0;
   let match;
@@ -3296,6 +3335,8 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
       className = 'narrative-inline-time';
     } else if (new RegExp(`^${NARRATIVE_PLACE_RE.source}$`).test(token)) {
       className = 'narrative-inline-place';
+    } else if (new RegExp(`^${NARRATIVE_IDENTITY_RE.source}$`).test(token)) {
+      className = 'narrative-inline-identity';
     } else if (new RegExp(`^${NARRATIVE_QUOTE_RE.source}$`).test(token)) {
       className = 'narrative-inline-quote';
     }
@@ -3312,7 +3353,7 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   }
   return out;
 };
-const renderNarrativeInline = text => {
+const renderNarrativeInline = (text, keyPrefix = 'narrative-inline') => {
   const raw = String(text || '');
   const parts = raw.split(/(\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
   return parts.map((p, idx) => {
@@ -3321,18 +3362,33 @@ const renderNarrativeInline = text => {
       return React.createElement("strong", {
         key: idx,
         className: "narrative-inline-strong"
-      }, renderNarrativeFragment(strong[1], `narrative-strong-${idx}`));
+      }, renderNarrativeFragment(strong[1], `${keyPrefix}-strong-${idx}`));
     }
     const italic = p.match(/^\*(.+?)\*$/);
     if (italic) {
       return React.createElement("em", {
         key: idx,
         className: "narrative-inline-em"
-      }, renderNarrativeFragment(italic[1], `narrative-em-${idx}`));
+      }, renderNarrativeFragment(italic[1], `${keyPrefix}-em-${idx}`));
     }
     return React.createElement("span", {
       key: idx
-    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `narrative-${idx}`));
+    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `${keyPrefix}-${idx}`));
+  });
+};
+const renderNarrativeLine = (text, lineIdx) => {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+  const sentences = raw.match(/[^。！？]+[。！？]?/g) || [raw];
+  return sentences.map((sentence, idx) => {
+    const trimmed = String(sentence || '').trim();
+    if (!trimmed) return null;
+    const turning = NARRATIVE_TURNING_SENTENCE_RE.test(trimmed);
+    const className = `narrative-sentence${turning ? ' is-turning' : ''}`;
+    return React.createElement("span", {
+      key: `line-${lineIdx}-sentence-${idx}`,
+      className: className
+    }, renderNarrativeInline(trimmed, `narrative-line-${lineIdx}-sentence-${idx}`));
   });
 };
 const normalizeDisplayText = text => {
@@ -3909,6 +3965,127 @@ const App = () => {
     pitchDeg: -45
   });
   const [mapStatusNotice, setMapStatusNotice] = useState(null);
+  const labelPrefsKey = useMemo(() => {
+    const personName = String(data?.person?.name || '').trim() || 'unknown';
+    return `storymap:mapLabelPrefs:v3:${personName}`;
+  }, [data?.person?.name]);
+  const defaultLabelPrefs = useMemo(() => ({
+    showIndex: true,
+    showLabel: false,
+    labelMode: 'custom',
+    customVisible: {}
+  }), []);
+  const [labelPrefs, setLabelPrefs] = useState(() => {
+    const fallback = defaultLabelPrefs;
+    if (typeof window === 'undefined') return fallback;
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(labelPrefsKey) : null;
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return fallback;
+      const merged = {
+        ...fallback,
+        ...parsed
+      };
+      const rawCustomVisible = parsed.customVisible && typeof parsed.customVisible === 'object' ? parsed.customVisible : {};
+      merged.customVisible = rawCustomVisible;
+      merged.showIndex = true;
+      const showLabelFromParsed = typeof parsed.showLabel === 'boolean' ? parsed.showLabel : parsed.showName !== false || Boolean(parsed.showAge);
+      merged.showLabel = typeof merged.showLabel === 'boolean' ? merged.showLabel : Boolean(showLabelFromParsed);
+      return merged;
+    } catch (_) {
+      return fallback;
+    }
+  });
+  const labelPrefsRef = useRef(defaultLabelPrefs);
+  labelPrefsRef.current = labelPrefs;
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(labelPrefsKey, JSON.stringify(labelPrefs));
+    } catch (_) {}
+  }, [labelPrefsKey, labelPrefs]);
+  useEffect(() => {
+    const controller = mapRef.current;
+    if (!controller || typeof controller.refreshLabels !== 'function') return;
+    try {
+      controller.refreshLabels(activeIndexRef.current);
+    } catch (_) {}
+  }, [labelPrefs]);
+  const setLabelPrefsPatch = React.useCallback(patch => {
+    setLabelPrefs(prev => ({
+      ...prev,
+      ...(patch && typeof patch === 'object' ? patch : {})
+    }));
+  }, []);
+  const toggleShowLabel = React.useCallback(() => {
+    setLabelPrefs(prev => {
+      const nextEnabled = prev?.showLabel !== true;
+      const customVisibleRaw = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      const hasAny = Object.keys(customVisibleRaw).some(idx => Boolean(customVisibleRaw[idx]));
+      if (!nextEnabled) {
+        return {
+          ...prev,
+          showLabel: false
+        };
+      }
+      if (!Object.keys(customVisibleRaw).length || !hasAny) {
+        const nextCustom = {};
+        for (let i = 0; i < locations.length; i += 1) nextCustom[String(i)] = true;
+        return {
+          ...prev,
+          showLabel: true,
+          customVisible: nextCustom
+        };
+      }
+      return {
+        ...prev,
+        showLabel: true,
+        customVisible: customVisibleRaw
+      };
+    });
+  }, [locations.length]);
+  const setLabelMode = React.useCallback(mode => {
+    const next = String(mode || 'smart');
+    setLabelPrefs(prev => {
+      const target = next === 'all' ? 'all' : next === 'custom' ? 'custom' : 'smart';
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (target === 'custom' && !Object.keys(customVisible).length) {
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = true;
+      }
+      return {
+        ...prev,
+        labelMode: target,
+        customVisible
+      };
+    });
+  }, []);
+  const toggleCustomLabelIndex = React.useCallback(idx => {
+    const targetIdx = Number(idx);
+    if (!Number.isFinite(targetIdx) || targetIdx < 0 || targetIdx >= locations.length) return;
+    setLabelPrefs(prev => {
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (!Object.keys(customVisible).length) {
+        const defaultValue = prev?.showLabel === true;
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = defaultValue;
+      }
+      const key = String(targetIdx);
+      customVisible[key] = !customVisible[key];
+      const anyVisible = Object.keys(customVisible).some(k => Boolean(customVisible[k]));
+      return {
+        ...prev,
+        showLabel: anyVisible,
+        labelMode: 'custom',
+        customVisible
+      };
+    });
+  }, []);
   const maplibreMapRef = useRef(null);
   const cesiumViewerRef = useRef(null);
   const amapMapRef = useRef(null);
@@ -3934,6 +4111,7 @@ const App = () => {
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
+  const didAutoFitOnLoadRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
@@ -4410,17 +4588,23 @@ const App = () => {
     if (age === null) return '';
     return `${age}岁`;
   };
-  const getMarkerBadgeText = (loc, idx) => {
-    if (isPosthumousEvent(loc)) return '身后';
+  const getAgeLabel = (loc, idx) => {
     const ageText = getAgeText(loc);
     if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';
+    if (isPosthumousEvent(loc)) return '身后';
     if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
-    return ageText || `第${idx + 1}站`;
+    return ageText || '年龄待考';
+  };
+  const getMarkerBadgeText = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
+    if (prefs.showLabel !== true) return '';
+    return getAgeLabel(loc, idx);
   };
   const getMapPointLabelName = (loc, idx) => String(loc.name || loc.ancientName || loc.modernName || `第${idx + 1}站`).trim();
   const getMapPointLabelParts = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
     const badgeText = String(getMarkerBadgeText(loc, idx) || '').trim();
-    const name = String(getMapPointLabelName(loc, idx) || '').trim();
+    const name = prefs.showLabel === true ? String(getMapPointLabelName(loc, idx) || '').trim() : '';
     return {
       badgeText,
       name
@@ -4433,6 +4617,29 @@ const App = () => {
       name
     } = getMapPointLabelParts(loc, idx);
     return badgeText && name ? `${badgeText}\n${name}` : badgeText || name;
+  };
+  const computeVisibleLabelIndexes = (activeIdx, {
+    detailLevel = 6,
+    isVisible,
+    projectToScreen
+  } = {}) => {
+    const prefs = labelPrefsRef.current || {};
+    const total = locations.length;
+    if (total <= 0) return new Set();
+    if (prefs.showLabel !== true) return new Set();
+    const visible = new Set();
+    const custom = prefs.customVisible && typeof prefs.customVisible === 'object' ? prefs.customVisible : {};
+    const keys = Object.keys(custom);
+    if (!keys.length) {
+      for (let i = 0; i < total; i += 1) visible.add(i);
+      return visible;
+    }
+    keys.forEach(key => {
+      if (!custom[key]) return;
+      const idx = Number(key);
+      if (Number.isFinite(idx) && idx >= 0 && idx < total) visible.add(idx);
+    });
+    return visible;
   };
   const getMapPointLabelVisualState = (loc, idx, activeIdx) => {
     const isActive = idx === activeIdx;
@@ -4775,10 +4982,11 @@ const App = () => {
           className: "my-2 border-gray-200"
         });
       }
+      const lineClassName = `narrative-description-line ${idx < 2 ? 'is-lead' : 'is-body'}`;
       return React.createElement("span", {
         key: idx,
-        className: "narrative-description-line"
-      }, renderNarrativeInline(seg));
+        className: lineClassName
+      }, renderNarrativeLine(seg, idx));
     })), isLongDesc ? React.createElement("button", {
       onClick: () => setShowFullDesc(!showFullDesc),
       className: "text-xs text-[#c0392b] mt-1"
@@ -5190,13 +5398,15 @@ const App = () => {
         if (!renderLoc) return;
         const isEndpoint = idx === 0 || idx === totalEvents - 1;
         const labelOffset = getMapPointLabelOffset(idx);
+        const pointColor = getLifeColor(loc, idx);
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
         const marker = new AMap.CircleMarker({
           center: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
-          radius: isEndpoint ? 8 : 6.5,
-          strokeColor: getLifeColor(loc, idx),
-          strokeWeight: 3,
-          fillColor: getLifeColor(loc, idx),
-          fillOpacity: 0.35,
+          radius: shouldShowIndex ? isEndpoint ? 10 : 9 : isEndpoint ? 8 : 6.5,
+          strokeColor: pointColor,
+          strokeWeight: shouldShowIndex ? 4 : 3,
+          fillColor: pointColor,
+          fillOpacity: shouldShowIndex ? 0 : 0.35,
           bubble: true,
           zIndex: 180 + idx
         });
@@ -5216,14 +5426,52 @@ const App = () => {
             amapControllerRef.current.focusIndex(idx, true);
           }
         };
+        let indexLabel = null;
+        try {
+          const isActive = idx === activeIndexRef.current;
+          const isPassed = idx < activeIndexRef.current;
+          indexLabel = new AMap.Text({
+            text: String(idx + 1),
+            position: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
+            offset: new AMap.Pixel(0, 0),
+            anchor: 'center',
+            style: {
+              height: '22px',
+              minWidth: '22px',
+              lineHeight: '22px',
+              textAlign: 'center',
+              borderRadius: '999px',
+              background: 'rgba(0,0,0,0)',
+              border: 'none',
+              color: '#111827',
+              fontSize: '14px',
+              fontWeight: '800',
+              textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+              opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+            }
+          });
+        } catch (_) {
+          indexLabel = null;
+        }
         marker.on('click', focusPoint);
         label.on('click', focusPoint);
-        map.add([marker, label]);
+        if (indexLabel && typeof indexLabel.on === 'function') {
+          try {
+            indexLabel.on('click', focusPoint);
+          } catch (_) {}
+        }
+        if (indexLabel && !shouldShowIndex && typeof indexLabel.hide === 'function') {
+          try {
+            indexLabel.hide();
+          } catch (_) {}
+        }
+        map.add(indexLabel ? [marker, label, indexLabel] : [marker, label]);
         pointEntries.push({
           idx,
           loc,
           marker,
           label,
+          indexLabel,
           isEndpoint
         });
       });
@@ -5246,7 +5494,7 @@ const App = () => {
       }
       const updateAmapLabelVisibility = activeIdx => {
         const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-        const visibleIndexes = getPreferredLabelIndexes({
+        const visibleIndexes = computeVisibleLabelIndexes(activeIdx, {
           activeIdx,
           detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
           isVisible: (lng, lat) => {
@@ -5283,6 +5531,48 @@ const App = () => {
           try {
             if (entry.label && typeof entry.label.show === 'function' && typeof entry.label.hide === 'function') {
               if (shouldShow) entry.label.show();else entry.label.hide();
+            }
+          } catch (_) {}
+        });
+      };
+      const updateAmapIndexLabels = activeIdx => {
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+        pointEntries.forEach(entry => {
+          if (!entry.indexLabel) return;
+          const isActive = entry.idx === activeIdx;
+          const isPassed = entry.idx < activeIdx;
+          const pointColor = getLifeColor(entry.loc, entry.idx);
+          try {
+            if (entry.marker && typeof entry.marker.setOptions === 'function') {
+              entry.marker.setOptions({
+                radius: shouldShowIndex ? entry.isEndpoint ? 10 : 9 : entry.isEndpoint ? 8 : 6.5,
+                strokeColor: pointColor,
+                strokeWeight: shouldShowIndex ? 4 : 3,
+                fillColor: pointColor,
+                fillOpacity: shouldShowIndex ? 0 : 0.35
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setStyle === 'function') {
+              entry.indexLabel.setStyle({
+                background: 'rgba(0,0,0,0)',
+                border: 'none',
+                color: '#111827',
+                fontWeight: '800',
+                textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+                opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.show === 'function' && typeof entry.indexLabel.hide === 'function') {
+              if (shouldShowIndex) entry.indexLabel.show();else entry.indexLabel.hide();
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setzIndex === 'function') {
+              entry.indexLabel.setzIndex(isActive ? 255 : 205 + entry.idx);
             }
           } catch (_) {}
         });
@@ -5344,6 +5634,7 @@ const App = () => {
           }
         }
         updateAmapLabelVisibility(activeIdx);
+        updateAmapIndexLabels(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -5419,6 +5710,19 @@ const App = () => {
         },
         focusIndex,
         setActive,
+        refreshLabels: activeIdx => {
+          const idx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+          pointEntries.forEach(entry => {
+            try {
+              const nextText = getMapPointLabelText(entry.loc, entry.idx);
+              if (entry.label && typeof entry.label.setText === 'function') entry.label.setText(nextText);else if (entry.label && typeof entry.label.setOptions === 'function') entry.label.setOptions({
+                text: nextText
+              });
+            } catch (_) {}
+          });
+          updateAmapLabelVisibility(idx);
+          updateAmapIndexLabels(idx);
+        },
         pulse: () => {},
         applyBaseLayer,
         getState: () => ({
@@ -5674,7 +5978,9 @@ const App = () => {
       };
       const pointSourceId = 'story-point-source';
       const pointHaloId = 'story-point-halo';
+      const pointRingOuterId = 'story-point-ring-outer';
       const pointCoreId = 'story-point-core';
+      const pointIndexLayerId = 'story-point-index';
       const pointLabelSourceId = 'story-point-label-source';
       const pointLabelLayerId = 'story-point-label';
       const isValidMapCoordinatePair = pair => {
@@ -5947,8 +6253,7 @@ const App = () => {
         const pointData = buildPointFeatureCollection(activeIndexRef.current);
         const buildMapLibreVisibleLabelIndexes = activeIdx => {
           const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-          return getPreferredLabelIndexes({
-            activeIdx,
+          return computeVisibleLabelIndexes(activeIdx, {
             detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
             isVisible: (lng, lat) => {
               if (!bounds || typeof bounds.contains !== 'function') return true;
@@ -5975,10 +6280,13 @@ const App = () => {
         if (pointData.features.length) {
           try {
             ensureLayerRemoved(pointHaloId);
+            ensureLayerRemoved(pointRingOuterId);
             ensureLayerRemoved(pointCoreId);
+            ensureLayerRemoved(pointIndexLayerId);
             ensureLayerRemoved(pointLabelLayerId);
             ensureSourceRemoved(pointLabelSourceId);
             ensureSourceRemoved(pointSourceId);
+            const initialShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
             map.addSource(pointSourceId, {
               type: 'geojson',
               data: pointData
@@ -5995,19 +6303,57 @@ const App = () => {
               }
             });
             map.addLayer({
+              id: pointRingOuterId,
+              type: 'circle',
+              source: pointSourceId,
+              layout: {
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'circle-radius': ['+', ['get', 'radius'], 2.6],
+                'circle-color': 'rgba(0,0,0,0)',
+                'circle-opacity': 0,
+                'circle-stroke-color': 'rgba(0,0,0,0.62)',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 5.6
+              }
+            });
+            map.addLayer({
               id: pointCoreId,
               type: 'circle',
               source: pointSourceId,
               paint: {
                 'circle-radius': ['get', 'radius'],
                 'circle-color': ['get', 'fillColor'],
-                'circle-opacity': ['get', 'fillOpacity'],
-                'circle-stroke-color': ['get', 'strokeColor'],
-                'circle-stroke-width': ['get', 'strokeWeight']
+                'circle-opacity': initialShowIndex ? 0 : ['get', 'fillOpacity'],
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 3.4
               }
             });
-            pointLayers.push(pointHaloId, pointCoreId);
-            extraLayerIds.push(pointHaloId, pointCoreId);
+            map.addLayer({
+              id: pointIndexLayerId,
+              type: 'symbol',
+              source: pointSourceId,
+              layout: {
+                'text-field': ['to-string', ['+', ['get', 'idx'], 1]],
+                'text-size': ['case', ['>=', ['get', 'idx'], 99], 11, ['>=', ['get', 'idx'], 9], 13, 14],
+                'text-anchor': 'center',
+                'text-offset': [0, 0],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'text-color': '#111827',
+                'text-halo-color': 'rgba(255,255,255,0.96)',
+                'text-halo-width': 1.8,
+                'text-halo-blur': 0.2,
+                'text-opacity': 1.0
+              }
+            });
+            pointLayers.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
+            extraLayerIds.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
             extraSourceIds.push(pointSourceId);
           } catch (error) {
             debugEmit('A', 'profile_page.html:renderStoryOverlays', 'point layers skipped after render failure', {
@@ -6067,6 +6413,20 @@ const App = () => {
             if (labelEl) updateMapPointLabelElement(labelEl, loc, idx, activeIdx);
             setMarkerZ(marker, idx === activeIdx ? 280 : idx === 0 || idx === totalEvents - 1 ? 240 : 220);
           });
+        };
+        const updateMapLibreIndexVisibility = () => {
+          const shouldShow = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+          try {
+            if (map.getLayer(pointRingOuterId)) {
+              map.setLayoutProperty(pointRingOuterId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointIndexLayerId)) {
+              map.setLayoutProperty(pointIndexLayerId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointCoreId)) {
+              map.setPaintProperty(pointCoreId, 'circle-opacity', shouldShow ? 0 : ['get', 'fillOpacity']);
+            }
+          } catch (_) {}
         };
         const setActive = activeIdx => {
           activeIndexRef.current = activeIdx;
@@ -6215,6 +6575,7 @@ const App = () => {
           lineIds,
           extraLayerIds,
           extraSourceIds,
+          markers,
           pointSourceId,
           pointCoreId,
           clear: () => {
@@ -6330,6 +6691,11 @@ const App = () => {
             focusTimelineIndex(nextIdx, pulse);
           },
           setActive,
+          refreshLabels: activeIdx => {
+            const nextIdx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+            updateMapLibreLabelVisibility(nextIdx);
+            updateMapLibreIndexVisibility();
+          },
           pulse: pulseByIndex,
           getState: () => ({
             engine: 'maplibre',
@@ -6348,6 +6714,7 @@ const App = () => {
         };
         maplibreControllerRef.current = controller;
         updateMapLibreLabelVisibility(activeIndexRef.current);
+        updateMapLibreIndexVisibility();
         if (!isTerrain3DMode(currentBaseLayerRef.current)) {
           mapRef.current = controller;
         }
@@ -7227,6 +7594,17 @@ const App = () => {
     };
   }, [mapLayerType, mapRecoveryTick]);
   useEffect(() => {
+    if (didAutoFitOnLoadRef.current) return;
+    if (mapLoadState !== 'ready') return;
+    if (initialLocFromHash || hasLocHash()) return;
+    const controller = mapRef.current;
+    if (!controller || typeof controller.fitAll !== 'function') return;
+    didAutoFitOnLoadRef.current = true;
+    try {
+      controller.fitAll(false);
+    } catch (_) {}
+  }, [mapLoadState, initialLocFromHash]);
+  useEffect(() => {
     if (typeof window === 'undefined' || !window.history) return;
     if (!skippedInitialHashWriteRef.current && !initialLocFromHash && activeIndex === initialLocIdx) {
       skippedInitialHashWriteRef.current = true;
@@ -7296,6 +7674,10 @@ const App = () => {
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const mapReady = mapLoadState === 'ready';
   const mapLoading = mapLoadState === 'loading';
+  const labelTotalCount = totalEvents;
+  const labelCustomVisible = labelPrefs?.customVisible && typeof labelPrefs.customVisible === 'object' ? labelPrefs.customVisible : null;
+  const labelCustomHasKeys = Boolean(labelCustomVisible && Object.keys(labelCustomVisible).length);
+  const labelSelectedCount = labelPrefs?.showLabel ? labelCustomHasKeys ? Object.keys(labelCustomVisible).filter(k => Boolean(labelCustomVisible[k])).length : labelTotalCount : 0;
   const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图';
   const mapLazyCopy = mapLoading ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。' : mapLoadState === 'error' ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。' : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。';
   const mapLazyActionLabel = mapLoading ? '正在加载地图…' : mapLoadState === 'error' ? '重试加载地图' : '立即加载地图';
@@ -7754,6 +8136,8 @@ const App = () => {
       }
     }
     if (!staticSite || isLocalHost) {
+      pushUrl('http://127.0.0.1:8877/api/ai/proxy');
+      pushUrl('http://localhost:8877/api/ai/proxy');
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -7771,6 +8155,29 @@ const App = () => {
       }
     }).filter(Boolean);
   };
+  const _chatCompositeAbortController = signal => {
+    if (typeof AbortController !== 'function') return null;
+    const controller = new AbortController();
+    const src = signal;
+    if (src && typeof src === 'object') {
+      if (src.aborted) {
+        try {
+          controller.abort();
+        } catch (_) {}
+      } else if (typeof src.addEventListener === 'function') {
+        try {
+          src.addEventListener('abort', () => {
+            try {
+              controller.abort();
+            } catch (_) {}
+          }, {
+            once: true
+          });
+        } catch (_) {}
+      }
+    }
+    return controller;
+  };
   const _postChat = async (messages, {
     onDelta,
     signal
@@ -7780,8 +8187,37 @@ const App = () => {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
-    for (const url of tryUrls) {
+    const _tryOnce = async (url, {
+      stream
+    }) => {
+      const controller = _chatCompositeAbortController(signal);
+      const requestSignal = controller ? controller.signal : signal;
+      let idleTimer = null;
+      let idleTimedOut = false;
+      let lastChunkAt = Date.now();
+      let hadAnyChunk = false;
+      const startIdleWatch = () => {
+        if (!controller) return;
+        idleTimer = setInterval(() => {
+          const elapsed = Date.now() - lastChunkAt;
+          const limit = hadAnyChunk ? 20000 : 9000;
+          if (elapsed >= limit) {
+            idleTimedOut = true;
+            try {
+              controller.abort();
+            } catch (_) {}
+          }
+        }, 500);
+      };
+      const stopIdleWatch = () => {
+        if (idleTimer) {
+          clearInterval(idleTimer);
+          idleTimer = null;
+        }
+      };
       try {
+        startIdleWatch();
+        const signal = requestSignal;
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -7792,7 +8228,7 @@ const App = () => {
           body: JSON.stringify({
             messages,
             temperature: 0.5,
-            stream: true,
+            stream: !!stream,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
@@ -7803,7 +8239,7 @@ const App = () => {
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
-        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+        if (!stream || !contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
           const text = await resp.text();
           return JSON.parse(text);
         }
@@ -7817,6 +8253,10 @@ const App = () => {
             done,
             value
           } = await reader.read();
+          if (value && value.length) {
+            hadAnyChunk = true;
+            lastChunkAt = Date.now();
+          }
           buffer += decoder.decode(value || new Uint8Array(), {
             stream: !done
           });
@@ -7867,6 +8307,34 @@ const App = () => {
           meta
         };
       } catch (e) {
+        if (idleTimedOut && !(signal && signal.aborted)) {
+          const err = new Error('STREAM_IDLE_TIMEOUT');
+          err.cause = e;
+          throw err;
+        }
+        throw e;
+      } finally {
+        stopIdleWatch();
+      }
+    };
+    for (const url of tryUrls) {
+      try {
+        return await _tryOnce(url, {
+          stream: true,
+          mode: 'sse'
+        });
+      } catch (e) {
+        if (!(signal && signal.aborted) && String(e?.message || '').trim() === 'STREAM_IDLE_TIMEOUT') {
+          try {
+            return await _tryOnce(url, {
+              stream: false,
+              mode: 'json'
+            });
+          } catch (retryErr) {
+            lastErr = retryErr;
+            continue;
+          }
+        }
         lastErr = e;
       }
     }
@@ -8145,7 +8613,23 @@ const App = () => {
     onClick: toggleAutoPlay,
     disabled: totalEvents <= 1,
     className: "theme-button-secondary px-3 py-1.5 rounded-lg text-xs text-[var(--color-text-secondary)] disabled:opacity-40"
-  }, isAutoPlaying ? '停止播放' : '自动播放'))), React.createElement("div", {
+  }, isAutoPlaying ? '停止播放' : '自动播放'), React.createElement("div", {
+    className: "w-px h-5 bg-[rgba(26,115,232,0.18)]"
+  }), React.createElement("div", {
+    className: "flex items-center gap-1.5 flex-wrap"
+  }, React.createElement("span", {
+    className: "text-[11px] text-[var(--color-text-tertiary)]"
+  }, "\u5730\u56FE\u6807\u8BB0"), React.createElement("label", {
+    className: `theme-chip-muted inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-normal shadow-sm ${labelPrefs?.showLabel ? 'border-[rgba(26,115,232,0.22)] bg-white/90 text-[var(--color-text-secondary)]' : ''} ${labelTotalCount <= 0 ? 'opacity-50' : ''}`,
+    title: labelTotalCount ? `标签：${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签'
+  }, React.createElement("span", null, "\u6807\u7B7E"), React.createElement("input", {
+    type: "checkbox",
+    checked: Boolean(labelPrefs?.showLabel),
+    disabled: labelTotalCount <= 0,
+    onChange: toggleShowLabel,
+    "aria-label": labelTotalCount ? `切换地图标签（年龄+地点），当前 ${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签',
+    className: "h-3.5 w-3.5 accent-[var(--color-primary)] cursor-pointer disabled:cursor-not-allowed"
+  }))))), React.createElement("div", {
     className: "mt-3 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between"
   }, React.createElement("div", {
     className: "flex items-center gap-3 min-w-0 flex-wrap"
@@ -8193,6 +8677,7 @@ const App = () => {
     }
   }, locations.map((loc, idx) => {
     const ageText = getAgeText(loc) || (idx === 0 ? '年龄待考' : idx === totalEvents - 1 ? '终章' : '年龄待考');
+    const ageBadgeText = isPosthumousEvent(loc) ? '身后' : ageText;
     const stageText = getLifeStage(loc, idx);
     const lifeColor = getLifeColor(loc, idx);
     const lifeProgress = Math.round(getLifeProgress(loc, idx) * 100);
@@ -8259,6 +8744,19 @@ const App = () => {
     }, React.createElement("div", {
       className: "flex items-center gap-2 flex-wrap"
     }, React.createElement("span", {
+      className: "inline-flex items-center justify-center font-bold text-white shrink-0",
+      style: {
+        width: `${Math.round(22 * timelineZoom)}px`,
+        height: `${Math.round(22 * timelineZoom)}px`,
+        borderRadius: '999px',
+        background: lifeColor,
+        border: `2px solid ${hexToRgba('#ffffff', idx === activeIndex ? 0.98 : 0.92)}`,
+        boxShadow: idx === activeIndex ? `0 12px 24px ${hexToRgba(lifeColor, 0.3)}` : `0 8px 18px ${hexToRgba(lifeColor, 0.2)}`,
+        fontSize: `${Math.round(12 * timelineZoom)}px`,
+        lineHeight: '1',
+        opacity: idx < activeIndex ? 0.86 : 1
+      }
+    }, idx + 1), React.createElement("span", {
       className: "font-bold truncate",
       style: {
         fontSize: `${Math.round(14 * timelineZoom)}px`
@@ -8271,7 +8769,7 @@ const App = () => {
         borderColor: hexToRgba(lifeColor, 0.3),
         background: hexToRgba(lifeColor, 0.08)
       }
-    }, ageText), React.createElement("span", {
+    }, ageBadgeText), React.createElement("span", {
       className: "px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
@@ -8284,12 +8782,28 @@ const App = () => {
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.ancientName, " : ", loc.modernName)), React.createElement("span", {
+    }, loc.ancientName, " : ", loc.modernName)), React.createElement("div", {
+      className: "flex flex-col items-end gap-2 shrink-0"
+    }, React.createElement("span", {
       className: "px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.time || '未知')), React.createElement("div", {
+    }, loc.time || '未知'), React.createElement("button", {
+      type: "button",
+      className: `theme-chip-muted inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-normal shadow-none transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.2)] bg-white/88 text-[var(--color-text-secondary)]' : 'border-transparent bg-white/55 text-gray-500 hover:bg-white/72'}`,
+      onClick: e => {
+        e.stopPropagation();
+        toggleCustomLabelIndex(idx);
+      },
+      "aria-label": `切换第${idx + 1}站标签`,
+      "aria-pressed": Boolean(labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false))
+    }, React.createElement("span", {
+      "aria-hidden": "true",
+      className: `inline-flex h-3 w-3 items-center justify-center rounded-[3px] border transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.4)] bg-[rgba(26,115,232,0.12)]' : 'border-[rgba(148,163,184,0.5)] bg-white/80'}`
+    }, React.createElement("span", {
+      className: `h-1.5 w-1.5 rounded-[2px] transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'bg-[var(--color-primary)]' : 'bg-transparent'}`
+    })), React.createElement("span", null, "\u6807\u7B7E")))), React.createElement("div", {
       className: "space-y-1 text-gray-500 mb-2",
       style: {
         fontSize: `${Math.round(11 * timelineZoom)}px`

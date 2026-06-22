@@ -11,7 +11,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_agents
+from storymap.script.agent import registry as story_agents
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:

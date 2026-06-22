@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from storymap.script.project_paths import data_corpus_file_path, data_corpus_output_path
+from storymap.script.core.project_paths import data_corpus_file_path, data_corpus_output_path
 
 
 def _seeded_unit(s: str) -> float:

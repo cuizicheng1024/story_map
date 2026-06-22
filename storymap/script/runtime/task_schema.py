@@ -165,6 +165,7 @@ class TaskStorageMaintenanceResult(TypedDict, total=False):
     ok: bool
     pruned_count: int
     vacuumed: bool
+    reconciled: Dict[str, object]
     stats: TaskStorageStats
 
 
@@ -197,6 +198,9 @@ _STATUS_LABELS = {
     "completed": ("已完成", "success"),
     "partial_failed": ("部分失败", "warning"),
     "failed": ("失败", "error"),
+    "interrupted": ("已中断", "warning"),
+    "cancelled": ("已取消", "warning"),
+    "timed_out": ("已超时", "error"),
     "ok": ("正常", "success"),
     "watch": ("需关注", "warning"),
     "degraded": ("已降级", "warning"),
@@ -296,6 +300,12 @@ def _build_task_result_status_info(
         return build_status_info(code, hint=f"共 {total} 人，已全部生成完成。")
     if code == "failed":
         return build_status_info(code, hint=f"共 {total} 人，生成未成功。")
+    if code == "interrupted":
+        return build_status_info(code, hint="任务因服务重启或依赖中断而暂停，可重试恢复。")
+    if code == "cancelled":
+        return build_status_info(code, hint="任务已被取消。")
+    if code == "timed_out":
+        return build_status_info(code, hint="任务超过执行时限，已自动停止。")
     return build_status_info(code)
 
 
@@ -509,7 +519,7 @@ def build_task_snapshot(task: object, *, debug: Optional[Dict[str, object]] = No
     status = str(data.get("status") or "")
     snapshot: TaskSnapshot = {
         "exists": True,
-        "ok": status not in {"failed", "partial_failed"},
+        "ok": status not in {"failed", "partial_failed", "cancelled", "timed_out", "interrupted"},
         "id": str(data.get("id") or ""),
         "text": str(data.get("text") or ""),
         "status": status,

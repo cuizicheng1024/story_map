@@ -8,11 +8,11 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_agent_graph
-import story_agents
-import story_agent_memory
-import story_agent_state
-import story_agent_tool_runner
+from storymap.script.runtime.legacy_agent import graph as story_agent_graph
+from storymap.script.agent import registry as story_agents
+from storymap.script.runtime.legacy_agent import memory as story_agent_memory
+from storymap.script.runtime.legacy_agent import state as story_agent_state
+from storymap.script.runtime.legacy_agent import tool_runner as story_agent_tool_runner
 
 
 def test_create_agent_tools_expose_expected_names():

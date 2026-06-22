@@ -5,7 +5,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_agents
+from storymap.script.agent import registry as story_agents
 
 
 def _build_client():
@@ -68,10 +68,11 @@ def test_story_agent_llm_uses_anthropic_when_base_url_explicit(monkeypatch):
 def test_story_agent_llm_records_success_trace(monkeypatch):
     client = _build_client()
 
-    def _fake_think_minimax(messages, temperature=0, request_id=""):
+    def _fake_think_minimax(messages, temperature=0, request_id="", timeout_seconds=None):
         assert messages[0]["content"] == "ping"
         assert temperature == 0
         assert request_id
+        assert timeout_seconds == 1
         return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 12}
 
     monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
@@ -91,8 +92,9 @@ def test_story_agent_llm_stops_retry_on_non_retryable_error(monkeypatch):
     client = _build_client()
     calls = {"count": 0}
 
-    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
         _ = temperature
+        assert timeout_seconds == 1
         calls["count"] += 1
         raise story_agents.LLMRequestError(
             "HTTP 401: unauthorized",
@@ -126,8 +128,9 @@ def test_classify_request_exception_marks_ssl_errors():
 def test_story_agent_health_check_collects_results(monkeypatch):
     client = _build_client()
 
-    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
         _ = (temperature, request_id)
+        assert timeout_seconds == 1
         return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 8}
 
     monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
@@ -145,9 +148,9 @@ def test_story_agent_llm_supports_per_call_timeout_override(monkeypatch):
     client = _build_client()
     observed = []
 
-    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
         _ = (temperature, request_id)
-        observed.append(client.timeout)
+        observed.append(timeout_seconds)
         return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 6}
 
     monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
@@ -161,12 +164,68 @@ def test_story_agent_llm_supports_per_call_timeout_override(monkeypatch):
     assert client.latest_trace()["max_retries"] == 1
 
 
+def test_story_agent_llm_clamps_timeout_with_runtime_budget(monkeypatch):
+    observed = []
+    client = story_agents.StoryAgentLLM(
+        model="MiniMax-M3",
+        apiKey="test-key",
+        baseUrl="https://api.minimaxi.com/v1",
+        timeout=300,
+        timeout_resolver=lambda: 45,
+    )
+
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
+        _ = (temperature, request_id)
+        observed.append(timeout_seconds)
+        return "OK", {"endpoint": "https://api.minimaxi.com/v1/chat/completions", "status_code": 200, "duration_ms": 6}
+
+    monkeypatch.setattr(client, "_think_minimax", _fake_think_minimax)
+
+    content = client.think([{"role": "user", "content": "ping"}], temperature=0, timeout=120, max_retries=1)
+
+    assert content == "OK"
+    assert observed == [45]
+    assert client.timeout == 300
+    assert client.latest_trace()["timeout"] == 45
+
+
+def test_story_agent_llm_post_json_uses_explicit_timeout_override(monkeypatch):
+    client = story_agents.StoryAgentLLM(
+        model="MiniMax-M3",
+        apiKey="test-key",
+        baseUrl="https://api.minimaxi.com/v1",
+        timeout=300,
+    )
+    observed = {}
+
+    class _FakeResponse:
+        status_code = 200
+        ok = True
+        headers = {}
+        text = ""
+
+        def json(self):
+            return {"choices": [{"message": {"content": "OK"}}]}
+
+    def _fake_post(*_args, **kwargs):
+        observed["timeout"] = kwargs.get("timeout")
+        return _FakeResponse()
+
+    monkeypatch.setattr(story_agents.requests, "post", _fake_post)
+
+    content = client.think([{"role": "user", "content": "ping"}], temperature=0, timeout=7, max_retries=1)
+
+    assert content == "OK"
+    assert observed["timeout"] == (7, 7)
+
+
 def test_story_agent_llm_supports_per_call_retry_override(monkeypatch):
     client = _build_client()
     calls = {"count": 0}
 
-    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
         _ = temperature
+        assert timeout_seconds == 1
         calls["count"] += 1
         raise story_agents.LLMRequestError(
             "timeout",
@@ -201,8 +260,9 @@ def test_story_agent_llm_uses_negative_cache_after_retryable_failure(monkeypatch
     client = _build_client()
     calls = {"count": 0}
 
-    def _fake_think_minimax(_messages, temperature=0, request_id=""):
+    def _fake_think_minimax(_messages, temperature=0, request_id="", timeout_seconds=None):
         _ = temperature
+        assert timeout_seconds == 1
         calls["count"] += 1
         raise story_agents.LLMRequestError(
             "timeout",
@@ -250,7 +310,7 @@ def test_story_agent_llm_stream_uses_small_iter_lines_chunk_for_visible_streamin
             yield 'data: {"choices":[{"delta":{"content":"是"}}]}'
             yield 'data: [DONE]'
 
-    def _fake_post(*args, **kwargs):
+    def _fake_post(*_args, **kwargs):
         observed["stream"] = kwargs.get("stream")
         return _FakeResponse()
 

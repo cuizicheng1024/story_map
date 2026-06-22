@@ -18,7 +18,7 @@ REPO_ROOT = file_path.parents[2] if file_path.parent.name == "debug" else file_p
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from storymap.script.project_paths import person_name_from_filename, story_artifacts_dir_path
+from storymap.script.core.project_paths import person_name_from_filename, story_artifacts_dir_path
 
 try:
     from playwright.sync_api import TimeoutError as PlaywrightTimeoutError

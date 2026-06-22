@@ -11,7 +11,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import map_client as mc
+from storymap.script.map import map_client as mc
 
 
 NON_AUTHENTIC_FILES = {

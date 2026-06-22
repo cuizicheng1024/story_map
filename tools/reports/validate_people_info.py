@@ -342,8 +342,8 @@ def _write_person_markdown_and_render_html(person: str, md_text: str) -> str:
     if str(script_dir) not in sys.path:
         sys.path.insert(0, str(script_dir))
 
-    import map_html_renderer as renderer  # type: ignore
-    import story_map  # type: ignore
+    from storymap.script.cli import story_map  # type: ignore
+    from storymap.script.profile import renderer  # type: ignore
 
     def _ensure_required_sections(md: str) -> str:
         s = (md or "").strip()

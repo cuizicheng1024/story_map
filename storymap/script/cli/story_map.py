@@ -9,7 +9,11 @@ from typing import Dict, List, Optional
 
 from ..api import run_server as _run_api_server
 from ..api import runtime_factory as app_factory_utils
-from ..artifacts import (
+from ..api import artifact_api as story_artifact_api_utils
+from ..api import generation_api as story_generation_api_utils
+from ..api import profile_api as story_profile_api_utils
+from ..core import export_builders as export_builder_utils
+from ..core.artifacts import (
     ArtifactExportService,
     _active_story_map_dir,
     _extract_export_data_from_html,
@@ -23,42 +27,38 @@ from ..artifacts import (
     refresh_stellar_homepage,
     save_html,
 )
-from ..env_utils import apply_story_map_env_aliases, load_project_env
-from .. import export_builders as export_builder_utils
-from .. import story_artifact_api as story_artifact_api_utils
-from ..map_client import (
+from ..core.env_utils import apply_story_map_env_aliases, load_project_env
+from ..core import parsers as parser_utils
+from ..core.project_paths import story_md_dir_path, story_person_names
+from ..map.map_client import (
     append_coords_section,
     compute_total_distance_km,
     geocode_city,
     insert_distance_intro,
 )
-from ..map_html_renderer import (
+from ..map import geocode_service as geocode_service_utils
+from ..map import geocode_api as story_geocode_api_utils
+from ..profile.renderer import (
     build_info_panel_html,
     render_amap_html,
     render_multi_html,
     render_profile_html,
 )
-from .. import map_html_renderer as map_html_renderer_utils
-from .. import geocode_service as geocode_service_utils
+from ..profile import renderer as map_html_renderer_utils
+from ..profile import builder as profile_builder_utils
 from ..agent import generation_service as generation_service_utils
-from ..runtime.local_history_qa import LocalHistoryQAAgent
-from .. import parsers as parser_utils
-from .. import profile_builder as profile_builder_utils
-from ..project_paths import story_md_dir_path, story_person_names
-from . import entrypoints as story_entrypoints_utils
-from .. import story_generation_api as story_generation_api_utils
-from .. import story_geocode_api as story_geocode_api_utils
-from .. import story_profile_api as story_profile_api_utils
-from .. import story_runtime_helpers as story_runtime_helpers_utils
-from .. import story_runtime_api as story_runtime_api_utils
-from .. import runtime_support as runtime_support_utils
-from . import interactive as story_cli_utils
-from ..story_agents import (
+from ..agent.registry import (
     StoryAgentLLM,
     extract_historical_figures,
     generate_historical_markdown,
     save_markdown,
 )
+from ..runtime.local_history_qa import LocalHistoryQAAgent
+from ..runtime import support as runtime_support_utils
+from ..runtime import helpers as story_runtime_helpers_utils
+from ..runtime import api as story_runtime_api_utils
+from . import entrypoints as story_entrypoints_utils
+from . import interactive as story_cli_utils
 
 
 load_project_env(from_file=__file__, override=False)
@@ -69,11 +69,20 @@ _LOGGER = logging.getLogger("story_map")
 if not _LOGGER.handlers:
     logging.basicConfig(level=logging.INFO)
 
+_BACKGROUND_JOB_SCHEDULER = runtime_support_utils.BackgroundJobScheduler(
+    logger=_LOGGER,
+    name="story-map-bg",
+)
+
 _STARTUP_ISSUES = runtime_support_utils.validate_startup_or_raise(
     _LOGGER,
     _project_root(),
     strict=runtime_support_utils.strict_startup_enabled(),
 )
+
+
+def _enqueue_background_job(job, *, label: str = "", metadata: Optional[Dict[str, object]] = None):
+    return _BACKGROUND_JOB_SCHEDULER.submit(job, label=label, metadata=metadata)
 
 
 _MAX_TEXT_LEN = 200
@@ -162,6 +171,7 @@ _GENERATION_API = story_generation_api_utils.create_generation_api(
     build_amap_config_js=lambda: runtime_support_utils.build_amap_config_js(),
     build_geovis_config_js=lambda: runtime_support_utils.build_geovis_config_js(),
     refresh_stellar_homepage=lambda person: refresh_stellar_homepage(person),
+    enqueue_background_job=lambda job, **kwargs: _enqueue_background_job(job, **kwargs),
     available_story_names=lambda: story_person_names(story_md_dir_path()),
     logger=_LOGGER,
 )
@@ -211,6 +221,7 @@ def generate_for_person(
     progress: Optional[callable] = None,
     allow_cache: bool = True,
     event_callback: Optional[callable] = None,
+    timeout_resolver: Optional[callable] = None,
     refresh_homepage: bool = True,
 ) -> Dict[str, object]:
     return _GENERATION_API["generate_for_person"](
@@ -219,6 +230,7 @@ def generate_for_person(
         progress=progress,
         allow_cache=allow_cache,
         event_callback=event_callback,
+        timeout_resolver=timeout_resolver,
         refresh_homepage=refresh_homepage,
     )
 
@@ -266,6 +278,7 @@ _RUNTIME_API = story_runtime_api_utils.create_runtime_api(
     extract_historical_figures=extract_historical_figures,
     generate_for_person=generate_for_person,
     refresh_stellar_homepage=refresh_stellar_homepage,
+    enqueue_background_job=lambda job, **kwargs: _enqueue_background_job(job, **kwargs),
     ensure_profile_exports=_ensure_profile_exports,
     ensure_multi_exports=_ensure_multi_exports,
     compute_overlaps=_compute_overlaps,
@@ -282,6 +295,11 @@ _STATIC_SERVICE = _RUNTIME_API["static_service"]
 _TASK_SERVICE = _RUNTIME_API["task_service"]
 _coords_bulk_update = _RUNTIME_API["coords_bulk_update"]
 _shutdown_services = _RUNTIME_API["shutdown_services"]
+
+
+def shutdown_services() -> None:
+    _BACKGROUND_JOB_SCHEDULER.shutdown(wait=False)
+    _shutdown_services()
 
 
 def create_app():

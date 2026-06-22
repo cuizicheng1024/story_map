@@ -7031,25 +7031,66 @@ const LIFE_GRADIENT_END = '#5D4037';
       })
       .filter(Boolean);
   };
+  const _chatCompositeAbortController = (signal) => {
+    if (typeof AbortController !== 'function') return null;
+    const controller = new AbortController();
+    const src = signal;
+    if (src && typeof src === 'object') {
+      if (src.aborted) {
+        try { controller.abort(); } catch (_) {}
+      } else if (typeof src.addEventListener === 'function') {
+        try {
+          src.addEventListener('abort', () => {
+            try { controller.abort(); } catch (_) {}
+          }, { once: true });
+        } catch (_) {}
+      }
+    }
+    return controller;
+  };
   const _postChat = async (messages, { onDelta, signal } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
-    for (const url of tryUrls) {
+    const _tryOnce = async (url, { stream }) => {
+      const controller = _chatCompositeAbortController(signal);
+      const requestSignal = controller ? controller.signal : signal;
+      let idleTimer = null;
+      let idleTimedOut = false;
+      let lastChunkAt = Date.now();
+      let hadAnyChunk = false;
+      const startIdleWatch = () => {
+        if (!controller) return;
+        idleTimer = setInterval(() => {
+          const elapsed = Date.now() - lastChunkAt;
+          const limit = hadAnyChunk ? 20000 : 9000;
+          if (elapsed >= limit) {
+            idleTimedOut = true;
+            try { controller.abort(); } catch (_) {}
+          }
+        }, 500);
+      };
+      const stopIdleWatch = () => {
+        if (idleTimer) {
+          clearInterval(idleTimer);
+          idleTimer = null;
+        }
+      };
       try {
+        startIdleWatch();
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'text/event-stream, application/json'
           },
-          signal,
+          signal: requestSignal,
           body: JSON.stringify({
             messages,
             temperature: 0.5,
-            stream: true,
+            stream: !!stream,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
@@ -7060,7 +7101,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
-        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+        if (!stream || !contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
           const text = await resp.text();
           return JSON.parse(text);
         }
@@ -7071,6 +7112,10 @@ const LIFE_GRADIENT_END = '#5D4037';
         let meta = {};
         while (true) {
           const { done, value } = await reader.read();
+          if (value && value.length) {
+            hadAnyChunk = true;
+            lastChunkAt = Date.now();
+          }
           buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
           const parts = buffer.split(/\n\n+/);
           buffer = done ? '' : parts.pop() || '';
@@ -7115,6 +7160,28 @@ const LIFE_GRADIENT_END = '#5D4037';
           meta
         };
       } catch (e) {
+        if (idleTimedOut && !(signal && signal.aborted)) {
+          const err = new Error('STREAM_IDLE_TIMEOUT');
+          err.cause = e;
+          throw err;
+        }
+        throw e;
+      } finally {
+        stopIdleWatch();
+      }
+    };
+    for (const url of tryUrls) {
+      try {
+        return await _tryOnce(url, { stream: true });
+      } catch (e) {
+        if (!(signal && signal.aborted) && String(e?.message || '').trim() === 'STREAM_IDLE_TIMEOUT') {
+          try {
+            return await _tryOnce(url, { stream: false });
+          } catch (retryErr) {
+            lastErr = retryErr;
+            continue;
+          }
+        }
         lastErr = e;
       }
     }

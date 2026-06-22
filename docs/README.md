@@ -29,6 +29,8 @@
 | 文档 | 用途 |
 | --- | --- |
 | [`../install.md`](../install.md) | 火山云 ECS 部署细节、systemd 配置 |
+| [`./opendeploy_deployment_notes.md`](./opendeploy_deployment_notes.md) | OpenDeploy 部署经验、最终可用配置、排障记录 |
+| [`./monitoring_prometheus_alertmanager.md`](./monitoring_prometheus_alertmanager.md) | `/metrics` 指标清单、Prometheus 抓取示例、Alertmanager 告警路由建议 |
 | [`../scripts/`](../scripts/) | 部署/启动/回滚/线上自检脚本（每个文件顶部都有注释） |
 
 ---
@@ -54,6 +56,7 @@ data/
 | 全量构建（人物页 + 首页 + 索引） | `python3 tools/build_all.py` |
 | 校验 Markdown 语料 | `python3 tools/validate_story_markdown.py --report-json data/reports/markdown_smoke_report.json` |
 | 部署到火山云 ECS | `scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <key.pem> --verify-public` |
+| 部署到 OpenDeploy | `opendeploy upload update-source <project-id> . --project-name mapsotryforstudents --region-id <region-id> --json` + `opendeploy deployments create --project <project-id> --service <service-id> --json` |
 | 回滚上一版本 | `scripts/rollback_storymap_release.sh` |
 
 ## 测试分层速查

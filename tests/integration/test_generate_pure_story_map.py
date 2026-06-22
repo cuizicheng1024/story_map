@@ -376,8 +376,16 @@ def test_generate_pure_html_syncs_alias_redirect_pages(monkeypatch, tmp_path):
         def render_profile_html(_profile):
             return "<html>ok</html>"
 
-    monkeypatch.setitem(sys.modules, "story_map", FakeStoryMap)
-    monkeypatch.setitem(sys.modules, "map_html_renderer", FakeRenderer)
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.cli.story_map"),
+        "load_profile_from_md",
+        FakeStoryMap.load_profile_from_md,
+    )
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.profile.renderer"),
+        "render_profile_html",
+        FakeRenderer.render_profile_html,
+    )
     monkeypatch.setattr(module, "_sync_alias_redirect_pages", lambda html_dir: captured.setdefault("alias_sync", html_dir))
 
     result = module.generate_pure_html(str(md_path), out_path=str(out_path), no_geocode=False)
@@ -418,7 +426,11 @@ def test_render_people_disables_per_person_homepage_refresh_in_cache_mode(monkey
             captured.update(kwargs)
             return {"ok": True}
 
-    sys.modules["story_map"] = FakeStoryMap
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.cli.story_map"),
+        "generate_for_person",
+        FakeStoryMap.generate_for_person,
+    )
 
     rc = module._render_people(["苏轼"], md_dir=tmp_path, html_dir=tmp_path, mode="cache", allow_cache=False)
 
@@ -438,7 +450,11 @@ def test_render_people_marks_degraded_cache_results_as_failure(monkeypatch, tmp_
         def generate_for_person(**_kwargs):
             return {"ok": False, "status": "degraded", "warning": "重要地点段落缺失或为空"}
 
-    sys.modules["story_map"] = FakeStoryMap
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.cli.story_map"),
+        "generate_for_person",
+        FakeStoryMap.generate_for_person,
+    )
 
     rc = module._render_people(["苏轼"], md_dir=tmp_path, html_dir=tmp_path, mode="cache", allow_cache=False)
 

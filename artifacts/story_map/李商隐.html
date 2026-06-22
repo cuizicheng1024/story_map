@@ -1170,6 +1170,19 @@ body {
 .narrative-description-line:last-child {
   margin-bottom: 0;
 }
+.narrative-description-line.is-lead {
+  color: var(--color-text-primary);
+}
+.narrative-description-line.is-body {
+  color: color-mix(in srgb, var(--color-text-secondary) 92%, #64748b 8%);
+}
+.narrative-sentence {
+  display: inline;
+}
+.narrative-sentence.is-turning {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
 .narrative-inline-strong {
   font-weight: 800;
   color: var(--color-text-primary);
@@ -1190,9 +1203,31 @@ body {
   font-weight: 600;
   color: #166534;
 }
+.narrative-inline-identity {
+  font-weight: 800;
+  color: color-mix(in srgb, #7c2d12 72%, var(--color-primary) 28%);
+}
 .narrative-inline-quote {
   color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary) 18%);
   font-style: italic;
+}
+.narrative-description-line.is-lead .narrative-inline-accent,
+.narrative-description-line.is-lead .narrative-inline-time,
+.narrative-description-line.is-lead .narrative-inline-place,
+.narrative-description-line.is-lead .narrative-inline-identity {
+  filter: saturate(1.08);
+}
+.narrative-description-line.is-body .narrative-inline-accent {
+  color: color-mix(in srgb, var(--color-primary) 68%, #475569 32%);
+}
+.narrative-description-line.is-body .narrative-inline-time {
+  color: #b7791f;
+}
+.narrative-description-line.is-body .narrative-inline-place {
+  color: #2f855a;
+}
+.narrative-description-line.is-body .narrative-inline-identity {
+  color: color-mix(in srgb, #7c2d12 58%, var(--color-text-secondary) 42%);
 }
 .age-marker {
   background: transparent;
@@ -2186,11 +2221,13 @@ const {
   useRef,
   useMemo
 } = React;
-const data = {"person": {"name": "李商隐", "title": "小李杜", "description": "李商隐，字义山，号玉谿生，又号樊南生。他生活在唐朝由衰转亡的关键时期，一生深陷“牛李党争”的政治漩涡，仕途坎坷，辗转于各地幕府。尽管胸怀大志，却始终未能施展抱负。他的诗歌，尤其是无题诗和咏史诗，构思新奇，情感深挚，语言华美，意境朦胧，将唐诗的抒情艺术推向了新的高峰，对宋代婉约词及后世诗歌产生了深远影响。", "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "shortReview": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "dynasty": "晚唐", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "怀州河内（今地说法不一", "avatar": "", "birth": {"date": "812年", "location": "怀州河内（今地说法不一", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "858年", "location": "郑州（今河南省郑州市）", "lat": 34.747, "lng": 113.625, "coordSystem": "WGS84"}, "lifespan": "约46岁（虚岁，生卒年812-858计算）", "highlights": {"honor": "小李杜", "status": "晚唐最杰出的诗人之一，与杜牧合称“小李杜”，与温庭筠合称“温李”。", "identities": "诗人、骈文家", "achievements": "开创了朦胧含蓄、深情绵邈的诗歌风格；其“无题”诗对后世影响深远；在骈文和律诗艺术上成就极高。", "works": [], "reviews": []}}, "locations": [{"name": "怀州河内", "ancientName": "怀州河内", "modernName": "地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑", "lat": 35.088, "lng": 112.936, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个低级官僚家庭，父李嗣曾任获嘉县令。", "time": "约公元812年", "duration": "童年时期", "significance": "诗人的故乡，其家族文化背景奠定了他早期的文学基础。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "东都洛阳", "modernName": "河南省洛阳市", "lat": 34.62, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "青年时期受知于令狐楚，学习骈文章奏；结识白居易等文坛名流。", "time": "约829年-837年间多次往返", "duration": "断续居住数年", "significance": "文学成长与社交的关键地，令狐楚的赏识对其早期发展至关重要。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "京师长安", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "开成二年（837年）进士及第；数次参加吏部博学宏词科考试，结果存疑（有落选或中选后被黜等说法）；任职于秘书省。", "time": "约837年-840年、842年-847年等多次居留", "duration": "累计数年", "significance": "实现科举理想与政治抱负的核心舞台，也是其感受党争倾轧最深之地。", "works": [], "quoteLines": ["《行次西郊作一百韵》：“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”"]}, {"name": "泾州", "ancientName": "泾州", "modernName": "甘肃省泾川县", "lat": 35.332, "lng": 107.367, "coordSystem": "WGS84", "type": "normal", "event": "入泾原节度使王茂元幕府，并娶其女。", "time": "约838年", "duration": "数月", "significance": "婚姻使其卷入“牛李党争”（令狐楚属牛党，王茂元近李党），成为一生政治困境的起点。", "works": [], "quoteLines": []}, {"name": "秘书省（长安）", "ancientName": "秘书省", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "通过书判拔萃科考试，任秘书省校书郎；后调任弘农县尉。", "time": "约842年-845年", "duration": "约三年", "significance": "短暂获得中央清要官职，但旋即因母丧丁忧而离职。", "works": [], "quoteLines": []}, {"name": "桂州", "ancientName": "桂州", "modernName": "广西壮族自治区桂林市", "lat": 25.274, "lng": 110.29, "coordSystem": "WGS84", "type": "normal", "event": "应郑亚之辟，入桂管观察使幕府，担任掌书记。", "time": "约847年-849年", "duration": "约两年", "significance": "首次远赴岭南，远离政治中心，诗歌题材有所拓展。", "works": [], "quoteLines": ["《晚晴》：“天意怜幽草，人间重晚晴。”"]}, {"name": "徐州", "ancientName": "徐州", "modernName": "江苏省徐州市", "lat": 34.204, "lng": 117.285, "coordSystem": "WGS84", "type": "normal", "event": "入武宁军节度使卢弘止幕府，任节度判官。", "time": "约850年-851年", "duration": "约两年", "significance": "仕途稍有转机，但不久卢弘止去世，诗人再度漂泊。", "works": [], "quoteLines": []}, {"name": "梓州", "ancientName": "梓州", "modernName": "四川省三台县", "lat": 31.095, "lng": 105.091, "coordSystem": "WGS84", "type": "normal", "event": "应东川节度使柳仲郢之辟，入幕府任节度书记、判官等职；其间曾于梓州慧义寺出家的说法存疑。", "time": "约851年-855年", "duration": "约四年", "significance": "创作了大量诗篇，是其诗歌艺术的成熟期；妻子王氏可能在此期间去世。", "works": [], "quoteLines": ["《夜雨寄北》：“君问归期未有期，巴山夜雨涨秋池。”", "《锦瑟》：“锦瑟无端五十弦，一弦一柱思华年。”"]}, {"name": "长安（晚年）", "ancientName": "京师长安", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "随柳仲郢回京，任盐铁推官。", "time": "约855年-857年", "duration": "约两年", "significance": "生命的最后阶段重返政治中心，但已病体沉疴。", "works": [], "quoteLines": []}, {"name": "郑州", "ancientName": "郑州", "modernName": "河南省郑州市", "lat": 34.747, "lng": 113.625, "coordSystem": "WGS84", "type": "death", "event": "罢盐铁推官后，闲居郑州，不久病逝。", "time": "公元858年", "duration": "生命最后数月", "significance": "诗人生命的终点，一生漂泊困顿的终结。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---", "workTexts": {"行次西郊作一百韵": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "晚晴": "天意怜幽草，人间重晚晴。", "夜雨寄北": "君问归期未有期，巴山夜雨涨秋池。", "锦瑟": "锦瑟无端五十弦，一弦一柱思华年。", "贾生": "“可怜夜半虚前席，不问苍生问鬼神”", "樊南文集": "“小李杜”\n“温李”"}, "workSummaries": {"行次西郊作一百韵": {"title": "行次西郊作一百韵", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "summary": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "quotes": ["高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "农具弃道旁，饥牛死空墩。", "高田长檞枥，下田长荆榛。"], "quote_policy": "preferred"}, "晚晴": {"title": "晚晴", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "天意怜幽草，人间重晚晴。", "summary": "天意怜幽草，人间重晚晴。", "quote": "天意怜幽草，人间重晚晴。", "quotes": ["天意怜幽草，人间重晚晴。"], "quote_policy": "preferred"}, "夜雨寄北": {"title": "夜雨寄北", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "君问归期未有期，巴山夜雨涨秋池。", "summary": "君问归期未有期，巴山夜雨涨秋池。", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "君问归期未有期，巴山夜雨涨秋池。", "锦瑟无端五十弦，一弦一柱思华年。"], "quote_policy": "preferred"}, "锦瑟": {"title": "锦瑟", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "锦瑟无端五十弦，一弦一柱思华年。", "summary": "锦瑟无端五十弦，一弦一柱思华年。", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "君问归期未有期，巴山夜雨涨秋池。", "锦瑟无端五十弦，一弦一柱思华年。"], "quote_policy": "preferred"}, "贾生": {"title": "贾生", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "可怜夜半虚前席，不问苍生问鬼神", "summary": "可怜夜半虚前席，不问苍生问鬼神", "quote": "咏史诗如《贾生》（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，讽刺晚唐帝王昏聩，寄托怀才不遇的感慨。", "quotes": ["咏史诗如《贾生》（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，讽刺晚唐帝王昏聩，寄托怀才不遇的感慨。", "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "可怜夜半虚前席，不问苍生问鬼神"], "quote_policy": "preferred"}, "无题": {"title": "无题", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "李商隐，字义山，号玉谿生，又号樊南生", "summary": "李商隐，字义山，号玉谿生，又号樊南生", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）"], "quote_policy": "preferred"}, "樊南文集": {"title": "樊南文集", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "小李杜” “温李", "summary": "小李杜” “温李", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 李商隐\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李商隐\n- **时代**：晚唐\n- **出生**：公元812年，怀州河内（今地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑）\n- **去世**：公元858年，郑州（今河南省郑州市）\n- **享年**：约46岁（虚岁，生卒年812-858计算）\n- **主要身份**：诗人、骈文家\n- **历史地位**：晚唐最杰出的诗人之一，与杜牧合称“小李杜”，与温庭筠合称“温李”。\n- **主要成就**：开创了朦胧含蓄、深情绵邈的诗歌风格；其“无题”诗对后世影响深远；在骈文和律诗艺术上成就极高。\n\n### 生平概述\n李商隐，字义山，号玉谿生，又号樊南生。他生活在唐朝由衰转亡的关键时期，一生深陷“牛李党争”的政治漩涡，仕途坎坷，辗转于各地幕府。尽管胸怀大志，却始终未能施展抱负。他的诗歌，尤其是无题诗和咏史诗，构思新奇，情感深挚，语言华美，意境朦胧，将唐诗的抒情艺术推向了新的高峰，对宋代婉约词及后世诗歌产生了深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹遍及河南、陕西、广西、江苏、四川等地，主要活动于长安、洛阳及南方幕府。\n- ⏱️ **时间跨度**：公元812年 - 858年，共约46年。\n- 📍 **地理范围**：以中原（河南）和关中（陕西）为核心，南至桂州（广西），西至梓州（四川），东至徐州（江苏）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：怀州河内\n- **时间**：约公元812年\n- **停留时间**：童年时期\n- **地点**：怀州河内（今地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑）\n- **事件**：出生于一个低级官僚家庭，父李嗣曾任获嘉县令。\n- **意义**：诗人的故乡，其家族文化背景奠定了他早期的文学基础。\n\n### 📍 重要地点：洛阳\n- **时间**：约829年-837年间多次往返\n- **停留时间**：断续居住数年\n- **地点**：东都洛阳（今河南省洛阳市）\n- **事件**：青年时期受知于令狐楚，学习骈文章奏；结识白居易等文坛名流。\n- **意义**：文学成长与社交的关键地，令狐楚的赏识对其早期发展至关重要。\n\n### 📍 重要地点：长安\n- **时间**：约837年-840年、842年-847年等多次居留\n- **停留时间**：累计数年\n- **地点**：京师长安（今陕西省西安市）\n- **事件**：开成二年（837年）进士及第；数次参加吏部博学宏词科考试，结果存疑（有落选或中选后被黜等说法）；任职于秘书省。\n- **意义**：实现科举理想与政治抱负的核心舞台，也是其感受党争倾轧最深之地。\n- **名篇名句**：《行次西郊作一百韵》：“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”\n\n### 📍 重要地点：泾州\n- **时间**：约838年\n- **停留时间**：数月\n- **地点**：泾州（今甘肃省泾川县）\n- **事件**：入泾原节度使王茂元幕府，并娶其女。\n- **意义**：婚姻使其卷入“牛李党争”（令狐楚属牛党，王茂元近李党），成为一生政治困境的起点。\n\n### 📍 重要地点：秘书省（长安）\n- **时间**：约842年-845年\n- **停留时间**：约三年\n- **地点**：秘书省（今陕西省西安市）\n- **事件**：通过书判拔萃科考试，任秘书省校书郎；后调任弘农县尉。\n- **意义**：短暂获得中央清要官职，但旋即因母丧丁忧而离职。\n\n### 📍 重要地点：桂州\n- **时间**：约847年-849年\n- **停留时间**：约两年\n- **地点**：桂州（今广西壮族自治区桂林市）\n- **事件**：应郑亚之辟，入桂管观察使幕府，担任掌书记。\n- **意义**：首次远赴岭南，远离政治中心，诗歌题材有所拓展。\n- **名篇名句**：《晚晴》：“天意怜幽草，人间重晚晴。”\n\n### 📍 重要地点：徐州\n- **时间**：约850年-851年\n- **停留时间**：约两年\n- **地点**：徐州（今江苏省徐州市）\n- **事件**：入武宁军节度使卢弘止幕府，任节度判官。\n- **意义**：仕途稍有转机，但不久卢弘止去世，诗人再度漂泊。\n\n### 📍 重要地点：梓州\n- **时间**：约851年-855年\n- **停留时间**：约四年\n- **地点**：梓州（今四川省三台县）\n- **事件**：应东川节度使柳仲郢之辟，入幕府任节度书记、判官等职；其间曾于梓州慧义寺出家的说法存疑。\n- **意义**：创作了大量诗篇，是其诗歌艺术的成熟期；妻子王氏可能在此期间去世。\n- **名篇名句**：《夜雨寄北》：“君问归期未有期，巴山夜雨涨秋池。”；《锦瑟》：“锦瑟无端五十弦，一弦一柱思华年。”\n\n### 📍 重要地点：长安（晚年）\n- **时间**：约855年-857年\n- **停留时间**：约两年\n- **地点**：京师长安（今陕西省西安市）\n- **事件**：随柳仲郢回京，任盐铁推官。\n- **意义**：生命的最后阶段重返政治中心，但已病体沉疴。\n\n### 🔴 去世地：郑州\n- **时间**：公元858年\n- **停留时间**：生命最后数月\n- **地点**：郑州（今河南省郑州市）\n- **事件**：罢盐铁推官后，闲居郑州，不久病逝。\n- **意义**：诗人生命的终点，一生漂泊困顿的终结。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 812年 | 怀州河内 |  | （年龄：1岁）出生于怀州河内。 |\n| 约829年 |  |  | （年龄：约18岁）以文才受知于令狐楚，学习骈文。 |\n| 837年 |  |  | （年龄：26岁）进士及第。 |\n| 838年 |  |  | （年龄：27岁）入泾原节度使王茂元幕，娶其女，陷入党争。 |\n| 约839年 | 怀州河内 |  | （年龄：约28岁）参加博学宏词科考试，结果存疑（有落选或中选后被黜等说法）。 |\n| 842年 | 秘书省（长安） | 陕西省西安市 | （年龄：31岁）以书判拔萃，授秘书省校书郎。 |\n| 847年 | 桂州 | 广西壮族自治区桂林市 | （年龄：36岁）随郑亚赴桂州，入桂管幕府。 |\n| 850年 | 徐州 | 江苏省徐州市 | （年龄：39岁）入徐州卢弘止幕府。 |\n| 851年 | 梓州 | 四川省三台县 | （年龄：40岁）妻王氏去世。应柳仲郢辟，赴梓州。 |\n| 855年 |  |  | （年龄：44岁）随柳仲郢还朝，任盐铁推官。 |\n| 858年 | 郑州 | 河南省郑州市 | （年龄：约46岁）罢职，闲居郑州，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省沁阳市（存疑） | 35.088 | 112.936 |\n| 河南省洛阳市 | 34.620 | 112.454 |\n| 陕西省西安市 | 34.263 | 108.942 |\n| 甘肃省泾川县 | 35.332 | 107.367 |\n| 广西壮族自治区桂林市 | 25.274 | 110.290 |\n| 江苏省徐州市 | 34.204 | 117.285 |\n| 四川省三台县 | 31.095 | 105.091 |\n| 河南省郑州市 | 34.747 | 113.625 |", "relatedGraph": {"center": {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "review": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "review": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "杜牧", "name": "杜牧", "file": "杜牧.html", "dynasty": "晚唐", "aliases": ["杜牧之", "杜樊川"], "birth_year": 803, "death_year": 852, "quote": "十年一觉扬州梦", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "京兆万年", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "庞眉书客感秋蓬，谁知死草生华风。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南省洛阳市宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "罗隐", "name": "罗隐", "file": "罗隐.html", "dynasty": "晚唐至五代（吴越国）", "aliases": [], "birth_year": 833, "death_year": 910, "quote": "十二三年就试期，五湖烟月奈相违。何如买取胡孙弄，一笑君王便著绯。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "杭州新城", "birthplace_modern": "浙江省杭州市富阳区新登镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "中兴四大诗人", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。", "review": "", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "**师者，所以传道受业解惑也**", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李商隐", "target": "杜牧", "label": "并称", "confidence": 0.55}, {"source": "李商隐", "target": "李贺", "label": "并称", "confidence": 0.55}, {"source": "李商隐", "target": "罗隐", "label": "同时代人物", "confidence": null}, {"source": "李商隐", "target": "杨万里", "label": "同册共现", "confidence": 0.15}, {"source": "李商隐", "target": "黄巢", "label": "同时代人物", "confidence": null}, {"source": "李商隐", "target": "韩愈", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "3ecc1cd1b213"};
+const data = {"person": {"name": "李商隐", "title": "小李杜", "description": "李商隐，字义山，号玉谿生，又号樊南生。他生活在唐朝由衰转亡的关键时期，一生深陷“牛李党争”的政治漩涡，仕途坎坷，辗转于各地幕府。尽管胸怀大志，却始终未能施展抱负。他的诗歌，尤其是无题诗和咏史诗，构思新奇，情感深挚，语言华美，意境朦胧，将唐诗的抒情艺术推向了新的高峰，对宋代婉约词及后世诗歌产生了深远影响。", "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "shortReview": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "dynasty": "晚唐", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "怀州河内（今地说法不一", "avatar": "", "birth": {"date": "812年", "location": "怀州河内（今地说法不一", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "858年", "location": "郑州（今河南省郑州市）", "lat": 34.747, "lng": 113.625, "coordSystem": "WGS84"}, "lifespan": "约46岁（虚岁，生卒年812-858计算）", "highlights": {"honor": "小李杜", "status": "晚唐最杰出的诗人之一，与杜牧合称“小李杜”，与温庭筠合称“温李”。", "identities": "诗人、骈文家", "achievements": "开创了朦胧含蓄、深情绵邈的诗歌风格；其“无题”诗对后世影响深远；在骈文和律诗艺术上成就极高。", "works": [], "reviews": []}}, "locations": [{"name": "怀州河内", "ancientName": "怀州河内", "modernName": "地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑", "lat": 35.088, "lng": 112.936, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个低级官僚家庭，父李嗣曾任获嘉县令。", "time": "约公元812年", "duration": "童年时期", "significance": "诗人的故乡，其家族文化背景奠定了他早期的文学基础。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "东都洛阳", "modernName": "河南省洛阳市", "lat": 34.62, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "青年时期受知于令狐楚，学习骈文章奏；结识白居易等文坛名流。", "time": "约829年-837年间多次往返", "duration": "断续居住数年", "significance": "文学成长与社交的关键地，令狐楚的赏识对其早期发展至关重要。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "京师长安", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "开成二年（837年）进士及第；数次参加吏部博学宏词科考试，结果存疑（有落选或中选后被黜等说法）；任职于秘书省。", "time": "约837年-840年、842年-847年等多次居留", "duration": "累计数年", "significance": "实现科举理想与政治抱负的核心舞台，也是其感受党争倾轧最深之地。", "works": [], "quoteLines": ["《行次西郊作一百韵》：“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”"]}, {"name": "泾州", "ancientName": "泾州", "modernName": "甘肃省泾川县", "lat": 35.332, "lng": 107.367, "coordSystem": "WGS84", "type": "normal", "event": "入泾原节度使王茂元幕府，并娶其女。", "time": "约838年", "duration": "数月", "significance": "婚姻使其卷入“牛李党争”（令狐楚属牛党，王茂元近李党），成为一生政治困境的起点。", "works": [], "quoteLines": []}, {"name": "秘书省（长安）", "ancientName": "秘书省", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "通过书判拔萃科考试，任秘书省校书郎；后调任弘农县尉。", "time": "约842年-845年", "duration": "约三年", "significance": "短暂获得中央清要官职，但旋即因母丧丁忧而离职。", "works": [], "quoteLines": []}, {"name": "桂州", "ancientName": "桂州", "modernName": "广西壮族自治区桂林市", "lat": 25.274, "lng": 110.29, "coordSystem": "WGS84", "type": "normal", "event": "应郑亚之辟，入桂管观察使幕府，担任掌书记。", "time": "约847年-849年", "duration": "约两年", "significance": "首次远赴岭南，远离政治中心，诗歌题材有所拓展。", "works": [], "quoteLines": ["《晚晴》：“天意怜幽草，人间重晚晴。”"]}, {"name": "徐州", "ancientName": "徐州", "modernName": "江苏省徐州市", "lat": 34.204, "lng": 117.285, "coordSystem": "WGS84", "type": "normal", "event": "入武宁军节度使卢弘止幕府，任节度判官。", "time": "约850年-851年", "duration": "约两年", "significance": "仕途稍有转机，但不久卢弘止去世，诗人再度漂泊。", "works": [], "quoteLines": []}, {"name": "梓州", "ancientName": "梓州", "modernName": "四川省三台县", "lat": 31.095, "lng": 105.091, "coordSystem": "WGS84", "type": "normal", "event": "应东川节度使柳仲郢之辟，入幕府任节度书记、判官等职；其间曾于梓州慧义寺出家的说法存疑。", "time": "约851年-855年", "duration": "约四年", "significance": "创作了大量诗篇，是其诗歌艺术的成熟期；妻子王氏可能在此期间去世。", "works": [], "quoteLines": ["《夜雨寄北》：“君问归期未有期，巴山夜雨涨秋池。”", "《锦瑟》：“锦瑟无端五十弦，一弦一柱思华年。”"]}, {"name": "长安（晚年）", "ancientName": "京师长安", "modernName": "陕西省西安市", "lat": 34.263, "lng": 108.942, "coordSystem": "WGS84", "type": "normal", "event": "随柳仲郢回京，任盐铁推官。", "time": "约855年-857年", "duration": "约两年", "significance": "生命的最后阶段重返政治中心，但已病体沉疴。", "works": [], "quoteLines": []}, {"name": "郑州", "ancientName": "郑州", "modernName": "河南省郑州市", "lat": 34.747, "lng": 113.625, "coordSystem": "WGS84", "type": "death", "event": "罢盐铁推官后，闲居郑州，不久病逝。", "time": "公元858年", "duration": "生命最后数月", "significance": "诗人生命的终点，一生漂泊困顿的终结。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---", "workTexts": {"行次西郊作一百韵": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "晚晴": "天意怜幽草，人间重晚晴。", "夜雨寄北": "君问归期未有期，巴山夜雨涨秋池。", "锦瑟": "锦瑟无端五十弦，一弦一柱思华年。", "贾生": "“可怜夜半虚前席，不问苍生问鬼神”", "樊南文集": "“小李杜”\n“温李”"}, "workSummaries": {"行次西郊作一百韵": {"title": "行次西郊作一百韵", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "summary": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "quotes": ["高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "农具弃道旁，饥牛死空墩。", "高田长檞枥，下田长荆榛。"], "quote_policy": "preferred"}, "晚晴": {"title": "晚晴", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "天意怜幽草，人间重晚晴。", "summary": "天意怜幽草，人间重晚晴。", "quote": "天意怜幽草，人间重晚晴。", "quotes": ["天意怜幽草，人间重晚晴。"], "quote_policy": "preferred"}, "夜雨寄北": {"title": "夜雨寄北", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "君问归期未有期，巴山夜雨涨秋池。", "summary": "君问归期未有期，巴山夜雨涨秋池。", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "君问归期未有期，巴山夜雨涨秋池。", "锦瑟无端五十弦，一弦一柱思华年。"], "quote_policy": "preferred"}, "锦瑟": {"title": "锦瑟", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "锦瑟无端五十弦，一弦一柱思华年。", "summary": "锦瑟无端五十弦，一弦一柱思华年。", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "君问归期未有期，巴山夜雨涨秋池。", "锦瑟无端五十弦，一弦一柱思华年。"], "quote_policy": "preferred"}, "贾生": {"title": "贾生", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "可怜夜半虚前席，不问苍生问鬼神", "summary": "可怜夜半虚前席，不问苍生问鬼神", "quote": "咏史诗如《贾生》（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，讽刺晚唐帝王昏聩，寄托怀才不遇的感慨。", "quotes": ["咏史诗如《贾生》（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，讽刺晚唐帝王昏聩，寄托怀才不遇的感慨。", "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "可怜夜半虚前席，不问苍生问鬼神"], "quote_policy": "preferred"}, "无题": {"title": "无题", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "李商隐，字义山，号玉谿生，又号樊南生", "summary": "李商隐，字义山，号玉谿生，又号樊南生", "quote": "《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）", "quotes": ["《锦瑟》、《夜雨寄北》、《贾生》、《无题》（相见时难别亦难）"], "quote_policy": "preferred"}, "樊南文集": {"title": "樊南文集", "aliases": [], "authors": ["李商隐"], "related_people": ["李商隐"], "source_pages": ["李商隐"], "era": "晚唐", "genre": "", "one_liner": "小李杜” “温李", "summary": "小李杜” “温李", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 李商隐\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李商隐\n- **时代**：晚唐\n- **出生**：公元812年，怀州河内（今地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑）\n- **去世**：公元858年，郑州（今河南省郑州市）\n- **享年**：约46岁（虚岁，生卒年812-858计算）\n- **主要身份**：诗人、骈文家\n- **历史地位**：晚唐最杰出的诗人之一，与杜牧合称“小李杜”，与温庭筠合称“温李”。\n- **主要成就**：开创了朦胧含蓄、深情绵邈的诗歌风格；其“无题”诗对后世影响深远；在骈文和律诗艺术上成就极高。\n\n### 生平概述\n李商隐，字义山，号玉谿生，又号樊南生。他生活在唐朝由衰转亡的关键时期，一生深陷“牛李党争”的政治漩涡，仕途坎坷，辗转于各地幕府。尽管胸怀大志，却始终未能施展抱负。他的诗歌，尤其是无题诗和咏史诗，构思新奇，情感深挚，语言华美，意境朦胧，将唐诗的抒情艺术推向了新的高峰，对宋代婉约词及后世诗歌产生了深远影响。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生足迹遍及河南、陕西、广西、江苏、四川等地，主要活动于长安、洛阳及南方幕府。\n- ⏱️ **时间跨度**：公元812年 - 858年，共约46年。\n- 📍 **地理范围**：以中原（河南）和关中（陕西）为核心，南至桂州（广西），西至梓州（四川），东至徐州（江苏）。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：怀州河内\n- **时间**：约公元812年\n- **停留时间**：童年时期\n- **地点**：怀州河内（今地说法不一，有河南省沁阳市、荥阳市等多种记载，存疑）\n- **事件**：出生于一个低级官僚家庭，父李嗣曾任获嘉县令。\n- **意义**：诗人的故乡，其家族文化背景奠定了他早期的文学基础。\n\n### 📍 重要地点：洛阳\n- **时间**：约829年-837年间多次往返\n- **停留时间**：断续居住数年\n- **地点**：东都洛阳（今河南省洛阳市）\n- **事件**：青年时期受知于令狐楚，学习骈文章奏；结识白居易等文坛名流。\n- **意义**：文学成长与社交的关键地，令狐楚的赏识对其早期发展至关重要。\n\n### 📍 重要地点：长安\n- **时间**：约837年-840年、842年-847年等多次居留\n- **停留时间**：累计数年\n- **地点**：京师长安（今陕西省西安市）\n- **事件**：开成二年（837年）进士及第；数次参加吏部博学宏词科考试，结果存疑（有落选或中选后被黜等说法）；任职于秘书省。\n- **意义**：实现科举理想与政治抱负的核心舞台，也是其感受党争倾轧最深之地。\n- **名篇名句**：《行次西郊作一百韵》：“高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。”\n\n### 📍 重要地点：泾州\n- **时间**：约838年\n- **停留时间**：数月\n- **地点**：泾州（今甘肃省泾川县）\n- **事件**：入泾原节度使王茂元幕府，并娶其女。\n- **意义**：婚姻使其卷入“牛李党争”（令狐楚属牛党，王茂元近李党），成为一生政治困境的起点。\n\n### 📍 重要地点：秘书省（长安）\n- **时间**：约842年-845年\n- **停留时间**：约三年\n- **地点**：秘书省（今陕西省西安市）\n- **事件**：通过书判拔萃科考试，任秘书省校书郎；后调任弘农县尉。\n- **意义**：短暂获得中央清要官职，但旋即因母丧丁忧而离职。\n\n### 📍 重要地点：桂州\n- **时间**：约847年-849年\n- **停留时间**：约两年\n- **地点**：桂州（今广西壮族自治区桂林市）\n- **事件**：应郑亚之辟，入桂管观察使幕府，担任掌书记。\n- **意义**：首次远赴岭南，远离政治中心，诗歌题材有所拓展。\n- **名篇名句**：《晚晴》：“天意怜幽草，人间重晚晴。”\n\n### 📍 重要地点：徐州\n- **时间**：约850年-851年\n- **停留时间**：约两年\n- **地点**：徐州（今江苏省徐州市）\n- **事件**：入武宁军节度使卢弘止幕府，任节度判官。\n- **意义**：仕途稍有转机，但不久卢弘止去世，诗人再度漂泊。\n\n### 📍 重要地点：梓州\n- **时间**：约851年-855年\n- **停留时间**：约四年\n- **地点**：梓州（今四川省三台县）\n- **事件**：应东川节度使柳仲郢之辟，入幕府任节度书记、判官等职；其间曾于梓州慧义寺出家的说法存疑。\n- **意义**：创作了大量诗篇，是其诗歌艺术的成熟期；妻子王氏可能在此期间去世。\n- **名篇名句**：《夜雨寄北》：“君问归期未有期，巴山夜雨涨秋池。”；《锦瑟》：“锦瑟无端五十弦，一弦一柱思华年。”\n\n### 📍 重要地点：长安（晚年）\n- **时间**：约855年-857年\n- **停留时间**：约两年\n- **地点**：京师长安（今陕西省西安市）\n- **事件**：随柳仲郢回京，任盐铁推官。\n- **意义**：生命的最后阶段重返政治中心，但已病体沉疴。\n\n### 🔴 去世地：郑州\n- **时间**：公元858年\n- **停留时间**：生命最后数月\n- **地点**：郑州（今河南省郑州市）\n- **事件**：罢盐铁推官后，闲居郑州，不久病逝。\n- **意义**：诗人生命的终点，一生漂泊困顿的终结。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 812年 | 怀州河内 |  | （年龄：1岁）出生于怀州河内。 |\n| 约829年 |  |  | （年龄：约18岁）以文才受知于令狐楚，学习骈文。 |\n| 837年 |  |  | （年龄：26岁）进士及第。 |\n| 838年 |  |  | （年龄：27岁）入泾原节度使王茂元幕，娶其女，陷入党争。 |\n| 约839年 | 怀州河内 |  | （年龄：约28岁）参加博学宏词科考试，结果存疑（有落选或中选后被黜等说法）。 |\n| 842年 | 秘书省（长安） | 陕西省西安市 | （年龄：31岁）以书判拔萃，授秘书省校书郎。 |\n| 847年 | 桂州 | 广西壮族自治区桂林市 | （年龄：36岁）随郑亚赴桂州，入桂管幕府。 |\n| 850年 | 徐州 | 江苏省徐州市 | （年龄：39岁）入徐州卢弘止幕府。 |\n| 851年 | 梓州 | 四川省三台县 | （年龄：40岁）妻王氏去世。应柳仲郢辟，赴梓州。 |\n| 855年 |  |  | （年龄：44岁）随柳仲郢还朝，任盐铁推官。 |\n| 858年 | 郑州 | 河南省郑州市 | （年龄：约46岁）罢职，闲居郑州，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《锦瑟》**、**《夜雨寄北》**、**《贾生》**、**《无题》（相见时难别亦难）**\n- 核心要点：\n    - **重点**：**《锦瑟》** 以“庄生晓梦迷蝴蝶，望帝春心托杜鹃”等典故，营造出**朦胧**、**感伤**的意境，主题历来有“爱情”、“自伤身世”、“诗序”等多种解读。\n    - **重点**：**《夜雨寄北》** 通过“巴山夜雨”的**意象**和时空交错（“何当共剪西窗烛，却话巴山夜雨时”）的**手法**，表达了深切的思念与羁旅之愁。\n    - **重点**：其**无题诗**以“春蚕到死丝方尽，蜡炬成灰泪始干”等名句，运用**比兴**、**象征**，情感**含蓄深挚**，语言**华美精工**，开创了独特的诗歌范式。\n    - 咏史诗如**《贾生》**（“可怜夜半虚前席，不问苍生问鬼神”）借古讽今，**讽刺**晚唐帝王昏聩，寄托怀才不遇的**感慨**。\n    - 诗歌风格**深情绵邈**、**绮丽精工**，善于运用**典故**和**象征**，形成**沉博绝丽**而又**隐晦迷离**的艺术特征。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：一生处于**牛李党争**的夹缝中，因婚姻（王茂元婿）与座主（令狐楚门生）分属不同阵营，导致**仕途坎坷**，终身不得志。\n    - **重点**：早年受牛党令狐楚赏识，后成为李党王茂元女婿，令狐楚之子令狐绹执政后，对其加以排挤。\n    - 晚唐**藩镇割据**与**中央党争**并存的时代背景，深刻影响了其个人命运与诗歌创作。\n- 核心要点：\n    - **重点**：李商隐是**晚唐**诗风的代表人物，其诗歌反映了帝国衰落时期士人**迷惘**、**感伤**与**执着**的复杂心态。\n    - **重点**：其政治失意与个人悲剧，是理解其诗歌中**孤独**、**幻灭**与**深情**情感基调的关键。\n    - 在文学史上，他与杜牧并称“**小李杜**”，与温庭筠并称“**温李**”，其**骈文**（《樊南文集》）亦享有盛名。\n    - **重点**：后世对其诗歌的解读（尤其是无题诗）成为文学史上的公案，其艺术成就对**宋婉约词**及**西昆体**诗派影响巨大。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省沁阳市（存疑） | 35.088 | 112.936 |\n| 河南省洛阳市 | 34.620 | 112.454 |\n| 陕西省西安市 | 34.263 | 108.942 |\n| 甘肃省泾川县 | 35.332 | 107.367 |\n| 广西壮族自治区桂林市 | 25.274 | 110.290 |\n| 江苏省徐州市 | 34.204 | 117.285 |\n| 四川省三台县 | 31.095 | 105.091 |\n| 河南省郑州市 | 34.747 | 113.625 |", "relatedGraph": {"center": {"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "review": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李商隐", "name": "李商隐", "file": "李商隐.html", "dynasty": "晚唐", "aliases": [], "birth_year": 812, "death_year": 858, "quote": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "review": "高田长檞枥，下田长荆榛。农具弃道旁，饥牛死空墩。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "怀州河内", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "杜牧", "name": "杜牧", "file": "杜牧.html", "dynasty": "晚唐", "aliases": ["杜牧之", "杜樊川"], "birth_year": 803, "death_year": 852, "quote": "十年一觉扬州梦", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "京兆万年", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "李贺", "name": "李贺", "file": "李贺.html", "dynasty": "唐代（中唐）", "aliases": [], "birth_year": 790, "death_year": 816, "quote": "庞眉书客感秋蓬，谁知死草生华风。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "福昌县昌谷", "birthplace_modern": "河南省洛阳市宜阳县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "罗隐", "name": "罗隐", "file": "罗隐.html", "dynasty": "晚唐至五代（吴越国）", "aliases": [], "birth_year": 833, "death_year": 910, "quote": "十二三年就试期，五湖烟月奈相违。何如买取胡孙弄，一笑君王便著绯。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "杭州新城", "birthplace_modern": "浙江省杭州市富阳区新登镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨万里", "name": "杨万里", "file": "杨万里.html", "dynasty": "南宋", "aliases": [], "birth_year": 1127, "death_year": 1206, "quote": "中兴四大诗人", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "吉州吉水县", "birthplace_modern": "江西省吉安市吉水县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "黄巢", "name": "黄巢", "file": "黄巢.html", "dynasty": "唐朝末年", "aliases": ["冲天大将军"], "birth_year": 820, "death_year": 884, "quote": "待到秋来九月八，我花开后百花杀。冲天香阵透长安，满城尽带黄金甲。", "review": "", "foreign_name": "", "main_role_label": "起义军领袖", "birthplace": "曹州冤句", "birthplace_modern": "山东菏泽西南", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "**师者，所以传道受业解惑也**", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李商隐", "target": "杜牧", "label": "并称", "confidence": 0.55}, {"source": "李商隐", "target": "李贺", "label": "并称", "confidence": 0.55}, {"source": "李商隐", "target": "罗隐", "label": "同时代人物", "confidence": null}, {"source": "李商隐", "target": "杨万里", "label": "同册共现", "confidence": 0.15}, {"source": "李商隐", "target": "黄巢", "label": "同时代人物", "confidence": null}, {"source": "李商隐", "target": "韩愈", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:28Z", "generated_at": "2026-06-22T11:31:28Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "3ecc1cd1b213",
-  builtAt: "2026-06-21T02:18:45Z"
+  version: "7355d343d41b",
+  builtAt: "2026-06-22T11:31:28Z",
+  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
 const openFeedbackDialog = anchor => {
@@ -3275,11 +3312,13 @@ const renderInline = text => {
 const NARRATIVE_TRANSITION_RE = /(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/g;
 const NARRATIVE_TIME_RE = /(公元前?\d{1,4}年|\d{1,4}年|约\d{1,3}岁|年仅\d{1,3}岁|\d{1,3}岁|少年时期|青年时期|中年时期|晚年|幼年|早年)/g;
 const NARRATIVE_PLACE_RE = /(在[^，。；]{2,14}(?:定居|起兵|求学|隐居|任职|出生|成长|驻留|作战|讲学|写作|辞世))/g;
+const NARRATIVE_IDENTITY_RE = /(诗人|词人|文学家|思想家|政治家|军事家|改革家|史学家|哲学家|教育家|科学家|数学家|物理学家|化学家|生物学家|发明家|航海家|探险家|外交家|将领|名将|皇帝|君主|帝王|将军|统帅|名臣|宰相|大臣|圣人|民族英雄|革命家|艺术家|画家|音乐家|作家|史官|学者|天主教圣人)/g;
 const NARRATIVE_QUOTE_RE = /(“[^”]{2,24}”|《[^》]{1,24}》)/g;
+const NARRATIVE_TURNING_SENTENCE_RE = /^(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/;
 const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   const raw = String(text || '');
   if (!raw) return null;
-  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
+  const pattern = new RegExp(`${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_IDENTITY_RE.source}|${NARRATIVE_QUOTE_RE.source}`, 'g');
   const out = [];
   let lastIndex = 0;
   let match;
@@ -3296,6 +3335,8 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
       className = 'narrative-inline-time';
     } else if (new RegExp(`^${NARRATIVE_PLACE_RE.source}$`).test(token)) {
       className = 'narrative-inline-place';
+    } else if (new RegExp(`^${NARRATIVE_IDENTITY_RE.source}$`).test(token)) {
+      className = 'narrative-inline-identity';
     } else if (new RegExp(`^${NARRATIVE_QUOTE_RE.source}$`).test(token)) {
       className = 'narrative-inline-quote';
     }
@@ -3312,7 +3353,7 @@ const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
   }
   return out;
 };
-const renderNarrativeInline = text => {
+const renderNarrativeInline = (text, keyPrefix = 'narrative-inline') => {
   const raw = String(text || '');
   const parts = raw.split(/(\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
   return parts.map((p, idx) => {
@@ -3321,18 +3362,33 @@ const renderNarrativeInline = text => {
       return React.createElement("strong", {
         key: idx,
         className: "narrative-inline-strong"
-      }, renderNarrativeFragment(strong[1], `narrative-strong-${idx}`));
+      }, renderNarrativeFragment(strong[1], `${keyPrefix}-strong-${idx}`));
     }
     const italic = p.match(/^\*(.+?)\*$/);
     if (italic) {
       return React.createElement("em", {
         key: idx,
         className: "narrative-inline-em"
-      }, renderNarrativeFragment(italic[1], `narrative-em-${idx}`));
+      }, renderNarrativeFragment(italic[1], `${keyPrefix}-em-${idx}`));
     }
     return React.createElement("span", {
       key: idx
-    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `narrative-${idx}`));
+    }, renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `${keyPrefix}-${idx}`));
+  });
+};
+const renderNarrativeLine = (text, lineIdx) => {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+  const sentences = raw.match(/[^。！？]+[。！？]?/g) || [raw];
+  return sentences.map((sentence, idx) => {
+    const trimmed = String(sentence || '').trim();
+    if (!trimmed) return null;
+    const turning = NARRATIVE_TURNING_SENTENCE_RE.test(trimmed);
+    const className = `narrative-sentence${turning ? ' is-turning' : ''}`;
+    return React.createElement("span", {
+      key: `line-${lineIdx}-sentence-${idx}`,
+      className: className
+    }, renderNarrativeInline(trimmed, `narrative-line-${lineIdx}-sentence-${idx}`));
   });
 };
 const normalizeDisplayText = text => {
@@ -3909,6 +3965,127 @@ const App = () => {
     pitchDeg: -45
   });
   const [mapStatusNotice, setMapStatusNotice] = useState(null);
+  const labelPrefsKey = useMemo(() => {
+    const personName = String(data?.person?.name || '').trim() || 'unknown';
+    return `storymap:mapLabelPrefs:v3:${personName}`;
+  }, [data?.person?.name]);
+  const defaultLabelPrefs = useMemo(() => ({
+    showIndex: true,
+    showLabel: false,
+    labelMode: 'custom',
+    customVisible: {}
+  }), []);
+  const [labelPrefs, setLabelPrefs] = useState(() => {
+    const fallback = defaultLabelPrefs;
+    if (typeof window === 'undefined') return fallback;
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(labelPrefsKey) : null;
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return fallback;
+      const merged = {
+        ...fallback,
+        ...parsed
+      };
+      const rawCustomVisible = parsed.customVisible && typeof parsed.customVisible === 'object' ? parsed.customVisible : {};
+      merged.customVisible = rawCustomVisible;
+      merged.showIndex = true;
+      const showLabelFromParsed = typeof parsed.showLabel === 'boolean' ? parsed.showLabel : parsed.showName !== false || Boolean(parsed.showAge);
+      merged.showLabel = typeof merged.showLabel === 'boolean' ? merged.showLabel : Boolean(showLabelFromParsed);
+      return merged;
+    } catch (_) {
+      return fallback;
+    }
+  });
+  const labelPrefsRef = useRef(defaultLabelPrefs);
+  labelPrefsRef.current = labelPrefs;
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(labelPrefsKey, JSON.stringify(labelPrefs));
+    } catch (_) {}
+  }, [labelPrefsKey, labelPrefs]);
+  useEffect(() => {
+    const controller = mapRef.current;
+    if (!controller || typeof controller.refreshLabels !== 'function') return;
+    try {
+      controller.refreshLabels(activeIndexRef.current);
+    } catch (_) {}
+  }, [labelPrefs]);
+  const setLabelPrefsPatch = React.useCallback(patch => {
+    setLabelPrefs(prev => ({
+      ...prev,
+      ...(patch && typeof patch === 'object' ? patch : {})
+    }));
+  }, []);
+  const toggleShowLabel = React.useCallback(() => {
+    setLabelPrefs(prev => {
+      const nextEnabled = prev?.showLabel !== true;
+      const customVisibleRaw = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      const hasAny = Object.keys(customVisibleRaw).some(idx => Boolean(customVisibleRaw[idx]));
+      if (!nextEnabled) {
+        return {
+          ...prev,
+          showLabel: false
+        };
+      }
+      if (!Object.keys(customVisibleRaw).length || !hasAny) {
+        const nextCustom = {};
+        for (let i = 0; i < locations.length; i += 1) nextCustom[String(i)] = true;
+        return {
+          ...prev,
+          showLabel: true,
+          customVisible: nextCustom
+        };
+      }
+      return {
+        ...prev,
+        showLabel: true,
+        customVisible: customVisibleRaw
+      };
+    });
+  }, [locations.length]);
+  const setLabelMode = React.useCallback(mode => {
+    const next = String(mode || 'smart');
+    setLabelPrefs(prev => {
+      const target = next === 'all' ? 'all' : next === 'custom' ? 'custom' : 'smart';
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (target === 'custom' && !Object.keys(customVisible).length) {
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = true;
+      }
+      return {
+        ...prev,
+        labelMode: target,
+        customVisible
+      };
+    });
+  }, []);
+  const toggleCustomLabelIndex = React.useCallback(idx => {
+    const targetIdx = Number(idx);
+    if (!Number.isFinite(targetIdx) || targetIdx < 0 || targetIdx >= locations.length) return;
+    setLabelPrefs(prev => {
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? {
+        ...prev.customVisible
+      } : {};
+      if (!Object.keys(customVisible).length) {
+        const defaultValue = prev?.showLabel === true;
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = defaultValue;
+      }
+      const key = String(targetIdx);
+      customVisible[key] = !customVisible[key];
+      const anyVisible = Object.keys(customVisible).some(k => Boolean(customVisible[k]));
+      return {
+        ...prev,
+        showLabel: anyVisible,
+        labelMode: 'custom',
+        customVisible
+      };
+    });
+  }, []);
   const maplibreMapRef = useRef(null);
   const cesiumViewerRef = useRef(null);
   const amapMapRef = useRef(null);
@@ -3934,6 +4111,7 @@ const App = () => {
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
+  const didAutoFitOnLoadRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
@@ -4410,17 +4588,23 @@ const App = () => {
     if (age === null) return '';
     return `${age}岁`;
   };
-  const getMarkerBadgeText = (loc, idx) => {
-    if (isPosthumousEvent(loc)) return '身后';
+  const getAgeLabel = (loc, idx) => {
     const ageText = getAgeText(loc);
     if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';
+    if (isPosthumousEvent(loc)) return '身后';
     if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
-    return ageText || `第${idx + 1}站`;
+    return ageText || '年龄待考';
+  };
+  const getMarkerBadgeText = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
+    if (prefs.showLabel !== true) return '';
+    return getAgeLabel(loc, idx);
   };
   const getMapPointLabelName = (loc, idx) => String(loc.name || loc.ancientName || loc.modernName || `第${idx + 1}站`).trim();
   const getMapPointLabelParts = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
     const badgeText = String(getMarkerBadgeText(loc, idx) || '').trim();
-    const name = String(getMapPointLabelName(loc, idx) || '').trim();
+    const name = prefs.showLabel === true ? String(getMapPointLabelName(loc, idx) || '').trim() : '';
     return {
       badgeText,
       name
@@ -4433,6 +4617,29 @@ const App = () => {
       name
     } = getMapPointLabelParts(loc, idx);
     return badgeText && name ? `${badgeText}\n${name}` : badgeText || name;
+  };
+  const computeVisibleLabelIndexes = (activeIdx, {
+    detailLevel = 6,
+    isVisible,
+    projectToScreen
+  } = {}) => {
+    const prefs = labelPrefsRef.current || {};
+    const total = locations.length;
+    if (total <= 0) return new Set();
+    if (prefs.showLabel !== true) return new Set();
+    const visible = new Set();
+    const custom = prefs.customVisible && typeof prefs.customVisible === 'object' ? prefs.customVisible : {};
+    const keys = Object.keys(custom);
+    if (!keys.length) {
+      for (let i = 0; i < total; i += 1) visible.add(i);
+      return visible;
+    }
+    keys.forEach(key => {
+      if (!custom[key]) return;
+      const idx = Number(key);
+      if (Number.isFinite(idx) && idx >= 0 && idx < total) visible.add(idx);
+    });
+    return visible;
   };
   const getMapPointLabelVisualState = (loc, idx, activeIdx) => {
     const isActive = idx === activeIdx;
@@ -4775,10 +4982,11 @@ const App = () => {
           className: "my-2 border-gray-200"
         });
       }
+      const lineClassName = `narrative-description-line ${idx < 2 ? 'is-lead' : 'is-body'}`;
       return React.createElement("span", {
         key: idx,
-        className: "narrative-description-line"
-      }, renderNarrativeInline(seg));
+        className: lineClassName
+      }, renderNarrativeLine(seg, idx));
     })), isLongDesc ? React.createElement("button", {
       onClick: () => setShowFullDesc(!showFullDesc),
       className: "text-xs text-[#c0392b] mt-1"
@@ -5190,13 +5398,15 @@ const App = () => {
         if (!renderLoc) return;
         const isEndpoint = idx === 0 || idx === totalEvents - 1;
         const labelOffset = getMapPointLabelOffset(idx);
+        const pointColor = getLifeColor(loc, idx);
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
         const marker = new AMap.CircleMarker({
           center: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
-          radius: isEndpoint ? 8 : 6.5,
-          strokeColor: getLifeColor(loc, idx),
-          strokeWeight: 3,
-          fillColor: getLifeColor(loc, idx),
-          fillOpacity: 0.35,
+          radius: shouldShowIndex ? isEndpoint ? 10 : 9 : isEndpoint ? 8 : 6.5,
+          strokeColor: pointColor,
+          strokeWeight: shouldShowIndex ? 4 : 3,
+          fillColor: pointColor,
+          fillOpacity: shouldShowIndex ? 0 : 0.35,
           bubble: true,
           zIndex: 180 + idx
         });
@@ -5216,14 +5426,52 @@ const App = () => {
             amapControllerRef.current.focusIndex(idx, true);
           }
         };
+        let indexLabel = null;
+        try {
+          const isActive = idx === activeIndexRef.current;
+          const isPassed = idx < activeIndexRef.current;
+          indexLabel = new AMap.Text({
+            text: String(idx + 1),
+            position: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
+            offset: new AMap.Pixel(0, 0),
+            anchor: 'center',
+            style: {
+              height: '22px',
+              minWidth: '22px',
+              lineHeight: '22px',
+              textAlign: 'center',
+              borderRadius: '999px',
+              background: 'rgba(0,0,0,0)',
+              border: 'none',
+              color: '#111827',
+              fontSize: '14px',
+              fontWeight: '800',
+              textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+              opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+            }
+          });
+        } catch (_) {
+          indexLabel = null;
+        }
         marker.on('click', focusPoint);
         label.on('click', focusPoint);
-        map.add([marker, label]);
+        if (indexLabel && typeof indexLabel.on === 'function') {
+          try {
+            indexLabel.on('click', focusPoint);
+          } catch (_) {}
+        }
+        if (indexLabel && !shouldShowIndex && typeof indexLabel.hide === 'function') {
+          try {
+            indexLabel.hide();
+          } catch (_) {}
+        }
+        map.add(indexLabel ? [marker, label, indexLabel] : [marker, label]);
         pointEntries.push({
           idx,
           loc,
           marker,
           label,
+          indexLabel,
           isEndpoint
         });
       });
@@ -5246,7 +5494,7 @@ const App = () => {
       }
       const updateAmapLabelVisibility = activeIdx => {
         const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-        const visibleIndexes = getPreferredLabelIndexes({
+        const visibleIndexes = computeVisibleLabelIndexes(activeIdx, {
           activeIdx,
           detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
           isVisible: (lng, lat) => {
@@ -5283,6 +5531,48 @@ const App = () => {
           try {
             if (entry.label && typeof entry.label.show === 'function' && typeof entry.label.hide === 'function') {
               if (shouldShow) entry.label.show();else entry.label.hide();
+            }
+          } catch (_) {}
+        });
+      };
+      const updateAmapIndexLabels = activeIdx => {
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+        pointEntries.forEach(entry => {
+          if (!entry.indexLabel) return;
+          const isActive = entry.idx === activeIdx;
+          const isPassed = entry.idx < activeIdx;
+          const pointColor = getLifeColor(entry.loc, entry.idx);
+          try {
+            if (entry.marker && typeof entry.marker.setOptions === 'function') {
+              entry.marker.setOptions({
+                radius: shouldShowIndex ? entry.isEndpoint ? 10 : 9 : entry.isEndpoint ? 8 : 6.5,
+                strokeColor: pointColor,
+                strokeWeight: shouldShowIndex ? 4 : 3,
+                fillColor: pointColor,
+                fillOpacity: shouldShowIndex ? 0 : 0.35
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setStyle === 'function') {
+              entry.indexLabel.setStyle({
+                background: 'rgba(0,0,0,0)',
+                border: 'none',
+                color: '#111827',
+                fontWeight: '800',
+                textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)',
+                opacity: String(isPassed ? 0.82 : isActive ? 1.0 : 0.96)
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.show === 'function' && typeof entry.indexLabel.hide === 'function') {
+              if (shouldShowIndex) entry.indexLabel.show();else entry.indexLabel.hide();
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setzIndex === 'function') {
+              entry.indexLabel.setzIndex(isActive ? 255 : 205 + entry.idx);
             }
           } catch (_) {}
         });
@@ -5344,6 +5634,7 @@ const App = () => {
           }
         }
         updateAmapLabelVisibility(activeIdx);
+        updateAmapIndexLabels(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -5419,6 +5710,19 @@ const App = () => {
         },
         focusIndex,
         setActive,
+        refreshLabels: activeIdx => {
+          const idx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+          pointEntries.forEach(entry => {
+            try {
+              const nextText = getMapPointLabelText(entry.loc, entry.idx);
+              if (entry.label && typeof entry.label.setText === 'function') entry.label.setText(nextText);else if (entry.label && typeof entry.label.setOptions === 'function') entry.label.setOptions({
+                text: nextText
+              });
+            } catch (_) {}
+          });
+          updateAmapLabelVisibility(idx);
+          updateAmapIndexLabels(idx);
+        },
         pulse: () => {},
         applyBaseLayer,
         getState: () => ({
@@ -5674,7 +5978,9 @@ const App = () => {
       };
       const pointSourceId = 'story-point-source';
       const pointHaloId = 'story-point-halo';
+      const pointRingOuterId = 'story-point-ring-outer';
       const pointCoreId = 'story-point-core';
+      const pointIndexLayerId = 'story-point-index';
       const pointLabelSourceId = 'story-point-label-source';
       const pointLabelLayerId = 'story-point-label';
       const isValidMapCoordinatePair = pair => {
@@ -5947,8 +6253,7 @@ const App = () => {
         const pointData = buildPointFeatureCollection(activeIndexRef.current);
         const buildMapLibreVisibleLabelIndexes = activeIdx => {
           const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-          return getPreferredLabelIndexes({
-            activeIdx,
+          return computeVisibleLabelIndexes(activeIdx, {
             detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
             isVisible: (lng, lat) => {
               if (!bounds || typeof bounds.contains !== 'function') return true;
@@ -5975,10 +6280,13 @@ const App = () => {
         if (pointData.features.length) {
           try {
             ensureLayerRemoved(pointHaloId);
+            ensureLayerRemoved(pointRingOuterId);
             ensureLayerRemoved(pointCoreId);
+            ensureLayerRemoved(pointIndexLayerId);
             ensureLayerRemoved(pointLabelLayerId);
             ensureSourceRemoved(pointLabelSourceId);
             ensureSourceRemoved(pointSourceId);
+            const initialShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
             map.addSource(pointSourceId, {
               type: 'geojson',
               data: pointData
@@ -5995,19 +6303,57 @@ const App = () => {
               }
             });
             map.addLayer({
+              id: pointRingOuterId,
+              type: 'circle',
+              source: pointSourceId,
+              layout: {
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'circle-radius': ['+', ['get', 'radius'], 2.6],
+                'circle-color': 'rgba(0,0,0,0)',
+                'circle-opacity': 0,
+                'circle-stroke-color': 'rgba(0,0,0,0.62)',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 5.6
+              }
+            });
+            map.addLayer({
               id: pointCoreId,
               type: 'circle',
               source: pointSourceId,
               paint: {
                 'circle-radius': ['get', 'radius'],
                 'circle-color': ['get', 'fillColor'],
-                'circle-opacity': ['get', 'fillOpacity'],
-                'circle-stroke-color': ['get', 'strokeColor'],
-                'circle-stroke-width': ['get', 'strokeWeight']
+                'circle-opacity': initialShowIndex ? 0 : ['get', 'fillOpacity'],
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 3.4
               }
             });
-            pointLayers.push(pointHaloId, pointCoreId);
-            extraLayerIds.push(pointHaloId, pointCoreId);
+            map.addLayer({
+              id: pointIndexLayerId,
+              type: 'symbol',
+              source: pointSourceId,
+              layout: {
+                'text-field': ['to-string', ['+', ['get', 'idx'], 1]],
+                'text-size': ['case', ['>=', ['get', 'idx'], 99], 11, ['>=', ['get', 'idx'], 9], 13, 14],
+                'text-anchor': 'center',
+                'text-offset': [0, 0],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'text-color': '#111827',
+                'text-halo-color': 'rgba(255,255,255,0.96)',
+                'text-halo-width': 1.8,
+                'text-halo-blur': 0.2,
+                'text-opacity': 1.0
+              }
+            });
+            pointLayers.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
+            extraLayerIds.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
             extraSourceIds.push(pointSourceId);
           } catch (error) {
             debugEmit('A', 'profile_page.html:renderStoryOverlays', 'point layers skipped after render failure', {
@@ -6067,6 +6413,20 @@ const App = () => {
             if (labelEl) updateMapPointLabelElement(labelEl, loc, idx, activeIdx);
             setMarkerZ(marker, idx === activeIdx ? 280 : idx === 0 || idx === totalEvents - 1 ? 240 : 220);
           });
+        };
+        const updateMapLibreIndexVisibility = () => {
+          const shouldShow = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+          try {
+            if (map.getLayer(pointRingOuterId)) {
+              map.setLayoutProperty(pointRingOuterId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointIndexLayerId)) {
+              map.setLayoutProperty(pointIndexLayerId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointCoreId)) {
+              map.setPaintProperty(pointCoreId, 'circle-opacity', shouldShow ? 0 : ['get', 'fillOpacity']);
+            }
+          } catch (_) {}
         };
         const setActive = activeIdx => {
           activeIndexRef.current = activeIdx;
@@ -6215,6 +6575,7 @@ const App = () => {
           lineIds,
           extraLayerIds,
           extraSourceIds,
+          markers,
           pointSourceId,
           pointCoreId,
           clear: () => {
@@ -6330,6 +6691,11 @@ const App = () => {
             focusTimelineIndex(nextIdx, pulse);
           },
           setActive,
+          refreshLabels: activeIdx => {
+            const nextIdx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+            updateMapLibreLabelVisibility(nextIdx);
+            updateMapLibreIndexVisibility();
+          },
           pulse: pulseByIndex,
           getState: () => ({
             engine: 'maplibre',
@@ -6348,6 +6714,7 @@ const App = () => {
         };
         maplibreControllerRef.current = controller;
         updateMapLibreLabelVisibility(activeIndexRef.current);
+        updateMapLibreIndexVisibility();
         if (!isTerrain3DMode(currentBaseLayerRef.current)) {
           mapRef.current = controller;
         }
@@ -7227,6 +7594,17 @@ const App = () => {
     };
   }, [mapLayerType, mapRecoveryTick]);
   useEffect(() => {
+    if (didAutoFitOnLoadRef.current) return;
+    if (mapLoadState !== 'ready') return;
+    if (initialLocFromHash || hasLocHash()) return;
+    const controller = mapRef.current;
+    if (!controller || typeof controller.fitAll !== 'function') return;
+    didAutoFitOnLoadRef.current = true;
+    try {
+      controller.fitAll(false);
+    } catch (_) {}
+  }, [mapLoadState, initialLocFromHash]);
+  useEffect(() => {
     if (typeof window === 'undefined' || !window.history) return;
     if (!skippedInitialHashWriteRef.current && !initialLocFromHash && activeIndex === initialLocIdx) {
       skippedInitialHashWriteRef.current = true;
@@ -7296,6 +7674,10 @@ const App = () => {
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const mapReady = mapLoadState === 'ready';
   const mapLoading = mapLoadState === 'loading';
+  const labelTotalCount = totalEvents;
+  const labelCustomVisible = labelPrefs?.customVisible && typeof labelPrefs.customVisible === 'object' ? labelPrefs.customVisible : null;
+  const labelCustomHasKeys = Boolean(labelCustomVisible && Object.keys(labelCustomVisible).length);
+  const labelSelectedCount = labelPrefs?.showLabel ? labelCustomHasKeys ? Object.keys(labelCustomVisible).filter(k => Boolean(labelCustomVisible[k])).length : labelTotalCount : 0;
   const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图';
   const mapLazyCopy = mapLoading ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。' : mapLoadState === 'error' ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。' : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。';
   const mapLazyActionLabel = mapLoading ? '正在加载地图…' : mapLoadState === 'error' ? '重试加载地图' : '立即加载地图';
@@ -7754,6 +8136,8 @@ const App = () => {
       }
     }
     if (!staticSite || isLocalHost) {
+      pushUrl('http://127.0.0.1:8877/api/ai/proxy');
+      pushUrl('http://localhost:8877/api/ai/proxy');
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
@@ -7771,6 +8155,29 @@ const App = () => {
       }
     }).filter(Boolean);
   };
+  const _chatCompositeAbortController = signal => {
+    if (typeof AbortController !== 'function') return null;
+    const controller = new AbortController();
+    const src = signal;
+    if (src && typeof src === 'object') {
+      if (src.aborted) {
+        try {
+          controller.abort();
+        } catch (_) {}
+      } else if (typeof src.addEventListener === 'function') {
+        try {
+          src.addEventListener('abort', () => {
+            try {
+              controller.abort();
+            } catch (_) {}
+          }, {
+            once: true
+          });
+        } catch (_) {}
+      }
+    }
+    return controller;
+  };
   const _postChat = async (messages, {
     onDelta,
     signal
@@ -7780,8 +8187,37 @@ const App = () => {
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
-    for (const url of tryUrls) {
+    const _tryOnce = async (url, {
+      stream
+    }) => {
+      const controller = _chatCompositeAbortController(signal);
+      const requestSignal = controller ? controller.signal : signal;
+      let idleTimer = null;
+      let idleTimedOut = false;
+      let lastChunkAt = Date.now();
+      let hadAnyChunk = false;
+      const startIdleWatch = () => {
+        if (!controller) return;
+        idleTimer = setInterval(() => {
+          const elapsed = Date.now() - lastChunkAt;
+          const limit = hadAnyChunk ? 20000 : 9000;
+          if (elapsed >= limit) {
+            idleTimedOut = true;
+            try {
+              controller.abort();
+            } catch (_) {}
+          }
+        }, 500);
+      };
+      const stopIdleWatch = () => {
+        if (idleTimer) {
+          clearInterval(idleTimer);
+          idleTimer = null;
+        }
+      };
       try {
+        startIdleWatch();
+        const signal = requestSignal;
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -7792,7 +8228,7 @@ const App = () => {
           body: JSON.stringify({
             messages,
             temperature: 0.5,
-            stream: true,
+            stream: !!stream,
             context: {
               personName: String(data?.person?.name || '').trim()
             }
@@ -7803,7 +8239,7 @@ const App = () => {
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
-        if (!contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
+        if (!stream || !contentType.includes('text/event-stream') || !resp.body || typeof TextDecoder === 'undefined') {
           const text = await resp.text();
           return JSON.parse(text);
         }
@@ -7817,6 +8253,10 @@ const App = () => {
             done,
             value
           } = await reader.read();
+          if (value && value.length) {
+            hadAnyChunk = true;
+            lastChunkAt = Date.now();
+          }
           buffer += decoder.decode(value || new Uint8Array(), {
             stream: !done
           });
@@ -7867,6 +8307,34 @@ const App = () => {
           meta
         };
       } catch (e) {
+        if (idleTimedOut && !(signal && signal.aborted)) {
+          const err = new Error('STREAM_IDLE_TIMEOUT');
+          err.cause = e;
+          throw err;
+        }
+        throw e;
+      } finally {
+        stopIdleWatch();
+      }
+    };
+    for (const url of tryUrls) {
+      try {
+        return await _tryOnce(url, {
+          stream: true,
+          mode: 'sse'
+        });
+      } catch (e) {
+        if (!(signal && signal.aborted) && String(e?.message || '').trim() === 'STREAM_IDLE_TIMEOUT') {
+          try {
+            return await _tryOnce(url, {
+              stream: false,
+              mode: 'json'
+            });
+          } catch (retryErr) {
+            lastErr = retryErr;
+            continue;
+          }
+        }
         lastErr = e;
       }
     }
@@ -8145,7 +8613,23 @@ const App = () => {
     onClick: toggleAutoPlay,
     disabled: totalEvents <= 1,
     className: "theme-button-secondary px-3 py-1.5 rounded-lg text-xs text-[var(--color-text-secondary)] disabled:opacity-40"
-  }, isAutoPlaying ? '停止播放' : '自动播放'))), React.createElement("div", {
+  }, isAutoPlaying ? '停止播放' : '自动播放'), React.createElement("div", {
+    className: "w-px h-5 bg-[rgba(26,115,232,0.18)]"
+  }), React.createElement("div", {
+    className: "flex items-center gap-1.5 flex-wrap"
+  }, React.createElement("span", {
+    className: "text-[11px] text-[var(--color-text-tertiary)]"
+  }, "\u5730\u56FE\u6807\u8BB0"), React.createElement("label", {
+    className: `theme-chip-muted inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-normal shadow-sm ${labelPrefs?.showLabel ? 'border-[rgba(26,115,232,0.22)] bg-white/90 text-[var(--color-text-secondary)]' : ''} ${labelTotalCount <= 0 ? 'opacity-50' : ''}`,
+    title: labelTotalCount ? `标签：${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签'
+  }, React.createElement("span", null, "\u6807\u7B7E"), React.createElement("input", {
+    type: "checkbox",
+    checked: Boolean(labelPrefs?.showLabel),
+    disabled: labelTotalCount <= 0,
+    onChange: toggleShowLabel,
+    "aria-label": labelTotalCount ? `切换地图标签（年龄+地点），当前 ${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的标签',
+    className: "h-3.5 w-3.5 accent-[var(--color-primary)] cursor-pointer disabled:cursor-not-allowed"
+  }))))), React.createElement("div", {
     className: "mt-3 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between"
   }, React.createElement("div", {
     className: "flex items-center gap-3 min-w-0 flex-wrap"
@@ -8193,6 +8677,7 @@ const App = () => {
     }
   }, locations.map((loc, idx) => {
     const ageText = getAgeText(loc) || (idx === 0 ? '年龄待考' : idx === totalEvents - 1 ? '终章' : '年龄待考');
+    const ageBadgeText = isPosthumousEvent(loc) ? '身后' : ageText;
     const stageText = getLifeStage(loc, idx);
     const lifeColor = getLifeColor(loc, idx);
     const lifeProgress = Math.round(getLifeProgress(loc, idx) * 100);
@@ -8259,6 +8744,19 @@ const App = () => {
     }, React.createElement("div", {
       className: "flex items-center gap-2 flex-wrap"
     }, React.createElement("span", {
+      className: "inline-flex items-center justify-center font-bold text-white shrink-0",
+      style: {
+        width: `${Math.round(22 * timelineZoom)}px`,
+        height: `${Math.round(22 * timelineZoom)}px`,
+        borderRadius: '999px',
+        background: lifeColor,
+        border: `2px solid ${hexToRgba('#ffffff', idx === activeIndex ? 0.98 : 0.92)}`,
+        boxShadow: idx === activeIndex ? `0 12px 24px ${hexToRgba(lifeColor, 0.3)}` : `0 8px 18px ${hexToRgba(lifeColor, 0.2)}`,
+        fontSize: `${Math.round(12 * timelineZoom)}px`,
+        lineHeight: '1',
+        opacity: idx < activeIndex ? 0.86 : 1
+      }
+    }, idx + 1), React.createElement("span", {
       className: "font-bold truncate",
       style: {
         fontSize: `${Math.round(14 * timelineZoom)}px`
@@ -8271,7 +8769,7 @@ const App = () => {
         borderColor: hexToRgba(lifeColor, 0.3),
         background: hexToRgba(lifeColor, 0.08)
       }
-    }, ageText), React.createElement("span", {
+    }, ageBadgeText), React.createElement("span", {
       className: "px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
@@ -8284,12 +8782,28 @@ const App = () => {
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.ancientName, " : ", loc.modernName)), React.createElement("span", {
+    }, loc.ancientName, " : ", loc.modernName)), React.createElement("div", {
+      className: "flex flex-col items-end gap-2 shrink-0"
+    }, React.createElement("span", {
       className: "px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500",
       style: {
         fontSize: `${Math.round(10 * timelineZoom)}px`
       }
-    }, loc.time || '未知')), React.createElement("div", {
+    }, loc.time || '未知'), React.createElement("button", {
+      type: "button",
+      className: `theme-chip-muted inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-normal shadow-none transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.2)] bg-white/88 text-[var(--color-text-secondary)]' : 'border-transparent bg-white/55 text-gray-500 hover:bg-white/72'}`,
+      onClick: e => {
+        e.stopPropagation();
+        toggleCustomLabelIndex(idx);
+      },
+      "aria-label": `切换第${idx + 1}站标签`,
+      "aria-pressed": Boolean(labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false))
+    }, React.createElement("span", {
+      "aria-hidden": "true",
+      className: `inline-flex h-3 w-3 items-center justify-center rounded-[3px] border transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.4)] bg-[rgba(26,115,232,0.12)]' : 'border-[rgba(148,163,184,0.5)] bg-white/80'}`
+    }, React.createElement("span", {
+      className: `h-1.5 w-1.5 rounded-[2px] transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'bg-[var(--color-primary)]' : 'bg-transparent'}`
+    })), React.createElement("span", null, "\u6807\u7B7E")))), React.createElement("div", {
       className: "space-y-1 text-gray-500 mb-2",
       style: {
         fontSize: `${Math.round(11 * timelineZoom)}px`

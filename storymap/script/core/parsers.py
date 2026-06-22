@@ -9,12 +9,8 @@ from typing import Dict, List, Optional, Tuple
 
 _BANNED_PLACE_KEYS = {"中国", "全国", "世界", "海外", "国内", "各地"}
 
-try:
-    from .models import BasicInfo, LocationEntry, ParsedStoryDocument
-    from .project_paths import data_corpus_file_path
-except ImportError:
-    from models import BasicInfo, LocationEntry, ParsedStoryDocument
-    from project_paths import data_corpus_file_path
+from .models import BasicInfo, LocationEntry, ParsedStoryDocument
+from .project_paths import data_corpus_file_path
 
 
 def _is_table_separator(line: str) -> bool:

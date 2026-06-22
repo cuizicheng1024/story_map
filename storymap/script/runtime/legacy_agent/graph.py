@@ -20,54 +20,31 @@ except Exception:
     StateGraph = None
     _LANGGRAPH_AVAILABLE = False
 
-try:
-    from ...agent import generation_service as generation_service_utils
-    from ... import parsers as parser_utils
-    from ...project_paths import classify_story_person_authenticity
-    from .llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
-    from .memory import StoryAgentMemoryStore, get_default_memory_store
-    from .fallbacks import (
-        fallback_generate_markdown,
-        fallback_search_result,
-        fallback_validation,
-    )
-    from .runtime import build_runtime_reflection, build_runtime_reflection_prompt
-    from .router import build_supervisor_update, resolve_next_step
-    from .state import (
-        AgentIssue,
-        SearchSource,
-        StoryAgentState,
-        append_trace,
-        create_initial_state,
-        max_revisions_limit,
-        merge_state,
-        record_degraded_reason,
-    )
-    from .telemetry import copy_memory_counters, set_memory_access, update_memory_counters
-    from .tool_runner import ToolCallError, call_tool
-    from ...story_tooling import tool
-except ImportError:
-    import generation_service as generation_service_utils
-    import parsers as parser_utils
-    from project_paths import classify_story_person_authenticity
-    from story_agent_llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
-    from story_agent_memory import StoryAgentMemoryStore, get_default_memory_store
-    from story_agent_fallbacks import fallback_generate_markdown, fallback_search_result, fallback_validation
-    from story_agent_runtime import build_runtime_reflection, build_runtime_reflection_prompt
-    from story_agent_router import build_supervisor_update, resolve_next_step
-    from story_agent_state import (
-        AgentIssue,
-        SearchSource,
-        StoryAgentState,
-        append_trace,
-        create_initial_state,
-        max_revisions_limit,
-        merge_state,
-        record_degraded_reason,
-    )
-    from story_agent_telemetry import copy_memory_counters, set_memory_access, update_memory_counters
-    from story_agent_tool_runner import ToolCallError, call_tool
-    from story_tooling import tool
+from ...agent import generation_service as generation_service_utils
+from ...cli.tooling import tool
+from ...core import parsers as parser_utils
+from ...core.project_paths import classify_story_person_authenticity
+from .fallbacks import (
+    fallback_generate_markdown,
+    fallback_search_result,
+    fallback_validation,
+)
+from .llm_parser import coerce_issue, coerce_issue_list, parse_json_payload
+from .memory import StoryAgentMemoryStore, get_default_memory_store
+from .router import build_supervisor_update, resolve_next_step
+from .runtime import build_runtime_reflection, build_runtime_reflection_prompt
+from .state import (
+    AgentIssue,
+    SearchSource,
+    StoryAgentState,
+    append_trace,
+    create_initial_state,
+    max_revisions_limit,
+    merge_state,
+    record_degraded_reason,
+)
+from .telemetry import copy_memory_counters, set_memory_access, update_memory_counters
+from .tool_runner import ToolCallError, call_tool
 
 
 _DYNASTY_TOKENS = (
@@ -174,18 +151,12 @@ def _project_root() -> Path:
 
 
 def _geocode_service_utils():
-    try:
-        from ... import geocode_service as geocode_service_utils
-    except ImportError:
-        import geocode_service as geocode_service_utils
+    from ...map import geocode_service as geocode_service_utils
     return geocode_service_utils
 
 
 def _geocode_api_utils():
-    try:
-        from ... import story_geocode_api as story_geocode_api_utils
-    except ImportError:
-        import story_geocode_api as story_geocode_api_utils
+    from ...map import geocode_api as story_geocode_api_utils
     return story_geocode_api_utils
 
 

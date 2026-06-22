@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import project_paths
+from storymap.script.core import project_paths
 from storymap.script.core import project_paths as core_project_paths
 
 

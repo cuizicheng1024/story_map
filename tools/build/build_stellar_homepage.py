@@ -9,7 +9,6 @@ import math
 import os
 import re
 import shutil
-import subprocess
 import sys
 import threading
 import time
@@ -21,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as url_quote
 from urllib.request import Request, urlopen
 
-from storymap.script.project_paths import (
+from storymap.script.core.project_paths import (
     data_corpus_file_path,
     data_corpus_dir_path,
     data_reports_dir_path,
@@ -32,8 +31,9 @@ from storymap.script.project_paths import (
     story_md_dir_path,
     story_person_names,
 )
-from storymap.script.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
-from storymap.script.person_tooltip_js import person_tooltip_js
+from storymap.script.core.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
+from storymap.script.profile.tooltip_js import person_tooltip_js
+from storymap.script.core.build_meta import build_artifact_meta
 
 try:
     from tools.build.homepage_search import HAS_PINYIN, build_search_fields
@@ -50,8 +50,8 @@ try:
 except Exception:
     load_dotenv = None
 try:
-    from storymap.script.env_utils import apply_story_map_env_aliases, env_flag
-    from storymap.script.graph_service import (
+    from storymap.script.core.env_utils import apply_story_map_env_aliases, env_flag
+    from storymap.script.profile.graph_service import (
         graph_backend_name,
         load_home_graph_payload_with_source,
         should_sync_to_neo4j,
@@ -102,7 +102,6 @@ HOME_DETAIL_NODE_FIELDS: Tuple[str, ...] = (
 )
 MIN_YEAR = -800
 MAX_YEAR = 2000
-DEFAULT_GA_MEASUREMENT_ID = "G-B8F24PMY4F"
 ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
     ("military", "军事", ("军事家", "兵家", "将领", "将军", "武将", "统帅", "元帅", "名将", "军人", "起义军领袖")),
     ("politics", "政治", ("政治家", "改革家", "革命家", "外交家", "领袖", "君主", "帝王", "皇帝", "总统", "丞相", "宰相", "大臣", "官员", "赞普", "首领")),
@@ -168,35 +167,14 @@ def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def _git_head() -> str:
-    try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            cwd=str(REPO_ROOT),
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except Exception:
-        return ""
-
-
 def _build_payload_meta() -> Dict[str, object]:
-    run_id = str(os.getenv("GITHUB_RUN_ID") or "").strip()
-    run_attempt = str(os.getenv("GITHUB_RUN_ATTEMPT") or "").strip()
-    source_commit = str(os.getenv("GITHUB_SHA") or "").strip() or _git_head()
-    return {
-        "generated_at": _now(),
-        "source_commit": source_commit,
-        "pages_run_id": int(run_id) if run_id.isdigit() else run_id,
-        "pages_run_attempt": int(run_attempt) if run_attempt.isdigit() else run_attempt,
-    }
+    return build_artifact_meta(component="stellar_homepage", build_at=_now().replace(" ", "T"))
 
 
 def _analytics_head_html() -> str:
     measurement_id = (
         str(os.getenv("MAP_STORY_GA_MEASUREMENT_ID", "")).strip()
         or str(os.getenv("GA_MEASUREMENT_ID", "")).strip()
-        or DEFAULT_GA_MEASUREMENT_ID
     )
     if not measurement_id:
         return ""
@@ -1385,11 +1363,33 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         color: var(--color-text-secondary);
         max-width: 760px;
       }}
+      .home-search-hint-line {{
+        display: block;
+        text-align: left;
+      }}
+      .home-search-hint-runtime {{
+        display: block;
+        text-align: left;
+      }}
       .home-bili-highlight {{
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+        padding: 2px 8px 2px 0;
+        border-radius: 8px;
+        background: #fef08a;
         font-size: 15px;
         line-height: 1.75;
         font-weight: 700;
-        color: var(--color-text);
+        color: #713f12;
+        text-align: left;
+      }}
+      .home-runtime-note {{
+        display: block;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.6;
+        text-align: left;
       }}
       .home-bili-highlight a {{
         color: #1d4ed8;
@@ -1506,15 +1506,19 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         right: 16px;
         bottom: 16px;
         z-index: 160;
-        width: min(388px, calc(100vw - 24px));
-        max-height: min(680px, calc(100vh - 32px));
+        width: min(1180px, calc(100vw - 24px));
+        max-height: min(920px, calc(100vh - 24px));
+      }}
+      .pixel-progress-shell.is-collapsed {{
+        width: min(136px, calc(100vw - 24px));
+        max-height: 40px;
       }}
       .pixel-progress-panel {{
         position: relative;
         display: flex;
         flex-direction: column;
         width: 100%;
-        max-height: min(680px, calc(100vh - 32px));
+        max-height: min(920px, calc(100vh - 24px));
         border-radius: 4px;
         overflow: hidden;
         border: 3px solid #1d4ed8;
@@ -1534,6 +1538,17 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           0 26px 34px rgba(9, 15, 37, 0.48);
         color: #edf2ff;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-panel {{
+        border-width: 2px;
+        border-radius: 999px;
+        box-shadow:
+          0 0 0 1px #071632,
+          0 0 0 4px rgba(8, 15, 37, 0.92),
+          0 6px 10px rgba(9, 15, 37, 0.22);
+      }}
+      .pixel-progress-shell[role="button"] {{
+        cursor: pointer;
       }}
       .pixel-progress-panel::before {{
         content: "";
@@ -1565,6 +1580,12 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           linear-gradient(180deg, rgba(55,102,214,0.46), rgba(20,47,128,0.28));
         border-bottom: 3px solid rgba(66, 133, 244, 0.42);
       }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-header {{
+        gap: 0;
+        padding: 4px 8px;
+        border-bottom-width: 0;
+        min-height: 28px;
+      }}
       .pixel-progress-title {{
         flex: 1 1 auto;
         min-width: 0;
@@ -1573,11 +1594,18 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         align-items: center;
         column-gap: 10px;
       }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-title {{
+        grid-template-columns: 10px minmax(0, 1fr);
+        column-gap: 6px;
+      }}
       .pixel-progress-actions {{
         display: flex;
         align-items: center;
         gap: 6px;
         flex: 0 0 auto;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-actions {{
+        display: none;
       }}
       .pixel-progress-lamp {{
         width: 10px;
@@ -1620,6 +1648,12 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         text-transform: uppercase;
         color: rgba(191, 219, 254, 0.76);
       }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-caption {{
+        display: none;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-meta {{
+        display: none;
+      }}
       .pixel-progress-person {{
         margin-top: 0;
         font-size: 18px;
@@ -1629,6 +1663,25 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         overflow: hidden;
         text-overflow: ellipsis;
         text-shadow: 2px 2px 0 rgba(10, 16, 35, 0.45);
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-person {{
+        font-size: 15px;
+        line-height: 1.2;
+      }}
+      .pixel-progress-compact {{
+        display: none;
+        min-width: 0;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #e5efff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.1;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-compact {{
+        display: block;
       }}
       .pixel-progress-badge {{
         min-width: 54px;
@@ -1643,6 +1696,9 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         text-align: center;
         box-shadow: inset 0 -2px 0 rgba(0,0,0,0.26), 2px 2px 0 rgba(8, 11, 23, 0.28);
         justify-self: start;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-badge {{
+        display: none;
       }}
       .pixel-progress-badge.is-idle {{
         background: rgba(66, 133, 244, 0.18);
@@ -1683,6 +1739,21 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.22), 2px 2px 0 rgba(8, 11, 23, 0.28);
         flex: 0 0 auto;
       }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-icon-btn {{
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+        border-radius: 999px;
+        margin-left: 2px;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-panel::before {{
+        display: none;
+      }}
+      .pixel-progress-shell.is-collapsed .pixel-progress-lamp {{
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }}
       .pixel-progress-body {{
         padding: 12px;
         display: flex;
@@ -1690,6 +1761,37 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         gap: 10px;
         min-height: 0;
         overflow: auto;
+      }}
+      .pixel-progress-body.is-star-office-only > :not(.pixel-progress-iframe-shell) {{
+        display: none !important;
+      }}
+      .pixel-progress-iframe-shell {{
+        position: relative;
+        border: 2px solid rgba(66, 133, 244, 0.24);
+        border-radius: 4px;
+        overflow: hidden;
+        background: rgba(8, 15, 36, 0.86);
+        min-height: 560px;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03);
+      }}
+      .pixel-progress-iframe-head {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(66, 133, 244, 0.16);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(191, 219, 254, 0.72);
+      }}
+      .pixel-progress-iframe {{
+        display: block;
+        width: 100%;
+        height: 740px;
+        border: 0;
+        background: #1a1a2e;
       }}
       .pixel-progress-scene {{
         position: relative;
@@ -2453,6 +2555,49 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         color: #e2e8f0;
         word-break: break-word;
       }}
+      .pixel-progress-opsbar {{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }}
+      .pixel-progress-opschip {{
+        padding: 7px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        background: rgba(15, 23, 42, 0.46);
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
+      }}
+      .pixel-progress-opschip-label {{
+        font-size: 9px;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.74);
+      }}
+      .pixel-progress-opschip-value {{
+        margin-top: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #e2e8f0;
+        line-height: 1.35;
+        word-break: break-word;
+      }}
+      .pixel-progress-opschip.is-success {{
+        border-color: rgba(52, 168, 83, 0.22);
+        background: rgba(52, 168, 83, 0.12);
+      }}
+      .pixel-progress-opschip.is-warning {{
+        border-color: rgba(251, 188, 4, 0.24);
+        background: rgba(251, 188, 4, 0.12);
+      }}
+      .pixel-progress-opschip.is-error {{
+        border-color: rgba(234, 67, 53, 0.24);
+        background: rgba(234, 67, 53, 0.1);
+      }}
+      .pixel-progress-opschip.is-muted {{
+        border-color: rgba(148, 163, 184, 0.12);
+        background: rgba(15, 23, 42, 0.46);
+      }}
       .pixel-progress-agents {{
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2573,7 +2718,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           right: 12px;
           bottom: 12px;
           width: calc(100vw - 24px);
-          max-height: min(640px, calc(100vh - 68px));
+          max-height: min(760px, calc(100vh - 20px));
         }}
         .pixel-progress-workbench {{
           gap: 10px;
@@ -2586,6 +2731,12 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }}
         .pixel-progress-agents {{
           grid-template-columns: repeat(3, minmax(0, 1fr));
+        }}
+        .pixel-progress-opsbar {{
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }}
+        .pixel-progress-iframe {{
+          height: 620px;
         }}
       }}
     </style>
@@ -2616,7 +2767,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
-          <div id="searchHint" class="home-title-sub mt-2"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
+          <div id="searchHint" class="home-title-sub mt-2"><span class="home-search-hint-line"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong></span><span class="home-bili-highlight">2. 欢迎B站用户投币 投币 三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
             <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
@@ -2627,11 +2778,12 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>
       </div>
-      <div id="pixelGenPanel" class="pixel-progress-shell">
+      <div id="pixelGenPanel" class="pixel-progress-shell is-collapsed" tabindex="0" role="button" aria-label="打开橙子Agent工作台" title="打开橙子Agent工作台">
         <div class="pixel-progress-panel">
           <div class="pixel-progress-header">
             <div class="pixel-progress-title">
               <div id="pixelGenLamp" class="pixel-progress-lamp"></div>
+              <div id="pixelGenCompactText" class="pixel-progress-compact">待命中</div>
               <div class="pixel-progress-meta">
                 <div class="pixel-progress-caption">Story Console</div>
                 <div id="pixelGenPerson" class="pixel-progress-person">橙子Agent</div>
@@ -2642,7 +2794,20 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button" aria-expanded="false" aria-label="展开看板" title="展开看板">+</button>
             </div>
           </div>
-          <div id="pixelGenBody" class="pixel-progress-body" style="display:none">
+          <div id="pixelGenBody" class="pixel-progress-body is-star-office-only" style="display:none">
+            <div class="pixel-progress-iframe-shell">
+              <div class="pixel-progress-iframe-head">
+                <span>Star Office</span>
+              </div>
+              <iframe
+                id="pixelGenOfficeFrame"
+                class="pixel-progress-iframe"
+                src="./orange-office.html"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                title="Star Office UI 工作台"
+              ></iframe>
+            </div>
             <div id="pixelGenScene" class="pixel-progress-scene">
               <div id="pixelGenSceneTitle" class="pixel-progress-scene-title">工位</div>
               <div id="pixelGenSceneLights" class="pixel-progress-status-lights">
@@ -2665,6 +2830,24 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             <div class="pixel-progress-stage-wrap">
               <div id="pixelGenStage" class="pixel-progress-stage">空闲中</div>
               <div id="pixelGenStatusText" class="pixel-progress-status">待命</div>
+            </div>
+            <div id="pixelGenOpsBar" class="pixel-progress-opsbar">
+              <div id="pixelGenOpsServe" class="pixel-progress-opschip is-muted">
+                <div class="pixel-progress-opschip-label">浏览态</div>
+                <div class="pixel-progress-opschip-value">检查中</div>
+              </div>
+              <div id="pixelGenOpsGenerate" class="pixel-progress-opschip is-muted">
+                <div class="pixel-progress-opschip-label">生成态</div>
+                <div class="pixel-progress-opschip-value">检查中</div>
+              </div>
+              <div id="pixelGenOpsQueue" class="pixel-progress-opschip is-muted">
+                <div class="pixel-progress-opschip-label">队列</div>
+                <div class="pixel-progress-opschip-value">等待采样</div>
+              </div>
+              <div id="pixelGenOpsDeps" class="pixel-progress-opschip is-muted">
+                <div class="pixel-progress-opschip-label">依赖</div>
+                <div class="pixel-progress-opschip-value">等待采样</div>
+              </div>
             </div>
             <div class="pixel-progress-group">
               <div class="pixel-progress-group-label">流程阶段</div>
@@ -2823,6 +3006,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
           const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith(".local");
           if (!loc || loc.protocol === "file:" || !isDevHost) return "";
+          if (!STATIC_SITE) return "";
           const runtimeHost = host === "::1" ? "127.0.0.1" : (loc.hostname || "127.0.0.1");
           return loc.protocol + "//" + runtimeHost + ":8765";
         }} catch (_) {{
@@ -2899,7 +3083,14 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const $pixelGenPercent = document.getElementById("pixelGenPercent");
       const $pixelGenFill = document.getElementById("pixelGenFill");
       const $pixelGenToggle = document.getElementById("pixelGenToggle");
+      const $pixelGenCompactText = document.getElementById("pixelGenCompactText");
+      const $pixelGenOpsServe = document.getElementById("pixelGenOpsServe");
+      const $pixelGenOpsGenerate = document.getElementById("pixelGenOpsGenerate");
+      const $pixelGenOpsQueue = document.getElementById("pixelGenOpsQueue");
+      const $pixelGenOpsDeps = document.getElementById("pixelGenOpsDeps");
       const pixelGenSceneLights = Array.from(document.querySelectorAll("#pixelGenSceneLights .pixel-progress-scene-light"));
+      const STAR_OFFICE_URL = "./orange-office.html";
+      const STAR_OFFICE_OPEN_IN_NEW_TAB = true;
       const $resetMap = document.getElementById("resetMap");
       const $mapStyle = document.getElementById("mapStyle");
       const $mapToolbar = document.getElementById("mapToolbar");
@@ -4336,6 +4527,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }},
       ];
       let pixelGenCollapsed = true;
+      let pixelGenPinnedExpanded = false;
+      let pixelGenHovering = false;
       let pixelGenDetailExpanded = false;
       let pixelGenTypingSeq = 0;
       let pixelGenTypingTimer = null;
@@ -4352,6 +4545,69 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         stageKey: "queued",
         speechText: "",
         idleSceneKey: "idle",
+      }};
+      let currentGeneratePerson = "";
+      let pendingPersonPageTab = null;
+      let pendingPersonPageTabPerson = "";
+      const runtimeReadinessEnabled = !STATIC_SITE || !!resolvedApiBase;
+      const SEARCH_HINT_LINE_ONE_HTML = '<span class="home-search-hint-line"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong></span>';
+      const SEARCH_HINT_LINE_TWO_HTML = '<span class="home-bili-highlight">2. 欢迎B站用户投币 投币 三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>';
+      const DEFAULT_SEARCH_HINT_HTML = SEARCH_HINT_LINE_ONE_HTML + SEARCH_HINT_LINE_TWO_HTML;
+      const buildSearchHintHtml = (runtimeLine = "") => {{
+        const runtime = String(runtimeLine || "").trim();
+        return SEARCH_HINT_LINE_ONE_HTML + (runtime ? `<span class="home-search-hint-runtime">${{runtime}}</span>` : "") + SEARCH_HINT_LINE_TWO_HTML;
+      }};
+      let runtimeAvailability = {{
+        checked: false,
+        backendExpected: runtimeReadinessEnabled,
+        backendAvailable: !runtimeReadinessEnabled,
+        serveReady: !runtimeReadinessEnabled,
+        generateReady: !runtimeReadinessEnabled,
+        mode: runtimeReadinessEnabled ? "checking" : "browser_only",
+        summary: runtimeReadinessEnabled ? "正在检查实时生成服务…" : requireBackend("实时人物分析"),
+        queuePending: 0,
+        queueLimit: 0,
+        dependencySummary: runtimeReadinessEnabled ? "检查中" : "未接入后端",
+        alerts: [],
+      }};
+      const renderOpsChip = (el, tone, value) => {{
+        if (!el) return;
+        const normalizedTone = String(tone || "muted").trim() || "muted";
+        el.className = "pixel-progress-opschip is-" + normalizedTone;
+        const valueEl = el.querySelector(".pixel-progress-opschip-value");
+        if (valueEl) valueEl.textContent = String(value || "").trim() || "待命";
+      }};
+      const resolveRuntimeBlockMessage = () => {{
+        if (runtimeAvailability.mode === "browser_only") return requireBackend("实时人物分析");
+        if (runtimeAvailability.mode === "backend_unreachable") return "后端暂时不可达，当前仅支持浏览已生成人物页，请稍后再试。";
+        if (runtimeAvailability.mode === "serve_unready") return "服务正在恢复，当前可稍后再试实时生成。";
+        if (runtimeAvailability.mode === "generate_paused") return "实时生成人物暂时暂停，可先浏览已有内容，稍后再试。";
+        return "";
+      }};
+      const syncRuntimeOpsBoard = () => {{
+        const queueValue = runtimeAvailability.checked
+          ? (runtimeAvailability.queueLimit > 0 ? `${{runtimeAvailability.queuePending}} / ${{runtimeAvailability.queueLimit}}` : String(runtimeAvailability.queuePending || 0))
+          : "等待采样";
+        renderOpsChip(
+          $pixelGenOpsServe,
+          runtimeAvailability.mode === "serve_unready" || runtimeAvailability.mode === "backend_unreachable" ? "error" : "success",
+          runtimeAvailability.mode === "backend_unreachable" ? "后端离线" : (runtimeAvailability.serveReady ? "可浏览" : "恢复中"),
+        );
+        renderOpsChip(
+          $pixelGenOpsGenerate,
+          runtimeAvailability.generateReady ? "success" : (runtimeAvailability.mode === "generate_paused" ? "warning" : "error"),
+          runtimeAvailability.generateReady ? "可生成" : (runtimeAvailability.mode === "browser_only" ? "需后端" : "已暂停"),
+        );
+        renderOpsChip(
+          $pixelGenOpsQueue,
+          runtimeAvailability.queuePending > 0 ? "warning" : "muted",
+          queueValue,
+        );
+        renderOpsChip(
+          $pixelGenOpsDeps,
+          runtimeAvailability.generateReady ? "success" : (runtimeAvailability.checked ? "warning" : "muted"),
+          runtimeAvailability.dependencySummary || "等待采样",
+        );
       }};
       const pickPixelIdleState = (excludeKey = "") => {{
         const states = PIXEL_IDLE_STATES.filter((item) => item && item.key !== excludeKey);
@@ -4446,18 +4702,56 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const setPixelPanelCollapsed = (collapsed) => {{
         pixelGenCollapsed = !!collapsed;
         if ($pixelGenBody) $pixelGenBody.style.display = pixelGenCollapsed ? "none" : "";
+        if ($pixelGenPanel) $pixelGenPanel.classList.toggle("is-collapsed", pixelGenCollapsed);
         if ($pixelGenToggle) {{
           $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
           $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
-          $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
-          $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
+          if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
+            $pixelGenToggle.setAttribute("aria-label", "新标签打开工作台");
+            $pixelGenToggle.setAttribute("title", "新标签打开工作台");
+          }} else {{
+            $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
+            $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
+          }}
         }}
+      }};
+      const setPixelPanelPinnedExpanded = (expanded) => {{
+        pixelGenPinnedExpanded = !!expanded;
+      }};
+      const openStarOfficeInNewTab = () => {{
+        try {{
+          const nextTab = window.open(STAR_OFFICE_URL, "_blank", "noopener");
+          if (nextTab) return;
+        }} catch (_) {{}}
+        try {{
+          window.location.href = STAR_OFFICE_URL;
+        }} catch (_) {{}}
+      }};
+      const shouldOpenStarOfficeFromPanelEvent = (target) => {{
+        if (!STAR_OFFICE_OPEN_IN_NEW_TAB) return false;
+        if (!$pixelGenPanel) return false;
+        const node = target instanceof Element ? target : null;
+        if (!node) return true;
+        if ($pixelGenToggle && ($pixelGenToggle === node || $pixelGenToggle.contains(node))) return false;
+        const interactive = node.closest("button, a, input, select, textarea, label, summary, iframe");
+        if (!interactive) return true;
+        return $pixelGenPanel === interactive;
+      }};
+      const openPixelPanelTemporarily = () => {{
+        if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
+        pixelGenHovering = true;
+        if (!pixelGenPinnedExpanded && pixelGenCollapsed) setPixelPanelCollapsed(false);
+      }};
+      const maybeCollapsePixelPanel = () => {{
+        if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
+        pixelGenHovering = false;
+        if (!pixelGenPinnedExpanded) setPixelPanelCollapsed(true);
       }};
       const setPixelSpeechText = (text) => {{
         if ($pixelGenSpeech) $pixelGenSpeech.textContent = String(text || "").trim() || "等待任务状态更新…";
       }};
       const resolvePixelSceneSpeech = (status) => {{
-        if (status === "idle") return String(pixelGenState.speechText || "").trim() || "空闲中";
+        if (status === "idle") return String(pixelGenState.speechText || runtimeAvailability.summary || "").trim() || "空闲中";
         if (status === "queued") return "排队中";
         if (status === "completed") return "已完成";
         if (status === "failed") return "执行失败";
@@ -4509,13 +4803,29 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }}).join("");
       }};
       const resolvePixelStatusText = (status) => {{
-        if (status === "idle") return "待命";
+        if (status === "idle") {{
+          if (runtimeAvailability.mode === "browser_only") return "只读";
+          if (runtimeAvailability.mode === "backend_unreachable" || runtimeAvailability.mode === "serve_unready") return "恢复中";
+          if (runtimeAvailability.mode === "generate_paused") return "降级";
+          return "待命";
+        }}
         if (status === "queued") return "排队";
         if (status === "running") return "执行中";
         if (status === "completed") return "已完成";
         if (status === "failed") return "失败";
         if (status === "partial_failed") return "部分完成";
         return String(status || "").trim() || "待命";
+      }};
+      const resolvePixelCompactText = (status, stageKey) => {{
+        if (status === "running") return `进行中 · ${{resolvePixelStageLabel(status, stageKey)}}`;
+        if (status === "queued") return "排队中";
+        if (status === "completed") return "已生成";
+        if (status === "failed" || status === "partial_failed") return "查看异常";
+        if (runtimeAvailability.mode === "browser_only") return "只读浏览";
+        if (runtimeAvailability.mode === "backend_unreachable") return "后端离线";
+        if (runtimeAvailability.mode === "serve_unready") return "恢复中";
+        if (runtimeAvailability.mode === "generate_paused") return "生成暂停";
+        return "待命中";
       }};
       const renderPixelAgentCards = (status, stageKey) => {{
         if (!$pixelGenAgents) return;
@@ -4570,8 +4880,13 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }}
         const status = String(pixelGenState.status || "running").trim() || "running";
         const stageKey = String(pixelGenState.stageKey || "search").trim() || "search";
-        if ((status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {{
+        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && (status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {{
+          setPixelPanelPinnedExpanded(true);
           setPixelPanelCollapsed(false);
+        }}
+        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && status === "idle" && prevState && prevState.status && prevState.status !== "idle" && !pixelGenHovering) {{
+          setPixelPanelPinnedExpanded(false);
+          setPixelPanelCollapsed(true);
         }}
         const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
         const basePercent = status === "idle"
@@ -4593,6 +4908,9 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         if ($pixelGenStatusBadge) {{
           $pixelGenStatusBadge.className = "pixel-progress-badge " + resolvePixelBadgeClass(status);
           $pixelGenStatusBadge.textContent = resolvePixelStatusText(status);
+        }}
+        if ($pixelGenCompactText) {{
+          $pixelGenCompactText.textContent = resolvePixelCompactText(status, stageKey);
         }}
         if ($pixelGenFooterText) {{
           $pixelGenFooterText.textContent = status === "idle"
@@ -4624,7 +4942,41 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       }};
       try {{
         if ($pixelGenToggle) {{
-          $pixelGenToggle.addEventListener("click", () => setPixelPanelCollapsed(!pixelGenCollapsed));
+          $pixelGenToggle.addEventListener("click", () => {{
+            if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
+              openStarOfficeInNewTab();
+              return;
+            }}
+            if (pixelGenCollapsed) {{
+              setPixelPanelPinnedExpanded(true);
+              setPixelPanelCollapsed(false);
+            }} else {{
+              setPixelPanelPinnedExpanded(false);
+              setPixelPanelCollapsed(true);
+            }}
+          }});
+        }}
+        if ($pixelGenPanel) {{
+          $pixelGenPanel.addEventListener("mouseenter", openPixelPanelTemporarily);
+          $pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);
+          $pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);
+          $pixelGenPanel.addEventListener("click", (event) => {{
+            if (!shouldOpenStarOfficeFromPanelEvent(event.target)) return;
+            openStarOfficeInNewTab();
+          }});
+          $pixelGenPanel.addEventListener("keydown", (event) => {{
+            if (!STAR_OFFICE_OPEN_IN_NEW_TAB) return;
+            if (event.key !== "Enter" && event.key !== " ") return;
+            if (!shouldOpenStarOfficeFromPanelEvent(event.target)) return;
+            event.preventDefault();
+            openStarOfficeInNewTab();
+          }});
+          $pixelGenPanel.addEventListener("focusout", () => {{
+            try {{
+              if ($pixelGenPanel.contains(document.activeElement)) return;
+            }} catch (_) {{}}
+            maybeCollapsePixelPanel();
+          }});
         }}
         if ($pixelGenDetailCard) {{
           $pixelGenDetailCard.addEventListener("click", () => {{
@@ -4663,9 +5015,47 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         $genStatus.textContent = t;
         $genStatus.classList.remove("hidden");
       }};
+      const clearGenerateRequestKey = (personName) => {{
+        const person = String(personName || "").trim();
+        if (!person) return;
+        try {{
+          const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
+          const payload = raw ? JSON.parse(raw) : {{}};
+          if (!payload || typeof payload !== "object") return;
+          delete payload[person];
+          sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(payload));
+        }} catch (_) {{}}
+      }};
+      const isSafeGenerateRequestKey = (value) => /^[A-Za-z0-9._:-]+$/.test(String(value || "").trim());
+      const getGenerateRequestKey = (personName) => {{
+        const person = String(personName || "").trim();
+        if (!person) return "";
+        try {{
+          const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
+          const payload = raw ? JSON.parse(raw) : {{}};
+          const now = Date.now();
+          const hit = payload && typeof payload === "object" ? payload[person] : null;
+          if (hit && typeof hit === "object") {{
+            const createdAt = Number(hit.created_at || 0);
+            const key = String(hit.key || "").trim();
+            if (key && isSafeGenerateRequestKey(key) && createdAt > 0 && (now - createdAt) < 10 * 60 * 1000) return key;
+          }}
+          const fresh = "storymap-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+          const next = payload && typeof payload === "object" ? payload : {{}};
+          next[person] = {{ key: fresh, created_at: now }};
+          sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(next));
+          return fresh;
+        }} catch (_) {{
+          return "storymap-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+        }}
+      }};
       const clearGenTask = () => {{
         clearTaskPoll();
         try {{ localStorage.removeItem("stellar_gen_task_v1"); }} catch (_) {{}}
+        if (currentGeneratePerson) clearGenerateRequestKey(currentGeneratePerson);
+        currentGeneratePerson = "";
+        pendingPersonPageTab = null;
+        pendingPersonPageTabPerson = "";
       }};
       const setGeneratingUI = (isGenerating) => {{
         const on = !!isGenerating;
@@ -4722,6 +5112,58 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }}
         window.location.href = targetUrl;
         return true;
+      }};
+      const resolveStarOfficeUrl = (personName, taskId = "") => {{
+        const params = new URLSearchParams();
+        const person = String(personName || "").trim();
+        const task = String(taskId || "").trim();
+        if (person) params.set("person", person);
+        if (task) params.set("task", task);
+        const query = params.toString();
+        return query ? (STAR_OFFICE_URL + "?" + query) : STAR_OFFICE_URL;
+      }};
+      const ensurePendingPersonTab = (personName) => {{
+        const person = String(personName || "").trim();
+        pendingPersonPageTabPerson = person;
+        if (pendingPersonPageTab && !pendingPersonPageTab.closed) return pendingPersonPageTab;
+        try {{
+          const tab = window.open(resolveStarOfficeUrl(person), "_blank");
+          if (!tab) return null;
+          pendingPersonPageTab = tab;
+          return tab;
+        }} catch (_) {{
+          return null;
+        }}
+      }};
+      const navigatePendingPersonTabToOffice = (personName, taskId = "") => {{
+        const person = String(personName || "").trim();
+        if (!person) return false;
+        if (pendingPersonPageTabPerson !== person) return false;
+        const tab = pendingPersonPageTab;
+        if (!tab || tab.closed) return false;
+        try {{
+          tab.location.href = resolveStarOfficeUrl(person, taskId);
+          return true;
+        }} catch (_) {{
+          return false;
+        }}
+      }};
+      const navigatePendingPersonTabToHtml = (personName, file) => {{
+        const person = String(personName || "").trim();
+        if (!person) return false;
+        if (pendingPersonPageTabPerson !== person) return false;
+        const tab = pendingPersonPageTab;
+        if (!tab || tab.closed) return false;
+        const target = normalizeRelativeHtmlFile(file);
+        if (!target) return false;
+        try {{
+          tab.location.href = "./" + encodeURIComponent(target);
+          pendingPersonPageTab = null;
+          pendingPersonPageTabPerson = "";
+          return true;
+        }} catch (_) {{
+          return false;
+        }}
       }};
       const probeGeneratedPersonHtml = async (personName) => {{
         const person = String(personName || "").trim();
@@ -4781,11 +5223,13 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         const found = nodes.find((n) => n && String(n.person || "").trim() === q) || null;
         if (found && found.has_story === false) {{
           setGenStatus("「" + q + "」暂未收录人物页，正在尝试创建分析任务");
+          ensurePendingPersonTab(q);
           ensurePersonGenerated(q);
           return;
         }}
         const file = found && found.file ? String(found.file) : "";
         if (navigateToRelativeHtml(file, {{ newTab: true }})) return;
+        ensurePendingPersonTab(q);
         ensurePersonGenerated(q);
       }};
       window.__openPerson = openPerson;
@@ -4799,6 +5243,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         activeTaskPollGeneration += 1;
         const generation = activeTaskPollGeneration;
         const person = String(personName || "").trim();
+        currentGeneratePerson = person;
         let missingSnapshotCount = 0;
         let lastKnownProgress = [];
         let lastKnownSummary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…";
@@ -4818,7 +5263,6 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             missingSnapshotCount += 1;
             const generatedHtml = await probeGeneratedPersonHtml(person);
             if (generatedHtml) {{
-              clearGenTask();
               const summary = "分析完成，正在打开人物页…";
               setGenStatus(summary);
               updatePixelProgressPanel({{
@@ -4830,7 +5274,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
                 stageKey: "deliver",
               }});
               setGeneratingUI(false);
-              navigateToRelativeHtml(generatedHtml);
+              navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, {{ newTab: true }});
+              clearGenTask();
               return;
             }}
             if (missingSnapshotCount <= 8) {{
@@ -4972,7 +5417,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               return;
             }}
             if (!personPageOpened) {{
-              personPageOpened = navigateToRelativeHtml(targetHtml, {{ newTab: true }});
+              personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, {{ newTab: true }});
             }}
             if (!personPageOpened) {{
               setGenStatus("分析完成，但未找到可打开的人物页");
@@ -5012,6 +5457,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               stageKey: "deliver",
             }});
             setGeneratingUI(false);
+              clearGenTask();
             if (archiveState === "completed") {{
               setTimeout(() => {{
                 try {{
@@ -5031,15 +5477,16 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const ensurePersonGenerated = async (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return;
-        if (STATIC_SITE && !API_BASE) {{
-          setGenStatus(requireBackend("实时人物分析"));
+        const blockedMessage = resolveRuntimeBlockMessage();
+        if (blockedMessage) {{
+          setGenStatus(blockedMessage);
           updatePixelProgressPanel({{
             visible: true,
             person,
-            status: "failed",
-            summary: requireBackend("实时人物分析"),
+            status: "idle",
+            summary: blockedMessage,
             progress: [],
-            stageKey: "deliver",
+            stageKey: "queued",
           }});
           setGeneratingUI(false);
           return;
@@ -5053,6 +5500,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             return;
           }}
         }} catch (_) {{}}
+        currentGeneratePerson = person;
         setGeneratingUI(true);
         setGenStatus("未找到本地人物「" + person + "」，正在创建分析任务，请稍候…");
         updatePixelProgressPanel({{
@@ -5065,24 +5513,31 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }});
         try {{
           const generateUrl = apiUrl("generate");
-          const resp = await fetchWithTimeout(generateUrl, 12000, {{ method: "POST", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify({{ person }}) }});
+          const requestKey = getGenerateRequestKey(person);
+          const resp = await fetchWithTimeout(generateUrl, 12000, {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json", "X-Idempotency-Key": requestKey }},
+            body: JSON.stringify({{ person }}),
+          }});
           const data = await resp.json();
           if (!data || data.ok !== true || !data.task_id) {{
             const msg = data && data.error ? String(data.error) : "分析任务创建失败";
+            const isPaused = msg === "service not ready for generate";
             setGenStatus(msg);
             updatePixelProgressPanel({{
               visible: true,
               person,
-              status: "failed",
+              status: isPaused ? "idle" : "failed",
               summary: msg,
               progress: [],
-              stageKey: "deliver",
+              stageKey: isPaused ? "queued" : "deliver",
             }});
             setGeneratingUI(false);
             return;
           }}
           const taskId = String(data.task_id || "").trim();
           try {{ localStorage.setItem("stellar_gen_task_v1", JSON.stringify({{ id: taskId, person }})); }} catch (_) {{}}
+          navigatePendingPersonTabToOffice(person, taskId);
           pollTask(taskId, person);
         }} catch (e) {{
           setGenStatus("分析请求失败，请稍后重试");
@@ -5095,6 +5550,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             stageKey: "deliver",
           }});
           setGeneratingUI(false);
+          clearGenerateRequestKey(person);
+          currentGeneratePerson = "";
         }}
       }};
 
@@ -5130,10 +5587,128 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           $searchSuggest.innerHTML = "";
         }}
       }};
+      const syncIdleRuntimeStateToPanel = () => {{
+        if (activeTaskPollId || currentGeneratePerson) return;
+        if (String(pixelGenState.status || "").trim() !== "idle") return;
+        const idleState = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
+        let idleStageLabel = idleState.stage;
+        let summary = idleState.summary;
+        let footerText = idleState.footer;
+        let speechText = idleState.speech;
+        if (runtimeAvailability.mode === "browser_only") {{
+          idleStageLabel = "只读模式";
+          summary = requireBackend("实时人物分析");
+          footerText = "当前仅支持浏览已生成内容";
+          speechText = "只读浏览";
+        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
+          idleStageLabel = "等待恢复";
+          summary = "后端暂时不可达，当前可继续浏览已有人物页。";
+          footerText = "后端离线，暂不可生成";
+          speechText = "等待恢复";
+        }} else if (runtimeAvailability.mode === "serve_unready") {{
+          idleStageLabel = "恢复中";
+          summary = "服务正在恢复，浏览能力和生成能力将陆续恢复。";
+          footerText = "服务恢复中";
+          speechText = "恢复中";
+        }} else if (runtimeAvailability.mode === "generate_paused") {{
+          idleStageLabel = "降级运行";
+          summary = "浏览能力正常，但实时生成人物已暂停，可稍后再试。";
+          footerText = "可浏览，生成暂停";
+          speechText = "生成暂停";
+        }} else if (runtimeAvailability.mode === "active") {{
+          summary = "服务在线，可以继续查询或发起实时人物生成。";
+          footerText = "服务在线";
+          speechText = "待命中";
+        }}
+        updatePixelProgressPanel({{
+          visible: true,
+          person: idleState.person,
+          status: "idle",
+          idleSceneKey: idleState.key,
+          sceneTitle: idleState.sceneTitle,
+          idleStageLabel,
+          summary,
+          footerText,
+          speechText,
+        }});
+      }};
       const setSearchHint = () => {{
         if (!$searchHint) return;
-        $searchHint.innerHTML = '<strong>1. 内置人教版教材500+历史人物，可以直接访问</strong><br>2. 服务能力有限，实时生成人物可能失败<br><span class="home-bili-highlight">3. 欢迎B站用户一键三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>';
+        let runtimeLine = "";
+        if (runtimeAvailability.mode === "browser_only") {{
+          runtimeLine = '<span class="text-amber-200">当前为只读浏览模式，实时生成人物需要单独部署 FastAPI 后端。</span>';
+        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
+          runtimeLine = '<span class="text-rose-200">当前后端不可达，仅建议浏览已有人物页；实时生成稍后再试。</span>';
+        }} else if (runtimeAvailability.mode === "serve_unready") {{
+          runtimeLine = '<span class="text-rose-200">服务正在恢复中，浏览与生成能力都可能受影响，请稍后重试。</span>';
+        }} else if (runtimeAvailability.mode === "generate_paused") {{
+          runtimeLine = '<span class="text-amber-200">当前可浏览但不可生成，系统正在等待 LLM / 地理编码依赖恢复。</span>';
+        }} else if (runtimeAvailability.mode === "active") {{
+          runtimeLine = '<span class="home-runtime-note">实时生成人物可用，若遇到排队或重试，橙子 Agent 会持续汇报进度。</span>';
+        }} else if (runtimeAvailability.mode === "checking") {{
+          runtimeLine = '<span class="text-sky-200">正在检查实时生成服务与依赖健康，请稍候…</span>';
+        }}
+        $searchHint.innerHTML = buildSearchHintHtml(runtimeLine);
       }};
+      const refreshRuntimeAvailability = async () => {{
+        if (!runtimeReadinessEnabled) {{
+          setSearchHint();
+          syncRuntimeOpsBoard();
+          syncIdleRuntimeStateToPanel();
+          return;
+        }}
+        try {{
+          const response = await fetchWithTimeout(apiUrl("health/ready"), 8000, {{ cache: "no-store" }});
+          const payload = await response.json();
+          const queue = payload && payload.task && payload.task.queue ? payload.task.queue : {{}};
+          const deps = payload && payload.dependency_status ? payload.dependency_status : {{}};
+          const llmOk = !!(deps.llm && deps.llm.ok);
+          const geocodeOk = !!(deps.geocode && deps.geocode.ok);
+          runtimeAvailability = {{
+            checked: true,
+            backendExpected: true,
+            backendAvailable: true,
+            serveReady: !!(payload && payload.serve_ready),
+            generateReady: !!(payload && payload.generate_ready),
+            mode: !payload || payload.serve_ready === false ? "serve_unready" : (payload.generate_ready === false ? "generate_paused" : "active"),
+            summary: !payload || payload.serve_ready === false
+              ? "服务正在恢复中"
+              : (payload.generate_ready === false ? "生成依赖暂未就绪" : "实时生成服务在线"),
+            queuePending: Number(queue.pending || 0),
+            queueLimit: Number(queue.limit || 0),
+            dependencySummary: llmOk && geocodeOk ? "LLM / 地理编码正常" : (llmOk ? "地理编码待恢复" : (geocodeOk ? "LLM 待恢复" : "依赖待恢复")),
+            alerts: Array.isArray(payload && payload.alerts) ? payload.alerts : [],
+          }};
+        }} catch (_) {{
+          runtimeAvailability = {{
+            checked: true,
+            backendExpected: true,
+            backendAvailable: false,
+            serveReady: false,
+            generateReady: false,
+            mode: "backend_unreachable",
+            summary: "后端暂时不可达",
+            queuePending: 0,
+            queueLimit: 0,
+            dependencySummary: "后端离线",
+            alerts: [],
+          }};
+        }}
+        setSearchHint();
+        syncRuntimeOpsBoard();
+        syncIdleRuntimeStateToPanel();
+      }};
+      setSearchHint();
+      syncRuntimeOpsBoard();
+      syncIdleRuntimeStateToPanel();
+      if (runtimeReadinessEnabled) {{
+        setTimeout(() => {{
+          refreshRuntimeAvailability();
+          try {{
+            window.setInterval(refreshRuntimeAvailability, 30000);
+          }} catch (_) {{}}
+        }}, 120);
+      }}
       const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
         const q = normalizeSearchText(qRaw);
@@ -6693,7 +7268,7 @@ def main() -> int:
     geocode_city = None
     try:
         sys.path.insert(0, str((REPO_ROOT / "storymap" / "script").resolve()))
-        from map_client import geocode_city as _geocode_city  # type: ignore
+        from storymap.script.map.map_client import geocode_city as _geocode_city  # type: ignore
 
         geocode_city = _geocode_city
     except Exception:

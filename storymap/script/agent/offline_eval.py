@@ -5,14 +5,9 @@ import re
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence
 
-try:
-    from . import generation_service as generation_service_utils
-    from .. import parsers as parser_utils
-    from ..project_paths import data_corpus_file_path, project_root_path
-except ImportError:
-    import generation_service as generation_service_utils
-    import parsers as parser_utils
-    from project_paths import data_corpus_file_path, project_root_path
+from . import generation_service as generation_service_utils
+from ..core import parsers as parser_utils
+from ..core.project_paths import data_corpus_file_path, project_root_path
 
 
 def _project_root() -> Path:
@@ -195,10 +190,7 @@ def extract_core_facts(md: str) -> Dict[str, object]:
 def enrich_markdown_for_evaluation(md: str) -> str:
     if not isinstance(md, str) or not md.strip():
         return ""
-    try:
-        from .. import map_client
-    except ImportError:
-        import map_client
+    from ..map import map_client
     enriched = parser_utils._normalize_markdown_tables(md)
     enriched = map_client.append_coords_section(enriched)
     distance_km = map_client.compute_total_distance_km(enriched)

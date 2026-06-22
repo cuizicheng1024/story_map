@@ -154,10 +154,7 @@ def _relative_path(path: str) -> str:
 
 def _invalidate_stellar_home_render_cache() -> None:
     try:
-        try:
-            from ..map_html_renderer import invalidate_stellar_home_data_cache
-        except ImportError:
-            from map_html_renderer import invalidate_stellar_home_data_cache
+        from ..profile.renderer import invalidate_stellar_home_data_cache
         invalidate_stellar_home_data_cache()
     except Exception:
         return

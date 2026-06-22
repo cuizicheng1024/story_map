@@ -6,9 +6,9 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import parsers
-import profile_builder
-import story_profile_api
+from storymap.script.api import profile_api as story_profile_api
+from storymap.script.core import parsers
+from storymap.script.profile import builder as profile_builder
 
 
 def test_create_profile_api_from_geocode_api_queues_unresolved_profile_location():

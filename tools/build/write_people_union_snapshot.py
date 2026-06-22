@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from storymap.script.project_paths import data_corpus_file_path, data_reports_output_path
+from storymap.script.core.project_paths import data_corpus_file_path, data_reports_output_path
 
 
 file_path = Path(__file__).resolve()

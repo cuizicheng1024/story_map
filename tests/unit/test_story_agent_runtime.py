@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_agent_runtime
+from storymap.script.runtime.legacy_agent import runtime as story_agent_runtime
 
 
 def test_build_runtime_snapshot_and_extract_metadata():

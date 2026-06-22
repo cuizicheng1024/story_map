@@ -6,8 +6,8 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import profile_builder
-import story_map as sm
+from storymap.script.cli import story_map as sm
+from storymap.script.profile import builder as profile_builder
 
 
 def test_offline_profile_uses_local_index_when_geocode_disabled(monkeypatch):

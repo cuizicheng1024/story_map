@@ -10,7 +10,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from static import StaticService
+from storymap.script.api.static import StaticService
 
 
 def _build_service(homepage_dir: Path, artifact_dir: Path) -> StaticService:

@@ -4,10 +4,7 @@ import json
 import re
 from typing import Dict, List, Optional
 
-try:
-    from .state import AgentIssue
-except ImportError:
-    from story_agent_state import AgentIssue
+from .state import AgentIssue
 
 
 def strip_code_fences(text: str) -> str:

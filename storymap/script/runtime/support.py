@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import re
 import threading
 from typing import Dict, List, Optional, Tuple
@@ -134,6 +135,8 @@ def collect_startup_issues(project_root: str) -> Dict[str, List[str]]:
         "AMAP_WEBSERVICE_KEY",
         "AMAP_WEB_SERVICE_KEY",
         "AMAP_REST_KEY",
+        "MONID_API_KEY",
+        "MAP_STORY_MONID_API_KEY",
     )
     if not geocode_key:
         warnings.append("缺少地理编码密钥；新地点可能无法在线解析坐标。")
@@ -165,14 +168,110 @@ class SharedLLMClientFactory:
         self._cached_client = None
         self._lock = threading.Lock()
 
-    def get_client(self, event_callback=None):
-        if event_callback:
-            return self._client_cls(event_callback=event_callback)
+    def get_client(self, event_callback=None, timeout_resolver=None):
+        if event_callback or timeout_resolver:
+            return self._client_cls(event_callback=event_callback, timeout_resolver=timeout_resolver)
         if self._cached_client is None:
             with self._lock:
                 if self._cached_client is None:
                     self._cached_client = self._client_cls()
         return self._cached_client
+
+
+class BackgroundJobScheduler:
+    def __init__(
+        self,
+        *,
+        logger: object,
+        name: str = "background-jobs",
+        max_queue_size: int = 64,
+    ) -> None:
+        self._logger = logger
+        self._name = str(name or "background-jobs").strip() or "background-jobs"
+        self._queue: "queue.Queue[object]" = queue.Queue(maxsize=max(1, int(max_queue_size)))
+        self._lock = threading.Lock()
+        self._closed = False
+        self._worker = threading.Thread(
+            target=self._run,
+            name=f"{self._name}-worker",
+            daemon=True,
+        )
+        self._worker.start()
+
+    def _log(self, level: str, message: str, *args) -> None:
+        method = getattr(self._logger, level, None)
+        if callable(method):
+            try:
+                method(message, *args)
+            except Exception:
+                pass
+
+    def submit(
+        self,
+        job: object,
+        *,
+        label: str = "",
+        metadata: Optional[Dict[str, object]] = None,
+    ) -> bool:
+        if not callable(job):
+            return False
+        with self._lock:
+            if self._closed:
+                self._log("warning", "%s_submit_rejected reason=closed label=%s", self._name, label or "job")
+                return False
+        payload = {
+            "job": job,
+            "label": str(label or "job").strip() or "job",
+            "metadata": dict(metadata or {}),
+        }
+        try:
+            self._queue.put_nowait(payload)
+            return True
+        except queue.Full:
+            self._log("warning", "%s_submit_rejected reason=full label=%s", self._name, payload["label"])
+            return False
+
+    def _run(self) -> None:
+        while True:
+            payload = self._queue.get()
+            try:
+                if payload is None:
+                    return
+                if not isinstance(payload, dict):
+                    continue
+                job = payload.get("job")
+                label = str(payload.get("label") or "job").strip() or "job"
+                metadata = dict(payload.get("metadata") or {})
+                if not callable(job):
+                    continue
+                try:
+                    job()
+                except Exception as exc:
+                    self._log(
+                        "warning",
+                        "%s_job_failed label=%s metadata=%s error=%s",
+                        self._name,
+                        label,
+                        json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+                        str(exc).strip() or exc.__class__.__name__,
+                    )
+            finally:
+                self._queue.task_done()
+
+    def shutdown(self, *, wait: bool = False, timeout: float = 1.0) -> None:
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+        try:
+            self._queue.put_nowait(None)
+        except queue.Full:
+            pass
+        if wait and self._worker.is_alive():
+            try:
+                self._worker.join(timeout=max(0.0, float(timeout)))
+            except Exception:
+                pass
 
 
 def build_amap_config_js() -> bytes:

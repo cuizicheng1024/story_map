@@ -17,9 +17,9 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import geocode_service as gs
-import parsers as ps
-from project_paths import data_reports_output_path
+from storymap.script.core import parsers as ps
+from storymap.script.core.project_paths import data_reports_output_path
+from storymap.script.map import geocode_service as gs
 
 
 def _resolve_search_name(coords_search_map: Dict[str, str], geo_name: str, modern: str, loc_text: str, raw_name: str) -> str:

@@ -13,16 +13,10 @@ import requests
 from typing import Dict, List, Optional, Tuple
 from typing import Iterator
 
-try:
-    from ..env_utils import load_project_env
-    from .. import story_agent_runtime as story_agent_runtime_utils
-    from .. import story_agent_graph as story_agent_graph_utils
-    from ..project_paths import classify_story_person_authenticity, project_root_path
-except ImportError:
-    from env_utils import load_project_env
-    import story_agent_runtime as story_agent_runtime_utils
-    import story_agent_graph as story_agent_graph_utils
-    from project_paths import classify_story_person_authenticity, project_root_path
+from ..core.env_utils import load_project_env
+from ..core.project_paths import classify_story_person_authenticity, project_root_path
+from ..runtime.legacy_agent import graph as story_agent_graph_utils
+from ..runtime.legacy_agent import runtime as story_agent_runtime_utils
 
 def _project_root() -> str:
     return str(project_root_path())
@@ -137,6 +131,7 @@ class StoryAgentLLM:
         baseUrl: Optional[str] = None,
         timeout: Optional[int] = None,
         event_callback: Optional[callable] = None,
+        timeout_resolver: Optional[callable] = None,
     ):
         """
         初始化客户端。
@@ -183,6 +178,7 @@ class StoryAgentLLM:
         default_model = "MiniMax-M3" if "minimax" in base_lower else "MiniMax-M3"
         self.model = model or os.getenv("LLM_MODEL_ID") or fallback_model or default_model
         self.event_callback = event_callback
+        self.timeout_resolver = timeout_resolver
         self.apiKey = apiKey or os.getenv("LLM_API_KEY") or fallback_key
         self.baseUrl = resolved_base or fallback_base
         # Increase default timeout to 300 seconds (5 minutes)
@@ -208,6 +204,7 @@ class StoryAgentLLM:
         self._failure_negative_cache: Dict[str, Dict[str, object]] = {}
         self._negative_cache_lock = threading.Lock()
         self._metrics_lock = threading.Lock()
+        self._trace_lock = threading.Lock()
         self._metrics: Dict[str, int] = {
             "requests": 0,
             "successes": 0,
@@ -231,13 +228,15 @@ class StoryAgentLLM:
             pass
 
     def _store_trace(self, trace: Dict[str, object]) -> None:
-        self.last_request_trace = dict(trace)
-        self.request_traces.append(dict(trace))
-        if len(self.request_traces) > self.max_trace_entries:
-            self.request_traces = self.request_traces[-self.max_trace_entries :]
+        with self._trace_lock:
+            self.last_request_trace = dict(trace)
+            self.request_traces.append(dict(trace))
+            if len(self.request_traces) > self.max_trace_entries:
+                self.request_traces = self.request_traces[-self.max_trace_entries :]
 
     def latest_trace(self) -> Dict[str, object]:
-        return dict(self.last_request_trace)
+        with self._trace_lock:
+            return dict(self.last_request_trace)
 
     def health_snapshot(self) -> Dict[str, object]:
         return {
@@ -327,7 +326,10 @@ class StoryAgentLLM:
         with self._negative_cache_lock:
             self._failure_negative_cache.pop(cache_key, None)
 
-    def _timeout_value(self, *, stream: bool = False) -> Tuple[int, int]:
+    def _timeout_value(self, *, stream: bool = False, timeout_seconds: Optional[int] = None) -> Tuple[int, int]:
+        if timeout_seconds is not None:
+            adjusted = max(1, int(timeout_seconds))
+            return (adjusted, adjusted)
         return (self.connect_timeout, self.stream_read_timeout if stream else self.read_timeout)
 
     def _build_negative_cache_trace(
@@ -360,6 +362,7 @@ class StoryAgentLLM:
         payload: Dict[str, object],
         request_id: str,
         verify: Optional[bool] = None,
+        timeout_seconds: Optional[int] = None,
     ) -> Tuple[requests.Response, Dict[str, object]]:
         request_headers = dict(headers or {})
         request_headers.setdefault("X-Request-Id", request_id)
@@ -370,7 +373,7 @@ class StoryAgentLLM:
                 url,
                 headers=request_headers,
                 json=payload,
-                timeout=self._timeout_value(stream=False),
+                timeout=self._timeout_value(stream=False, timeout_seconds=timeout_seconds),
                 verify=resolved_verify,
             )
         except requests.RequestException as exc:
@@ -435,6 +438,13 @@ class StoryAgentLLM:
         silent = (os.getenv("STORY_AGENT_SILENT") or "").strip().lower() in {"1", "true", "yes", "y", "on"}
         effective_retries = max(1, int(max_retries or 3))
         effective_timeout = max(1, int(timeout or self.timeout))
+        if callable(self.timeout_resolver):
+            try:
+                remaining_budget = int(self.timeout_resolver() or 0)
+            except Exception:
+                remaining_budget = 0
+            if remaining_budget > 0:
+                effective_timeout = max(1, min(effective_timeout, remaining_budget))
         provider = "minimax"
         request_signature = self._request_signature(messages, temperature, stream=False)
 
@@ -469,12 +479,12 @@ class StoryAgentLLM:
         for attempt in range(1, effective_retries + 1):
             started = time.perf_counter()
             try:
-                original_timeout = self.timeout
-                try:
-                    self.timeout = effective_timeout
-                    content, meta = self._think_minimax(messages, temperature=temperature, request_id=request_id)
-                finally:
-                    self.timeout = original_timeout
+                content, meta = self._think_minimax(
+                    messages,
+                    temperature=temperature,
+                    request_id=request_id,
+                    timeout_seconds=effective_timeout,
+                )
                 duration_ms = int((time.perf_counter() - started) * 1000)
                 trace = {
                     **base_trace,
@@ -691,16 +701,28 @@ class StoryAgentLLM:
         messages: List[Dict[str, str]],
         temperature: float = 0,
         request_id: str = "",
+        timeout_seconds: Optional[int] = None,
     ) -> Tuple[str, Dict[str, object]]:
         if self._uses_anthropic_api:
-            return self._think_minimax_anthropic(messages, temperature=temperature, request_id=request_id)
-        return self._think_minimax_openai(messages, temperature=temperature, request_id=request_id)
+            return self._think_minimax_anthropic(
+                messages,
+                temperature=temperature,
+                request_id=request_id,
+                timeout_seconds=timeout_seconds,
+            )
+        return self._think_minimax_openai(
+            messages,
+            temperature=temperature,
+            request_id=request_id,
+            timeout_seconds=timeout_seconds,
+        )
 
     def _think_minimax_openai(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0,
         request_id: str = "",
+        timeout_seconds: Optional[int] = None,
     ) -> Tuple[str, Dict[str, object]]:
         url = self._openai_endpoint(self.baseUrl)
         headers = {
@@ -716,7 +738,13 @@ class StoryAgentLLM:
             "temperature": temperature,
             "stream": False,
         }
-        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
+        resp, meta = self._post_json(
+            url=url,
+            headers=headers,
+            payload=payload,
+            request_id=request_id,
+            timeout_seconds=timeout_seconds,
+        )
         if not resp.ok:
             self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
@@ -773,6 +801,7 @@ class StoryAgentLLM:
         request_id: str = "",
         request_signature: str = "",
         base_trace: Optional[Dict[str, object]] = None,
+        timeout_seconds: Optional[int] = None,
     ) -> Iterator[str]:
         url = self._openai_endpoint(self.baseUrl)
         headers = {
@@ -798,7 +827,7 @@ class StoryAgentLLM:
                 url,
                 headers=request_headers,
                 json=payload,
-                timeout=self._timeout_value(stream=True),
+                timeout=self._timeout_value(stream=True, timeout_seconds=timeout_seconds),
                 verify=self.verify_ssl,
                 stream=True,
             ) as resp:
@@ -890,6 +919,7 @@ class StoryAgentLLM:
         messages: List[Dict[str, str]],
         temperature: float = 0,
         request_id: str = "",
+        timeout_seconds: Optional[int] = None,
     ) -> Tuple[str, Dict[str, object]]:
         url = self._anthropic_endpoint(self.baseUrl)
         system_prompt, normalized_messages = self._normalize_anthropic_messages(messages)
@@ -907,7 +937,13 @@ class StoryAgentLLM:
             payload["system"] = system_prompt
         if temperature is not None:
             payload["temperature"] = temperature
-        resp, meta = self._post_json(url=url, headers=headers, payload=payload, request_id=request_id)
+        resp, meta = self._post_json(
+            url=url,
+            headers=headers,
+            payload=payload,
+            request_id=request_id,
+            timeout_seconds=timeout_seconds,
+        )
         if not resp.ok:
             self._raise_http_error(response=resp, request_id=request_id, duration_ms=int(meta.get("duration_ms") or 0))
         data = resp.json()
@@ -929,15 +965,21 @@ def _read_prompt(relpath: str) -> str:
     """
     读取 docs/ 目录下的提示词文件内容。
     """
+    rel = str(relpath or "").strip()
+    if not rel:
+        raise FileNotFoundError("prompt path is empty")
     root = os.path.dirname(os.path.abspath(__file__))
-    # script/../docs -> storymap/docs
-    prompt_path = os.path.join(root, "..", "docs", relpath)
-    if not os.path.exists(prompt_path):
-        root_proj = _project_root()
-        prompt_path = os.path.join(root_proj, "storymap", "docs", relpath)
-
-    with open(prompt_path, "r", encoding="utf-8") as f:
-        return f.read()
+    candidates = [
+        os.path.join(_project_root(), "storymap", "docs", rel),
+        os.path.join(root, "..", "..", "docs", rel),
+        os.path.join(root, "..", "docs", rel),
+    ]
+    for prompt_path in candidates:
+        normalized = os.path.abspath(prompt_path)
+        if os.path.exists(normalized):
+            with open(normalized, "r", encoding="utf-8") as f:
+                return f.read()
+    raise FileNotFoundError(candidates[0])
 
 
 def _legacy_generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[str]:

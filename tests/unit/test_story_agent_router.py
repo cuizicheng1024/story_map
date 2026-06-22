@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_agent_router
+from storymap.script.runtime.legacy_agent import router as story_agent_router
 
 
 def test_supervisor_prefers_editor_on_revision_when_budget_is_near_limit():

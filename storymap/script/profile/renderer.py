@@ -3,11 +3,11 @@ import json
 import os
 import re
 import subprocess
-from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..core.build_meta import build_artifact_meta
 from ..core.env_utils import apply_story_map_env_aliases, env_flag
 from ..core.person_registry import person_redirects
 from ..core.project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
@@ -26,7 +26,6 @@ apply_story_map_env_aliases()
 
 _TEMPLATE_DIR = Path(__file__).resolve().with_name("templates")
 _REPO_ROOT = project_root_path()
-_DEFAULT_GA_MEASUREMENT_ID = "G-B8F24PMY4F"
 STELLAR_HOME_DATA_JSON = story_artifacts_dir_path() / "stellar_home_data.json"
 
 
@@ -82,8 +81,7 @@ def _render_html_template(
     amap_bootstrap: str,
     analytics_head: str,
 ) -> str:
-    build_version = profile_template_signature()
-    build_at = os.getenv("STORYMAP_BUILD_AT") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    artifact_meta = build_artifact_meta(component="profile_page")
     return (
         template.replace("__TITLE__", title)
         .replace("__DATA__", data)
@@ -93,8 +91,10 @@ def _render_html_template(
         .replace("__SITE_MODE_NOTICE__", site_mode_notice)
         .replace("__AMAP_BOOTSTRAP__", amap_bootstrap)
         .replace("__ANALYTICS_HEAD__", analytics_head)
-        .replace("__BUILD_VERSION__", build_version)
-        .replace("__BUILD_AT__", build_at)
+        .replace("__BUILD_VERSION__", str(artifact_meta.get("build_version") or ""))
+        .replace("__BUILD_AT__", str(artifact_meta.get("build_at") or ""))
+        .replace("__BUILD_SOURCE_COMMIT__", str(artifact_meta.get("source_commit") or ""))
+        .replace("__BUILD_COMPONENT__", str(artifact_meta.get("artifact_component") or ""))
     )
 
 
@@ -175,7 +175,7 @@ def _runtime_api_base_env() -> str:
 
 
 def _analytics_head_html() -> str:
-    measurement_id = _first_env("MAP_STORY_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID") or _DEFAULT_GA_MEASUREMENT_ID
+    measurement_id = _first_env("MAP_STORY_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID")
     if not measurement_id:
         return ""
     quoted_id = json.dumps(measurement_id, ensure_ascii=False)
@@ -613,6 +613,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
         story_names = []
     payload_dict["personRedirects"] = person_redirects(story_names)
     payload_dict["templateSignature"] = profile_template_signature()
+    payload_dict["artifactMeta"] = build_artifact_meta(component="profile_page")
     payload = json.dumps(payload_dict, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     name = (payload_dict.get("person", {}) or {}).get("name", "")
     title = f"{name}的人生足迹地图" if name else "人生足迹地图"

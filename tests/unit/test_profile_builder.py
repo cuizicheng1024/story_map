@@ -6,8 +6,8 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import map_html_renderer
-import profile_builder
+from storymap.script.profile import builder as profile_builder
+from storymap.script.profile import renderer as map_html_renderer
 
 
 def test_profile_map_bootstrap_uses_official_geovis_terrain_metadata_url():

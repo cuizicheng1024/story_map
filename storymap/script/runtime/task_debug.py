@@ -4,18 +4,14 @@ import html
 import json
 from typing import Dict, List
 
-try:
-    from ..story_agent_runtime import (
-        build_runtime_pdca,
-        build_runtime_quality_framework,
-        build_runtime_reflection,
-        extract_agent_runtime_metadata,
-        normalize_runtime_snapshot,
-    )
-    from .task_schema import build_status_info, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
-except ImportError:
-    from story_agent_runtime import build_runtime_pdca, build_runtime_quality_framework, build_runtime_reflection, extract_agent_runtime_metadata, normalize_runtime_snapshot
-    from runtime.task_schema import build_status_info, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
+from ..runtime.legacy_agent.runtime import (
+    build_runtime_pdca,
+    build_runtime_quality_framework,
+    build_runtime_reflection,
+    extract_agent_runtime_metadata,
+    normalize_runtime_snapshot,
+)
+from .task_schema import build_status_info, normalize_agent_runtime_metadata, normalize_aggregated_runtime_meta
 
 
 def _sanitize_tool_trace(item: object) -> Dict[str, object]:
@@ -152,6 +148,27 @@ def _is_usable_result_item(item: Dict[str, object]) -> bool:
     return str(item.get("status") or "").strip() == "degraded"
 
 
+def _build_safe_generation_state(item: Dict[str, object]) -> Dict[str, object]:
+    """
+    从单人物结果中提取并归一化 `_state` 字段，供看板展示
+    阶段 / 重试 / 断点 / 失败分类 / 首页刷新状态。
+    """
+    raw = item.get("_state") if isinstance(item.get("_state"), dict) else {}
+    state = dict(raw or {})
+    return {
+        "stage": str(state.get("stage") or ""),
+        "retry_count": int(state.get("retry_count") or 0),
+        "checkpoint_stage": str(state.get("checkpoint_stage") or ""),
+        "checkpoint_source": str(state.get("checkpoint_source") or ""),
+        "error_classification": str(state.get("error_classification") or ""),
+        "error_retryable": bool(state.get("error_retryable")),
+        "homepage_refresh_state": str(state.get("homepage_refresh_state") or ""),
+        "cached": bool(state.get("cached")),
+        "refreshed": bool(state.get("refreshed")),
+        "used_existing_markdown": bool(state.get("used_existing_markdown")),
+    }
+
+
 def _item_validation_is_clean(item: Dict[str, object]) -> bool:
     validation = item.get("_validation")
     return isinstance(validation, dict) and bool(validation) and bool(validation.get("pass"))
@@ -248,6 +265,7 @@ def build_task_debug_payload(snapshot: object) -> Dict[str, object]:
                 "ok": _is_usable_result_item(item),
                 "error": str(item.get("error") or ""),
                 "status_info": status_info,
+                "state": _build_safe_generation_state(item),
                 "runtime": runtime,
                 "runtime_snapshot": runtime_snapshot,
                 "runtime_reflection": runtime_reflection,
@@ -287,6 +305,81 @@ def _render_status_banner(info: Dict[str, object]) -> str:
     )
 
 
+_STATE_LEVEL_BY_STAGE = {
+    "failed": "error",
+    "done": "success",
+    "render_done": "success",
+    "build_profile": "info",
+    "start": "muted",
+}
+
+_HOMEPAGE_REFRESH_LEVEL = {
+    "queued": "info",
+    "ok": "success",
+    "rejected": "warning",
+    "failed": "error",
+}
+
+
+def _render_state_chip(label: str, value: str, level: str) -> str:
+    safe_level = html.escape(str(level or "muted").strip() or "muted")
+    return (
+        f'<span class="state-chip state-chip-{safe_level}">'
+        f'<span class="state-chip-label">{html.escape(str(label))}</span>'
+        f'<span class="state-chip-value">{html.escape(str(value))}</span>'
+        "</span>"
+    )
+
+
+def _render_generation_state_section(state: Dict[str, object]) -> str:
+    if not state:
+        return ""
+    stage = str(state.get("stage") or "").strip()
+    retry_count = int(state.get("retry_count") or 0)
+    checkpoint_stage = str(state.get("checkpoint_stage") or "").strip()
+    checkpoint_source = str(state.get("checkpoint_source") or "").strip()
+    error_classification = str(state.get("error_classification") or "").strip()
+    error_retryable = bool(state.get("error_retryable"))
+    homepage_refresh_state = str(state.get("homepage_refresh_state") or "").strip()
+    chips: List[str] = []
+    if stage:
+        chips.append(_render_state_chip("阶段", stage, _STATE_LEVEL_BY_STAGE.get(stage, "info")))
+    chips.append(
+        _render_state_chip(
+            "重试",
+            f"{retry_count} 次",
+            "warning" if retry_count > 0 else "muted",
+        )
+    )
+    if checkpoint_stage or checkpoint_source:
+        ckpt_value = checkpoint_stage or "—"
+        if checkpoint_source:
+            ckpt_value = f"{ckpt_value}（来源：{checkpoint_source}）"
+        chips.append(_render_state_chip("断点", ckpt_value, "info"))
+    if error_classification:
+        chips.append(
+            _render_state_chip(
+                "失败分类",
+                f"{error_classification}{'（可重试）' if error_retryable else ''}",
+                "warning" if error_retryable else "error",
+            )
+        )
+    if homepage_refresh_state:
+        chips.append(
+            _render_state_chip(
+                "首页刷新",
+                homepage_refresh_state,
+                _HOMEPAGE_REFRESH_LEVEL.get(homepage_refresh_state, "info"),
+            )
+        )
+    chips_html = "".join(chips)
+    return (
+        "<h3>Generation State</h3>"
+        f'<div class="state-chip-row">{chips_html}</div>'
+        f"<pre>{html.escape(json.dumps(state, ensure_ascii=False, indent=2))}</pre>"
+    )
+
+
 def render_task_debug_html(snapshot: object, *, storage: object = None) -> str:
     payload = build_task_debug_payload(snapshot)
     task = payload.get("task") if isinstance(payload.get("task"), dict) else {}
@@ -306,10 +399,12 @@ def render_task_debug_html(snapshot: object, *, storage: object = None) -> str:
         if not isinstance(item, dict):
             continue
         runtime = item.get("runtime") if isinstance(item.get("runtime"), dict) else {}
+        state = dict(item.get("state") or {}) if isinstance(item.get("state"), dict) else {}
         people_html.append(
             "<section>"
             f"<h2>{html.escape(str(item.get('person') or '未知人物'))}</h2>"
             f"{_render_status_banner(dict(item.get('status_info') or {}))}"
+            f"{_render_generation_state_section(state)}"
             "<h3>Memory Telemetry</h3>"
             f"<pre>{html.escape(json.dumps({'hits': item.get('memory_hits') or {}, 'misses': item.get('memory_misses') or {}}, ensure_ascii=False, indent=2))}</pre>"
             "<h3>Runtime Snapshot</h3>"
@@ -345,6 +440,15 @@ def render_task_debug_html(snapshot: object, *, storage: object = None) -> str:
     th {{ width: 220px; color: #374151; }}
     pre {{ background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; overflow: auto; }}
     code {{ white-space: pre-wrap; word-break: break-word; }}
+    .state-chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }}
+    .state-chip {{ display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 12px; border: 1px solid transparent; }}
+    .state-chip-label {{ font-weight: 600; margin-right: 6px; opacity: 0.8; }}
+    .state-chip-value {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }}
+    .state-chip-success {{ background: #ecfdf5; color: #166534; border-color: #a7f3d0; }}
+    .state-chip-warning {{ background: #fffbeb; color: #92400e; border-color: #fde68a; }}
+    .state-chip-error {{ background: #fef2f2; color: #991b1b; border-color: #fecaca; }}
+    .state-chip-info {{ background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }}
+    .state-chip-muted {{ background: #f9fafb; color: #4b5563; border-color: #e5e7eb; }}
   </style>
 </head>
 <body>

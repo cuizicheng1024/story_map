@@ -6,8 +6,8 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import geocode_service as gs
-import story_map as sm
+from storymap.script.map import geocode_service as gs
+from storymap.script.cli import story_map as sm
 
 
 def test_place_aliases_can_resolve_direct_coords_without_network(monkeypatch):

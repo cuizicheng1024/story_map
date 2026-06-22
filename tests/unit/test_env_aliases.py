@@ -7,8 +7,8 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from env_utils import apply_story_map_env_aliases
-from runtime_support import collect_startup_issues, strict_startup_enabled
+from storymap.script.core.env_utils import apply_story_map_env_aliases
+from storymap.script.runtime.support import collect_startup_issues, strict_startup_enabled
 
 
 def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
@@ -51,6 +51,8 @@ def test_collect_startup_issues_reports_missing_optional_keys(tmp_path, monkeypa
         "AMAP_WEBSERVICE_KEY",
         "AMAP_WEB_SERVICE_KEY",
         "AMAP_REST_KEY",
+        "MONID_API_KEY",
+        "MAP_STORY_MONID_API_KEY",
     ]:
         monkeypatch.delenv(key, raising=False)
 
@@ -60,6 +62,28 @@ def test_collect_startup_issues_reports_missing_optional_keys(tmp_path, monkeypa
     assert any("缺少大模型配置" in item for item in issues["warnings"])
     assert any("缺少 AMAP_KEY" in item for item in issues["warnings"])
     assert any("缺少地理编码密钥" in item for item in issues["warnings"])
+
+
+def test_collect_startup_issues_accepts_monid_key_for_geocode(tmp_path, monkeypatch):
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_dir.mkdir(parents=True)
+    monkeypatch.setenv("MONID_API_KEY", "monid_live_test")
+    for key in [
+        "location_api",
+        "locaion_api",
+        "LOCATION_API",
+        "MAPSCO_API_KEY",
+        "AMAP_WEBSERVICE_KEY",
+        "AMAP_WEB_SERVICE_KEY",
+        "AMAP_REST_KEY",
+        "MAP_STORY_MONID_API_KEY",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    issues = collect_startup_issues(str(tmp_path))
+
+    assert not any("缺少地理编码密钥" in item for item in issues["warnings"])
+    assert any("地理编码配置可用" in item for item in issues["notes"])
 
 
 def test_collect_startup_issues_reports_missing_story_dir(tmp_path):

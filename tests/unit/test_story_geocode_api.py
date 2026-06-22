@@ -8,7 +8,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_geocode_api
+from storymap.script.map import geocode_api as story_geocode_api
 
 
 class _FakeGeocodeService:

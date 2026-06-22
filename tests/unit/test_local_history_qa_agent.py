@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from history_qa_agent import LocalHistoryQAAgent
+from storymap.script.runtime.local_history_qa import LocalHistoryQAAgent
 
 
 def test_local_history_qa_agent_answers_locations_from_local_story():
@@ -73,3 +73,70 @@ def test_local_history_qa_agent_loads_canonical_markdown_for_alias_name(tmp_path
     assert result.handled is True
     assert result.person_name == "苏东坡"
     assert "苏东坡" in result.content
+
+
+def test_local_history_qa_agent_resolves_person_name_from_user_message(tmp_path):
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    (story_dir / "苏轼.md").write_text(
+        "# 苏轼\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：黄州\n- **位置**：黄州\n",
+        encoding="utf-8",
+    )
+
+    agent = LocalHistoryQAAgent(project_root=lambda: str(tmp_path))
+    result = agent.answer(
+        {
+            "messages": [{"role": "user", "content": "苏轼去过哪里？"}],
+        }
+    )
+
+    assert result.handled is True
+    assert result.person_name == "苏轼"
+    assert "苏轼" in result.content
+
+
+def test_local_history_qa_agent_resolves_alias_name_from_user_message_without_context(tmp_path):
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    data_dir = tmp_path / "data"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (story_dir / "苏轼.md").write_text(
+        "# 苏轼\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：黄州\n- **位置**：黄州\n",
+        encoding="utf-8",
+    )
+    (data_dir / "people_master.json").write_text('{"people":[{"person":"苏轼"}]}', encoding="utf-8")
+
+    agent = LocalHistoryQAAgent(project_root=lambda: str(tmp_path))
+    result = agent.answer(
+        {
+            "messages": [{"role": "user", "content": "苏东坡去过哪里？"}],
+        }
+    )
+
+    assert result.handled is True
+    assert result.person_name == "苏东坡"
+    assert "苏东坡" in result.content
+
+
+def test_local_history_qa_agent_ignores_assistant_mentions_when_backtracking_person(tmp_path):
+    story_dir = tmp_path / "storymap" / "examples" / "story"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    (story_dir / "苏轼.md").write_text(
+        "# 苏轼\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：黄州\n- **位置**：黄州\n",
+        encoding="utf-8",
+    )
+
+    agent = LocalHistoryQAAgent(project_root=lambda: str(tmp_path))
+    result = agent.answer(
+        {
+            "messages": [
+                {"role": "user", "content": "我想继续问苏轼。"},
+                {"role": "assistant", "content": "你也可以顺便问问辛弃疾。"},
+                {"role": "user", "content": "他去过哪里？"},
+            ],
+        }
+    )
+
+    assert result.handled is True
+    assert result.person_name == "苏轼"
+    assert "苏轼" in result.content

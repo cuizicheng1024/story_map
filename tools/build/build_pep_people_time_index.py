@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from storymap.script.project_paths import data_corpus_output_path, story_person_names
+from storymap.script.core.project_paths import data_corpus_output_path, story_person_names
 
 
 _YEAR_RE = re.compile(r"(?<!\d)(\d{1,4})(?!\d)")

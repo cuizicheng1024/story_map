@@ -2,6 +2,25 @@
 
 这份文档专门整理 `故事地图` 的环境要求、依赖安装、`.env` 配置、本地启动方式和主要项目结构。
 
+## 部署方式总览
+
+当前项目有两条并行保留的线上部署路径，后续维护时都应视为正式方案：
+
+- `火山云 ECS 部署`
+  - 适合继续使用现有云服务器、SSH 私钥和脚本化发布流程
+  - 主要入口：`scripts/deploy_storymap_release.sh`
+  - 适用场景：需要完全控制服务器、systemd 服务、回滚目录和远端文件继承
+- `OpenDeploy 部署`
+  - 适合托管到 OpenDeploy 平台，并绑定到当前 OpenDeploy 账号下统一管理
+  - 当前线上地址：`https://storymap.opendeploy.site`
+  - 主要文档：`docs/opendeploy_deployment_notes.md`
+  - 适用场景：希望更快完成托管发布、平台管理和线上访问
+
+后续如果文档、脚本或发布说明里提到“部署”，默认都需要先明确是哪一条：
+
+- `部署到火山云 ECS`
+- `部署到 OpenDeploy`
+
 ## 环境要求
 
 - `Python 3.11+`
@@ -199,6 +218,12 @@ scripts/start_storymap.sh
 scripts/deploy_storymap_release.sh --host <host> --user <user> --identity <pem>
 ```
 
+部署到 OpenDeploy：
+
+```bash
+opendeploy deploy . --project <project-id> --service <service-id>
+```
+
 只先打包上传，不切换线上版本：
 
 ```bash
@@ -302,6 +327,46 @@ scripts/deploy_storymap_release.sh
 - `--skip-remote` 适合先把包传上去，稍后再手动触发切换
 - `--skip-verify` 会跳过部署后的健康检查
 - 如果线上有新的持久化目录需要保留，可以继续在 `scripts/remote_deploy_storymap.sh` 里扩展继承逻辑
+
+## OpenDeploy 发布流
+
+当前项目也支持通过 OpenDeploy 托管部署，并且已经验证可以正常发布。
+
+当前已知信息：
+
+- `project_id`: `7a4a2787-4bdb-462c-9fd7-f66589f6aa36`
+- `service_id`: `f27278c7-ee02-4b57-a2a2-92e2fa6696dc`
+- 当前线上地址：`https://storymap.opendeploy.site`
+
+推荐流程：
+
+```bash
+opendeploy auth whoami --json
+opendeploy context resolve --json
+opendeploy upload update-source 7a4a2787-4bdb-462c-9fd7-f66589f6aa36 . \
+  --project-name mapsotryforstudents \
+  --region-id b717f9dc-6149-4c86-adea-c7252bd1123c \
+  --json
+opendeploy deployments create --project 7a4a2787-4bdb-462c-9fd7-f66589f6aa36 \
+  --service f27278c7-ee02-4b57-a2a2-92e2fa6696dc \
+  --json
+opendeploy deploy progress <deployment-id> --json
+```
+
+补充：
+
+- 首次在新终端中使用 OpenDeploy 时，先确认当前已登录到目标账号
+- 如果要把当前工作区与项目重新绑定，可执行：
+
+```bash
+opendeploy context save \
+  --project 7a4a2787-4bdb-462c-9fd7-f66589f6aa36 \
+  --service f27278c7-ee02-4b57-a2a2-92e2fa6696dc \
+  --json
+```
+
+- OpenDeploy 的完整排障与踩坑记录见：
+  - `docs/opendeploy_deployment_notes.md`
 
 ## 回滚与验收
 

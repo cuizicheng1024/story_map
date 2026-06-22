@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Optional, Set
 from urllib.parse import quote
 
-from storymap.script.project_paths import (
+from storymap.script.core.project_paths import (
     BAD_PERSON_NAMES,
     classify_story_markdown_authenticity,
     classify_story_person_authenticity,
@@ -95,8 +95,8 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
         raise RuntimeError(f"人物真实性过滤拦截：{Path(md_path).stem} ({reason})")
 
     _add_import_paths()
-    import story_map as sm
-    import map_html_renderer as renderer
+    from storymap.script.cli import story_map as sm
+    from storymap.script.profile import renderer
 
     md = _read_text(md_path)
     if not md.strip():
@@ -164,7 +164,7 @@ def accept_person_html(person: str, *, mode: str = "pure", no_browser: bool = Tr
         raise RuntimeError("需要提供人物名")
     md_dir = story_md_dir_path()
     try:
-        from storymap.script.person_registry import person_redirects
+        from storymap.script.core.person_registry import person_redirects
         # 单页验收要以当前真实 Markdown 集合为准，不能无脑做 alias canonical；
         # 否则像“苏东坡.md”这样的真实页面会被重新跳回别的人物页。
         redirects = person_redirects(_scan_people_from_story_md(md_dir))
@@ -244,7 +244,7 @@ def _render_workers() -> int:
 
 
 def _template_dependency_paths(root: Path) -> list[Path]:
-    from storymap.script.map_html_renderer import profile_render_dependency_paths
+    from storymap.script.profile.renderer import profile_render_dependency_paths
 
     return list(profile_render_dependency_paths(root))
 
@@ -258,7 +258,7 @@ def _latest_mtime(paths: list[Path]) -> float:
 
 
 def _current_profile_signature() -> str:
-    from storymap.script.map_html_renderer import profile_template_signature
+    from storymap.script.profile.renderer import profile_template_signature
 
     return str(profile_template_signature() or "").strip()
 
@@ -307,7 +307,7 @@ def _changed_people(md_dir: Path, html_dir: Path) -> list[tuple[str, str]]:
 
 def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str, allow_cache: bool) -> int:
     _add_import_paths()
-    import story_map as sm
+    from storymap.script.cli import story_map as sm
 
     def work(person: str) -> tuple[str, str, float, str]:
         t0 = time.perf_counter()
@@ -364,7 +364,7 @@ def _refresh_homepage_once() -> bool:
     if root not in sys.path:
         sys.path.insert(0, root)
     try:
-        from storymap.script.artifacts import refresh_stellar_homepage  # type: ignore
+        from storymap.script.core.artifacts import refresh_stellar_homepage  # type: ignore
     except Exception:
         return False
     try:
@@ -380,7 +380,7 @@ def _sync_alias_redirect_pages(html_dir: Path) -> None:
         sys.path.insert(0, root)
     try:
         from tools import build_stellar_homepage as homepage  # type: ignore
-        from storymap.script.person_registry import person_redirects  # type: ignore
+        from storymap.script.core.person_registry import person_redirects  # type: ignore
     except Exception:
         return
     # 这里必须保留动态过滤后的结果；如果过滤后为空，意味着当前磁盘上

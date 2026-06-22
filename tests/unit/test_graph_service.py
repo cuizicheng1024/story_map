@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from storymap.script import graph_service
+from storymap.script.profile import graph_service
 
 
 def test_normalize_graph_payload_emits_people_domains_and_relationships():

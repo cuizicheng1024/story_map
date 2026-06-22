@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List
 
-try:
-    from ..story_tooling import tool
-except ImportError:
-    from story_tooling import tool
+from ..cli.tooling import tool
 
 
 def create_generation_tools(

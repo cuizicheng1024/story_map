@@ -3,12 +3,8 @@ from __future__ import annotations
 import re
 from typing import Callable, Dict, List, Optional
 
-try:
-    from ... import parsers as parser_utils
-    from .state import StoryAgentState
-except ImportError:
-    import parsers as parser_utils
-    from story_agent_state import StoryAgentState
+from ...core import parsers as parser_utils
+from .state import StoryAgentState
 
 
 def fallback_search_result(person: str, state: StoryAgentState) -> Dict[str, object]:

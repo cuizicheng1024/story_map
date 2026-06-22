@@ -37,11 +37,25 @@ def test_render_index_html_emits_valid_regex_literals():
     assert "const generatedHtml = await probeGeneratedPersonHtml(person);" in html
     assert 'if (st === "partial_failed")' in html
     assert "let personPageOpened = false;" in html
-    assert 'personPageOpened = navigateToRelativeHtml(targetHtml, { newTab: true });' in html
+    assert 'let pendingPersonPageTab = null;' in html
+    assert 'const resolveStarOfficeUrl = (personName, taskId = "") => {' in html
+    assert 'const ensurePendingPersonTab = (personName) => {' in html
+    assert 'const navigatePendingPersonTabToOffice = (personName, taskId = "") => {' in html
+    assert 'const navigatePendingPersonTabToHtml = (personName, file) => {' in html
+    assert 'ensurePendingPersonTab(q);' in html
+    assert 'navigatePendingPersonTabToOffice(person, taskId);' in html
+    assert 'navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, { newTab: true });' in html
+    assert 'personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, { newTab: true });' in html
     assert 'if (archiveState === "queued" || archiveState === "running") {' in html
     assert 'const summary = "人物页已打开，群星首页与知识图谱正在后台补齐…";' in html
     assert 'scheduleTaskPoll(id, generation, tick, 1200);' in html
     assert 'window.location.reload();' in html
+    assert "学习演示版" not in html
+    assert 'const SEARCH_HINT_LINE_ONE_HTML = \'<span class="home-search-hint-line"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong></span>\';' in html
+    assert 'const SEARCH_HINT_LINE_TWO_HTML = \'<span class="home-bili-highlight">2. 欢迎B站用户投币 投币 三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>\';' in html
+    assert 'const DEFAULT_SEARCH_HINT_HTML = SEARCH_HINT_LINE_ONE_HTML + SEARCH_HINT_LINE_TWO_HTML;' in html
+    assert 'const buildSearchHintHtml = (runtimeLine = "") => {' in html
+    assert '$searchHint.innerHTML = buildSearchHintHtml(runtimeLine);' in html
 
 
 def test_resolve_main_role_band_prefers_primary_identity_field():
@@ -90,19 +104,42 @@ def test_build_payload_meta_prefers_github_env(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
 
     monkeypatch.setattr(module, "_now", lambda: "2026-06-10 12:00:00")
-    monkeypatch.setattr(module, "_git_head", lambda: "local-head-sha")
     monkeypatch.setenv("GITHUB_SHA", "deploy-sha")
     monkeypatch.setenv("GITHUB_RUN_ID", "123456")
     monkeypatch.setenv("GITHUB_RUN_ATTEMPT", "2")
+    monkeypatch.setenv("STORYMAP_BUILD_VERSION", "build-v1")
 
     payload_meta = module._build_payload_meta()
 
-    assert payload_meta == {
-        "generated_at": "2026-06-10 12:00:00",
-        "source_commit": "deploy-sha",
-        "pages_run_id": 123456,
-        "pages_run_attempt": 2,
-    }
+    assert payload_meta["artifact_component"] == "stellar_homepage"
+    assert payload_meta["artifact_version"] == "build-v1"
+    assert payload_meta["build_version"] == "build-v1"
+    assert payload_meta["build_at"] == "2026-06-10T12:00:00"
+    assert payload_meta["generated_at"] == "2026-06-10T12:00:00"
+    assert payload_meta["source_commit"] == "deploy-sha"
+    assert payload_meta["pages_run_id"] == 123456
+    assert payload_meta["pages_run_attempt"] == 2
+
+
+def test_analytics_head_html_requires_explicit_measurement_id(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)
+    monkeypatch.delenv("GA_MEASUREMENT_ID", raising=False)
+
+    assert module._analytics_head_html() == ""
+
+
+def test_analytics_head_html_uses_explicit_measurement_id(monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)
+    monkeypatch.setenv("GA_MEASUREMENT_ID", "G-TEST123456")
+
+    html = module._analytics_head_html()
+
+    assert "googletagmanager.com/gtag/js?id=G-TEST123456" in html
+    assert "gtag('config', \"G-TEST123456\")" in html
 
 
 def test_prepare_home_payload_for_output_merges_defaults(monkeypatch):
@@ -302,9 +339,13 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
 
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
-    assert 'id="pixelGenPanel" class="pixel-progress-shell"' in html
+    assert 'id="pixelGenPanel" class="pixel-progress-shell is-collapsed"' in html
+    assert 'role="button"' in html
+    assert 'aria-label="打开橙子Agent工作台"' in html
+    assert 'tabindex="0"' in html
     assert 'id="pixelGenToggle"' in html
     assert 'id="pixelGenStatusBadge"' in html
+    assert 'id="pixelGenCompactText"' in html
     assert 'id="pixelGenSpeech"' in html
     assert 'id="pixelGenAgents"' in html
     assert 'id="pixelGenDetailCard"' in html
@@ -316,8 +357,8 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert ">橙子Agent</div>" in html
     assert ">空闲中</div>" in html
     assert 'aria-expanded="false"' in html
-    assert 'id="pixelGenBody" class="pixel-progress-body" style="display:none"' in html
-    assert "展开看板" in html
+    assert 'id="pixelGenBody" class="pixel-progress-body is-star-office-only" style="display:none"' in html
+    assert "新标签打开工作台" in html
     assert "流程阶段" in html
     assert "执行模块" in html
     assert "const PIXEL_STAGE_FLOW = [" in html
@@ -330,7 +371,23 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'const $pixelGenSceneTitle = document.getElementById("pixelGenSceneTitle");' in html
     assert 'const $pixelGenSpeech = document.getElementById("pixelGenSpeech");' in html
     assert 'const $pixelGenDetailCard = document.getElementById("pixelGenDetailCard");' in html
+    assert 'const $pixelGenCompactText = document.getElementById("pixelGenCompactText");' in html
+    assert 'id="pixelGenOpsBar" class="pixel-progress-opsbar"' in html
+    assert 'id="pixelGenOpsServe" class="pixel-progress-opschip is-muted"' in html
+    assert 'id="pixelGenOpsGenerate" class="pixel-progress-opschip is-muted"' in html
+    assert 'id="pixelGenOpsQueue" class="pixel-progress-opschip is-muted"' in html
+    assert 'id="pixelGenOpsDeps" class="pixel-progress-opschip is-muted"' in html
     assert 'let pixelGenCollapsed = true;' in html
+    assert 'let pixelGenPinnedExpanded = false;' in html
+    assert 'let pixelGenHovering = false;' in html
+    assert '$pixelGenPanel.classList.toggle("is-collapsed", pixelGenCollapsed);' in html
+    assert ".pixel-progress-shell.is-collapsed {" in html
+    assert "width: min(136px, calc(100vw - 24px));" in html
+    assert "border-radius: 999px;" in html
+    assert ".pixel-progress-opsbar {" in html
+    assert "const syncRuntimeOpsBoard = () => {" in html
+    assert 'const STAR_OFFICE_URL = "./orange-office.html";' in html
+    assert "const STAR_OFFICE_OPEN_IN_NEW_TAB = true;" in html
 
 
 def test_render_index_html_hides_hu_huanyong_midpoint_dot():
@@ -348,9 +405,27 @@ def test_render_index_html_hides_hu_huanyong_midpoint_dot():
     assert 'if (status === "idle") return String(pixelGenState.idleStageLabel || "").trim() || "空闲中";' in html
     assert 'const resolvePixelBadgeClass = (status) => {' in html
     assert 'const resolvePixelStatusText = (status) => {' in html
-    assert 'if (status === "idle") return "待命";' in html
+    assert 'if (runtimeAvailability.mode === "browser_only") return "只读";' in html
+    assert 'if (runtimeAvailability.mode === "generate_paused") return "降级";' in html
+    assert 'const resolvePixelCompactText = (status, stageKey) => {' in html
     assert 'const basePercent = status === "idle"' in html
     assert '$pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";' in html
+    assert 'const openStarOfficeInNewTab = () => {' in html
+    assert 'const nextTab = window.open(STAR_OFFICE_URL, "_blank", "noopener");' in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-caption {" in html
+    assert "display: none;" in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-meta {" in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-badge {" in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-actions {" in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-panel::before {" in html
+    assert ".pixel-progress-shell.is-collapsed .pixel-progress-lamp {" in html
+    assert '$pixelGenPanel.addEventListener("mouseenter", openPixelPanelTemporarily);' in html
+    assert '$pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);' in html
+    assert '$pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);' in html
+    assert 'const shouldOpenStarOfficeFromPanelEvent = (target) => {' in html
+    assert '$pixelGenPanel.addEventListener("click", (event) => {' in html
+    assert '$pixelGenPanel.addEventListener("keydown", (event) => {' in html
+    assert 'if (event.key !== "Enter" && event.key !== " ") return;' in html
     assert 'const escapePixelLogHtml = (value) => {' in html
     assert 'const safeLabelText = escapePixelLogHtml(labelText);' in html
     assert 'escapePixelLogHtml(detail)' in html
@@ -395,9 +470,27 @@ def test_render_index_html_uses_post_generate_for_missing_people():
 
     assert 'const fetchWithTimeout = (url, ms, init) => {' in html
     assert 'const generateUrl = apiUrl("generate");' in html
-    assert 'fetchWithTimeout(generateUrl, 12000, { method: "POST"' in html
+    assert 'const resp = await fetchWithTimeout(generateUrl, 12000, {' in html
+    assert 'method: "POST",' in html
+    assert '"X-Idempotency-Key": requestKey' in html
+    assert 'const isSafeGenerateRequestKey = (value) => /^[A-Za-z0-9._:-]+$/.test(String(value || "").trim());' in html
+    assert 'if (key && isSafeGenerateRequestKey(key) && createdAt > 0 && (now - createdAt) < 10 * 60 * 1000) return key;' in html
+    assert 'const fresh = "storymap-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 10);' in html
     assert 'body: JSON.stringify({ person })' in html
     assert 'apiUrl("generate?person="' not in html
+
+
+def test_render_index_html_polls_runtime_readiness_and_updates_search_hint():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    html = module._render_index_html("故事地图", "stellar_home_data.json")
+
+    assert 'const runtimeReadinessEnabled = !STATIC_SITE || !!resolvedApiBase;' in html
+    assert 'const refreshRuntimeAvailability = async () => {' in html
+    assert 'fetchWithTimeout(apiUrl("health/ready"), 8000, { cache: "no-store" });' in html
+    assert 'window.setInterval(refreshRuntimeAvailability, 30000);' in html
+    assert "当前可浏览但不可生成" in html
+    assert "实时生成人物可用" in html
 
 
 def test_render_index_html_falls_back_to_local_fastapi_api_base_for_static_preview():
@@ -572,6 +665,7 @@ def test_render_index_html_opens_person_pages_in_new_tab_from_homepage():
     assert 'link.target = "_blank";' in html
     assert 'link.rel = "noopener noreferrer";' in html
     assert 'if (navigateToRelativeHtml(file, { newTab: true })) return;' in html
+    assert 'const tab = window.open(resolveStarOfficeUrl(person), "_blank");' in html
 
 
 def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_window_visibility():

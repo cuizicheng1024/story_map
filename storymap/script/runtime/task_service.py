@@ -1,84 +1,67 @@
 import json
 import os
 import re
-import sqlite3
 import threading
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Callable, Dict, List, Optional, Tuple
 
-from ..core.project_paths import classify_story_person_authenticity, known_authentic_person_names, story_person_names
+from ..core.observability import structured_log
 from ..runtime.legacy_agent.runtime import aggregate_result_runtime_meta as _aggregate_result_runtime_meta
+from .task_archive_refresher import TaskArchiveRefresher
+from .task_execution_flow import TaskExecutionCoordinator
+from .task_run_pipeline import TaskRunPipeline
+from .task_state_flow import (
+    build_new_task,
+    build_housekeep_report,
+    build_housekeep_skip_report,
+    build_progress_event,
+    build_runtime_metrics_snapshot,
+    collect_auto_retry_task_ids,
+    collect_orphan_task_ids,
+    mark_task_interrupted,
+    normalize_recovered_tasks,
+    retry_allowed_for_task,
+    retry_count_for_task,
+    sanitize_progress_detail,
+)
+from .task_storage_backend import TaskStorageBackend
+from .task_target_resolver import resolve_task_targets
 from .task_debug import build_task_debug_payload
 from .task_schema import (
-    TaskFileEntry,
     TaskListItem,
-    TaskMultiEntry,
-    TaskResultSummary,
     TaskSnapshot,
     TaskStorageMaintenanceResult,
     TaskStorageQueryResult,
     TaskStorageStats,
     build_task_list_item,
-    build_task_result_summary,
     build_task_snapshot,
 )
 
 
-_TASK_LIKE_TOKENS = (
-    "为什么",
-    "为何",
-    "如何",
-    "怎么",
-    "请",
-    "帮我",
-    "比较",
-    "对比",
-    "分析",
-    "总结",
-    "解释",
-    "给我",
-    "什么",
-    "哪里",
-    "哪儿",
-    "谁",
-    "轨迹",
-    "足迹",
-    "证据",
-    "活动",
-)
-_TERMINAL_TASK_STATUSES = {"completed", "failed", "partial_failed"}
+_TERMINAL_TASK_STATUSES = {"completed", "failed", "partial_failed", "interrupted", "cancelled", "timed_out"}
+_ACTIVE_TASK_STATUSES = {"queued", "running"}
 
 
-def _task_status_value(task: Dict[str, object]) -> str:
-    return str(task.get("status") or "").strip()
+class _TaskCancelled(RuntimeError):
+    pass
+
+
+class _TaskTimedOut(RuntimeError):
+    pass
 
 
 def _collect_result_runtime_meta(results: List[Dict[str, object]]) -> Dict[str, object]:
     return _aggregate_result_runtime_meta(results)
 
 
-def _looks_like_person_atom(text: str) -> bool:
+def _normalize_task_text(text: str) -> str:
     cleaned = str(text or "").strip()
     if not cleaned:
-        return False
-    if len(cleaned) > 12:
-        return False
-    if re.search(r"[?？!！。:：；;（）()\[\]{}<>]", cleaned):
-        return False
-    return not any(token in cleaned for token in _TASK_LIKE_TOKENS)
-
-
-def _is_usable_result(result: Dict[str, object]) -> bool:
-    if bool(result.get("ok")):
-        return True
-    return str(result.get("status") or "").strip() == "degraded"
-
-
-def _has_task_blocking_failure(result: Dict[str, object]) -> bool:
-    return bool(result.get("homepage_refresh_failed"))
+        return ""
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.casefold()
 
 
 class TaskService:
@@ -95,6 +78,7 @@ class TaskService:
         extract_historical_figures: Callable[[object, str], List[str]],
         generate_for_person: Callable[..., Dict[str, object]],
         refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
+        enqueue_background_job: Optional[Callable[..., object]] = None,
         ensure_profile_exports: Callable[..., Dict[str, str]],
         ensure_multi_exports: Callable[..., Dict[str, str]],
         compute_overlaps: Callable[[List[Dict[str, object]]], List[Dict[str, object]]],
@@ -115,6 +99,7 @@ class TaskService:
         self._extract_historical_figures = extract_historical_figures
         self._generate_for_person = generate_for_person
         self._refresh_stellar_homepage = refresh_stellar_homepage
+        self._enqueue_background_job = enqueue_background_job
         self._ensure_profile_exports = ensure_profile_exports
         self._ensure_multi_exports = ensure_multi_exports
         self._compute_overlaps = compute_overlaps
@@ -127,80 +112,120 @@ class TaskService:
 
         self._executor = ThreadPoolExecutor(max_workers=max_concurrency)
         self._archive_executor = ThreadPoolExecutor(max_workers=1)
+        self._shutting_down = False
         self._queue_lock = threading.Lock()
         self._pending = 0
         self._active = 0
         self._task_lock = threading.Lock()
         self._tasks: Dict[str, Dict[str, object]] = {}
+        self._task_futures: Dict[str, Future[None]] = {}
+        self._metrics_lock = threading.Lock()
+        self._metrics: Dict[str, float] = {
+            "submitted": 0,
+            "deduped": 0,
+            "retried": 0,
+            "interrupted": 0,
+            "auto_retried": 0,
+            "cancel_requested": 0,
+            "cancelled": 0,
+            "timed_out": 0,
+            "completed": 0,
+            "failed": 0,
+            "partial_failed": 0,
+            "crashed": 0,
+            "queue_wait_seconds_total": 0.0,
+            "duration_seconds_total": 0.0,
+        }
+        self._housekeep_lock = threading.Lock()
+        self._housekeep_min_interval_seconds = max(
+            int(os.getenv("MAP_STORY_HOUSEKEEP_MIN_INTERVAL_SECONDS", "30") or "30"),
+            1,
+        )
+        self._last_housekeep_report: Dict[str, object] = {
+            "ok": True,
+            "ran": False,
+            "pruned_count": 0,
+            "repaired_interrupted_count": 0,
+            "auto_retried_count": 0,
+            "orphan_task_ids": [],
+            "ran_at": 0.0,
+        }
+        self._task_timeout_seconds = max(int(os.getenv("MAP_STORY_TASK_TIMEOUT_SECONDS", "240") or "240"), 1)
+        self._readiness_max_pending = max(
+            int(os.getenv("MAP_STORY_READINESS_MAX_PENDING", str(max(self._max_concurrency * 4, 8))) or max(self._max_concurrency * 4, 8)),
+            1,
+        )
+        self._readiness_max_running_age_seconds = max(
+            int(
+                os.getenv(
+                    "MAP_STORY_READINESS_MAX_RUNNING_AGE_SECONDS",
+                    str(self._task_timeout_seconds + 60),
+                )
+                or str(self._task_timeout_seconds + 60)
+            ),
+            self._task_timeout_seconds,
+        )
+        self._restart_retry_limit = max(int(os.getenv("MAP_STORY_INTERRUPTED_RETRY_LIMIT", "1") or "1"), 0)
+        self._auto_retry_interrupted = str(os.getenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "1") or "1").strip().lower() not in {
+            "",
+            "0",
+            "false",
+            "off",
+            "no",
+        }
         runtime_dir = os.path.join(self._project_root(), "artifacts", "runtime")
         self._state_db_path = os.path.join(runtime_dir, "task_state.sqlite3")
         self._legacy_state_path = os.path.join(runtime_dir, "task_state.json")
-        self._db = self._open_task_db()
-        self._ensure_task_table()
+        self._storage = TaskStorageBackend(db_path=self._state_db_path, logger=self._logger)
+        self._archive_refresher = TaskArchiveRefresher(
+            logger=self._logger,
+            refresh_stellar_homepage=self._refresh_stellar_homepage,
+            enqueue_background_job=self._enqueue_background_job,
+            archive_executor=self._archive_executor,
+            can_continue=self._can_continue_archive_task,
+            update_archive=self._update_task_result_archive,
+            append_progress=self._append_progress,
+        )
+        self._execution_coordinator = TaskExecutionCoordinator(
+            executor=self._executor,
+            max_concurrency=self._max_concurrency,
+            format_seconds=self._format_seconds,
+            task_timeout_seconds=self._task_timeout_seconds,
+            logger=self._logger,
+            reserve_queue_slot=self._reserve_queue_slot,
+            activate_queue_slot=self._activate_queue_slot,
+            release_active_slot=self._release_active_slot,
+            refresh_queued_queue_state=self._refresh_queued_queue_state,
+            register_future=self._register_task_future,
+            unregister_future=self._unregister_task_future,
+            update_task=self._update_task,
+            append_progress=self._append_progress,
+            record_metrics=self._record_metrics,
+            ensure_task_can_continue=self._ensure_task_can_continue,
+            run_task=self._run_task,
+        )
+        self._run_pipeline = TaskRunPipeline(
+            color_palette=self._color_palette,
+            format_seconds=self._format_seconds,
+            generate_for_person=self._generate_for_person,
+            ensure_profile_exports=self._ensure_profile_exports,
+            ensure_multi_exports=self._ensure_multi_exports,
+            compute_overlaps=self._compute_overlaps,
+            build_conclusion=self._build_conclusion,
+            render_multi_html=self._render_multi_html,
+            save_html=self._save_html,
+            relative_path=self._relative_path,
+            collect_result_runtime_meta=_collect_result_runtime_meta,
+        )
         self._load_tasks_from_disk()
 
     def shutdown(self) -> None:
+        self._shutting_down = True
         self._executor.shutdown(wait=False)
         self._archive_executor.shutdown(wait=False)
 
-    def _open_task_db(self) -> sqlite3.Connection:
-        parent = os.path.dirname(self._state_db_path)
-        if parent:
-            os.makedirs(parent, exist_ok=True)
-        conn = sqlite3.connect(self._state_db_path, check_same_thread=False)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        return conn
-
-    def _ensure_task_table(self) -> None:
-        with self._db:
-            self._db.execute(
-                """
-                CREATE TABLE IF NOT EXISTS tasks (
-                    id TEXT PRIMARY KEY,
-                    status TEXT NOT NULL DEFAULT '',
-                    updated_at REAL NOT NULL,
-                    payload TEXT NOT NULL
-                )
-                """
-            )
-        columns = {
-            str(row[1] or "").strip()
-            for row in self._db.execute("PRAGMA table_info(tasks)").fetchall()
-            if len(row) >= 2
-        }
-        if "status" not in columns:
-            with self._db:
-                self._db.execute("ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT ''")
-        with self._db:
-            self._db.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_tasks_updated_at
-                ON tasks(updated_at)
-                """
-            )
-            self._db.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_tasks_status_updated_at
-                ON tasks(status, updated_at DESC)
-                """
-            )
-
     def _load_tasks_from_sqlite(self) -> Dict[str, Dict[str, object]]:
-        recovered: Dict[str, Dict[str, object]] = {}
-        try:
-            rows = self._db.execute("SELECT id, payload FROM tasks").fetchall()
-        except Exception as exc:
-            self._logger.warning("task_state_load_failed path=%s error=%s", self._state_db_path, exc)
-            return recovered
-        for task_id, payload_text in rows:
-            try:
-                payload = json.loads(str(payload_text or ""))
-            except Exception:
-                continue
-            if isinstance(payload, dict):
-                recovered[str(task_id)] = payload
-        return recovered
+        return self._storage.load_tasks()
 
     def _load_tasks_from_legacy_json(self) -> Dict[str, Dict[str, object]]:
         try:
@@ -228,27 +253,20 @@ class TaskService:
         if not recovered:
             recovered = self._load_tasks_from_legacy_json()
         now = time.time()
-        normalized: Dict[str, Dict[str, object]] = {}
-        for task_id, item in recovered.items():
-            task = dict(item or {})
-            if task.get("status") in {"queued", "running"}:
-                progress = list(task.get("progress") or [])
-                progress.append(
-                    {
-                        "label": "中断",
-                        "time": time.strftime("%H:%M:%S", time.localtime(now)),
-                        "detail": "服务重启导致任务中断，请重新提交。",
-                    }
-                )
-                task["progress"] = progress
-                task["status"] = "failed"
-                task["error"] = "服务重启导致任务中断，请重新提交。"
-                task["updated_at"] = now
-            normalized[str(task_id)] = task
+        normalized, interrupted_ids = normalize_recovered_tasks(
+            recovered,
+            now=now,
+            auto_retry_interrupted=self._auto_retry_interrupted,
+            active_statuses=_ACTIVE_TASK_STATUSES,
+        )
         with self._task_lock:
             self._tasks = normalized
             self._trim_tasks_locked()
             self._replace_all_tasks_locked()
+        for task_id in interrupted_ids:
+            self._record_metrics(interrupted=1)
+            if self._auto_retry_interrupted:
+                self._auto_retry_interrupted_task(task_id)
 
     def _query_tasks_from_db(
         self,
@@ -257,38 +275,7 @@ class TaskService:
         offset: int = 0,
         status: str = "",
     ) -> tuple[List[Dict[str, object]], int]:
-        normalized_status = str(status or "").strip()
-        safe_limit = max(1, min(int(limit), 200))
-        safe_offset = max(0, int(offset))
-        if normalized_status:
-            rows = self._db.execute(
-                """
-                SELECT payload FROM tasks
-                WHERE status = ?
-                ORDER BY updated_at DESC
-                LIMIT ? OFFSET ?
-                """,
-                (normalized_status, safe_limit, safe_offset),
-            ).fetchall()
-            total = int(
-                self._db.execute("SELECT COUNT(*) FROM tasks WHERE status = ?", (normalized_status,)).fetchone()[0]
-            )
-        else:
-            rows = self._db.execute(
-                "SELECT payload FROM tasks ORDER BY updated_at DESC LIMIT ? OFFSET ?",
-                (safe_limit, safe_offset),
-            ).fetchall()
-            total = int(self._db.execute("SELECT COUNT(*) FROM tasks").fetchone()[0])
-        filtered: List[Dict[str, object]] = []
-        for (payload_text,) in rows:
-            try:
-                payload = json.loads(str(payload_text or ""))
-            except Exception:
-                continue
-            if not isinstance(payload, dict):
-                continue
-            filtered.append(payload)
-        return filtered, total
+        return self._storage.query_tasks(limit=limit, offset=offset, status=status)
 
     def list_tasks(
         self,
@@ -332,28 +319,13 @@ class TaskService:
                         oldest = updated_at
                     if updated_at > newest:
                         newest = updated_at
-        main_size = 0
-        wal_size = 0
-        shm_size = 0
-        try:
-            main_size = os.path.getsize(self._state_db_path) if os.path.exists(self._state_db_path) else 0
-        except Exception:
-            main_size = 0
-        try:
-            wal_size = os.path.getsize(f"{self._state_db_path}-wal") if os.path.exists(f"{self._state_db_path}-wal") else 0
-        except Exception:
-            wal_size = 0
-        try:
-            shm_size = os.path.getsize(f"{self._state_db_path}-shm") if os.path.exists(f"{self._state_db_path}-shm") else 0
-        except Exception:
-            shm_size = 0
-        size_bytes = int(main_size) + int(wal_size) + int(shm_size)
+        file_sizes = self._storage.file_sizes()
         return {
             "db_path": self._state_db_path,
-            "db_size_bytes": int(size_bytes),
-            "db_main_size_bytes": int(main_size),
-            "db_wal_size_bytes": int(wal_size),
-            "db_shm_size_bytes": int(shm_size),
+            "db_size_bytes": int(file_sizes["total_size_bytes"]),
+            "db_main_size_bytes": int(file_sizes["main_size_bytes"]),
+            "db_wal_size_bytes": int(file_sizes["wal_size_bytes"]),
+            "db_shm_size_bytes": int(file_sizes["shm_size_bytes"]),
             "task_count": sum(counts.values()),
             "queued_count": counts["queued_count"],
             "running_count": counts["running_count"],
@@ -369,26 +341,37 @@ class TaskService:
         *,
         prune_expired: bool = True,
         vacuum: bool = False,
+        reconcile: bool = False,
+        auto_retry: bool = True,
     ) -> TaskStorageMaintenanceResult:
         before_ids = set()
         with self._task_lock:
             before_ids = set(self._tasks.keys())
         if prune_expired:
             self._cleanup_tasks()
+        reconciled: Dict[str, object] = {
+            "ok": True,
+            "ran": False,
+            "pruned_count": 0,
+            "repaired_interrupted_count": 0,
+            "auto_retried_count": 0,
+            "orphan_task_ids": [],
+            "ran_at": 0.0,
+        }
+        if reconcile:
+            reconciled = self.housekeep_runtime(force=True, auto_retry=auto_retry)
         after_ids = set()
         with self._task_lock:
             after_ids = set(self._tasks.keys())
         pruned_count = max(0, len(before_ids - after_ids))
         if vacuum:
             with self._task_lock:
-                self._db.commit()
-                self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                self._db.execute("VACUUM")
-                self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                self._storage.vacuum()
         return {
             "ok": True,
             "pruned_count": pruned_count,
             "vacuumed": bool(vacuum),
+            "reconciled": reconciled,
             "stats": self.storage_stats(),
         }
 
@@ -398,6 +381,169 @@ class TaskService:
             return snapshot
         snapshot["debug"] = build_task_debug_payload(snapshot)
         return snapshot
+
+    def _record_metrics(self, **increments: float) -> None:
+        with self._metrics_lock:
+            for key, amount in increments.items():
+                if key not in self._metrics:
+                    self._metrics[key] = 0.0
+                self._metrics[key] = float(self._metrics.get(key, 0.0)) + float(amount)
+
+    def runtime_metrics_snapshot(self) -> Dict[str, object]:
+        self._cleanup_tasks()
+        with self._queue_lock:
+            queue = {"pending": int(self._pending), "active": int(self._active), "limit": int(self._max_concurrency)}
+        now = time.time()
+        with self._task_lock:
+            tasks = dict(self._tasks)
+        with self._metrics_lock:
+            metrics = dict(self._metrics)
+        return build_runtime_metrics_snapshot(
+            tasks=tasks,
+            queue=queue,
+            metrics=metrics,
+            now=now,
+            readiness_max_pending=self._readiness_max_pending,
+            readiness_max_running_age_seconds=self._readiness_max_running_age_seconds,
+            task_timeout_seconds=self._task_timeout_seconds,
+            housekeep_min_interval_seconds=self._housekeep_min_interval_seconds,
+            last_housekeep_report=self._last_housekeep_report,
+        )
+
+    def _retry_count_for_task(self, task: Dict[str, object]) -> int:
+        return retry_count_for_task(task)
+
+    def _retry_allowed_for_task(self, task: Dict[str, object]) -> bool:
+        return retry_allowed_for_task(
+            task,
+            terminal_statuses=_TERMINAL_TASK_STATUSES,
+            retry_limit=self._restart_retry_limit,
+        )
+
+    def _auto_retry_interrupted_task(self, task_id: str) -> None:
+        payload = self.retry_task(task_id, reason="服务重启自动补偿", auto=True)
+        if payload.get("ok"):
+            self._record_metrics(auto_retried=1)
+            structured_log(
+                self._logger,
+                "info",
+                "task_interrupted_auto_retry",
+                task_id=task_id,
+                retry_task_id=payload.get("task_id"),
+            )
+
+    def _mark_task_interrupted_by_housekeep(self, task_id: str, detail: str) -> bool:
+        normalized_id = str(task_id or "").strip()
+        if not normalized_id:
+            return False
+        current_time = time.time()
+        with self._task_lock:
+            task = self._tasks.get(normalized_id)
+            if not task:
+                return False
+            if not mark_task_interrupted(
+                task,
+                now=current_time,
+                detail=str(detail or "").strip() or "后台巡检发现任务状态异常，已转为中断，可重试恢复。",
+                auto_retry_interrupted=self._auto_retry_interrupted,
+                active_statuses=_ACTIVE_TASK_STATUSES,
+                progress_label="巡检修复",
+            ):
+                return False
+            self._upsert_task_locked(task)
+        self._record_metrics(interrupted=1)
+        structured_log(self._logger, "warning", "task_housekeep_interrupted", task_id=normalized_id, detail=detail)
+        return True
+
+    def housekeep_runtime(self, *, force: bool = False, auto_retry: bool = True) -> Dict[str, object]:
+        now = time.time()
+        with self._housekeep_lock:
+            previous = dict(self._last_housekeep_report)
+            last_ran_at = float(previous.get("ran_at") or 0.0)
+            if not force and last_ran_at > 0 and (now - last_ran_at) < self._housekeep_min_interval_seconds:
+                return build_housekeep_skip_report(previous, last_ran_at=last_ran_at)
+            report: Dict[str, object] = build_housekeep_report(now=now)
+            with self._task_lock:
+                before_ids = set(self._tasks.keys())
+            self._cleanup_tasks()
+            with self._task_lock:
+                after_ids = set(self._tasks.keys())
+                current_tasks = dict(self._tasks)
+                current_futures = dict(self._task_futures)
+            report["pruned_count"] = max(0, len(before_ids - after_ids))
+            orphan_task_ids = collect_orphan_task_ids(
+                tasks=current_tasks,
+                task_futures=current_futures,
+                now=now,
+                active_statuses=_ACTIVE_TASK_STATUSES,
+                task_timeout_seconds=self._task_timeout_seconds,
+                housekeep_min_interval_seconds=self._housekeep_min_interval_seconds,
+            )
+            repaired_count = 0
+            for task_id in orphan_task_ids:
+                if self._mark_task_interrupted_by_housekeep(task_id, "后台巡检发现任务控制流丢失，已标记为中断，可重试恢复。"):
+                    repaired_count += 1
+            with self._task_lock:
+                retry_scan_tasks = dict(self._tasks)
+            auto_retry_ids = collect_auto_retry_task_ids(
+                tasks=retry_scan_tasks,
+                auto_retry=auto_retry,
+                retry_allowed=self._retry_allowed_for_task,
+            )
+            auto_retried_count = 0
+            for task_id in auto_retry_ids:
+                payload = self.retry_task(task_id, reason="后台巡检自动补偿", auto=True)
+                if payload.get("ok"):
+                    auto_retried_count += 1
+            report["repaired_interrupted_count"] = repaired_count
+            report["auto_retried_count"] = auto_retried_count
+            report["orphan_task_ids"] = orphan_task_ids
+            self._last_housekeep_report = dict(report)
+            if report["pruned_count"] or repaired_count or auto_retried_count:
+                structured_log(
+                    self._logger,
+                    "info",
+                    "task_housekeep_completed",
+                    pruned_count=report["pruned_count"],
+                    repaired_interrupted_count=repaired_count,
+                    auto_retried_count=auto_retried_count,
+                    orphan_task_ids=orphan_task_ids,
+                )
+            return dict(report)
+
+    def _active_duplicate_task(self, dedupe_key: str) -> Optional[Dict[str, object]]:
+        if not dedupe_key:
+            return None
+        with self._task_lock:
+            for task in self._tasks.values():
+                if str(task.get("dedupe_key") or "").strip() != dedupe_key:
+                    continue
+                status = str(task.get("status") or "").strip()
+                if status in _ACTIVE_TASK_STATUSES:
+                    return dict(task)
+        return None
+
+    def _task_control_snapshot(self, task_id: str) -> Tuple[bool, str, float]:
+        with self._task_lock:
+            task = self._tasks.get(task_id) or {}
+            cancel_requested = bool(task.get("cancel_requested"))
+            cancel_reason = str(task.get("cancel_reason") or "").strip()
+            deadline_at = float(task.get("deadline_at") or 0.0)
+        return cancel_requested, cancel_reason, deadline_at
+
+    def _ensure_task_can_continue(self, task_id: str) -> None:
+        cancel_requested, cancel_reason, deadline_at = self._task_control_snapshot(task_id)
+        if cancel_requested:
+            raise _TaskCancelled(cancel_reason or "任务已取消。")
+        if deadline_at > 0 and time.monotonic() >= deadline_at:
+            raise _TaskTimedOut(f"任务执行超时，已超过 {self._task_timeout_seconds} 秒。")
+
+    def _task_timeout_resolver(self, task_id: str) -> int:
+        _, _, deadline_at = self._task_control_snapshot(task_id)
+        if deadline_at <= 0:
+            return int(self._task_timeout_seconds)
+        remaining = int(deadline_at - time.monotonic())
+        return max(1, remaining)
 
     def _refresh_queued_queue_state(self) -> None:
         with self._queue_lock:
@@ -420,42 +566,39 @@ class TaskService:
                 task["updated_at"] = time.time()
                 self._upsert_task_locked(task)
 
+    def _reserve_queue_slot(self) -> Tuple[int, int]:
+        with self._queue_lock:
+            self._pending += 1
+            return self._pending, self._active
+
+    def _activate_queue_slot(self) -> int:
+        with self._queue_lock:
+            if self._pending > 0:
+                self._pending -= 1
+            self._active += 1
+            return self._active
+
+    def _release_active_slot(self) -> None:
+        with self._queue_lock:
+            if self._active > 0:
+                self._active -= 1
+
+    def _register_task_future(self, task_id: str, future: Future[None]) -> None:
+        with self._task_lock:
+            self._task_futures[task_id] = future
+
+    def _unregister_task_future(self, task_id: str) -> None:
+        with self._task_lock:
+            self._task_futures.pop(task_id, None)
+
     def _upsert_task_locked(self, task: Dict[str, object]) -> None:
-        task_id = str(task.get("id") or "").strip()
-        if not task_id:
-            return
-        payload_text = json.dumps(task, ensure_ascii=False)
-        status = _task_status_value(task)
-        updated_at = float(task.get("updated_at") or 0)
-        with self._db:
-            self._db.execute(
-                "REPLACE INTO tasks (id, status, updated_at, payload) VALUES (?, ?, ?, ?)",
-                (task_id, status, updated_at, payload_text),
-            )
+        self._storage.upsert_task(task)
 
     def _delete_tasks_locked(self, task_ids: List[str]) -> None:
-        ids = [str(task_id).strip() for task_id in task_ids if str(task_id).strip()]
-        if not ids:
-            return
-        with self._db:
-            self._db.executemany("DELETE FROM tasks WHERE id = ?", ((task_id,) for task_id in ids))
+        self._storage.delete_tasks(task_ids)
 
     def _replace_all_tasks_locked(self) -> None:
-        with self._db:
-            self._db.execute("DELETE FROM tasks")
-            self._db.executemany(
-                "REPLACE INTO tasks (id, status, updated_at, payload) VALUES (?, ?, ?, ?)",
-                (
-                    (
-                        str(task.get("id") or ""),
-                        _task_status_value(task),
-                        float(task.get("updated_at") or 0),
-                        json.dumps(task, ensure_ascii=False),
-                    )
-                    for task in self._tasks.values()
-                    if str(task.get("id") or "").strip()
-                ),
-            )
+        self._storage.replace_all_tasks(self._tasks.values())
 
     def snapshot_task(self, task_id: str) -> TaskSnapshot:
         self._cleanup_tasks()
@@ -465,72 +608,151 @@ class TaskService:
                 return {"exists": False, "ok": False, "error": "task not found"}
             return build_task_snapshot(task)
 
-    def submit_task(self, text: str) -> Dict[str, object]:
+    def submit_task(
+        self,
+        text: str,
+        *,
+        dedupe: bool = True,
+        retry_of: str = "",
+        retry_count: int = 0,
+        retry_reason: str = "",
+        trigger: str = "user",
+    ) -> Dict[str, object]:
         self._cleanup_tasks()
         error = self._validate_input_text(text)
         if error:
             return {"ok": False, "error": error}
-        queued_at = time.perf_counter()
-        with self._queue_lock:
-            self._pending += 1
-            position = self._pending
-            active_now = self._active
-        task_id = self._create_task(text)
-        self._update_task(task_id, queue={"position": position, "limit": self._max_concurrency, "active": active_now})
-        self._refresh_queued_queue_state()
+        dedupe_key = _normalize_task_text(text)
+        if dedupe:
+            existing = self._active_duplicate_task(dedupe_key)
+            if existing:
+                self._record_metrics(deduped=1)
+                return {
+                    "ok": True,
+                    "task_id": str(existing.get("id") or ""),
+                    "queue": dict(existing.get("queue") or {}),
+                    "deduped": True,
+                }
+        task_id = self._create_task(
+            text,
+            dedupe_key=dedupe_key,
+            retry_of=retry_of,
+            retry_count=retry_count,
+            retry_reason=retry_reason,
+            trigger=trigger,
+        )
+        self._record_metrics(submitted=1)
+        if retry_of:
+            self._record_metrics(retried=1)
+        return self._execution_coordinator.submit(
+            task_id=task_id,
+            text=text,
+            cancelled_exc_type=_TaskCancelled,
+            timed_out_exc_type=_TaskTimedOut,
+        )
 
-        def _run() -> None:
-            started_at = time.perf_counter()
+    def retry_task(self, task_id: str, *, reason: str = "", auto: bool = False) -> Dict[str, object]:
+        self._cleanup_tasks()
+        normalized_id = str(task_id or "").strip()
+        if not normalized_id:
+            return {"ok": False, "error": "id required"}
+        with self._task_lock:
+            task = self._tasks.get(normalized_id)
+            if not task:
+                return {"ok": False, "error": "task not found"}
+            if not self._retry_allowed_for_task(task):
+                return {"ok": False, "error": f"task not retryable", "status": str(task.get('status') or '')}
+            text = str(task.get("text") or "").strip()
+            current_retry_count = self._retry_count_for_task(task)
+        if not text:
+            return {"ok": False, "error": "task text missing"}
+        retry_reason = str(reason or "").strip() or ("服务重启自动补偿" if auto else "用户重试任务")
+        payload = self.submit_task(
+            text,
+            dedupe=False,
+            retry_of=normalized_id,
+            retry_count=current_retry_count + 1,
+            retry_reason=retry_reason,
+            trigger="auto_retry" if auto else "retry",
+        )
+        if not payload.get("ok"):
+            return payload
+        retry_task_id = str(payload.get("task_id") or "").strip()
+        self._update_task(
+            normalized_id,
+            auto_retry_pending=False,
+            retry_task_id=retry_task_id,
+            retry_count=current_retry_count + 1,
+            retry_reason=retry_reason,
+            retried_at=time.time(),
+        )
+        self._append_progress(normalized_id, "重试", f"{retry_reason} -> {retry_task_id}")
+        return {
+            "ok": True,
+            "task_id": retry_task_id,
+            "retried_from": normalized_id,
+            "auto": bool(auto),
+            "status": "queued",
+        }
+
+    def cancel_task(self, task_id: str, *, reason: str = "") -> Dict[str, object]:
+        self._cleanup_tasks()
+        normalized_id = str(task_id or "").strip()
+        if not normalized_id:
+            return {"ok": False, "error": "id required"}
+        message = str(reason or "").strip() or "用户取消了任务。"
+        with self._task_lock:
+            task = self._tasks.get(normalized_id)
+            if not task:
+                return {"ok": False, "error": "task not found"}
+            status = str(task.get("status") or "").strip()
+            if status in _TERMINAL_TASK_STATUSES:
+                return {"ok": False, "error": f"task already {status}", "status": status}
+            task["cancel_requested"] = True
+            task["cancel_reason"] = message
+            task["updated_at"] = time.time()
+            self._upsert_task_locked(task)
+            future = self._task_futures.get(normalized_id)
+        self._record_metrics(cancel_requested=1)
+        if future is not None and future.cancel():
             with self._queue_lock:
-                self._pending -= 1
-                self._active += 1
-                active_at_start = self._active
+                if self._pending > 0:
+                    self._pending -= 1
+            self._update_task(normalized_id, status="cancelled", error=message)
+            self._append_progress(normalized_id, "取消", message)
+            self._append_progress(normalized_id, "完成", "已取消")
+            self._record_metrics(cancelled=1)
+            with self._task_lock:
+                self._task_futures.pop(normalized_id, None)
             self._refresh_queued_queue_state()
-            self._update_task(
-                task_id,
-                queue={
-                    "position": position,
-                    "limit": self._max_concurrency,
-                    "active_at_start": active_at_start,
-                    "wait": self._format_seconds(started_at - queued_at),
-                },
-            )
-            try:
-                self._run_task(task_id, text, allow_cache=True)
-            except Exception as exc:
-                error_message = str(exc).strip() or "任务执行失败"
-                if "模型ID、API密钥和服务地址必须被提供或在.env文件中定义" in error_message:
-                    error_message = (
-                        "缺少大模型配置：请在项目根目录创建 .env 并填写 "
-                        "LLM_API_KEY、LLM_BASE_URL、LLM_MODEL_ID，"
-                        "然后重启服务。"
-                    )
-                self._update_task(task_id, status="failed", error=error_message)
-                self._append_progress(task_id, "失败", error_message)
-                self._append_progress(task_id, "完成", "失败")
-                self._logger.exception("task_crash id=%s", task_id)
-            finally:
-                with self._queue_lock:
-                    self._active -= 1
-                self._refresh_queued_queue_state()
+            return {"ok": True, "task_id": normalized_id, "status": "cancelled"}
+        self._append_progress(normalized_id, "取消", "已收到取消请求，等待当前步骤收口。")
+        return {"ok": True, "task_id": normalized_id, "status": "cancelling"}
 
-        self._executor.submit(_run)
-        return {"ok": True, "task_id": task_id, "queue": {"position": position, "limit": self._max_concurrency}}
-
-    def _create_task(self, text: str) -> str:
+    def _create_task(
+        self,
+        text: str,
+        *,
+        dedupe_key: str = "",
+        retry_of: str = "",
+        retry_count: int = 0,
+        retry_reason: str = "",
+        trigger: str = "user",
+    ) -> str:
         task_id = uuid.uuid4().hex
         now = time.time()
-        task = {
-            "id": task_id,
-            "text": text,
-            "status": "queued",
-            "created_at": now,
-            "updated_at": now,
-            "progress": [],
-            "result": None,
-            "error": "",
-            "queue": {},
-        }
+        task = build_new_task(
+            task_id=task_id,
+            text=text,
+            dedupe_key=dedupe_key,
+            now=now,
+            deadline_at=time.monotonic() + self._task_timeout_seconds,
+            timeout_seconds=self._task_timeout_seconds,
+            retry_of=retry_of,
+            retry_count=retry_count,
+            retry_reason=retry_reason,
+            trigger=trigger,
+        )
         with self._task_lock:
             self._tasks[task_id] = task
             removed_ids = self._trim_tasks_locked()
@@ -549,6 +771,7 @@ class TaskService:
             ]
             for task_id in expired_ids:
                 self._tasks.pop(task_id, None)
+                self._task_futures.pop(task_id, None)
             removed_ids = expired_ids + self._trim_tasks_locked()
             self._delete_tasks_locked(removed_ids)
 
@@ -571,6 +794,7 @@ class TaskService:
             if task.get("status") not in _TERMINAL_TASK_STATUSES:
                 continue
             self._tasks.pop(task_id, None)
+            self._task_futures.pop(task_id, None)
             removed_ids.append(task_id)
             overflow -= 1
         return removed_ids
@@ -600,12 +824,7 @@ class TaskService:
             self._delete_tasks_locked(removed_ids)
 
     def _append_progress(self, task_id: str, label: str, detail: str = "") -> None:
-        event = {"label": label, "time": time.strftime("%H:%M:%S", time.localtime())}
-        if detail:
-            safe = str(detail)
-            safe = safe.encode("utf-8", "replace").decode("utf-8", "replace")
-            safe = re.sub(r"[\x00-\x1F]", " ", safe)
-            event["detail"] = safe
+        event = build_progress_event(label, detail=sanitize_progress_detail(detail))
         with self._task_lock:
             task = self._tasks.get(task_id)
             if not task:
@@ -614,286 +833,92 @@ class TaskService:
             task["updated_at"] = time.time()
             self._upsert_task_locked(task)
 
+    def _can_continue_archive_task(self, task_id: str) -> bool:
+        try:
+            self._ensure_task_can_continue(task_id)
+            return True
+        except (_TaskCancelled, _TaskTimedOut):
+            return False
+
     def _enqueue_archive_refresh(self, task_id: str, people: List[str]) -> None:
-        targets = [str(item).strip() for item in list(people or []) if str(item).strip()]
-        if not targets or not callable(self._refresh_stellar_homepage):
-            return
-        queued_archive = {
-            "state": "queued",
-            "label": "排队中",
-            "people": targets,
-            "visible": False,
-        }
-        self._update_task_result_archive(task_id, queued_archive)
-        self._append_progress(task_id, "后台归档", f"人物页已生成，群星首页与知识图谱将在后台补齐：{'、'.join(targets[:3])}")
+        self._archive_refresher.enqueue(task_id, people, shutting_down=self._shutting_down)
 
-        def _run_archive() -> None:
-            running_archive = {
-                "state": "running",
-                "label": "归档中",
-                "people": targets,
-                "visible": False,
-            }
-            self._update_task_result_archive(task_id, running_archive)
-            self._append_progress(task_id, "后台归档", "正在刷新群星首页与知识图谱")
-            try:
-                refresh_result = self._refresh_stellar_homepage(targets[0]) or {}
-                payload = dict(refresh_result or {}) if isinstance(refresh_result, dict) else {}
-                ok = bool(payload.get("ok"))
-                archive_payload = {
-                    "state": "completed" if ok else "failed",
-                    "label": "已归档" if ok else "归档失败",
-                    "people": targets,
-                    "visible": bool(ok),
-                    "detail": str(payload.get("output") or payload.get("error") or "").strip(),
-                    "updated_at": time.time(),
-                }
-                if payload.get("index_path"):
-                    archive_payload["index_path"] = str(payload.get("index_path") or "")
-                if payload.get("data_path"):
-                    archive_payload["data_path"] = str(payload.get("data_path") or "")
-                self._update_task_result_archive(task_id, archive_payload)
-                if ok:
-                    self._append_progress(task_id, "后台归档", "群星首页与知识图谱已补齐，现在重新打开首页即可看到")
-                else:
-                    self._append_progress(task_id, "后台归档", archive_payload["detail"] or "群星首页与知识图谱后台补齐失败")
-            except Exception as exc:
-                detail = str(exc).strip() or "群星首页与知识图谱后台补齐失败"
-                self._update_task_result_archive(
-                    task_id,
-                    {
-                        "state": "failed",
-                        "label": "归档失败",
-                        "people": targets,
-                        "visible": False,
-                        "detail": detail,
-                        "updated_at": time.time(),
-                    },
-                )
-                self._append_progress(task_id, "后台归档", detail)
-                self._logger.warning("task_archive_failed id=%s people=%s error=%s", task_id, ",".join(targets), detail)
-
-        self._archive_executor.submit(_run_archive)
+    def _sync_run_pipeline_dependencies(self) -> None:
+        # Keep the pipeline aligned with TaskService attributes so tests and
+        # runtime hot-swaps can patch the service entrypoints directly.
+        self._run_pipeline._generate_for_person = self._generate_for_person
+        self._run_pipeline._ensure_profile_exports = self._ensure_profile_exports
+        self._run_pipeline._ensure_multi_exports = self._ensure_multi_exports
+        self._run_pipeline._compute_overlaps = self._compute_overlaps
+        self._run_pipeline._build_conclusion = self._build_conclusion
+        self._run_pipeline._render_multi_html = self._render_multi_html
+        self._run_pipeline._save_html = self._save_html
+        self._run_pipeline._relative_path = self._relative_path
 
     def _run_task(self, task_id: str, text: str, allow_cache: bool = True) -> None:
         started_at = time.perf_counter()
         self._logger.info("task_start id=%s text=%s", task_id, text)
+        structured_log(self._logger, "info", "task_start", task_id=task_id, text=text)
         self._update_task(task_id, status="running")
         self._append_progress(task_id, "理解任务")
+        self._ensure_task_can_continue(task_id)
 
         def _llm_event(message: str) -> None:
+            self._ensure_task_can_continue(task_id)
             self._append_progress(task_id, "模型调用", message)
 
-        text_clean = str(text or "").strip()
-        explicit_single_person_input = _looks_like_person_atom(text_clean)
-        story_dir = os.path.join(self._project_root(), "storymap", "examples", "story")
-        try:
-            known_people = set(story_person_names(story_dir))
-        except Exception:
-            known_people = set()
-        try:
-            known_authentic_people = set(known_authentic_person_names(story_dir=Path(story_dir)))
-        except Exception:
-            known_authentic_people = set(known_people)
-
-        targets: List[str] = []
-        targets_from_extraction = False
-        if text_clean and text_clean in known_people:
-            targets = [text_clean]
-            self._append_progress(task_id, "识别任务对象", f"命中本地人物档案：{text_clean}")
-        else:
-            parts = [part.strip() for part in re.split(r"[、，,\s]+", text_clean) if part.strip()]
-            if parts and all(part in known_people for part in parts) and len(parts) >= 2:
-                targets = parts[:10]
-                self._append_progress(task_id, "识别任务对象", f"命中本地人物档案：{'、'.join(targets)}")
-
-        client: Optional[object] = None
-        if not targets:
-            client = self._get_llm_client(event_callback=_llm_event)
-            targets = self._extract_historical_figures(client, text)
-            targets_from_extraction = bool(targets)
-        if not targets:
-            fallback = str(text or "").strip()
-            fallback_parts = [part.strip() for part in re.split(r"[、，,\s]+", fallback) if part.strip()]
-            if len(fallback_parts) >= 2 and all(_looks_like_person_atom(part) for part in fallback_parts):
-                targets = fallback_parts[:10]
-                self._append_progress(task_id, "识别任务对象", f"未命中档案，已按输入人物列表处理：{'、'.join(targets)}")
-            elif _looks_like_person_atom(fallback):
-                targets = [fallback]
-                self._append_progress(task_id, "识别任务对象", f"未命中档案，已按输入人物处理：{fallback}")
-            else:
-                error_message = "未识别到人物，请输入人物姓名，或先进入人物页再提问。"
-                self._update_task(task_id, status="failed", error=error_message)
-                self._append_progress(task_id, "失败", error_message)
-                self._append_progress(task_id, "完成", "失败")
-                self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
-                return
-
-        resolved_targets = list(targets)
-        blocked_targets = [
-            person
-            for person in targets
-            if (
-                not classify_story_person_authenticity(person, story_dir)[0]
-                or (
-                    targets_from_extraction
-                    and not explicit_single_person_input
-                    and person not in known_authentic_people
-                )
-            )
-        ]
-        blocked_results: List[Dict[str, object]] = []
-        if blocked_targets:
-            error_message = f"已拦截非真实或存疑人物：{'、'.join(blocked_targets[:3])}"
-            self._append_progress(task_id, "真实性过滤", error_message)
-            blocked_results = [
-                {
-                    "ok": False,
-                    "status": "failed",
-                    "person": person,
-                    "error": f"已拦截非真实或存疑人物：{person}",
-                }
-                for person in blocked_targets
-            ]
-            allowed_targets = [person for person in targets if person not in blocked_targets]
-            if not allowed_targets:
-                self._update_task(task_id, status="failed", error=error_message)
-                self._append_progress(task_id, "失败", error_message)
-                self._append_progress(task_id, "完成", "失败")
-                self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
-                return
-            targets = allowed_targets
-
-        generated_results = []
-        people_payload = []
-        for idx, person in enumerate(targets):
-            def _progress(message: str) -> None:
-                self._append_progress(task_id, message)
-
-            result = self._generate_for_person(
-                client,
-                person,
-                progress=_progress,
-                allow_cache=allow_cache,
-                event_callback=_llm_event,
-                refresh_homepage=False,
-            )
-            generated_results.append(result)
-            if _is_usable_result(result) and result.get("_profile"):
-                profile = result.get("_profile") or {}
-                export_allow_cache = allow_cache and (not bool(result.get("refreshed")))
-                people_payload.append(
-                    {
-                        "person": profile.get("person", {}),
-                        "locations": profile.get("locations", []),
-                        "mapStyle": profile.get("mapStyle", {}),
-                        "color": self._color_palette[idx % len(self._color_palette)],
-                    }
-                )
-                result["exports"] = self._ensure_profile_exports(profile, person, allow_cache=export_allow_cache)
-
-        results = list(blocked_results)
-        results.extend(generated_results)
-
-        overlaps = self._compute_overlaps(people_payload) if len(people_payload) > 1 else []
-        multi_html_path = ""
-        multi_exports: Dict[str, str] = {}
-        if len(people_payload) > 1:
-            self._append_progress(task_id, "生成合并视图")
-            title = "多人物合并视图"
-            multi_data = {"title": title, "people": people_payload, "overlaps": overlaps}
-            multi_html = self._render_multi_html(multi_data)
-            multi_name = f"{title}_{task_id[:8]}"
-            multi_html_path = self._save_html(multi_name, multi_html)
-            multi_exports = self._ensure_multi_exports(people_payload, multi_name, allow_cache=allow_cache)
-
-        duration = self._format_seconds(time.perf_counter() - started_at)
-        conclusion = self._build_conclusion(results, len(people_payload) > 1)
-        success_results = [result for result in results if _is_usable_result(result) and not _has_task_blocking_failure(result)]
-        failed_results = [result for result in results if (not _is_usable_result(result)) or _has_task_blocking_failure(result)]
-        failed_people = [str(item.get("person") or "").strip() for item in failed_results if str(item.get("person") or "").strip()]
-        if success_results and failed_results:
-            summary_status = "partial_failed"
-        elif success_results:
-            summary_status = "completed"
-        else:
-            summary_status = "failed"
-        files: List[TaskFileEntry] = []
-        for result in results:
-            if not _is_usable_result(result):
-                continue
-            file_entry: TaskFileEntry = {
-                "markdown": self._relative_path(result.get("markdown_path", "")),
-                "html": self._relative_path(result.get("html_path", "")),
-            }
-            exports = result.get("exports") or {}
-            if exports.get("geojson"):
-                file_entry["geojson"] = self._relative_path(exports.get("geojson", ""))
-            if exports.get("csv"):
-                file_entry["csv"] = self._relative_path(exports.get("csv", ""))
-            files.append(file_entry)
-        multi_entry: Optional[TaskMultiEntry] = None
-        if multi_html_path:
-            multi_entry = {
-                "html": self._relative_path(multi_html_path),
-                "geojson": self._relative_path(multi_exports.get("geojson", "")) if multi_exports else "",
-                "csv": self._relative_path(multi_exports.get("csv", "")) if multi_exports else "",
-            }
-        summary: TaskResultSummary = build_task_result_summary(
-            ok=(summary_status == "completed"),
-            status=summary_status,
-            people=resolved_targets,
-            results=results,
-            success_count=len(success_results),
-            failed_count=len(failed_results),
-            failed_people=failed_people,
-            multi_html_path=multi_html_path,
-            multi_exports=multi_exports,
-            overlaps=overlaps,
-            duration=duration,
-            conclusion=conclusion,
-            files=files,
-            meta=_collect_result_runtime_meta(results),
-            multi=multi_entry,
+        target_resolution = resolve_task_targets(
+            text=text,
+            project_root=self._project_root,
+            get_llm_client=self._get_llm_client,
+            extract_historical_figures=self._extract_historical_figures,
+            timeout_seconds=lambda: self._task_timeout_resolver(task_id),
+            ensure_can_continue=lambda: self._ensure_task_can_continue(task_id),
+            append_progress=lambda label, detail="": self._append_progress(task_id, label, detail),
+            llm_event=_llm_event,
         )
-        successful_people = [
-            str(item.get("person") or "").strip()
-            for item in success_results
-            if str(item.get("person") or "").strip()
-        ]
-        if successful_people and callable(self._refresh_stellar_homepage):
-            summary["archive"] = {
-                "state": "queued",
-                "label": "排队中",
-                "people": successful_people,
-                "visible": False,
-            }
-        self._append_progress(task_id, "输出结论")
-        if summary_status == "failed":
-            errors = []
-            for result in results:
-                message = str(result.get("error") or "").strip()
-                if message and message not in errors:
-                    errors.append(message)
-            error_message = "；".join(errors[:3]) or "未生成成功"
-            self._update_task(task_id, status="failed", error=error_message, result=summary)
-            self._append_progress(task_id, "失败", error_message)
+        client = target_resolution.client
+        resolved_targets = list(target_resolution.resolved_targets)
+        targets = list(target_resolution.generation_targets)
+        blocked_results = list(target_resolution.blocked_results)
+        if target_resolution.error_message:
+            self._update_task(task_id, status="failed", error=target_resolution.error_message)
+            self._append_progress(task_id, "失败", target_resolution.error_message)
             self._append_progress(task_id, "完成", "失败")
-            self._logger.warning("task_failed id=%s error=%s", task_id, error_message)
+            self._record_metrics(failed=1, duration_seconds_total=max(0.0, time.perf_counter() - started_at))
+            self._logger.warning("task_failed id=%s error=%s", task_id, target_resolution.error_message)
             return
-        if summary_status == "partial_failed":
-            errors = []
-            for result in failed_results:
-                message = str(result.get("error") or "").strip()
-                if message and message not in errors:
-                    errors.append(message)
-            error_message = "；".join(errors[:3]) or f"部分人物生成失败：{'、'.join(failed_people[:3])}"
-            self._update_task(task_id, status="partial_failed", error=error_message, result=summary)
-            self._enqueue_archive_refresh(task_id, successful_people)
-            self._append_progress(task_id, "部分失败", error_message)
-            self._append_progress(task_id, "完成", "部分失败")
-            self._logger.warning("task_partial_failed id=%s error=%s", task_id, error_message)
-            return
-        self._update_task(task_id, status="completed", result=summary)
-        self._enqueue_archive_refresh(task_id, successful_people)
-        self._logger.info("task_completed id=%s duration=%s", task_id, duration)
+        self._sync_run_pipeline_dependencies()
+        artifacts = self._run_pipeline.build_generation_artifacts(
+            task_id=task_id,
+            client=client,
+            targets=targets,
+            blocked_results=blocked_results,
+            allow_cache=allow_cache,
+            ensure_can_continue=lambda: self._ensure_task_can_continue(task_id),
+            append_progress=lambda label, detail="": self._append_progress(task_id, label, detail),
+            llm_event=_llm_event,
+            timeout_seconds=lambda: self._task_timeout_resolver(task_id),
+        )
+        duration, outcome, terminal_resolution = self._run_pipeline.build_outcome(
+            resolved_targets=resolved_targets,
+            artifacts=artifacts,
+            started_at=started_at,
+        )
+        summary = outcome.summary
+        successful_people = outcome.successful_people
+        duration_seconds = max(0.0, time.perf_counter() - started_at)
+        self._run_pipeline.apply_terminal_resolution(
+            task_id=task_id,
+            summary=summary,
+            successful_people=successful_people,
+            terminal_resolution=terminal_resolution,
+            duration=duration,
+            duration_seconds=duration_seconds,
+            refresh_stellar_homepage=self._refresh_stellar_homepage,
+            update_task=self._update_task,
+            enqueue_archive_refresh=self._enqueue_archive_refresh,
+            append_progress=lambda label, detail="": self._append_progress(task_id, label, detail),
+            record_metrics=self._record_metrics,
+            logger=self._logger,
+        )

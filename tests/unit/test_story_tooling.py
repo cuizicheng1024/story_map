@@ -6,7 +6,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from story_tooling import invoke_tool, tool
+from storymap.script.cli.tooling import invoke_tool, tool
 
 
 def test_invoke_tool_retries_and_records_trace():

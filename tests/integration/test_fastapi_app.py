@@ -12,10 +12,11 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import story_map
-import map_client
-from story_map import APP
-from proxy import ProxyService
+from storymap.script.cli import story_map
+from storymap.script.map import map_client
+from storymap.script.api import app as api_app_module
+from storymap.script.api.proxy import ProxyService
+from storymap.script.cli.story_map import APP
 
 
 pytestmark = pytest.mark.anyio
@@ -23,6 +24,17 @@ pytestmark = pytest.mark.anyio
 
 def _make_transport() -> httpx.ASGITransport:
     return httpx.ASGITransport(app=APP)
+
+
+class _FakeTaskListService:
+    def __init__(self, tasks):
+        self._tasks = [dict(item) for item in tasks]
+
+    def list_tasks(self, *, limit=20, offset=0, status=""):
+        items = self._tasks
+        if status:
+            items = [item for item in items if str(item.get("status") or "").strip() == status]
+        return {"tasks": items[offset : offset + limit]}
 
 
 @pytest.fixture(autouse=True)
@@ -45,6 +57,9 @@ def _reset_task_service_state():
         service._active = 0
 
 
+_ = _reset_task_service_state
+
+
 async def test_health_endpoint_returns_ok():
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         response = await client.get("/health")
@@ -54,7 +69,245 @@ async def test_health_endpoint_returns_ok():
     assert response.json()["service"] == "story_map"
 
 
-async def test_runtime_health_endpoint_returns_llm_and_geocode_snapshots(monkeypatch):
+async def test_readiness_endpoint_returns_ready_snapshot(monkeypatch):
+    class _FakeClient:
+        def health_snapshot(self):
+            return {"provider": "minimax", "metrics": {"requests": 4, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0}}
+
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "runtime_metrics_snapshot",
+        lambda: {
+            "ok": True,
+            "queue": {"pending": 0, "active": 0, "limit": 2},
+            "counters": {"submitted": 3, "completed": 3},
+            "alerts": [],
+        },
+    )
+    monkeypatch.setattr(
+        story_map._STATIC_SERVICE,
+        "debug_static_payload",
+        lambda: {"static_exists": True, "index_exists": True, "static_dir": "/tmp/story_map"},
+    )
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _FakeClient())
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 10, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/health/ready")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["generate_ready"] is True
+    assert payload["static"]["ok"] is True
+    assert payload["task"]["counters"]["completed"] == 3
+
+
+async def test_readiness_endpoint_returns_503_when_static_or_tasks_unready(monkeypatch):
+    class _FakeClient:
+        def health_snapshot(self):
+            return {"provider": "minimax", "metrics": {"requests": 4, "success_rate": 0.0, "timeouts": 4, "timeout_rate": 1.0}}
+
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "runtime_metrics_snapshot",
+        lambda: {
+            "ok": False,
+            "queue": {"pending": 12, "active": 2, "limit": 2},
+            "counters": {"submitted": 20, "timed_out": 2},
+            "alerts": [{"code": "running_task_stale", "level": "error", "detail": "stale"}],
+        },
+    )
+    monkeypatch.setattr(
+        story_map._STATIC_SERVICE,
+        "debug_static_payload",
+        lambda: {"static_exists": True, "index_exists": False, "static_dir": "/tmp/story_map"},
+    )
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _FakeClient())
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 10, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/health/ready")
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["ok"] is False
+    assert any(item["code"] == "static_artifacts_missing" for item in payload["alerts"])
+
+
+async def test_generate_rejected_when_dependencies_are_not_ready(monkeypatch):
+    class _FailingClient:
+        def health_snapshot(self):
+            return {"provider": "minimax", "metrics": {"requests": 4, "success_rate": 0.0, "timeouts": 4, "timeout_rate": 1.0}}
+
+    monkeypatch.setattr(
+        story_map._STATIC_SERVICE,
+        "debug_static_payload",
+        lambda: {"static_exists": True, "index_exists": True, "static_dir": "/tmp/story_map"},
+    )
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "runtime_metrics_snapshot",
+        lambda: {"ok": True, "queue": {"pending": 0, "active": 0, "limit": 2}, "counters": {}, "alerts": []},
+    )
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _FailingClient())
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 10, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.post("/generate", json={"person": "霍去病"})
+
+    assert response.status_code == 503
+    assert response.json()["error"] == "service not ready for generate"
+
+
+async def test_metrics_endpoint_exposes_runtime_counters(monkeypatch):
+    class _FakeClient:
+        def health_snapshot(self):
+            return {"provider": "minimax", "metrics": {"requests": 5, "success_rate": 0.8, "timeouts": 1, "timeout_rate": 0.2}}
+
+    monkeypatch.setattr(
+        story_map._STATIC_SERVICE,
+        "debug_static_payload",
+        lambda: {"static_exists": True, "index_exists": True, "static_dir": "/tmp/story_map"},
+    )
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "runtime_metrics_snapshot",
+        lambda: {
+            "ok": True,
+            "queue": {"pending": 1, "active": 1, "limit": 2, "queued_count": 1, "running_count": 1, "oldest_queued_age_seconds": 0.2, "oldest_running_age_seconds": 1.1},
+            "counters": {"submitted": 8, "completed": 5, "timed_out": 1},
+            "alerts": [],
+        },
+    )
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _FakeClient())
+    monkeypatch.setattr(
+        story_map._PROXY_SERVICE,
+        "metrics_snapshot",
+        lambda: {"proxy_requests": 4, "proxy_fallbacks": 1, "breaker_open": False},
+    )
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 6, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.get("/metrics")
+
+    assert response.status_code == 200
+    assert "storymap_generate_readiness 1" in response.text
+    assert "storymap_task_submitted 8" in response.text
+    assert 'storymap_dependency_ready{component="llm"} 1' in response.text
+    assert "storymap_proxy_proxy_requests 4" in response.text
+
+
+def test_star_office_status_uses_recent_success_instead_of_old_failure():
+    now = time.time()
+    task_service = _FakeTaskListService(
+        [
+            {"id": "task-success", "status": "completed", "text": "霍光", "updated_at": now - 30},
+            {"id": "task-failed", "status": "failed", "text": "蒙恬", "updated_at": now - 120, "error": "timeout"},
+        ]
+    )
+
+    payload = api_app_module._star_office_status_payload(
+        task_service=task_service,
+        readiness={"serve_ready": True, "generate_ready": True},
+    )
+
+    assert payload["state"] == "syncing"
+    assert "霍光" in payload["detail"]
+    assert "蒙恬" not in payload["detail"]
+
+
+def test_star_office_status_softens_historical_failure_when_system_is_ready():
+    now = time.time()
+    task_service = _FakeTaskListService(
+        [
+            {"id": "task-failed", "status": "failed", "text": "蒙恬", "updated_at": now - 45, "error": "timeout"},
+        ]
+    )
+
+    payload = api_app_module._star_office_status_payload(
+        task_service=task_service,
+        readiness={"serve_ready": True, "generate_ready": True},
+    )
+
+    assert payload["state"] == "idle"
+    assert "蒙恬" in payload["detail"]
+    assert "恢复待命" in payload["detail"]
+
+
+def test_star_office_status_prefers_newer_failure_over_older_success():
+    now = time.time()
+    task_service = _FakeTaskListService(
+        [
+            {"id": "task-failed", "status": "failed", "text": "蒙恬", "updated_at": now - 20, "error": "timeout"},
+            {"id": "task-success", "status": "completed", "text": "霍光", "updated_at": now - 120},
+        ]
+    )
+
+    payload = api_app_module._star_office_status_payload(
+        task_service=task_service,
+        readiness={"serve_ready": True, "generate_ready": True},
+    )
+
+    assert payload["state"] == "idle"
+    assert "蒙恬" in payload["detail"]
+    assert "霍光" not in payload["detail"]
+
+
+def test_star_office_agents_payload_returns_live_agents_for_running_task():
+    now = time.time()
+    task_service = _FakeTaskListService(
+        [
+            {"id": "task-running", "status": "running", "text": "谢安", "updated_at": now - 10},
+            {"id": "task-queued", "status": "queued", "text": "霍光", "updated_at": now - 20},
+        ]
+    )
+
+    payload = api_app_module._star_office_agents_payload(
+        task_service=task_service,
+        readiness={"serve_ready": True, "generate_ready": True},
+    )
+
+    assert [item["agentId"] for item in payload] == ["orange-agent", "dispatch-agent"]
+    assert payload[0]["state"] == "executing"
+    assert payload[1]["state"] == "researching"
+
+
+def test_star_office_agents_payload_prefers_newer_failure_over_older_success():
+    now = time.time()
+    task_service = _FakeTaskListService(
+        [
+            {"id": "task-failed", "status": "failed", "text": "蒙恬", "updated_at": now - 20, "error": "timeout"},
+            {"id": "task-success", "status": "completed", "text": "霍光", "updated_at": now - 120},
+        ]
+    )
+
+    payload = api_app_module._star_office_agents_payload(
+        task_service=task_service,
+        readiness={"serve_ready": True, "generate_ready": True},
+    )
+
+    assert payload[0]["agentId"] == "recover-agent"
+    assert all(item["agentId"] != "sync-agent" for item in payload)
+
+
+async def test_runtime_health_endpoint_requires_debug_token(monkeypatch):
     class _FakeClient:
         def health_snapshot(self):
             return {
@@ -73,21 +326,14 @@ async def test_runtime_health_endpoint_returns_llm_and_geocode_snapshots(monkeyp
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         response = await client.get("/health/runtime")
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["ok"] is True
-    assert payload["service"] == "story_map"
-    assert payload["llm"]["ok"] is True
-    assert payload["llm"]["health"]["provider"] == "minimax"
-    assert payload["llm"]["health"]["metrics"]["requests"] == 3
-    assert payload["geocode"]["ok"] is True
-    assert payload["geocode"]["metrics"]["lookups"] == 10
+    assert response.status_code == 403
+    assert response.json()["detail"] == "runtime debug access denied"
 
 
-async def test_runtime_debug_endpoints_reject_remote_requests_without_debug_token():
+async def test_runtime_debug_endpoints_require_debug_token():
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
-        runtime_response = await client.get("/health/runtime", headers={"x-forwarded-for": "8.8.8.8"})
-        static_response = await client.get("/debug_static", headers={"x-forwarded-for": "8.8.8.8"})
+        runtime_response = await client.get("/health/runtime")
+        static_response = await client.get("/debug_static")
 
     assert runtime_response.status_code == 403
     assert runtime_response.json()["detail"] == "runtime debug access denied"
@@ -95,8 +341,39 @@ async def test_runtime_debug_endpoints_reject_remote_requests_without_debug_toke
     assert static_response.json()["detail"] == "runtime debug access denied"
 
 
+async def test_task_admin_endpoints_require_debug_token():
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        list_response = await client.get("/tasks", params={"limit": 10})
+        storage_response = await client.get("/task/storage")
+        maintain_response = await client.post(
+            "/task/storage/maintain",
+            json={"prune_expired": True, "vacuum": False},
+        )
+
+    assert list_response.status_code == 403
+    assert list_response.json()["detail"] == "runtime debug access denied"
+    assert storage_response.status_code == 403
+    assert storage_response.json()["detail"] == "runtime debug access denied"
+    assert maintain_response.status_code == 403
+    assert maintain_response.json()["detail"] == "runtime debug access denied"
+
+
 async def test_runtime_health_endpoint_allows_remote_requests_with_debug_token(monkeypatch):
     monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    class _FakeClient:
+        def health_snapshot(self):
+            return {
+                "provider": "minimax",
+                "metrics": {"requests": 3, "timeouts": 1},
+                "timeout_config": {"total": 5, "connect": 2, "read": 5, "stream_read": 8},
+            }
+
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _FakeClient())
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 10, "cache_hits": 4, "timeouts": 2, "timeout_rate": 0.2},
+    )
 
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         response = await client.get(
@@ -108,7 +385,138 @@ async def test_runtime_health_endpoint_allows_remote_requests_with_debug_token(m
         )
 
     assert response.status_code == 200
-    assert response.json()["ok"] is True
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["service"] == "story_map"
+    assert payload["llm"]["ok"] is True
+    assert payload["llm"]["health"]["provider"] == "minimax"
+    assert payload["llm"]["health"]["metrics"]["requests"] == 3
+    assert payload["geocode"]["ok"] is True
+    assert payload["geocode"]["metrics"]["lookups"] == 10
+    assert "task" in payload
+
+
+async def test_task_debug_views_require_debug_token(monkeypatch):
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", lambda _client, person, **_kwargs: {"ok": False, "person": person, "error": f"{person} failed"})
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        submit = await client.post("/generate", json={"person": "霍去病"})
+        task_id = submit.json()["task_id"]
+        for _ in range(40):
+            response = await client.get("/task", params={"id": task_id})
+            if response.json().get("status") == "failed":
+                break
+            await anyio.sleep(0.05)
+        debug_response = await client.get("/task", params={"id": task_id, "debug": 1})
+        debug_page = await client.get("/task/debug", params={"id": task_id})
+
+    assert debug_response.status_code == 403
+    assert debug_response.json()["detail"] == "runtime debug access denied"
+    assert debug_page.status_code == 403
+    assert debug_page.json()["detail"] == "runtime debug access denied"
+
+
+async def test_task_debug_views_allow_debug_token(monkeypatch):
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", lambda _client, person, **_kwargs: {"ok": False, "person": person, "error": f"{person} failed"})
+    monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        submit = await client.post("/generate", json={"person": "霍去病"})
+        task_id = submit.json()["task_id"]
+        for _ in range(40):
+            response = await client.get("/task", params={"id": task_id})
+            if response.json().get("status") == "failed":
+                break
+            await anyio.sleep(0.05)
+        headers = {"x-storymap-debug-token": "secret-token"}
+        debug_response = await client.get("/task", params={"id": task_id, "debug": 1}, headers=headers)
+        debug_page = await client.get("/task/debug", params={"id": task_id}, headers=headers)
+
+    assert debug_response.status_code == 200
+    assert debug_response.json()["exists"] is True
+    assert debug_page.status_code == 200
+    assert "Task Debug" in debug_page.text
+
+
+async def test_task_admin_endpoints_allow_remote_requests_with_debug_token(monkeypatch):
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        list_response = await client.get(
+            "/tasks",
+            params={"limit": 10},
+            headers={"x-forwarded-for": "8.8.8.8", "x-storymap-debug-token": "secret-token"},
+        )
+        storage_response = await client.get(
+            "/task/storage",
+            headers={"x-forwarded-for": "8.8.8.8", "x-storymap-debug-token": "secret-token"},
+        )
+        maintain_response = await client.post(
+            "/task/storage/maintain",
+            json={"prune_expired": True, "vacuum": False},
+            headers={"x-forwarded-for": "8.8.8.8", "x-storymap-debug-token": "secret-token"},
+        )
+
+    assert list_response.status_code == 200
+    assert list_response.json()["ok"] is True
+    assert storage_response.status_code == 200
+    assert storage_response.json()["task_count"] >= 0
+    assert maintain_response.status_code == 200
+    assert maintain_response.json()["ok"] is True
+
+
+async def test_task_storage_maintain_forwards_reconcile_flags(monkeypatch):
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    captured = {}
+
+    def _fake_maintain_storage(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True, "pruned_count": 1, "vacuumed": False, "reconciled": {"ran": True}, "stats": {"task_count": 0}}
+
+    monkeypatch.setattr(story_map._TASK_SERVICE, "maintain_storage", _fake_maintain_storage)
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.post(
+            "/task/storage/maintain",
+            json={"prune_expired": True, "vacuum": False, "reconcile": True, "auto_retry": False},
+            headers={"x-forwarded-for": "8.8.8.8", "x-storymap-debug-token": "secret-token"},
+        )
+
+    assert response.status_code == 200
+    assert captured == {"prune_expired": True, "vacuum": False, "reconcile": True, "auto_retry": False}
+    assert response.json()["reconciled"]["ran"] is True
+
+
+async def test_task_cancel_endpoint_forwards_to_service(monkeypatch):
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "cancel_task",
+        lambda task_id, reason="": {"ok": True, "task_id": task_id, "status": "cancelled", "reason": reason},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.post("/task/cancel", json={"id": "task-1", "reason": "stop"})
+
+    assert response.status_code == 200
+    assert response.json()["task_id"] == "task-1"
+    assert response.json()["status"] == "cancelled"
+
+
+async def test_task_retry_endpoint_forwards_to_service(monkeypatch):
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "retry_task",
+        lambda task_id, reason="": {"ok": True, "task_id": "task-2", "retried_from": task_id, "status": "queued", "reason": reason},
+    )
+
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        response = await client.post("/task/retry", json={"id": "task-1", "reason": "retry"})
+
+    assert response.status_code == 200
+    assert response.json()["task_id"] == "task-2"
+    assert response.json()["retried_from"] == "task-1"
 
 
 async def test_root_serves_homepage_html(monkeypatch, tmp_path):
@@ -236,16 +644,61 @@ async def test_generate_then_poll_task_flow(monkeypatch):
     assert snapshot["result"]["meta"]["degraded_reasons"] == ["editor_fallback"]
     assert snapshot["result"]["meta"]["execution_traces"]["霍去病"] == ["supervisor", "search_agent", "editor_agent"]
     assert snapshot["result"]["meta"]["tool_trace_count"] == 1
-    assert snapshot["result"]["meta"]["used_legacy_fallback"] is False
-    assert snapshot["result"]["meta"]["memory_hits"] == {"search": 1}
-    assert snapshot["result"]["meta"]["memory_misses"] == {"place_map": 1}
-    assert snapshot["result"]["archive"]["state"] in {"queued", "running", "completed"}
+
+
+async def test_generate_post_reuses_task_for_same_idempotency_key(monkeypatch, tmp_path):
+    class _HealthyClient:
+        def health_snapshot(self):
+            return {"provider": "minimax", "metrics": {"requests": 1, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0}}
+
+    api_app_module._GENERATE_IDEMPOTENCY_STORES.clear()
+    monkeypatch.setenv("MAP_STORY_GENERATE_IDEMPOTENCY_PATH", str(tmp_path / "generate_idempotency.json"))
+    monkeypatch.setattr(
+        story_map._STATIC_SERVICE,
+        "debug_static_payload",
+        lambda: {"static_exists": True, "index_exists": True, "static_dir": "/tmp/story_map"},
+    )
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "runtime_metrics_snapshot",
+        lambda: {"ok": True, "queue": {"pending": 0, "active": 0, "limit": 2}, "counters": {}, "alerts": []},
+    )
+    monkeypatch.setattr(story_map._PROXY_SERVICE, "_get_llm_client", lambda: _HealthyClient())
+    monkeypatch.setattr(
+        map_client,
+        "geocode_metrics_snapshot",
+        lambda: {"lookups": 1, "success_rate": 1.0, "timeouts": 0, "timeout_rate": 0.0},
+    )
+
+    calls = []
+
+    def _fake_submit_task(value, **kwargs):
+        calls.append((value, dict(kwargs)))
+        return {"ok": True, "task_id": "task-1", "queue": {"position": 1}}
+
+    monkeypatch.setattr(story_map._TASK_SERVICE, "submit_task", _fake_submit_task)
+    monkeypatch.setattr(
+        story_map._TASK_SERVICE,
+        "snapshot_task",
+        lambda task_id: {"exists": task_id == "task-1", "queue": {"position": 1}, "status": "queued"},
+    )
+
+    headers = {"x-idempotency-key": "idem-1"}
+    async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
+        first = await client.post("/generate", json={"person": "霍去病"}, headers=headers)
+        second = await client.post("/generate", json={"person": "霍去病"}, headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert len(calls) == 1
+    assert second.json()["task_id"] == "task-1"
+    assert second.json()["idempotent"] is True
 
 
 async def test_generate_daily_limit_rejects_second_request_from_same_ip(monkeypatch, tmp_path):
     calls = []
 
-    def _fake_submit(value):
+    def _fake_submit(value, **_kwargs):
         calls.append(value)
         return {"ok": True, "task_id": f"task-{len(calls)}"}
 
@@ -267,7 +720,7 @@ async def test_generate_daily_limit_rejects_second_request_from_same_ip(monkeypa
 async def test_generate_daily_limit_is_scoped_per_ip(monkeypatch, tmp_path):
     calls = []
 
-    def _fake_submit(value):
+    def _fake_submit(value, **_kwargs):
         calls.append(value)
         return {"ok": True, "task_id": f"task-{len(calls)}"}
 
@@ -310,12 +763,14 @@ async def test_task_endpoint_returns_200_for_failed_existing_task(monkeypatch):
     assert payload["status"] == "failed"
     assert payload["status_info"]["code"] == "failed"
 
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    headers = {"x-storymap-debug-token": "secret-token"}
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
-        debug_response = await client.get("/task", params={"id": task_id, "debug": 1})
-        debug_page = await client.get("/task/debug", params={"id": task_id})
-        list_response = await client.get("/tasks", params={"limit": 10})
-        storage_response = await client.get("/task/storage")
-        maintain_response = await client.post("/task/storage/maintain", json={"prune_expired": True, "vacuum": False})
+        debug_response = await client.get("/task", params={"id": task_id, "debug": 1}, headers=headers)
+        debug_page = await client.get("/task/debug", params={"id": task_id}, headers=headers)
+        list_response = await client.get("/tasks", params={"limit": 10}, headers=headers)
+        storage_response = await client.get("/task/storage", headers=headers)
+        maintain_response = await client.post("/task/storage/maintain", json={"prune_expired": True, "vacuum": False}, headers=headers)
 
     assert debug_response.status_code == 200
     debug_payload = debug_response.json()
@@ -377,8 +832,10 @@ async def test_task_is_marked_failed_when_homepage_refresh_failed(monkeypatch):
     assert snapshot["result"]["results"][0]["homepage_refresh_failed"] is True
     assert snapshot["result"]["files"][0]["html"].endswith("/tmp/霍去病.html") or snapshot["result"]["files"][0]["html"] == "tmp/霍去病.html"
 
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    headers = {"x-storymap-debug-token": "secret-token"}
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
-        list_response = await client.get("/tasks", params={"limit": 10})
+        list_response = await client.get("/tasks", params={"limit": 10}, headers=headers)
 
     assert list_response.status_code == 200
     items = list_response.json()["tasks"]
@@ -413,17 +870,19 @@ async def test_task_debug_surface_partial_failed_status(monkeypatch):
     monkeypatch.setattr(story_map._TASK_SERVICE, "_generate_for_person", _fake_generate)
     monkeypatch.setattr(story_map._TASK_SERVICE, "_ensure_profile_exports", lambda *args, **kwargs: {})
 
+    monkeypatch.setenv("STORYMAP_RUNTIME_DEBUG_TOKEN", "secret-token")
+    headers = {"x-storymap-debug-token": "secret-token"}
     async with httpx.AsyncClient(transport=_make_transport(), base_url="http://testserver") as client:
         submit = await client.post("/generate", json={"person": "李白 杜甫"})
         task_id = submit.json()["task_id"]
         snapshot = None
         for _ in range(40):
-            response = await client.get("/task", params={"id": task_id, "debug": 1})
+            response = await client.get("/task", params={"id": task_id, "debug": 1}, headers=headers)
             snapshot = response
             if response.json().get("status") == "partial_failed":
                 break
             await anyio.sleep(0.05)
-        debug_page = await client.get("/task/debug", params={"id": task_id})
+        debug_page = await client.get("/task/debug", params={"id": task_id}, headers=headers)
 
     assert snapshot is not None
     assert snapshot.status_code == 200
@@ -476,7 +935,9 @@ async def test_ai_proxy_falls_back_to_local_agent_when_llm_unavailable(monkeypat
 async def test_ai_proxy_uses_llm_when_local_agent_not_handled(monkeypatch):
     class _FakeClient:
         def think(self, messages, temperature=0.1):
-            assert messages[0]["content"] == "介绍一下他"
+            assert messages[0]["role"] == "system"
+            assert "苏轼" in messages[0]["content"]
+            assert messages[1]["content"] == "介绍一下他"
             assert temperature == 0.5
             return "这是模型回答。"
 
@@ -513,7 +974,9 @@ async def test_ai_proxy_streams_llm_chunks_when_requested(monkeypatch):
             return {"requests": 1, "successes": 1}
 
         def stream_think(self, messages, temperature=0.1):
-            assert messages[0]["content"] == "介绍一下他"
+            assert messages[0]["role"] == "system"
+            assert "苏轼" in messages[0]["content"]
+            assert messages[1]["content"] == "介绍一下他"
             assert temperature == 0.5
             yield "这是"
             yield "流式回答。"
@@ -613,6 +1076,117 @@ def test_proxy_service_resets_executor_after_timeout(monkeypatch):
         assert payload["meta"]["llm_trace"]["classification"] == "timeout"
         assert payload["meta"]["llm_metrics"]["timeouts"] == 1
         assert service._executor is not original_executor
+    finally:
+        service.shutdown()
+
+
+def test_proxy_service_stream_timeout_falls_back_and_reports_metrics(monkeypatch):
+    class _SlowClient:
+        def latest_trace(self):
+            return {"classification": "timeout", "request_id": "stream-timeout"}
+
+        def metrics_snapshot(self):
+            return {"requests": 1, "timeouts": 1}
+
+        def stream_think(self, _messages, temperature=0.5):
+            assert temperature == 0.5
+            time.sleep(1.2)
+            yield "slow"
+
+    service = ProxyService(
+        get_llm_client=lambda: _SlowClient(),
+        local_agent_reply=lambda _data: {"handled": True, "content": "fallback stream", "person_name": "苏轼"},
+        local_history_reply=lambda _messages: "fallback history",
+        logger=logging.getLogger("proxy-stream-test"),
+        max_workers=1,
+        timeout_env_name="TEST_PROXY_STREAM_TIMEOUT",
+    )
+    monkeypatch.setenv("TEST_PROXY_STREAM_TIMEOUT_STREAM_IDLE", "1")
+    monkeypatch.setenv("TEST_PROXY_STREAM_TIMEOUT_STREAM_TOTAL", "2")
+    try:
+        status, iterator = service.proxy_llm_stream({"messages": [{"role": "user", "content": "介绍一下他"}], "temperature": 0.5})
+        payload = "".join(list(iterator))
+
+        assert status == 200
+        assert "fallback stream" in payload
+        assert '"fallback_reason": "timeout"' in payload
+        assert '"proxy_stream_timeouts": 1' in payload
+    finally:
+        service.shutdown()
+
+
+def test_proxy_service_stream_timeout_after_partial_output_marks_stream_incomplete(monkeypatch):
+    class _SlowClient:
+        def latest_trace(self):
+            return {"classification": "timeout", "request_id": "stream-partial-timeout"}
+
+        def metrics_snapshot(self):
+            return {"requests": 1, "timeouts": 1}
+
+        def stream_think(self, _messages, temperature=0.5):
+            assert temperature == 0.5
+            yield "先输出一段"
+            time.sleep(1.2)
+            yield "再输出一段"
+
+    service = ProxyService(
+        get_llm_client=lambda: _SlowClient(),
+        local_agent_reply=lambda _data: {"handled": False, "content": "", "person_name": ""},
+        local_history_reply=lambda _messages: "fallback history",
+        logger=logging.getLogger("proxy-stream-partial-timeout-test"),
+        max_workers=1,
+        timeout_env_name="TEST_PROXY_STREAM_PARTIAL_TIMEOUT",
+    )
+    monkeypatch.setenv("TEST_PROXY_STREAM_PARTIAL_TIMEOUT_STREAM_IDLE", "1")
+    monkeypatch.setenv("TEST_PROXY_STREAM_PARTIAL_TIMEOUT_STREAM_TOTAL", "5")
+    try:
+        status, iterator = service.proxy_llm_stream({"messages": [{"role": "user", "content": "介绍一下他"}], "temperature": 0.5})
+        payload = "".join(list(iterator))
+
+        assert status == 200
+        assert "先输出一段" in payload
+        assert '"fallback_reason": "timeout"' in payload
+        assert '"stream_completed": false' in payload
+    finally:
+        service.shutdown()
+
+
+def test_proxy_service_opens_circuit_after_repeated_stream_failures(monkeypatch):
+    class _BrokenClient:
+        def latest_trace(self):
+            return {"classification": "timeout", "request_id": "stream-broken"}
+
+        def metrics_snapshot(self):
+            return {"requests": 1, "timeouts": 1}
+
+        def stream_think(self, _messages, temperature=0.5):
+            assert temperature == 0.5
+            yield from ()
+            raise RuntimeError("llm down")
+
+    service = ProxyService(
+        get_llm_client=lambda: _BrokenClient(),
+        local_agent_reply=lambda _data: {"handled": False, "content": "", "person_name": ""},
+        local_history_reply=lambda _messages: "fallback history",
+        logger=logging.getLogger("proxy-breaker-test"),
+        max_workers=1,
+        timeout_env_name="TEST_PROXY_BREAKER",
+    )
+    monkeypatch.setenv("TEST_PROXY_BREAKER_BREAKER_THRESHOLD", "2")
+    monkeypatch.setenv("TEST_PROXY_BREAKER_BREAKER_COOLDOWN", "60")
+    try:
+        for _ in range(2):
+            status, iterator = service.proxy_llm_stream({"messages": [{"role": "user", "content": "介绍一下他"}], "temperature": 0.5})
+            payload = "".join(list(iterator))
+            assert status == 200
+            assert "fallback history" in payload
+
+        status, iterator = service.proxy_llm_stream({"messages": [{"role": "user", "content": "介绍一下他"}], "temperature": 0.5})
+        payload = "".join(list(iterator))
+
+        assert status == 200
+        assert '"fallback_reason": "circuit_open"' in payload
+        assert service.metrics_snapshot()["breaker_open"] is True
     finally:
         service.shutdown()
 

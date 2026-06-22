@@ -444,3 +444,42 @@ def test_main_applies_curated_overrides_for_su_shi_work_tooltips(tmp_path, monke
     ]
     assert items["寒食帖"]["quote_policy"] == "summary_only"
     assert items["寒食帖"]["quotes"] == []
+
+
+def test_main_backfills_curated_su_dongpo_works_and_normalizes_huangzhou_hanshi_title(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_work_summary_index")
+    repo_root = tmp_path / "repo"
+    story_dir = repo_root / "storymap" / "examples" / "story"
+    data_dir = repo_root / "data"
+    tools_dir = repo_root / "tools"
+    story_dir.mkdir(parents=True)
+    data_dir.mkdir(parents=True)
+    tools_dir.mkdir(parents=True)
+
+    (story_dir / "苏东坡.md").write_text(
+        "\n".join(
+            [
+                "# 苏东坡",
+                "",
+                "### 生平概述",
+                "苏东坡生于四川眉山，黄州时期进入文学与书法高峰。",
+                "",
+                "### 黄州时期",
+                "- **名篇名句**：《念奴娇·赤壁怀古》：大江东去，浪淘尽，千古风流人物；《前赤壁赋》《后赤壁赋》；《黄州寒食诗帖》（天下第三行书）",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(module, "__file__", str(tools_dir / "build_work_summary_index.py"))
+    monkeypatch.setattr(module, "story_person_names", lambda path: ["苏东坡"])
+
+    module.main()
+
+    payload = json.loads((data_dir / "work_summary_index.json").read_text(encoding="utf-8"))
+    items = payload["items"]
+    assert "记承天寺夜游" in items
+    assert items["记承天寺夜游"]["one_liner"] == "黄州夜游小品名篇，以空明月色映照贬谪中的清旷心境。"
+    assert "寒食帖" in items
+    assert "黄州寒食诗帖" not in items
+    assert items["寒食帖"]["quote_policy"] == "summary_only"

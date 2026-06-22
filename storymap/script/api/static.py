@@ -65,8 +65,16 @@ class StaticService:
             return "text/css; charset=utf-8"
         if lower.endswith(".js"):
             return "application/javascript; charset=utf-8"
+        if lower.endswith(".woff2"):
+            return "font/woff2"
+        if lower.endswith(".woff"):
+            return "font/woff"
+        if lower.endswith(".ttf"):
+            return "font/ttf"
         if lower.endswith(".png"):
             return "image/png"
+        if lower.endswith(".webp"):
+            return "image/webp"
         if lower.endswith(".jpg") or lower.endswith(".jpeg"):
             return "image/jpeg"
         if lower.endswith(".svg"):
@@ -89,7 +97,7 @@ class StaticService:
             rel = rel.split("artifacts/story_map/", 1)[-1]
         if parsed_path == "/" or rel == "":
             rel = "index.html"
-        if not re.search(r"\.(html|geojson|json|csv|css|js|png|jpg|jpeg|svg)$", rel, flags=re.IGNORECASE):
+        if not re.search(r"\.(html|geojson|json|csv|css|js|png|webp|jpg|jpeg|svg|woff2|woff|ttf|txt|md|py)$", rel, flags=re.IGNORECASE):
             return None
         roots = list(self._public_story_map_dirs())
         if rel != "index.html" and len(roots) > 1:

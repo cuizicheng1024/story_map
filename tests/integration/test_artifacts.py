@@ -10,7 +10,7 @@ SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import artifacts
+from storymap.script.core import artifacts
 
 
 def test_active_story_map_dir_uses_artifact_directory(tmp_path, monkeypatch):
