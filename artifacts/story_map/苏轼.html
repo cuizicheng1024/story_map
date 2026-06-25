@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "苏轼", "title": "", "description": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一。诗、词、文、书、画均有极高成就，词开豪放派先河，散文气势恢宏，仕途坎坷屡遭贬谪却豁达乐观。", "quote": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "shortReview": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1101年", "location": "常州", "lat": 31.812262, "lng": 119.969154, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "文学家、政治家、书法家、画家、词人、诗人", "achievements": "唐宋八大家之一，散文与父苏洵、弟苏辙并称'三苏'；开创豪放词派，代表作《念奴娇·赤壁怀古》《水调歌头·明月几时有》；诗词文赋书画全才，书法为'宋四家'之首；主持修筑杭州西湖苏堤，惠及民生", "works": ["念奴娇·赤壁怀古", "水调歌头·明月几时有"], "reviews": []}}, "locations": [{"name": "眉州眉山", "ancientName": "眉州眉山", "modernName": "眉州", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "生于四川眉山", "time": "1037年", "duration": "", "significance": "眉州眉山与“生于四川眉山”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "东京汴梁", "ancientName": "东京汴梁", "modernName": "东京", "lat": 23.205219, "lng": 110.446864, "coordSystem": "WGS84", "type": "normal", "event": "中进士，踏上仕途", "time": "1057年", "duration": "", "significance": "东京汴梁与“中进士，踏上仕途”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "凤翔", "ancientName": "凤翔", "modernName": "凤翔", "lat": 34.523302, "lng": 107.396025, "coordSystem": "WGS84", "type": "normal", "event": "任凤翔府签判", "time": "1068年", "duration": "", "significance": "凤翔与“任凤翔府签判”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "杭州", "lat": 30.248993, "lng": 120.205366, "coordSystem": "WGS84", "type": "normal", "event": "任杭州通判", "time": "1071年", "duration": "", "significance": "杭州与“任杭州通判”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "黄州", "ancientName": "黄州", "modernName": "黄州", "lat": 30.437032, "lng": 114.875051, "coordSystem": "WGS84", "type": "normal", "event": "'乌台诗案'被贬黄州团练副使", "time": "1079年", "duration": "", "significance": "黄州对应苏轼命运转折甚至失势阶段，对理解其人生起伏具有关键意义。", "works": [], "quoteLines": []}, {"name": "黄州", "ancientName": "黄州", "modernName": "黄州", "lat": 30.437032, "lng": 114.875051, "coordSystem": "WGS84", "type": "normal", "event": "于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》", "time": "1080年", "duration": "", "significance": "黄州与“于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": ["赤壁赋", "念奴娇·赤壁怀古"], "quoteLines": []}, {"name": "汝州", "ancientName": "汝州", "modernName": "汝州", "lat": 34.168697, "lng": 112.838712, "coordSystem": "WGS84", "type": "normal", "event": "奉诏赴汝州", "time": "1084年", "duration": "", "significance": "汝州与“奉诏赴汝州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "杭州", "lat": 30.248993, "lng": 120.205366, "coordSystem": "WGS84", "type": "normal", "event": "任杭州太守，疏浚西湖修筑苏堤", "time": "1089年", "duration": "", "significance": "杭州与“任杭州太守，疏浚西湖修筑苏堤”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "惠州", "ancientName": "惠州", "modernName": "惠州", "lat": 23.114865, "lng": 114.410619, "coordSystem": "WGS84", "type": "normal", "event": "远谪惠州", "time": "1094年", "duration": "", "significance": "惠州与“远谪惠州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "儋州", "ancientName": "儋州", "modernName": "儋州", "lat": 19.568889, "lng": 109.404444, "coordSystem": "WGS84", "type": "normal", "event": "再贬儋州", "time": "1097年", "duration": "", "significance": "儋州与“再贬儋州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "常州", "ancientName": "常州", "modernName": "常州", "lat": 31.812262, "lng": 119.969154, "coordSystem": "WGS84", "type": "death", "event": "病逝于常州", "time": "1101年", "duration": "", "significance": "常州对应苏轼人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {}, "workSummaries": {"念奴娇·赤壁怀古": {"title": "念奴娇·赤壁怀古", "aliases": ["念奴娇", "赤壁怀古"], "authors": ["苏东坡", "苏轼"], "related_people": ["苏东坡", "苏轼"], "source_pages": ["苏东坡", "苏轼"], "era": "北宋（仁宗至徽宗年间）", "genre": "词", "one_liner": "借古赤壁怀周瑜，融江山之胜、历史兴亡与人生感慨于一体。", "summary": "以赤壁壮景起兴，追怀英雄功业，最终回到对自我身世与人生无常的体认。", "quote": "大江东去，浪淘尽，千古风流人物。", "quotes": ["大江东去，浪淘尽，千古风流人物。", "人生如梦，一尊还酹江月。"], "quote_policy": "preferred"}, "水调歌头·明月几时有": {"title": "水调歌头·明月几时有", "aliases": ["水调歌头", "明月几时有"], "authors": ["苏东坡", "苏轼"], "related_people": ["苏东坡", "苏轼"], "source_pages": ["苏东坡", "苏轼"], "era": "北宋（仁宗至徽宗年间）", "genre": "词", "one_liner": "苏轼中秋怀子由名作，以明月寄托人生离合之思。", "summary": "作于密州中秋之夜，兼具宇宙意识、亲情思念与旷达的人生体悟。", "quote": "明月几时有？把酒问青天。", "quotes": ["明月几时有？把酒问青天。", "但愿人长久，千里共婵娟。"], "quote_policy": "preferred"}, "赤壁赋": {"title": "赤壁赋", "aliases": [], "authors": ["苏东坡"], "related_people": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "source_pages": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "era": "北宋（仁宗至徽宗年间）", "genre": "赋", "one_liner": "即《前赤壁赋》，借泛舟夜游与主客问答阐发旷达的人生哲理。", "summary": "通过赤壁秋夜的江月清风与主客对话，展开对“变”与“不变”的哲思。", "quote": "寄蜉蝣于天地，渺沧海之一粟。", "quotes": ["寄蜉蝣于天地，渺沧海之一粟。", "哀吾生之须臾，羡长江之无穷。"], "quote_policy": "preferred"}}, "markdown": "# 苏轼\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：苏轼\n- **时代**：北宋\n- **出生**：\n- **去世**：1101年，常州\n- **主要身份**：文学家、政治家、书法家、画家、词人、诗人\n- **主要成就**：唐宋八大家之一，散文与父苏洵、弟苏辙并称'三苏'；开创豪放词派，代表作《念奴娇·赤壁怀古》《水调歌头·明月几时有》；诗词文赋书画全才，书法为'宋四家'之首；主持修筑杭州西湖苏堤，惠及民生\n\n### 生平概述\n苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一。诗、词、文、书、画均有极高成就，词开豪放派先河，散文气势恢宏，仕途坎坷屡遭贬谪却豁达乐观。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：眉州眉山\n- **公元纪年**：1037年\n- **位置**：眉州眉山（今眉州）\n- **事迹**：生于四川眉山\n\n### 📍 重要地点：东京汴梁\n- **公元纪年**：1057年\n- **位置**：东京汴梁（今东京）\n- **事迹**：中进士，踏上仕途\n\n### 📍 重要地点：凤翔\n- **公元纪年**：1068年\n- **位置**：凤翔\n- **事迹**：任凤翔府签判\n\n### 📍 重要地点：杭州\n- **公元纪年**：1071年\n- **位置**：杭州\n- **事迹**：任杭州通判\n\n### 📍 重要地点：黄州\n- **公元纪年**：1079年\n- **位置**：黄州\n- **事迹**：'乌台诗案'被贬黄州团练副使\n\n### 📍 重要地点：黄州\n- **公元纪年**：1080年\n- **位置**：黄州\n- **事迹**：于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》\n\n### 📍 重要地点：汝州\n- **公元纪年**：1084年\n- **位置**：汝州\n- **事迹**：奉诏赴汝州\n\n### 📍 重要地点：杭州\n- **公元纪年**：1089年\n- **位置**：杭州\n- **事迹**：任杭州太守，疏浚西湖修筑苏堤\n\n### 📍 重要地点：惠州\n- **公元纪年**：1094年\n- **位置**：惠州\n- **事迹**：远谪惠州\n\n### 📍 重要地点：儋州\n- **公元纪年**：1097年\n- **位置**：儋州\n- **事迹**：再贬儋州\n\n### 🔴 去世地：常州\n- **公元纪年**：1101年\n- **位置**：常州\n- **经过**：病逝于常州\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1037年 | 眉州眉山 | 眉州 | 生于四川眉山 |\n| 1057年 | 东京汴梁 | 东京 | 中进士，踏上仕途 |\n| 1068年 | 凤翔 | 凤翔 | 任凤翔府签判 |\n| 1071年 | 杭州 | 杭州 | 任杭州通判 |\n| 1079年 | 黄州 | 黄州 | '乌台诗案'被贬黄州团练副使 |\n| 1080年 | 黄州 | 黄州 | 于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》 |\n| 1084年 | 汝州 | 汝州 | 奉诏赴汝州 |\n| 1089年 | 杭州 | 杭州 | 任杭州太守，疏浚西湖修筑苏堤 |\n| 1094年 | 惠州 | 惠州 | 远谪惠州 |\n| 1097年 | 儋州 | 儋州 | 再贬儋州 |\n| 1101年 | 常州 | 常州 | 病逝于常州 |\n\n## 五、补充说明\n\n- 生卒年部分史籍作1036—1101年，存在一岁之差争议\n- 具体任职时间与官职因史料记载不一，部分细节有待考据\n- 部分轶事典故（如'东坡肉'发明权）源自民间传说，史实性需谨慎对待\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 眉州 | 眉州 | 39.913704 | 116.362106 | WGS84 |\n| 东京 | 东京 | 23.205219 | 110.446864 | WGS84 |\n| 凤翔 | 凤翔 | 34.523302 | 107.396025 | WGS84 |\n| 杭州 | 杭州 | 30.248993 | 120.205366 | WGS84 |\n| 黄州 | 黄州 | 30.437032 | 114.875051 | WGS84 |\n| 汝州 | 汝州 | 34.168697 | 112.838712 | WGS84 |\n| 惠州 | 惠州 | 23.114865 | 114.410619 | WGS84 |\n| 儋州 | 儋州 | 19.568889 | 109.404444 | WGS84 |\n| 常州 | 常州 | 31.812262 | 119.969154 | WGS84 |", "relatedGraph": {"center": {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1101, "death_year": 1101, "quote": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "review": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "foreign_name": "", "main_role_label": "文学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1101, "death_year": 1101, "quote": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "review": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "foreign_name": "", "main_role_label": "文学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "**点铁成金**", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "壮岁旌旗拥万夫，锦襜突骑渡江初。", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "以为文者气之所形，然文不可以学而能，气可以养而致。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏洵", "name": "苏洵", "file": "苏洵.html", "dynasty": "北宋", "aliases": [], "birth_year": 1009, "death_year": 1066, "quote": "六国破灭，非兵不利，战不善，弊在赂秦。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "程颐", "name": "程颐", "file": "程颐.html", "dynasty": "北宋", "aliases": [], "birth_year": 1033, "death_year": 1107, "quote": "**格物致知**", "review": "", "foreign_name": "", "main_role_label": "理学家", "birthplace": "黄州黄陂", "birthplace_modern": "湖北省武汉市黄陂区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李清照", "name": "李清照", "file": "李清照.html", "dynasty": "北宋末至南宋初", "aliases": ["易安居士"], "birth_year": 1084, "death_year": 1155, "quote": "千古第一才女", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "齐州章丘", "birthplace_modern": "山东省济南市章丘区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "苏轼", "target": "黄庭坚", "label": "并称", "confidence": 0.55}, {"source": "苏轼", "target": "辛弃疾", "label": "并称", "confidence": 0.55}, {"source": "苏轼", "target": "苏辙", "label": "并称", "confidence": null}, {"source": "苏轼", "target": "苏洵", "label": "并称", "confidence": null}, {"source": "苏轼", "target": "程颐", "label": "同时代人物", "confidence": null}, {"source": "苏轼", "target": "李清照", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:42Z", "generated_at": "2026-06-22T11:31:42Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "苏轼", "title": "", "description": "苏轼（1037-1101），字子瞻，号东坡居士，出身文学世家，是北宋著名文学家、政治家、书法家、画家，也是中国文学与艺术史上的巨匠，位列唐宋八大家之一。他的创作横跨诗、词、文、赋、书、画等多个领域，不仅以豪放旷达的诗词和汪洋恣肆的散文著称，也精通书法、绘画，并对美学思想有所建树。其书法飘逸洒脱，绘画意境深远，充分展现了全面而鲜明的艺术个性。作为宋代文学的代表人物，苏轼对整个东亚文化圈都产生了深远影响；尽管仕途坎坷、屡遭贬谪，他仍始终保持豁达乐观的人生态度，留下了大量脍炙人口的诗词、散文和书画作品。", "quote": "问余平生事业，黄州惠州儋州", "shortReview": "问余平生事业，黄州惠州儋州", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "眉州眉山（今四川省眉山市）", "avatar": "", "birth": {"date": "1037年", "location": "眉州眉山（今四川省眉山市）", "lat": 30.0505, "lng": 103.83146, "coordSystem": "WGS84"}, "death": {"date": "1101年", "location": "常州", "lat": 31.812262, "lng": 119.969154, "coordSystem": "WGS84"}, "lifespan": "64岁（按1037—1101年计；若按部分史籍作1036年，则为65岁）", "highlights": {"honor": "", "status": "", "identities": "文学家、政治家、书法家、画家、词人、诗人", "achievements": "唐宋八大家之一，散文与父苏洵、弟苏辙并称'三苏'；开创豪放词派，代表作《念奴娇·赤壁怀古》《水调歌头·明月几时有》；诗词文赋书画全才，书法为'宋四家'之首；主持修筑杭州西湖苏堤，惠及民生", "works": ["念奴娇·赤壁怀古", "水调歌头·明月几时有"], "reviews": ["问余平生事业，黄州惠州儋州", "人物短评：问余平生事业，黄州惠州儋州"]}}, "locations": [{"name": "眉州眉山", "ancientName": "眉州眉山", "modernName": "四川省眉山市", "lat": 30.0505, "lng": 103.83146, "coordSystem": "WGS84", "type": "normal", "event": "生于四川眉山", "time": "1037年", "duration": "", "significance": "眉州眉山与“生于四川眉山”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "东京汴梁", "ancientName": "东京汴梁", "modernName": "河南省开封市", "lat": 34.797239, "lng": 114.307583, "coordSystem": "WGS84", "type": "normal", "event": "中进士，踏上仕途", "time": "1057年", "duration": "", "significance": "东京汴梁与“中进士，踏上仕途”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "凤翔", "ancientName": "凤翔", "modernName": "凤翔", "lat": 34.523302, "lng": 107.396025, "coordSystem": "WGS84", "type": "normal", "event": "任凤翔府签判", "time": "1068年", "duration": "", "significance": "凤翔与“任凤翔府签判”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "杭州", "lat": 30.248993, "lng": 120.205366, "coordSystem": "WGS84", "type": "normal", "event": "任杭州通判", "time": "1071年", "duration": "", "significance": "杭州与“任杭州通判”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "黄州", "ancientName": "黄州", "modernName": "黄州", "lat": 30.437032, "lng": 114.875051, "coordSystem": "WGS84", "type": "normal", "event": "'乌台诗案'被贬黄州团练副使", "time": "1079年", "duration": "", "significance": "黄州对应苏轼命运转折甚至失势阶段，对理解其人生起伏具有关键意义。", "works": [], "quoteLines": []}, {"name": "黄州", "ancientName": "黄州", "modernName": "黄州", "lat": 30.437032, "lng": 114.875051, "coordSystem": "WGS84", "type": "normal", "event": "于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》", "time": "1080年", "duration": "", "significance": "黄州与“于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": ["赤壁赋", "念奴娇·赤壁怀古"], "quoteLines": []}, {"name": "汝州", "ancientName": "汝州", "modernName": "汝州", "lat": 34.168697, "lng": 112.838712, "coordSystem": "WGS84", "type": "normal", "event": "奉诏赴汝州", "time": "1084年", "duration": "", "significance": "汝州与“奉诏赴汝州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "杭州", "ancientName": "杭州", "modernName": "杭州", "lat": 30.248993, "lng": 120.205366, "coordSystem": "WGS84", "type": "normal", "event": "任杭州太守，疏浚西湖修筑苏堤", "time": "1089年", "duration": "", "significance": "杭州与“任杭州太守，疏浚西湖修筑苏堤”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "惠州", "ancientName": "惠州", "modernName": "惠州", "lat": 23.114865, "lng": 114.410619, "coordSystem": "WGS84", "type": "normal", "event": "远谪惠州", "time": "1094年", "duration": "", "significance": "惠州与“远谪惠州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "儋州", "ancientName": "儋州", "modernName": "儋州", "lat": 19.568889, "lng": 109.404444, "coordSystem": "WGS84", "type": "normal", "event": "再贬儋州", "time": "1097年", "duration": "", "significance": "儋州与“再贬儋州”这一事件紧密相关，是理解苏轼生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "常州", "ancientName": "常州", "modernName": "常州", "lat": 31.812262, "lng": 119.969154, "coordSystem": "WGS84", "type": "death", "event": "病逝于常州", "time": "1101年", "duration": "", "significance": "常州对应苏轼人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **相关作品**：《记承天寺夜游》、《水调歌头（明月几时有）》、《卜算子·黄州定慧院寓居作》\n- **核心要点**：\n  - 《记承天寺夜游》常考苏轼贬谪黄州时期的心境，重点理解“闲人”一词所包含的自我排遣、旷达与复杂失意。\n  - 《水调歌头（明月几时有）》常考借月抒怀、由个人离愁上升到人生哲思的写法，重点句是“但愿人长久，千里共婵娟”。\n  - 苏轼作品常体现豪放旷达、超然乐观的人生态度，也常把政治失意转化为审美与哲理表达。\n- **关键史实**：\n  - 乌台诗案是理解苏轼人生转折与黄州文学高峰的关键背景。\n  - 黄州时期既是其政治受挫阶段，也是《赤壁赋》《念奴娇·赤壁怀古》等名作成熟的重要阶段。\n\n### 高中阶段\n- **相关作品**：《赤壁赋》、《念奴娇·赤壁怀古》\n- **核心要点**：\n  - 《赤壁赋》常考“变与不变”的哲思、主客问答结构，以及景、情、理交融的赋体表达。\n  - 《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。\n  - 学习苏轼时常需把诗、词、文放在同一人格气象中理解：仕途坎坷而精神开阔，兼具入世担当与超然自适。\n- **关键史实**：\n  - 苏轼历经杭州、黄州、惠州、儋州等地贬谪与任职，其人生轨迹是理解作品情感变化的重要线索。\n  - 他在文学、书法、绘画上成就都很高，是宋代综合文化人格的代表人物之一。", "examPoints": "### 初中阶段考点\n- **相关作品**：《记承天寺夜游》、《水调歌头（明月几时有）》、《卜算子·黄州定慧院寓居作》\n- **核心要点**：\n  - 《记承天寺夜游》常考苏轼贬谪黄州时期的心境，重点理解“闲人”一词所包含的自我排遣、旷达与复杂失意。\n  - 《水调歌头（明月几时有）》常考借月抒怀、由个人离愁上升到人生哲思的写法，重点句是“但愿人长久，千里共婵娟”。\n  - 苏轼作品常体现豪放旷达、超然乐观的人生态度，也常把政治失意转化为审美与哲理表达。\n- **关键史实**：\n  - 乌台诗案是理解苏轼人生转折与黄州文学高峰的关键背景。\n  - 黄州时期既是其政治受挫阶段，也是《赤壁赋》《念奴娇·赤壁怀古》等名作成熟的重要阶段。\n\n### 高中阶段考点\n- **相关作品**：《赤壁赋》、《念奴娇·赤壁怀古》\n- **核心要点**：\n  - 《赤壁赋》常考“变与不变”的哲思、主客问答结构，以及景、情、理交融的赋体表达。\n  - 《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。\n  - 学习苏轼时常需把诗、词、文放在同一人格气象中理解：仕途坎坷而精神开阔，兼具入世担当与超然自适。\n- **关键史实**：\n  - 苏轼历经杭州、黄州、惠州、儋州等地贬谪与任职，其人生轨迹是理解作品情感变化的重要线索。\n  - 他在文学、书法、绘画上成就都很高，是宋代综合文化人格的代表人物之一。", "workTexts": {"记承天寺夜游": "“闲人”", "水调歌头（明月几时有）": "“但愿人长久，千里共婵娟”", "赤壁赋": "“变与不变”", "念奴娇·赤壁怀古": "《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。", "念奴娇": "《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。", "赤壁怀古": "《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。"}, "workSummaries": {"念奴娇·赤壁怀古": {"title": "念奴娇·赤壁怀古", "aliases": ["念奴娇", "赤壁怀古"], "authors": ["苏东坡", "苏轼"], "related_people": ["苏东坡", "苏轼"], "source_pages": ["苏东坡", "苏轼"], "era": "北宋（仁宗至徽宗年间）", "genre": "词", "one_liner": "借古赤壁怀周瑜，融江山之胜、历史兴亡与人生感慨于一体。", "summary": "以赤壁壮景起兴，追怀英雄功业，最终回到对自我身世与人生无常的体认。", "quote": "大江东去，浪淘尽，千古风流人物。", "quotes": ["大江东去，浪淘尽，千古风流人物。", "人生如梦，一尊还酹江月。"], "quote_policy": "preferred"}, "水调歌头·明月几时有": {"title": "水调歌头·明月几时有", "aliases": ["水调歌头", "明月几时有"], "authors": ["苏东坡", "苏轼"], "related_people": ["苏东坡", "苏轼"], "source_pages": ["苏东坡", "苏轼"], "era": "北宋（仁宗至徽宗年间）", "genre": "词", "one_liner": "苏轼中秋怀子由名作，以明月寄托人生离合之思。", "summary": "作于密州中秋之夜，兼具宇宙意识、亲情思念与旷达的人生体悟。", "quote": "明月几时有？把酒问青天。", "quotes": ["明月几时有？把酒问青天。", "但愿人长久，千里共婵娟。"], "quote_policy": "preferred"}, "赤壁赋": {"title": "赤壁赋", "aliases": [], "authors": ["苏东坡", "苏轼"], "related_people": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "source_pages": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "era": "北宋（仁宗至徽宗年间）", "genre": "赋", "one_liner": "即《前赤壁赋》，借泛舟夜游与主客问答阐发旷达的人生哲理。", "summary": "通过赤壁秋夜的江月清风与主客对话，展开对“变”与“不变”的哲思。", "quote": "寄蜉蝣于天地，渺沧海之一粟。", "quotes": ["寄蜉蝣于天地，渺沧海之一粟。", "哀吾生之须臾，羡长江之无穷。"], "quote_policy": "preferred"}, "记承天寺夜游": {"title": "记承天寺夜游", "aliases": [], "authors": [], "related_people": ["苏东坡", "苏轼"], "source_pages": ["苏东坡", "苏轼"], "era": "", "genre": "散文", "one_liner": "黄州夜游小品名篇，以空明月色映照贬谪中的清旷心境。", "summary": "借月夜漫步承天寺的所见所感，写景极空灵，也流露出自我排遣后的旷达。", "quote": "庭下如积水空明，水中藻、荇交横，盖竹柏影也。", "quotes": ["庭下如积水空明，水中藻、荇交横，盖竹柏影也。", "但少闲人如吾两人者耳。"], "quote_policy": "preferred"}, "水调歌头（明月几时有）": {"title": "水调歌头（明月几时有）", "aliases": [], "authors": [], "related_people": ["苏轼"], "source_pages": ["苏轼"], "era": "", "genre": "", "one_liner": "但愿人长久，千里共婵娟", "summary": "但愿人长久，千里共婵娟", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "卜算子·黄州定慧院寓居作": {"title": "卜算子·黄州定慧院寓居作", "aliases": ["卜算子", "黄州定慧院寓居作"], "authors": [], "related_people": ["苏轼"], "source_pages": ["苏轼"], "era": "", "genre": "", "one_liner": "苏轼（1037-1101），字子瞻，号东坡居士，出身文学世家，是北宋著名文学家、政治家、书法家、画家，也是中国文学与艺术史上的巨匠，位列唐宋八大家之一", "summary": "苏轼（1037-1101），字子瞻，号东坡居士，出身文学世家，是北宋著名文学家、政治家、书法家、画家，也是中国文学与艺术史上的巨匠，位列唐宋八大家之一", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 苏轼\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：苏轼\n- **时代**：北宋\n- **出生**：1037年（部分史籍作1036年），眉州眉山（今四川省眉山市）\n- **去世**：1101年，常州\n- **享年**：64岁（按1037—1101年计；若按部分史籍作1036年，则为65岁）\n- **主要身份**：文学家、政治家、书法家、画家、词人、诗人\n- **主要成就**：唐宋八大家之一，散文与父苏洵、弟苏辙并称'三苏'；开创豪放词派，代表作《念奴娇·赤壁怀古》《水调歌头·明月几时有》；诗词文赋书画全才，书法为'宋四家'之首；主持修筑杭州西湖苏堤，惠及民生\n\n### 生平概述\n苏轼（1037-1101），字子瞻，号东坡居士，出身文学世家，是北宋著名文学家、政治家、书法家、画家，也是中国文学与艺术史上的巨匠，位列唐宋八大家之一。他的创作横跨诗、词、文、赋、书、画等多个领域，不仅以豪放旷达的诗词和汪洋恣肆的散文著称，也精通书法、绘画，并对美学思想有所建树。其书法飘逸洒脱，绘画意境深远，充分展现了全面而鲜明的艺术个性。作为宋代文学的代表人物，苏轼对整个东亚文化圈都产生了深远影响；尽管仕途坎坷、屡遭贬谪，他仍始终保持豁达乐观的人生态度，留下了大量脍炙人口的诗词、散文和书画作品。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：眉州眉山\n- **公元纪年**：1037年\n- **位置**：眉州眉山（今四川省眉山市）\n- **事迹**：生于四川眉山\n\n### 📍 重要地点：东京汴梁\n- **公元纪年**：1057年\n- **位置**：东京汴梁（今河南省开封市）\n- **事迹**：中进士，踏上仕途\n\n### 📍 重要地点：凤翔\n- **公元纪年**：1068年\n- **位置**：凤翔\n- **事迹**：任凤翔府签判\n\n### 📍 重要地点：杭州\n- **公元纪年**：1071年\n- **位置**：杭州\n- **事迹**：任杭州通判\n\n### 📍 重要地点：黄州\n- **公元纪年**：1079年\n- **位置**：黄州\n- **事迹**：'乌台诗案'被贬黄州团练副使\n\n### 📍 重要地点：黄州\n- **公元纪年**：1080年\n- **位置**：黄州\n- **事迹**：于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》\n\n### 📍 重要地点：汝州\n- **公元纪年**：1084年\n- **位置**：汝州\n- **事迹**：奉诏赴汝州\n\n### 📍 重要地点：杭州\n- **公元纪年**：1089年\n- **位置**：杭州\n- **事迹**：任杭州太守，疏浚西湖修筑苏堤\n\n### 📍 重要地点：惠州\n- **公元纪年**：1094年\n- **位置**：惠州\n- **事迹**：远谪惠州\n\n### 📍 重要地点：儋州\n- **公元纪年**：1097年\n- **位置**：儋州\n- **事迹**：再贬儋州\n\n### 🔴 去世地：常州\n- **公元纪年**：1101年\n- **位置**：常州\n- **经过**：病逝于常州\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1037年 | 眉州眉山 | 四川省眉山市 | 生于四川眉山 |\n| 1057年 | 东京汴梁 | 河南省开封市 | 中进士，踏上仕途 |\n| 1068年 | 凤翔 | 凤翔 | 任凤翔府签判 |\n| 1071年 | 杭州 | 杭州 | 任杭州通判 |\n| 1079年 | 黄州 | 黄州 | '乌台诗案'被贬黄州团练副使 |\n| 1080年 | 黄州 | 黄州 | 于黄州躬耕东坡，自号'东坡居士'，作《赤壁赋》《念奴娇·赤壁怀古》 |\n| 1084年 | 汝州 | 汝州 | 奉诏赴汝州 |\n| 1089年 | 杭州 | 杭州 | 任杭州太守，疏浚西湖修筑苏堤 |\n| 1094年 | 惠州 | 惠州 | 远谪惠州 |\n| 1097年 | 儋州 | 儋州 | 再贬儋州 |\n| 1101年 | 常州 | 常州 | 病逝于常州 |\n\n## 五、补充说明\n\n- 生卒年部分史籍作1036—1101年，存在一岁之差争议\n- 具体任职时间与官职因史料记载不一，部分细节有待考据\n- 部分轶事典故（如'东坡肉'发明权）源自民间传说，史实性需谨慎对待\n\n### 历史评价\n- 人物短评：问余平生事业，黄州惠州儋州\n\n## 教材知识点与考点\n### 初中阶段\n- **相关作品**：《记承天寺夜游》、《水调歌头（明月几时有）》、《卜算子·黄州定慧院寓居作》\n- **核心要点**：\n  - 《记承天寺夜游》常考苏轼贬谪黄州时期的心境，重点理解“闲人”一词所包含的自我排遣、旷达与复杂失意。\n  - 《水调歌头（明月几时有）》常考借月抒怀、由个人离愁上升到人生哲思的写法，重点句是“但愿人长久，千里共婵娟”。\n  - 苏轼作品常体现豪放旷达、超然乐观的人生态度，也常把政治失意转化为审美与哲理表达。\n- **关键史实**：\n  - 乌台诗案是理解苏轼人生转折与黄州文学高峰的关键背景。\n  - 黄州时期既是其政治受挫阶段，也是《赤壁赋》《念奴娇·赤壁怀古》等名作成熟的重要阶段。\n\n### 高中阶段\n- **相关作品**：《赤壁赋》、《念奴娇·赤壁怀古》\n- **核心要点**：\n  - 《赤壁赋》常考“变与不变”的哲思、主客问答结构，以及景、情、理交融的赋体表达。\n  - 《念奴娇·赤壁怀古》常考借古怀今、以周瑜反观自我身世的写法，以及豪放词风的代表意义。\n  - 学习苏轼时常需把诗、词、文放在同一人格气象中理解：仕途坎坷而精神开阔，兼具入世担当与超然自适。\n- **关键史实**：\n  - 苏轼历经杭州、黄州、惠州、儋州等地贬谪与任职，其人生轨迹是理解作品情感变化的重要线索。\n  - 他在文学、书法、绘画上成就都很高，是宋代综合文化人格的代表人物之一。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 四川省眉山市 | 四川省眉山市 | 30.0505 | 103.83146 | WGS84 |\n| 河南省开封市 | 河南省开封市 | 34.797239 | 114.307583 | WGS84 |\n| 凤翔 | 凤翔 | 34.523302 | 107.396025 | WGS84 |\n| 杭州 | 杭州 | 30.248993 | 120.205366 | WGS84 |\n| 黄州 | 黄州 | 30.437032 | 114.875051 | WGS84 |\n| 汝州 | 汝州 | 34.168697 | 112.838712 | WGS84 |\n| 惠州 | 惠州 | 23.114865 | 114.410619 | WGS84 |\n| 儋州 | 儋州 | 19.568889 | 109.404444 | WGS84 |\n| 常州 | 常州 | 31.812262 | 119.969154 | WGS84 |\n", "relatedGraph": {"center": {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "但愿人长久，千里共婵娟", "review": "问余平生事业，黄州惠州儋州", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "但愿人长久，千里共婵娟", "review": "问余平生事业，黄州惠州儋州", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "**点铁成金**", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "辛弃疾", "name": "辛弃疾", "file": "辛弃疾.html", "dynasty": "南宋", "aliases": [], "birth_year": 1140, "death_year": 1207, "quote": "壮岁旌旗拥万夫，锦襜突骑渡江初。", "review": "", "foreign_name": "", "main_role_label": "词人", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "以为文者气之所形，然文不可以学而能，气可以养而致。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏洵", "name": "苏洵", "file": "苏洵.html", "dynasty": "北宋", "aliases": [], "birth_year": 1009, "death_year": 1066, "quote": "六国破灭，非兵不利，战不善，弊在赂秦。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "先天下之忧而忧，后天下之乐而乐", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "形骸既适则神不烦，观听无邪则道以明", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "苏轼", "target": "黄庭坚", "label": "并称", "confidence": 0.55}, {"source": "苏轼", "target": "辛弃疾", "label": "并称", "confidence": 0.55}, {"source": "苏轼", "target": "苏辙", "label": "并称", "confidence": null}, {"source": "苏轼", "target": "苏洵", "label": "并称", "confidence": null}, {"source": "苏轼", "target": "范仲淹", "label": "同时代人物", "confidence": null}, {"source": "苏轼", "target": "苏舜钦", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:20:47Z", "generated_at": "2026-06-25T07:20:47Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:42Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:20:47Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

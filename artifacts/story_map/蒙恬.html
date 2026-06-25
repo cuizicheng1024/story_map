@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "蒙恬", "title": "", "description": "蒙恬出身秦国将门，祖父蒙骜、父蒙武皆为秦国名将。自幼习兵，受家庭熏陶。秦统一六国后，他以裨将身份随军攻齐，完成了统一大业。始皇三十二年（前215年），蒙恬奉命率三十万大军北击匈奴，一举收复河南地（河套地区），并在此设立四十四县，移民实边。其后主持修筑万里长城，西起临洮、东至辽东，连接秦、赵、燕旧长城。同时监修秦直道，南起云阳、北抵九原，成为沟通关中与北方边疆的军事要道。蒙恬戍守北疆十余年，威震匈奴。始皇病逝后，赵高与李斯篡改遗诏，赐死扶苏，蒙恬亦于阳周含冤自尽。", "quote": "暴师于外十余年", "shortReview": "暴师于外十余年", "dynasty": "秦朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出身于秦国将门", "avatar": "", "birth": {"date": "前244年", "location": "出身于秦国将门", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "前210年", "location": "阳周（今陕西省延安市子长县一带）", "lat": 37.142109, "lng": 109.669928, "coordSystem": "WGS84"}, "lifespan": "约三十余岁（存疑）", "highlights": {"honor": "", "status": "秦始皇统一天下后北御匈奴、修筑万里长城的核心将领，对巩固秦帝国北部边疆居功至伟。", "identities": "秦国将领、军事家、毛笔改良者（存疑）", "achievements": "率三十万大军北击匈奴收复河南地；主持修筑万里长城；监修秦直道沟通关中与河套；戍守北疆十余年。", "works": [], "reviews": ["千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "太史公《史记·蒙恬列传》载其\"暴师于外十余年\"，对其功业有详细记述。", "明代思想家李贽曾赞其修长城、守北疆之功，视之为秦之名将。"]}}, "locations": [{"name": "秦国将门", "ancientName": "秦国都城一带（古称秦国，", "modernName": "陕西省咸阳市一带）", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "birth", "event": "出身将门世家，祖父蒙骜、父蒙武均为秦国名将，自幼受兵家熏陶。", "time": "约前244年", "duration": "少年至青年时期", "significance": "家族世代为将的背景为其日后领兵作战奠定基础。", "works": [], "quoteLines": []}, {"name": "齐国", "ancientName": "齐国", "modernName": "山东省北部淄博、潍坊一带", "lat": 36.669875, "lng": 117.014794, "coordSystem": "WGS84", "type": "normal", "event": "以裨将身份参与王贲军攻灭齐国之战，完成了秦统一六国的最后一役。", "time": "前221年", "duration": "短期征战", "significance": "结束其早期军事历练阶段，标志秦帝国最终完成统一。", "works": [], "quoteLines": []}, {"name": "河南地（河套地区）", "ancientName": "河南地", "modernName": "内蒙古自治区河套地区一带", "lat": 40.816809, "lng": 111.758316, "coordSystem": "WGS84", "type": "normal", "event": "率三十万大军北击匈奴，一举收复河南地；设置四十四县，移民垦戍；建立北部防线。", "time": "前215年", "duration": "前215年起长期经略", "significance": "为日后修筑长城与直道提供战略空间，巩固秦帝国北疆。", "works": [], "quoteLines": []}, {"name": "九原", "ancientName": "九原", "modernName": "内蒙古自治区包头市九原区一带", "lat": 40.610199, "lng": 109.96235, "coordSystem": "WGS84", "type": "normal", "event": "作为北部军事重镇，蒙恬长期驻守九原，总督北疆军政。", "time": "前215年—前210年", "duration": "戍守十余年", "significance": "北疆防线的指挥中枢，奠定其\"威震匈奴\"的统帅地位。", "works": [], "quoteLines": []}, {"name": "万里长城沿线", "ancientName": "北疆沿线（西起临洮，", "modernName": "甘肃省定西市岷县一带", "lat": 28.935551, "lng": 115.839034, "coordSystem": "WGS84", "type": "normal", "event": "动用军民数十万，连接、修缮原秦、赵、燕三国旧长城，西起临洮、东至辽东，绵延万里。", "time": "前214年", "duration": "主持修筑约数年", "significance": "构筑秦帝国北部边防体系，被誉为万里长城奠基者。", "works": [], "quoteLines": []}, {"name": "秦直道", "ancientName": "关中至河套（南起云阳，", "modernName": "陕西省咸阳市淳化县一带", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "奉秦始皇之命监修秦直道，全长约七百余公里，宽数十米，是关中通往北方边疆的军事高速通道。", "time": "前212年—前210年", "duration": "监修约二至三年（具体起止时间存争议）", "significance": "极大提升了北方军政调动的效率，对后世交通格局亦有深远影响。", "works": [], "quoteLines": []}, {"name": "沙丘", "ancientName": "沙丘", "modernName": "河北省邢台市广宗县一带", "lat": 37.074141, "lng": 115.136631, "coordSystem": "WGS84", "type": "normal", "event": "秦始皇东巡途中病逝于沙丘，留下遗诏令扶苏继位。", "time": "前210年", "duration": "短暂途经", "significance": "成为蒙恬命运转折的起点，遗诏后遭赵高、李斯篡改。", "works": [], "quoteLines": []}, {"name": "阳周", "ancientName": "阳周", "modernName": "陕西省延安市子长县一带", "lat": 37.142109, "lng": 109.669928, "coordSystem": "WGS84", "type": "death", "event": "赵高、李斯伪造遗诏，赐扶苏自尽，并以\"不忠\"之罪拘押蒙恬。蒙恬疑虑请命，终被逼吞药自尽，含冤而死。", "time": "前210年", "duration": "被囚至自尽", "significance": "一代名将殒命于政治阴谋，成为秦帝国二世而亡的悲剧注脚。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段（人教版七年级历史上册）\n- **秦统一六国**：公元前221年秦完成统一，蒙恬以裨将身份参与攻齐之战。\n- **秦始皇巩固统一的措施**：北击匈奴、修筑万里长城属于\"北筑长城\"的重要措施。\n- **长城**：蒙恬主持连接秦、赵、燕三国旧长城，西起临洮，东至辽东。\n- **秦直道**：沟通关中与河套的军事交通要道，初中教材较少展开，高中阶段有补充。\n- **秦末政局动荡**：秦始皇病逝沙丘，赵高、李斯矫诏赐死扶苏、蒙恬，是秦朝二世而亡的重要伏笔。\n- **常见对比**：易与同时期将领王翦、王贲父子混淆——王翦、王贲主要功绩在统一六国战争；蒙恬功绩主要在北御匈奴与修筑长城。\n\n### 高中阶段（人教版必修一、选修）\n- **秦朝专制主义中央集权制度**：蒙恬受命北击匈奴、修筑长城，体现皇帝制度下对军队的绝对调动。\n- **中国古代边疆治理**：移民实边、设郡置县、修建军事工程，是研究秦代边疆政策的重要案例。\n- **秦直道与交通史**：关中—河套交通线，是研究中国古代交通史的重要素材。\n- **秦的暴政与速亡**：蒙恬之死与秦二世而亡的关联，是理解秦朝统治危机的关键节点。\n- **毛笔改良传说**（存疑）：可作为古代科技文化史的补充材料，注意区分史实与传说。\n- **历史评价方法**：蒙恬\"功大而冤死\"，是讨论历史评价与史家立场问题的典型案例。\n\n---", "examPoints": "### 初中考点\n- 蒙恬出身**将门世家**，祖父蒙骜、父蒙武均为秦国名将。\n- 公元前**221年**，以裨将身份参与灭齐，完成统一。\n- 公元前**215年**，率**三十万**大军北击匈奴，收复**河南地**（河套地区）。\n- 主持修筑**万里长城**，西起**临洮**，东至**辽东**。\n- 监修**秦直道**，南起云阳，北至九原（初中教材涉及较少）。\n- 公元前**210年**，因赵高、李斯矫诏，被赐死于**阳周**。\n- 秦始皇病逝于**沙丘**（河北省邢台市广宗县一带）。\n- 易混点：蒙恬主要功绩在**北疆**，与王翦、王贰（王贲）的统一六国之战不同。\n- 易混点：长城并非蒙恬一人所建，他主要是**连接、修缮**秦、赵、燕三国旧长城。\n\n### 高中考点\n- 蒙恬戍守北疆**十余年**，是秦帝国北部边防体系的核心统帅。\n- 收复河南地后设置**四十四县**、移民实边，体现秦代边疆治理策略。\n- **秦直道**是连接关中与北方边疆的军事高速通道，是研究秦代交通与国防的重要史实。\n- 蒙恬之死与**沙丘之变**、赵高李斯矫诏直接相关，是秦二世而亡的关键节点之一。\n- **毛笔改良**传说见于《古今注》等后世文献，实物与断代**存疑**，备考时需谨慎使用。\n- 关于修长城与秦直道的**具体起止时间**，史料记载简略，**存争议**，答题时建议使用大致年代。\n- 历史评价角度：蒙恬\"功在当代、利在千秋\"，但又被冤杀，是讨论\"功臣命运与皇权\"问题的典型案例。", "workTexts": {"古今注": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "史记·蒙恬列传": "“暴师于外十余年”", "史记": "“暴师于外十余年”", "蒙恬列传": "“暴师于外十余年”"}, "workSummaries": {"古今注": {"title": "古今注", "aliases": [], "authors": [], "related_people": ["蒙恬"], "source_pages": ["蒙恬"], "era": "", "genre": "注疏", "one_liner": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "summary": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记·蒙恬列传": {"title": "史记·蒙恬列传", "aliases": ["史记", "蒙恬列传"], "authors": [], "related_people": ["蒙恬"], "source_pages": ["蒙恬"], "era": "", "genre": "传记", "one_liner": "暴师于外十余年", "summary": "暴师于外十余年", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 人物 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：蒙恬\n- **时代**：秦朝\n- **出生**：前244年，出身于秦国将门\n- **去世**：前210年，阳周（今陕西省延安市子长县一带）\n- **享年**：约三十余岁（存疑）\n- **主要身份**：秦国将领、军事家、毛笔改良者（存疑）\n- **历史地位**：秦始皇统一天下后北御匈奴、修筑万里长城的核心将领，对巩固秦帝国北部边疆居功至伟。\n- **主要成就**：率三十万大军北击匈奴收复河南地；主持修筑万里长城；监修秦直道沟通关中与河套；戍守北疆十余年。\n\n### 生平概述\n蒙恬出身秦国将门，祖父蒙骜、父蒙武皆为秦国名将。自幼习兵，受家庭熏陶。秦统一六国后，他以裨将身份随军攻齐，完成了统一大业。始皇三十二年（前215年），蒙恬奉命率三十万大军北击匈奴，一举收复河南地（河套地区），并在此设立四十四县，移民实边。其后主持修筑万里长城，西起临洮、东至辽东，连接秦、赵、燕旧长城。同时监修秦直道，南起云阳、北抵九原，成为沟通关中与北方边疆的军事要道。蒙恬戍守北疆十余年，威震匈奴。始皇病逝后，赵高与李斯篡改遗诏，赐死扶苏，蒙恬亦于阳周含冤自尽。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从关中起家，转战齐国，再长期经营北疆，最终含冤殒命于阳周。\n- ⏱️ **时间跨度**：约前244年—前210年，约34年。\n- 📍 **地理范围**：关中（陕西）— 山东（齐地）— 河套（内蒙古）— 北疆长城沿线 — 阳周（陕西）。\n- 🌟 **重要节点数量**：8 个核心地点。\n- 🚶 **总行程估算**：约 5304 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：秦国将门\n- **公元纪年**：约前244年\n- **停留时间**：少年至青年时期\n- **位置**：秦国都城一带（古称秦国，今陕西省咸阳市一带）\n- **事迹**：出身将门世家，祖父蒙骜、父蒙武均为秦国名将，自幼受兵家熏陶。\n- **意义**：家族世代为将的背景为其日后领兵作战奠定基础。\n\n### 📍 重要地点：齐国\n- **公元纪年**：前221年\n- **停留时间**：短期征战\n- **位置**：齐国（今山东省北部淄博、潍坊一带）\n- **事迹**：以裨将身份参与王贲军攻灭齐国之战，完成了秦统一六国的最后一役。\n- **意义**：结束其早期军事历练阶段，标志秦帝国最终完成统一。\n\n### 📍 重要地点：河南地（河套地区）\n- **公元纪年**：前215年\n- **停留时间**：前215年起长期经略\n- **位置**：河南地（今内蒙古自治区河套地区一带）\n- **事迹**：率三十万大军北击匈奴，一举收复河南地；设置四十四县，移民垦戍；建立北部防线。\n- **意义**：为日后修筑长城与直道提供战略空间，巩固秦帝国北疆。\n\n### 📍 重要地点：万里长城沿线\n- **公元纪年**：前214年\n- **停留时间**：主持修筑约数年\n- **位置**：北疆沿线（西起临洮，今甘肃省定西市岷县一带；东至辽东，今辽宁省一带）\n- **事迹**：动用军民数十万，连接、修缮原秦、赵、燕三国旧长城，西起临洮、东至辽东，绵延万里。\n- **意义**：构筑秦帝国北部边防体系，被誉为万里长城奠基者。\n\n### 📍 重要地点：秦直道\n- **公元纪年**：前212年—前210年\n- **停留时间**：监修约二至三年（具体起止时间存争议）\n- **位置**：关中至河套（南起云阳，今陕西省咸阳市淳化县一带；北至九原，今内蒙古自治区包头市九原区一带）\n- **事迹**：奉秦始皇之命监修秦直道，全长约七百余公里，宽数十米，是关中通往北方边疆的军事高速通道。\n- **意义**：极大提升了北方军政调动的效率，对后世交通格局亦有深远影响。\n\n### 📍 重要地点：九原\n- **公元纪年**：前215年—前210年\n- **停留时间**：戍守十余年\n- **位置**：九原（今内蒙古自治区包头市九原区一带）\n- **事迹**：作为北部军事重镇，蒙恬长期驻守九原，总督北疆军政。\n- **意义**：北疆防线的指挥中枢，奠定其\"威震匈奴\"的统帅地位。\n\n### 📍 重要地点：沙丘\n- **公元纪年**：前210年\n- **停留时间**：短暂途经\n- **位置**：沙丘（今河北省邢台市广宗县一带）\n- **事迹**：秦始皇东巡途中病逝于沙丘，留下遗诏令扶苏继位。\n- **意义**：成为蒙恬命运转折的起点，遗诏后遭赵高、李斯篡改。\n\n### 🔴 去世地：阳周\n- **公元纪年**：前210年\n- **停留时间**：被囚至自尽\n- **位置**：阳周（今陕西省延安市子长县一带）\n- **经过**：赵高、李斯伪造遗诏，赐扶苏自尽，并以\"不忠\"之罪拘押蒙恬。蒙恬疑虑请命，终被逼吞药自尽，含冤而死。\n- **意义**：一代名将殒命于政治阴谋，成为秦帝国二世而亡的悲剧注脚。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前244年 | 秦国 | 陕西省咸阳市一带 | 出身将门，祖父蒙骜、父蒙武均为秦国名将 |\n| 前221年 | 齐国 | 山东省北部一带 | 以裨将身份随军攻灭齐国，完成统一六国 |\n| 前215年 | 河南地 | 内蒙古自治区河套地区 | 率三十万大军北击匈奴，收复河南地，置四十四县 |\n| 前214年 | 长城沿线 | 西起甘肃岷县、东至辽宁一带 | 主持修筑万里长城 |\n| 前212年—前210年 | 秦直道 | 南起陕西淳化、北至内蒙古包头一带 | 监修秦直道，沟通关中与河套 |\n| 前210年 | 九原 | 内蒙古自治区包头市九原区一带 | 长期驻守北疆，威震匈奴 |\n| 前210年 | 沙丘 | 河北省邢台市广宗县一带 | 秦始皇病逝于沙丘，留下扶苏继位遗诏 |\n| 前210年 | 阳周 | 陕西省延安市子长县一带 | 被赵高、李斯矫诏赐死，吞药自尽 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n蒙恬北击匈奴、收复河南地，扭转了战国以来北方边患频发的局面；他主持修筑万里长城与秦直道，构建起秦帝国北疆完整的军事防御与交通体系，使关中腹地与北方边疆连为一体，巩固了秦始皇的大一统格局。其戍守十余年，使匈奴\"不敢南下牧马\"，对稳定秦帝国初期的北疆局势居功至伟。\n\n### 对后世的影响\n- **万里长城**：连接秦、赵、燕旧长城，奠定后世长城的基本格局，被誉为\"万里长城之父\"之一。\n- **秦直道**：开创大规模军用高速通道之先河，对后世关中至河套的交通格局影响深远。\n- **民族关系**：北击匈奴、移民实边，客观上保护了中原农耕文明的发展。\n- **毛笔传说**（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。\n\n### 历史评价\n- 千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。\n- 太史公《史记·蒙恬列传》载其\"暴师于外十余年\"，对其功业有详细记述。\n- 明代思想家李贽曾赞其修长城、守北疆之功，视之为秦之名将。\n- 历代文人多以\"蒙恬冤死\"为题材抒发对功臣被戮的感慨，称其\"忠而见疑，信而被谤\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段（人教版七年级历史上册）\n- **秦统一六国**：公元前221年秦完成统一，蒙恬以裨将身份参与攻齐之战。\n- **秦始皇巩固统一的措施**：北击匈奴、修筑万里长城属于\"北筑长城\"的重要措施。\n- **长城**：蒙恬主持连接秦、赵、燕三国旧长城，西起临洮，东至辽东。\n- **秦直道**：沟通关中与河套的军事交通要道，初中教材较少展开，高中阶段有补充。\n- **秦末政局动荡**：秦始皇病逝沙丘，赵高、李斯矫诏赐死扶苏、蒙恬，是秦朝二世而亡的重要伏笔。\n- **常见对比**：易与同时期将领王翦、王贲父子混淆——王翦、王贲主要功绩在统一六国战争；蒙恬功绩主要在北御匈奴与修筑长城。\n\n### 高中阶段（人教版必修一、选修）\n- **秦朝专制主义中央集权制度**：蒙恬受命北击匈奴、修筑长城，体现皇帝制度下对军队的绝对调动。\n- **中国古代边疆治理**：移民实边、设郡置县、修建军事工程，是研究秦代边疆政策的重要案例。\n- **秦直道与交通史**：关中—河套交通线，是研究中国古代交通史的重要素材。\n- **秦的暴政与速亡**：蒙恬之死与秦二世而亡的关联，是理解秦朝统治危机的关键节点。\n- **毛笔改良传说**（存疑）：可作为古代科技文化史的补充材料，注意区分史实与传说。\n- **历史评价方法**：蒙恬\"功大而冤死\"，是讨论历史评价与史家立场问题的典型案例。\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 蒙恬出身**将门世家**，祖父蒙骜、父蒙武均为秦国名将。\n- 公元前**221年**，以裨将身份参与灭齐，完成统一。\n- 公元前**215年**，率**三十万**大军北击匈奴，收复**河南地**（河套地区）。\n- 主持修筑**万里长城**，西起**临洮**，东至**辽东**。\n- 监修**秦直道**，南起云阳，北至九原（初中教材涉及较少）。\n- 公元前**210年**，因赵高、李斯矫诏，被赐死于**阳周**。\n- 秦始皇病逝于**沙丘**（河北省邢台市广宗县一带）。\n- 易混点：蒙恬主要功绩在**北疆**，与王翦、王贰（王贲）的统一六国之战不同。\n- 易混点：长城并非蒙恬一人所建，他主要是**连接、修缮**秦、赵、燕三国旧长城。\n\n### 高中考点\n- 蒙恬戍守北疆**十余年**，是秦帝国北部边防体系的核心统帅。\n- 收复河南地后设置**四十四县**、移民实边，体现秦代边疆治理策略。\n- **秦直道**是连接关中与北方边疆的军事高速通道，是研究秦代交通与国防的重要史实。\n- 蒙恬之死与**沙丘之变**、赵高李斯矫诏直接相关，是秦二世而亡的关键节点之一。\n- **毛笔改良**传说见于《古今注》等后世文献，实物与断代**存疑**，备考时需谨慎使用。\n- 关于修长城与秦直道的**具体起止时间**，史料记载简略，**存争议**，答题时建议使用大致年代。\n- 历史评价角度：蒙恬\"功在当代、利在千秋\"，但又被冤杀，是讨论\"功臣命运与皇权\"问题的典型案例。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 陕西省咸阳市一带 | 陕西省咸阳市一带 | 34.331338 | 108.704164 | WGS84 |\n| 山东省北部一带 | 山东省北部一带 | 36.669875 | 117.014794 | WGS84 |\n| 内蒙古自治区河套地区 | 内蒙古自治区河套地区 | 40.816809 | 111.758316 | WGS84 |\n| 西起甘肃岷县、东至辽宁一带 | 西起甘肃岷县、东至辽宁一带 | 28.935551 | 115.839034 | WGS84 |\n| 南起陕西淳化、北至内蒙古包头一带 | 南起陕西淳化、北至内蒙古包头一带 | 40.620210 | 109.947464 | WGS84 |\n| 内蒙古自治区包头市九原区一带 | 内蒙古自治区包头市九原区一带 | 40.610199 | 109.962350 | WGS84 |\n| 河北省邢台市广宗县一带 | 河北省邢台市广宗县一带 | 37.074141 | 115.136631 | WGS84 |\n| 陕西省延安市子长县一带 | 陕西省延安市子长县一带 | 37.142109 | 109.669928 | WGS84 |", "relatedGraph": {"center": {"id": "人物 生平传记与足迹", "name": "人物 生平传记与足迹", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": ["蒙恬"], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "暴师于外十余年", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "人物 生平传记与足迹", "name": "人物 生平传记与足迹", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": ["蒙恬"], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "暴师于外十余年", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "赵高", "name": "赵高", "file": "赵高.html", "dynasty": "秦朝", "aliases": [], "birth_year": -210, "death_year": -210, "quote": "赵高本赵国宗族后裔，入秦宫后为宦官", "review": "", "foreign_name": "", "main_role_label": "秦二世丞相", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "项羽", "name": "项羽", "file": "项羽.html", "dynasty": "秦末汉初", "aliases": ["西楚霸王"], "birth_year": -232, "death_year": -202, "quote": "羽之神勇，千古无二", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "人物 生平传记与足迹", "target": "赵高", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "秦始皇", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "李斯", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "项羽", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "韩非子", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "荀子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:44Z", "generated_at": "2026-06-22T11:31:44Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "蒙恬", "title": "", "description": "蒙恬出身秦国将门，祖父蒙骜、父蒙武皆为秦国名将。自幼习兵，受家庭熏陶。秦统一六国后，他以裨将身份随军攻齐，完成了统一大业。始皇三十二年（前215年），蒙恬奉命率三十万大军北击匈奴，一举收复河南地（河套地区），并在此设立四十四县，移民实边。其后主持修筑万里长城，西起临洮、东至辽东，连接秦、赵、燕旧长城。同时监修秦直道，南起云阳、北抵九原，成为沟通关中与北方边疆的军事要道。蒙恬戍守北疆十余年，威震匈奴。始皇病逝后，赵高与李斯篡改遗诏，赐死扶苏，蒙恬亦于阳周含冤自尽。", "quote": "暴师于外十余年", "shortReview": "暴师于外十余年", "dynasty": "秦朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出身于秦国将门", "avatar": "", "birth": {"date": "前244年", "location": "出身于秦国将门", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "前210年", "location": "阳周（今陕西省延安市子长县一带）", "lat": 37.142109, "lng": 109.669928, "coordSystem": "WGS84"}, "lifespan": "约三十余岁（存疑）", "highlights": {"honor": "", "status": "秦始皇统一天下后北御匈奴、修筑万里长城的核心将领，对巩固秦帝国北部边疆居功至伟。", "identities": "秦国将领、军事家、毛笔改良者（存疑）", "achievements": "率三十万大军北击匈奴收复河南地；主持修筑万里长城；监修秦直道沟通关中与河套；戍守北疆十余年。", "works": [], "reviews": ["千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "太史公《史记·蒙恬列传》载其\"暴师于外十余年\"，对其功业有详细记述。", "明代思想家李贽曾赞其修长城、守北疆之功，视之为秦之名将。"]}}, "locations": [{"name": "秦国将门", "ancientName": "秦国都城一带（古称秦国，", "modernName": "陕西省咸阳市一带）", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "birth", "event": "出身将门世家，祖父蒙骜、父蒙武均为秦国名将，自幼受兵家熏陶。", "time": "约前244年", "duration": "少年至青年时期", "significance": "家族世代为将的背景为其日后领兵作战奠定基础。", "works": [], "quoteLines": []}, {"name": "齐国", "ancientName": "齐国", "modernName": "山东省北部淄博、潍坊一带", "lat": 36.669875, "lng": 117.014794, "coordSystem": "WGS84", "type": "normal", "event": "以裨将身份参与王贲军攻灭齐国之战，完成了秦统一六国的最后一役。", "time": "前221年", "duration": "短期征战", "significance": "结束其早期军事历练阶段，标志秦帝国最终完成统一。", "works": [], "quoteLines": []}, {"name": "河南地（河套地区）", "ancientName": "河南地", "modernName": "内蒙古自治区河套地区一带", "lat": 40.816809, "lng": 111.758316, "coordSystem": "WGS84", "type": "normal", "event": "率三十万大军北击匈奴，一举收复河南地；设置四十四县，移民垦戍；建立北部防线。", "time": "前215年", "duration": "前215年起长期经略", "significance": "为日后修筑长城与直道提供战略空间，巩固秦帝国北疆。", "works": [], "quoteLines": []}, {"name": "九原", "ancientName": "九原", "modernName": "内蒙古自治区包头市九原区一带", "lat": 40.610199, "lng": 109.96235, "coordSystem": "WGS84", "type": "normal", "event": "作为北部军事重镇，蒙恬长期驻守九原，总督北疆军政。", "time": "前215年—前210年", "duration": "戍守十余年", "significance": "北疆防线的指挥中枢，奠定其\"威震匈奴\"的统帅地位。", "works": [], "quoteLines": []}, {"name": "万里长城沿线", "ancientName": "北疆沿线（西起临洮，", "modernName": "甘肃省定西市岷县一带", "lat": 28.935551, "lng": 115.839034, "coordSystem": "WGS84", "type": "normal", "event": "动用军民数十万，连接、修缮原秦、赵、燕三国旧长城，西起临洮、东至辽东，绵延万里。", "time": "前214年", "duration": "主持修筑约数年", "significance": "构筑秦帝国北部边防体系，被誉为万里长城奠基者。", "works": [], "quoteLines": []}, {"name": "秦直道", "ancientName": "关中至河套（南起云阳，", "modernName": "陕西省咸阳市淳化县一带", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "奉秦始皇之命监修秦直道，全长约七百余公里，宽数十米，是关中通往北方边疆的军事高速通道。", "time": "前212年—前210年", "duration": "监修约二至三年（具体起止时间存争议）", "significance": "极大提升了北方军政调动的效率，对后世交通格局亦有深远影响。", "works": [], "quoteLines": []}, {"name": "沙丘", "ancientName": "沙丘", "modernName": "河北省邢台市广宗县一带", "lat": 37.074141, "lng": 115.136631, "coordSystem": "WGS84", "type": "normal", "event": "秦始皇东巡途中病逝于沙丘，留下遗诏令扶苏继位。", "time": "前210年", "duration": "短暂途经", "significance": "成为蒙恬命运转折的起点，遗诏后遭赵高、李斯篡改。", "works": [], "quoteLines": []}, {"name": "阳周", "ancientName": "阳周", "modernName": "陕西省延安市子长县一带", "lat": 37.142109, "lng": 109.669928, "coordSystem": "WGS84", "type": "death", "event": "赵高、李斯伪造遗诏，赐扶苏自尽，并以\"不忠\"之罪拘押蒙恬。蒙恬疑虑请命，终被逼吞药自尽，含冤而死。", "time": "前210年", "duration": "被囚至自尽", "significance": "一代名将殒命于政治阴谋，成为秦帝国二世而亡的悲剧注脚。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段（人教版七年级历史上册）\n- **秦统一六国**：公元前221年秦完成统一，蒙恬以裨将身份参与攻齐之战。\n- **秦始皇巩固统一的措施**：北击匈奴、修筑万里长城属于\"北筑长城\"的重要措施。\n- **长城**：蒙恬主持连接秦、赵、燕三国旧长城，西起临洮，东至辽东。\n- **秦直道**：沟通关中与河套的军事交通要道，初中教材较少展开，高中阶段有补充。\n- **秦末政局动荡**：秦始皇病逝沙丘，赵高、李斯矫诏赐死扶苏、蒙恬，是秦朝二世而亡的重要伏笔。\n- **常见对比**：易与同时期将领王翦、王贲父子混淆——王翦、王贲主要功绩在统一六国战争；蒙恬功绩主要在北御匈奴与修筑长城。\n\n### 高中阶段（人教版必修一、选修）\n- **秦朝专制主义中央集权制度**：蒙恬受命北击匈奴、修筑长城，体现皇帝制度下对军队的绝对调动。\n- **中国古代边疆治理**：移民实边、设郡置县、修建军事工程，是研究秦代边疆政策的重要案例。\n- **秦直道与交通史**：关中—河套交通线，是研究中国古代交通史的重要素材。\n- **秦的暴政与速亡**：蒙恬之死与秦二世而亡的关联，是理解秦朝统治危机的关键节点。\n- **毛笔改良传说**（存疑）：可作为古代科技文化史的补充材料，注意区分史实与传说。\n- **历史评价方法**：蒙恬\"功大而冤死\"，是讨论历史评价与史家立场问题的典型案例。\n\n---", "examPoints": "### 初中考点\n- 蒙恬出身**将门世家**，祖父蒙骜、父蒙武均为秦国名将。\n- 公元前**221年**，以裨将身份参与灭齐，完成统一。\n- 公元前**215年**，率**三十万**大军北击匈奴，收复**河南地**（河套地区）。\n- 主持修筑**万里长城**，西起**临洮**，东至**辽东**。\n- 监修**秦直道**，南起云阳，北至九原（初中教材涉及较少）。\n- 公元前**210年**，因赵高、李斯矫诏，被赐死于**阳周**。\n- 秦始皇病逝于**沙丘**（河北省邢台市广宗县一带）。\n- 易混点：蒙恬主要功绩在**北疆**，与王翦、王贰（王贲）的统一六国之战不同。\n- 易混点：长城并非蒙恬一人所建，他主要是**连接、修缮**秦、赵、燕三国旧长城。\n\n### 高中考点\n- 蒙恬戍守北疆**十余年**，是秦帝国北部边防体系的核心统帅。\n- 收复河南地后设置**四十四县**、移民实边，体现秦代边疆治理策略。\n- **秦直道**是连接关中与北方边疆的军事高速通道，是研究秦代交通与国防的重要史实。\n- 蒙恬之死与**沙丘之变**、赵高李斯矫诏直接相关，是秦二世而亡的关键节点之一。\n- **毛笔改良**传说见于《古今注》等后世文献，实物与断代**存疑**，备考时需谨慎使用。\n- 关于修长城与秦直道的**具体起止时间**，史料记载简略，**存争议**，答题时建议使用大致年代。\n- 历史评价角度：蒙恬\"功在当代、利在千秋\"，但又被冤杀，是讨论\"功臣命运与皇权\"问题的典型案例。", "workTexts": {"古今注": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "史记·蒙恬列传": "“暴师于外十余年”", "史记": "“暴师于外十余年”", "蒙恬列传": "“暴师于外十余年”"}, "workSummaries": {"古今注": {"title": "古今注", "aliases": [], "authors": [], "related_people": ["蒙恬"], "source_pages": ["蒙恬"], "era": "", "genre": "注疏", "one_liner": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "summary": "毛笔传说（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记·蒙恬列传": {"title": "史记·蒙恬列传", "aliases": ["史记", "蒙恬列传"], "authors": [], "related_people": ["蒙恬"], "source_pages": ["蒙恬"], "era": "", "genre": "传记", "one_liner": "暴师于外十余年", "summary": "暴师于外十余年", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 人物 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：蒙恬\n- **时代**：秦朝\n- **出生**：前244年，出身于秦国将门\n- **去世**：前210年，阳周（今陕西省延安市子长县一带）\n- **享年**：约三十余岁（存疑）\n- **主要身份**：秦国将领、军事家、毛笔改良者（存疑）\n- **历史地位**：秦始皇统一天下后北御匈奴、修筑万里长城的核心将领，对巩固秦帝国北部边疆居功至伟。\n- **主要成就**：率三十万大军北击匈奴收复河南地；主持修筑万里长城；监修秦直道沟通关中与河套；戍守北疆十余年。\n\n### 生平概述\n蒙恬出身秦国将门，祖父蒙骜、父蒙武皆为秦国名将。自幼习兵，受家庭熏陶。秦统一六国后，他以裨将身份随军攻齐，完成了统一大业。始皇三十二年（前215年），蒙恬奉命率三十万大军北击匈奴，一举收复河南地（河套地区），并在此设立四十四县，移民实边。其后主持修筑万里长城，西起临洮、东至辽东，连接秦、赵、燕旧长城。同时监修秦直道，南起云阳、北抵九原，成为沟通关中与北方边疆的军事要道。蒙恬戍守北疆十余年，威震匈奴。始皇病逝后，赵高与李斯篡改遗诏，赐死扶苏，蒙恬亦于阳周含冤自尽。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从关中起家，转战齐国，再长期经营北疆，最终含冤殒命于阳周。\n- ⏱️ **时间跨度**：约前244年—前210年，约34年。\n- 📍 **地理范围**：关中（陕西）— 山东（齐地）— 河套（内蒙古）— 北疆长城沿线 — 阳周（陕西）。\n- 🌟 **重要节点数量**：8 个核心地点。\n- 🚶 **总行程估算**：约 5304 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：秦国将门\n- **公元纪年**：约前244年\n- **停留时间**：少年至青年时期\n- **位置**：秦国都城一带（古称秦国，今陕西省咸阳市一带）\n- **事迹**：出身将门世家，祖父蒙骜、父蒙武均为秦国名将，自幼受兵家熏陶。\n- **意义**：家族世代为将的背景为其日后领兵作战奠定基础。\n\n### 📍 重要地点：齐国\n- **公元纪年**：前221年\n- **停留时间**：短期征战\n- **位置**：齐国（今山东省北部淄博、潍坊一带）\n- **事迹**：以裨将身份参与王贲军攻灭齐国之战，完成了秦统一六国的最后一役。\n- **意义**：结束其早期军事历练阶段，标志秦帝国最终完成统一。\n\n### 📍 重要地点：河南地（河套地区）\n- **公元纪年**：前215年\n- **停留时间**：前215年起长期经略\n- **位置**：河南地（今内蒙古自治区河套地区一带）\n- **事迹**：率三十万大军北击匈奴，一举收复河南地；设置四十四县，移民垦戍；建立北部防线。\n- **意义**：为日后修筑长城与直道提供战略空间，巩固秦帝国北疆。\n\n### 📍 重要地点：万里长城沿线\n- **公元纪年**：前214年\n- **停留时间**：主持修筑约数年\n- **位置**：北疆沿线（西起临洮，今甘肃省定西市岷县一带；东至辽东，今辽宁省一带）\n- **事迹**：动用军民数十万，连接、修缮原秦、赵、燕三国旧长城，西起临洮、东至辽东，绵延万里。\n- **意义**：构筑秦帝国北部边防体系，被誉为万里长城奠基者。\n\n### 📍 重要地点：秦直道\n- **公元纪年**：前212年—前210年\n- **停留时间**：监修约二至三年（具体起止时间存争议）\n- **位置**：关中至河套（南起云阳，今陕西省咸阳市淳化县一带；北至九原，今内蒙古自治区包头市九原区一带）\n- **事迹**：奉秦始皇之命监修秦直道，全长约七百余公里，宽数十米，是关中通往北方边疆的军事高速通道。\n- **意义**：极大提升了北方军政调动的效率，对后世交通格局亦有深远影响。\n\n### 📍 重要地点：九原\n- **公元纪年**：前215年—前210年\n- **停留时间**：戍守十余年\n- **位置**：九原（今内蒙古自治区包头市九原区一带）\n- **事迹**：作为北部军事重镇，蒙恬长期驻守九原，总督北疆军政。\n- **意义**：北疆防线的指挥中枢，奠定其\"威震匈奴\"的统帅地位。\n\n### 📍 重要地点：沙丘\n- **公元纪年**：前210年\n- **停留时间**：短暂途经\n- **位置**：沙丘（今河北省邢台市广宗县一带）\n- **事迹**：秦始皇东巡途中病逝于沙丘，留下遗诏令扶苏继位。\n- **意义**：成为蒙恬命运转折的起点，遗诏后遭赵高、李斯篡改。\n\n### 🔴 去世地：阳周\n- **公元纪年**：前210年\n- **停留时间**：被囚至自尽\n- **位置**：阳周（今陕西省延安市子长县一带）\n- **经过**：赵高、李斯伪造遗诏，赐扶苏自尽，并以\"不忠\"之罪拘押蒙恬。蒙恬疑虑请命，终被逼吞药自尽，含冤而死。\n- **意义**：一代名将殒命于政治阴谋，成为秦帝国二世而亡的悲剧注脚。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前244年 | 秦国 | 陕西省咸阳市一带 | 出身将门，祖父蒙骜、父蒙武均为秦国名将 |\n| 前221年 | 齐国 | 山东省北部一带 | 以裨将身份随军攻灭齐国，完成统一六国 |\n| 前215年 | 河南地 | 内蒙古自治区河套地区 | 率三十万大军北击匈奴，收复河南地，置四十四县 |\n| 前214年 | 长城沿线 | 西起甘肃岷县、东至辽宁一带 | 主持修筑万里长城 |\n| 前212年—前210年 | 秦直道 | 南起陕西淳化、北至内蒙古包头一带 | 监修秦直道，沟通关中与河套 |\n| 前210年 | 九原 | 内蒙古自治区包头市九原区一带 | 长期驻守北疆，威震匈奴 |\n| 前210年 | 沙丘 | 河北省邢台市广宗县一带 | 秦始皇病逝于沙丘，留下扶苏继位遗诏 |\n| 前210年 | 阳周 | 陕西省延安市子长县一带 | 被赵高、李斯矫诏赐死，吞药自尽 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n蒙恬北击匈奴、收复河南地，扭转了战国以来北方边患频发的局面；他主持修筑万里长城与秦直道，构建起秦帝国北疆完整的军事防御与交通体系，使关中腹地与北方边疆连为一体，巩固了秦始皇的大一统格局。其戍守十余年，使匈奴\"不敢南下牧马\"，对稳定秦帝国初期的北疆局势居功至伟。\n\n### 对后世的影响\n- **万里长城**：连接秦、赵、燕旧长城，奠定后世长城的基本格局，被誉为\"万里长城之父\"之一。\n- **秦直道**：开创大规模军用高速通道之先河，对后世关中至河套的交通格局影响深远。\n- **民族关系**：北击匈奴、移民实边，客观上保护了中原农耕文明的发展。\n- **毛笔传说**（存疑）：据《古今注》记载，蒙恬以枯木为管、鹿毛为柱、羊毛为被改良毛笔，对后世书写工具演变或有启发，但实物与断代存疑。\n\n### 历史评价\n- 千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。\n- 太史公《史记·蒙恬列传》载其\"暴师于外十余年\"，对其功业有详细记述。\n- 明代思想家李贽曾赞其修长城、守北疆之功，视之为秦之名将。\n- 历代文人多以\"蒙恬冤死\"为题材抒发对功臣被戮的感慨，称其\"忠而见疑，信而被谤\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段（人教版七年级历史上册）\n- **秦统一六国**：公元前221年秦完成统一，蒙恬以裨将身份参与攻齐之战。\n- **秦始皇巩固统一的措施**：北击匈奴、修筑万里长城属于\"北筑长城\"的重要措施。\n- **长城**：蒙恬主持连接秦、赵、燕三国旧长城，西起临洮，东至辽东。\n- **秦直道**：沟通关中与河套的军事交通要道，初中教材较少展开，高中阶段有补充。\n- **秦末政局动荡**：秦始皇病逝沙丘，赵高、李斯矫诏赐死扶苏、蒙恬，是秦朝二世而亡的重要伏笔。\n- **常见对比**：易与同时期将领王翦、王贲父子混淆——王翦、王贲主要功绩在统一六国战争；蒙恬功绩主要在北御匈奴与修筑长城。\n\n### 高中阶段（人教版必修一、选修）\n- **秦朝专制主义中央集权制度**：蒙恬受命北击匈奴、修筑长城，体现皇帝制度下对军队的绝对调动。\n- **中国古代边疆治理**：移民实边、设郡置县、修建军事工程，是研究秦代边疆政策的重要案例。\n- **秦直道与交通史**：关中—河套交通线，是研究中国古代交通史的重要素材。\n- **秦的暴政与速亡**：蒙恬之死与秦二世而亡的关联，是理解秦朝统治危机的关键节点。\n- **毛笔改良传说**（存疑）：可作为古代科技文化史的补充材料，注意区分史实与传说。\n- **历史评价方法**：蒙恬\"功大而冤死\"，是讨论历史评价与史家立场问题的典型案例。\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 蒙恬出身**将门世家**，祖父蒙骜、父蒙武均为秦国名将。\n- 公元前**221年**，以裨将身份参与灭齐，完成统一。\n- 公元前**215年**，率**三十万**大军北击匈奴，收复**河南地**（河套地区）。\n- 主持修筑**万里长城**，西起**临洮**，东至**辽东**。\n- 监修**秦直道**，南起云阳，北至九原（初中教材涉及较少）。\n- 公元前**210年**，因赵高、李斯矫诏，被赐死于**阳周**。\n- 秦始皇病逝于**沙丘**（河北省邢台市广宗县一带）。\n- 易混点：蒙恬主要功绩在**北疆**，与王翦、王贰（王贲）的统一六国之战不同。\n- 易混点：长城并非蒙恬一人所建，他主要是**连接、修缮**秦、赵、燕三国旧长城。\n\n### 高中考点\n- 蒙恬戍守北疆**十余年**，是秦帝国北部边防体系的核心统帅。\n- 收复河南地后设置**四十四县**、移民实边，体现秦代边疆治理策略。\n- **秦直道**是连接关中与北方边疆的军事高速通道，是研究秦代交通与国防的重要史实。\n- 蒙恬之死与**沙丘之变**、赵高李斯矫诏直接相关，是秦二世而亡的关键节点之一。\n- **毛笔改良**传说见于《古今注》等后世文献，实物与断代**存疑**，备考时需谨慎使用。\n- 关于修长城与秦直道的**具体起止时间**，史料记载简略，**存争议**，答题时建议使用大致年代。\n- 历史评价角度：蒙恬\"功在当代、利在千秋\"，但又被冤杀，是讨论\"功臣命运与皇权\"问题的典型案例。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 陕西省咸阳市一带 | 陕西省咸阳市一带 | 34.331338 | 108.704164 | WGS84 |\n| 山东省北部一带 | 山东省北部一带 | 36.669875 | 117.014794 | WGS84 |\n| 内蒙古自治区河套地区 | 内蒙古自治区河套地区 | 40.816809 | 111.758316 | WGS84 |\n| 西起甘肃岷县、东至辽宁一带 | 西起甘肃岷县、东至辽宁一带 | 28.935551 | 115.839034 | WGS84 |\n| 南起陕西淳化、北至内蒙古包头一带 | 南起陕西淳化、北至内蒙古包头一带 | 40.620210 | 109.947464 | WGS84 |\n| 内蒙古自治区包头市九原区一带 | 内蒙古自治区包头市九原区一带 | 40.610199 | 109.962350 | WGS84 |\n| 河北省邢台市广宗县一带 | 河北省邢台市广宗县一带 | 37.074141 | 115.136631 | WGS84 |\n| 陕西省延安市子长县一带 | 陕西省延安市子长县一带 | 37.142109 | 109.669928 | WGS84 |", "relatedGraph": {"center": {"id": "人物 生平传记与足迹", "name": "人物 生平传记与足迹", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": ["蒙恬"], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "暴师于外十余年", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "人物 生平传记与足迹", "name": "人物 生平传记与足迹", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": ["蒙恬"], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "暴师于外十余年", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "赵高", "name": "赵高", "file": "赵高.html", "dynasty": "秦朝", "aliases": [], "birth_year": -210, "death_year": -210, "quote": "赵高本赵国宗族后裔，入秦宫后为宦官", "review": "", "foreign_name": "", "main_role_label": "秦二世丞相", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "项羽", "name": "项羽", "file": "项羽.html", "dynasty": "秦末汉初", "aliases": ["西楚霸王"], "birth_year": -232, "death_year": -202, "quote": "羽之神勇，千古无二", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "人物 生平传记与足迹", "target": "赵高", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "秦始皇", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "李斯", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "项羽", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "韩非子", "label": "同时代人物", "confidence": null}, {"source": "人物 生平传记与足迹", "target": "荀子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:47Z", "generated_at": "2026-06-25T07:13:47Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:44Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:47Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

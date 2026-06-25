@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "钱三强", "title": "", "description": "钱三强，原名钱秉穹，1913年生于浙江湖州，出身书香门弟，父亲钱玄同是著名语言文字学家。1936年毕业于清华大学物理系，1937年赴法国巴黎留学，师从居里夫人之女伊莱娜·居里从事核物理研究。1946年前后，他与夫人何泽慧在居里实验室发现铀核三分裂和四分裂现象，在国际物理学界引起轰动。1948年，他放弃法国优厚条件毅然回国，投身新中国科学事业。新中国成立后，他参与组建中国科学院，主持建立近代物理研究所（今中国原子能科学研究院），组织领导中国第一颗原子弹和氢弹的研制工作，为中国打破核垄断、建立独立核工业体系作出了奠基性贡献。1992年在北京逝世。", "quote": "*中国原子能科学之父。", "shortReview": "*中国原子能科学之父。", "dynasty": "中华人民共和国（近现代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江湖州", "avatar": "", "birth": {"date": "1913年", "location": "浙江湖州", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1992年", "location": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84"}, "lifespan": "79岁", "highlights": {"honor": "", "status": "中国原子能科学之父，中国核武器事业奠基人之一", "identities": "核物理学家、中国科学院院士、中国科学院副院长、第二机械工业部副部长", "achievements": "发现铀核三分裂和四分裂现象；主持中国第一颗原子弹理论设计；参与中国第一颗氢弹研制；创建中国原子能研究所（今中国原子能科学研究院）；参与组建中国科学院；培养大批核科技人才", "works": [], "reviews": ["**中国原子能科学之父。**", "钱三强是中国原子能科学事业最重要的开拓者与奠基人，被誉为\"中国的居里夫人之夫\"（指其与何泽慧并称）。", "他与钱学森、邓稼先等人共同被赞誉为新中国\"两弹一星\"元勋式人物。"]}}, "locations": [{"name": "浙江湖州", "ancientName": "浙江湖州", "modernName": "浙江省湖州市", "lat": 30.896222, "lng": 120.08201, "coordSystem": "WGS84", "type": "birth", "event": "出生于湖州书香门第，自幼接受良好教育，少年时随父迁居北平", "time": "1913年", "duration": "童年至青年时期", "significance": "人生起点与文化根基所在", "works": [], "quoteLines": []}, {"name": "北平·清华大学", "ancientName": "北平清华大学", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1936年毕业于清华大学物理系，受教于叶企孙、吴有训等名师，打下坚实的物理学基础", "time": "1932—1936年", "duration": "约4年（本科学习）", "significance": "物理启蒙与学术奠基之地", "works": [], "quoteLines": []}, {"name": "法国巴黎", "ancientName": "法国巴黎", "modernName": "法国巴黎", "lat": 48.856667, "lng": 2.352222, "coordSystem": "WGS84", "type": "normal", "event": "在巴黎大学居里实验室师从伊莱娜·居里从事核物理研究；1946年前后与夫人何泽慧合作发现铀核三分裂和四分裂现象；1947年晋升为法国国家科学研究中心研究员；获法兰西科学院物理学奖", "time": "1937—1948年", "duration": "约11年（留学与早期研究）", "significance": "科研能力形成与重大科学发现之地", "works": [], "quoteLines": []}, {"name": "新疆罗布泊", "ancientName": "新疆罗布泊", "modernName": "新疆维吾尔自治区巴音郭楞蒙古自治州境内", "lat": 41.762611, "lng": 86.142645, "coordSystem": "WGS84", "type": "normal", "event": "1964年10月16日参与中国第一颗原子弹爆炸成功；1967年6月17日参与中国第一颗氢弹试验成功", "time": "1964年、1967年", "duration": "参与核武器试验关键阶段", "significance": "中国核武器事业里程碑式的见证之地", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1948年回国投身新中国科学建设；1950年主持建立中国科学院近代物理研究所（今中国原子能科学研究院）；参与组建中国科学院；1978年任中国科学院副院长；主持中国第一颗原子弹、氢弹的理论研究与设计工作", "time": "1948—1992年", "duration": "约44年（主要工作阶段）", "significance": "报国与事业成就的主阵地", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "death", "event": "1992年6月28日在北京逝世，享年79岁", "time": "1992年", "duration": "晚年长期居留", "significance": "其毕生心血浇灌之地，亦是其生命终焉之所", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：新中国成立初期，国家百废待兴，面临严峻的国际核威胁与封锁\n- **身份定位**：**核物理学家**、**中国原子能科学之父**\n- **关键贡献**：参与主持中国第一颗**原子弹**（1964年）和**氢弹**（1967年）的研制工作\n- **重要地点**：核武器试验在**新疆罗布泊**进行\n- **精神内涵**：体现\"**两弹一星**\"精神和科技**自立自强**的爱国情怀\n- **易混点**：原子弹与氢弹的爆炸时间分别为1964年和1967年，不可混淆\n- **人物并称**：常与**邓稼先**、**钱学森**、**于敏**等并提为\"两弹一星\"元勋\n- **对比点**：与同时代其他核物理学家相比，钱三强更侧重**组织领导和科研体系建设**\n\n### 高中阶段\n- **时代背景**：20世纪50—60年代美苏争霸、冷战格局下的国际核竞赛背景\n- **关键事件**：1948年**毅然回国**投身新中国科学建设\n- **重大发现**：1946年前后与夫人**何泽慧**合作发现**铀核三分裂**和**四分裂**现象（具体时间存疑/说法不一）\n- **留学背景**：1937年赴**法国巴黎**留学，师从**居里夫人之女伊莱娜·居里**\n- **机构创建**：主持建立**中国科学院近代物理研究所**（今**中国原子能科学研究院**）\n- **代表作品**：其主要成就是科研组织与科学发现，无传统文学意义上的\"作品\"\n- **思想内涵**：体现科学家**爱国奉献**、**集体协作**、**自力更生**的崇高精神\n- **易混点**：注意区分钱三强（核物理）与钱学森（航天、力学）、邓稼先（核武器理论设计）的研究侧重点\n- **历史意义**：使中国跻身世界**核大国**行列，显著提升了新中国的国际地位\n\n---", "examPoints": "### 初中考点\n- 钱三强是中国**核物理学家**，被誉为\"**中国原子能科学之父**\"\n- 1964年10月16日中国第一颗**原子弹**爆炸成功，钱三强为主要领导者之一\n- 1967年6月17日中国第一颗**氢弹**试验成功\n- 核武器试验地点在**新疆罗布泊**\n- 钱三强与**邓稼先**、**钱学森**、**于敏**等同为\"**两弹一星**\"元勋人物\n- 体现新中国**自力更生、艰苦奋斗**的科技创业精神\n\n### 高中考点\n- 1948年钱三强**放弃国外优厚条件回国**，投身新中国科学建设（爱国主义典型）\n- 1937年赴**法国巴黎**留学，在**居里实验室**师从**伊莱娜·居里**从事核物理研究\n- 1946年前后与夫人**何泽慧**发现**铀核三分裂和四分裂**现象（具体年份存疑/说法不一）\n- 1950年主持建立**中国科学院近代物理研究所**（今中国原子能科学研究院）\n- 1978年任**中国科学院副院长**\n- 是中国**核武器研制体系**的重要奠基人和组织领导者\n- 1947年晋升为**法国国家科学研究中心**研究员\n- 1992年于**北京**逝世\n- 注意区分：**原子弹**（1964）与**氢弹**（1967）的时间节点", "workTexts": {}, "workSummaries": {}, "markdown": "# 钱三强 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：钱三强（原名钱秉穹）\n- **时代**：中华人民共和国（近现代）\n- **出生**：1913年，浙江湖州\n- **去世**：1992年，北京\n- **享年**：79岁\n- **主要身份**：核物理学家、中国科学院院士、中国科学院副院长、第二机械工业部副部长\n- **历史地位**：中国原子能科学之父，中国核武器事业奠基人之一\n- **主要成就**：发现铀核三分裂和四分裂现象；主持中国第一颗原子弹理论设计；参与中国第一颗氢弹研制；创建中国原子能研究所（今中国原子能科学研究院）；参与组建中国科学院；培养大批核科技人才\n\n### 生平概述\n钱三强，原名钱秉穹，1913年生于浙江湖州，出身书香门弟，父亲钱玄同是著名语言文字学家。1936年毕业于清华大学物理系，1937年赴法国巴黎留学，师从居里夫人之女伊莱娜·居里从事核物理研究。1946年前后，他与夫人何泽慧在居里实验室发现铀核三分裂和四分裂现象，在国际物理学界引起轰动。1948年，他放弃法国优厚条件毅然回国，投身新中国科学事业。新中国成立后，他参与组建中国科学院，主持建立近代物理研究所（今中国原子能科学研究院），组织领导中国第一颗原子弹和氢弹的研制工作，为中国打破核垄断、建立独立核工业体系作出了奠基性贡献。1992年在北京逝世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从江南水乡到塞外核试验场，跨越欧亚两大洲的科学报国之路\n- ⏱️ **时间跨度**：1913—1992年，共79年\n- 📍 **地理范围**：浙江、北京、法国巴黎、新疆罗布泊\n- 🌟 **重要节点数量**：6个核心地点\n- 🚶 **总行程估算**：约 15861 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江湖州\n- **公元纪年**：1913年\n- **停留时间**：童年至青年时期\n- **位置**：浙江湖州（今浙江省湖州市）\n- **事迹**：出生于湖州书香门第，自幼接受良好教育，少年时随父迁居北平\n- **意义**：人生起点与文化根基所在\n\n### 📍 重要地点：北平·清华大学\n- **公元纪年**：1932—1936年\n- **停留时间**：约4年（本科学习）\n- **位置**：北平（今北京市）清华大学\n- **事迹**：1936年毕业于清华大学物理系，受教于叶企孙、吴有训等名师，打下坚实的物理学基础\n- **意义**：物理启蒙与学术奠基之地\n\n### 📍 重要地点：法国巴黎\n- **公元纪年**：1937—1948年\n- **停留时间**：约11年（留学与早期研究）\n- **位置**：法国巴黎（今法国巴黎）\n- **事迹**：在巴黎大学居里实验室师从伊莱娜·居里从事核物理研究；1946年前后与夫人何泽慧合作发现铀核三分裂和四分裂现象；1947年晋升为法国国家科学研究中心研究员；获法兰西科学院物理学奖\n- **意义**：科研能力形成与重大科学发现之地\n\n### 📍 重要地点：北京\n- **公元纪年**：1948—1992年\n- **停留时间**：约44年（主要工作阶段）\n- **位置**：北京（今北京市）\n- **事迹**：1948年回国投身新中国科学建设；1950年主持建立中国科学院近代物理研究所（今中国原子能科学研究院）；参与组建中国科学院；1978年任中国科学院副院长；主持中国第一颗原子弹、氢弹的理论研究与设计工作\n- **意义**：报国与事业成就的主阵地\n\n### 📍 重要地点：新疆罗布泊\n- **公元纪年**：1964年、1967年\n- **停留时间**：参与核武器试验关键阶段\n- **位置**：新疆罗布泊（今新疆维吾尔自治区巴音郭楞蒙古自治州境内）\n- **事迹**：1964年10月16日参与中国第一颗原子弹爆炸成功；1967年6月17日参与中国第一颗氢弹试验成功\n- **意义**：中国核武器事业里程碑式的见证之地\n\n### 🔴 去世地：北京\n- **公元纪年**：1992年\n- **停留时间**：晚年长期居留\n- **位置**：北京（今北京市）\n- **经过**：1992年6月28日在北京逝世，享年79岁\n- **意义**：其毕生心血浇灌之地，亦是其生命终焉之所\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1913 | 浙江湖州 | 浙江省湖州市 | 出生于浙江湖州 |\n| 1936 | 北平 | 北京市 | 毕业于清华大学物理系 |\n| 1937 | 法国巴黎 | 法国巴黎 | 赴法国巴黎留学，进入居里实验室 |\n| 1946 | 法国巴黎 | 法国巴黎 | 与何泽慧合作发现铀核三分裂现象（具体年份存疑/说法不一） |\n| 1947 | 法国 | 法国 | 晋升为法国国家科学研究中心研究员 |\n| 1948 | 中国 | 中国 | 放弃国外优厚条件，毅然回国参加新中国科学建设 |\n| 1950 | 北京 | 北京市 | 主持建立中国科学院近代物理研究所 |\n| 1964 | 新疆罗布泊 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 参与中国第一颗原子弹爆炸成功 |\n| 1967 | 新疆罗布泊 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 参与中国第一颗氢弹试验成功 |\n| 1978 | 北京 | 北京市 | 任中国科学院副院长 |\n| 1992 | 北京 | 北京市 | 在北京逝世 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n钱三强是新中国核科学事业最重要的组织者之一。他回国后主持创建近代物理研究所，培养并凝聚了一大批核科技人才。在他的组织和领导下，中国以惊人的速度突破了核技术封锁，相继在1964年和1967年成功爆炸第一颗原子弹和第一颗氢弹，使中国成为继美、苏、英、法之后第五个掌握核武器的国家，打破了超级大国的核垄断。\n\n### 对后世的影响\n- 奠定了中国核工业与原子能科学的研究基础和人才队伍\n- 推动形成了\"两弹一星\"精神，成为新中国科技自立自强的象征\n- 其主持建立的中国原子能科学研究院至今仍是我国核科技骨干研究机构\n- 培养了邓稼先、王淦昌、于敏等一批核科技领军人才\n\n### 历史评价\n- **中国原子能科学之父。**\n- 钱三强是中国原子能科学事业最重要的开拓者与奠基人，被誉为\"中国的居里夫人之夫\"（指其与何泽慧并称）。\n- 他与钱学森、邓稼先等人共同被赞誉为新中国\"两弹一星\"元勋式人物。\n- 周恩来总理曾赞誉他为\"中国科技界的领袖人物之一\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：新中国成立初期，国家百废待兴，面临严峻的国际核威胁与封锁\n- **身份定位**：**核物理学家**、**中国原子能科学之父**\n- **关键贡献**：参与主持中国第一颗**原子弹**（1964年）和**氢弹**（1967年）的研制工作\n- **重要地点**：核武器试验在**新疆罗布泊**进行\n- **精神内涵**：体现\"**两弹一星**\"精神和科技**自立自强**的爱国情怀\n- **易混点**：原子弹与氢弹的爆炸时间分别为1964年和1967年，不可混淆\n- **人物并称**：常与**邓稼先**、**钱学森**、**于敏**等并提为\"两弹一星\"元勋\n- **对比点**：与同时代其他核物理学家相比，钱三强更侧重**组织领导和科研体系建设**\n\n### 高中阶段\n- **时代背景**：20世纪50—60年代美苏争霸、冷战格局下的国际核竞赛背景\n- **关键事件**：1948年**毅然回国**投身新中国科学建设\n- **重大发现**：1946年前后与夫人**何泽慧**合作发现**铀核三分裂**和**四分裂**现象（具体时间存疑/说法不一）\n- **留学背景**：1937年赴**法国巴黎**留学，师从**居里夫人之女伊莱娜·居里**\n- **机构创建**：主持建立**中国科学院近代物理研究所**（今**中国原子能科学研究院**）\n- **代表作品**：其主要成就是科研组织与科学发现，无传统文学意义上的\"作品\"\n- **思想内涵**：体现科学家**爱国奉献**、**集体协作**、**自力更生**的崇高精神\n- **易混点**：注意区分钱三强（核物理）与钱学森（航天、力学）、邓稼先（核武器理论设计）的研究侧重点\n- **历史意义**：使中国跻身世界**核大国**行列，显著提升了新中国的国际地位\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 钱三强是中国**核物理学家**，被誉为\"**中国原子能科学之父**\"\n- 1964年10月16日中国第一颗**原子弹**爆炸成功，钱三强为主要领导者之一\n- 1967年6月17日中国第一颗**氢弹**试验成功\n- 核武器试验地点在**新疆罗布泊**\n- 钱三强与**邓稼先**、**钱学森**、**于敏**等同为\"**两弹一星**\"元勋人物\n- 体现新中国**自力更生、艰苦奋斗**的科技创业精神\n\n### 高中考点\n- 1948年钱三强**放弃国外优厚条件回国**，投身新中国科学建设（爱国主义典型）\n- 1937年赴**法国巴黎**留学，在**居里实验室**师从**伊莱娜·居里**从事核物理研究\n- 1946年前后与夫人**何泽慧**发现**铀核三分裂和四分裂**现象（具体年份存疑/说法不一）\n- 1950年主持建立**中国科学院近代物理研究所**（今中国原子能科学研究院）\n- 1978年任**中国科学院副院长**\n- 是中国**核武器研制体系**的重要奠基人和组织领导者\n- 1947年晋升为**法国国家科学研究中心**研究员\n- 1992年于**北京**逝世\n- 注意区分：**原子弹**（1964）与**氢弹**（1967）的时间节点\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 浙江省湖州市 | 浙江省湖州市 | 30.896222 | 120.082010 | WGS84 |\n| 北京市 | 北京市 | 39.902776 | 116.401145 | WGS84 |\n| 法国巴黎 | 法国巴黎 | 48.856667 | 2.352222 | WGS84 |\n| 法国 | 法国 | 47.000000 | 2.000000 | WGS84 |\n| 新疆维吾尔自治区巴音郭楞蒙古自治州 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 41.762611 | 86.142645 | WGS84 |", "relatedGraph": {"center": {"id": "钱三强 生平传记与足迹", "name": "钱三强 生平传记与足迹", "file": "钱三强 生平传记与足迹.html", "dynasty": "中华人民共和国（近现代）", "aliases": [], "birth_year": null, "death_year": null, "quote": "*中国原子能科学之父。", "review": "*中国原子能科学之父。", "foreign_name": "", "main_role_label": "", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钱三强 生平传记与足迹", "name": "钱三强 生平传记与足迹", "file": "钱三强 生平传记与足迹.html", "dynasty": "中华人民共和国（近现代）", "aliases": [], "birth_year": null, "death_year": null, "quote": "*中国原子能科学之父。", "review": "*中国原子能科学之父。", "foreign_name": "", "main_role_label": "", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "当代中国", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "为国家强盛而学习", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "于敏", "name": "于敏", "file": "于敏.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1926, "death_year": 2019, "quote": "中国氢弹之父", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "河北省宁河县", "birthplace_modern": "天津市宁河区", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钱三强 生平传记与足迹", "target": "居里夫人", "label": "师生", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "钱学森", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "邓稼先", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "于敏", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "顾颉刚", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "0c863de11946", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:36:03Z", "generated_at": "2026-06-22T11:36:03Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "钱三强", "title": "", "description": "钱三强，原名钱秉穹，1913年生于浙江湖州，出身书香门弟，父亲钱玄同是著名语言文字学家。1936年毕业于清华大学物理系，1937年赴法国巴黎留学，师从居里夫人之女伊莱娜·居里从事核物理研究。1946年前后，他与夫人何泽慧在居里实验室发现铀核三分裂和四分裂现象，在国际物理学界引起轰动。1948年，他放弃法国优厚条件毅然回国，投身新中国科学事业。新中国成立后，他参与组建中国科学院，主持建立近代物理研究所（今中国原子能科学研究院），组织领导中国第一颗原子弹和氢弹的研制工作，为中国打破核垄断、建立独立核工业体系作出了奠基性贡献。1992年在北京逝世。", "quote": "中国原子能科学之父。", "shortReview": "中国原子能科学之父。", "dynasty": "中华人民共和国（近现代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江湖州", "avatar": "", "birth": {"date": "1913年", "location": "浙江湖州", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1992年", "location": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84"}, "lifespan": "79岁", "highlights": {"honor": "", "status": "中国原子能科学之父，中国核武器事业奠基人之一", "identities": "核物理学家、中国科学院院士、中国科学院副院长、第二机械工业部副部长", "achievements": "发现铀核三分裂和四分裂现象；主持中国第一颗原子弹理论设计；参与中国第一颗氢弹研制；创建中国原子能研究所（今中国原子能科学研究院）；参与组建中国科学院；培养大批核科技人才", "works": [], "reviews": ["*中国原子能科学之父。**", "钱三强是中国原子能科学事业最重要的开拓者与奠基人，被誉为\"中国的居里夫人之夫\"（指其与何泽慧并称）。", "他与钱学森、邓稼先等人共同被赞誉为新中国\"两弹一星\"元勋式人物。", "**中国原子能科学之父。**"]}}, "locations": [{"name": "浙江湖州", "ancientName": "浙江湖州", "modernName": "浙江省湖州市", "lat": 30.896222, "lng": 120.08201, "coordSystem": "WGS84", "type": "birth", "event": "出生于湖州书香门第，自幼接受良好教育，少年时随父迁居北平", "time": "1913年", "duration": "童年至青年时期", "significance": "人生起点与文化根基所在", "works": [], "quoteLines": []}, {"name": "北平·清华大学", "ancientName": "北平清华大学", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1936年毕业于清华大学物理系，受教于叶企孙、吴有训等名师，打下坚实的物理学基础", "time": "1932—1936年", "duration": "约4年（本科学习）", "significance": "物理启蒙与学术奠基之地", "works": [], "quoteLines": []}, {"name": "法国巴黎", "ancientName": "法国巴黎", "modernName": "法国巴黎", "lat": 48.856667, "lng": 2.352222, "coordSystem": "WGS84", "type": "normal", "event": "在巴黎大学居里实验室师从伊莱娜·居里从事核物理研究；1946年前后与夫人何泽慧合作发现铀核三分裂和四分裂现象；1947年晋升为法国国家科学研究中心研究员；获法兰西科学院物理学奖", "time": "1937—1948年", "duration": "约11年（留学与早期研究）", "significance": "科研能力形成与重大科学发现之地", "works": [], "quoteLines": []}, {"name": "新疆罗布泊", "ancientName": "新疆罗布泊", "modernName": "新疆维吾尔自治区巴音郭楞蒙古自治州境内", "lat": 41.762611, "lng": 86.142645, "coordSystem": "WGS84", "type": "normal", "event": "1964年10月16日参与中国第一颗原子弹爆炸成功；1967年6月17日参与中国第一颗氢弹试验成功", "time": "1964年、1967年", "duration": "参与核武器试验关键阶段", "significance": "中国核武器事业里程碑式的见证之地", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1948年回国投身新中国科学建设；1950年主持建立中国科学院近代物理研究所（今中国原子能科学研究院）；参与组建中国科学院；1978年任中国科学院副院长；主持中国第一颗原子弹、氢弹的理论研究与设计工作", "time": "1948—1992年", "duration": "约44年（主要工作阶段）", "significance": "报国与事业成就的主阵地", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "death", "event": "1992年6月28日在北京逝世，享年79岁", "time": "1992年", "duration": "晚年长期居留", "significance": "其毕生心血浇灌之地，亦是其生命终焉之所", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：新中国成立初期，国家百废待兴，面临严峻的国际核威胁与封锁\n- **身份定位**：**核物理学家**、**中国原子能科学之父**\n- **关键贡献**：参与主持中国第一颗**原子弹**（1964年）和**氢弹**（1967年）的研制工作\n- **重要地点**：核武器试验在**新疆罗布泊**进行\n- **精神内涵**：体现\"**两弹一星**\"精神和科技**自立自强**的爱国情怀\n- **易混点**：原子弹与氢弹的爆炸时间分别为1964年和1967年，不可混淆\n- **人物并称**：常与**邓稼先**、**钱学森**、**于敏**等并提为\"两弹一星\"元勋\n- **对比点**：与同时代其他核物理学家相比，钱三强更侧重**组织领导和科研体系建设**\n\n### 高中阶段\n- **时代背景**：20世纪50—60年代美苏争霸、冷战格局下的国际核竞赛背景\n- **关键事件**：1948年**毅然回国**投身新中国科学建设\n- **重大发现**：1946年前后与夫人**何泽慧**合作发现**铀核三分裂**和**四分裂**现象（具体时间存疑/说法不一）\n- **留学背景**：1937年赴**法国巴黎**留学，师从**居里夫人之女伊莱娜·居里**\n- **机构创建**：主持建立**中国科学院近代物理研究所**（今**中国原子能科学研究院**）\n- **代表作品**：其主要成就是科研组织与科学发现，无传统文学意义上的\"作品\"\n- **思想内涵**：体现科学家**爱国奉献**、**集体协作**、**自力更生**的崇高精神\n- **易混点**：注意区分钱三强（核物理）与钱学森（航天、力学）、邓稼先（核武器理论设计）的研究侧重点\n- **历史意义**：使中国跻身世界**核大国**行列，显著提升了新中国的国际地位\n\n---", "examPoints": "### 初中考点\n- 钱三强是中国**核物理学家**，被誉为\"**中国原子能科学之父**\"\n- 1964年10月16日中国第一颗**原子弹**爆炸成功，钱三强为主要领导者之一\n- 1967年6月17日中国第一颗**氢弹**试验成功\n- 核武器试验地点在**新疆罗布泊**\n- 钱三强与**邓稼先**、**钱学森**、**于敏**等同为\"**两弹一星**\"元勋人物\n- 体现新中国**自力更生、艰苦奋斗**的科技创业精神\n\n### 高中考点\n- 1948年钱三强**放弃国外优厚条件回国**，投身新中国科学建设（爱国主义典型）\n- 1937年赴**法国巴黎**留学，在**居里实验室**师从**伊莱娜·居里**从事核物理研究\n- 1946年前后与夫人**何泽慧**发现**铀核三分裂和四分裂**现象（具体年份存疑/说法不一）\n- 1950年主持建立**中国科学院近代物理研究所**（今中国原子能科学研究院）\n- 1978年任**中国科学院副院长**\n- 是中国**核武器研制体系**的重要奠基人和组织领导者\n- 1947年晋升为**法国国家科学研究中心**研究员\n- 1992年于**北京**逝世\n- 注意区分：**原子弹**（1964）与**氢弹**（1967）的时间节点", "workTexts": {}, "workSummaries": {}, "markdown": "# 钱三强 生平传记与足迹\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：钱三强（原名钱秉穹）\n- **时代**：中华人民共和国（近现代）\n- **出生**：1913年，浙江湖州\n- **去世**：1992年，北京\n- **享年**：79岁\n- **主要身份**：核物理学家、中国科学院院士、中国科学院副院长、第二机械工业部副部长\n- **历史地位**：中国原子能科学之父，中国核武器事业奠基人之一\n- **主要成就**：发现铀核三分裂和四分裂现象；主持中国第一颗原子弹理论设计；参与中国第一颗氢弹研制；创建中国原子能研究所（今中国原子能科学研究院）；参与组建中国科学院；培养大批核科技人才\n\n### 生平概述\n钱三强，原名钱秉穹，1913年生于浙江湖州，出身书香门弟，父亲钱玄同是著名语言文字学家。1936年毕业于清华大学物理系，1937年赴法国巴黎留学，师从居里夫人之女伊莱娜·居里从事核物理研究。1946年前后，他与夫人何泽慧在居里实验室发现铀核三分裂和四分裂现象，在国际物理学界引起轰动。1948年，他放弃法国优厚条件毅然回国，投身新中国科学事业。新中国成立后，他参与组建中国科学院，主持建立近代物理研究所（今中国原子能科学研究院），组织领导中国第一颗原子弹和氢弹的研制工作，为中国打破核垄断、建立独立核工业体系作出了奠基性贡献。1992年在北京逝世。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从江南水乡到塞外核试验场，跨越欧亚两大洲的科学报国之路\n- ⏱️ **时间跨度**：1913—1992年，共79年\n- 📍 **地理范围**：浙江、北京、法国巴黎、新疆罗布泊\n- 🌟 **重要节点数量**：6个核心地点\n- 🚶 **总行程估算**：约 15861 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：浙江湖州\n- **公元纪年**：1913年\n- **停留时间**：童年至青年时期\n- **位置**：浙江湖州（今浙江省湖州市）\n- **事迹**：出生于湖州书香门第，自幼接受良好教育，少年时随父迁居北平\n- **意义**：人生起点与文化根基所在\n\n### 📍 重要地点：北平·清华大学\n- **公元纪年**：1932—1936年\n- **停留时间**：约4年（本科学习）\n- **位置**：北平（今北京市）清华大学\n- **事迹**：1936年毕业于清华大学物理系，受教于叶企孙、吴有训等名师，打下坚实的物理学基础\n- **意义**：物理启蒙与学术奠基之地\n\n### 📍 重要地点：法国巴黎\n- **公元纪年**：1937—1948年\n- **停留时间**：约11年（留学与早期研究）\n- **位置**：法国巴黎（今法国巴黎）\n- **事迹**：在巴黎大学居里实验室师从伊莱娜·居里从事核物理研究；1946年前后与夫人何泽慧合作发现铀核三分裂和四分裂现象；1947年晋升为法国国家科学研究中心研究员；获法兰西科学院物理学奖\n- **意义**：科研能力形成与重大科学发现之地\n\n### 📍 重要地点：北京\n- **公元纪年**：1948—1992年\n- **停留时间**：约44年（主要工作阶段）\n- **位置**：北京（今北京市）\n- **事迹**：1948年回国投身新中国科学建设；1950年主持建立中国科学院近代物理研究所（今中国原子能科学研究院）；参与组建中国科学院；1978年任中国科学院副院长；主持中国第一颗原子弹、氢弹的理论研究与设计工作\n- **意义**：报国与事业成就的主阵地\n\n### 📍 重要地点：新疆罗布泊\n- **公元纪年**：1964年、1967年\n- **停留时间**：参与核武器试验关键阶段\n- **位置**：新疆罗布泊（今新疆维吾尔自治区巴音郭楞蒙古自治州境内）\n- **事迹**：1964年10月16日参与中国第一颗原子弹爆炸成功；1967年6月17日参与中国第一颗氢弹试验成功\n- **意义**：中国核武器事业里程碑式的见证之地\n\n### 🔴 去世地：北京\n- **公元纪年**：1992年\n- **停留时间**：晚年长期居留\n- **位置**：北京（今北京市）\n- **经过**：1992年6月28日在北京逝世，享年79岁\n- **意义**：其毕生心血浇灌之地，亦是其生命终焉之所\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1913 | 浙江湖州 | 浙江省湖州市 | 出生于浙江湖州 |\n| 1936 | 北平 | 北京市 | 毕业于清华大学物理系 |\n| 1937 | 法国巴黎 | 法国巴黎 | 赴法国巴黎留学，进入居里实验室 |\n| 1946 | 法国巴黎 | 法国巴黎 | 与何泽慧合作发现铀核三分裂现象（具体年份存疑/说法不一） |\n| 1947 | 法国 | 法国 | 晋升为法国国家科学研究中心研究员 |\n| 1948 | 中国 | 中国 | 放弃国外优厚条件，毅然回国参加新中国科学建设 |\n| 1950 | 北京 | 北京市 | 主持建立中国科学院近代物理研究所 |\n| 1964 | 新疆罗布泊 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 参与中国第一颗原子弹爆炸成功 |\n| 1967 | 新疆罗布泊 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 参与中国第一颗氢弹试验成功 |\n| 1978 | 北京 | 北京市 | 任中国科学院副院长 |\n| 1992 | 北京 | 北京市 | 在北京逝世 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n钱三强是新中国核科学事业最重要的组织者之一。他回国后主持创建近代物理研究所，培养并凝聚了一大批核科技人才。在他的组织和领导下，中国以惊人的速度突破了核技术封锁，相继在1964年和1967年成功爆炸第一颗原子弹和第一颗氢弹，使中国成为继美、苏、英、法之后第五个掌握核武器的国家，打破了超级大国的核垄断。\n\n### 对后世的影响\n- 奠定了中国核工业与原子能科学的研究基础和人才队伍\n- 推动形成了\"两弹一星\"精神，成为新中国科技自立自强的象征\n- 其主持建立的中国原子能科学研究院至今仍是我国核科技骨干研究机构\n- 培养了邓稼先、王淦昌、于敏等一批核科技领军人才\n\n### 历史评价\n- **中国原子能科学之父。**\n- 钱三强是中国原子能科学事业最重要的开拓者与奠基人，被誉为\"中国的居里夫人之夫\"（指其与何泽慧并称）。\n- 他与钱学森、邓稼先等人共同被赞誉为新中国\"两弹一星\"元勋式人物。\n- 周恩来总理曾赞誉他为\"中国科技界的领袖人物之一\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：新中国成立初期，国家百废待兴，面临严峻的国际核威胁与封锁\n- **身份定位**：**核物理学家**、**中国原子能科学之父**\n- **关键贡献**：参与主持中国第一颗**原子弹**（1964年）和**氢弹**（1967年）的研制工作\n- **重要地点**：核武器试验在**新疆罗布泊**进行\n- **精神内涵**：体现\"**两弹一星**\"精神和科技**自立自强**的爱国情怀\n- **易混点**：原子弹与氢弹的爆炸时间分别为1964年和1967年，不可混淆\n- **人物并称**：常与**邓稼先**、**钱学森**、**于敏**等并提为\"两弹一星\"元勋\n- **对比点**：与同时代其他核物理学家相比，钱三强更侧重**组织领导和科研体系建设**\n\n### 高中阶段\n- **时代背景**：20世纪50—60年代美苏争霸、冷战格局下的国际核竞赛背景\n- **关键事件**：1948年**毅然回国**投身新中国科学建设\n- **重大发现**：1946年前后与夫人**何泽慧**合作发现**铀核三分裂**和**四分裂**现象（具体时间存疑/说法不一）\n- **留学背景**：1937年赴**法国巴黎**留学，师从**居里夫人之女伊莱娜·居里**\n- **机构创建**：主持建立**中国科学院近代物理研究所**（今**中国原子能科学研究院**）\n- **代表作品**：其主要成就是科研组织与科学发现，无传统文学意义上的\"作品\"\n- **思想内涵**：体现科学家**爱国奉献**、**集体协作**、**自力更生**的崇高精神\n- **易混点**：注意区分钱三强（核物理）与钱学森（航天、力学）、邓稼先（核武器理论设计）的研究侧重点\n- **历史意义**：使中国跻身世界**核大国**行列，显著提升了新中国的国际地位\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 钱三强是中国**核物理学家**，被誉为\"**中国原子能科学之父**\"\n- 1964年10月16日中国第一颗**原子弹**爆炸成功，钱三强为主要领导者之一\n- 1967年6月17日中国第一颗**氢弹**试验成功\n- 核武器试验地点在**新疆罗布泊**\n- 钱三强与**邓稼先**、**钱学森**、**于敏**等同为\"**两弹一星**\"元勋人物\n- 体现新中国**自力更生、艰苦奋斗**的科技创业精神\n\n### 高中考点\n- 1948年钱三强**放弃国外优厚条件回国**，投身新中国科学建设（爱国主义典型）\n- 1937年赴**法国巴黎**留学，在**居里实验室**师从**伊莱娜·居里**从事核物理研究\n- 1946年前后与夫人**何泽慧**发现**铀核三分裂和四分裂**现象（具体年份存疑/说法不一）\n- 1950年主持建立**中国科学院近代物理研究所**（今中国原子能科学研究院）\n- 1978年任**中国科学院副院长**\n- 是中国**核武器研制体系**的重要奠基人和组织领导者\n- 1947年晋升为**法国国家科学研究中心**研究员\n- 1992年于**北京**逝世\n- 注意区分：**原子弹**（1964）与**氢弹**（1967）的时间节点\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 浙江省湖州市 | 浙江省湖州市 | 30.896222 | 120.082010 | WGS84 |\n| 北京市 | 北京市 | 39.902776 | 116.401145 | WGS84 |\n| 法国巴黎 | 法国巴黎 | 48.856667 | 2.352222 | WGS84 |\n| 法国 | 法国 | 47.000000 | 2.000000 | WGS84 |\n| 新疆维吾尔自治区巴音郭楞蒙古自治州 | 新疆维吾尔自治区巴音郭楞蒙古自治州 | 41.762611 | 86.142645 | WGS84 |", "relatedGraph": {"center": {"id": "钱三强 生平传记与足迹", "name": "钱三强 生平传记与足迹", "file": "钱三强.html", "dynasty": "中华人民共和国（近现代）", "aliases": ["钱三强"], "birth_year": 1913, "death_year": 1992, "quote": "*中国原子能科学之父。**", "review": "中国原子能科学之父。", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钱三强 生平传记与足迹", "name": "钱三强 生平传记与足迹", "file": "钱三强.html", "dynasty": "中华人民共和国（近现代）", "aliases": ["钱三强"], "birth_year": 1913, "death_year": 1992, "quote": "*中国原子能科学之父。**", "review": "中国原子能科学之父。", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "当代中国", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "为国家强盛而学习", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "于敏", "name": "于敏", "file": "于敏.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1926, "death_year": 2019, "quote": "中国氢弹之父", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "河北省宁河县", "birthplace_modern": "天津市宁河区", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钱三强 生平传记与足迹", "target": "居里夫人", "label": "师生", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "钱学森", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "邓稼先", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "于敏", "label": "并称", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "钱三强 生平传记与足迹", "target": "顾颉刚", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:52Z", "generated_at": "2026-06-25T07:13:52Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:36:04Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:52Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "钟扬", "title": "种子猎人", "description": "钟扬，1964年生于湖北黄冈，1979年考入中国科学技术大学（注：中国科学技术大学于1970年代迁至安徽合肥，1979年入学时主校区在合肥）。1984年本科毕业后，考入中国科学院植物研究所攻读硕士学位。硕士毕业后曾任职于中国科学院武汉植物研究所，后赴日本国立综合研究大学院大学获博士学位（具体留学起止年份待考，推算约1993年获学位）。2000年起任复旦大学生命科学学院教授、研究生院院长。他于2001年首次援藏，此后十六年间，将主要精力投入西藏大学的学科建设与青藏高原生物多样性研究，带领团队在极端环境下收集了上千种植物的数千万颗种子。2017年9月25日，钟扬在内蒙古工作途中遭遇车祸，不幸逝世。他的一生是扎根大地、追梦种子的科学家一生，其精神被广泛传颂。", "quote": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "shortReview": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "湖北省黄冈市", "avatar": "", "birth": {"date": "1964年", "location": "湖北省黄冈市", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "2017年", "location": "内蒙古自治区鄂尔多斯市", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "53岁", "highlights": {"honor": "种子猎人", "status": "著名植物学家，长期致力于生物多样性研究和西藏高原植物学研究，被誉为“种子猎人”。", "identities": "植物学家、科普作家、教育家、援藏干部", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "湖北黄冈", "ancientName": "湖北黄冈", "modernName": "湖北省黄冈市", "lat": 30.4535, "lng": 114.8723, "coordSystem": "WGS84", "type": "birth", "event": "出生并度过童年与少年时期。", "time": "1964年", "duration": "约15年", "significance": "人生起点，奠定了其勤奋好学的品格基础。", "works": [], "quoteLines": []}, {"name": "安徽合肥", "ancientName": "安徽合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国科学技术大学少年班，后转入生物系学习（具体院系待考）。", "time": "1979年 - 1984年", "duration": "5年", "significance": "接受了顶尖的跨学科高等教育，为其日后在植物学与信息学交叉领域研究打下基础。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1984年本科毕业后，在中国科学院植物研究所攻读硕士学位。", "time": "1984年 - 1987年", "duration": "3年", "significance": "系统深入植物学研究，开启了专业科研生涯。", "works": [], "quoteLines": []}, {"name": "湖北武汉", "ancientName": "湖北武汉", "modernName": "湖北省武汉市", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "硕士毕业后，在中国科学院武汉植物研究所工作。", "time": "约1987年 - 1990年（具体待考）", "duration": "约3年（待考）", "significance": "积累了植物学研究实践经验，为后续深造奠定基础。", "works": [], "quoteLines": []}, {"name": "日本", "ancientName": "日本", "modernName": "日本（代表性坐标：东京）", "lat": 35.6762, "lng": 139.6503, "coordSystem": "WGS84", "type": "normal", "event": "在日本国立综合研究大学院大学攻读并获得博士学位（推算约1993年获学位）。", "time": "约1990年（具体起止年份待考）", "duration": "约3年", "significance": "拓展国际视野，深化了对植物系统与进化生物学的研究。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "任复旦大学生命科学学院教授、研究生院院长；组建研究团队；开展大量科普工作。", "time": "2000年 - 2017年", "duration": "17年（主要工作地）", "significance": "其学术生涯的核心基地，在此培养了大量学生，并统筹规划了援藏科研事业。", "works": [], "quoteLines": ["《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。"]}, {"name": "西藏拉萨", "ancientName": "西藏拉萨", "modernName": "西藏自治区拉萨市", "lat": 29.65, "lng": 91.1, "coordSystem": "WGS84", "type": "normal", "event": "援藏，担任西藏大学教授、博士生导师，帮助建设生态学科，组建科研团队。2010年当选西藏大学长江学者特聘教授。", "time": "2001年起，断续十六年", "duration": "累计超过常驻时间", "significance": "援藏事业的起点和中心，实现了其将科研论文写在祖国山川大地的誓言。", "works": [], "quoteLines": ["《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。"]}, {"name": "内蒙古鄂尔多斯", "ancientName": "内蒙古鄂尔多斯", "modernName": "内蒙古自治区鄂尔多斯市", "lat": 39.6083, "lng": 109.9903, "coordSystem": "WGS84", "type": "death", "event": "在为民族地区干部授课途中遭遇车祸，不幸因公殉职。", "time": "2017年9月25日", "duration": "途中", "significance": "生命最后一刻仍在为民族地区发展奔走，为其奉献的一生画上了悲壮而崇高的句号。", "works": [], "quoteLines": []}, {"name": "西藏珠峰区域", "ancientName": "西藏珠峰区域", "modernName": "西藏自治区日喀则市定日县（珠峰北坡）", "lat": 28.55, "lng": 87.0667, "coordSystem": "WGS84", "type": "normal", "event": "带领学生在海拔4000米以上的珠峰北坡采集植物样本，寻找高原植物。", "time": "援藏期间多次前往", "duration": "短期野外考察", "significance": "展现了其不畏艰险的科研精神，是收集极端环境种质资源的关键地点。", "works": [], "quoteLines": []}, {"name": "西藏墨脱", "ancientName": "西藏墨脱", "modernName": "西藏自治区林芝市墨脱县", "lat": 29.325, "lng": 95.3322, "coordSystem": "WGS84", "type": "normal", "event": "多次徒步进入“莲花秘境”墨脱，考察和收集热带、亚热带植物种子。", "time": "援藏期间多次深入", "duration": "短期野外考察", "significance": "填补了我国植物种子采集的许多空白区域，体现了其科考工作的全面性与艰苦性。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---", "workTexts": {"种子方舟": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "生命的高度": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。"}, "workSummaries": {"种子方舟": {"title": "种子方舟", "aliases": [], "authors": ["钟扬"], "related_people": ["钟扬"], "source_pages": ["钟扬"], "era": "当代", "genre": "", "one_liner": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "summary": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "quote": "《“探界者”钟扬》（报告文学/人物通讯）、《种子方舟》（科普文章节选）", "quotes": ["《“探界者”钟扬》（报告文学/人物通讯）、《种子方舟》（科普文章节选）", "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "探界者"], "quote_policy": "preferred"}, "生命的高度": {"title": "生命的高度", "aliases": [], "authors": ["钟扬"], "related_people": ["钟扬"], "source_pages": ["钟扬"], "era": "当代", "genre": "", "one_liner": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。", "summary": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。", "quote": "不是杰出者才善梦，而是善梦者才杰出。", "quotes": ["不是杰出者才善梦，而是善梦者才杰出。"], "quote_policy": "preferred"}}, "markdown": "# 钟扬\n\n## 人物档案\n\n### 基本信息\n- **姓名**：钟扬\n- **时代**：当代\n- **出生**：公元1964年，今湖北省黄冈市\n- **去世**：公元2017年9月25日，今内蒙古自治区鄂尔多斯市\n- **享年**：53岁\n- **主要身份**：植物学家、科普作家、教育家、援藏干部\n- **历史地位**：著名植物学家，长期致力于生物多样性研究和西藏高原植物学研究，被誉为“种子猎人”。\n- **主要成就**：\n    - 带领团队在青藏高原艰苦跋涉，收集了数千万颗植物种子，为国家种质资源库做出了奠基性贡献。\n    - 在复旦大学任教期间，培养了大批少数民族科研人才，推动了西藏大学生态学科的建设。\n    - 积极从事科普教育，撰写和翻译了大量科普著作，提升了公众的科学素养。\n    - 作为援藏干部，十六年如一日投身西藏科研与教育事业，展现了无私奉献的科学家精神。\n\n### 生平概述\n钟扬，1964年生于湖北黄冈，1979年考入中国科学技术大学（注：中国科学技术大学于1970年代迁至安徽合肥，1979年入学时主校区在合肥）。1984年本科毕业后，考入中国科学院植物研究所攻读硕士学位。硕士毕业后曾任职于中国科学院武汉植物研究所，后赴日本国立综合研究大学院大学获博士学位（具体留学起止年份待考，推算约1993年获学位）。2000年起任复旦大学生命科学学院教授、研究生院院长。他于2001年首次援藏，此后十六年间，将主要精力投入西藏大学的学科建设与青藏高原生物多样性研究，带领团队在极端环境下收集了上千种植物的数千万颗种子。2017年9月25日，钟扬在内蒙古工作途中遭遇车祸，不幸逝世。他的一生是扎根大地、追梦种子的科学家一生，其精神被广泛传颂。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹从中国东部（湖北、安徽、上海）延伸至西部（西藏），核心活动区域在青藏高原。\n- ⏱️ **时间跨度**：1964年 - 2017年，共53年。\n- 📍 **地理范围**：覆盖中国华东、华中、西南、西北及日本。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：湖北黄冈\n- **时间**：1964年\n- **停留时间**：约15年\n- **地点**：今湖北省黄冈市\n- **事件**：出生并度过童年与少年时期。\n- **意义**：人生起点，奠定了其勤奋好学的品格基础。\n\n### 📍 重要地点：安徽合肥\n- **时间**：1979年 - 1984年\n- **停留时间**：5年\n- **地点**：今安徽省合肥市\n- **事件**：就读于中国科学技术大学少年班，后转入生物系学习（具体院系待考）。\n- **意义**：接受了顶尖的跨学科高等教育，为其日后在植物学与信息学交叉领域研究打下基础。\n\n### 📍 重要地点：北京\n- **时间**：1984年 - 1987年\n- **停留时间**：3年\n- **地点**：今北京市\n- **事件**：1984年本科毕业后，在中国科学院植物研究所攻读硕士学位。\n- **意义**：系统深入植物学研究，开启了专业科研生涯。\n\n### 📍 重要地点：湖北武汉\n- **时间**：约1987年 - 1990年（具体待考）\n- **停留时间**：约3年（待考）\n- **地点**：今湖北省武汉市\n- **事件**：硕士毕业后，在中国科学院武汉植物研究所工作。\n- **意义**：积累了植物学研究实践经验，为后续深造奠定基础。\n\n### 📍 重要地点：日本\n- **时间**：约1990年（具体起止年份待考）\n- **停留时间**：约3年\n- **地点**：日本（代表性坐标：东京）\n- **事件**：在日本国立综合研究大学院大学攻读并获得博士学位（推算约1993年获学位）。\n- **意义**：拓展国际视野，深化了对植物系统与进化生物学的研究。\n\n### 📍 重要地点：上海\n- **时间**：2000年 - 2017年\n- **停留时间**：17年（主要工作地）\n- **地点**：今上海市\n- **事件**：任复旦大学生命科学学院教授、研究生院院长；组建研究团队；开展大量科普工作。\n- **意义**：其学术生涯的核心基地，在此培养了大量学生，并统筹规划了援藏科研事业。\n- **名篇名句**：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。\n\n### 📍 重要地点：西藏拉萨\n- **时间**：2001年起，断续十六年\n- **停留时间**：累计超过常驻时间\n- **地点**：今西藏自治区拉萨市\n- **事件**：援藏，担任西藏大学教授、博士生导师，帮助建设生态学科，组建科研团队。2010年当选西藏大学长江学者特聘教授。\n- **意义**：援藏事业的起点和中心，实现了其将科研论文写在祖国山川大地的誓言。\n- **名篇名句**：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。\n\n### 📍 重要地点：西藏珠峰区域\n- **时间**：援藏期间多次前往\n- **停留时间**：短期野外考察\n- **地点**：今西藏自治区日喀则市定日县（珠峰北坡）\n- **事件**：带领学生在海拔4000米以上的珠峰北坡采集植物样本，寻找高原植物。\n- **意义**：展现了其不畏艰险的科研精神，是收集极端环境种质资源的关键地点。\n\n### 📍 重要地点：西藏墨脱\n- **时间**：援藏期间多次深入\n- **停留时间**：短期野外考察\n- **地点**：今西藏自治区林芝市墨脱县\n- **事件**：多次徒步进入“莲花秘境”墨脱，考察和收集热带、亚热带植物种子。\n- **意义**：填补了我国植物种子采集的许多空白区域，体现了其科考工作的全面性与艰苦性。\n\n### 🔴 去世地：内蒙古鄂尔多斯\n- **时间**：2017年9月25日\n- **停留时间**：途中\n- **地点**：今内蒙古自治区鄂尔多斯市\n- **事件**：在为民族地区干部授课途中遭遇车祸，不幸因公殉职。\n- **意义**：生命最后一刻仍在为民族地区发展奔走，为其奉献的一生画上了悲壮而崇高的句号。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1964 | 湖北黄冈 | 湖北省黄冈市 | （年龄：0）出生于湖北黄冈 |\n| 1979 |  |  | （年龄：15）考入中国科学技术大学少年班（位于合肥） |\n| 1984 |  |  | （年龄：20）本科毕业，考入中国科学院植物研究所攻读硕士 |\n| 1987 |  |  | （年龄：23）硕士毕业，进入中国科学院武汉植物研究所工作 |\n| 约1990 | 日本 | 日本 | （年龄：约26）赴日本留学，攻读博士学位（具体起止年份待考） |\n| 约1993 | 日本 | 日本 | （年龄：约29）获日本国立综合研究大学院大学博士学位（推算） |\n| 2000 |  |  | （年龄：36）回国，任复旦大学生命科学学院教授 |\n| 2001 |  |  | （年龄：37）首次赴西藏大学开展援藏工作 |\n| 2010 |  |  | （年龄：46）当选西藏大学长江学者特聘教授 |\n| 2017.9.25 | 内蒙古鄂尔多斯 | 内蒙古自治区鄂尔多斯市 | （年龄：53）在内蒙古鄂尔多斯出差途中遭遇车祸，不幸逝世 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：湖北黄冈 | 湖北省黄冈市 | 30.4535 | 114.8723 |\n| 重要地点：安徽合肥 | 安徽省合肥市 | 31.8206 | 117.2272 |\n| 重要地点：北京 | 北京市 | 39.9042 | 116.4074 |\n| 重要地点：湖北武汉 | 湖北省武汉市 | 30.5928 | 114.3055 |\n| 重要地点：日本 | 日本东京（代表性坐标） | 35.6762 | 139.6503 |\n| 重要地点：上海 | 上海市 | 31.2304 | 121.4737 |\n| 重要地点：西藏拉萨 | 西藏自治区拉萨市 | 29.6500 | 91.1000 |\n| 重要地点：西藏珠峰区域 | 西藏自治区日喀则市定日县（珠峰北坡） | 28.5500 | 87.0667 |\n| 重要地点：西藏墨脱 | 西藏自治区林芝市墨脱县 | 29.3250 | 95.3322 |\n| 去世地：内蒙古鄂尔多斯 | 内蒙古自治区鄂尔多斯市 | 39.6083 | 109.9903 |\n| --- | --- | --- |\n| 湖北省黄冈市 | 30.4535 | 114.8723 |\n| 安徽省合肥市 | 31.8206 | 117.2272 |\n| 北京市 | 39.9042 | 116.4074 |\n| 湖北省武汉市 | 30.5928 | 114.3055 |\n| 日本东京（代表性坐标） | 35.6762 | 139.6503 |\n| 上海市 | 31.2304 | 121.4737 |\n| 西藏自治区拉萨市 | 29.6500 | 91.1000 |\n| 西藏自治区日喀则市定日县（珠峰北坡） | 28.5500 | 87.0667 |\n| 西藏自治区林芝市墨脱县 | 29.3250 | 95.3322 |\n| 内蒙古自治区鄂尔多斯市 | 39.6083 | 109.9903 |", "relatedGraph": {"center": {"id": "钟扬", "name": "钟扬", "file": "钟扬.html", "dynasty": "当代", "aliases": [], "birth_year": 1964, "death_year": 2017, "quote": "磨破的牛仔裤", "review": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "foreign_name": "", "main_role_label": "科普作家", "birthplace": "今湖北省黄冈市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钟扬", "name": "钟扬", "file": "钟扬.html", "dynasty": "当代", "aliases": [], "birth_year": 1964, "death_year": 2017, "quote": "磨破的牛仔裤", "review": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "foreign_name": "", "main_role_label": "科普作家", "birthplace": "今湖北省黄冈市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "当代中国", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "为国家强盛而学习", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钟扬", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "钱学森", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "邓稼先", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:49Z", "generated_at": "2026-06-22T11:31:49Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "钟扬", "title": "种子猎人", "description": "钟扬，1964年生于湖北黄冈，1979年考入中国科学技术大学（注：中国科学技术大学于1970年代迁至安徽合肥，1979年入学时主校区在合肥）。1984年本科毕业后，考入中国科学院植物研究所攻读硕士学位。硕士毕业后曾任职于中国科学院武汉植物研究所，后赴日本国立综合研究大学院大学获博士学位（具体留学起止年份待考，推算约1993年获学位）。2000年起任复旦大学生命科学学院教授、研究生院院长。他于2001年首次援藏，此后十六年间，将主要精力投入西藏大学的学科建设与青藏高原生物多样性研究，带领团队在极端环境下收集了上千种植物的数千万颗种子。2017年9月25日，钟扬在内蒙古工作途中遭遇车祸，不幸逝世。他的一生是扎根大地、追梦种子的科学家一生，其精神被广泛传颂。", "quote": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "shortReview": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "dynasty": "当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "湖北省黄冈市", "avatar": "", "birth": {"date": "1964年", "location": "湖北省黄冈市", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "2017年", "location": "内蒙古自治区鄂尔多斯市", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "53岁", "highlights": {"honor": "种子猎人", "status": "著名植物学家，长期致力于生物多样性研究和西藏高原植物学研究，被誉为“种子猎人”。", "identities": "植物学家、科普作家、教育家、援藏干部", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "湖北黄冈", "ancientName": "湖北黄冈", "modernName": "湖北省黄冈市", "lat": 30.4535, "lng": 114.8723, "coordSystem": "WGS84", "type": "birth", "event": "出生并度过童年与少年时期。", "time": "1964年", "duration": "约15年", "significance": "人生起点，奠定了其勤奋好学的品格基础。", "works": [], "quoteLines": []}, {"name": "安徽合肥", "ancientName": "安徽合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国科学技术大学少年班，后转入生物系学习（具体院系待考）。", "time": "1979年 - 1984年", "duration": "5年", "significance": "接受了顶尖的跨学科高等教育，为其日后在植物学与信息学交叉领域研究打下基础。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1984年本科毕业后，在中国科学院植物研究所攻读硕士学位。", "time": "1984年 - 1987年", "duration": "3年", "significance": "系统深入植物学研究，开启了专业科研生涯。", "works": [], "quoteLines": []}, {"name": "湖北武汉", "ancientName": "湖北武汉", "modernName": "湖北省武汉市", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "硕士毕业后，在中国科学院武汉植物研究所工作。", "time": "约1987年 - 1990年（具体待考）", "duration": "约3年（待考）", "significance": "积累了植物学研究实践经验，为后续深造奠定基础。", "works": [], "quoteLines": []}, {"name": "日本", "ancientName": "日本", "modernName": "日本（代表性坐标：东京）", "lat": 35.6762, "lng": 139.6503, "coordSystem": "WGS84", "type": "normal", "event": "在日本国立综合研究大学院大学攻读并获得博士学位（推算约1993年获学位）。", "time": "约1990年（具体起止年份待考）", "duration": "约3年", "significance": "拓展国际视野，深化了对植物系统与进化生物学的研究。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "任复旦大学生命科学学院教授、研究生院院长；组建研究团队；开展大量科普工作。", "time": "2000年 - 2017年", "duration": "17年（主要工作地）", "significance": "其学术生涯的核心基地，在此培养了大量学生，并统筹规划了援藏科研事业。", "works": [], "quoteLines": ["《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。"]}, {"name": "西藏拉萨", "ancientName": "西藏拉萨", "modernName": "西藏自治区拉萨市", "lat": 29.65, "lng": 91.1, "coordSystem": "WGS84", "type": "normal", "event": "援藏，担任西藏大学教授、博士生导师，帮助建设生态学科，组建科研团队。2010年当选西藏大学长江学者特聘教授。", "time": "2001年起，断续十六年", "duration": "累计超过常驻时间", "significance": "援藏事业的起点和中心，实现了其将科研论文写在祖国山川大地的誓言。", "works": [], "quoteLines": ["《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。"]}, {"name": "内蒙古鄂尔多斯", "ancientName": "内蒙古鄂尔多斯", "modernName": "内蒙古自治区鄂尔多斯市", "lat": 39.6083, "lng": 109.9903, "coordSystem": "WGS84", "type": "death", "event": "在为民族地区干部授课途中遭遇车祸，不幸因公殉职。", "time": "2017年9月25日", "duration": "途中", "significance": "生命最后一刻仍在为民族地区发展奔走，为其奉献的一生画上了悲壮而崇高的句号。", "works": [], "quoteLines": []}, {"name": "西藏珠峰区域", "ancientName": "西藏珠峰区域", "modernName": "西藏自治区日喀则市定日县（珠峰北坡）", "lat": 28.55, "lng": 87.0667, "coordSystem": "WGS84", "type": "normal", "event": "带领学生在海拔4000米以上的珠峰北坡采集植物样本，寻找高原植物。", "time": "援藏期间多次前往", "duration": "短期野外考察", "significance": "展现了其不畏艰险的科研精神，是收集极端环境种质资源的关键地点。", "works": [], "quoteLines": []}, {"name": "西藏墨脱", "ancientName": "西藏墨脱", "modernName": "西藏自治区林芝市墨脱县", "lat": 29.325, "lng": 95.3322, "coordSystem": "WGS84", "type": "normal", "event": "多次徒步进入“莲花秘境”墨脱，考察和收集热带、亚热带植物种子。", "time": "援藏期间多次深入", "duration": "短期野外考察", "significance": "填补了我国植物种子采集的许多空白区域，体现了其科考工作的全面性与艰苦性。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---", "workTexts": {"种子方舟": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "生命的高度": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。"}, "workSummaries": {"种子方舟": {"title": "种子方舟", "aliases": [], "authors": ["钟扬"], "related_people": ["钟扬"], "source_pages": ["钟扬"], "era": "当代", "genre": "", "one_liner": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "summary": "名篇名句：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "quote": "《“探界者”钟扬》（报告文学/人物通讯）、《种子方舟》（科普文章节选）", "quotes": ["《“探界者”钟扬》（报告文学/人物通讯）、《种子方舟》（科普文章节选）", "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "探界者"], "quote_policy": "preferred"}, "生命的高度": {"title": "生命的高度", "aliases": [], "authors": ["钟扬"], "related_people": ["钟扬"], "source_pages": ["钟扬"], "era": "当代", "genre": "", "one_liner": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。", "summary": "名篇名句：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。", "quote": "不是杰出者才善梦，而是善梦者才杰出。", "quotes": ["不是杰出者才善梦，而是善梦者才杰出。"], "quote_policy": "preferred"}}, "markdown": "# 钟扬\n\n## 人物档案\n\n### 基本信息\n- **姓名**：钟扬\n- **时代**：当代\n- **出生**：公元1964年，今湖北省黄冈市\n- **去世**：公元2017年9月25日，今内蒙古自治区鄂尔多斯市\n- **享年**：53岁\n- **主要身份**：植物学家、科普作家、教育家、援藏干部\n- **历史地位**：著名植物学家，长期致力于生物多样性研究和西藏高原植物学研究，被誉为“种子猎人”。\n- **主要成就**：\n    - 带领团队在青藏高原艰苦跋涉，收集了数千万颗植物种子，为国家种质资源库做出了奠基性贡献。\n    - 在复旦大学任教期间，培养了大批少数民族科研人才，推动了西藏大学生态学科的建设。\n    - 积极从事科普教育，撰写和翻译了大量科普著作，提升了公众的科学素养。\n    - 作为援藏干部，十六年如一日投身西藏科研与教育事业，展现了无私奉献的科学家精神。\n\n### 生平概述\n钟扬，1964年生于湖北黄冈，1979年考入中国科学技术大学（注：中国科学技术大学于1970年代迁至安徽合肥，1979年入学时主校区在合肥）。1984年本科毕业后，考入中国科学院植物研究所攻读硕士学位。硕士毕业后曾任职于中国科学院武汉植物研究所，后赴日本国立综合研究大学院大学获博士学位（具体留学起止年份待考，推算约1993年获学位）。2000年起任复旦大学生命科学学院教授、研究生院院长。他于2001年首次援藏，此后十六年间，将主要精力投入西藏大学的学科建设与青藏高原生物多样性研究，带领团队在极端环境下收集了上千种植物的数千万颗种子。2017年9月25日，钟扬在内蒙古工作途中遭遇车祸，不幸逝世。他的一生是扎根大地、追梦种子的科学家一生，其精神被广泛传颂。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹从中国东部（湖北、安徽、上海）延伸至西部（西藏），核心活动区域在青藏高原。\n- ⏱️ **时间跨度**：1964年 - 2017年，共53年。\n- 📍 **地理范围**：覆盖中国华东、华中、西南、西北及日本。\n- 🌟 **重要节点数量**：9个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：湖北黄冈\n- **时间**：1964年\n- **停留时间**：约15年\n- **地点**：今湖北省黄冈市\n- **事件**：出生并度过童年与少年时期。\n- **意义**：人生起点，奠定了其勤奋好学的品格基础。\n\n### 📍 重要地点：安徽合肥\n- **时间**：1979年 - 1984年\n- **停留时间**：5年\n- **地点**：今安徽省合肥市\n- **事件**：就读于中国科学技术大学少年班，后转入生物系学习（具体院系待考）。\n- **意义**：接受了顶尖的跨学科高等教育，为其日后在植物学与信息学交叉领域研究打下基础。\n\n### 📍 重要地点：北京\n- **时间**：1984年 - 1987年\n- **停留时间**：3年\n- **地点**：今北京市\n- **事件**：1984年本科毕业后，在中国科学院植物研究所攻读硕士学位。\n- **意义**：系统深入植物学研究，开启了专业科研生涯。\n\n### 📍 重要地点：湖北武汉\n- **时间**：约1987年 - 1990年（具体待考）\n- **停留时间**：约3年（待考）\n- **地点**：今湖北省武汉市\n- **事件**：硕士毕业后，在中国科学院武汉植物研究所工作。\n- **意义**：积累了植物学研究实践经验，为后续深造奠定基础。\n\n### 📍 重要地点：日本\n- **时间**：约1990年（具体起止年份待考）\n- **停留时间**：约3年\n- **地点**：日本（代表性坐标：东京）\n- **事件**：在日本国立综合研究大学院大学攻读并获得博士学位（推算约1993年获学位）。\n- **意义**：拓展国际视野，深化了对植物系统与进化生物学的研究。\n\n### 📍 重要地点：上海\n- **时间**：2000年 - 2017年\n- **停留时间**：17年（主要工作地）\n- **地点**：今上海市\n- **事件**：任复旦大学生命科学学院教授、研究生院院长；组建研究团队；开展大量科普工作。\n- **意义**：其学术生涯的核心基地，在此培养了大量学生，并统筹规划了援藏科研事业。\n- **名篇名句**：《种子方舟》：一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。\n\n### 📍 重要地点：西藏拉萨\n- **时间**：2001年起，断续十六年\n- **停留时间**：累计超过常驻时间\n- **地点**：今西藏自治区拉萨市\n- **事件**：援藏，担任西藏大学教授、博士生导师，帮助建设生态学科，组建科研团队。2010年当选西藏大学长江学者特聘教授。\n- **意义**：援藏事业的起点和中心，实现了其将科研论文写在祖国山川大地的誓言。\n- **名篇名句**：《生命的高度》：不是杰出者才善梦，而是善梦者才杰出。\n\n### 📍 重要地点：西藏珠峰区域\n- **时间**：援藏期间多次前往\n- **停留时间**：短期野外考察\n- **地点**：今西藏自治区日喀则市定日县（珠峰北坡）\n- **事件**：带领学生在海拔4000米以上的珠峰北坡采集植物样本，寻找高原植物。\n- **意义**：展现了其不畏艰险的科研精神，是收集极端环境种质资源的关键地点。\n\n### 📍 重要地点：西藏墨脱\n- **时间**：援藏期间多次深入\n- **停留时间**：短期野外考察\n- **地点**：今西藏自治区林芝市墨脱县\n- **事件**：多次徒步进入“莲花秘境”墨脱，考察和收集热带、亚热带植物种子。\n- **意义**：填补了我国植物种子采集的许多空白区域，体现了其科考工作的全面性与艰苦性。\n\n### 🔴 去世地：内蒙古鄂尔多斯\n- **时间**：2017年9月25日\n- **停留时间**：途中\n- **地点**：今内蒙古自治区鄂尔多斯市\n- **事件**：在为民族地区干部授课途中遭遇车祸，不幸因公殉职。\n- **意义**：生命最后一刻仍在为民族地区发展奔走，为其奉献的一生画上了悲壮而崇高的句号。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1964 | 湖北黄冈 | 湖北省黄冈市 | （年龄：0）出生于湖北黄冈 |\n| 1979 |  |  | （年龄：15）考入中国科学技术大学少年班（位于合肥） |\n| 1984 |  |  | （年龄：20）本科毕业，考入中国科学院植物研究所攻读硕士 |\n| 1987 |  |  | （年龄：23）硕士毕业，进入中国科学院武汉植物研究所工作 |\n| 约1990 | 日本 | 日本 | （年龄：约26）赴日本留学，攻读博士学位（具体起止年份待考） |\n| 约1993 | 日本 | 日本 | （年龄：约29）获日本国立综合研究大学院大学博士学位（推算） |\n| 2000 |  |  | （年龄：36）回国，任复旦大学生命科学学院教授 |\n| 2001 |  |  | （年龄：37）首次赴西藏大学开展援藏工作 |\n| 2010 |  |  | （年龄：46）当选西藏大学长江学者特聘教授 |\n| 2017.9.25 | 内蒙古鄂尔多斯 | 内蒙古自治区鄂尔多斯市 | （年龄：53）在内蒙古鄂尔多斯出差途中遭遇车祸，不幸逝世 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《“探界者”钟扬》**（报告文学/人物通讯）、**《种子方舟》**（科普文章节选）\n- 核心要点：\n    - **重点**：文章通过典型事例（如**十六年援藏**、**收集种子**、**科普教育**）塑造了一位**心系国家**、**无私奉献**的科学家形象。\n    - **重点**：运用**细节描写**（如“磨破的牛仔裤”、“高原反应”）生动展现钟扬**不畏艰险**、**脚踏实地**的工作作风。\n    - **重点**：主题聚焦于**科学家精神**与**生命价值**的探讨，诠释了“**不是杰出者才善梦，而是善梦者才杰出**”的人生哲理。\n    - 文章结构常采用**时间顺序**与**主题板块**（如“种子达人”、“科学队长”、“接盘导师”）相结合的方式，使人物形象立体丰满。\n    - 语言风格兼具**纪实性**与**文学性**，在客观叙述中蕴含深沉情感。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**2001年**起，作为**援藏干部**长期在西藏大学工作，推动该校**生态学**学科建设进入国家一流学科。\n    - **重点**：率领团队在**青藏高原**等地收集了**数千万颗**植物种子，为国家**战略生物资源库**做出了不可替代的贡献。\n    - 作为**复旦大学研究生院院长**，在研究生培养和**少数民族高层次骨干人才计划**实施中贡献突出。\n- 核心要点：\n    - **重点**：钟扬的事迹是**新时代科学家精神**的集中体现，其核心是**胸怀祖国、服务人民**的爱国精神，以及**淡泊名利、潜心研究**的奉献精神。\n    - **重点**：他的工作紧密服务于**国家种业安全**与**生态文明建设**战略，将个人学术追求融入国家发展大局。\n    - **重点**：作为**教育援藏**的典范，他通过培养**藏族科研团队**，为西藏的可持续发展提供了**人才支撑**与**智力支持**，促进了**民族团结**。\n    - 其人生轨迹反映了**改革开放后**一代中国科学家**国际视野**与**家国情怀**的结合。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：湖北黄冈 | 湖北省黄冈市 | 30.4535 | 114.8723 |\n| 重要地点：安徽合肥 | 安徽省合肥市 | 31.8206 | 117.2272 |\n| 重要地点：北京 | 北京市 | 39.9042 | 116.4074 |\n| 重要地点：湖北武汉 | 湖北省武汉市 | 30.5928 | 114.3055 |\n| 重要地点：日本 | 日本东京（代表性坐标） | 35.6762 | 139.6503 |\n| 重要地点：上海 | 上海市 | 31.2304 | 121.4737 |\n| 重要地点：西藏拉萨 | 西藏自治区拉萨市 | 29.6500 | 91.1000 |\n| 重要地点：西藏珠峰区域 | 西藏自治区日喀则市定日县（珠峰北坡） | 28.5500 | 87.0667 |\n| 重要地点：西藏墨脱 | 西藏自治区林芝市墨脱县 | 29.3250 | 95.3322 |\n| 去世地：内蒙古鄂尔多斯 | 内蒙古自治区鄂尔多斯市 | 39.6083 | 109.9903 |\n| --- | --- | --- |\n| 湖北省黄冈市 | 30.4535 | 114.8723 |\n| 安徽省合肥市 | 31.8206 | 117.2272 |\n| 北京市 | 39.9042 | 116.4074 |\n| 湖北省武汉市 | 30.5928 | 114.3055 |\n| 日本东京（代表性坐标） | 35.6762 | 139.6503 |\n| 上海市 | 31.2304 | 121.4737 |\n| 西藏自治区拉萨市 | 29.6500 | 91.1000 |\n| 西藏自治区日喀则市定日县（珠峰北坡） | 28.5500 | 87.0667 |\n| 西藏自治区林芝市墨脱县 | 29.3250 | 95.3322 |\n| 内蒙古自治区鄂尔多斯市 | 39.6083 | 109.9903 |", "relatedGraph": {"center": {"id": "钟扬", "name": "钟扬", "file": "钟扬.html", "dynasty": "当代", "aliases": [], "birth_year": 1964, "death_year": 2017, "quote": "磨破的牛仔裤", "review": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "foreign_name": "", "main_role_label": "科普作家", "birthplace": "今湖北省黄冈市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钟扬", "name": "钟扬", "file": "钟扬.html", "dynasty": "当代", "aliases": [], "birth_year": 1964, "death_year": 2017, "quote": "磨破的牛仔裤", "review": "一个基因可以为一个国家带来希望，一粒种子可以造福万千苍生。", "foreign_name": "", "main_role_label": "科普作家", "birthplace": "今湖北省黄冈市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邓稼先", "name": "邓稼先", "file": "邓稼先.html", "dynasty": "当代中国", "aliases": [], "birth_year": 1924, "death_year": 1986, "quote": "为国家强盛而学习", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "安徽省怀宁县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钟扬", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "钱学森", "label": "同时代人物", "confidence": null}, {"source": "钟扬", "target": "邓稼先", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:52Z", "generated_at": "2026-06-25T07:13:52Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:49Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:52Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

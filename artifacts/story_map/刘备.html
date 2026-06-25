@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "刘备", "title": "汉昭烈帝", "description": "刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。", "quote": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "shortReview": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "涿郡涿县（今河北省涿州市）", "avatar": "", "birth": {"date": "161年", "location": "涿郡涿县（今河北省涿州市）", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84"}, "death": {"date": "223年", "location": "永安宫（白帝城", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84"}, "lifespan": "62岁", "highlights": {"honor": "汉昭烈帝", "status": "三国时期蜀汉政权的建立者，后世常称其为“汉昭烈帝”。", "identities": "政治家、军事家、蜀汉开国皇帝", "achievements": "建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。", "works": [], "reviews": []}}, "locations": [{"name": "涿郡涿县", "ancientName": "涿郡涿县", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "birth", "event": "刘备出生于此，幼年丧父，与母亲以织席贩履为生。", "time": "公元161年", "duration": "少年时期", "significance": "刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。", "works": [], "quoteLines": []}, {"name": "涿郡（求学）", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。", "time": "约公元175年-184年", "duration": "求学数年", "significance": "接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。", "time": "公元184年", "duration": "起兵初期", "significance": "刘备政治军事生涯的正式起点，奠定了核心班底。", "works": [], "quoteLines": []}, {"name": "平原县", "ancientName": "平原国平原县", "modernName": "山东省德州市平原县", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。", "time": "约公元191年-194年", "duration": "约3年", "significance": "刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。", "works": [], "quoteLines": []}, {"name": "小沛、徐州", "ancientName": "小沛、徐州", "modernName": "江苏省徐州市沛县", "lat": 32.524, "lng": 112.36, "coordSystem": "WGS84", "type": "normal", "event": "陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。", "time": "公元194年-196年", "duration": "约2年", "significance": "刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。", "works": [], "quoteLines": []}, {"name": "新野县", "ancientName": "荆州南阳郡新野县", "modernName": "河南省南阳市新野县", "lat": 30.3348, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。", "time": "公元201年-208年", "duration": "约7年", "significance": "刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。", "works": ["隆中对"], "quoteLines": []}, {"name": "江陵、公安", "ancientName": "南郡江陵、公安", "modernName": "湖北省荆州市", "lat": 30.0583, "lng": 112.2294, "coordSystem": "WGS84", "type": "normal", "event": "赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。", "time": "公元208年-211年", "duration": "约3年", "significance": "刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州蜀郡成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。", "time": "公元214年-223年", "duration": "约9年", "significance": "刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。", "works": [], "quoteLines": []}, {"name": "白帝城（永安宫）", "ancientName": "永安宫（白帝城，", "modernName": "重庆市奉节县）", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84", "type": "death", "event": "夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。", "time": "公元222年-223年", "duration": "约1年", "significance": "刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "workTexts": {"隆中对": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "三顾茅庐": "重点：仁德形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。"}, "workSummaries": {"隆中对": {"title": "隆中对", "aliases": [], "authors": [], "related_people": ["刘备", "诸葛亮"], "source_pages": ["刘备", "诸葛亮"], "era": "", "genre": "", "one_liner": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "summary": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "出师表": {"title": "出师表", "aliases": [], "authors": ["诸葛亮"], "related_people": ["刘备", "诸葛亮"], "source_pages": ["刘备", "诸葛亮"], "era": "东汉末年至三国时期", "genre": "表", "one_liner": "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "summary": "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "quote": "臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。", "quotes": ["臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。", "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "此臣所以报先帝而忠陛下之职分也。"], "quote_policy": "preferred"}, "三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "三顾茅庐": {"title": "三顾茅庐", "aliases": [], "authors": [], "related_people": ["刘备", "张飞"], "source_pages": ["刘备", "张飞"], "era": "", "genre": "", "one_liner": "重点：在《三顾茅庐》等课文中，张飞形象被塑造为直率鲁莽、嫉恶如仇的典型武将，与刘备的仁厚、关羽的傲上形成鲜明对比。", "summary": "重点：在《三顾茅庐》等课文中，张飞形象被塑造为直率鲁莽、嫉恶如仇的典型武将，与刘备的仁厚、关羽的傲上形成鲜明对比。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}}, "markdown": "# 刘备\n\n## 人物档案\n\n### 基本信息\n- **姓名**：刘备\n- **时代**：东汉末年至三国时期\n- **出生**：公元161年，涿郡涿县（今河北省涿州市）（具体日期存疑）\n- **去世**：公元223年，永安宫（白帝城，今重庆市奉节县）（具体月日存疑）\n- **享年**：62岁\n- **主要身份**：政治家、军事家、蜀汉开国皇帝\n- **历史地位**：三国时期蜀汉政权的建立者，后世常称其为“汉昭烈帝”。\n- **主要成就**：建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。\n\n### 生平概述\n刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从幽燕之地（河北）起兵，辗转中原、荆襄，最终立国于巴蜀（四川、重庆），一生足迹遍布中国中东部。\n- ⏱️ **时间跨度**：公元161年 - 公元223年，享年62年。\n- 📍 **地理范围**：大致覆盖今河北、山东、河南、湖北、湖南、重庆、四川等省市。\n- 🌟 **重要节点数量**：10个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：涿郡涿县\n- **时间**：公元161年\n- **停留时间**：少年时期\n- **地点**：涿郡涿县（今河北省涿州市）\n- **事件**：刘备出生于此，幼年丧父，与母亲以织席贩履为生。\n- **意义**：刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。\n\n### 📍 重要地点：涿郡（求学）\n- **时间**：约公元175年-184年\n- **停留时间**：求学数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。\n- **意义**：接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。\n\n### 📍 重要地点：涿郡\n- **时间**：公元184年\n- **停留时间**：起兵初期\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。\n- **意义**：刘备政治军事生涯的正式起点，奠定了核心班底。\n\n### 📍 重要地点：平原县\n- **时间**：约公元191年-194年\n- **停留时间**：约3年\n- **地点**：平原国平原县（今山东省德州市平原县）\n- **事件**：刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。\n- **意义**：刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。\n\n### 📍 重要地点：小沛、徐州\n- **时间**：公元194年-196年\n- **停留时间**：约2年\n- **地点**：小沛（今江苏省徐州市沛县）、徐州（治所先后在郯城、下邳）\n- **事件**：陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。\n- **意义**：刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。\n\n### 📍 重要地点：新野县\n- **时间**：公元201年-208年\n- **停留时间**：约7年\n- **地点**：荆州南阳郡新野县（今河南省南阳市新野县）\n- **事件**：刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。\n- **意义**：刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。\n\n### 📍 重要地点：江陵、公安\n- **时间**：公元208年-211年\n- **停留时间**：约3年\n- **地点**：南郡江陵（今湖北省荆州市）、公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。\n- **意义**：刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。\n\n### 📍 重要地点：成都\n- **时间**：公元214年-223年\n- **停留时间**：约9年\n- **地点**：益州蜀郡成都（今四川省成都市）\n- **事件**：公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。\n- **意义**：刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。\n\n### 🔴 去世地：白帝城（永安宫）\n- **时间**：公元222年-223年\n- **停留时间**：约1年\n- **地点**：永安宫（白帝城，今重庆市奉节县）\n- **事件**：夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。\n- **意义**：刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 161年 | 涿郡涿县 | 河北省涿州市 | （年龄：0岁）生于幽州涿郡涿县。 |\n| 184年 | 涿郡 | 河北省涿州市 | （年龄：23岁）在涿郡起兵，参与镇压黄巾起义。 |\n| 194年 |  |  | （年龄：33岁）领徐州牧，首次拥有州郡。 |\n| 196年 |  |  | （年龄：35岁）被吕布击败，失去徐州，投靠曹操。 |\n| 200年 |  |  | （年龄：39岁）衣带诏事发，逃离曹操，被击败后投奔袁绍。 |\n| 201年 | 新野县 | 河南省南阳市新野县 | （年龄：40岁）投奔荆州刘表，屯兵新野。 |\n| 207年 |  |  | （年龄：46岁）三顾茅庐，得诸葛亮。 |\n| 208年 |  |  | （年龄：47岁）联合孙权，于赤壁大败曹操。 |\n| 211年 |  |  | （年龄：50岁）应刘璋之邀入蜀。 |\n| 214年 |  |  | （年龄：53岁）夺取益州，领益州牧。 |\n| 219年 |  |  | （年龄：58岁）夺取汉中，进位汉中王。 |\n| 220年 |  |  | （年龄：59岁）关羽失荆州被杀。 |\n| 221年 | 成都 | 四川省成都市 | （年龄：60岁）在成都称帝，建立蜀汉。 |\n| 222年 |  |  | （年龄：61岁）夷陵之战惨败于陆逊。 |\n| 223年 | 白帝城（永安宫） | 永安宫 | （年龄：62岁）病逝于白帝城永安宫。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 涿郡涿县 | 河北省涿州市 | 39.4853 | 115.9990 |\n| 涿郡（求学） | 山东省平原县 | 37.1654 | 116.4340 |\n| 涿郡 | 江苏省沛县 | 34.7217 | 116.9375 |\n| 平原县 | 江苏省徐州市沛县 | 34.7217 | 116.9375 |\n| 小沛、徐州 | 河南省新野县 | 32.5240 | 112.3600 |\n| 新野县 | 湖北省荆州市（古江陵） | 30.3348 | 112.2397 |\n| 江陵、公安 | 湖北省公安县 | 30.0583 | 112.2294 |\n| 成都 | 四川省成都市 | 30.5728 | 104.0668 |\n| 白帝城（永安宫） | 重庆市奉节县 | 31.0185 | 109.4648 |\n", "relatedGraph": {"center": {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 160, "death_year": 219, "quote": "华容道义释曹操", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "河东郡解县", "birthplace_modern": "山西省运城市盐湖区解州镇一带", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "东汉末年·三国", "aliases": [], "birth_year": null, "death_year": 221, "quote": "身是张益德也，可来共决死！", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "刘备", "target": "诸葛亮", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "关羽", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "张飞", "label": "宗亲", "confidence": null}, {"source": "刘备", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:12Z", "generated_at": "2026-06-22T11:31:12Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "刘备", "title": "汉昭烈帝", "description": "刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。", "quote": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "shortReview": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "涿郡涿县（今河北省涿州市）", "avatar": "", "birth": {"date": "161年", "location": "涿郡涿县（今河北省涿州市）", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84"}, "death": {"date": "223年", "location": "永安宫（白帝城", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84"}, "lifespan": "62岁", "highlights": {"honor": "汉昭烈帝", "status": "三国时期蜀汉政权的建立者，后世常称其为“汉昭烈帝”。", "identities": "政治家、军事家、蜀汉开国皇帝", "achievements": "建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。", "works": [], "reviews": []}}, "locations": [{"name": "涿郡涿县", "ancientName": "涿郡涿县", "modernName": "河北省涿州市", "lat": 39.4853, "lng": 115.999, "coordSystem": "WGS84", "type": "birth", "event": "刘备出生于此，幼年丧父，与母亲以织席贩履为生。", "time": "公元161年", "duration": "少年时期", "significance": "刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。", "works": [], "quoteLines": []}, {"name": "涿郡（求学）", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。", "time": "约公元175年-184年", "duration": "求学数年", "significance": "接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。", "works": [], "quoteLines": []}, {"name": "涿郡", "ancientName": "涿郡", "modernName": "河北省涿州市", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。", "time": "公元184年", "duration": "起兵初期", "significance": "刘备政治军事生涯的正式起点，奠定了核心班底。", "works": [], "quoteLines": []}, {"name": "平原县", "ancientName": "平原国平原县", "modernName": "山东省德州市平原县", "lat": 34.7217, "lng": 116.9375, "coordSystem": "WGS84", "type": "normal", "event": "刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。", "time": "约公元191年-194年", "duration": "约3年", "significance": "刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。", "works": [], "quoteLines": []}, {"name": "小沛、徐州", "ancientName": "小沛、徐州", "modernName": "江苏省徐州市沛县", "lat": 32.524, "lng": 112.36, "coordSystem": "WGS84", "type": "normal", "event": "陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。", "time": "公元194年-196年", "duration": "约2年", "significance": "刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。", "works": [], "quoteLines": []}, {"name": "新野县", "ancientName": "荆州南阳郡新野县", "modernName": "河南省南阳市新野县", "lat": 30.3348, "lng": 112.2397, "coordSystem": "WGS84", "type": "normal", "event": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。", "time": "公元201年-208年", "duration": "约7年", "significance": "刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。", "works": ["隆中对"], "quoteLines": []}, {"name": "江陵、公安", "ancientName": "南郡江陵、公安", "modernName": "湖北省荆州市", "lat": 30.0583, "lng": 112.2294, "coordSystem": "WGS84", "type": "normal", "event": "赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。", "time": "公元208年-211年", "duration": "约3年", "significance": "刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "益州蜀郡成都", "modernName": "四川省成都市", "lat": 30.5728, "lng": 104.0668, "coordSystem": "WGS84", "type": "normal", "event": "公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。", "time": "公元214年-223年", "duration": "约9年", "significance": "刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。", "works": [], "quoteLines": []}, {"name": "白帝城（永安宫）", "ancientName": "永安宫（白帝城，", "modernName": "重庆市奉节县）", "lat": 31.0185, "lng": 109.4648, "coordSystem": "WGS84", "type": "death", "event": "夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。", "time": "公元222年-223年", "duration": "约1年", "significance": "刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---", "workTexts": {"隆中对": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "三顾茅庐": "重点：仁德形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。"}, "workSummaries": {"隆中对": {"title": "隆中对", "aliases": [], "authors": [], "related_people": ["刘备", "诸葛亮"], "source_pages": ["刘备", "诸葛亮"], "era": "", "genre": "", "one_liner": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "summary": "事件：刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "出师表": {"title": "出师表", "aliases": [], "authors": ["诸葛亮"], "related_people": ["刘备", "诸葛亮"], "source_pages": ["刘备", "诸葛亮"], "era": "东汉末年至三国时期", "genre": "表", "one_liner": "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "summary": "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "quote": "臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。", "quotes": ["臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。", "当奖率三军，北定中原，庶竭驽钝，攘除奸凶，兴复汉室，还于旧都。", "此臣所以报先帝而忠陛下之职分也。"], "quote_policy": "preferred"}, "三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "三顾茅庐": {"title": "三顾茅庐", "aliases": [], "authors": [], "related_people": ["刘备", "张飞"], "source_pages": ["刘备", "张飞"], "era": "", "genre": "", "one_liner": "重点：在《三顾茅庐》等课文中，张飞形象被塑造为直率鲁莽、嫉恶如仇的典型武将，与刘备的仁厚、关羽的傲上形成鲜明对比。", "summary": "重点：在《三顾茅庐》等课文中，张飞形象被塑造为直率鲁莽、嫉恶如仇的典型武将，与刘备的仁厚、关羽的傲上形成鲜明对比。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}}, "markdown": "# 刘备\n\n## 人物档案\n\n### 基本信息\n- **姓名**：刘备\n- **时代**：东汉末年至三国时期\n- **出生**：公元161年，涿郡涿县（今河北省涿州市）（具体日期存疑）\n- **去世**：公元223年，永安宫（白帝城，今重庆市奉节县）（具体月日存疑）\n- **享年**：62岁\n- **主要身份**：政治家、军事家、蜀汉开国皇帝\n- **历史地位**：三国时期蜀汉政权的建立者，后世常称其为“汉昭烈帝”。\n- **主要成就**：建立蜀汉政权；推行仁政，深得民心；联吴抗曹，取得赤壁之战的胜利；占据荆、益二州，奠定三国鼎立基础。\n\n### 生平概述\n刘备，字玄德，西汉中山靖王刘胜之后。他早年丧父，家境贫寒，以织席贩履为生，但素有大志。东汉末年黄巾起义爆发，刘备乘势起兵，参与镇压起义，但创业过程极为坎坷，长期辗转依附于公孙瓒、陶谦、曹操、袁绍、刘表等诸侯。他三顾茅庐请出诸葛亮，采纳其“隆中对”战略，联合孙权在赤壁大败曹操，随后夺取荆州、益州。公元221年，刘备在成都称帝，建立蜀汉。为替关羽复仇并夺回荆州，他率军伐吴，却在夷陵之战中惨败，最终病逝于白帝城。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从幽燕之地（河北）起兵，辗转中原、荆襄，最终立国于巴蜀（四川、重庆），一生足迹遍布中国中东部。\n- ⏱️ **时间跨度**：公元161年 - 公元223年，享年62年。\n- 📍 **地理范围**：大致覆盖今河北、山东、河南、湖北、湖南、重庆、四川等省市。\n- 🌟 **重要节点数量**：10个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：涿郡涿县\n- **时间**：公元161年\n- **停留时间**：少年时期\n- **地点**：涿郡涿县（今河北省涿州市）\n- **事件**：刘备出生于此，幼年丧父，与母亲以织席贩履为生。\n- **意义**：刘备的故乡，也是他日后结识关羽、张飞，开始政治生涯的起点。\n\n### 📍 重要地点：涿郡（求学）\n- **时间**：约公元175年-184年\n- **停留时间**：求学数年\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：少年刘备曾拜名儒卢植为师，与公孙瓒等为同学。学成后返回家乡涿郡。\n- **意义**：接受了儒家经典教育，开阔了眼界，并积累了早期的人脉关系。\n\n### 📍 重要地点：涿郡\n- **时间**：公元184年\n- **停留时间**：起兵初期\n- **地点**：涿郡（今河北省涿州市）\n- **事件**：黄巾起义爆发，刘备在涿郡组织义兵，跟随校尉邹靖讨伐黄巾军，由此开始戎马生涯。在此结识关羽、张飞，情同兄弟。\n- **意义**：刘备政治军事生涯的正式起点，奠定了核心班底。\n\n### 📍 重要地点：平原县\n- **时间**：约公元191年-194年\n- **停留时间**：约3年\n- **地点**：平原国平原县（今山东省德州市平原县）\n- **事件**：刘备因功被任命为平原县令，后领平原国相。他对外抵御贼寇，对内乐善好施，深得民心。曾在此处遭遇刺客，却因仁德感化对方。\n- **意义**：刘备首次主政一方，初步展现了其“仁德”的治国理念和得民心的特质。\n\n### 📍 重要地点：小沛、徐州\n- **时间**：公元194年-196年\n- **停留时间**：约2年\n- **地点**：小沛（今江苏省徐州市沛县）、徐州（治所先后在郯城、下邳）\n- **事件**：陶谦病重，将徐州让与刘备。刘备遂领徐州牧，首次拥有州级地盘。但不久被吕布袭取下邳，刘备被迫屯驻小沛，后与吕布反复争夺。\n- **意义**：刘备事业的一次重大起落，获得了第一块重要的根据地（徐州），也初次体验了军阀混战的残酷与复杂。\n\n### 📍 重要地点：新野县\n- **时间**：公元201年-208年\n- **停留时间**：约7年\n- **地点**：荆州南阳郡新野县（今河南省南阳市新野县）\n- **事件**：刘备被曹操击败后，投奔荆州刘表，被安置于新野。在此期间，他广交荆襄名士，三顾茅庐，邀请诸葛亮出山，获得了《隆中对》的战略规划。\n- **意义**：刘备事业的蛰伏与转折期，获得了诸葛亮这一关键人才，明确了“跨有荆益”的战略方向。\n\n### 📍 重要地点：江陵、公安\n- **时间**：公元208年-211年\n- **停留时间**：约3年\n- **地点**：南郡江陵（今湖北省荆州市）、公安（今湖北省荆州市公安县）\n- **事件**：赤壁之战后，刘备夺取荆州江南四郡，并从孙权手中“借”得南郡，以江陵为北伐前沿，以公安为治所。势力迅速壮大。\n- **意义**：刘备真正拥有了稳固且战略位置极其重要的根据地（荆州），为入蜀奠定了基础。\n\n### 📍 重要地点：成都\n- **时间**：公元214年-223年\n- **停留时间**：约9年\n- **地点**：益州蜀郡成都（今四川省成都市）\n- **事件**：公元214年，刘备击败刘璋，夺取益州，以成都为治所。219年，夺取汉中，进位汉中王。221年，于成都武担山正式称帝，建立蜀汉。\n- **意义**：刘备事业的顶峰，作为蜀汉都城，是其政权统治的核心。\n\n### 🔴 去世地：白帝城（永安宫）\n- **时间**：公元222年-223年\n- **停留时间**：约1年\n- **地点**：永安宫（白帝城，今重庆市奉节县）\n- **事件**：夷陵之战惨败后，刘备退守白帝城，改鱼腹为永安。病重之际，托孤于丞相诸葛亮和尚书令李严，嘱托后事。\n- **意义**：刘备生命的终点，也是蜀汉政权一次重要的权力交接，留下了“君臣之至公，古今之盛轨”的托孤故事。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 161年 | 涿郡涿县 | 河北省涿州市 | （年龄：0岁）生于幽州涿郡涿县。 |\n| 184年 | 涿郡 | 河北省涿州市 | （年龄：23岁）在涿郡起兵，参与镇压黄巾起义。 |\n| 194年 |  |  | （年龄：33岁）领徐州牧，首次拥有州郡。 |\n| 196年 |  |  | （年龄：35岁）被吕布击败，失去徐州，投靠曹操。 |\n| 200年 |  |  | （年龄：39岁）衣带诏事发，逃离曹操，被击败后投奔袁绍。 |\n| 201年 | 新野县 | 河南省南阳市新野县 | （年龄：40岁）投奔荆州刘表，屯兵新野。 |\n| 207年 |  |  | （年龄：46岁）三顾茅庐，得诸葛亮。 |\n| 208年 |  |  | （年龄：47岁）联合孙权，于赤壁大败曹操。 |\n| 211年 |  |  | （年龄：50岁）应刘璋之邀入蜀。 |\n| 214年 |  |  | （年龄：53岁）夺取益州，领益州牧。 |\n| 219年 |  |  | （年龄：58岁）夺取汉中，进位汉中王。 |\n| 220年 |  |  | （年龄：59岁）关羽失荆州被杀。 |\n| 221年 | 成都 | 四川省成都市 | （年龄：60岁）在成都称帝，建立蜀汉。 |\n| 222年 |  |  | （年龄：61岁）夷陵之战惨败于陆逊。 |\n| 223年 | 白帝城（永安宫） | 永安宫 | （年龄：62岁）病逝于白帝城永安宫。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《出师表》**（诸葛亮著，文中多次提及“先帝”刘备）、**《隆中对》**（节选自《三国志》）、**《三顾茅庐》**（《三国演义》节选）。\n- 核心要点：\n    - **重点**：**仁德**形象是刘备在文学作品中的核心标签，如《三顾茅庐》中表现的求贤若渴、礼贤下士。\n    - **重点**：**“兴复汉室”** 是刘备集团的政治口号与最高理想，贯穿于《隆中对》战略与《出师表》的追述中。\n    - **重点**：**君臣鱼水**关系，以刘备与诸葛亮的际遇为典范，体现了知遇之恩与鞠躬尽瘁。\n    - **坚韧不拔**的创业精神，从屡败屡战到建立基业，是人物成长叙事的重要脉络。\n    - **“勿以恶小而为之，勿以善小而不为”** 等刘备遗诏中的名言，体现了其儒家道德观。\n    - **白帝城托孤**是重要的历史与文学场景，展现了刘备的识人之明与政治安排。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**赤壁之战**（208年）是刘备事业的关键转折点，此战后形成三国鼎立的雏形。\n    - **重点**：**夺取益州与汉中**（214-219年），使刘备集团拥有了稳固的根据地和北伐基地。\n    - **夷陵之战**（222年）的惨败，是蜀汉由盛转衰的直接军事原因。\n    - **建立蜀汉**（221年），刘备正式称帝，延续汉统，与曹魏、孙吴并立。\n- 核心要点：\n    - **重点**：刘备是**汉室宗亲**的身份（尽管疏远）为其提供了重要的政治资本与号召力。\n    - **重点**：其成功离不开**人才集团**的构建，特别是以诸葛亮为代表的荆襄士人集团的加入。\n    - **“联吴抗曹”** 是其一生坚持的主要外交战略，虽有荆州之争的破裂，但总体上是其生存发展的基础。\n    - **治蜀**期间，推行**法治与德治并用**，整顿吏治，发展生产，奠定了蜀汉政权的根基。\n    - 历史评价中，常被视为**白手起家、百折不挠**的典范，其**“弘毅宽厚”** 的性格特质被后世称道。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 涿郡涿县 | 河北省涿州市 | 39.4853 | 115.9990 |\n| 涿郡（求学） | 山东省平原县 | 37.1654 | 116.4340 |\n| 涿郡 | 江苏省沛县 | 34.7217 | 116.9375 |\n| 平原县 | 江苏省徐州市沛县 | 34.7217 | 116.9375 |\n| 小沛、徐州 | 河南省新野县 | 32.5240 | 112.3600 |\n| 新野县 | 湖北省荆州市（古江陵） | 30.3348 | 112.2397 |\n| 江陵、公安 | 湖北省公安县 | 30.0583 | 112.2294 |\n| 成都 | 四川省成都市 | 30.5728 | 104.0668 |\n| 白帝城（永安宫） | 重庆市奉节县 | 31.0185 | 109.4648 |\n", "relatedGraph": {"center": {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "刘备被曹操击败后，投奔荆州刘表，被安置于新野。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 160, "death_year": 219, "quote": "华容道义释曹操", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "河东郡解县", "birthplace_modern": "山西省运城市盐湖区解州镇一带", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "东汉末年·三国", "aliases": [], "birth_year": null, "death_year": 221, "quote": "身是张益德也，可来共决死！", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "刘备", "target": "诸葛亮", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "关羽", "label": "君臣", "confidence": null}, {"source": "刘备", "target": "张飞", "label": "宗亲", "confidence": null}, {"source": "刘备", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "刘备", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:12Z", "generated_at": "2026-06-25T07:13:12Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:12Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:12Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

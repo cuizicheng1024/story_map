@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "闻立鹏", "title": "有深沉的哲理感", "description": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子。他的艺术生涯始于民族危难与新中国成立的历史转折时期，早年经历战乱与家庭变故。后进入中央美术学院学习并留校任教，其创作深受父亲“红烛”精神与悲剧美学的影响，致力于用油画语言表现中华民族的历史与精神。在特殊历史时期曾遭受冲击，平反后迎来创作高峰，晚年持续探索油画的形式与意境，将西方油画技巧与中国传统美学、哲学思考相融合，形成了凝重、深邃、富有象征意味的艺术风格。", "quote": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "shortReview": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "dynasty": "现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "湖北浠水（今湖北省黄冈市浠水县）", "avatar": "", "birth": {"date": "1931年", "location": "湖北浠水（今湖北省黄冈市浠水县）", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84"}, "death": {"date": "2022年", "location": "北京", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84"}, "lifespan": "91岁", "highlights": {"honor": "有深沉的哲理感", "status": "中国现代油画民族化与个性化探索的重要代表人物之一，以深沉的历史主题和充满诗意与哲理的风景画著称。", "identities": "油画家、美术教育家", "achievements": "创作了《红烛颂》、《大火》等经典历史主题油画；在油画风景画中融入中国文化精神与形式探索；长期从事美术教育，培养众多艺术人才。", "works": ["红烛颂", "大火"], "reviews": ["艺术评论家邵大箴认为，闻立鹏的画“有深沉的哲理感”，“他把对人生、对历史的思考，用可视的、有强烈感染力的画面表现出来”。", "美术史家认为，闻立鹏与同代艺术家共同推动了中国油画在改革开放后的现代转型，其艺术道路体现了“主题性”创作与个性化形式探索的成功结合。", "他被誉为“学者型画家”，其艺术不仅在于技巧，更在于背后深厚的文化修养与思想深度。"]}}, "locations": [{"name": "湖北浠水", "ancientName": "湖北省黄冈市浠水县", "modernName": "称", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84", "type": "birth", "event": "出生于闻一多家族，此地为其祖籍。", "time": "1931年", "duration": "幼年短暂居住", "significance": "家族文化与精神的源头，父亲闻一多的人格与艺术精神对其一生影响深远。", "works": [], "quoteLines": []}, {"name": "云南昆明", "ancientName": "云南昆明", "modernName": "云南省昆明市（抗战时期西南联大所在地）", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "normal", "event": "随家庭南迁避难，度过艰苦的童年与少年时代；在此经历父亲闻一多遇刺的重大变故。", "time": "约1938年—1946年", "duration": "童年至少年时期（约8年）", "significance": "战乱与家庭悲剧的深刻烙印，塑造了其坚韧的性格和对国家民族命运的深切关怀，成为日后历史画创作的情感源泉。", "works": [], "quoteLines": []}, {"name": "北京（中央美术学院）", "ancientName": "北京（中央美术学院）", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "先入北平艺术专科学校学习，后随校合并进入中央美术学院；1958年毕业于中央美术学院油画系并留校任教。", "time": "1947年—1958年（学习及初期任教）", "duration": "求学及毕业留校初期", "significance": "接受了系统的社会主义现实主义美术教育，奠定了坚实的造型与创作基础，开启了美术教育与创作的职业生涯。", "works": [], "quoteLines": []}, {"name": "河北（磁县、辛集市）", "ancientName": "河北（磁县、辛集市）", "modernName": "河北省邯郸市磁县、河北省辛集市（原束鹿县）", "lat": 37.94, "lng": 115.22, "coordSystem": "WGS84", "type": "normal", "event": "参加农村“四清”运动，后在“五七干校”劳动。", "time": "约1964年—1970年代初期", "duration": "数年（“四清”运动及下放劳动期间）", "significance": "深入中国农村基层，体验生活，这段经历使其对土地与人民有了更直接、深刻的理解，影响了其后期风景画的质朴与厚重感。", "works": [], "quoteLines": []}, {"name": "湖北（武汉、浠水等地）", "ancientName": "湖北（武汉、浠水等地）", "modernName": "湖北省武汉市及黄冈市浠水县", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84", "type": "normal", "event": "为创作父亲闻一多题材作品及进行艺术采风，多次返回湖北。", "time": "1970年代—1980年代（多次）", "duration": "短期考察、写生与寻根", "significance": "追寻父亲足迹，收集创作素材，完成了精神与艺术上的“寻根”，强化了作品的历史与文化深度。", "works": [], "quoteLines": []}, {"name": "雁荡山", "ancientName": "雁荡山", "modernName": "浙江省温州市乐清市雁荡山镇", "lat": 28.38, "lng": 121.06, "coordSystem": "WGS84", "type": "normal", "event": "长期赴雁荡山写生，在峰峦、云海与山石结构中探索油画的写意性与东方意境。", "time": "1980年代—1990年代（多次）", "duration": "季节性写生", "significance": "是其“油画民族化”探索的重要山地写生现场，帮助他把中国山水的气韵转化为油画语言。", "works": [], "quoteLines": []}, {"name": "富春江", "ancientName": "富春江", "modernName": "浙江省杭州市富阳区、桐庐县富春江沿岸", "lat": 29.8, "lng": 119.9, "coordSystem": "WGS84", "type": "normal", "event": "多次在富春江沿岸写生，持续探索江南山水空间与油画形式之间的结合。", "time": "1980年代—1990年代（多次）", "duration": "季节性写生", "significance": "富春江阶段强化了其作品中的诗意、空灵与哲理意味，成为晚年风景画成熟的重要实践地。", "works": [], "quoteLines": []}, {"name": "北京（工作室与晚年居所）", "ancientName": "北京（工作室与晚年居所）", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "平反后重返美院教学岗位，迎来创作高峰；创作了《红烛颂》、《大火》、《蓝色的夜》等代表作；进行大量理论思考与写作；退休后持续创作至晚年。", "time": "1970年代末—2022年", "duration": "晚年主要生活与创作时期", "significance": "艺术思想成熟与创作成果最丰硕的阶段，完成了从历史主题到哲理风景的升华，确立了其在中国现代美术史上的地位。", "works": ["红烛颂", "大火", "蓝色的夜"], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效逝世。", "time": "2022年", "duration": "晚年长期居住直至逝世", "significance": "其艺术生涯的终点，一生大部分重要作品与教学成果均在此地完成，是中国现当代美术发展的重要见证地与贡献地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"红烛颂": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "大火": "《大火》以象征手法表现历史激情", "无字碑": "“代表作品”\n“名篇名句”", "最后一次讲演": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联"}, "workSummaries": {"红烛颂": {"title": "红烛颂", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "summary": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "在油画风景画中融入中国文化精神与形式探索；", "长期从事美术教育，培养众多艺术人才。"], "quote_policy": "preferred"}, "大火": {"title": "大火", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "《大火》以象征手法表现历史激情", "summary": "《大火》以象征手法表现历史激情", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "在油画风景画中融入中国文化精神与形式探索；", "长期从事美术教育，培养众多艺术人才。"], "quote_policy": "preferred"}, "蓝色的夜": {"title": "蓝色的夜", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "summary": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "进行大量理论思考与写作；", "退休后持续创作至晚年。"], "quote_policy": "preferred"}, "无字碑": {"title": "无字碑", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "代表作品” “名篇名句", "summary": "代表作品” “名篇名句", "quote": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神；", "quotes": ["《红烛颂》以闻一多形象象征燃烧的理想与人格精神；", "《无字碑》则借山水意象表达历史沉思。", "《大火》以象征手法表现历史激情；"], "quote_policy": "preferred"}, "最后一次讲演": {"title": "最后一次讲演", "aliases": [], "authors": ["闻一多"], "related_people": ["闻立鹏", "闻一多"], "source_pages": ["闻立鹏", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联", "summary": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联", "quote": "| 1946 | 昆明（西南联合大学） | 云南省昆明市 | （年龄：46）在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。", "quotes": ["| 1946 | 昆明（西南联合大学） | 云南省昆明市 | （年龄：46）在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。", "我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！", "我们不怕死，我们有牺牲的精神！"], "quote_policy": "preferred"}, "红烛": {"title": "红烛", "aliases": [], "authors": ["闻一多"], "related_people": ["闻立鹏", "闻一多"], "source_pages": ["闻立鹏", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "summary": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "quote": "2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "quotes": ["2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "3. 创作《红烛》、《死水》等经典诗集；"], "quote_policy": "preferred"}}, "markdown": "# 闻立鹏\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：闻立鹏\n- **时代**：现当代\n- **出生**：1931年，湖北浠水（今湖北省黄冈市浠水县）\n- **去世**：2022年，北京\n- **享年**：91岁\n- **主要身份**：油画家、美术教育家\n- **历史地位**：中国现代油画民族化与个性化探索的重要代表人物之一，以深沉的历史主题和充满诗意与哲理的风景画著称。\n- **主要成就**：创作了《红烛颂》、《大火》等经典历史主题油画；在油画风景画中融入中国文化精神与形式探索；长期从事美术教育，培养众多艺术人才。\n\n### 生平概述\n闻立鹏出生于书香门第，是著名诗人、学者闻一多之子。他的艺术生涯始于民族危难与新中国成立的历史转折时期，早年经历战乱与家庭变故。后进入中央美术学院学习并留校任教，其创作深受父亲“红烛”精神与悲剧美学的影响，致力于用油画语言表现中华民族的历史与精神。在特殊历史时期曾遭受冲击，平反后迎来创作高峰，晚年持续探索油画的形式与意境，将西方油画技巧与中国传统美学、哲学思考相融合，形成了凝重、深邃、富有象征意味的艺术风格。\n\n---\n\n## 二、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：湖北浠水\n- **公元纪年**：1931年\n- **停留时间**：幼年短暂居住\n- **位置**：湖北省黄冈市浠水县（今称）\n- **事迹**：出生于闻一多家族，此地为其祖籍。\n- **意义**：家族文化与精神的源头，父亲闻一多的人格与艺术精神对其一生影响深远。\n\n### 📍 重要地点：云南昆明\n- **公元纪年**：约1938年—1946年\n- **停留时间**：童年至少年时期（约8年）\n- **位置**：云南省昆明市（抗战时期西南联大所在地）\n- **事迹**：随家庭南迁避难，度过艰苦的童年与少年时代；在此经历父亲闻一多遇刺的重大变故。\n- **意义**：战乱与家庭悲剧的深刻烙印，塑造了其坚韧的性格和对国家民族命运的深切关怀，成为日后历史画创作的情感源泉。\n\n### 📍 重要地点：北京（中央美术学院）\n- **公元纪年**：1947年—1958年（学习及初期任教）\n- **停留时间**：求学及毕业留校初期\n- **位置**：北京市\n- **事迹**：先入北平艺术专科学校学习，后随校合并进入中央美术学院；1958年毕业于中央美术学院油画系并留校任教。\n- **意义**：接受了系统的社会主义现实主义美术教育，奠定了坚实的造型与创作基础，开启了美术教育与创作的职业生涯。\n\n### 📍 重要地点：河北（磁县、辛集市）\n- **公元纪年**：约1964年—1970年代初期\n- **停留时间**：数年（“四清”运动及下放劳动期间）\n- **位置**：河北省邯郸市磁县、河北省辛集市（原束鹿县）\n- **事迹**：参加农村“四清”运动，后在“五七干校”劳动。\n- **意义**：深入中国农村基层，体验生活，这段经历使其对土地与人民有了更直接、深刻的理解，影响了其后期风景画的质朴与厚重感。\n\n### 📍 重要地点：湖北（武汉、浠水等地）\n- **公元纪年**：1970年代—1980年代（多次）\n- **停留时间**：短期考察、写生与寻根\n- **位置**：湖北省武汉市及黄冈市浠水县\n- **事迹**：为创作父亲闻一多题材作品及进行艺术采风，多次返回湖北。\n- **意义**：追寻父亲足迹，收集创作素材，完成了精神与艺术上的“寻根”，强化了作品的历史与文化深度。\n\n### 📍 重要地点：雁荡山\n- **公元纪年**：1980年代—1990年代（多次）\n- **停留时间**：季节性写生\n- **位置**：浙江省温州市乐清市雁荡山镇\n- **事迹**：长期赴雁荡山写生，在峰峦、云海与山石结构中探索油画的写意性与东方意境。\n- **意义**：是其“油画民族化”探索的重要山地写生现场，帮助他把中国山水的气韵转化为油画语言。\n\n### 📍 重要地点：富春江\n- **公元纪年**：1980年代—1990年代（多次）\n- **停留时间**：季节性写生\n- **位置**：浙江省杭州市富阳区、桐庐县富春江沿岸\n- **事迹**：多次在富春江沿岸写生，持续探索江南山水空间与油画形式之间的结合。\n- **意义**：富春江阶段强化了其作品中的诗意、空灵与哲理意味，成为晚年风景画成熟的重要实践地。\n\n### 📍 重要地点：北京（工作室与晚年居所）\n- **公元纪年**：1970年代末—2022年\n- **停留时间**：晚年主要生活与创作时期\n- **位置**：北京市\n- **事迹**：平反后重返美院教学岗位，迎来创作高峰；创作了《红烛颂》、《大火》、《蓝色的夜》等代表作；进行大量理论思考与写作；退休后持续创作至晚年。\n- **意义**：艺术思想成熟与创作成果最丰硕的阶段，完成了从历史主题到哲理风景的升华，确立了其在中国现代美术史上的地位。\n\n### 🔴 去世地：北京\n- **公元纪年**：2022年\n- **停留时间**：晚年长期居住直至逝世\n- **位置**：北京市\n- **经过**：因病医治无效逝世。\n- **意义**：其艺术生涯的终点，一生大部分重要作品与教学成果均在此地完成，是中国现当代美术发展的重要见证地与贡献地。\n- **代表作品**：《红烛颂》以闻一多形象象征燃烧的理想与人格精神；《大火》以象征手法表现历史激情；《无字碑》则借山水意象表达历史沉思。这里更适合作为“代表作品”而非“名篇名句”理解。\n\n---\n\n## 三、地点坐标\n| 地点名称 | 现代行政区划 | 大致经纬度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 湖北浠水（出生地） | 湖北省黄冈市浠水县 | 30.45°N, 115.26°E | 出生地，祖籍 |\n| 云南昆明 | 云南省昆明市 | 25.04°N, 102.68°E | 童年避难地，父亲遇刺地 |\n| 北京（中央美术学院） | 北京市 | 39.91°N, 116.40°E | 求学、任教及晚年主要生活地 |\n| 河北磁县 | 河北省邯郸市磁县 | 36.37°N, 114.37°E | “四清”运动及下放劳动地 |\n| 河北辛集市 | 河北省辛集市 | 37.94°N, 115.22°E | “五七干校”劳动地 |\n| 湖北武汉 | 湖北省武汉市 | 30.59°N, 114.31°E | 艺术采风地 |\n| 浙江雁荡山 | 浙江省温州市乐清市雁荡山镇 | 28.38°N, 121.06°E | 风景写生与“油画民族化”探索地 |\n| 浙江富春江流域 | 浙江省杭州市富阳区、桐庐县一带 | 约29.8°N, 119.9°E | 风景写生与“油画民族化”探索地 |\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1931年 | 湖北浠水 | 称 | （年龄：0岁）出生于湖北浠水。 |\n| 1938年 |  |  | （年龄：7岁）随家庭为避战乱南迁至昆明。 |\n| 1946年 |  |  | （年龄：15岁）父亲闻一多在昆明遇刺身亡，对其一生产生巨大冲击。 |\n| 1947年 |  |  | （年龄：16岁）进入北平艺术专科学校学习美术。 |\n| 1949年 | 北京（中央美术学院） | 北京市 | （年龄：18岁）北平艺专与华北大学三部美术科合并，后成立中央美术学院，成为其学生。 |\n| 1958年 | 北京（中央美术学院） | 北京市 | （年龄：27岁）毕业于中央美术学院油画系，留校任教。 |\n| 约1964年—1970年代初期 |  |  | （年龄：约33-40岁）参加农村“四清”运动及下放劳动。 |\n| 1978年 |  |  | （年龄：47岁）开始创作油画《红烛颂》，次年完成，成为其代表作。 |\n| 1980年代 |  |  | （年龄：50余岁）创作进入高峰期，完成《大火》、《无字碑》等历史主题画，并开始专注于油画风景的东方意境探索。 |\n| 1990年代 |  |  | （年龄：60余岁）退休，但仍坚持创作与理论研究，探索步伐未止。 |\n| 2022年 | 北京 | 北京市 | （年龄：91岁）在北京逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n闻立鹏在20世纪下半叶的中国美术界，以其充满激情与象征性的历史主题创作，如《红烛颂》，成功地将个人家族记忆与国家民族历史叙事相结合，为革命历史画和人物画创作提供了富有情感深度与形式美感的范例。他在油画风景领域的探索，推动了中国油画从单纯的学习苏派和西方模式，向融合本民族文化精神与审美意趣的方向发展。\n\n### 对后世的影响\n1.  **艺术教育**：作为中央美术学院教授，培养了大批油画人才，其严谨的治学态度和对艺术本体语言的重视影响了数代学生。\n2.  **创作理念**：其“油画民族化”的实践与思考，为后辈艺术家如何处理中西艺术关系、如何在油画中表达中国文化精神提供了重要参照。\n3.  **历史画价值**：其历史题材作品，尤其是关于闻一多的创作，成为以艺术表现知识分子精神与近代史的重要案例，具有持续的文化影响力。\n\n### 历史评价\n1.  艺术评论家邵大箴认为，闻立鹏的画“有深沉的哲理感”，“他把对人生、对历史的思考，用可视的、有强烈感染力的画面表现出来”。\n2.  美术史家认为，闻立鹏与同代艺术家共同推动了中国油画在改革开放后的现代转型，其艺术道路体现了“主题性”创作与个性化形式探索的成功结合。\n3.  他被誉为“学者型画家”，其艺术不仅在于技巧，更在于背后深厚的文化修养与思想深度。\n\n---\n\n## 六、教材与考点\n\n### 初中阶段\n- **时代背景**：**中国现当代美术**发展时期，经历了**新中国成立**、**改革开放**等重大历史阶段。\n- **关键事件/贡献**：作为**闻一多之子**，其生平与父亲的事迹（如**《最后一次讲演》**）有一定关联；是**中央美术学院**培养的杰出艺术家和教育家。\n- **代表作品/思想**：油画**《红烛颂》**（为纪念闻一多而作），是**革命历史题材美术**的代表作之一；作品常体现**爱国主义**精神。\n- **常见易混点/对比点**：注意区分**闻一多**（诗人、学者、民主战士）与**闻立鹏**（油画家）的成就领域；《红烛颂》是**油画**，而非闻一多的诗集《红烛》。\n\n### 高中阶段\n- **时代背景**：**中国油画民族化**探索历程的重要参与者；经历了**社会主义现实主义**创作原则主导到**改革开放后艺术多元化**的时期。\n- **关键事件/贡献**：在**油画本体语言**和**中国美学精神**结合上做出长期探索；其艺术生涯折射出**20世纪中国知识分子的命运与艺术追求**。\n- **代表作品/思想**：代表作包括**《红烛颂》、《大火》、《无字碑》**等；艺术思想强调**“情”与“理”的结合**，在风景画中追求**“诗境”与“哲理”**。\n- **常见易混点/对比点**：与同代油画家如**靳尚谊**（侧重古典写实与肖像）、**詹建俊**（侧重写意与象征）等进行风格对比；理解其“民族化”探索与**徐悲鸿**（写实改良）、**林风眠**（中西融合）等前辈理念的异同。\n- （存疑/说法不一）关于其艺术在美术史上的具体定位和影响程度，不同艺术史论述可能有不同侧重。\n", "relatedGraph": {"center": {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "吾十有五而志于学", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "闻立鹏", "target": "闻一多", "label": "宗亲", "confidence": null}, {"source": "闻立鹏", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "李公朴", "label": "同册共现", "confidence": 0.15}, {"source": "闻立鹏", "target": "孔子", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:50Z", "generated_at": "2026-06-22T11:31:50Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "闻立鹏", "title": "有深沉的哲理感", "description": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子。他的艺术生涯始于民族危难与新中国成立的历史转折时期，早年经历战乱与家庭变故。后进入中央美术学院学习并留校任教，其创作深受父亲“红烛”精神与悲剧美学的影响，致力于用油画语言表现中华民族的历史与精神。在特殊历史时期曾遭受冲击，平反后迎来创作高峰，晚年持续探索油画的形式与意境，将西方油画技巧与中国传统美学、哲学思考相融合，形成了凝重、深邃、富有象征意味的艺术风格。", "quote": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "shortReview": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "dynasty": "现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "湖北浠水（今湖北省黄冈市浠水县）", "avatar": "", "birth": {"date": "1931年", "location": "湖北浠水（今湖北省黄冈市浠水县）", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84"}, "death": {"date": "2022年", "location": "北京", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84"}, "lifespan": "91岁", "highlights": {"honor": "有深沉的哲理感", "status": "中国现代油画民族化与个性化探索的重要代表人物之一，以深沉的历史主题和充满诗意与哲理的风景画著称。", "identities": "油画家、美术教育家", "achievements": "创作了《红烛颂》、《大火》等经典历史主题油画；在油画风景画中融入中国文化精神与形式探索；长期从事美术教育，培养众多艺术人才。", "works": ["红烛颂", "大火"], "reviews": ["艺术评论家邵大箴认为，闻立鹏的画“有深沉的哲理感”，“他把对人生、对历史的思考，用可视的、有强烈感染力的画面表现出来”。", "美术史家认为，闻立鹏与同代艺术家共同推动了中国油画在改革开放后的现代转型，其艺术道路体现了“主题性”创作与个性化形式探索的成功结合。", "他被誉为“学者型画家”，其艺术不仅在于技巧，更在于背后深厚的文化修养与思想深度。"]}}, "locations": [{"name": "湖北浠水", "ancientName": "湖北省黄冈市浠水县", "modernName": "称", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84", "type": "birth", "event": "出生于闻一多家族，此地为其祖籍。", "time": "1931年", "duration": "幼年短暂居住", "significance": "家族文化与精神的源头，父亲闻一多的人格与艺术精神对其一生影响深远。", "works": [], "quoteLines": []}, {"name": "云南昆明", "ancientName": "云南昆明", "modernName": "云南省昆明市（抗战时期西南联大所在地）", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "normal", "event": "随家庭南迁避难，度过艰苦的童年与少年时代；在此经历父亲闻一多遇刺的重大变故。", "time": "约1938年—1946年", "duration": "童年至少年时期（约8年）", "significance": "战乱与家庭悲剧的深刻烙印，塑造了其坚韧的性格和对国家民族命运的深切关怀，成为日后历史画创作的情感源泉。", "works": [], "quoteLines": []}, {"name": "北京（中央美术学院）", "ancientName": "北京（中央美术学院）", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "先入北平艺术专科学校学习，后随校合并进入中央美术学院；1958年毕业于中央美术学院油画系并留校任教。", "time": "1947年—1958年（学习及初期任教）", "duration": "求学及毕业留校初期", "significance": "接受了系统的社会主义现实主义美术教育，奠定了坚实的造型与创作基础，开启了美术教育与创作的职业生涯。", "works": [], "quoteLines": []}, {"name": "河北（磁县、辛集市）", "ancientName": "河北（磁县、辛集市）", "modernName": "河北省邯郸市磁县、河北省辛集市（原束鹿县）", "lat": 37.94, "lng": 115.22, "coordSystem": "WGS84", "type": "normal", "event": "参加农村“四清”运动，后在“五七干校”劳动。", "time": "约1964年—1970年代初期", "duration": "数年（“四清”运动及下放劳动期间）", "significance": "深入中国农村基层，体验生活，这段经历使其对土地与人民有了更直接、深刻的理解，影响了其后期风景画的质朴与厚重感。", "works": [], "quoteLines": []}, {"name": "湖北（武汉、浠水等地）", "ancientName": "湖北（武汉、浠水等地）", "modernName": "湖北省武汉市及黄冈市浠水县", "lat": 30.45, "lng": 115.26, "coordSystem": "WGS84", "type": "normal", "event": "为创作父亲闻一多题材作品及进行艺术采风，多次返回湖北。", "time": "1970年代—1980年代（多次）", "duration": "短期考察、写生与寻根", "significance": "追寻父亲足迹，收集创作素材，完成了精神与艺术上的“寻根”，强化了作品的历史与文化深度。", "works": [], "quoteLines": []}, {"name": "雁荡山", "ancientName": "雁荡山", "modernName": "浙江省温州市乐清市雁荡山镇", "lat": 28.38, "lng": 121.06, "coordSystem": "WGS84", "type": "normal", "event": "长期赴雁荡山写生，在峰峦、云海与山石结构中探索油画的写意性与东方意境。", "time": "1980年代—1990年代（多次）", "duration": "季节性写生", "significance": "是其“油画民族化”探索的重要山地写生现场，帮助他把中国山水的气韵转化为油画语言。", "works": [], "quoteLines": []}, {"name": "富春江", "ancientName": "富春江", "modernName": "浙江省杭州市富阳区、桐庐县富春江沿岸", "lat": 29.8, "lng": 119.9, "coordSystem": "WGS84", "type": "normal", "event": "多次在富春江沿岸写生，持续探索江南山水空间与油画形式之间的结合。", "time": "1980年代—1990年代（多次）", "duration": "季节性写生", "significance": "富春江阶段强化了其作品中的诗意、空灵与哲理意味，成为晚年风景画成熟的重要实践地。", "works": [], "quoteLines": []}, {"name": "北京（工作室与晚年居所）", "ancientName": "北京（工作室与晚年居所）", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "平反后重返美院教学岗位，迎来创作高峰；创作了《红烛颂》、《大火》、《蓝色的夜》等代表作；进行大量理论思考与写作；退休后持续创作至晚年。", "time": "1970年代末—2022年", "duration": "晚年主要生活与创作时期", "significance": "艺术思想成熟与创作成果最丰硕的阶段，完成了从历史主题到哲理风景的升华，确立了其在中国现代美术史上的地位。", "works": ["红烛颂", "大火", "蓝色的夜"], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.91, "lng": 116.4, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效逝世。", "time": "2022年", "duration": "晚年长期居住直至逝世", "significance": "其艺术生涯的终点，一生大部分重要作品与教学成果均在此地完成，是中国现当代美术发展的重要见证地与贡献地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"红烛颂": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "大火": "《大火》以象征手法表现历史激情", "无字碑": "“代表作品”\n“名篇名句”", "最后一次讲演": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联"}, "workSummaries": {"红烛颂": {"title": "红烛颂", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "summary": "代表作品：《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "在油画风景画中融入中国文化精神与形式探索；", "长期从事美术教育，培养众多艺术人才。"], "quote_policy": "preferred"}, "大火": {"title": "大火", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "《大火》以象征手法表现历史激情", "summary": "《大火》以象征手法表现历史激情", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "在油画风景画中融入中国文化精神与形式探索；", "长期从事美术教育，培养众多艺术人才。"], "quote_policy": "preferred"}, "蓝色的夜": {"title": "蓝色的夜", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "summary": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "quote": "事迹：平反后重返美院教学岗位，迎来创作高峰；", "quotes": ["事迹：平反后重返美院教学岗位，迎来创作高峰；", "进行大量理论思考与写作；", "退休后持续创作至晚年。"], "quote_policy": "preferred"}, "无字碑": {"title": "无字碑", "aliases": [], "authors": ["闻立鹏"], "related_people": ["闻立鹏"], "source_pages": ["闻立鹏"], "era": "现当代", "genre": "", "one_liner": "代表作品” “名篇名句", "summary": "代表作品” “名篇名句", "quote": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神；", "quotes": ["《红烛颂》以闻一多形象象征燃烧的理想与人格精神；", "《无字碑》则借山水意象表达历史沉思。", "《大火》以象征手法表现历史激情；"], "quote_policy": "preferred"}, "最后一次讲演": {"title": "最后一次讲演", "aliases": [], "authors": ["闻一多"], "related_people": ["闻立鹏", "闻一多"], "source_pages": ["闻立鹏", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联", "summary": "关键事件/贡献：作为闻一多之子，其生平与父亲的事迹（如《最后一次讲演》）有一定关联", "quote": "| 1946 | 昆明（西南联合大学） | 云南省昆明市 | （年龄：46）在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。", "quotes": ["| 1946 | 昆明（西南联合大学） | 云南省昆明市 | （年龄：46）在昆明发表《最后一次讲演》后遭暗杀，壮烈牺牲。", "我们随时像李先生一样，前脚跨出大门，后脚就不准备再跨进大门！", "我们不怕死，我们有牺牲的精神！"], "quote_policy": "preferred"}, "红烛": {"title": "红烛", "aliases": [], "authors": ["闻一多"], "related_people": ["闻立鹏", "闻一多"], "source_pages": ["闻立鹏", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "summary": "闻立鹏出生于书香门第，是著名诗人、学者闻一多之子", "quote": "2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "quotes": ["2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "3. 创作《红烛》、《死水》等经典诗集；"], "quote_policy": "preferred"}}, "markdown": "# 闻立鹏\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：闻立鹏\n- **时代**：现当代\n- **出生**：1931年，湖北浠水（今湖北省黄冈市浠水县）\n- **去世**：2022年，北京\n- **享年**：91岁\n- **主要身份**：油画家、美术教育家\n- **历史地位**：中国现代油画民族化与个性化探索的重要代表人物之一，以深沉的历史主题和充满诗意与哲理的风景画著称。\n- **主要成就**：创作了《红烛颂》、《大火》等经典历史主题油画；在油画风景画中融入中国文化精神与形式探索；长期从事美术教育，培养众多艺术人才。\n\n### 生平概述\n闻立鹏出生于书香门第，是著名诗人、学者闻一多之子。他的艺术生涯始于民族危难与新中国成立的历史转折时期，早年经历战乱与家庭变故。后进入中央美术学院学习并留校任教，其创作深受父亲“红烛”精神与悲剧美学的影响，致力于用油画语言表现中华民族的历史与精神。在特殊历史时期曾遭受冲击，平反后迎来创作高峰，晚年持续探索油画的形式与意境，将西方油画技巧与中国传统美学、哲学思考相融合，形成了凝重、深邃、富有象征意味的艺术风格。\n\n---\n\n## 二、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：湖北浠水\n- **公元纪年**：1931年\n- **停留时间**：幼年短暂居住\n- **位置**：湖北省黄冈市浠水县（今称）\n- **事迹**：出生于闻一多家族，此地为其祖籍。\n- **意义**：家族文化与精神的源头，父亲闻一多的人格与艺术精神对其一生影响深远。\n\n### 📍 重要地点：云南昆明\n- **公元纪年**：约1938年—1946年\n- **停留时间**：童年至少年时期（约8年）\n- **位置**：云南省昆明市（抗战时期西南联大所在地）\n- **事迹**：随家庭南迁避难，度过艰苦的童年与少年时代；在此经历父亲闻一多遇刺的重大变故。\n- **意义**：战乱与家庭悲剧的深刻烙印，塑造了其坚韧的性格和对国家民族命运的深切关怀，成为日后历史画创作的情感源泉。\n\n### 📍 重要地点：北京（中央美术学院）\n- **公元纪年**：1947年—1958年（学习及初期任教）\n- **停留时间**：求学及毕业留校初期\n- **位置**：北京市\n- **事迹**：先入北平艺术专科学校学习，后随校合并进入中央美术学院；1958年毕业于中央美术学院油画系并留校任教。\n- **意义**：接受了系统的社会主义现实主义美术教育，奠定了坚实的造型与创作基础，开启了美术教育与创作的职业生涯。\n\n### 📍 重要地点：河北（磁县、辛集市）\n- **公元纪年**：约1964年—1970年代初期\n- **停留时间**：数年（“四清”运动及下放劳动期间）\n- **位置**：河北省邯郸市磁县、河北省辛集市（原束鹿县）\n- **事迹**：参加农村“四清”运动，后在“五七干校”劳动。\n- **意义**：深入中国农村基层，体验生活，这段经历使其对土地与人民有了更直接、深刻的理解，影响了其后期风景画的质朴与厚重感。\n\n### 📍 重要地点：湖北（武汉、浠水等地）\n- **公元纪年**：1970年代—1980年代（多次）\n- **停留时间**：短期考察、写生与寻根\n- **位置**：湖北省武汉市及黄冈市浠水县\n- **事迹**：为创作父亲闻一多题材作品及进行艺术采风，多次返回湖北。\n- **意义**：追寻父亲足迹，收集创作素材，完成了精神与艺术上的“寻根”，强化了作品的历史与文化深度。\n\n### 📍 重要地点：雁荡山\n- **公元纪年**：1980年代—1990年代（多次）\n- **停留时间**：季节性写生\n- **位置**：浙江省温州市乐清市雁荡山镇\n- **事迹**：长期赴雁荡山写生，在峰峦、云海与山石结构中探索油画的写意性与东方意境。\n- **意义**：是其“油画民族化”探索的重要山地写生现场，帮助他把中国山水的气韵转化为油画语言。\n\n### 📍 重要地点：富春江\n- **公元纪年**：1980年代—1990年代（多次）\n- **停留时间**：季节性写生\n- **位置**：浙江省杭州市富阳区、桐庐县富春江沿岸\n- **事迹**：多次在富春江沿岸写生，持续探索江南山水空间与油画形式之间的结合。\n- **意义**：富春江阶段强化了其作品中的诗意、空灵与哲理意味，成为晚年风景画成熟的重要实践地。\n\n### 📍 重要地点：北京（工作室与晚年居所）\n- **公元纪年**：1970年代末—2022年\n- **停留时间**：晚年主要生活与创作时期\n- **位置**：北京市\n- **事迹**：平反后重返美院教学岗位，迎来创作高峰；创作了《红烛颂》、《大火》、《蓝色的夜》等代表作；进行大量理论思考与写作；退休后持续创作至晚年。\n- **意义**：艺术思想成熟与创作成果最丰硕的阶段，完成了从历史主题到哲理风景的升华，确立了其在中国现代美术史上的地位。\n\n### 🔴 去世地：北京\n- **公元纪年**：2022年\n- **停留时间**：晚年长期居住直至逝世\n- **位置**：北京市\n- **经过**：因病医治无效逝世。\n- **意义**：其艺术生涯的终点，一生大部分重要作品与教学成果均在此地完成，是中国现当代美术发展的重要见证地与贡献地。\n- **代表作品**：《红烛颂》以闻一多形象象征燃烧的理想与人格精神；《大火》以象征手法表现历史激情；《无字碑》则借山水意象表达历史沉思。这里更适合作为“代表作品”而非“名篇名句”理解。\n\n---\n\n## 三、地点坐标\n| 地点名称 | 现代行政区划 | 大致经纬度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 湖北浠水（出生地） | 湖北省黄冈市浠水县 | 30.45°N, 115.26°E | 出生地，祖籍 |\n| 云南昆明 | 云南省昆明市 | 25.04°N, 102.68°E | 童年避难地，父亲遇刺地 |\n| 北京（中央美术学院） | 北京市 | 39.91°N, 116.40°E | 求学、任教及晚年主要生活地 |\n| 河北磁县 | 河北省邯郸市磁县 | 36.37°N, 114.37°E | “四清”运动及下放劳动地 |\n| 河北辛集市 | 河北省辛集市 | 37.94°N, 115.22°E | “五七干校”劳动地 |\n| 湖北武汉 | 湖北省武汉市 | 30.59°N, 114.31°E | 艺术采风地 |\n| 浙江雁荡山 | 浙江省温州市乐清市雁荡山镇 | 28.38°N, 121.06°E | 风景写生与“油画民族化”探索地 |\n| 浙江富春江流域 | 浙江省杭州市富阳区、桐庐县一带 | 约29.8°N, 119.9°E | 风景写生与“油画民族化”探索地 |\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1931年 | 湖北浠水 | 称 | （年龄：0岁）出生于湖北浠水。 |\n| 1938年 |  |  | （年龄：7岁）随家庭为避战乱南迁至昆明。 |\n| 1946年 |  |  | （年龄：15岁）父亲闻一多在昆明遇刺身亡，对其一生产生巨大冲击。 |\n| 1947年 |  |  | （年龄：16岁）进入北平艺术专科学校学习美术。 |\n| 1949年 | 北京（中央美术学院） | 北京市 | （年龄：18岁）北平艺专与华北大学三部美术科合并，后成立中央美术学院，成为其学生。 |\n| 1958年 | 北京（中央美术学院） | 北京市 | （年龄：27岁）毕业于中央美术学院油画系，留校任教。 |\n| 约1964年—1970年代初期 |  |  | （年龄：约33-40岁）参加农村“四清”运动及下放劳动。 |\n| 1978年 |  |  | （年龄：47岁）开始创作油画《红烛颂》，次年完成，成为其代表作。 |\n| 1980年代 |  |  | （年龄：50余岁）创作进入高峰期，完成《大火》、《无字碑》等历史主题画，并开始专注于油画风景的东方意境探索。 |\n| 1990年代 |  |  | （年龄：60余岁）退休，但仍坚持创作与理论研究，探索步伐未止。 |\n| 2022年 | 北京 | 北京市 | （年龄：91岁）在北京逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n闻立鹏在20世纪下半叶的中国美术界，以其充满激情与象征性的历史主题创作，如《红烛颂》，成功地将个人家族记忆与国家民族历史叙事相结合，为革命历史画和人物画创作提供了富有情感深度与形式美感的范例。他在油画风景领域的探索，推动了中国油画从单纯的学习苏派和西方模式，向融合本民族文化精神与审美意趣的方向发展。\n\n### 对后世的影响\n1.  **艺术教育**：作为中央美术学院教授，培养了大批油画人才，其严谨的治学态度和对艺术本体语言的重视影响了数代学生。\n2.  **创作理念**：其“油画民族化”的实践与思考，为后辈艺术家如何处理中西艺术关系、如何在油画中表达中国文化精神提供了重要参照。\n3.  **历史画价值**：其历史题材作品，尤其是关于闻一多的创作，成为以艺术表现知识分子精神与近代史的重要案例，具有持续的文化影响力。\n\n### 历史评价\n1.  艺术评论家邵大箴认为，闻立鹏的画“有深沉的哲理感”，“他把对人生、对历史的思考，用可视的、有强烈感染力的画面表现出来”。\n2.  美术史家认为，闻立鹏与同代艺术家共同推动了中国油画在改革开放后的现代转型，其艺术道路体现了“主题性”创作与个性化形式探索的成功结合。\n3.  他被誉为“学者型画家”，其艺术不仅在于技巧，更在于背后深厚的文化修养与思想深度。\n\n---\n\n## 六、教材与考点\n\n### 初中阶段\n- **时代背景**：**中国现当代美术**发展时期，经历了**新中国成立**、**改革开放**等重大历史阶段。\n- **关键事件/贡献**：作为**闻一多之子**，其生平与父亲的事迹（如**《最后一次讲演》**）有一定关联；是**中央美术学院**培养的杰出艺术家和教育家。\n- **代表作品/思想**：油画**《红烛颂》**（为纪念闻一多而作），是**革命历史题材美术**的代表作之一；作品常体现**爱国主义**精神。\n- **常见易混点/对比点**：注意区分**闻一多**（诗人、学者、民主战士）与**闻立鹏**（油画家）的成就领域；《红烛颂》是**油画**，而非闻一多的诗集《红烛》。\n\n### 高中阶段\n- **时代背景**：**中国油画民族化**探索历程的重要参与者；经历了**社会主义现实主义**创作原则主导到**改革开放后艺术多元化**的时期。\n- **关键事件/贡献**：在**油画本体语言**和**中国美学精神**结合上做出长期探索；其艺术生涯折射出**20世纪中国知识分子的命运与艺术追求**。\n- **代表作品/思想**：代表作包括**《红烛颂》、《大火》、《无字碑》**等；艺术思想强调**“情”与“理”的结合**，在风景画中追求**“诗境”与“哲理”**。\n- **常见易混点/对比点**：与同代油画家如**靳尚谊**（侧重古典写实与肖像）、**詹建俊**（侧重写意与象征）等进行风格对比；理解其“民族化”探索与**徐悲鸿**（写实改良）、**林风眠**（中西融合）等前辈理念的异同。\n- （存疑/说法不一）关于其艺术在美术史上的具体定位和影响程度，不同艺术史论述可能有不同侧重。\n", "relatedGraph": {"center": {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "《红烛颂》以闻一多形象象征燃烧的理想与人格精神", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "吾十有五而志于学", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "闻立鹏", "target": "闻一多", "label": "宗亲", "confidence": null}, {"source": "闻立鹏", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "闻立鹏", "target": "李公朴", "label": "同册共现", "confidence": 0.15}, {"source": "闻立鹏", "target": "孔子", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:53Z", "generated_at": "2026-06-25T07:13:53Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:50Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:53Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

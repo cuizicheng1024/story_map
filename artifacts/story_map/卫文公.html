@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "姬辟疆", "title": "", "description": "卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。", "quote": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "shortReview": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "卫国", "avatar": "", "birth": {"date": "公元前670年", "location": "卫国", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前635年", "location": "卫国楚丘（今河南省安阳市滑县东）", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84"}, "lifespan": "存疑（因出生年份不确定，故享年无法准确计算）", "highlights": {"honor": "", "status": "卫国的中兴之主，在亡国后成功复国并使国家重新强盛。", "identities": "卫国国君", "achievements": "在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。", "works": [], "reviews": []}}, "locations": [{"name": "卫国（具体地点存疑）", "ancientName": "卫国", "modernName": "河南省北部，具体地点存疑", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "birth", "event": "出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。", "time": "存疑，约公元前670年代", "duration": "青年时期", "significance": "其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。", "works": [], "quoteLines": []}, {"name": "齐国都城临淄", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.86, "lng": 118.34, "coordSystem": "WGS84", "type": "normal", "event": "继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。", "time": "约公元前660年-前659年", "duration": "短期访问", "significance": "获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。", "works": [], "quoteLines": []}, {"name": "漕邑", "ancientName": "漕邑", "modernName": "河南省安阳市滑县西南", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。", "time": "公元前660年", "duration": "数月", "significance": "是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。", "time": "公元前658年-前635年", "duration": "约23年（在位主要时期）", "significance": "卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。", "works": [], "quoteLines": []}, {"name": "邢国", "ancientName": "邢国", "modernName": "河北省邢台市", "lat": 37.07, "lng": 114.5, "coordSystem": "WGS84", "type": "normal", "event": "参与诸侯联军对抗狄人，救援邢国。", "time": "约公元前658年-前635年间", "duration": "军事行动期间", "significance": "体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "death", "event": "在位二十五年后去世，其子卫成公继位。", "time": "公元前635年", "duration": "在位最后时光", "significance": "在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "workTexts": {"诗经": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "左传": "重点：他的统治策略（务材训农，敬教劝学）符合儒家对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了高度评价。"}, "workSummaries": {"诗经·鄘风·定之方中": {"title": "诗经·鄘风·定之方中", "aliases": ["诗经", "鄘风", "定之方中", "诗经·鄘风·定之方", "定之方"], "authors": [], "related_people": ["卫文公"], "source_pages": ["卫文公"], "era": "", "genre": "", "one_liner": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "summary": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "诗经": {"title": "诗经", "aliases": [], "authors": ["闻一多"], "related_people": ["郭沫若", "屈原", "卫文公", "闻一多"], "source_pages": ["郭沫若", "屈原", "卫文公", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "summary": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "quote": "2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "quotes": ["2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "3. 创作《红烛》、《死水》等经典诗集；"], "quote_policy": "preferred"}, "左传": {"title": "左传", "aliases": [], "authors": ["重耳"], "related_people": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "source_pages": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "era": "春秋时期", "genre": "传记", "one_liner": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "summary": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 卫文公\n\n## 人物档案\n\n### 基本信息\n- **姓名**：姬辟疆（后改名姬毁）\n- **时代**：春秋时期\n- **出生**：存疑，约公元前670年代，卫国（今河南省北部，具体地点存疑）\n- **去世**：公元前635年，卫国楚丘（今河南省安阳市滑县东）\n- **享年**：存疑（因出生年份不确定，故享年无法准确计算）\n- **主要身份**：卫国国君\n- **历史地位**：卫国的中兴之主，在亡国后成功复国并使国家重新强盛。\n- **主要成就**：在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。\n\n### 生平概述\n卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于卫国旧地（朝歌）及复国新都（楚丘）一带，并与齐国等邻国有外交往来。\n- ⏱️ **时间跨度**：约公元前660年（继位）至公元前635年（去世），约25年。\n- 📍 **地理范围**：主要在今河南省北部（安阳、鹤壁、新乡地区）及山东省中西部（淄博地区）。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：卫国（具体地点存疑）\n- **时间**：存疑，约公元前670年代\n- **停留时间**：青年时期\n- **地点**：卫国（今河南省北部，具体地点存疑）\n- **事件**：出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。\n- **意义**：其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。\n\n### 📍 重要地点：漕邑\n- **时间**：公元前660年\n- **停留时间**：数月\n- **地点**：漕邑（今河南省安阳市滑县西南）\n- **事件**：狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。\n- **意义**：是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。\n\n### 📍 重要地点：齐国都城临淄\n- **时间**：约公元前660年-前659年\n- **停留时间**：短期访问\n- **地点**：齐国都城临淄（今山东省淄博市临淄区）\n- **事件**：继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。\n- **意义**：获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。\n\n### 📍 重要地点：楚丘\n- **时间**：公元前658年-前635年\n- **停留时间**：约23年（在位主要时期）\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。\n- **意义**：卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。\n\n### 📍 重要地点：邢国\n- **时间**：约公元前658年-前635年间\n- **停留时间**：军事行动期间\n- **地点**：邢国（今河北省邢台市）\n- **事件**：参与诸侯联军对抗狄人，救援邢国。\n- **意义**：体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。\n\n### 📍 重要地点：訾娄（古地名，今址待考）\n- **时间**：公元前645年\n- **停留时间**：军事行动期间\n- **地点**：卫国边境（古地名，今址待考，约在今河南省北部或周边）\n- **事件**：邢国联合狄人伐卫，率军抵抗于訾娄（古地名）。\n- **意义**：卫国复国后军事力量增强，能够抵御外敌入侵的例证。\n\n### 🔴 去世地：楚丘\n- **时间**：公元前635年\n- **停留时间**：在位最后时光\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在位二十五年后去世，其子卫成公继位。\n- **意义**：在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前670年代 | 卫国 |  | （备注：出生年份存疑）出生于卫国（今河南省北部，具体地点存疑）。 |\n| 前660 | 漕邑 | 河南省安阳市滑县西南 | （备注：青年时期）狄人灭卫，卫懿公死。随遗民渡河至漕邑。兄戴公卒，继位为君。 |\n| 约公元前660年-前659年 |  |  | （备注：继位初期）赴齐国求援，获齐桓公支持。 |\n| 前658 | 楚丘 | 河南省安阳市滑县东 | （备注：在位第3年）在诸侯帮助下，率民迁都于楚丘，开始实施复兴政策。 |\n| 前658-前635 |  |  | （备注：在位期间）务材训农，通商惠工，敬教劝学，授方任能。国力增强。 |\n| 前645 | 訾娄（古地名，今址待考） | 卫国边境 | （备注：在位第16年）邢国联合狄人伐卫，率军抵抗于訾娄（古地名，今址待考）。 |\n| 前635 | 楚丘 | 河南省安阳市滑县东 | （备注：在位约25年）卒于楚丘，子成公继位。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省安阳市滑县东（楚丘故址） | 35.5750 | 114.5210 |\n| 山东省淄博市临淄区（齐国故城） | 36.8600 | 118.3400 |\n| 河北省邢台市（邢国故地） | 37.0700 | 114.5000 |\n| 河南省安阳市滑县西南（古漕邑故址） | 35.5400 | 114.4800 |", "relatedGraph": {"center": {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "宋襄公", "name": "宋襄公", "file": "宋襄公.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -652, "death_year": -637, "quote": "假仁仗义，自取败亡——宋襄之仁，迂腐之甚。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "前后", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋时期", "aliases": [], "birth_year": null, "death_year": -629, "quote": "晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -630, "death_year": null, "quote": "不战而屈人之兵", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "不鸣则已，一鸣惊人", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "卫文公", "target": "齐桓公", "label": "君臣", "confidence": null}, {"source": "卫文公", "target": "宋襄公", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "重耳", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "狐偃", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "楚庄王", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:14Z", "generated_at": "2026-06-22T11:31:14Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "姬辟疆", "title": "", "description": "卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。", "quote": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "shortReview": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "dynasty": "春秋时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "卫国", "avatar": "", "birth": {"date": "公元前670年", "location": "卫国", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前635年", "location": "卫国楚丘（今河南省安阳市滑县东）", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84"}, "lifespan": "存疑（因出生年份不确定，故享年无法准确计算）", "highlights": {"honor": "", "status": "卫国的中兴之主，在亡国后成功复国并使国家重新强盛。", "identities": "卫国国君", "achievements": "在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。", "works": [], "reviews": []}}, "locations": [{"name": "卫国（具体地点存疑）", "ancientName": "卫国", "modernName": "河南省北部，具体地点存疑", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "birth", "event": "出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。", "time": "存疑，约公元前670年代", "duration": "青年时期", "significance": "其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。", "works": [], "quoteLines": []}, {"name": "齐国都城临淄", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.86, "lng": 118.34, "coordSystem": "WGS84", "type": "normal", "event": "继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。", "time": "约公元前660年-前659年", "duration": "短期访问", "significance": "获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。", "works": [], "quoteLines": []}, {"name": "漕邑", "ancientName": "漕邑", "modernName": "河南省安阳市滑县西南", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。", "time": "公元前660年", "duration": "数月", "significance": "是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "normal", "event": "在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。", "time": "公元前658年-前635年", "duration": "约23年（在位主要时期）", "significance": "卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。", "works": [], "quoteLines": []}, {"name": "邢国", "ancientName": "邢国", "modernName": "河北省邢台市", "lat": 37.07, "lng": 114.5, "coordSystem": "WGS84", "type": "normal", "event": "参与诸侯联军对抗狄人，救援邢国。", "time": "约公元前658年-前635年间", "duration": "军事行动期间", "significance": "体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。", "works": [], "quoteLines": []}, {"name": "楚丘", "ancientName": "楚丘", "modernName": "河南省安阳市滑县东", "lat": 35.54, "lng": 114.48, "coordSystem": "WGS84", "type": "death", "event": "在位二十五年后去世，其子卫成公继位。", "time": "公元前635年", "duration": "在位最后时光", "significance": "在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---", "workTexts": {"诗经": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "左传": "重点：他的统治策略（务材训农，敬教劝学）符合儒家对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了高度评价。"}, "workSummaries": {"诗经·鄘风·定之方中": {"title": "诗经·鄘风·定之方中", "aliases": ["诗经", "鄘风", "定之方中", "诗经·鄘风·定之方", "定之方"], "authors": [], "related_people": ["卫文公"], "source_pages": ["卫文公"], "era": "", "genre": "", "one_liner": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "summary": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "诗经": {"title": "诗经", "aliases": [], "authors": ["闻一多"], "related_people": ["郭沫若", "屈原", "卫文公", "闻一多"], "source_pages": ["郭沫若", "屈原", "卫文公", "闻一多"], "era": "清末至中华民国", "genre": "", "one_liner": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "summary": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "quote": "2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "quotes": ["2. 在《周易》、《诗经》、《庄子》、《楚辞》研究中取得卓越成就；", "4. 抗战期间投身民主运动，成为昆明民主运动的旗帜。", "3. 创作《红烛》、《死水》等经典诗集；"], "quote_policy": "preferred"}, "左传": {"title": "左传", "aliases": [], "authors": ["重耳"], "related_people": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "source_pages": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "era": "春秋时期", "genre": "传记", "one_liner": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "summary": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 卫文公\n\n## 人物档案\n\n### 基本信息\n- **姓名**：姬辟疆（后改名姬毁）\n- **时代**：春秋时期\n- **出生**：存疑，约公元前670年代，卫国（今河南省北部，具体地点存疑）\n- **去世**：公元前635年，卫国楚丘（今河南省安阳市滑县东）\n- **享年**：存疑（因出生年份不确定，故享年无法准确计算）\n- **主要身份**：卫国国君\n- **历史地位**：卫国的中兴之主，在亡国后成功复国并使国家重新强盛。\n- **主要成就**：在狄人灭卫后于楚丘重建卫国；推行轻徭薄赋、发展农商的政策；与中原诸侯修好，使卫国重新获得国际地位。\n\n### 生平概述\n卫文公，姬姓，名辟疆（后改名毁），是卫戴公之弟（一说同为卫昭伯之子）。公元前660年，狄人攻破卫国都城朝歌，卫懿公被杀，卫国几乎灭亡。在齐桓公等诸侯的帮助下，卫遗民在漕邑拥立其兄戴公，戴公不久去世，辟疆继位，是为文公。他面对的是一个残破的国家，遂迁都于楚丘，励精图治，轻赋税、平刑狱、劝农桑，使卫国得以恢复元气，国力逐渐增强，在位二十五年，是卫国历史上重要的复兴阶段。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于卫国旧地（朝歌）及复国新都（楚丘）一带，并与齐国等邻国有外交往来。\n- ⏱️ **时间跨度**：约公元前660年（继位）至公元前635年（去世），约25年。\n- 📍 **地理范围**：主要在今河南省北部（安阳、鹤壁、新乡地区）及山东省中西部（淄博地区）。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：卫国（具体地点存疑）\n- **时间**：存疑，约公元前670年代\n- **停留时间**：青年时期\n- **地点**：卫国（今河南省北部，具体地点存疑）\n- **事件**：出生于卫国公室，为卫昭伯之子，卫懿公之堂弟。\n- **意义**：其早年成长于卫国强盛（但已潜藏危机）的末期，亲历了国家由盛转衰的过程。\n\n### 📍 重要地点：漕邑\n- **时间**：公元前660年\n- **停留时间**：数月\n- **地点**：漕邑（今河南省安阳市滑县西南）\n- **事件**：狄人灭卫后，卫国遗民渡河聚集于此。其兄卫戴公在此被立为国君，不久去世。辟疆随后在此继位。\n- **意义**：是卫国灭亡后的临时政治中心，也是文公正式成为国君的地点，标志着卫国复国的开始。\n\n### 📍 重要地点：齐国都城临淄\n- **时间**：约公元前660年-前659年\n- **停留时间**：短期访问\n- **地点**：齐国都城临淄（今山东省淄博市临淄区）\n- **事件**：继位后，前往齐国寻求支持。齐桓公接纳了他，并派公子无亏率军戍守卫国，赠送物资。\n- **意义**：获得了当时霸主齐桓公的关键性支持，为后续迁都复国奠定了外部基础。\n\n### 📍 重要地点：楚丘\n- **时间**：公元前658年-前635年\n- **停留时间**：约23年（在位主要时期）\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在齐桓公等诸侯帮助下，率卫国遗民迁都于此。在此“务材训农，通商惠工”，实施一系列复兴政策。\n- **意义**：卫国的新都城和复兴基地，文公在此经营，使卫国“元年革车三十乘，季年乃三百乘”，实现了国家的中兴。\n\n### 📍 重要地点：邢国\n- **时间**：约公元前658年-前635年间\n- **停留时间**：军事行动期间\n- **地点**：邢国（今河北省邢台市）\n- **事件**：参与诸侯联军对抗狄人，救援邢国。\n- **意义**：体现了卫国复国后国力恢复，已能参与中原诸侯的军事行动，履行国际义务。\n\n### 📍 重要地点：訾娄（古地名，今址待考）\n- **时间**：公元前645年\n- **停留时间**：军事行动期间\n- **地点**：卫国边境（古地名，今址待考，约在今河南省北部或周边）\n- **事件**：邢国联合狄人伐卫，率军抵抗于訾娄（古地名）。\n- **意义**：卫国复国后军事力量增强，能够抵御外敌入侵的例证。\n\n### 🔴 去世地：楚丘\n- **时间**：公元前635年\n- **停留时间**：在位最后时光\n- **地点**：楚丘（今河南省安阳市滑县东）\n- **事件**：在位二十五年后去世，其子卫成公继位。\n- **意义**：在复兴之地走完人生旅程，其统治为卫国延续了四百余年的国祚奠定了关键基础。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前670年代 | 卫国 |  | （备注：出生年份存疑）出生于卫国（今河南省北部，具体地点存疑）。 |\n| 前660 | 漕邑 | 河南省安阳市滑县西南 | （备注：青年时期）狄人灭卫，卫懿公死。随遗民渡河至漕邑。兄戴公卒，继位为君。 |\n| 约公元前660年-前659年 |  |  | （备注：继位初期）赴齐国求援，获齐桓公支持。 |\n| 前658 | 楚丘 | 河南省安阳市滑县东 | （备注：在位第3年）在诸侯帮助下，率民迁都于楚丘，开始实施复兴政策。 |\n| 前658-前635 |  |  | （备注：在位期间）务材训农，通商惠工，敬教劝学，授方任能。国力增强。 |\n| 前645 | 訾娄（古地名，今址待考） | 卫国边境 | （备注：在位第16年）邢国联合狄人伐卫，率军抵抗于訾娄（古地名，今址待考）。 |\n| 前635 | 楚丘 | 河南省安阳市滑县东 | （备注：在位约25年）卒于楚丘，子成公继位。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《诗经·鄘风·定之方中》**（传统认为此诗赞美卫文公迁都楚丘、营建宫室）\n- 核心要点：\n    - **重点**：诗歌通过“定之方中，作于楚宫”等句，描绘了**选址观测星象**以确定营建都城的场景，体现了古人的**天文与建筑智慧**。\n    - **重点**：诗中“匪直也人，秉心塞渊”等句，直接赞美了统治者**秉心诚实深远**的品质，是理解**卫文公形象**的关键文学材料。\n    - 诗歌运用了**赋**的铺陈手法，详细叙述了**营建过程**（揆之以日、树之榛栗）和**畜牧发展**（騋牝三千），展现了复兴的实绩。\n    - 该诗是《诗经》中少数明确与**具体历史人物和事件**（卫文公迁楚丘）相关联的作品，具有重要的**史料互证**价值。\n    - 通过“升彼虚矣，以望楚矣”等句，体现了**登高望远、规划新都**的宏大场景与决心。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**狄人灭卫**（公元前660年）是春秋时期北方戎狄势力对中原诸侯国的一次沉重打击，卫文公即位于此**亡国危机**之后。\n    - **重点**：**齐桓公存邢救卫**是春秋霸业的重要体现，卫文公获得**齐国的军事与物资援助**，是其复国成功的**关键外部因素**。\n    - 迁都**楚丘**并实施“**轻徭薄赋、通商惠工**”政策，是卫国实现“**中兴**”的核心内政措施。\n    - 卫文公时期，卫国国力从“**革车三十乘**”恢复到“**季年乃三百乘**”，是衡量其统治成效的**具体数据指标**。\n- 核心要点：\n    - **重点**：卫文公是**春秋时期**在国家遭受毁灭性打击后，成功实现**复国与中兴**的典型君主，其经历体现了**坚韧图存**的历史精神。\n    - **重点**：他的统治策略（**务材训农，敬教劝学**）符合**儒家**对仁政、富民、教化的理想，因此在后世史书（如《左传》）中获得了**高度评价**。\n    - 其成功离不开**外部霸权（齐国）的扶持**与**内部务实改革**的结合，是分析春秋时期**小国生存之道**的重要案例。\n    - 卫国的延续（后迁都帝丘，存续至战国末期）在很大程度上得益于文公时期打下的**坚实基础**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省安阳市滑县东（楚丘故址） | 35.5750 | 114.5210 |\n| 山东省淄博市临淄区（齐国故城） | 36.8600 | 118.3400 |\n| 河北省邢台市（邢国故地） | 37.0700 | 114.5000 |\n| 河南省安阳市滑县西南（古漕邑故址） | 35.5400 | 114.4800 |", "relatedGraph": {"center": {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "该诗是《诗经》中少数明确与具体历史人物和事件（卫文公迁楚丘）相关联的作品，具有重要的史料互证价值。", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "宋襄公", "name": "宋襄公", "file": "宋襄公.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -652, "death_year": -637, "quote": "假仁仗义，自取败亡——宋襄之仁，迂腐之甚。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "前后", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋时期", "aliases": [], "birth_year": null, "death_year": -629, "quote": "晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -630, "death_year": null, "quote": "不战而屈人之兵", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚庄王", "name": "楚庄王", "file": "楚庄王.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -630, "death_year": -591, "quote": "不鸣则已，一鸣惊人", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "楚国郢都", "birthplace_modern": "湖北荆州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "卫文公", "target": "齐桓公", "label": "君臣", "confidence": null}, {"source": "卫文公", "target": "宋襄公", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "重耳", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "狐偃", "label": "同朝共现", "confidence": 0.25}, {"source": "卫文公", "target": "烛之武", "label": "同时代人物", "confidence": null}, {"source": "卫文公", "target": "楚庄王", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:14Z", "generated_at": "2026-06-25T07:13:14Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:14Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:14Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

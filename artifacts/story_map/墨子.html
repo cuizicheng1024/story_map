@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "墨子", "title": "", "description": "墨子生活于战国初期，社会剧烈变革，诸侯争霸，战争频仍。他出身平民（一说为宋国贵族后裔），早年曾学习儒术，后因不满其繁琐礼制与等级观念而另立新说，创立墨家学派。墨子及其门徒组织严密，纪律严明，以“兴天下之利，除天下之害”为宗旨，积极奔走于列国之间，宣传“非攻”与“兼爱”，并凭借高超的守城技术帮助小国抵御侵略。其学说与儒家并称“显学”，影响深远，其科技成就与逻辑思想尤为后世所重。", "quote": "公输盘九设攻城之机变，子墨子九距之。", "shortReview": "公输盘九设攻城之机变，子墨子九距之。", "dynasty": "战国初期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "avatar": "", "birth": {"date": "公元前468年", "location": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前376年", "location": "卒于鲁国（今山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84"}, "lifespan": "约92岁（存疑，基于生卒年约数推算）", "highlights": {"honor": "", "status": "墨家学派的创始人，战国时期“百家争鸣”的重要代表之一，中国古代逻辑学与科学技术的先驱。", "identities": "思想家、教育家、古代科技先驱、军事家、社会活动家", "achievements": "创立墨家学派，提出“兼爱”、“非攻”、“尚贤”、“尚同”、“节用”、“节葬”、“非乐”、“非命”、“天志”、“明鬼”十大主张；在光学、力学、几何学等领域有开创性研究；成功实践“止楚攻宋”等和平行动。代表作：《墨子》。", "works": ["墨子"], "reviews": []}}, "locations": [{"name": "存疑", "ancientName": "存疑", "modernName": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "lat": 34.4167, "lng": 115.65, "coordSystem": "WGS84", "type": "birth", "event": "墨子诞生于此，早年生活于此地，可能出身于手工业者阶层。", "time": "约公元前468年", "duration": "早年", "significance": "墨子思想的萌芽之地，其平民立场与实用精神或源于此地环境。", "works": [], "quoteLines": []}, {"name": "宋国", "ancientName": "宋国", "modernName": "河南省商丘市", "lat": 34.4167, "lng": 115.65, "coordSystem": "WGS84", "type": "normal", "event": "游学或出仕。墨子可能曾与宋国有较深关联（有“为宋大夫”之说，存疑），其学说可能在此初步形成并传播。", "time": "青年时期", "duration": "数年（存疑）", "significance": "墨子政治实践的早期舞台，也是其“非攻”、“救守”思想的重要实践地。", "works": [], "quoteLines": []}, {"name": "鲁国（学派创立）", "ancientName": "鲁国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "normal", "event": "聚徒讲学，正式创立墨家学派，系统阐述其思想体系，与儒家展开辩论。（具体地点存疑）", "time": "中年", "duration": "较长时期", "significance": "墨家学说的成熟与传播中心，培养了禽滑厘等核心弟子。", "works": [], "quoteLines": []}, {"name": "楚国郢都（止楚攻宋）", "ancientName": "楚国郢都", "modernName": "湖北省荆州市荆州区纪南城", "lat": 30.35, "lng": 112.1833, "coordSystem": "WGS84", "type": "normal", "event": "闻楚将攻宋，日夜兼程至楚，以道义与实力（演示守城之术）说服公输盘与楚王放弃攻宋。", "time": "约公元前440年", "duration": "短期", "significance": "“非攻”思想最著名的成功实践，展现了墨家的行动力与守城技术，千古传颂。", "works": [], "quoteLines": ["《公输》：“公输盘九设攻城之机变，子墨子九距之。”"]}, {"name": "鲁国（或齐国）", "ancientName": "鲁国或齐国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "death", "event": "墨子逝世。", "time": "约公元前376年", "duration": "生命最后阶段", "significance": "一代思想巨擘陨落，但其学说与精神由弟子传承。", "works": [], "quoteLines": ["《墨子·兼爱上》：“若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。”"]}, {"name": "卫国", "ancientName": "卫国", "modernName": "河南省濮阳市", "lat": 35.7667, "lng": 115.0333, "coordSystem": "WGS84", "type": "normal", "event": "游说卫国，宣传“节用”、“节葬”等主张，推荐弟子出仕。", "time": "游历时期", "duration": "短期", "significance": "推广墨家经济与社会主张的实践之一。", "works": [], "quoteLines": []}, {"name": "齐国", "ancientName": "齐国", "modernName": "山东省淄博市临淄区", "lat": 36.8167, "lng": 118.3, "coordSystem": "WGS84", "type": "normal", "event": "劝阻齐国将领项子牛伐鲁，阐述“大国攻小国”之害。", "time": "游历时期", "duration": "短期", "significance": "再次实践“非攻”思想，试图遏制大国的侵略行为。", "works": [], "quoteLines": []}, {"name": "魏国", "ancientName": "魏国", "modernName": "河南省开封市", "lat": 34.85, "lng": 114.35, "coordSystem": "WGS84", "type": "normal", "event": "与魏国君臣交流，可能涉及政治与军事策略。", "time": "晚年", "duration": "短期", "significance": "墨家思想在中原大国的进一步传播。", "works": [], "quoteLines": []}, {"name": "鲁国（晚年）", "ancientName": "鲁国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "normal", "event": "继续领导墨家团体，著述授徒，与儒家等学派持续论辩。（具体地点存疑）", "time": "晚年", "duration": "较长时期", "significance": "墨家学说的定型与传承基地。", "works": [], "quoteLines": []}, {"name": "墨家学派中心（墨子去世后/鲁阳）", "ancientName": "鲁阳", "modernName": "河南省平顶山市鲁山县", "lat": 33.7333, "lng": 112.9, "coordSystem": "WGS84", "type": "normal", "event": "墨家巨子（学派领袖）驻地，团体延续“赴火蹈刃，死不旋踵”的纪律，继续实践墨家主张。（活动中心存疑）", "time": "墨子去世后", "duration": "长期", "significance": "墨家学派在战国中后期的组织与活动中心，体现了其独特的团体形态。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---", "workTexts": {"公输": "公输盘九设攻城之机变，子墨子九距之。", "墨子·兼爱上": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "墨子": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "兼爱上": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "墨子·兼爱": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "兼爱": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。"}, "workSummaries": {"墨子": {"title": "墨子", "aliases": [], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quotes": ["若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "《公输》（节选自《墨子》）、《兼爱》（节选）", "在光学、力学、几何学等领域有开创性研究；"], "quote_policy": "preferred"}, "公输": {"title": "公输", "aliases": [], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "公输盘九设攻城之机变，子墨子九距之。", "summary": "公输盘九设攻城之机变，子墨子九距之。", "quote": "重点：《公输》 体现了墨家 “非攻” 思想的实践，通过逻辑论辩与实力展示制止战争。", "quotes": ["重点：《公输》 体现了墨家 “非攻” 思想的实践，通过逻辑论辩与实力展示制止战争。", "《公输》（节选自《墨子》）、《兼爱》（节选）", "公输盘九设攻城之机变，子墨子九距之。"], "quote_policy": "preferred"}, "墨子·兼爱上": {"title": "墨子·兼爱上", "aliases": ["墨子", "兼爱上", "墨子·兼爱", "兼爱"], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quotes": ["若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。"], "quote_policy": "preferred"}, "兼爱": {"title": "兼爱", "aliases": [], "authors": [], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 墨子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：墨子（名翟）\n- **时代**：战国初期\n- **出生**：约公元前468年，出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）\n- **去世**：约公元前376年，卒于鲁国（今山东省曲阜市；一说齐国，今山东省淄博市临淄区）\n- **享年**：约92岁（存疑，基于生卒年约数推算）\n- **主要身份**：思想家、教育家、古代科技先驱、军事家、社会活动家\n- **历史地位**：墨家学派的创始人，战国时期“百家争鸣”的重要代表之一，中国古代逻辑学与科学技术的先驱。\n- **主要成就**：创立墨家学派，提出“兼爱”、“非攻”、“尚贤”、“尚同”、“节用”、“节葬”、“非乐”、“非命”、“天志”、“明鬼”十大主张；在光学、力学、几何学等领域有开创性研究；成功实践“止楚攻宋”等和平行动。代表作：《墨子》。\n\n### 生平概述\n墨子生活于战国初期，社会剧烈变革，诸侯争霸，战争频仍。他出身平民（一说为宋国贵族后裔），早年曾学习儒术，后因不满其繁琐礼制与等级观念而另立新说，创立墨家学派。墨子及其门徒组织严密，纪律严明，以“兴天下之利，除天下之害”为宗旨，积极奔走于列国之间，宣传“非攻”与“兼爱”，并凭借高超的守城技术帮助小国抵御侵略。其学说与儒家并称“显学”，影响深远，其科技成就与逻辑思想尤为后世所重。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以鲁国（今山东地区）为中心，足迹遍及宋、楚、齐、卫、魏等国，主要活动于黄河流域中下游及长江中游部分地区。\n- ⏱️ **时间跨度**：约公元前468年 - 约公元前376年，总跨度约92年（存疑）。\n- 📍 **地理范围**：大致覆盖今山东、河南、湖北等省部分地区。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：存疑\n- **时间**：约公元前468年\n- **停留时间**：早年\n- **地点**：出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）\n- **事件**：墨子诞生于此，早年生活于此地，可能出身于手工业者阶层。\n- **意义**：墨子思想的萌芽之地，其平民立场与实用精神或源于此地环境。\n\n### 📍 重要地点：宋国\n- **时间**：青年时期\n- **停留时间**：数年（存疑）\n- **地点**：古称宋国（今河南省商丘市）\n- **事件**：游学或出仕。墨子可能曾与宋国有较深关联（有“为宋大夫”之说，存疑），其学说可能在此初步形成并传播。\n- **意义**：墨子政治实践的早期舞台，也是其“非攻”、“救守”思想的重要实践地。\n\n### 📍 重要地点：鲁国（学派创立）\n- **时间**：中年\n- **停留时间**：较长时期\n- **地点**：古称鲁国（今山东省曲阜市）\n- **事件**：聚徒讲学，正式创立墨家学派，系统阐述其思想体系，与儒家展开辩论。（具体地点存疑）\n- **意义**：墨家学说的成熟与传播中心，培养了禽滑厘等核心弟子。\n\n### 📍 重要地点：楚国郢都（止楚攻宋）\n- **时间**：约公元前440年\n- **停留时间**：短期\n- **地点**：古称楚国郢都（今湖北省荆州市荆州区纪南城）\n- **事件**：闻楚将攻宋，日夜兼程至楚，以道义与实力（演示守城之术）说服公输盘与楚王放弃攻宋。\n- **意义**：“非攻”思想最著名的成功实践，展现了墨家的行动力与守城技术，千古传颂。\n- **名篇名句**：《公输》：“公输盘九设攻城之机变，子墨子九距之。”\n\n### 📍 重要地点：卫国\n- **时间**：游历时期\n- **停留时间**：短期\n- **地点**：古称卫国（今河南省濮阳市）\n- **事件**：游说卫国，宣传“节用”、“节葬”等主张，推荐弟子出仕。\n- **意义**：推广墨家经济与社会主张的实践之一。\n\n### 📍 重要地点：齐国\n- **时间**：游历时期\n- **停留时间**：短期\n- **地点**：古称齐国（今山东省淄博市临淄区）\n- **事件**：劝阻齐国将领项子牛伐鲁，阐述“大国攻小国”之害。\n- **意义**：再次实践“非攻”思想，试图遏制大国的侵略行为。\n\n### 📍 重要地点：魏国\n- **时间**：晚年\n- **停留时间**：短期\n- **地点**：古称魏国（今河南省开封市）\n- **事件**：与魏国君臣交流，可能涉及政治与军事策略。\n- **意义**：墨家思想在中原大国的进一步传播。\n\n### 📍 重要地点：鲁国（晚年）\n- **时间**：晚年\n- **停留时间**：较长时期\n- **地点**：古称鲁国（今山东省曲阜市）\n- **事件**：继续领导墨家团体，著述授徒，与儒家等学派持续论辩。（具体地点存疑）\n- **意义**：墨家学说的定型与传承基地。\n\n### 📍 去世地：鲁国（或齐国）\n- **时间**：约公元前376年\n- **停留时间**：生命最后阶段\n- **地点**：古称鲁国（今山东省曲阜市）或齐国（今山东省淄博市临淄区）（说法不一）\n- **事件**：墨子逝世。\n- **意义**：一代思想巨擘陨落，但其学说与精神由弟子传承。\n- **名篇名句**：《墨子·兼爱上》：“若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。”\n\n### 📍 重要地点：墨家学派中心（墨子去世后/鲁阳）\n- **时间**：墨子去世后\n- **停留时间**：长期\n- **地点**：古称鲁阳（今河南省平顶山市鲁山县）\n- **事件**：墨家巨子（学派领袖）驻地，团体延续“赴火蹈刃，死不旋踵”的纪律，继续实践墨家主张。（活动中心存疑）\n- **意义**：墨家学派在战国中后期的组织与活动中心，体现了其独特的团体形态。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前468年 | 出生地存疑（有鲁国、宋国、楚国、小邾国等说 |  | （年龄：0岁）出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东滕州）。 |\n| 青年时期 |  |  | （年龄：约20-30岁）学习儒术，后背离儒家，创立墨家学说。 |\n| 约公元前440年 | 楚国郢都（止楚攻宋） | 湖北省荆州市荆州区纪南城 | （年龄：约28岁（存疑））止楚攻宋，成功阻止楚国对宋国的战争。 |\n| 中年时期 |  |  | （年龄：约30-60岁）周游宋、卫、齐、楚、魏等国，宣传学说，实践“非攻”、“尚贤”等主张。 |\n| 晚年时期 | 鲁国（学派创立） | 山东省曲阜市 | （年龄：约60岁以后）返回鲁国，著述授徒，巩固墨家学派。 |\n| 约公元前376年 | 出生地存疑（有鲁国、宋国、楚国、小邾国等说 |  | （年龄：约92岁（存疑））逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省商丘市 | 34.4167 | 115.6500 |\n| 山东省曲阜市 | 35.6000 | 116.9833 |\n| 湖北省荆州市荆州区 | 30.3500 | 112.1833 |\n| 河南省濮阳市 | 35.7667 | 115.0333 |\n| 山东省淄博市临淄区 | 36.8167 | 118.3000 |\n| 河南省开封市 | 34.8500 | 114.3500 |\n| 河南省平顶山市鲁山县 | 33.7333 | 112.9000 |\n", "relatedGraph": {"center": {"id": "墨子", "name": "墨子", "file": "墨子.html", "dynasty": "战国初期", "aliases": [], "birth_year": -468, "death_year": -376, "quote": "兴天下之利，除天下之害", "review": "公输盘九设攻城之机变，子墨子九距之。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "出生地存疑有鲁国、宋国、楚国、小邾国等说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "墨子", "name": "墨子", "file": "墨子.html", "dynasty": "战国初期", "aliases": [], "birth_year": -468, "death_year": -376, "quote": "兴天下之利，除天下之害", "review": "公输盘九设攻城之机变，子墨子九距之。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "出生地存疑有鲁国、宋国、楚国、小邾国等说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "墨子", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "楚怀王", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "庄子", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "孟子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:16Z", "generated_at": "2026-06-22T11:31:16Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "墨子", "title": "", "description": "墨子生活于战国初期，社会剧烈变革，诸侯争霸，战争频仍。他出身平民（一说为宋国贵族后裔），早年曾学习儒术，后因不满其繁琐礼制与等级观念而另立新说，创立墨家学派。墨子及其门徒组织严密，纪律严明，以“兴天下之利，除天下之害”为宗旨，积极奔走于列国之间，宣传“非攻”与“兼爱”，并凭借高超的守城技术帮助小国抵御侵略。其学说与儒家并称“显学”，影响深远，其科技成就与逻辑思想尤为后世所重。", "quote": "公输盘九设攻城之机变，子墨子九距之。", "shortReview": "公输盘九设攻城之机变，子墨子九距之。", "dynasty": "战国初期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "avatar": "", "birth": {"date": "公元前468年", "location": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前376年", "location": "卒于鲁国（今山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84"}, "lifespan": "约92岁（存疑，基于生卒年约数推算）", "highlights": {"honor": "", "status": "墨家学派的创始人，战国时期“百家争鸣”的重要代表之一，中国古代逻辑学与科学技术的先驱。", "identities": "思想家、教育家、古代科技先驱、军事家、社会活动家", "achievements": "创立墨家学派，提出“兼爱”、“非攻”、“尚贤”、“尚同”、“节用”、“节葬”、“非乐”、“非命”、“天志”、“明鬼”十大主张；在光学、力学、几何学等领域有开创性研究；成功实践“止楚攻宋”等和平行动。代表作：《墨子》。", "works": ["墨子"], "reviews": []}}, "locations": [{"name": "存疑", "ancientName": "存疑", "modernName": "出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）", "lat": 34.4167, "lng": 115.65, "coordSystem": "WGS84", "type": "birth", "event": "墨子诞生于此，早年生活于此地，可能出身于手工业者阶层。", "time": "约公元前468年", "duration": "早年", "significance": "墨子思想的萌芽之地，其平民立场与实用精神或源于此地环境。", "works": [], "quoteLines": []}, {"name": "宋国", "ancientName": "宋国", "modernName": "河南省商丘市", "lat": 34.4167, "lng": 115.65, "coordSystem": "WGS84", "type": "normal", "event": "游学或出仕。墨子可能曾与宋国有较深关联（有“为宋大夫”之说，存疑），其学说可能在此初步形成并传播。", "time": "青年时期", "duration": "数年（存疑）", "significance": "墨子政治实践的早期舞台，也是其“非攻”、“救守”思想的重要实践地。", "works": [], "quoteLines": []}, {"name": "鲁国（学派创立）", "ancientName": "鲁国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "normal", "event": "聚徒讲学，正式创立墨家学派，系统阐述其思想体系，与儒家展开辩论。（具体地点存疑）", "time": "中年", "duration": "较长时期", "significance": "墨家学说的成熟与传播中心，培养了禽滑厘等核心弟子。", "works": [], "quoteLines": []}, {"name": "楚国郢都（止楚攻宋）", "ancientName": "楚国郢都", "modernName": "湖北省荆州市荆州区纪南城", "lat": 30.35, "lng": 112.1833, "coordSystem": "WGS84", "type": "normal", "event": "闻楚将攻宋，日夜兼程至楚，以道义与实力（演示守城之术）说服公输盘与楚王放弃攻宋。", "time": "约公元前440年", "duration": "短期", "significance": "“非攻”思想最著名的成功实践，展现了墨家的行动力与守城技术，千古传颂。", "works": [], "quoteLines": ["《公输》：“公输盘九设攻城之机变，子墨子九距之。”"]}, {"name": "鲁国（或齐国）", "ancientName": "鲁国或齐国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "death", "event": "墨子逝世。", "time": "约公元前376年", "duration": "生命最后阶段", "significance": "一代思想巨擘陨落，但其学说与精神由弟子传承。", "works": [], "quoteLines": ["《墨子·兼爱上》：“若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。”"]}, {"name": "卫国", "ancientName": "卫国", "modernName": "河南省濮阳市", "lat": 35.7667, "lng": 115.0333, "coordSystem": "WGS84", "type": "normal", "event": "游说卫国，宣传“节用”、“节葬”等主张，推荐弟子出仕。", "time": "游历时期", "duration": "短期", "significance": "推广墨家经济与社会主张的实践之一。", "works": [], "quoteLines": []}, {"name": "齐国", "ancientName": "齐国", "modernName": "山东省淄博市临淄区", "lat": 36.8167, "lng": 118.3, "coordSystem": "WGS84", "type": "normal", "event": "劝阻齐国将领项子牛伐鲁，阐述“大国攻小国”之害。", "time": "游历时期", "duration": "短期", "significance": "再次实践“非攻”思想，试图遏制大国的侵略行为。", "works": [], "quoteLines": []}, {"name": "魏国", "ancientName": "魏国", "modernName": "河南省开封市", "lat": 34.85, "lng": 114.35, "coordSystem": "WGS84", "type": "normal", "event": "与魏国君臣交流，可能涉及政治与军事策略。", "time": "晚年", "duration": "短期", "significance": "墨家思想在中原大国的进一步传播。", "works": [], "quoteLines": []}, {"name": "鲁国（晚年）", "ancientName": "鲁国", "modernName": "山东省曲阜市", "lat": 35.6, "lng": 116.9833, "coordSystem": "WGS84", "type": "normal", "event": "继续领导墨家团体，著述授徒，与儒家等学派持续论辩。（具体地点存疑）", "time": "晚年", "duration": "较长时期", "significance": "墨家学说的定型与传承基地。", "works": [], "quoteLines": []}, {"name": "墨家学派中心（墨子去世后/鲁阳）", "ancientName": "鲁阳", "modernName": "河南省平顶山市鲁山县", "lat": 33.7333, "lng": 112.9, "coordSystem": "WGS84", "type": "normal", "event": "墨家巨子（学派领袖）驻地，团体延续“赴火蹈刃，死不旋踵”的纪律，继续实践墨家主张。（活动中心存疑）", "time": "墨子去世后", "duration": "长期", "significance": "墨家学派在战国中后期的组织与活动中心，体现了其独特的团体形态。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---", "workTexts": {"公输": "公输盘九设攻城之机变，子墨子九距之。", "墨子·兼爱上": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "墨子": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "兼爱上": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "墨子·兼爱": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "兼爱": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。"}, "workSummaries": {"墨子": {"title": "墨子", "aliases": [], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quotes": ["若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "《公输》（节选自《墨子》）、《兼爱》（节选）", "在光学、力学、几何学等领域有开创性研究；"], "quote_policy": "preferred"}, "公输": {"title": "公输", "aliases": [], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "公输盘九设攻城之机变，子墨子九距之。", "summary": "公输盘九设攻城之机变，子墨子九距之。", "quote": "重点：《公输》 体现了墨家 “非攻” 思想的实践，通过逻辑论辩与实力展示制止战争。", "quotes": ["重点：《公输》 体现了墨家 “非攻” 思想的实践，通过逻辑论辩与实力展示制止战争。", "《公输》（节选自《墨子》）、《兼爱》（节选）", "公输盘九设攻城之机变，子墨子九距之。"], "quote_policy": "preferred"}, "墨子·兼爱上": {"title": "墨子·兼爱上", "aliases": ["墨子", "兼爱上", "墨子·兼爱", "兼爱"], "authors": ["墨子"], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "战国初期", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quotes": ["若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。"], "quote_policy": "preferred"}, "兼爱": {"title": "兼爱", "aliases": [], "authors": [], "related_people": ["墨子"], "source_pages": ["墨子"], "era": "", "genre": "", "one_liner": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "summary": "若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 墨子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：墨子（名翟）\n- **时代**：战国初期\n- **出生**：约公元前468年，出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）\n- **去世**：约公元前376年，卒于鲁国（今山东省曲阜市；一说齐国，今山东省淄博市临淄区）\n- **享年**：约92岁（存疑，基于生卒年约数推算）\n- **主要身份**：思想家、教育家、古代科技先驱、军事家、社会活动家\n- **历史地位**：墨家学派的创始人，战国时期“百家争鸣”的重要代表之一，中国古代逻辑学与科学技术的先驱。\n- **主要成就**：创立墨家学派，提出“兼爱”、“非攻”、“尚贤”、“尚同”、“节用”、“节葬”、“非乐”、“非命”、“天志”、“明鬼”十大主张；在光学、力学、几何学等领域有开创性研究；成功实践“止楚攻宋”等和平行动。代表作：《墨子》。\n\n### 生平概述\n墨子生活于战国初期，社会剧烈变革，诸侯争霸，战争频仍。他出身平民（一说为宋国贵族后裔），早年曾学习儒术，后因不满其繁琐礼制与等级观念而另立新说，创立墨家学派。墨子及其门徒组织严密，纪律严明，以“兴天下之利，除天下之害”为宗旨，积极奔走于列国之间，宣传“非攻”与“兼爱”，并凭借高超的守城技术帮助小国抵御侵略。其学说与儒家并称“显学”，影响深远，其科技成就与逻辑思想尤为后世所重。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以鲁国（今山东地区）为中心，足迹遍及宋、楚、齐、卫、魏等国，主要活动于黄河流域中下游及长江中游部分地区。\n- ⏱️ **时间跨度**：约公元前468年 - 约公元前376年，总跨度约92年（存疑）。\n- 📍 **地理范围**：大致覆盖今山东、河南、湖北等省部分地区。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：存疑\n- **时间**：约公元前468年\n- **停留时间**：早年\n- **地点**：出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东省滕州市或河南省商丘市附近）\n- **事件**：墨子诞生于此，早年生活于此地，可能出身于手工业者阶层。\n- **意义**：墨子思想的萌芽之地，其平民立场与实用精神或源于此地环境。\n\n### 📍 重要地点：宋国\n- **时间**：青年时期\n- **停留时间**：数年（存疑）\n- **地点**：古称宋国（今河南省商丘市）\n- **事件**：游学或出仕。墨子可能曾与宋国有较深关联（有“为宋大夫”之说，存疑），其学说可能在此初步形成并传播。\n- **意义**：墨子政治实践的早期舞台，也是其“非攻”、“救守”思想的重要实践地。\n\n### 📍 重要地点：鲁国（学派创立）\n- **时间**：中年\n- **停留时间**：较长时期\n- **地点**：古称鲁国（今山东省曲阜市）\n- **事件**：聚徒讲学，正式创立墨家学派，系统阐述其思想体系，与儒家展开辩论。（具体地点存疑）\n- **意义**：墨家学说的成熟与传播中心，培养了禽滑厘等核心弟子。\n\n### 📍 重要地点：楚国郢都（止楚攻宋）\n- **时间**：约公元前440年\n- **停留时间**：短期\n- **地点**：古称楚国郢都（今湖北省荆州市荆州区纪南城）\n- **事件**：闻楚将攻宋，日夜兼程至楚，以道义与实力（演示守城之术）说服公输盘与楚王放弃攻宋。\n- **意义**：“非攻”思想最著名的成功实践，展现了墨家的行动力与守城技术，千古传颂。\n- **名篇名句**：《公输》：“公输盘九设攻城之机变，子墨子九距之。”\n\n### 📍 重要地点：卫国\n- **时间**：游历时期\n- **停留时间**：短期\n- **地点**：古称卫国（今河南省濮阳市）\n- **事件**：游说卫国，宣传“节用”、“节葬”等主张，推荐弟子出仕。\n- **意义**：推广墨家经济与社会主张的实践之一。\n\n### 📍 重要地点：齐国\n- **时间**：游历时期\n- **停留时间**：短期\n- **地点**：古称齐国（今山东省淄博市临淄区）\n- **事件**：劝阻齐国将领项子牛伐鲁，阐述“大国攻小国”之害。\n- **意义**：再次实践“非攻”思想，试图遏制大国的侵略行为。\n\n### 📍 重要地点：魏国\n- **时间**：晚年\n- **停留时间**：短期\n- **地点**：古称魏国（今河南省开封市）\n- **事件**：与魏国君臣交流，可能涉及政治与军事策略。\n- **意义**：墨家思想在中原大国的进一步传播。\n\n### 📍 重要地点：鲁国（晚年）\n- **时间**：晚年\n- **停留时间**：较长时期\n- **地点**：古称鲁国（今山东省曲阜市）\n- **事件**：继续领导墨家团体，著述授徒，与儒家等学派持续论辩。（具体地点存疑）\n- **意义**：墨家学说的定型与传承基地。\n\n### 📍 去世地：鲁国（或齐国）\n- **时间**：约公元前376年\n- **停留时间**：生命最后阶段\n- **地点**：古称鲁国（今山东省曲阜市）或齐国（今山东省淄博市临淄区）（说法不一）\n- **事件**：墨子逝世。\n- **意义**：一代思想巨擘陨落，但其学说与精神由弟子传承。\n- **名篇名句**：《墨子·兼爱上》：“若使天下兼相爱，国与国不相攻，家与家不相乱，盗贼无有，君臣父子皆能孝慈，若此则天下治。”\n\n### 📍 重要地点：墨家学派中心（墨子去世后/鲁阳）\n- **时间**：墨子去世后\n- **停留时间**：长期\n- **地点**：古称鲁阳（今河南省平顶山市鲁山县）\n- **事件**：墨家巨子（学派领袖）驻地，团体延续“赴火蹈刃，死不旋踵”的纪律，继续实践墨家主张。（活动中心存疑）\n- **意义**：墨家学派在战国中后期的组织与活动中心，体现了其独特的团体形态。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前468年 | 出生地存疑（有鲁国、宋国、楚国、小邾国等说 |  | （年龄：0岁）出生地存疑（有鲁国、宋国、楚国、小邾国等说，一说今山东滕州）。 |\n| 青年时期 |  |  | （年龄：约20-30岁）学习儒术，后背离儒家，创立墨家学说。 |\n| 约公元前440年 | 楚国郢都（止楚攻宋） | 湖北省荆州市荆州区纪南城 | （年龄：约28岁（存疑））止楚攻宋，成功阻止楚国对宋国的战争。 |\n| 中年时期 |  |  | （年龄：约30-60岁）周游宋、卫、齐、楚、魏等国，宣传学说，实践“非攻”、“尚贤”等主张。 |\n| 晚年时期 | 鲁国（学派创立） | 山东省曲阜市 | （年龄：约60岁以后）返回鲁国，著述授徒，巩固墨家学派。 |\n| 约公元前376年 | 出生地存疑（有鲁国、宋国、楚国、小邾国等说 |  | （年龄：约92岁（存疑））逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《公输》**（节选自《墨子》）、**《兼爱》**（节选）\n- 核心要点：\n    - **重点**：**《公输》** 体现了墨家 **“非攻”** 思想的实践，通过逻辑论辩与实力展示制止战争。\n    - **重点**：文章展现了墨子 **高超的论辩技巧** 与 **不尚空谈、重在实践** 的行动风格。\n    - **《兼爱》** 阐述了墨家核心伦理思想 **“兼相爱，交相利”** ，主张无差别的博爱。\n    - 墨家文章 **逻辑严密**，**善用类比**与**设问**，**语言质朴**而富有说服力。\n    - **重点**：墨子及其学派代表了先秦时期 **平民阶层** 的利益与呼声，与儒家形成鲜明对比。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**创立墨家学派**，与儒家并称“显学”，是战国时期最具影响力的学派之一。\n    - 成功实践 **“止楚攻宋”** ，是古代“非攻”与“救守”的著名案例。\n    - **重点**：墨家是一个有严密组织、严格纪律的 **学术与军事团体**，领袖称为“巨子”，成员“赴火蹈刃，死不旋踵”。\n- 核心要点：\n    - **重点**：墨子思想反映了战国时期 **小生产者**（手工业者、农民）的利益，主张 **“尚贤”**（反对世袭）、**“节用”**（反对浪费）。\n    - **重点**：墨家在 **科学技术**（光学、力学、几何学）与 **逻辑学**（“三表法”）方面成就卓著，具有 **朴素的唯物主义与科学精神**。\n    - 墨家学说在秦汉以后急剧衰落，其 **组织形态** 与 **平民革命性** 不适应大一统帝国的统治需要。\n    - **重点**：墨子的 **“非攻”** 不是简单的反战，而是反对 **“攻伐无罪之国”** 的侵略战争，同时积极支持和帮助防御性战争。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省商丘市 | 34.4167 | 115.6500 |\n| 山东省曲阜市 | 35.6000 | 116.9833 |\n| 湖北省荆州市荆州区 | 30.3500 | 112.1833 |\n| 河南省濮阳市 | 35.7667 | 115.0333 |\n| 山东省淄博市临淄区 | 36.8167 | 118.3000 |\n| 河南省开封市 | 34.8500 | 114.3500 |\n| 河南省平顶山市鲁山县 | 33.7333 | 112.9000 |\n", "relatedGraph": {"center": {"id": "墨子", "name": "墨子", "file": "墨子.html", "dynasty": "战国初期", "aliases": [], "birth_year": -468, "death_year": -376, "quote": "兴天下之利，除天下之害", "review": "公输盘九设攻城之机变，子墨子九距之。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "出生地存疑有鲁国、宋国、楚国、小邾国等说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "墨子", "name": "墨子", "file": "墨子.html", "dynasty": "战国初期", "aliases": [], "birth_year": -468, "death_year": -376, "quote": "兴天下之利，除天下之害", "review": "公输盘九设攻城之机变，子墨子九距之。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "出生地存疑有鲁国、宋国、楚国、小邾国等说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "墨子", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "楚怀王", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "庄子", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "墨子", "target": "孟子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:17Z", "generated_at": "2026-06-25T07:13:17Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:16Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:17Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

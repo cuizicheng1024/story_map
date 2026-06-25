@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "杨虎城", "title": "西安事变", "description": "杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。", "quote": "我们救国的主张……是绝对不变更的。", "shortReview": "我们救国的主张……是绝对不变更的。", "dynasty": "中国近代（清末至民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "陕西省蒲城县（今陕西省渭南市蒲城县）", "avatar": "", "birth": {"date": "1893年", "location": "陕西省蒲城县（今陕西省渭南市蒲城县）", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84"}, "death": {"date": "1949年", "location": "四川省重庆（今重庆市）", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84"}, "lifespan": "55周岁", "highlights": {"honor": "西安事变", "status": "中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。", "identities": "爱国将领、国民党陆军二级上将、西安事变主要发动者之一", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "蒲城", "ancientName": "陕西省蒲城县", "modernName": "陕西省渭南市蒲城县", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84", "type": "birth", "event": "出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。", "time": "公元1893年", "duration": "童年及少年时期", "significance": "塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "西安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。", "time": "公元1911年-1917年（多次往返）", "duration": "断断续续", "significance": "是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。", "works": [], "quoteLines": []}, {"name": "武功、扶风", "ancientName": "陕西省武功县、扶风县", "modernName": "陕西省咸阳市武功县、扶风县", "lat": 34.2603, "lng": 108.2003, "coordSystem": "WGS84", "type": "normal", "event": "作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。", "time": "公元1917年-1922年", "duration": "约5年", "significance": "在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。", "works": [], "quoteLines": []}, {"name": "陕北（榆林）", "ancientName": "榆林", "modernName": "陕西省榆林市", "lat": 38.2852, "lng": 109.7346, "coordSystem": "WGS84", "type": "normal", "event": "靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。", "time": "公元1922年-1924年", "duration": "约2年", "significance": "部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。", "works": [], "quoteLines": []}, {"name": "河南（归德、郑州）", "ancientName": "归德、郑州", "modernName": "河南省商丘市", "lat": 34.4142, "lng": 115.656, "coordSystem": "WGS84", "type": "normal", "event": "率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。", "time": "公元1927年-1929年", "duration": "约2年", "significance": "部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。", "works": [], "quoteLines": []}, {"name": "山东（临沂）", "ancientName": "临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3565, "coordSystem": "WGS84", "type": "normal", "event": "所部被蒋介石改编为新编第十四师，调往山东驻防。", "time": "公元1929年", "duration": "数月", "significance": "标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。", "works": [], "quoteLines": []}, {"name": "南阳、驻马店", "ancientName": "南阳、驻马店", "modernName": "河南省南阳市", "lat": 32.9997, "lng": 112.5283, "coordSystem": "WGS84", "type": "normal", "event": "在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。", "time": "公元1929年-1930年", "duration": "近一年", "significance": "在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。", "works": [], "quoteLines": []}, {"name": "西安（主政时期）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。", "time": "公元1930年-1937年（主要在1930-1933年实际主政）", "duration": "约7年（含出国前后）", "significance": "其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。", "works": [], "quoteLines": ["《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”"]}, {"name": "南昌、长沙", "ancientName": "南昌、长沙", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。", "time": "公元1937年", "duration": "短暂", "significance": "标志着其失去自由，软禁生涯的开始。", "works": [], "quoteLines": []}, {"name": "重庆（戴公馆、松林坡）", "ancientName": "四川省重庆戴公馆、松林坡", "modernName": "重庆市", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84", "type": "death", "event": "先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。", "time": "公元1937年-1949年（被囚禁），1949年9月6日遇害", "duration": "被囚禁约12年", "significance": "为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "workTexts": {"杨虎城在西安事变中的讲话": "我们救国的主张……是绝对不变更的。"}, "workSummaries": {"杨虎城在西安事变中的讲话": {"title": "杨虎城在西安事变中的讲话", "aliases": [], "authors": ["杨虎城"], "related_people": ["杨虎城"], "source_pages": ["杨虎城"], "era": "中国近代（清末至民国）", "genre": "", "one_liner": "我们救国的主张……是绝对不变更的。", "summary": "我们救国的主张……是绝对不变更的。", "quote": "我们救国的主张……是绝对不变更的。", "quotes": ["我们救国的主张……是绝对不变更的。"], "quote_policy": "preferred"}}, "markdown": "# 杨虎城\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨虎城\n- **时代**：中国近代（清末至民国）\n- **出生**：公元1893年11月26日，陕西省蒲城县（今陕西省渭南市蒲城县）\n- **去世**：公元1949年9月6日，四川省重庆（今重庆市）\n- **享年**：55周岁\n- **主要身份**：爱国将领、国民党陆军二级上将、西安事变主要发动者之一\n- **历史地位**：中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。\n- **主要成就**：\n    - 参与领导反清革命与护国战争。\n    - 在军阀混战中崛起，主政陕西。\n    - 与张学良共同发动“西安事变”，兵谏蒋介石，成为时局转换的枢纽。\n    - 坚持抗日救国立场，为民族解放事业献出生命。\n\n### 生平概述\n杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从陕西关中起家，足迹遍及北方多省，最终于重庆遇害。\n- ⏱️ **时间跨度**：约1893年至1949年，约56年。\n- 📍 **地理范围**：主要活动于陕西、河南、江西、湖南、重庆等地，曾途经或活动于安徽、江苏、浙江。\n- 🌟 **重要节点数量**：核心地点11个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：蒲城\n- **时间**：公元1893年\n- **停留时间**：童年及少年时期\n- **地点**：陕西省蒲城县（今陕西省渭南市蒲城县）\n- **事件**：出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。\n- **意义**：塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。\n\n### 📍 重要地点：西安\n- **时间**：公元1911年-1917年（多次往返）\n- **停留时间**：断断续续\n- **地点**：长安（今陕西省西安市）\n- **事件**：辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。\n- **意义**：是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。\n\n### 📍 重要地点：武功、扶风\n- **时间**：公元1917年-1922年\n- **停留时间**：约5年\n- **地点**：陕西省武功县、扶风县（今陕西省咸阳市武功县、扶风县）\n- **事件**：作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。\n- **意义**：在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。\n\n### 📍 重要地点：陕北（榆林）\n- **时间**：公元1922年-1924年\n- **停留时间**：约2年\n- **地点**：榆林（今陕西省榆林市）\n- **事件**：靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。\n- **意义**：部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。\n\n### 📍 重要地点：河南（归德、郑州）\n- **时间**：公元1927年-1929年\n- **停留时间**：约2年\n- **地点**：归德（今河南省商丘市）、郑州（今河南省郑州市）\n- **事件**：率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。\n- **意义**：部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。\n\n### 📍 重要地点：山东（临沂）\n- **时间**：公元1929年\n- **停留时间**：数月\n- **地点**：临沂（今山东省临沂市）\n- **事件**：所部被蒋介石改编为新编第十四师，调往山东驻防。\n- **意义**：标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。\n\n### 📍 重要地点：南阳、驻马店\n- **时间**：公元1929年-1930年\n- **停留时间**：近一年\n- **地点**：南阳（今河南省南阳市）、驻马店（今河南省驻马店市）\n- **事件**：在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。\n- **意义**：在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。\n\n### 📍 重要地点：西安（主政时期）\n- **时间**：公元1930年-1937年（主要在1930-1933年实际主政）\n- **停留时间**：约7年（含出国前后）\n- **地点**：长安（今陕西省西安市）\n- **事件**：任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。\n- **意义**：其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。\n- **名篇名句**：《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”\n\n### 📍 重要地点：南昌、长沙\n- **时间**：公元1937年\n- **停留时间**：短暂\n- **地点**：南昌（今江西省南昌市）、长沙（今湖南省长沙市）\n- **事件**：出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。\n- **意义**：标志着其失去自由，软禁生涯的开始。\n\n### 🔴 去世地：重庆（戴公馆、松林坡）\n- **时间**：公元1937年-1949年（被囚禁），1949年9月6日遇害\n- **停留时间**：被囚禁约12年\n- **地点**：四川省重庆（今重庆市）戴公馆、松林坡\n- **事件**：先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。\n- **意义**：为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1893 | 蒲城 | 陕西省渭南市蒲城县 | （年龄：0）出生于陕西蒲城。 |\n| 1908 |  |  | （年龄：15）父亲被清政府绞杀，立志反清。 |\n| 1911 |  |  | （年龄：18）参加辛亥革命陕西民军。 |\n| 1915 |  |  | （年龄：22）参加护国战争，讨伐袁世凯。 |\n| 1917 |  |  | （年龄：24）参加陕西靖国军，反对北洋军阀。 |\n| 1924 | 陕北（榆林） | 陕西省榆林市 | （年龄：31）在陕北结识共产党人，部队加入国民军。 |\n| 1927 |  |  | （年龄：34）参加冯玉祥国民联军，东出潼关参与北伐。 |\n| 1929 | 山东（临沂） | 山东省临沂市 | （年龄：36）部队被蒋介石改编，调往山东、河南。 |\n| 1930 |  |  | （年龄：37）中原大战后入主陕西，任省政府主席。 |\n| 1933 |  |  | （年龄：40）主张抗日，与共产党方面有所接触。 |\n| 1936 | 西安（主政时期） | 陕西省西安市 | （年龄：43）12月12日，与张学良发动“西安事变”。 |\n| 1937 |  |  | （年龄：44）被迫出国“考察”；抗战爆发后回国，旋即被囚禁。 |\n| 1949 | 重庆（戴公馆、松林坡） | 重庆市 | （年龄：55）9月6日，在重庆被国民党特务秘密杀害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省渭南市蒲城县 | 34.9551 | 109.5865 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 陕西省咸阳市武功县 | 34.2603 | 108.2003 |\n| 陕西省咸阳市扶风县 | 34.3753 | 107.8913 |\n| 陕西省榆林市 | 38.2852 | 109.7346 |\n| 河南省商丘市 | 34.4142 | 115.6560 |\n| 河南省郑州市 | 34.7472 | 113.6250 |\n| 山东省临沂市 | 35.1047 | 118.3565 |\n| 河南省南阳市 | 32.9997 | 112.5283 |\n| 河南省驻马店市 | 32.9803 | 114.0248 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 湖南省长沙市 | 28.2282 | 112.9388 |\n| 重庆市 | 29.4316 | 106.9123 |", "relatedGraph": {"center": {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "袁世凯", "name": "袁世凯", "file": "袁世凯.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1859, "death_year": 1916, "quote": "驻扎朝鲜总理交涉通商事宜", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "横扫清华图书馆", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "小二黑好比一枝花，可惜开在粪堆旁。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "做学问就像下棋，要有大眼界", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董希文", "name": "董希文", "file": "董希文.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1914, "death_year": 1973, "quote": "革命现实主义与革命浪漫主义相结合", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "出生地存疑一说今浙江省绍兴市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨虎城", "target": "袁世凯", "label": "对手", "confidence": null}, {"source": "杨虎城", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "董希文", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:30Z", "generated_at": "2026-06-22T11:31:30Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "杨虎城", "title": "西安事变", "description": "杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。", "quote": "我们救国的主张……是绝对不变更的。", "shortReview": "我们救国的主张……是绝对不变更的。", "dynasty": "中国近代（清末至民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "陕西省蒲城县（今陕西省渭南市蒲城县）", "avatar": "", "birth": {"date": "1893年", "location": "陕西省蒲城县（今陕西省渭南市蒲城县）", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84"}, "death": {"date": "1949年", "location": "四川省重庆（今重庆市）", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84"}, "lifespan": "55周岁", "highlights": {"honor": "西安事变", "status": "中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。", "identities": "爱国将领、国民党陆军二级上将、西安事变主要发动者之一", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "蒲城", "ancientName": "陕西省蒲城县", "modernName": "陕西省渭南市蒲城县", "lat": 34.9551, "lng": 109.5865, "coordSystem": "WGS84", "type": "birth", "event": "出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。", "time": "公元1893年", "duration": "童年及少年时期", "significance": "塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。", "works": [], "quoteLines": []}, {"name": "西安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。", "time": "公元1911年-1917年（多次往返）", "duration": "断断续续", "significance": "是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。", "works": [], "quoteLines": []}, {"name": "武功、扶风", "ancientName": "陕西省武功县、扶风县", "modernName": "陕西省咸阳市武功县、扶风县", "lat": 34.2603, "lng": 108.2003, "coordSystem": "WGS84", "type": "normal", "event": "作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。", "time": "公元1917年-1922年", "duration": "约5年", "significance": "在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。", "works": [], "quoteLines": []}, {"name": "陕北（榆林）", "ancientName": "榆林", "modernName": "陕西省榆林市", "lat": 38.2852, "lng": 109.7346, "coordSystem": "WGS84", "type": "normal", "event": "靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。", "time": "公元1922年-1924年", "duration": "约2年", "significance": "部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。", "works": [], "quoteLines": []}, {"name": "河南（归德、郑州）", "ancientName": "归德、郑州", "modernName": "河南省商丘市", "lat": 34.4142, "lng": 115.656, "coordSystem": "WGS84", "type": "normal", "event": "率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。", "time": "公元1927年-1929年", "duration": "约2年", "significance": "部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。", "works": [], "quoteLines": []}, {"name": "山东（临沂）", "ancientName": "临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3565, "coordSystem": "WGS84", "type": "normal", "event": "所部被蒋介石改编为新编第十四师，调往山东驻防。", "time": "公元1929年", "duration": "数月", "significance": "标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。", "works": [], "quoteLines": []}, {"name": "南阳、驻马店", "ancientName": "南阳、驻马店", "modernName": "河南省南阳市", "lat": 32.9997, "lng": 112.5283, "coordSystem": "WGS84", "type": "normal", "event": "在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。", "time": "公元1929年-1930年", "duration": "近一年", "significance": "在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。", "works": [], "quoteLines": []}, {"name": "西安（主政时期）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。", "time": "公元1930年-1937年（主要在1930-1933年实际主政）", "duration": "约7年（含出国前后）", "significance": "其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。", "works": [], "quoteLines": ["《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”"]}, {"name": "南昌、长沙", "ancientName": "南昌、长沙", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。", "time": "公元1937年", "duration": "短暂", "significance": "标志着其失去自由，软禁生涯的开始。", "works": [], "quoteLines": []}, {"name": "重庆（戴公馆、松林坡）", "ancientName": "四川省重庆戴公馆、松林坡", "modernName": "重庆市", "lat": 29.4316, "lng": 106.9123, "coordSystem": "WGS84", "type": "death", "event": "先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。", "time": "公元1937年-1949年（被囚禁），1949年9月6日遇害", "duration": "被囚禁约12年", "significance": "为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---", "workTexts": {"杨虎城在西安事变中的讲话": "我们救国的主张……是绝对不变更的。"}, "workSummaries": {"杨虎城在西安事变中的讲话": {"title": "杨虎城在西安事变中的讲话", "aliases": [], "authors": ["杨虎城"], "related_people": ["杨虎城"], "source_pages": ["杨虎城"], "era": "中国近代（清末至民国）", "genre": "", "one_liner": "我们救国的主张……是绝对不变更的。", "summary": "我们救国的主张……是绝对不变更的。", "quote": "我们救国的主张……是绝对不变更的。", "quotes": ["我们救国的主张……是绝对不变更的。"], "quote_policy": "preferred"}}, "markdown": "# 杨虎城\n\n## 人物档案\n\n### 基本信息\n- **姓名**：杨虎城\n- **时代**：中国近代（清末至民国）\n- **出生**：公元1893年11月26日，陕西省蒲城县（今陕西省渭南市蒲城县）\n- **去世**：公元1949年9月6日，四川省重庆（今重庆市）\n- **享年**：55周岁\n- **主要身份**：爱国将领、国民党陆军二级上将、西安事变主要发动者之一\n- **历史地位**：中国近代史上著名的爱国将领，因与张学良联合发动“西安事变”促成抗日民族统一战线而名垂青史。\n- **主要成就**：\n    - 参与领导反清革命与护国战争。\n    - 在军阀混战中崛起，主政陕西。\n    - 与张学良共同发动“西安事变”，兵谏蒋介石，成为时局转换的枢纽。\n    - 坚持抗日救国立场，为民族解放事业献出生命。\n\n### 生平概述\n杨虎城出身贫寒，早年投身反清革命，历经护国战争、靖国军等斗争，逐步成为陕西地方实力派将领。他拥护孙中山的三大政策，参与北伐。1930年主政陕西，期间倾向进步，与共产党有所接触。面对日本侵略的加剧，他主张抗日。1936年12月12日，他与张学良毅然发动“西安事变”，扣押蒋介石，提出抗日救国八项主张。事变和平解决后，他被迫出国“考察”。抗战爆发后回国即遭长期囚禁，1949年新中国成立前夕，在重庆被国民党特务秘密杀害。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从陕西关中起家，足迹遍及北方多省，最终于重庆遇害。\n- ⏱️ **时间跨度**：约1893年至1949年，约56年。\n- 📍 **地理范围**：主要活动于陕西、河南、江西、湖南、重庆等地，曾途经或活动于安徽、江苏、浙江。\n- 🌟 **重要节点数量**：核心地点11个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：蒲城\n- **时间**：公元1893年\n- **停留时间**：童年及少年时期\n- **地点**：陕西省蒲城县（今陕西省渭南市蒲城县）\n- **事件**：出生于贫苦农民家庭，父亲杨怀福以木工为业。早年丧父，生活艰辛。\n- **意义**：塑造了他坚韧不屈、同情底层的品格，为其日后反抗压迫的生涯埋下伏笔。\n\n### 📍 重要地点：西安\n- **时间**：公元1911年-1917年（多次往返）\n- **停留时间**：断断续续\n- **地点**：长安（今陕西省西安市）\n- **事件**：辛亥革命时参加陕西民军。后在此参与反袁世凯的斗争，加入陕西护国军。\n- **意义**：是他早期军事政治活动的中心舞台，结识了于右任等革命党人，坚定了革命信念。\n\n### 📍 重要地点：武功、扶风\n- **时间**：公元1917年-1922年\n- **停留时间**：约5年\n- **地点**：陕西省武功县、扶风县（今陕西省咸阳市武功县、扶风县）\n- **事件**：作为陕西靖国军的部将，在关中西部坚持护法斗争，与北洋军阀部队周旋作战。\n- **意义**：在极端困难的环境下保存了革命火种，锻炼了部队，赢得了“坚守关中”的声誉。\n\n### 📍 重要地点：陕北（榆林）\n- **时间**：公元1922年-1924年\n- **停留时间**：约2年\n- **地点**：榆林（今陕西省榆林市）\n- **事件**：靖国军失败后，率部退往陕北，依托井岳秀部休整，并接触共产党人魏野畴等，部队后加入国民军。\n- **意义**：部队得以喘息和整训，思想上受到进步影响，为日后与共产党合作奠定基础。\n\n### 📍 重要地点：河南（归德、郑州）\n- **时间**：公元1927年-1929年\n- **停留时间**：约2年\n- **地点**：归德（今河南省商丘市）、郑州（今河南省郑州市）\n- **事件**：率部参加冯玉祥的国民联军，东出潼关，参与北伐，在豫东与奉系军阀作战。\n- **意义**：部队正式编入国民革命军序列，其军事生涯从地方武装转向参与全国性政治军事斗争。\n\n### 📍 重要地点：山东（临沂）\n- **时间**：公元1929年\n- **停留时间**：数月\n- **地点**：临沂（今山东省临沂市）\n- **事件**：所部被蒋介石改编为新编第十四师，调往山东驻防。\n- **意义**：标志着其部队被纳入蒋介石中央军系统，但双方关系充满猜忌与利用。\n\n### 📍 重要地点：南阳、驻马店\n- **时间**：公元1929年-1930年\n- **停留时间**：近一年\n- **地点**：南阳（今河南省南阳市）、驻马店（今河南省驻马店市）\n- **事件**：在蒋冯战争中倒冯投蒋，后又在蒋唐战争中为蒋作战，部队扩编为第十七路军。\n- **意义**：在军阀混战中实力迅速壮大，最终在中原大战后取得陕西军政大权。\n\n### 📍 重要地点：西安（主政时期）\n- **时间**：公元1930年-1937年（主要在1930-1933年实际主政）\n- **停留时间**：约7年（含出国前后）\n- **地点**：长安（今陕西省西安市）\n- **事件**：任陕西省政府主席、西安绥靖公署主任。兴办实业、发展教育、修筑铁路。1936年12月12日，与张学良发动“西安事变”。\n- **意义**：其政治生涯的顶点。西安事变成为扭转中国时局的关键，直接促成了第二次国共合作和全面抗战的开始。\n- **名篇名句**：《杨虎城在西安事变中的讲话》：“我们救国的主张……是绝对不变更的。”\n\n### 📍 重要地点：南昌、长沙\n- **时间**：公元1937年\n- **停留时间**：短暂\n- **地点**：南昌（今江西省南昌市）、长沙（今湖南省长沙市）\n- **事件**：出国“考察”回国后，先后被安排至南昌、长沙，实则被军统监视，行动开始受限。\n- **意义**：标志着其失去自由，软禁生涯的开始。\n\n### 🔴 去世地：重庆（戴公馆、松林坡）\n- **时间**：公元1937年-1949年（被囚禁），1949年9月6日遇害\n- **停留时间**：被囚禁约12年\n- **地点**：四川省重庆（今重庆市）戴公馆、松林坡\n- **事件**：先后被囚禁于江西、湖南、贵州、重庆等地。1949年9月6日，在重庆解放前夕，被蒋介石下令特务杀害于重庆松林坡“戴公祠”。\n- **意义**：为民族团结和抗日救国事业献出了生命，成为著名的爱国烈士。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1893 | 蒲城 | 陕西省渭南市蒲城县 | （年龄：0）出生于陕西蒲城。 |\n| 1908 |  |  | （年龄：15）父亲被清政府绞杀，立志反清。 |\n| 1911 |  |  | （年龄：18）参加辛亥革命陕西民军。 |\n| 1915 |  |  | （年龄：22）参加护国战争，讨伐袁世凯。 |\n| 1917 |  |  | （年龄：24）参加陕西靖国军，反对北洋军阀。 |\n| 1924 | 陕北（榆林） | 陕西省榆林市 | （年龄：31）在陕北结识共产党人，部队加入国民军。 |\n| 1927 |  |  | （年龄：34）参加冯玉祥国民联军，东出潼关参与北伐。 |\n| 1929 | 山东（临沂） | 山东省临沂市 | （年龄：36）部队被蒋介石改编，调往山东、河南。 |\n| 1930 |  |  | （年龄：37）中原大战后入主陕西，任省政府主席。 |\n| 1933 |  |  | （年龄：40）主张抗日，与共产党方面有所接触。 |\n| 1936 | 西安（主政时期） | 陕西省西安市 | （年龄：43）12月12日，与张学良发动“西安事变”。 |\n| 1937 |  |  | （年龄：44）被迫出国“考察”；抗战爆发后回国，旋即被囚禁。 |\n| 1949 | 重庆（戴公馆、松林坡） | 重庆市 | （年龄：55）9月6日，在重庆被国民党特务秘密杀害。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在中学语文教材中，杨虎城的事迹通常作为历史背景出现在与**西安事变**相关的课文或阅读材料中，而非以其独立文学作品形式呈现。\n- 核心要点：\n    - **重点**：杨虎城是**西安事变**的核心领导者之一，其行动体现了崇高的**爱国主义**精神。\n    - **重点**：他与张学良的**兵谏**行动，是促使蒋介石停止内战、联共抗日的关键转折点，展现了**民族大义**高于个人安危的抉择。\n    - 在历史叙述中，他被塑造为一位从旧军人转变为**抗日民族统一战线**重要推动者的典型人物。\n    - 其人生结局（被长期囚禁并杀害）常作为**革命斗争残酷性**和**爱国志士牺牲**的例证。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1936年12月12日，杨虎城与张学良发动**西安事变**（又称“双十二事变”），扣押蒋介石，提出抗日救国八项主张。\n    - **重点**：西安事变最终在中共调停下**和平解决**，成为时局转换的枢纽，标志着十年内战的基本结束和**抗日民族统一战线**的初步形成。\n    - 事变后，杨虎城被迫出国，抗战爆发后回国即遭国民党当局长达十二年的囚禁。\n    - 1949年9月6日，在重庆解放前夕被国民党特务秘密杀害。\n- 核心要点：\n    - **重点**：杨虎城是国民党内**地方实力派**中主张抗日的代表人物，其行动反映了当时全国上下要求停止内战、一致抗日的强烈呼声。\n    - **重点**：西安事变是中国近代史上的重大转折点，杨虎城作为主要发动者，其历史地位与**张学良**紧密相连，合称“张杨”。\n    - 他的个人命运与**国共关系**的演变密切相关，从合作到破裂再到其个人被囚禁，体现了复杂的政治斗争。\n    - **重点**：中华人民共和国成立后，杨虎城被追认为**革命烈士**，其爱国精神得到官方肯定和纪念。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省渭南市蒲城县 | 34.9551 | 109.5865 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 陕西省咸阳市武功县 | 34.2603 | 108.2003 |\n| 陕西省咸阳市扶风县 | 34.3753 | 107.8913 |\n| 陕西省榆林市 | 38.2852 | 109.7346 |\n| 河南省商丘市 | 34.4142 | 115.6560 |\n| 河南省郑州市 | 34.7472 | 113.6250 |\n| 山东省临沂市 | 35.1047 | 118.3565 |\n| 河南省南阳市 | 32.9997 | 112.5283 |\n| 河南省驻马店市 | 32.9803 | 114.0248 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 湖南省长沙市 | 28.2282 | 112.9388 |\n| 重庆市 | 29.4316 | 106.9123 |", "relatedGraph": {"center": {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "我们救国的主张……是绝对不变更的。", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "袁世凯", "name": "袁世凯", "file": "袁世凯.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1859, "death_year": 1916, "quote": "驻扎朝鲜总理交涉通商事宜", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "钱钟书", "name": "钱钟书", "file": "钱钟书.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1910, "death_year": 1998, "quote": "横扫清华图书馆", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "江苏无锡", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵树理", "name": "赵树理", "file": "赵树理.html", "dynasty": "中国现代（清末至新中国）", "aliases": [], "birth_year": 1906, "death_year": 1970, "quote": "小二黑好比一枝花，可惜开在粪堆旁。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "山西省沁水县尉迟村", "birthplace_modern": "山西省晋城市沁水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谷超豪", "name": "谷超豪", "file": "谷超豪.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1926, "death_year": 2012, "quote": "做学问就像下棋，要有大眼界", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "温州", "birthplace_modern": "浙江省温州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董希文", "name": "董希文", "file": "董希文.html", "dynasty": "中国现代", "aliases": [], "birth_year": 1914, "death_year": 1973, "quote": "革命现实主义与革命浪漫主义相结合", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "出生地存疑一说今浙江省绍兴市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨虎城", "target": "袁世凯", "label": "对手", "confidence": null}, {"source": "杨虎城", "target": "钱钟书", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "赵树理", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "赵一曼", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "谷超豪", "label": "同时代人物", "confidence": null}, {"source": "杨虎城", "target": "董希文", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:32Z", "generated_at": "2026-06-25T07:13:32Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:30Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:32Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

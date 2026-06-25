@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "屠呦呦", "title": "", "description": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作。她长期致力于中药和中西药结合研究，带领团队在极其艰苦的条件下，从中国传统医药典籍中汲取智慧，历经数百次失败，最终于20世纪70年代成功从青蒿中提取出高效抗疟成分——青蒿素。这一发现为世界治疗疟疾提供了全新方案，被世界卫生组织推荐为一线药物，拯救了数百万人的生命，尤其是在热带地区。2015年，她因此获得诺贝尔生理学或医学奖，成为中国科学界的里程碑人物。", "quote": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "shortReview": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江省宁波市", "avatar": "", "birth": {"date": "1930年", "location": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84"}, "death": {"date": "", "location": "健在", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "", "highlights": {"honor": "", "status": "首位获诺贝尔科学奖的中国本土科学家，其发现的青蒿素挽救了全球数百万疟疾患者的生命。", "identities": "药学家、科学家", "achievements": "发现青蒿素；创制新型抗疟药青蒿素和双氢青蒿素；获2015年诺贝尔生理学或医学奖；获国家最高科学技术奖。", "works": [], "reviews": []}}, "locations": [{"name": "宁波", "ancientName": "宁波", "modernName": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于宁波，接受早期教育。", "time": "公元1930年12月30日", "duration": "童年及少年时期", "significance": "江南的文化与教育环境为其奠定了最初的知识基础。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "进入上海私立药科学校（后并入上海第一医学院）学习药学。", "time": "公元1948-1951年（存疑）", "duration": "约3年（存疑）", "significance": "接受了系统的现代药学专业训练，为其日后从事药物研究打下基础。", "works": [], "quoteLines": []}, {"name": "北京（求学）", "ancientName": "北京（求学）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "在北京医学院（现北京大学医学部）药学系学习。", "time": "公元1951-1955年", "duration": "4年", "significance": "完成大学学业，获得药学学士学位，专业知识得到深化。", "works": [], "quoteLines": []}, {"name": "北京（工作）", "ancientName": "北京（工作）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "进入卫生部中医研究院（现中国中医科学院）工作，历任实习研究员、研究员、博士生导师等职。在此领导“523”项目课题组，开展抗疟药物研究。", "time": "公元1955年至今", "duration": "长期", "significance": "这是其科研生涯的核心舞台，所有重大突破均在此孕育和完成。", "works": [], "quoteLines": []}, {"name": "嵊州", "ancientName": "嵊州", "modernName": "浙江省绍兴市嵊州市", "lat": 29.5885, "lng": 120.8218, "coordSystem": "WGS84", "type": "normal", "event": "祖籍地，家族根源所在。", "time": "多次回乡", "duration": "短期", "significance": "代表其个人与家族的文化渊源。", "works": [], "quoteLines": []}, {"name": "斯德哥尔摩", "ancientName": "斯德哥尔摩", "modernName": "瑞典斯德哥尔摩", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84", "type": "normal", "event": "出席诺贝尔奖颁奖典礼，并发表获奖演讲《青蒿素——中医药给世界的一份礼物》。", "time": "公元2015年12月", "duration": "约一周", "significance": "代表中国科学界获得世界最高学术荣誉，标志着中医药学对人类健康的重大贡献得到国际公认。", "works": ["青蒿素——中医药给世界的一份礼物"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---", "workTexts": {"**肘后备急方**": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。"}, "workSummaries": {"青蒿素——中医药给世界的一份礼物": {"title": "青蒿素——中医药给世界的一份礼物", "aliases": [], "authors": [], "related_people": ["屠呦呦"], "source_pages": ["屠呦呦"], "era": "", "genre": "", "one_liner": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "summary": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "青蒿素：人类征服疾病的一小步": {"title": "青蒿素：人类征服疾病的一小步", "aliases": ["青蒿素", "人类征服疾病的一小步"], "authors": [], "related_people": ["屠呦呦"], "source_pages": ["屠呦呦"], "era": "", "genre": "", "one_liner": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "summary": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 屠呦呦\n\n## 人物档案\n\n### 基本信息\n- **姓名**：屠呦呦\n- **时代**：中华人民共和国\n- **出生**：公元1930年12月30日，今浙江省宁波市\n- **去世**：健在\n- **主要身份**：药学家、科学家\n- **历史地位**：首位获诺贝尔科学奖的中国本土科学家，其发现的青蒿素挽救了全球数百万疟疾患者的生命。\n- **主要成就**：发现青蒿素；创制新型抗疟药青蒿素和双氢青蒿素；获2015年诺贝尔生理学或医学奖；获国家最高科学技术奖。\n\n### 生平概述\n屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作。她长期致力于中药和中西药结合研究，带领团队在极其艰苦的条件下，从中国传统医药典籍中汲取智慧，历经数百次失败，最终于20世纪70年代成功从青蒿中提取出高效抗疟成分——青蒿素。这一发现为世界治疗疟疾提供了全新方案，被世界卫生组织推荐为一线药物，拯救了数百万人的生命，尤其是在热带地区。2015年，她因此获得诺贝尔生理学或医学奖，成为中国科学界的里程碑人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国北京为科研中心，足迹遍及浙江、上海、海南等地，并前往瑞典斯德哥尔摩领取诺贝尔奖。\n- ⏱️ **时间跨度**：1930年至今，跨越90余年。\n- 📍 **地理范围**：主要覆盖中国华东、华北、华南地区，以及北欧。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：宁波\n- **时间**：公元1930年12月30日\n- **停留时间**：童年及少年时期\n- **地点**：今浙江省宁波市\n- **事件**：出生并成长于宁波，接受早期教育。\n- **意义**：江南的文化与教育环境为其奠定了最初的知识基础。\n\n### 📍 重要地点：上海\n- **时间**：公元1948-1951年（存疑）\n- **停留时间**：约3年（存疑）\n- **地点**：今上海市\n- **事件**：进入上海私立药科学校（后并入上海第一医学院）学习药学。\n- **意义**：接受了系统的现代药学专业训练，为其日后从事药物研究打下基础。\n\n### 📍 重要地点：北京（求学）\n- **时间**：公元1951-1955年\n- **停留时间**：4年\n- **地点**：今北京市\n- **事件**：在北京医学院（现北京大学医学部）药学系学习。\n- **意义**：完成大学学业，获得药学学士学位，专业知识得到深化。\n\n### 📍 重要地点：北京（工作）\n- **时间**：公元1955年至今\n- **停留时间**：长期\n- **地点**：今北京市\n- **事件**：进入卫生部中医研究院（现中国中医科学院）工作，历任实习研究员、研究员、博士生导师等职。在此领导“523”项目课题组，开展抗疟药物研究。\n- **意义**：这是其科研生涯的核心舞台，所有重大突破均在此孕育和完成。\n\n### 📍 重要地点：海南岛（疟疾疫区）\n- **时间**：公元1960年代末-1970年代\n- **停留时间**：多次短期调研\n- **地点**：今海南省（具体调研地点待考）\n- **事件**：深入疟疾流行区进行临床调研，亲眼目睹疟疾危害，验证青蒿素的临床疗效。\n- **意义**：将实验室研究与临床实践紧密结合，确保了青蒿素应用的有效性与紧迫性。\n\n### 📍 重要地点：嵊州\n- **时间**：多次回乡\n- **停留时间**：短期\n- **地点**：今浙江省绍兴市嵊州市\n- **事件**：祖籍地，家族根源所在。\n- **意义**：代表其个人与家族的文化渊源。\n\n### 📍 重要地点：斯德哥尔摩\n- **时间**：公元2015年12月\n- **停留时间**：约一周\n- **地点**：今瑞典斯德哥尔摩\n- **事件**：出席诺贝尔奖颁奖典礼，并发表获奖演讲《青蒿素——中医药给世界的一份礼物》。\n- **意义**：代表中国科学界获得世界最高学术荣誉，标志着中医药学对人类健康的重大贡献得到国际公认。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1930年 | 宁波 | 浙江省宁波市 | （年龄：0岁）出生于浙江宁波。 |\n| 1951年 | 北京（求学） | 北京市 | （年龄：21岁）考入北京医学院药学系。 |\n| 1955年 | 北京（工作） | 北京市 | （年龄：25岁）毕业，分配到卫生部中医研究院工作。 |\n| 1969年 |  |  | （年龄：39岁）参与国家“523”抗疟药物研究项目，担任课题组组长。 |\n| 1971年 |  |  | （年龄：41岁）团队从青蒿中提取出对疟原虫抑制率显著的提取物。 |\n| 1972年 |  |  | （年龄：42岁）成功分离出有效单体——青蒿素。 |\n| 1978年 |  |  | （年龄：48岁）青蒿素抗疟研究获全国科学大会奖。 |\n| 2001年 |  |  | （年龄：71岁）当选世界卫生组织（WHO）治疗疟疾技术顾问委员会委员。 |\n| 2011年 |  |  | （年龄：81岁）获美国拉斯克临床医学研究奖。 |\n| 2015年 |  |  | （年龄：85岁）获诺贝尔生理学或医学奖。 |\n| 2017年 |  |  | （年龄：87岁）获中国国家最高科学技术奖。 |\n| 2019年 |  |  | （年龄：89岁）被授予“共和国勋章”。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 浙江省宁波市 | 29.8683 | 121.5440 |\n| 上海市 | 31.2304 | 121.4737 |\n| 北京市 | 39.9042 | 116.4074 |\n| 浙江省绍兴市嵊州市 | 29.5885 | 120.8218 |\n| 瑞典斯德哥尔摩 | 59.3293 | 18.0686 |", "relatedGraph": {"center": {"id": "屠呦呦", "name": "屠呦呦", "file": "屠呦呦.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1930, "death_year": null, "quote": "**523项目**", "review": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "今浙江省宁波市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "屠呦呦", "name": "屠呦呦", "file": "屠呦呦.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1930, "death_year": null, "quote": "**523项目**", "review": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "今浙江省宁波市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "向雷锋同志学习", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "全国战斗英雄", "review": "", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "纪律重于生命", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "左翼音乐家联盟", "review": "", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "屠呦呦", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "邱少云", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "聂耳", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:20Z", "generated_at": "2026-06-22T11:31:20Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "屠呦呦", "title": "", "description": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作。她长期致力于中药和中西药结合研究，带领团队在极其艰苦的条件下，从中国传统医药典籍中汲取智慧，历经数百次失败，最终于20世纪70年代成功从青蒿中提取出高效抗疟成分——青蒿素。这一发现为世界治疗疟疾提供了全新方案，被世界卫生组织推荐为一线药物，拯救了数百万人的生命，尤其是在热带地区。2015年，她因此获得诺贝尔生理学或医学奖，成为中国科学界的里程碑人物。", "quote": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "shortReview": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江省宁波市", "avatar": "", "birth": {"date": "1930年", "location": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84"}, "death": {"date": "", "location": "健在", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "", "highlights": {"honor": "", "status": "首位获诺贝尔科学奖的中国本土科学家，其发现的青蒿素挽救了全球数百万疟疾患者的生命。", "identities": "药学家、科学家", "achievements": "发现青蒿素；创制新型抗疟药青蒿素和双氢青蒿素；获2015年诺贝尔生理学或医学奖；获国家最高科学技术奖。", "works": [], "reviews": []}}, "locations": [{"name": "宁波", "ancientName": "宁波", "modernName": "浙江省宁波市", "lat": 29.8683, "lng": 121.544, "coordSystem": "WGS84", "type": "birth", "event": "出生并成长于宁波，接受早期教育。", "time": "公元1930年12月30日", "duration": "童年及少年时期", "significance": "江南的文化与教育环境为其奠定了最初的知识基础。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "进入上海私立药科学校（后并入上海第一医学院）学习药学。", "time": "公元1948-1951年（存疑）", "duration": "约3年（存疑）", "significance": "接受了系统的现代药学专业训练，为其日后从事药物研究打下基础。", "works": [], "quoteLines": []}, {"name": "北京（求学）", "ancientName": "北京（求学）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "在北京医学院（现北京大学医学部）药学系学习。", "time": "公元1951-1955年", "duration": "4年", "significance": "完成大学学业，获得药学学士学位，专业知识得到深化。", "works": [], "quoteLines": []}, {"name": "北京（工作）", "ancientName": "北京（工作）", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "进入卫生部中医研究院（现中国中医科学院）工作，历任实习研究员、研究员、博士生导师等职。在此领导“523”项目课题组，开展抗疟药物研究。", "time": "公元1955年至今", "duration": "长期", "significance": "这是其科研生涯的核心舞台，所有重大突破均在此孕育和完成。", "works": [], "quoteLines": []}, {"name": "嵊州", "ancientName": "嵊州", "modernName": "浙江省绍兴市嵊州市", "lat": 29.5885, "lng": 120.8218, "coordSystem": "WGS84", "type": "normal", "event": "祖籍地，家族根源所在。", "time": "多次回乡", "duration": "短期", "significance": "代表其个人与家族的文化渊源。", "works": [], "quoteLines": []}, {"name": "斯德哥尔摩", "ancientName": "斯德哥尔摩", "modernName": "瑞典斯德哥尔摩", "lat": 59.3293, "lng": 18.0686, "coordSystem": "WGS84", "type": "normal", "event": "出席诺贝尔奖颁奖典礼，并发表获奖演讲《青蒿素——中医药给世界的一份礼物》。", "time": "公元2015年12月", "duration": "约一周", "significance": "代表中国科学界获得世界最高学术荣誉，标志着中医药学对人类健康的重大贡献得到国际公认。", "works": ["青蒿素——中医药给世界的一份礼物"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---", "workTexts": {"**肘后备急方**": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。"}, "workSummaries": {"青蒿素——中医药给世界的一份礼物": {"title": "青蒿素——中医药给世界的一份礼物", "aliases": [], "authors": [], "related_people": ["屠呦呦"], "source_pages": ["屠呦呦"], "era": "", "genre": "", "one_liner": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "summary": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "青蒿素：人类征服疾病的一小步": {"title": "青蒿素：人类征服疾病的一小步", "aliases": ["青蒿素", "人类征服疾病的一小步"], "authors": [], "related_people": ["屠呦呦"], "source_pages": ["屠呦呦"], "era": "", "genre": "", "one_liner": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "summary": "屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 屠呦呦\n\n## 人物档案\n\n### 基本信息\n- **姓名**：屠呦呦\n- **时代**：中华人民共和国\n- **出生**：公元1930年12月30日，今浙江省宁波市\n- **去世**：健在\n- **主要身份**：药学家、科学家\n- **历史地位**：首位获诺贝尔科学奖的中国本土科学家，其发现的青蒿素挽救了全球数百万疟疾患者的生命。\n- **主要成就**：发现青蒿素；创制新型抗疟药青蒿素和双氢青蒿素；获2015年诺贝尔生理学或医学奖；获国家最高科学技术奖。\n\n### 生平概述\n屠呦呦出生于浙江宁波，1955年毕业于北京医学院（今北京大学医学部）药学系，随后分配到卫生部中医研究院（现中国中医科学院）工作。她长期致力于中药和中西药结合研究，带领团队在极其艰苦的条件下，从中国传统医药典籍中汲取智慧，历经数百次失败，最终于20世纪70年代成功从青蒿中提取出高效抗疟成分——青蒿素。这一发现为世界治疗疟疾提供了全新方案，被世界卫生组织推荐为一线药物，拯救了数百万人的生命，尤其是在热带地区。2015年，她因此获得诺贝尔生理学或医学奖，成为中国科学界的里程碑人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以中国北京为科研中心，足迹遍及浙江、上海、海南等地，并前往瑞典斯德哥尔摩领取诺贝尔奖。\n- ⏱️ **时间跨度**：1930年至今，跨越90余年。\n- 📍 **地理范围**：主要覆盖中国华东、华北、华南地区，以及北欧。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：宁波\n- **时间**：公元1930年12月30日\n- **停留时间**：童年及少年时期\n- **地点**：今浙江省宁波市\n- **事件**：出生并成长于宁波，接受早期教育。\n- **意义**：江南的文化与教育环境为其奠定了最初的知识基础。\n\n### 📍 重要地点：上海\n- **时间**：公元1948-1951年（存疑）\n- **停留时间**：约3年（存疑）\n- **地点**：今上海市\n- **事件**：进入上海私立药科学校（后并入上海第一医学院）学习药学。\n- **意义**：接受了系统的现代药学专业训练，为其日后从事药物研究打下基础。\n\n### 📍 重要地点：北京（求学）\n- **时间**：公元1951-1955年\n- **停留时间**：4年\n- **地点**：今北京市\n- **事件**：在北京医学院（现北京大学医学部）药学系学习。\n- **意义**：完成大学学业，获得药学学士学位，专业知识得到深化。\n\n### 📍 重要地点：北京（工作）\n- **时间**：公元1955年至今\n- **停留时间**：长期\n- **地点**：今北京市\n- **事件**：进入卫生部中医研究院（现中国中医科学院）工作，历任实习研究员、研究员、博士生导师等职。在此领导“523”项目课题组，开展抗疟药物研究。\n- **意义**：这是其科研生涯的核心舞台，所有重大突破均在此孕育和完成。\n\n### 📍 重要地点：海南岛（疟疾疫区）\n- **时间**：公元1960年代末-1970年代\n- **停留时间**：多次短期调研\n- **地点**：今海南省（具体调研地点待考）\n- **事件**：深入疟疾流行区进行临床调研，亲眼目睹疟疾危害，验证青蒿素的临床疗效。\n- **意义**：将实验室研究与临床实践紧密结合，确保了青蒿素应用的有效性与紧迫性。\n\n### 📍 重要地点：嵊州\n- **时间**：多次回乡\n- **停留时间**：短期\n- **地点**：今浙江省绍兴市嵊州市\n- **事件**：祖籍地，家族根源所在。\n- **意义**：代表其个人与家族的文化渊源。\n\n### 📍 重要地点：斯德哥尔摩\n- **时间**：公元2015年12月\n- **停留时间**：约一周\n- **地点**：今瑞典斯德哥尔摩\n- **事件**：出席诺贝尔奖颁奖典礼，并发表获奖演讲《青蒿素——中医药给世界的一份礼物》。\n- **意义**：代表中国科学界获得世界最高学术荣誉，标志着中医药学对人类健康的重大贡献得到国际公认。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1930年 | 宁波 | 浙江省宁波市 | （年龄：0岁）出生于浙江宁波。 |\n| 1951年 | 北京（求学） | 北京市 | （年龄：21岁）考入北京医学院药学系。 |\n| 1955年 | 北京（工作） | 北京市 | （年龄：25岁）毕业，分配到卫生部中医研究院工作。 |\n| 1969年 |  |  | （年龄：39岁）参与国家“523”抗疟药物研究项目，担任课题组组长。 |\n| 1971年 |  |  | （年龄：41岁）团队从青蒿中提取出对疟原虫抑制率显著的提取物。 |\n| 1972年 |  |  | （年龄：42岁）成功分离出有效单体——青蒿素。 |\n| 1978年 |  |  | （年龄：48岁）青蒿素抗疟研究获全国科学大会奖。 |\n| 2001年 |  |  | （年龄：71岁）当选世界卫生组织（WHO）治疗疟疾技术顾问委员会委员。 |\n| 2011年 |  |  | （年龄：81岁）获美国拉斯克临床医学研究奖。 |\n| 2015年 |  |  | （年龄：85岁）获诺贝尔生理学或医学奖。 |\n| 2017年 |  |  | （年龄：87岁）获中国国家最高科学技术奖。 |\n| 2019年 |  |  | （年龄：89岁）被授予“共和国勋章”。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《青蒿素：人类征服疾病的一小步》**（选入人教版高中语文教材）\n- 核心要点：\n    - **重点**：文章以第一人称叙述，清晰梳理了**青蒿素**从发现到应用的全过程，体现了**科学探索**的艰辛与严谨。\n    - **重点**：强调了**中国传统医药学**（中医药）在现代药物研发中的**宝贵价值**和独特启发。\n    - 文章展现了屠呦呦及其团队**团结协作**、**百折不挠**的科研精神。\n    - **重点**：通过青蒿素的案例，阐述了**科学发现**往往源于对**传统知识**的继承与创新性转化。\n    - 文章语言**平实准确**，逻辑清晰，是了解**科学报告**写作的典范。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：20世纪60-70年代，为应对疟疾，中国启动“**523项目**”，屠呦呦是关键参与者。\n    - 从东晋葛洪《**肘后备急方**》中获得灵感，采用**低温提取**方法成功获得青蒿素。\n    - **重点**：**青蒿素**的发现和应用，是**新中国**在科技领域（特别是**生物医药**）取得的**世界级重大成就**。\n- 核心要点：\n    - **重点**：屠呦呦的成就体现了**国家任务**导向下的**集体科研攻关**模式在特定历史时期的效率。\n    - 她的成功是**中医药现代化**和**中西医结合**的里程碑式案例。\n    - **重点**：获得**诺贝尔奖**，打破了中国本土科学家在自然科学诺贝尔奖上的空白，具有巨大的**象征意义**和**激励作用**。\n    - 其研究历程反映了**20世纪下半叶**全球公共卫生领域对抗传染病的**共同挑战**与**合作努力**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 浙江省宁波市 | 29.8683 | 121.5440 |\n| 上海市 | 31.2304 | 121.4737 |\n| 北京市 | 39.9042 | 116.4074 |\n| 浙江省绍兴市嵊州市 | 29.5885 | 120.8218 |\n| 瑞典斯德哥尔摩 | 59.3293 | 18.0686 |", "relatedGraph": {"center": {"id": "屠呦呦", "name": "屠呦呦", "file": "屠呦呦.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1930, "death_year": null, "quote": "**523项目**", "review": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "今浙江省宁波市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "屠呦呦", "name": "屠呦呦", "file": "屠呦呦.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1930, "death_year": null, "quote": "**523项目**", "review": "从东晋葛洪《肘后备急方》中获得灵感，采用低温提取方法成功获得青蒿素。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "今浙江省宁波市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "向雷锋同志学习", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱三强", "name": "钱三强", "file": "钱三强.html", "dynasty": "中华人民共和国（近现代）", "aliases": [], "birth_year": 1913, "death_year": 1992, "quote": "*中国原子能科学之父。**", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "全国战斗英雄", "review": "", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "邱少云", "name": "邱少云", "file": "邱少云.html", "dynasty": "中华人民共和国成立初期 / 抗美援朝战争时期", "aliases": [], "birth_year": 1926, "death_year": 1952, "quote": "纪律重于生命", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省铜梁县", "birthplace_modern": "重庆市铜梁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "屠呦呦", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "钱三强", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "郅顺义", "label": "同时代人物", "confidence": null}, {"source": "屠呦呦", "target": "邱少云", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:21Z", "generated_at": "2026-06-25T07:13:21Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:20Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:21Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -4,7 +4,7 @@ import json
 import os
 import threading
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional, Protocol, Tuple
 
@@ -172,7 +172,7 @@ def _default_checkpoint_store_path() -> Path:
     env_path = str(os.getenv("MAP_STORY_GENERATION_CHECKPOINT_JSON", "") or "").strip()
     if env_path:
         return Path(env_path)
-    repo_root = Path(__file__).resolve().parents[4]
+    repo_root = Path(__file__).resolve().parents[3]
     return repo_root / "data" / "runtime" / "generation_checkpoints.json"
 
 

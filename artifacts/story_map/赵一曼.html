@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "李坤泰", "title": "白山黑水", "description": "赵一曼出生于四川宜宾封建地主家庭，早年接受新思想，积极投身学生运动。1926年加入中国共产党，同年入黄埔军校武汉分校学习，途中在宜昌生下儿子“宁儿”（陈掖贤）。1927年赴莫斯科中山大学学习。1928年冬因病回国，先后在上海等地从事地下工作。1931年“九一八”事变后，被派往东北从事抗日斗争，领导工人运动，参与组建抗日武装。1935年担任东北抗日联军第三军二团政委，在珠河地区与日伪军展开游击战争。1935年11月在战斗中负伤被俘，遭受酷刑坚贞不屈，于1936年8月英勇就义。她的一生短暂而光辉，是中华民族不屈精神的杰出代表。", "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "shortReview": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "dynasty": "中国近现代（中华民国时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）", "avatar": "", "birth": {"date": "1905年", "location": "四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）", "lat": 29.096185, "lng": 104.612462, "coordSystem": "WGS84"}, "death": {"date": "1936年", "location": "黑龙江省珠河县（今黑龙江省哈尔滨市尚志市）", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84"}, "lifespan": "31岁", "highlights": {"honor": "白山黑水", "status": "中国共产党领导下的著名抗日民族女英雄，被誉为“白山黑水”间的抗日旗帜。", "identities": "革命家、抗日英雄、东北抗日联军第三军二团政委", "achievements": "领导哈尔滨电车工人罢工；在东北抗日联军中从事政治和军事工作；英勇抗击日本侵略者，壮烈牺牲。", "works": [], "reviews": ["**聂荣臻题词**：“赵一曼同志永垂不朽！”", "**后世评价**：她是“**白山黑水**”间的抗日女杰，中国共产党的优秀党员，中华民族的抗日英雄。", "**普遍共识**：赵一曼用生命诠释了“**甘将热血沃中华**”的誓言，是中华民族抵御外侮、追求解放的杰出代表。"]}}, "locations": [{"name": "四川宜宾白花镇", "ancientName": "四川省叙州府宜宾县白花镇", "modernName": "四川省宜宾市翠屏区白花镇", "lat": 29.096185, "lng": 104.612462, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年与少年时代，接受启蒙教育，反抗封建家庭束缚，接触进步思想，开始参与反帝反封建活动。", "time": "1905年—1926年", "duration": "约21年", "significance": "革命思想的萌芽之地，塑造了其反抗压迫、追求真理的性格基础。", "works": [], "quoteLines": []}, {"name": "湖北宜昌", "ancientName": "湖北省宜昌县", "modernName": "湖北省宜昌市", "lat": 30.694608, "lng": 111.281301, "coordSystem": "WGS84", "type": "normal", "event": "从四川前往武汉中央军事政治学校（黄埔军校武汉分校）途中，在此地生下儿子“宁儿”（陈掖贤）。", "time": "1926年夏", "duration": "短暂", "significance": "人生角色的重要转变，体现了革命者为理想舍小家的抉择。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "苏联莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.750556, "lng": 37.6175, "coordSystem": "WGS84", "type": "normal", "event": "系统学习马克思列宁主义理论和军事知识，提升了革命理论水平。", "time": "1927年9月—1928年冬", "duration": "约一年", "significance": "理论武装的关键阶段，为其后续从事政治工作和武装斗争奠定了坚实基础。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.232467, "lng": 121.469144, "coordSystem": "WGS84", "type": "normal", "event": "从苏联回国后，在上海从事地下工作，后接受派遣前往东北。", "time": "1928年冬—1931年", "duration": "约三年", "significance": "从理论学习转向实际斗争的枢纽，是奔赴抗日战场的出发点。", "works": [], "quoteLines": []}, {"name": "哈尔滨", "ancientName": "滨江省哈尔滨市", "modernName": "黑龙江省哈尔滨市", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84", "type": "normal", "event": "担任满洲省总工会组织部长、哈尔滨总工会代理书记，领导电车工人反日大罢工；参与建立抗日组织，开展秘密工作。领导城市工人运动，展现了卓越的组织和领导能力，是其抗日斗争的重要篇章。", "time": "1932年—1934年", "duration": "约两年", "significance": "城市工人运动与抗日斗争的重要结合点。", "works": [], "quoteLines": ["《滨江述怀》：**“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”**"]}, {"name": "黑龙江珠河", "ancientName": "滨江省珠河县", "modernName": "黑龙江省哈尔滨市尚志市", "lat": 45.207013, "lng": 128.00275, "coordSystem": "WGS84", "type": "death", "event": "1935年11月在春秋岭战斗中负伤被俘，关押于珠河县伪警察署。在狱中受尽酷刑，坚贞不屈。1936年8月2日，在押往珠河的火车上，她给儿子写下遗书，随后在珠河小北门英勇就义。", "time": "1936年8月2日", "duration": "1935年秋至牺牲（被俘后关押）", "significance": "英勇就义之地，其壮烈牺牲成为激励全国人民的抗日精神丰碑。", "works": [], "quoteLines": ["**《示儿书》**：“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**赵一曼**被派往东北，领导**抗日武装斗争**。\n- **代表作品/思想**：狱中写下的**《示儿书》**，体现了革命者的坚定信念与伟大母爱。\n- **常见易混点/对比点**：与**杨靖宇**、**赵尚志**等同为东北抗日联军的主要领导人；其事迹是**抗日战争**时期敌后战场（东北）艰苦斗争的缩影。\n\n### 高中阶段\n- **时代背景**：**世界反法西斯战争**的东方主战场；中国**全民族抗战**的重要组成部分。\n- **关键事件**：在**东北抗日联军**中担任政治领导工作，参与创建**抗日游击根据地**。\n- **代表作品/思想**：**《滨江述怀》**诗，集中体现了其为国捐躯的豪情壮志。\n- **历史意义**：赵一曼的牺牲是**中国共产党领导下的东北人民抗日斗争**的悲壮篇章，彰显了**中国共产党在抗日战争中的中流砥柱作用**。\n- **常见易混点/对比点**：东北抗日联军的斗争环境（极端严寒、孤悬敌后）与关内八路军、新四军有所不同；赵一曼的“**政委**”身份体现了人民军队**政治工作**的重要性。\n\n---", "examPoints": "### 初中阶段\n- 赵一曼的**原名**（李坤泰）和**主要化名**。\n- 她前往东北的主要任务：**抗日**。\n- 她担任的职务：**东北抗日联军第三军二团政委**。\n- 被俘后坚贞不屈，于**1936年**在**珠河**英勇就义。\n- 《**示儿书**》是体现其精神的重要文物。\n\n### 高中阶段\n- 赵一曼革命生涯的起点：**黄埔军校武汉分校**学习。\n- 她曾赴**苏联莫斯科中山大学**留学，提升理论水平。\n- 在东北期间，她不仅参与武装斗争，还领导了**哈尔滨电车工人罢工**等城市工人运动。\n- 她的牺牲是**东北抗日联军**艰苦卓绝斗争的典型事例。\n- 其精神内涵：融合了**共产主义信仰**、**爱国主义**和**民族气节**。\n- **存疑/说法一**：关于其被捕的具体细节和狱中斗争的完整过程，部分史料记载存在细微出入，但英勇就义的核心事实确凿无疑。\n\n---", "workTexts": {"滨江述怀": "“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”", "示儿书": "“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”", "赵一曼": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "**示儿书**": "《示儿书》是体现其精神的重要文物。"}, "workSummaries": {"滨江述怀": {"title": "滨江述怀", "aliases": [], "authors": ["赵一曼"], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "中国近现代（中华民国时期）", "genre": "", "one_liner": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "summary": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "quotes": ["未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "未惜头颅新故国，甘将热血沃中华。", "白山黑水除敌寇，笑看旌旗红似花。"], "quote_policy": "preferred"}, "示儿书": {"title": "示儿书", "aliases": [], "authors": ["赵一曼"], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "中国近现代（中华民国时期）", "genre": "书信/论说文", "one_liner": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "summary": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "quote": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "quotes": ["母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。", "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。"], "quote_policy": "preferred"}, "赵一曼": {"title": "赵一曼", "aliases": [], "authors": [], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "", "genre": "", "one_liner": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "summary": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 赵一曼\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：李坤泰（原名），字淑宁，赵一曼（化名）\n- **时代**：中国近现代（中华民国时期）\n- **出生**：1905年10月25日，四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）\n- **去世**：1936年8月2日，黑龙江省珠河县（今黑龙江省哈尔滨市尚志市）\n- **享年**：31岁\n- **主要身份**：革命家、抗日英雄、东北抗日联军第三军二团政委\n- **历史地位**：中国共产党领导下的著名抗日民族女英雄，被誉为“白山黑水”间的抗日旗帜。\n- **主要成就**：领导哈尔滨电车工人罢工；在东北抗日联军中从事政治和军事工作；英勇抗击日本侵略者，壮烈牺牲。\n\n### 生平概述\n赵一曼出生于四川宜宾封建地主家庭，早年接受新思想，积极投身学生运动。1926年加入中国共产党，同年入黄埔军校武汉分校学习，途中在宜昌生下儿子“宁儿”（陈掖贤）。1927年赴莫斯科中山大学学习。1928年冬因病回国，先后在上海等地从事地下工作。1931年“九一八”事变后，被派往东北从事抗日斗争，领导工人运动，参与组建抗日武装。1935年担任东北抗日联军第三军二团政委，在珠河地区与日伪军展开游击战争。1935年11月在战斗中负伤被俘，遭受酷刑坚贞不屈，于1936年8月英勇就义。她的一生短暂而光辉，是中华民族不屈精神的杰出代表。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从四川盆地出发，求学于上海、莫斯科，最终将热血洒在东北抗日战场。\n- ⏱️ **时间跨度**：1905年—1936年，共31年。\n- 📍 **地理范围**：中国四川、湖北、上海、莫斯科（苏联）、黑龙江等地。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：四川宜宾白花镇\n- **公元纪年**：1905年—1926年\n- **停留时间**：约21年\n- **位置**：四川省叙州府宜宾县白花镇（今四川省宜宾市翠屏区白花镇）\n- **事迹**：在此度过童年与少年时代，接受启蒙教育，反抗封建家庭束缚，接触进步思想，开始参与反帝反封建活动。\n- **意义**：革命思想的萌芽之地，塑造了其反抗压迫、追求真理的性格基础。\n\n### 📍 重要地点：湖北宜昌\n- **公元纪年**：1926年夏\n- **停留时间**：短暂\n- **位置**：湖北省宜昌县（今湖北省宜昌市）\n- **事迹**：从四川前往武汉中央军事政治学校（黄埔军校武汉分校）途中，在此地生下儿子“宁儿”（陈掖贤）。\n- **意义**：人生角色的重要转变，体现了革命者为理想舍小家的抉择。\n\n### 📍 重要地点：莫斯科\n- **公元纪年**：1927年9月—1928年冬\n- **停留时间**：约一年\n- **位置**：苏联莫斯科（今俄罗斯莫斯科）\n- **事迹**：系统学习马克思列宁主义理论和军事知识，提升了革命理论水平。\n- **意义**：理论武装的关键阶段，为其后续从事政治工作和武装斗争奠定了坚实基础。\n\n### 📍 重要地点：上海\n- **公元纪年**：1928年冬—1931年\n- **停留时间**：约三年\n- **位置**：上海（今上海市）\n- **事迹**：从苏联回国后，在上海从事地下工作，后接受派遣前往东北。\n- **意义**：从理论学习转向实际斗争的枢纽，是奔赴抗日战场的出发点。\n\n### 📍 重要地点：哈尔滨\n- **公元纪年**：1932年—1934年\n- **停留时间**：约两年\n- **位置**：滨江省哈尔滨市（今黑龙江省哈尔滨市）\n- **事迹**：担任满洲省总工会组织部长、哈尔滨总工会代理书记，领导电车工人反日大罢工；参与建立抗日组织，开展秘密工作。领导城市工人运动，展现了卓越的组织和领导能力，是其抗日斗争的重要篇章。\n- **意义**：城市工人运动与抗日斗争的重要结合点。\n- **名篇名句**：《滨江述怀》：**“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”**\n\n### 🔴 去世地：黑龙江珠河\n- **公元纪年**：1936年8月2日\n- **停留时间**：1935年秋至牺牲（被俘后关押）\n- **位置**：滨江省珠河县（今黑龙江省哈尔滨市尚志市）\n- **经过**：1935年11月在春秋岭战斗中负伤被俘，关押于珠河县伪警察署。在狱中受尽酷刑，坚贞不屈。1936年8月2日，在押往珠河的火车上，她给儿子写下遗书，随后在珠河小北门英勇就义。\n- **意义**：英勇就义之地，其壮烈牺牲成为激励全国人民的抗日精神丰碑。\n- **名篇名句**：**《示儿书》**：“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1905 | 四川宜宾白花镇 | 四川省宜宾市翠屏区白花镇 | （年龄：0岁）出生于四川宜宾白花镇。 |\n| 1923 |  |  | （年龄：18岁）加入社会主义青年团，开始革命活动。 |\n| 1926 |  |  | （年龄：21岁）加入中国共产党；入黄埔军校武汉分校学习；生下儿子“宁儿”。 |\n| 1927 | 莫斯科 | 俄罗斯莫斯科 | （年龄：22岁）赴苏联莫斯科中山大学学习。 |\n| 1928 | 上海 | 上海市 | （年龄：23岁）冬，因病回国，先后在上海等地从事地下工作。 |\n| 1931 |  |  | （年龄：26岁）“九一八”事变后，被派往东北从事抗日斗争。 |\n| 1932 | 哈尔滨 | 黑龙江省哈尔滨市 | （年龄：27岁）在哈尔滨领导工人运动，组织反日罢工。 |\n| 1934 |  |  | （年龄：29岁）转移到珠河地区，参与抗日武装斗争。 |\n| 1935 |  |  | （年龄：30岁）任东北抗日联军第三军二团政委；11月在战斗中负伤被俘。 |\n| 1936 | 黑龙江珠河 | 黑龙江省哈尔滨市尚志市 | （年龄：31岁）8月2日，在黑龙江珠河英勇就义。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n赵一曼的英勇事迹在东北抗日战场和全国广为流传，极大地鼓舞了抗日军民的士气。她在狱中坚贞不屈的意志和英勇就义的壮举，成为揭露日本侵略者残暴本质、彰显中华民族不屈精神的有力证据，激励了无数爱国志士投身抗战洪流。\n\n### 对后世的影响\n- 成为中国重要的**爱国主义教育典范**，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。\n- 她的革命精神，特别是**坚定的理想信念、崇高的民族气节和伟大的母爱**，成为中华民族宝贵的精神财富。\n- 在哈尔滨、宜宾等地建有赵一曼纪念馆、塑像，成为重要的红色教育基地和革命纪念地。\n\n### 历史评价\n- **聂荣臻题词**：“赵一曼同志永垂不朽！”\n- **后世评价**：她是“**白山黑水**”间的抗日女杰，中国共产党的优秀党员，中华民族的抗日英雄。\n- **普遍共识**：赵一曼用生命诠释了“**甘将热血沃中华**”的誓言，是中华民族抵御外侮、追求解放的杰出代表。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**赵一曼**被派往东北，领导**抗日武装斗争**。\n- **代表作品/思想**：狱中写下的**《示儿书》**，体现了革命者的坚定信念与伟大母爱。\n- **常见易混点/对比点**：与**杨靖宇**、**赵尚志**等同为东北抗日联军的主要领导人；其事迹是**抗日战争**时期敌后战场（东北）艰苦斗争的缩影。\n\n### 高中阶段\n- **时代背景**：**世界反法西斯战争**的东方主战场；中国**全民族抗战**的重要组成部分。\n- **关键事件**：在**东北抗日联军**中担任政治领导工作，参与创建**抗日游击根据地**。\n- **代表作品/思想**：**《滨江述怀》**诗，集中体现了其为国捐躯的豪情壮志。\n- **历史意义**：赵一曼的牺牲是**中国共产党领导下的东北人民抗日斗争**的悲壮篇章，彰显了**中国共产党在抗日战争中的中流砥柱作用**。\n- **常见易混点/对比点**：东北抗日联军的斗争环境（极端严寒、孤悬敌后）与关内八路军、新四军有所不同；赵一曼的“**政委**”身份体现了人民军队**政治工作**的重要性。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 赵一曼的**原名**（李坤泰）和**主要化名**。\n- 她前往东北的主要任务：**抗日**。\n- 她担任的职务：**东北抗日联军第三军二团政委**。\n- 被俘后坚贞不屈，于**1936年**在**珠河**英勇就义。\n- 《**示儿书**》是体现其精神的重要文物。\n\n### 高中阶段\n- 赵一曼革命生涯的起点：**黄埔军校武汉分校**学习。\n- 她曾赴**苏联莫斯科中山大学**留学，提升理论水平。\n- 在东北期间，她不仅参与武装斗争，还领导了**哈尔滨电车工人罢工**等城市工人运动。\n- 她的牺牲是**东北抗日联军**艰苦卓绝斗争的典型事例。\n- 其精神内涵：融合了**共产主义信仰**、**爱国主义**和**民族气节**。\n- **存疑/说法一**：关于其被捕的具体细节和狱中斗争的完整过程，部分史料记载存在细微出入，但英勇就义的核心事实确凿无疑。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 四川宜宾白花镇 | 四川省宜宾市翠屏区白花镇 | 29.096185 | 104.612462 |\n| 湖北宜昌 | 湖北省宜昌市 | 30.694608 | 111.281301 |\n| 莫斯科 | 俄罗斯莫斯科 | 55.750556 | 37.617500 |\n| 上海 | 上海市 | 31.232467 | 121.469144 |\n| 哈尔滨 | 黑龙江省哈尔滨市 | 45.800999 | 126.529010 |\n| 黑龙江珠河 | 黑龙江省哈尔滨市尚志市 | 45.207013 | 128.002750 |\n", "relatedGraph": {"center": {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "江竹筠", "name": "江竹筠", "file": "江竹筠.html", "dynasty": "中华民国时期", "aliases": [], "birth_year": 1920, "death_year": 1949, "quote": "中华儿女革命的典型", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省自贡市大山铺镇江家湾", "birthplace_modern": "自贡市大安区大山铺镇江家湾", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "赵一曼", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "江竹筠", "label": "同册共现", "confidence": 0.15}, {"source": "赵一曼", "target": "杨靖宇", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:46Z", "generated_at": "2026-06-22T11:31:46Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "李坤泰", "title": "白山黑水", "description": "赵一曼出生于四川宜宾封建地主家庭，早年接受新思想，积极投身学生运动。1926年加入中国共产党，同年入黄埔军校武汉分校学习，途中在宜昌生下儿子“宁儿”（陈掖贤）。1927年赴莫斯科中山大学学习。1928年冬因病回国，先后在上海等地从事地下工作。1931年“九一八”事变后，被派往东北从事抗日斗争，领导工人运动，参与组建抗日武装。1935年担任东北抗日联军第三军二团政委，在珠河地区与日伪军展开游击战争。1935年11月在战斗中负伤被俘，遭受酷刑坚贞不屈，于1936年8月英勇就义。她的一生短暂而光辉，是中华民族不屈精神的杰出代表。", "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "shortReview": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "dynasty": "中国近现代（中华民国时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）", "avatar": "", "birth": {"date": "1905年", "location": "四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）", "lat": 29.096185, "lng": 104.612462, "coordSystem": "WGS84"}, "death": {"date": "1936年", "location": "黑龙江省珠河县（今黑龙江省哈尔滨市尚志市）", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84"}, "lifespan": "31岁", "highlights": {"honor": "白山黑水", "status": "中国共产党领导下的著名抗日民族女英雄，被誉为“白山黑水”间的抗日旗帜。", "identities": "革命家、抗日英雄、东北抗日联军第三军二团政委", "achievements": "领导哈尔滨电车工人罢工；在东北抗日联军中从事政治和军事工作；英勇抗击日本侵略者，壮烈牺牲。", "works": [], "reviews": ["**聂荣臻题词**：“赵一曼同志永垂不朽！”", "**后世评价**：她是“**白山黑水**”间的抗日女杰，中国共产党的优秀党员，中华民族的抗日英雄。", "**普遍共识**：赵一曼用生命诠释了“**甘将热血沃中华**”的誓言，是中华民族抵御外侮、追求解放的杰出代表。"]}}, "locations": [{"name": "四川宜宾白花镇", "ancientName": "四川省叙州府宜宾县白花镇", "modernName": "四川省宜宾市翠屏区白花镇", "lat": 29.096185, "lng": 104.612462, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年与少年时代，接受启蒙教育，反抗封建家庭束缚，接触进步思想，开始参与反帝反封建活动。", "time": "1905年—1926年", "duration": "约21年", "significance": "革命思想的萌芽之地，塑造了其反抗压迫、追求真理的性格基础。", "works": [], "quoteLines": []}, {"name": "湖北宜昌", "ancientName": "湖北省宜昌县", "modernName": "湖北省宜昌市", "lat": 30.694608, "lng": 111.281301, "coordSystem": "WGS84", "type": "normal", "event": "从四川前往武汉中央军事政治学校（黄埔军校武汉分校）途中，在此地生下儿子“宁儿”（陈掖贤）。", "time": "1926年夏", "duration": "短暂", "significance": "人生角色的重要转变，体现了革命者为理想舍小家的抉择。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "苏联莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.750556, "lng": 37.6175, "coordSystem": "WGS84", "type": "normal", "event": "系统学习马克思列宁主义理论和军事知识，提升了革命理论水平。", "time": "1927年9月—1928年冬", "duration": "约一年", "significance": "理论武装的关键阶段，为其后续从事政治工作和武装斗争奠定了坚实基础。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.232467, "lng": 121.469144, "coordSystem": "WGS84", "type": "normal", "event": "从苏联回国后，在上海从事地下工作，后接受派遣前往东北。", "time": "1928年冬—1931年", "duration": "约三年", "significance": "从理论学习转向实际斗争的枢纽，是奔赴抗日战场的出发点。", "works": [], "quoteLines": []}, {"name": "哈尔滨", "ancientName": "滨江省哈尔滨市", "modernName": "黑龙江省哈尔滨市", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84", "type": "normal", "event": "担任满洲省总工会组织部长、哈尔滨总工会代理书记，领导电车工人反日大罢工；参与建立抗日组织，开展秘密工作。领导城市工人运动，展现了卓越的组织和领导能力，是其抗日斗争的重要篇章。", "time": "1932年—1934年", "duration": "约两年", "significance": "城市工人运动与抗日斗争的重要结合点。", "works": [], "quoteLines": ["《滨江述怀》：**“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”**"]}, {"name": "黑龙江珠河", "ancientName": "滨江省珠河县", "modernName": "黑龙江省哈尔滨市尚志市", "lat": 45.207013, "lng": 128.00275, "coordSystem": "WGS84", "type": "death", "event": "1935年11月在春秋岭战斗中负伤被俘，关押于珠河县伪警察署。在狱中受尽酷刑，坚贞不屈。1936年8月2日，在押往珠河的火车上，她给儿子写下遗书，随后在珠河小北门英勇就义。", "time": "1936年8月2日", "duration": "1935年秋至牺牲（被俘后关押）", "significance": "英勇就义之地，其壮烈牺牲成为激励全国人民的抗日精神丰碑。", "works": [], "quoteLines": ["**《示儿书》**：“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**赵一曼**被派往东北，领导**抗日武装斗争**。\n- **代表作品/思想**：狱中写下的**《示儿书》**，体现了革命者的坚定信念与伟大母爱。\n- **常见易混点/对比点**：与**杨靖宇**、**赵尚志**等同为东北抗日联军的主要领导人；其事迹是**抗日战争**时期敌后战场（东北）艰苦斗争的缩影。\n\n### 高中阶段\n- **时代背景**：**世界反法西斯战争**的东方主战场；中国**全民族抗战**的重要组成部分。\n- **关键事件**：在**东北抗日联军**中担任政治领导工作，参与创建**抗日游击根据地**。\n- **代表作品/思想**：**《滨江述怀》**诗，集中体现了其为国捐躯的豪情壮志。\n- **历史意义**：赵一曼的牺牲是**中国共产党领导下的东北人民抗日斗争**的悲壮篇章，彰显了**中国共产党在抗日战争中的中流砥柱作用**。\n- **常见易混点/对比点**：东北抗日联军的斗争环境（极端严寒、孤悬敌后）与关内八路军、新四军有所不同；赵一曼的“**政委**”身份体现了人民军队**政治工作**的重要性。\n\n---", "examPoints": "### 初中阶段\n- 赵一曼的**原名**（李坤泰）和**主要化名**。\n- 她前往东北的主要任务：**抗日**。\n- 她担任的职务：**东北抗日联军第三军二团政委**。\n- 被俘后坚贞不屈，于**1936年**在**珠河**英勇就义。\n- 《**示儿书**》是体现其精神的重要文物。\n\n### 高中阶段\n- 赵一曼革命生涯的起点：**黄埔军校武汉分校**学习。\n- 她曾赴**苏联莫斯科中山大学**留学，提升理论水平。\n- 在东北期间，她不仅参与武装斗争，还领导了**哈尔滨电车工人罢工**等城市工人运动。\n- 她的牺牲是**东北抗日联军**艰苦卓绝斗争的典型事例。\n- 其精神内涵：融合了**共产主义信仰**、**爱国主义**和**民族气节**。\n- **存疑/说法一**：关于其被捕的具体细节和狱中斗争的完整过程，部分史料记载存在细微出入，但英勇就义的核心事实确凿无疑。\n\n---", "workTexts": {"滨江述怀": "“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”", "示儿书": "“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”", "赵一曼": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "**示儿书**": "《示儿书》是体现其精神的重要文物。"}, "workSummaries": {"滨江述怀": {"title": "滨江述怀", "aliases": [], "authors": ["赵一曼"], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "中国近现代（中华民国时期）", "genre": "", "one_liner": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "summary": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "quotes": ["未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "未惜头颅新故国，甘将热血沃中华。", "白山黑水除敌寇，笑看旌旗红似花。"], "quote_policy": "preferred"}, "示儿书": {"title": "示儿书", "aliases": [], "authors": ["赵一曼"], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "中国近现代（中华民国时期）", "genre": "书信/论说文", "one_liner": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "summary": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "quote": "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "quotes": ["母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……", "母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。", "母亲对于你没有能尽到教育的责任，实在是遗憾的事情。"], "quote_policy": "preferred"}, "赵一曼": {"title": "赵一曼", "aliases": [], "authors": [], "related_people": ["赵一曼"], "source_pages": ["赵一曼"], "era": "", "genre": "", "one_liner": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "summary": "成为中国重要的爱国主义教育典范，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 赵一曼\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：李坤泰（原名），字淑宁，赵一曼（化名）\n- **时代**：中国近现代（中华民国时期）\n- **出生**：1905年10月25日，四川省宜宾县白花镇（今四川省宜宾市翠屏区白花镇）\n- **去世**：1936年8月2日，黑龙江省珠河县（今黑龙江省哈尔滨市尚志市）\n- **享年**：31岁\n- **主要身份**：革命家、抗日英雄、东北抗日联军第三军二团政委\n- **历史地位**：中国共产党领导下的著名抗日民族女英雄，被誉为“白山黑水”间的抗日旗帜。\n- **主要成就**：领导哈尔滨电车工人罢工；在东北抗日联军中从事政治和军事工作；英勇抗击日本侵略者，壮烈牺牲。\n\n### 生平概述\n赵一曼出生于四川宜宾封建地主家庭，早年接受新思想，积极投身学生运动。1926年加入中国共产党，同年入黄埔军校武汉分校学习，途中在宜昌生下儿子“宁儿”（陈掖贤）。1927年赴莫斯科中山大学学习。1928年冬因病回国，先后在上海等地从事地下工作。1931年“九一八”事变后，被派往东北从事抗日斗争，领导工人运动，参与组建抗日武装。1935年担任东北抗日联军第三军二团政委，在珠河地区与日伪军展开游击战争。1935年11月在战斗中负伤被俘，遭受酷刑坚贞不屈，于1936年8月英勇就义。她的一生短暂而光辉，是中华民族不屈精神的杰出代表。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从四川盆地出发，求学于上海、莫斯科，最终将热血洒在东北抗日战场。\n- ⏱️ **时间跨度**：1905年—1936年，共31年。\n- 📍 **地理范围**：中国四川、湖北、上海、莫斯科（苏联）、黑龙江等地。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：四川宜宾白花镇\n- **公元纪年**：1905年—1926年\n- **停留时间**：约21年\n- **位置**：四川省叙州府宜宾县白花镇（今四川省宜宾市翠屏区白花镇）\n- **事迹**：在此度过童年与少年时代，接受启蒙教育，反抗封建家庭束缚，接触进步思想，开始参与反帝反封建活动。\n- **意义**：革命思想的萌芽之地，塑造了其反抗压迫、追求真理的性格基础。\n\n### 📍 重要地点：湖北宜昌\n- **公元纪年**：1926年夏\n- **停留时间**：短暂\n- **位置**：湖北省宜昌县（今湖北省宜昌市）\n- **事迹**：从四川前往武汉中央军事政治学校（黄埔军校武汉分校）途中，在此地生下儿子“宁儿”（陈掖贤）。\n- **意义**：人生角色的重要转变，体现了革命者为理想舍小家的抉择。\n\n### 📍 重要地点：莫斯科\n- **公元纪年**：1927年9月—1928年冬\n- **停留时间**：约一年\n- **位置**：苏联莫斯科（今俄罗斯莫斯科）\n- **事迹**：系统学习马克思列宁主义理论和军事知识，提升了革命理论水平。\n- **意义**：理论武装的关键阶段，为其后续从事政治工作和武装斗争奠定了坚实基础。\n\n### 📍 重要地点：上海\n- **公元纪年**：1928年冬—1931年\n- **停留时间**：约三年\n- **位置**：上海（今上海市）\n- **事迹**：从苏联回国后，在上海从事地下工作，后接受派遣前往东北。\n- **意义**：从理论学习转向实际斗争的枢纽，是奔赴抗日战场的出发点。\n\n### 📍 重要地点：哈尔滨\n- **公元纪年**：1932年—1934年\n- **停留时间**：约两年\n- **位置**：滨江省哈尔滨市（今黑龙江省哈尔滨市）\n- **事迹**：担任满洲省总工会组织部长、哈尔滨总工会代理书记，领导电车工人反日大罢工；参与建立抗日组织，开展秘密工作。领导城市工人运动，展现了卓越的组织和领导能力，是其抗日斗争的重要篇章。\n- **意义**：城市工人运动与抗日斗争的重要结合点。\n- **名篇名句**：《滨江述怀》：**“未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。”**\n\n### 🔴 去世地：黑龙江珠河\n- **公元纪年**：1936年8月2日\n- **停留时间**：1935年秋至牺牲（被俘后关押）\n- **位置**：滨江省珠河县（今黑龙江省哈尔滨市尚志市）\n- **经过**：1935年11月在春秋岭战斗中负伤被俘，关押于珠河县伪警察署。在狱中受尽酷刑，坚贞不屈。1936年8月2日，在押往珠河的火车上，她给儿子写下遗书，随后在珠河小北门英勇就义。\n- **意义**：英勇就义之地，其壮烈牺牲成为激励全国人民的抗日精神丰碑。\n- **名篇名句**：**《示儿书》**：“母亲对于你没有能尽到教育的责任，实在是遗憾的事情。母亲因为坚决地做了反满抗日的斗争，今天已经到了牺牲的前夕了。……希望你，宁儿啊！赶快成人，来安慰你地下的母亲！……”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1905 | 四川宜宾白花镇 | 四川省宜宾市翠屏区白花镇 | （年龄：0岁）出生于四川宜宾白花镇。 |\n| 1923 |  |  | （年龄：18岁）加入社会主义青年团，开始革命活动。 |\n| 1926 |  |  | （年龄：21岁）加入中国共产党；入黄埔军校武汉分校学习；生下儿子“宁儿”。 |\n| 1927 | 莫斯科 | 俄罗斯莫斯科 | （年龄：22岁）赴苏联莫斯科中山大学学习。 |\n| 1928 | 上海 | 上海市 | （年龄：23岁）冬，因病回国，先后在上海等地从事地下工作。 |\n| 1931 |  |  | （年龄：26岁）“九一八”事变后，被派往东北从事抗日斗争。 |\n| 1932 | 哈尔滨 | 黑龙江省哈尔滨市 | （年龄：27岁）在哈尔滨领导工人运动，组织反日罢工。 |\n| 1934 |  |  | （年龄：29岁）转移到珠河地区，参与抗日武装斗争。 |\n| 1935 |  |  | （年龄：30岁）任东北抗日联军第三军二团政委；11月在战斗中负伤被俘。 |\n| 1936 | 黑龙江珠河 | 黑龙江省哈尔滨市尚志市 | （年龄：31岁）8月2日，在黑龙江珠河英勇就义。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n赵一曼的英勇事迹在东北抗日战场和全国广为流传，极大地鼓舞了抗日军民的士气。她在狱中坚贞不屈的意志和英勇就义的壮举，成为揭露日本侵略者残暴本质、彰显中华民族不屈精神的有力证据，激励了无数爱国志士投身抗战洪流。\n\n### 对后世的影响\n- 成为中国重要的**爱国主义教育典范**，其事迹被写入教材、拍成电影（如《赵一曼》），广为传颂。\n- 她的革命精神，特别是**坚定的理想信念、崇高的民族气节和伟大的母爱**，成为中华民族宝贵的精神财富。\n- 在哈尔滨、宜宾等地建有赵一曼纪念馆、塑像，成为重要的红色教育基地和革命纪念地。\n\n### 历史评价\n- **聂荣臻题词**：“赵一曼同志永垂不朽！”\n- **后世评价**：她是“**白山黑水**”间的抗日女杰，中国共产党的优秀党员，中华民族的抗日英雄。\n- **普遍共识**：赵一曼用生命诠释了“**甘将热血沃中华**”的誓言，是中华民族抵御外侮、追求解放的杰出代表。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**赵一曼**被派往东北，领导**抗日武装斗争**。\n- **代表作品/思想**：狱中写下的**《示儿书》**，体现了革命者的坚定信念与伟大母爱。\n- **常见易混点/对比点**：与**杨靖宇**、**赵尚志**等同为东北抗日联军的主要领导人；其事迹是**抗日战争**时期敌后战场（东北）艰苦斗争的缩影。\n\n### 高中阶段\n- **时代背景**：**世界反法西斯战争**的东方主战场；中国**全民族抗战**的重要组成部分。\n- **关键事件**：在**东北抗日联军**中担任政治领导工作，参与创建**抗日游击根据地**。\n- **代表作品/思想**：**《滨江述怀》**诗，集中体现了其为国捐躯的豪情壮志。\n- **历史意义**：赵一曼的牺牲是**中国共产党领导下的东北人民抗日斗争**的悲壮篇章，彰显了**中国共产党在抗日战争中的中流砥柱作用**。\n- **常见易混点/对比点**：东北抗日联军的斗争环境（极端严寒、孤悬敌后）与关内八路军、新四军有所不同；赵一曼的“**政委**”身份体现了人民军队**政治工作**的重要性。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 赵一曼的**原名**（李坤泰）和**主要化名**。\n- 她前往东北的主要任务：**抗日**。\n- 她担任的职务：**东北抗日联军第三军二团政委**。\n- 被俘后坚贞不屈，于**1936年**在**珠河**英勇就义。\n- 《**示儿书**》是体现其精神的重要文物。\n\n### 高中阶段\n- 赵一曼革命生涯的起点：**黄埔军校武汉分校**学习。\n- 她曾赴**苏联莫斯科中山大学**留学，提升理论水平。\n- 在东北期间，她不仅参与武装斗争，还领导了**哈尔滨电车工人罢工**等城市工人运动。\n- 她的牺牲是**东北抗日联军**艰苦卓绝斗争的典型事例。\n- 其精神内涵：融合了**共产主义信仰**、**爱国主义**和**民族气节**。\n- **存疑/说法一**：关于其被捕的具体细节和狱中斗争的完整过程，部分史料记载存在细微出入，但英勇就义的核心事实确凿无疑。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 四川宜宾白花镇 | 四川省宜宾市翠屏区白花镇 | 29.096185 | 104.612462 |\n| 湖北宜昌 | 湖北省宜昌市 | 30.694608 | 111.281301 |\n| 莫斯科 | 俄罗斯莫斯科 | 55.750556 | 37.617500 |\n| 上海 | 上海市 | 31.232467 | 121.469144 |\n| 哈尔滨 | 黑龙江省哈尔滨市 | 45.800999 | 126.529010 |\n| 黑龙江珠河 | 黑龙江省哈尔滨市尚志市 | 45.207013 | 128.002750 |\n", "relatedGraph": {"center": {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "江竹筠", "name": "江竹筠", "file": "江竹筠.html", "dynasty": "中华民国时期", "aliases": [], "birth_year": 1920, "death_year": 1949, "quote": "中华儿女革命的典型", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "四川省自贡市大山铺镇江家湾", "birthplace_modern": "自贡市大安区大山铺镇江家湾", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "赵一曼", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "赵一曼", "target": "江竹筠", "label": "同册共现", "confidence": 0.15}, {"source": "赵一曼", "target": "杨靖宇", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:49Z", "generated_at": "2026-06-25T07:13:49Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:46Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:49Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

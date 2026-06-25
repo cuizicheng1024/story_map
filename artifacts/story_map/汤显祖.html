@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "汤显祖", "title": "临川四梦", "description": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。", "quote": "陛下经营天下二十年于兹矣。", "shortReview": "陛下经营天下二十年于兹矣。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称抚州府临川县（今江西省抚州市临川区）", "avatar": "", "birth": {"date": "1550年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "death": {"date": "1616年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "lifespan": "约66岁（一说67岁）", "highlights": {"honor": "临川四梦", "status": "中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。", "identities": "戏曲家、文学家", "achievements": "创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。", "works": ["论辅臣科臣疏", "牡丹亭", "还魂记", "紫钗记", "南柯记", "邯郸记"], "reviews": []}}, "locations": [{"name": "临川", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，早年即以文才闻名乡里。", "time": "公元1550年", "duration": "青少年时期（约20年）", "significance": "其文化根基与“临川”之名的由来，一生的精神原点。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "南昌府", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "参加乡试中举。", "time": "约1570年", "duration": "短暂游学", "significance": "科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。", "time": "1584年 - 1591年", "duration": "约7年", "significance": "政治生涯的转折点，也是其戏剧思想成熟的重要时期。", "works": ["论辅臣科臣疏"], "quoteLines": ["《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”"]}, {"name": "徐闻", "ancientName": "雷州府徐闻县", "modernName": "广东省湛江市徐闻县", "lat": 20.3265, "lng": 110.1745, "coordSystem": "WGS84", "type": "normal", "event": "因上疏被贬为徐闻典史；建“贵生书院”讲学。", "time": "1591年 - 1593年", "duration": "约2年", "significance": "人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。", "works": [], "quoteLines": []}, {"name": "遂昌", "ancientName": "处州府遂昌县", "modernName": "浙江省丽水市遂昌县", "lat": 28.5924, "lng": 119.2756, "coordSystem": "WGS84", "type": "normal", "event": "任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。", "time": "1593年 - 1598年", "duration": "约5年", "significance": "地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。", "works": [], "quoteLines": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”"]}, {"name": "临川（玉茗堂）", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "normal", "event": "辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "time": "1598年 - 1616年", "duration": "晚年近20年", "significance": "创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。", "works": ["牡丹亭", "南柯记", "邯郸记"], "quoteLines": ["《牡丹亭记题词》：“情不知所起，一往而深。”", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "workTexts": {"论辅臣科臣疏": "陛下经营天下二十年于兹矣。", "惊梦": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "牡丹亭记题词": "情不知所起，一往而深。", "牡丹亭": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "南柯记": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "邯郸记": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。"}, "workSummaries": {"牡丹亭": {"title": "牡丹亭", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "summary": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "quote": "他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "quotes": ["他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。"], "quote_policy": "preferred"}, "还魂记": {"title": "还魂记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "quotes": ["《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "提出“情至”观念，对后世文学戏曲影响深远。", "玉茗堂四梦"], "quote_policy": "preferred"}, "紫钗记": {"title": "紫钗记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "提出“情至”观念，对后世文学戏曲影响深远。", "quotes": ["提出“情至”观念，对后世文学戏曲影响深远。", "玉茗堂四梦", "临川四梦"], "quote_policy": "preferred"}, "南柯记": {"title": "南柯记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "summary": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "quote": "事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "quotes": ["事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "提出“情至”观念，对后世文学戏曲影响深远。"], "quote_policy": "preferred"}, "邯郸记": {"title": "邯郸记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "summary": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "quote": "事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "quotes": ["事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "提出“情至”观念，对后世文学戏曲影响深远。"], "quote_policy": "preferred"}, "论辅臣科臣疏": {"title": "论辅臣科臣疏", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "陛下经营天下二十年于兹矣。", "summary": "陛下经营天下二十年于兹矣。", "quote": "在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。", "quotes": ["在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。", "他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。"], "quote_policy": "preferred"}, "惊梦": {"title": "惊梦", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "summary": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "quote": "《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。", "quotes": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "原来姹紫嫣红开遍，似这般都付与断井颓垣。"], "quote_policy": "preferred"}, "牡丹亭记题词": {"title": "牡丹亭记题词", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "词", "one_liner": "情不知所起，一往而深。", "summary": "情不知所起，一往而深。", "quote": "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "quotes": ["《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "良辰美景奈何天，赏心乐事谁家院。", "情不知所起，一往而深。"], "quote_policy": "preferred"}, "闺塾": {"title": "闺塾", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "quotes": ["《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）"], "quote_policy": "preferred"}}, "markdown": "# 汤显祖\n\n## 人物档案\n\n### 基本信息\n- **姓名**：汤显祖\n- **时代**：明代\n- **出生**：公元1550年，古称抚州府临川县（今江西省抚州市临川区）（出生具体日期存疑）\n- **去世**：公元1616年，古称抚州府临川县（今江西省抚州市临川区）（去世具体日期存疑）\n- **享年**：约66岁（一说67岁）\n- **主要身份**：戏曲家、文学家\n- **历史地位**：中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。\n- **主要成就**：创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。\n\n### 生平概述\n汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在江西、南京、浙江、广东等地，核心活动范围在江南。\n- ⏱️ **时间跨度**：公元1550年 - 公元1616年，共66年。\n- 📍 **地理范围**：覆盖今江西、江苏、浙江、广东等省份。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：临川\n- **时间**：公元1550年\n- **停留时间**：青少年时期（约20年）\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：出生于书香门第，早年即以文才闻名乡里。\n- **意义**：其文化根基与“临川”之名的由来，一生的精神原点。\n\n### 📍 重要地点：南昌\n- **时间**：约1570年\n- **停留时间**：短暂游学\n- **地点**：古称南昌府（今江西省南昌市）\n- **事件**：参加乡试中举。\n- **意义**：科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。\n\n### 📍 重要地点：南京\n- **时间**：1584年 - 1591年\n- **停留时间**：约7年\n- **地点**：古称应天府（今江苏省南京市）\n- **事件**：任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。\n- **意义**：政治生涯的转折点，也是其戏剧思想成熟的重要时期。\n- **名篇名句**：《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”\n\n### 📍 重要地点：徐闻\n- **时间**：1591年 - 1593年\n- **停留时间**：约2年\n- **地点**：古称雷州府徐闻县（今广东省湛江市徐闻县）\n- **事件**：因上疏被贬为徐闻典史；建“贵生书院”讲学。\n- **意义**：人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。\n\n### 📍 重要地点：遂昌\n- **时间**：1593年 - 1598年\n- **停留时间**：约5年\n- **地点**：古称处州府遂昌县（今浙江省丽水市遂昌县）\n- **事件**：任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。\n- **意义**：地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。\n- **名篇名句**：《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”\n\n### 🔴 重要创作地：临川（玉茗堂）\n- **时间**：1598年 - 1616年\n- **停留时间**：晚年近20年\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。\n- **意义**：创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。\n- **名篇名句**：《牡丹亭记题词》：“情不知所起，一往而深。”；《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1550年 | 临川 | 江西省抚州市临川区 | （年龄：1岁）出生于江西临川。 |\n| 1570年 | 南昌 | 江西省南昌市 | （年龄：21岁）于南昌中举。 |\n| 约1577年-1580年 |  |  | （年龄：28-31岁）因拒绝张居正拉拢，数次会试不第（具体年份存异）。 |\n| 1583年 |  |  | （年龄：34岁）张居正死后，中进士。 |\n| 1584年-1591年 | 南京 | 江苏省南京市 | （年龄：35-42岁）在南京任闲职，上疏批评朝政。 |\n| 1591年 | 徐闻 | 广东省湛江市徐闻县 | （年龄：42岁）被贬广东徐闻典史。 |\n| 1593年 | 遂昌 | 浙江省丽水市遂昌县 | （年龄：44岁）调任浙江遂昌知县。 |\n| 1598年 | 临川 | 江西省抚州市临川区 | （年龄：49岁）辞官归临川。 |\n| 1598年 |  |  | （年龄：49岁）完成《牡丹亭》。 |\n| 1600年-1601年 |  |  | （年龄：51-52岁）完成《南柯记》。 |\n| 1608年 |  |  | （年龄：59岁）完成《邯郸记》。 |\n| 1616年 | 临川 | 江西省抚州市临川区 | （年龄：66岁）于临川逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省抚州市临川区 | 27.9350 | 116.3583 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 广东省湛江市徐闻县 | 20.3265 | 110.1745 |\n| 浙江省丽水市遂昌县 | 28.5924 | 119.2756 |", "relatedGraph": {"center": {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "陛下经营天下二十年于兹矣。", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "陛下经营天下二十年于兹矣。", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "aliases": [], "birth_year": 1518, "death_year": 1593, "quote": "脑为元神之府", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "蕲州", "birthplace_modern": "湖北省黄冈市蕲春县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "利玛窦", "name": "利玛窦", "file": "利玛窦.html", "dynasty": "明代（万历年间）", "aliases": [], "birth_year": 1610, "death_year": 1610, "quote": "意大利耶稣会传教士，1583年来华，肇庆、韶州、南昌、南京等地传教，后定居北京", "review": "", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "天门何崔嵬，下见青云浮。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "学问之道，以敬为本。", "review": "", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汤显祖", "target": "李时珍", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "利玛窦", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "王阳明", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "胡居仁", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "魏学洢", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:34Z", "generated_at": "2026-06-22T11:31:34Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "汤显祖", "title": "临川四梦", "description": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。", "quote": "陛下经营天下二十年于兹矣。", "shortReview": "陛下经营天下二十年于兹矣。", "dynasty": "明代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称抚州府临川县（今江西省抚州市临川区）", "avatar": "", "birth": {"date": "1550年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "death": {"date": "1616年", "location": "古称抚州府临川县（今江西省抚州市临川区）", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84"}, "lifespan": "约66岁（一说67岁）", "highlights": {"honor": "临川四梦", "status": "中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。", "identities": "戏曲家、文学家", "achievements": "创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。", "works": ["论辅臣科臣疏", "牡丹亭", "还魂记", "紫钗记", "南柯记", "邯郸记"], "reviews": []}}, "locations": [{"name": "临川", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "birth", "event": "出生于书香门第，早年即以文才闻名乡里。", "time": "公元1550年", "duration": "青少年时期（约20年）", "significance": "其文化根基与“临川”之名的由来，一生的精神原点。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "南昌府", "modernName": "江西省南昌市", "lat": 28.682, "lng": 115.8579, "coordSystem": "WGS84", "type": "normal", "event": "参加乡试中举。", "time": "约1570年", "duration": "短暂游学", "significance": "科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。", "time": "1584年 - 1591年", "duration": "约7年", "significance": "政治生涯的转折点，也是其戏剧思想成熟的重要时期。", "works": ["论辅臣科臣疏"], "quoteLines": ["《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”"]}, {"name": "徐闻", "ancientName": "雷州府徐闻县", "modernName": "广东省湛江市徐闻县", "lat": 20.3265, "lng": 110.1745, "coordSystem": "WGS84", "type": "normal", "event": "因上疏被贬为徐闻典史；建“贵生书院”讲学。", "time": "1591年 - 1593年", "duration": "约2年", "significance": "人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。", "works": [], "quoteLines": []}, {"name": "遂昌", "ancientName": "处州府遂昌县", "modernName": "浙江省丽水市遂昌县", "lat": 28.5924, "lng": 119.2756, "coordSystem": "WGS84", "type": "normal", "event": "任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。", "time": "1593年 - 1598年", "duration": "约5年", "significance": "地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。", "works": [], "quoteLines": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”"]}, {"name": "临川（玉茗堂）", "ancientName": "抚州府临川县", "modernName": "江西省抚州市临川区", "lat": 27.935, "lng": 116.3583, "coordSystem": "WGS84", "type": "normal", "event": "辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "time": "1598年 - 1616年", "duration": "晚年近20年", "significance": "创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。", "works": ["牡丹亭", "南柯记", "邯郸记"], "quoteLines": ["《牡丹亭记题词》：“情不知所起，一往而深。”", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---", "workTexts": {"论辅臣科臣疏": "陛下经营天下二十年于兹矣。", "惊梦": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "牡丹亭记题词": "情不知所起，一往而深。", "牡丹亭": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "南柯记": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "邯郸记": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。"}, "workSummaries": {"牡丹亭": {"title": "牡丹亭", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "summary": "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "quote": "他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "quotes": ["他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "| 1598年 | | | （年龄：49岁）完成《牡丹亭》。", "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。"], "quote_policy": "preferred"}, "还魂记": {"title": "还魂记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "quotes": ["《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "提出“情至”观念，对后世文学戏曲影响深远。", "玉茗堂四梦"], "quote_policy": "preferred"}, "紫钗记": {"title": "紫钗记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "提出“情至”观念，对后世文学戏曲影响深远。", "quotes": ["提出“情至”观念，对后世文学戏曲影响深远。", "玉茗堂四梦", "临川四梦"], "quote_policy": "preferred"}, "南柯记": {"title": "南柯记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "summary": "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "quote": "事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "quotes": ["事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "| 1600年-1601年 | | | （年龄：51-52岁）完成《南柯记》。", "提出“情至”观念，对后世文学戏曲影响深远。"], "quote_policy": "preferred"}, "邯郸记": {"title": "邯郸记", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "散文", "one_liner": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "summary": "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "quote": "事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "quotes": ["事件：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。", "| 1608年 | | | （年龄：59岁）完成《邯郸记》。", "提出“情至”观念，对后世文学戏曲影响深远。"], "quote_policy": "preferred"}, "论辅臣科臣疏": {"title": "论辅臣科臣疏", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "陛下经营天下二十年于兹矣。", "summary": "陛下经营天下二十年于兹矣。", "quote": "在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。", "quotes": ["在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。", "他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。", "汤显祖，字义仍，号海若、若士、清远道人，江西临川人。"], "quote_policy": "preferred"}, "惊梦": {"title": "惊梦", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "summary": "原来姹紫嫣红开遍，似这般都付与断井颓垣。", "quote": "《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。", "quotes": ["《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。", "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "原来姹紫嫣红开遍，似这般都付与断井颓垣。"], "quote_policy": "preferred"}, "牡丹亭记题词": {"title": "牡丹亭记题词", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "词", "one_liner": "情不知所起，一往而深。", "summary": "情不知所起，一往而深。", "quote": "《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "quotes": ["《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。", "良辰美景奈何天，赏心乐事谁家院。", "情不知所起，一往而深。"], "quote_policy": "preferred"}, "闺塾": {"title": "闺塾", "aliases": [], "authors": ["汤显祖"], "related_people": ["汤显祖"], "source_pages": ["汤显祖"], "era": "明代", "genre": "", "one_liner": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "summary": "汤显祖，字义仍，号海若、若士、清远道人，江西临川人", "quote": "《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）", "quotes": ["《牡丹亭》（《还魂记》）（节选，如《闺塾》、《惊梦》等）"], "quote_policy": "preferred"}}, "markdown": "# 汤显祖\n\n## 人物档案\n\n### 基本信息\n- **姓名**：汤显祖\n- **时代**：明代\n- **出生**：公元1550年，古称抚州府临川县（今江西省抚州市临川区）（出生具体日期存疑）\n- **去世**：公元1616年，古称抚州府临川县（今江西省抚州市临川区）（去世具体日期存疑）\n- **享年**：约66岁（一说67岁）\n- **主要身份**：戏曲家、文学家\n- **历史地位**：中国戏曲史上与莎士比亚齐名的伟大剧作家，其“临川四梦”代表了明代传奇创作的高峰。\n- **主要成就**：创作了《牡丹亭》（《还魂记》）、《紫钗记》、《南柯记》、《邯郸记》等戏剧杰作（合称“临川四梦”或“玉茗堂四梦”）；提出“情至”观念，对后世文学戏曲影响深远。\n\n### 生平概述\n汤显祖，字义仍，号海若、若士、清远道人，江西临川人。他早有才名，却因拒绝权相张居正的延揽而屡次落第（具体年份存异），直至张居正去世后方中进士。在南京礼部任官期间，他因上《论辅臣科臣疏》抨击朝政，被贬至广东徐闻县任典史，后调任浙江遂昌知县，在任上有政绩。最终因对朝政失望，于1598年辞官归乡，专心从事戏曲创作，在临川玉茗堂完成了不朽名著《牡丹亭》等作品，开创了影响深远的“玉茗堂派”。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在江西、南京、浙江、广东等地，核心活动范围在江南。\n- ⏱️ **时间跨度**：公元1550年 - 公元1616年，共66年。\n- 📍 **地理范围**：覆盖今江西、江苏、浙江、广东等省份。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：临川\n- **时间**：公元1550年\n- **停留时间**：青少年时期（约20年）\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：出生于书香门第，早年即以文才闻名乡里。\n- **意义**：其文化根基与“临川”之名的由来，一生的精神原点。\n\n### 📍 重要地点：南昌\n- **时间**：约1570年\n- **停留时间**：短暂游学\n- **地点**：古称南昌府（今江西省南昌市）\n- **事件**：参加乡试中举。\n- **意义**：科举道路上的重要一步，但随后因拒绝张居正拉拢而会试屡挫。\n\n### 📍 重要地点：南京\n- **时间**：1584年 - 1591年\n- **停留时间**：约7年\n- **地点**：古称应天府（今江苏省南京市）\n- **事件**：任南京太常寺博士、南京礼部祠祭司主事等闲职；广泛结交文人，进行戏曲创作与理论思考；因上《论辅臣科臣疏》直言批评朝政而震动朝野。\n- **意义**：政治生涯的转折点，也是其戏剧思想成熟的重要时期。\n- **名篇名句**：《论辅臣科臣疏》：“陛下经营天下二十年于兹矣。”\n\n### 📍 重要地点：徐闻\n- **时间**：1591年 - 1593年\n- **停留时间**：约2年\n- **地点**：古称雷州府徐闻县（今广东省湛江市徐闻县）\n- **事件**：因上疏被贬为徐闻典史；建“贵生书院”讲学。\n- **意义**：人生低谷，但其“贵生”思想在此传播，体现了对生命价值的尊重。\n\n### 📍 重要地点：遂昌\n- **时间**：1593年 - 1598年\n- **停留时间**：约5年\n- **地点**：古称处州府遂昌县（今浙江省丽水市遂昌县）\n- **事件**：任遂昌知县；兴教劝学、灭虎患、纵囚观灯，颇有政声。\n- **意义**：地方治理的实践期，仁政理想与官场现实的冲突加剧，最终促成其归隐之志。\n- **名篇名句**：《牡丹亭》第十出《惊梦》：“原来姹紫嫣红开遍，似这般都付与断井颓垣。”\n\n### 🔴 重要创作地：临川（玉茗堂）\n- **时间**：1598年 - 1616年\n- **停留时间**：晚年近20年\n- **地点**：古称抚州府临川县（今江西省抚州市临川区）\n- **事件**：辞官归里，于玉茗堂专心创作，完成《牡丹亭》、《南柯记》、《邯郸记》等巨著。\n- **意义**：创作生涯的巅峰与终结之地，“临川四梦”全部诞生于此，奠定了其文学史地位。\n- **名篇名句**：《牡丹亭记题词》：“情不知所起，一往而深。”；《牡丹亭》第十出《惊梦》：“良辰美景奈何天，赏心乐事谁家院。”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1550年 | 临川 | 江西省抚州市临川区 | （年龄：1岁）出生于江西临川。 |\n| 1570年 | 南昌 | 江西省南昌市 | （年龄：21岁）于南昌中举。 |\n| 约1577年-1580年 |  |  | （年龄：28-31岁）因拒绝张居正拉拢，数次会试不第（具体年份存异）。 |\n| 1583年 |  |  | （年龄：34岁）张居正死后，中进士。 |\n| 1584年-1591年 | 南京 | 江苏省南京市 | （年龄：35-42岁）在南京任闲职，上疏批评朝政。 |\n| 1591年 | 徐闻 | 广东省湛江市徐闻县 | （年龄：42岁）被贬广东徐闻典史。 |\n| 1593年 | 遂昌 | 浙江省丽水市遂昌县 | （年龄：44岁）调任浙江遂昌知县。 |\n| 1598年 | 临川 | 江西省抚州市临川区 | （年龄：49岁）辞官归临川。 |\n| 1598年 |  |  | （年龄：49岁）完成《牡丹亭》。 |\n| 1600年-1601年 |  |  | （年龄：51-52岁）完成《南柯记》。 |\n| 1608年 |  |  | （年龄：59岁）完成《邯郸记》。 |\n| 1616年 | 临川 | 江西省抚州市临川区 | （年龄：66岁）于临川逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《牡丹亭》（《还魂记》）**（节选，如《闺塾》、《惊梦》等）\n- 核心要点：\n    - **重点**：作品通过杜丽娘和柳梦梅超越生死的爱情故事，深刻体现了“**情至**”观念，即“情”可以超越生死与礼教束缚。\n    - **重点**：艺术上充满**浪漫主义**色彩，以“梦”作为核心情节与精神寄托，构建了奇幻的艺术世界。\n    - 语言优美典雅，曲词**情景交融**，心理描写细腻，如《惊梦》中对春光的描绘与人物内心的悸动紧密结合。\n    - **重点**：作品具有强烈的**反封建**礼教、肯定**人欲**与个性解放的进步思想。\n    - 运用了大量**象征**与**隐喻**手法（如“牡丹亭”、“梅花观”等），深化了主题表达。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：汤显祖是**明代**中后期**心学**思潮影响下的重要文学家，其思想与李贽的“童心说”、公安派的“性灵说”有共鸣。\n    - 因上《论辅臣科臣疏》抨击首辅申时行与朝政，被贬谪，体现了**东林党**兴起前正直士大夫的批判精神。\n    - 在**遂昌**的施政实践，是其儒家仁政理想的一次地方性实验。\n- 核心要点：\n    - **重点**：汤显祖的戏剧创作代表了**明代传奇**的最高成就，与沈璟的“吴江派”并立，形成“**临川派**”。\n    - **重点**：其作品与思想是考察**晚明社会**思想解放、市民文化兴起的重要窗口。\n    - **重点**：他被后人誉为“**东方的莎士比亚**”，两人同年逝世，成为世界戏剧史上的佳话。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 江西省抚州市临川区 | 27.9350 | 116.3583 |\n| 江西省南昌市 | 28.6820 | 115.8579 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 广东省湛江市徐闻县 | 20.3265 | 110.1745 |\n| 浙江省丽水市遂昌县 | 28.5924 | 119.2756 |", "relatedGraph": {"center": {"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "陛下经营天下二十年于兹矣。", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汤显祖", "name": "汤显祖", "file": "汤显祖.html", "dynasty": "明代", "aliases": [], "birth_year": 1550, "death_year": 1616, "quote": "陛下经营天下二十年于兹矣。", "review": "陛下经营天下二十年于兹矣。", "foreign_name": "", "main_role_label": "戏曲家", "birthplace": "古称抚州府临川县", "birthplace_modern": "江西省抚州市临川区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "李时珍", "name": "李时珍", "file": "李时珍.html", "dynasty": "明代", "aliases": [], "birth_year": 1518, "death_year": 1593, "quote": "脑为元神之府", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "蕲州", "birthplace_modern": "湖北省黄冈市蕲春县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "归有光", "name": "归有光", "file": "归有光.html", "dynasty": "明代", "aliases": [], "birth_year": 1506, "death_year": 1571, "quote": "庭有枇杷树，吾妻死之年所手植也，今已亭亭如盖矣。", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "昆山", "birthplace_modern": "江苏省苏州市昆山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "利玛窦", "name": "利玛窦", "file": "利玛窦.html", "dynasty": "明代（万历年间）", "aliases": [], "birth_year": 1610, "death_year": 1610, "quote": "意大利耶稣会传教士，1583年来华，肇庆、韶州、南昌、南京等地传教，后定居北京", "review": "", "foreign_name": "", "main_role_label": "学者", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王阳明", "name": "王阳明", "file": "王阳明.html", "dynasty": "明代", "aliases": [], "birth_year": 1472, "death_year": 1529, "quote": "天门何崔嵬，下见青云浮。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "浙江余姚", "birthplace_modern": "浙江省宁波市余姚市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "胡居仁", "name": "胡居仁", "file": "胡居仁.html", "dynasty": "明代", "aliases": [], "birth_year": 1434, "death_year": 1484, "quote": "学问之道，以敬为本。", "review": "", "foreign_name": "", "main_role_label": "理学家", "birthplace": "江西余干县", "birthplace_modern": "江西省上饶市余干县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汤显祖", "target": "李时珍", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "归有光", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "利玛窦", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "王阳明", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "胡居仁", "label": "同时代人物", "confidence": null}, {"source": "汤显祖", "target": "魏学洢", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:36Z", "generated_at": "2026-06-25T07:13:36Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:34Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:36Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

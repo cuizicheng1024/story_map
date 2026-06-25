@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "张大千", "title": "", "description": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭。青年时期即以书画才华崭露头角，后长期活动于上海等文化中心，广泛临摹古画、结交艺坛名家，逐步建立声望。抗战期间，他远赴敦煌，系统临摹莫高窟壁画，艺术风格由此获得重要转折。1949年后，张大千长期旅居海外，辗转印度、阿根廷、巴西、美国等地，晚年定居台北。其艺术道路兼具深厚传统根基与强烈个人创造性，是中国艺术走向世界的重要代表人物。", "quote": "守正而能出新", "shortReview": "守正而能出新", "dynasty": "近现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "内江（今四川省内江市）", "avatar": "", "birth": {"date": "1899年", "location": "内江（今四川省内江市）", "lat": 29.5871, "lng": 105.0584, "coordSystem": "WGS84"}, "death": {"date": "1983年", "location": "台北（今中国台湾省台北市）", "lat": 25.033, "lng": 121.5654, "coordSystem": "WGS84"}, "lifespan": "83岁", "highlights": {"honor": "", "status": "20世纪中国画巨匠之一，以山水、花鸟、人物和泼墨泼彩艺术闻名，在国际画坛影响深远。", "identities": "画家、书法家、篆刻家", "achievements": "早年精研石涛、八大山人等传统绘画，兼善工笔与写意；中年赴敦煌临摹壁画，对传统人物和设色体系吸收极深；晚年在传统山水基础上发展出成熟的泼墨、泼彩风格，成为中国现代绘画最具辨识度的代表人物之一。", "works": [], "reviews": []}}, "locations": [{"name": "内江", "ancientName": "内江", "modernName": "四川省内江市", "lat": 29.5871, "lng": 105.0584, "coordSystem": "WGS84", "type": "birth", "event": "出生于四川内江书香家庭，自幼接受传统文化熏陶，学习书画、诗文与金石。", "time": "公元1899年", "duration": "约20余年", "significance": "家学渊源与巴蜀文化环境共同奠定了其最初的艺术根基。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "逐步活跃于海上艺坛，靠临古、写生、人物与山水创作建立声誉，并与多位书画名家往来切磋。", "time": "公元1920年代中后期-1930年代", "duration": "断续活动约10余年", "significance": "这是张大千由地方才俊走向全国知名画家的关键阶段，也是其吸收近现代都市文化与传统书画资源的重要时期。", "works": [], "quoteLines": []}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁观摩宫廷旧藏与民间古画，深入研究石涛、八大山人、唐宋诸家笔法，同时拓展书画鉴藏视野。", "time": "公元1930年代（断续往返）", "duration": "约数年", "significance": "对古代绘画传统的系统吸收，使其艺术面貌更加雄厚，也为后来的变法创新打下基础。", "works": [], "quoteLines": []}, {"name": "敦煌", "ancientName": "敦煌莫高窟", "modernName": "甘肃省酒泉市敦煌市", "lat": 40.1421, "lng": 94.6619, "coordSystem": "WGS84", "type": "normal", "event": "率弟子门人赴敦煌临摹壁画，大量研究北朝至盛唐壁画人物、设色、线描与宗教图像体系。", "time": "公元1941年-1943年", "duration": "约2年多", "significance": "敦煌之行是其艺术生涯的重大转折点，不仅扩展了色彩与人物造型语言，也显著提升了其对中国绘画传统源流的整体理解。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "中国香港特别行政区", "lat": 22.3193, "lng": 114.1694, "coordSystem": "WGS84", "type": "normal", "event": "战后局势变化之际在香港居停、办展，并逐步转向长期海外生活。", "time": "公元1948年-1949年（前后）", "duration": "约1年", "significance": "这是其由内地艺坛转向国际流动生活的重要过渡阶段。", "works": [], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "中国台湾省台北市", "lat": 25.033, "lng": 121.5654, "coordSystem": "WGS84", "type": "death", "event": "晚年在台北继续创作、整理旧作，并于1983年病逝。", "time": "公元1978年-1983年", "duration": "晚年定居约5年", "significance": "台北时期是其艺术生命的最后阶段，也是其晚年声誉定型、作品系统整理与传播的重要时期。", "works": [], "quoteLines": []}, {"name": "巴西圣保罗州", "ancientName": "圣保罗州", "modernName": "巴西圣保罗州", "lat": -23.5505, "lng": -46.6333, "coordSystem": "WGS84", "type": "normal", "event": "长期旅居南美，营建“八德园”，在异国环境中继续创作山水、花鸟与泼彩作品，国际声誉日盛。", "time": "公元1950年代中期-1970年代前期", "duration": "约20年", "significance": "南美时期是其晚年艺术成熟的重要阶段，热带自然景观与海外视野进一步推动了其泼墨泼彩风格的发展。", "works": [], "quoteLines": []}, {"name": "美国加利福尼亚州", "ancientName": "加利福尼亚州", "modernName": "美国加利福尼亚州", "lat": 36.7783, "lng": -119.4179, "coordSystem": "WGS84", "type": "normal", "event": "在美国继续创作与举办展览，晚年泼彩山水的国际影响进一步扩大。", "time": "公元1970年代中后期", "duration": "约数年", "significance": "使其作品更广泛地进入西方艺术市场与博物馆、收藏体系。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---", "examPoints": "### 考点\n### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---", "workTexts": {}, "workSummaries": {"庐山图": {"title": "庐山图", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "爱痕湖": {"title": "爱痕湖", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "长江万里图": {"title": "长江万里图", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 张大千\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张大千\n- **时代**：近现代\n- **出生**：公元1899年5月10日，内江（今四川省内江市）\n- **去世**：公元1983年4月2日，台北（今中国台湾省台北市）\n- **享年**：83岁\n- **主要身份**：画家、书法家、篆刻家\n- **历史地位**：20世纪中国画巨匠之一，以山水、花鸟、人物和泼墨泼彩艺术闻名，在国际画坛影响深远。\n- **主要成就**：早年精研石涛、八大山人等传统绘画，兼善工笔与写意；中年赴敦煌临摹壁画，对传统人物和设色体系吸收极深；晚年在传统山水基础上发展出成熟的泼墨、泼彩风格，成为中国现代绘画最具辨识度的代表人物之一。\n\n### 生平概述\n张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭。青年时期即以书画才华崭露头角，后长期活动于上海等文化中心，广泛临摹古画、结交艺坛名家，逐步建立声望。抗战期间，他远赴敦煌，系统临摹莫高窟壁画，艺术风格由此获得重要转折。1949年后，张大千长期旅居海外，辗转印度、阿根廷、巴西、美国等地，晚年定居台北。其艺术道路兼具深厚传统根基与强烈个人创造性，是中国艺术走向世界的重要代表人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：自四川内江起步，成名于上海，远赴敦煌研习壁画，后长期旅居海外，晚年定居台北。\n- ⏱️ **时间跨度**：公元1899年 - 1983年（共83年）\n- 📍 **地理范围**：中国（四川、上海、甘肃、香港、台北）、巴西、美国。\n- 🌟 **重要节点数量**：7个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：内江\n- **时间**：公元1899年\n- **停留时间**：约20余年\n- **地点**：内江（今四川省内江市）\n- **事件**：出生于四川内江书香家庭，自幼接受传统文化熏陶，学习书画、诗文与金石。\n- **意义**：家学渊源与巴蜀文化环境共同奠定了其最初的艺术根基。\n\n### 📍 重要地点：上海\n- **时间**：公元1920年代中后期-1930年代\n- **停留时间**：断续活动约10余年\n- **地点**：上海（今上海市）\n- **事件**：逐步活跃于海上艺坛，靠临古、写生、人物与山水创作建立声誉，并与多位书画名家往来切磋。\n- **意义**：这是张大千由地方才俊走向全国知名画家的关键阶段，也是其吸收近现代都市文化与传统书画资源的重要时期。\n\n### 📍 重要地点：北平\n- **时间**：公元1930年代（断续往返）\n- **停留时间**：约数年\n- **地点**：北平（今北京市）\n- **事件**：频繁观摩宫廷旧藏与民间古画，深入研究石涛、八大山人、唐宋诸家笔法，同时拓展书画鉴藏视野。\n- **意义**：对古代绘画传统的系统吸收，使其艺术面貌更加雄厚，也为后来的变法创新打下基础。\n\n### 📍 重要地点：敦煌\n- **时间**：公元1941年-1943年\n- **停留时间**：约2年多\n- **地点**：敦煌莫高窟（今甘肃省酒泉市敦煌市）\n- **事件**：率弟子门人赴敦煌临摹壁画，大量研究北朝至盛唐壁画人物、设色、线描与宗教图像体系。\n- **意义**：敦煌之行是其艺术生涯的重大转折点，不仅扩展了色彩与人物造型语言，也显著提升了其对中国绘画传统源流的整体理解。\n\n### 📍 重要地点：香港\n- **时间**：公元1948年-1949年（前后）\n- **停留时间**：约1年\n- **地点**：香港（今中国香港特别行政区）\n- **事件**：战后局势变化之际在香港居停、办展，并逐步转向长期海外生活。\n- **意义**：这是其由内地艺坛转向国际流动生活的重要过渡阶段。\n\n### 📍 重要地点：巴西圣保罗州\n- **时间**：公元1950年代中期-1970年代前期\n- **停留时间**：约20年\n- **地点**：圣保罗州（今巴西圣保罗州）\n- **事件**：长期旅居南美，营建“八德园”，在异国环境中继续创作山水、花鸟与泼彩作品，国际声誉日盛。\n- **意义**：南美时期是其晚年艺术成熟的重要阶段，热带自然景观与海外视野进一步推动了其泼墨泼彩风格的发展。\n\n### 📍 重要地点：美国加利福尼亚州\n- **时间**：公元1970年代中后期\n- **停留时间**：约数年\n- **地点**：加利福尼亚州（今美国加利福尼亚州）\n- **事件**：在美国继续创作与举办展览，晚年泼彩山水的国际影响进一步扩大。\n- **意义**：使其作品更广泛地进入西方艺术市场与博物馆、收藏体系。\n\n### 🔴 去世地：台北\n- **时间**：公元1978年-1983年\n- **停留时间**：晚年定居约5年\n- **地点**：台北（今中国台湾省台北市）\n- **事件**：晚年在台北继续创作、整理旧作，并于1983年病逝。\n- **意义**：台北时期是其艺术生命的最后阶段，也是其晚年声誉定型、作品系统整理与传播的重要时期。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1899 | 内江 | 四川省内江市 | （年龄：0）出生于四川内江书香家庭。 |\n| 1920s | 上海 | 上海市 | （年龄：20余岁）逐步活跃于海上艺坛，以临古与山水人物作品成名。 |\n| 1930s | 北平 | 北京市 | （年龄：30余岁）广泛观摩古代书画收藏，深化对传统绘画源流的研究。 |\n| 1941 | 敦煌 | 甘肃省酒泉市敦煌市 | （年龄：42）赴敦煌临摹壁画，艺术风格发生重要转折。 |\n| 1948 | 香港 | 中国香港特别行政区 | （年龄：49）战后在香港居停办展，随后转向长期旅居海外。 |\n| 1950s | 圣保罗州 | 巴西圣保罗州 | （年龄：50余岁）长期旅居南美，营建八德园，泼彩风格渐趋成熟。 |\n| 1970s | 加利福尼亚州 | 美国加利福尼亚州 | （年龄：70余岁）继续创作与展览，国际影响扩大。 |\n| 1978 | 台北 | 中国台湾省台北市 | （年龄：79）晚年定居台北。 |\n| 1983 | 台北 | 中国台湾省台北市 | （年龄：83）病逝，结束传奇艺术生涯。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省内江市 | 29.5871 | 105.0584 |\n| 上海市 | 31.2304 | 121.4737 |\n| 北京市 | 39.9042 | 116.4074 |\n| 甘肃省酒泉市敦煌市 | 40.1421 | 94.6619 |\n| 中国香港特别行政区 | 22.3193 | 114.1694 |\n| 巴西圣保罗州 | -23.5505 | -46.6333 |\n| 美国加利福尼亚州 | 36.7783 | -119.4179 |\n| 中国台湾省台北市 | 25.0330 | 121.5654 |\n", "relatedGraph": {"center": {"id": "张大千", "name": "张大千", "file": "张大千.html", "dynasty": "近现代", "aliases": [], "birth_year": 1899, "death_year": 1983, "quote": "守正而能出新", "review": "守正而能出新", "foreign_name": "", "main_role_label": "画家", "birthplace": "内江", "birthplace_modern": "四川省内江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张大千", "name": "张大千", "file": "张大千.html", "dynasty": "近现代", "aliases": [], "birth_year": 1899, "death_year": 1983, "quote": "守正而能出新", "review": "守正而能出新", "foreign_name": "", "main_role_label": "画家", "birthplace": "内江", "birthplace_modern": "四川省内江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈寅恪", "name": "陈寅恪", "file": "陈寅恪.html", "dynasty": "近现代（清末民初至中华人民共和国初期）", "aliases": [], "birth_year": 1969, "death_year": 1969, "quote": "陈寅恪（1890—1969），江西义宁人，著名历史学家、古典文学研究家、语言学家，晚年双目失明仍口述完成《柳如是别传》等巨著，被视为二十世纪…", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆定一", "name": "陆定一", "file": "陆定一.html", "dynasty": "近现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1906, "death_year": 1996, "quote": "百花齐放，百家争鸣", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "江苏省无锡县", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "张大千", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陈寅恪", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陆定一", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:22Z", "generated_at": "2026-06-22T11:31:22Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "张大千", "title": "", "description": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭。青年时期即以书画才华崭露头角，后长期活动于上海等文化中心，广泛临摹古画、结交艺坛名家，逐步建立声望。抗战期间，他远赴敦煌，系统临摹莫高窟壁画，艺术风格由此获得重要转折。1949年后，张大千长期旅居海外，辗转印度、阿根廷、巴西、美国等地，晚年定居台北。其艺术道路兼具深厚传统根基与强烈个人创造性，是中国艺术走向世界的重要代表人物。", "quote": "守正而能出新", "shortReview": "守正而能出新", "dynasty": "近现代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "内江（今四川省内江市）", "avatar": "", "birth": {"date": "1899年", "location": "内江（今四川省内江市）", "lat": 29.5871, "lng": 105.0584, "coordSystem": "WGS84"}, "death": {"date": "1983年", "location": "台北（今中国台湾省台北市）", "lat": 25.033, "lng": 121.5654, "coordSystem": "WGS84"}, "lifespan": "83岁", "highlights": {"honor": "", "status": "20世纪中国画巨匠之一，以山水、花鸟、人物和泼墨泼彩艺术闻名，在国际画坛影响深远。", "identities": "画家、书法家、篆刻家", "achievements": "早年精研石涛、八大山人等传统绘画，兼善工笔与写意；中年赴敦煌临摹壁画，对传统人物和设色体系吸收极深；晚年在传统山水基础上发展出成熟的泼墨、泼彩风格，成为中国现代绘画最具辨识度的代表人物之一。", "works": [], "reviews": []}}, "locations": [{"name": "内江", "ancientName": "内江", "modernName": "四川省内江市", "lat": 29.5871, "lng": 105.0584, "coordSystem": "WGS84", "type": "birth", "event": "出生于四川内江书香家庭，自幼接受传统文化熏陶，学习书画、诗文与金石。", "time": "公元1899年", "duration": "约20余年", "significance": "家学渊源与巴蜀文化环境共同奠定了其最初的艺术根基。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "逐步活跃于海上艺坛，靠临古、写生、人物与山水创作建立声誉，并与多位书画名家往来切磋。", "time": "公元1920年代中后期-1930年代", "duration": "断续活动约10余年", "significance": "这是张大千由地方才俊走向全国知名画家的关键阶段，也是其吸收近现代都市文化与传统书画资源的重要时期。", "works": [], "quoteLines": []}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁观摩宫廷旧藏与民间古画，深入研究石涛、八大山人、唐宋诸家笔法，同时拓展书画鉴藏视野。", "time": "公元1930年代（断续往返）", "duration": "约数年", "significance": "对古代绘画传统的系统吸收，使其艺术面貌更加雄厚，也为后来的变法创新打下基础。", "works": [], "quoteLines": []}, {"name": "敦煌", "ancientName": "敦煌莫高窟", "modernName": "甘肃省酒泉市敦煌市", "lat": 40.1421, "lng": 94.6619, "coordSystem": "WGS84", "type": "normal", "event": "率弟子门人赴敦煌临摹壁画，大量研究北朝至盛唐壁画人物、设色、线描与宗教图像体系。", "time": "公元1941年-1943年", "duration": "约2年多", "significance": "敦煌之行是其艺术生涯的重大转折点，不仅扩展了色彩与人物造型语言，也显著提升了其对中国绘画传统源流的整体理解。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "中国香港特别行政区", "lat": 22.3193, "lng": 114.1694, "coordSystem": "WGS84", "type": "normal", "event": "战后局势变化之际在香港居停、办展，并逐步转向长期海外生活。", "time": "公元1948年-1949年（前后）", "duration": "约1年", "significance": "这是其由内地艺坛转向国际流动生活的重要过渡阶段。", "works": [], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "中国台湾省台北市", "lat": 25.033, "lng": 121.5654, "coordSystem": "WGS84", "type": "death", "event": "晚年在台北继续创作、整理旧作，并于1983年病逝。", "time": "公元1978年-1983年", "duration": "晚年定居约5年", "significance": "台北时期是其艺术生命的最后阶段，也是其晚年声誉定型、作品系统整理与传播的重要时期。", "works": [], "quoteLines": []}, {"name": "巴西圣保罗州", "ancientName": "圣保罗州", "modernName": "巴西圣保罗州", "lat": -23.5505, "lng": -46.6333, "coordSystem": "WGS84", "type": "normal", "event": "长期旅居南美，营建“八德园”，在异国环境中继续创作山水、花鸟与泼彩作品，国际声誉日盛。", "time": "公元1950年代中期-1970年代前期", "duration": "约20年", "significance": "南美时期是其晚年艺术成熟的重要阶段，热带自然景观与海外视野进一步推动了其泼墨泼彩风格的发展。", "works": [], "quoteLines": []}, {"name": "美国加利福尼亚州", "ancientName": "加利福尼亚州", "modernName": "美国加利福尼亚州", "lat": 36.7783, "lng": -119.4179, "coordSystem": "WGS84", "type": "normal", "event": "在美国继续创作与举办展览，晚年泼彩山水的国际影响进一步扩大。", "time": "公元1970年代中后期", "duration": "约数年", "significance": "使其作品更广泛地进入西方艺术市场与博物馆、收藏体系。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---", "examPoints": "### 考点\n### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---", "workTexts": {}, "workSummaries": {"庐山图": {"title": "庐山图", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "爱痕湖": {"title": "爱痕湖", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "长江万里图": {"title": "长江万里图", "aliases": [], "authors": [], "related_people": ["张大千"], "source_pages": ["张大千"], "era": "", "genre": "", "one_liner": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "summary": "张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 张大千\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张大千\n- **时代**：近现代\n- **出生**：公元1899年5月10日，内江（今四川省内江市）\n- **去世**：公元1983年4月2日，台北（今中国台湾省台北市）\n- **享年**：83岁\n- **主要身份**：画家、书法家、篆刻家\n- **历史地位**：20世纪中国画巨匠之一，以山水、花鸟、人物和泼墨泼彩艺术闻名，在国际画坛影响深远。\n- **主要成就**：早年精研石涛、八大山人等传统绘画，兼善工笔与写意；中年赴敦煌临摹壁画，对传统人物和设色体系吸收极深；晚年在传统山水基础上发展出成熟的泼墨、泼彩风格，成为中国现代绘画最具辨识度的代表人物之一。\n\n### 生平概述\n张大千，原名张正权，后改名张爰，号大千居士，四川内江人，出身书香家庭。青年时期即以书画才华崭露头角，后长期活动于上海等文化中心，广泛临摹古画、结交艺坛名家，逐步建立声望。抗战期间，他远赴敦煌，系统临摹莫高窟壁画，艺术风格由此获得重要转折。1949年后，张大千长期旅居海外，辗转印度、阿根廷、巴西、美国等地，晚年定居台北。其艺术道路兼具深厚传统根基与强烈个人创造性，是中国艺术走向世界的重要代表人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：自四川内江起步，成名于上海，远赴敦煌研习壁画，后长期旅居海外，晚年定居台北。\n- ⏱️ **时间跨度**：公元1899年 - 1983年（共83年）\n- 📍 **地理范围**：中国（四川、上海、甘肃、香港、台北）、巴西、美国。\n- 🌟 **重要节点数量**：7个核心地点\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：内江\n- **时间**：公元1899年\n- **停留时间**：约20余年\n- **地点**：内江（今四川省内江市）\n- **事件**：出生于四川内江书香家庭，自幼接受传统文化熏陶，学习书画、诗文与金石。\n- **意义**：家学渊源与巴蜀文化环境共同奠定了其最初的艺术根基。\n\n### 📍 重要地点：上海\n- **时间**：公元1920年代中后期-1930年代\n- **停留时间**：断续活动约10余年\n- **地点**：上海（今上海市）\n- **事件**：逐步活跃于海上艺坛，靠临古、写生、人物与山水创作建立声誉，并与多位书画名家往来切磋。\n- **意义**：这是张大千由地方才俊走向全国知名画家的关键阶段，也是其吸收近现代都市文化与传统书画资源的重要时期。\n\n### 📍 重要地点：北平\n- **时间**：公元1930年代（断续往返）\n- **停留时间**：约数年\n- **地点**：北平（今北京市）\n- **事件**：频繁观摩宫廷旧藏与民间古画，深入研究石涛、八大山人、唐宋诸家笔法，同时拓展书画鉴藏视野。\n- **意义**：对古代绘画传统的系统吸收，使其艺术面貌更加雄厚，也为后来的变法创新打下基础。\n\n### 📍 重要地点：敦煌\n- **时间**：公元1941年-1943年\n- **停留时间**：约2年多\n- **地点**：敦煌莫高窟（今甘肃省酒泉市敦煌市）\n- **事件**：率弟子门人赴敦煌临摹壁画，大量研究北朝至盛唐壁画人物、设色、线描与宗教图像体系。\n- **意义**：敦煌之行是其艺术生涯的重大转折点，不仅扩展了色彩与人物造型语言，也显著提升了其对中国绘画传统源流的整体理解。\n\n### 📍 重要地点：香港\n- **时间**：公元1948年-1949年（前后）\n- **停留时间**：约1年\n- **地点**：香港（今中国香港特别行政区）\n- **事件**：战后局势变化之际在香港居停、办展，并逐步转向长期海外生活。\n- **意义**：这是其由内地艺坛转向国际流动生活的重要过渡阶段。\n\n### 📍 重要地点：巴西圣保罗州\n- **时间**：公元1950年代中期-1970年代前期\n- **停留时间**：约20年\n- **地点**：圣保罗州（今巴西圣保罗州）\n- **事件**：长期旅居南美，营建“八德园”，在异国环境中继续创作山水、花鸟与泼彩作品，国际声誉日盛。\n- **意义**：南美时期是其晚年艺术成熟的重要阶段，热带自然景观与海外视野进一步推动了其泼墨泼彩风格的发展。\n\n### 📍 重要地点：美国加利福尼亚州\n- **时间**：公元1970年代中后期\n- **停留时间**：约数年\n- **地点**：加利福尼亚州（今美国加利福尼亚州）\n- **事件**：在美国继续创作与举办展览，晚年泼彩山水的国际影响进一步扩大。\n- **意义**：使其作品更广泛地进入西方艺术市场与博物馆、收藏体系。\n\n### 🔴 去世地：台北\n- **时间**：公元1978年-1983年\n- **停留时间**：晚年定居约5年\n- **地点**：台北（今中国台湾省台北市）\n- **事件**：晚年在台北继续创作、整理旧作，并于1983年病逝。\n- **意义**：台北时期是其艺术生命的最后阶段，也是其晚年声誉定型、作品系统整理与传播的重要时期。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1899 | 内江 | 四川省内江市 | （年龄：0）出生于四川内江书香家庭。 |\n| 1920s | 上海 | 上海市 | （年龄：20余岁）逐步活跃于海上艺坛，以临古与山水人物作品成名。 |\n| 1930s | 北平 | 北京市 | （年龄：30余岁）广泛观摩古代书画收藏，深化对传统绘画源流的研究。 |\n| 1941 | 敦煌 | 甘肃省酒泉市敦煌市 | （年龄：42）赴敦煌临摹壁画，艺术风格发生重要转折。 |\n| 1948 | 香港 | 中国香港特别行政区 | （年龄：49）战后在香港居停办展，随后转向长期旅居海外。 |\n| 1950s | 圣保罗州 | 巴西圣保罗州 | （年龄：50余岁）长期旅居南美，营建八德园，泼彩风格渐趋成熟。 |\n| 1970s | 加利福尼亚州 | 美国加利福尼亚州 | （年龄：70余岁）继续创作与展览，国际影响扩大。 |\n| 1978 | 台北 | 中国台湾省台北市 | （年龄：79）晚年定居台北。 |\n| 1983 | 台北 | 中国台湾省台北市 | （年龄：83）病逝，结束传奇艺术生涯。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/作品延伸）\n- 关联作品：**《庐山图》**、**《爱痕湖》**、**《长江万里图》**等。\n- 核心要点：\n    - **重点**：张大千既深研传统笔墨，又不断变法创新，是“守正而能出新”的典型代表。\n    - **重点**：敦煌临摹经历使其人物造型与设色能力大为提升，也增强了其对中国古代美术传统的整体把握。\n    - 晚年泼墨泼彩作品色彩强烈、气势开阔，体现了传统山水与现代视觉经验的结合。\n    - 其艺术成就说明中国传统绘画并非停滞不变，而能在全球流动与文化交流中持续演进。\n\n### 历史（人物定位）\n- 关键史实：\n    - **重点**：张大千是20世纪中国最具国际影响力的画家之一。\n    - 他在国内成名后长期旅居海外，是中国现代艺术全球传播的重要代表人物。\n    - **重点**：敦煌研究经历在其艺术生涯中具有转折意义，使其由单纯临古走向更开阔的传统再创造。\n- 核心要点：\n    - **重点**：其艺术经历横跨晚清余绪、民国文化转型、抗战时期和战后全球流动时代，具有鲜明时代特征。\n    - 他既是传统书画家，也是现代艺术交流史中的重要节点人物。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 四川省内江市 | 29.5871 | 105.0584 |\n| 上海市 | 31.2304 | 121.4737 |\n| 北京市 | 39.9042 | 116.4074 |\n| 甘肃省酒泉市敦煌市 | 40.1421 | 94.6619 |\n| 中国香港特别行政区 | 22.3193 | 114.1694 |\n| 巴西圣保罗州 | -23.5505 | -46.6333 |\n| 美国加利福尼亚州 | 36.7783 | -119.4179 |\n| 中国台湾省台北市 | 25.0330 | 121.5654 |\n", "relatedGraph": {"center": {"id": "张大千", "name": "张大千", "file": "张大千.html", "dynasty": "近现代", "aliases": [], "birth_year": 1899, "death_year": 1983, "quote": "守正而能出新", "review": "守正而能出新", "foreign_name": "", "main_role_label": "画家", "birthplace": "内江", "birthplace_modern": "四川省内江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张大千", "name": "张大千", "file": "张大千.html", "dynasty": "近现代", "aliases": [], "birth_year": 1899, "death_year": 1983, "quote": "守正而能出新", "review": "守正而能出新", "foreign_name": "", "main_role_label": "画家", "birthplace": "内江", "birthplace_modern": "四川省内江市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈寅恪", "name": "陈寅恪", "file": "陈寅恪.html", "dynasty": "近现代（清末民初至中华人民共和国初期）", "aliases": [], "birth_year": 1969, "death_year": 1969, "quote": "陈寅恪（1890—1969），江西义宁人，著名历史学家、古典文学研究家、语言学家，晚年双目失明仍口述完成《柳如是别传》等巨著，被视为二十世纪…", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆定一", "name": "陆定一", "file": "陆定一.html", "dynasty": "近现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1906, "death_year": 1996, "quote": "百花齐放，百家争鸣", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "江苏省无锡县", "birthplace_modern": "江苏省无锡市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "张大千", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陈省身", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陈寅恪", "label": "同时代人物", "confidence": null}, {"source": "张大千", "target": "陆定一", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:24Z", "generated_at": "2026-06-25T07:13:24Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:22Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:24Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

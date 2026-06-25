@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "钱穆", "title": "", "description": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍。早年于无锡中小学任教期间即潜心治学，后凭《刘向歆父子年谱》等论著跻身主流学界，曾任教于北京燕京大学、北京大学等校。抗战爆发后辗转西南，于艰难岁月中完成《国史大纲》。1949年南渡香港，创办新亚书院，弘扬中国文化；1967年移居台北，晚年讲学著述不辍，1990年病逝于台北。钱穆毕生以阐扬中国传统文化为己任，被誉为\"为故国招魂\"的一代宗师。", "quote": "1930年发表《刘向歆父子年谱》，一举成名", "shortReview": "1930年发表《刘向歆父子年谱》，一举成名", "dynasty": "近现代（清末至民国及当代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏无锡", "avatar": "", "birth": {"date": "1895年", "location": "江苏无锡", "lat": 31.4912, "lng": 120.3119, "coordSystem": "WGS84"}, "death": {"date": "1990年", "location": "台湾台北", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "96岁", "highlights": {"honor": "", "status": "一代史学宗师，国学巨擘，与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"", "identities": "历史学家、国学大师、教育家、书斋学者、中央研究院院士", "achievements": "著《国史大纲》奠定现代通史书写范式；创办香港新亚书院，培育人才；著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；倡导民族文化本位史观，影响深远", "works": ["刘向歆父子年谱", "国史大纲", "国史新论", "中国历代政治得失", "中国文化史导论"], "reviews": ["一代史学宗师，国学大师，为故国招魂。", "与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（\"现代四大史学家\"具体并称来源与时间待考）。", "其治学\"融会贯通，以文化生命统摄历史\"，为传统史学在现代学术体系中的延续开辟新路。"]}}, "locations": [{"name": "无锡", "ancientName": "无锡", "modernName": "江苏省无锡市", "lat": 31.492953, "lng": 120.30728, "coordSystem": "WGS84", "type": "birth", "event": "1895年7月30日生于无锡县荡口镇七房桥，幼年丧父，家境清贫；12岁入新式小学，后因家贫辍学；辍学后自学不辍，1912年起先后于无锡三兼小学、鸿模小学等校任教，并开始系统治学", "time": "1895年", "duration": "生于斯，长于斯，早年求学与任教均在此", "significance": "故乡与学问启蒙之地，奠定其自学治学的志业根基", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1930年发表《刘向歆父子年谱》，一举成名；此后相继任教于燕京大学、北京大学等校，进入主流学术圈，与学界名流交往论学", "time": "1930年", "duration": "1930年前后至抗战前，多次在京任教", "significance": "进入全国学术重镇，由地方学者跻身一流史家行列", "works": ["刘向歆父子年谱"], "quoteLines": []}, {"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 24.884561, "lng": 102.832254, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后随学界南迁，先至昆明西南联大任教", "time": "1938年前后", "duration": "约一至二年", "significance": "辗转国难之际，坚持讲学著述", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.575416, "lng": 104.063796, "coordSystem": "WGS84", "type": "normal", "event": "转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "time": "1939年—1940年", "duration": "约二至三年", "significance": "民族危亡之际写出通史巨著，是其学术生涯的高峰", "works": ["国史大纲"], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.281096, "lng": 114.165753, "coordSystem": "WGS84", "type": "normal", "event": "1949年南下香港，创办新亚书院（今香港中文大学新亚书院前身），任院长，以\"宋明书院精神\"办学，弘扬中华文化，培育大批人才；又曾获选中央研究院院士（届次待考）", "time": "1949年", "duration": "1949年至1967年，约十八年", "significance": "孤悬海外续中华文脉的根据地，是其教育事业的奠基之所", "works": [], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "台湾省台北市", "lat": 30.854364, "lng": 114.723474, "coordSystem": "WGS84", "type": "normal", "event": "1967年移居台北，定居素书楼；继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；晚年生活恬淡，1990年8月30日病逝于台北", "time": "1967年", "duration": "1967年至1990年，约二十三年", "significance": "晚年归宿与封笔之地", "works": ["朱子新学案", "中国学术思想史论丛"], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "台湾省台北市", "lat": 30.854364, "lng": 114.723474, "coordSystem": "WGS84", "type": "death", "event": "1990年8月30日在台北寓所病逝，享年96岁", "time": "1990年", "duration": "晚年定居至辞世", "significance": "一代史学的最终归宿地；其骨灰后归葬太湖之滨，魂归故里", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：钱穆生于清末，卒于当代，跨越清末、民国、新中国成立初期及当代多个历史阶段。\n- **关键事件**：少年辍学而自学成才，是近代自学成才的典型代表。\n- **关键事件**：抗战期间坚持学术研究，体现中国知识分子在民族危亡中的担当。\n- **关键事件**：1949年南迁香港，创办新亚书院，是新中国成立前夕知识分子南迁的一个缩影。\n- **代表作品**：著有《国史大纲》，是中国近代影响深远的通史著作之一。\n- **代表作品**：《中国历代政治得失》以制度史视角剖析历代政治。\n- **易混点**：注意区分钱穆与钱玄同、钱钟书等同时代\"钱\"姓学者。\n- **易混点**：钱穆为历史学家，与哲学家冯友兰、思想家牟宗三等同时代学人各有侧重。\n\n### 高中阶段\n- **时代背景**：近代中国学术转型期，由传统经史走向现代史学，钱穆是其中的代表人物之一。\n- **关键事件**：1930年发表《刘向歆父子年谱》，在学界一举成名。\n- **关键事件**：抗战时期完成《国史大纲》，强调对本民族历史文化的温情与敬意。\n- **关键事件**：1949年后南下香港创办新亚书院，1967年迁台。\n- **史学思想**：倡导**民族文化本位史观**，主张治史应\"对本国历史怀有温情与敬意\"。\n- **史学地位**：与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源待考）。\n- **代表作品**：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》等。\n- **代表作品**：《国史大纲》采用\"综述\"与\"编年\"相结合的体例，为现代通史写作范式。\n- **易混点**：钱穆与陈寅恪虽同为现代史学大家，但学术取径与政治立场存在差异。\n- **易混点**：钱穆为新儒家代表人物之一，但更以史学名世，注意区分其与新儒家其他代表。\n\n---", "examPoints": "### 初中考点\n- 钱穆的生卒年（1895年—1990年）与籍贯（江苏无锡）。\n- 钱穆是著名的历史学家、国学大师。\n- 钱穆著有《国史大纲》，是其代表作。\n- 抗战期间钱穆在西南坚持学术研究。\n- 钱穆曾创办新亚书院（位于香港）。\n- 注意区分钱穆与钱钟书、钱玄同等同时代学者（存疑/说法不一）。\n\n### 高中考点\n- 钱穆的史学思想：民族文化本位史观，主张对本民族历史文化持温情与敬意。\n- 钱穆与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源存疑/说法不一）。\n- 《国史大纲》的成书背景（抗战时期，1940年于成都完成）与历史地位。\n- 钱穆1949年南下香港创办新亚书院的历史背景与意义。\n- 钱穆曾任中央研究院院士（具体届次与年份待考）。\n- 代表作品：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》。\n- 钱穆1967年移居台北，1990年病逝于台北。", "workTexts": {"刘向歆父子年谱": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "国史大纲": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "中国历代政治得失": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。"}, "workSummaries": {"国史大纲": {"title": "国史大纲", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "summary": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "quote": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "quotes": ["事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远"], "quote_policy": "preferred"}, "国史新论": {"title": "国史新论", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "论说文", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远", "创办香港新亚书院，培育人才；"], "quote_policy": "preferred"}, "中国历代政治得失": {"title": "中国历代政治得失", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。", "summary": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "《中国历代政治得失》以制度史视角剖析历代政治。", "倡导民族文化本位史观，影响深远"], "quote_policy": "preferred"}, "中国文化史导论": {"title": "中国文化史导论", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "论说文", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远", "创办香港新亚书院，培育人才；"], "quote_policy": "preferred"}, "刘向歆父子年谱": {"title": "刘向歆父子年谱", "aliases": [], "authors": [], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "", "genre": "", "one_liner": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "summary": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "朱子新学案": {"title": "朱子新学案", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "quotes": ["继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "晚年生活恬淡，1990年8月30日病逝于台北", "事迹：1967年移居台北，定居素书楼；"], "quote_policy": "preferred"}, "中国学术思想史论丛": {"title": "中国学术思想史论丛", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "quotes": ["继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "晚年生活恬淡，1990年8月30日病逝于台北", "事迹：1967年移居台北，定居素书楼；"], "quote_policy": "preferred"}}, "markdown": "# 钱穆\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：钱穆（字宾四）\n- **时代**：近现代（清末至民国及当代）\n- **出生**：1895年，江苏无锡\n- **去世**：1990年，台湾台北\n- **享年**：96岁\n- **主要身份**：历史学家、国学大师、教育家、书斋学者、中央研究院院士\n- **历史地位**：一代史学宗师，国学巨擘，与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"\n- **主要成就**：著《国史大纲》奠定现代通史书写范式；创办香港新亚书院，培育人才；著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；倡导民族文化本位史观，影响深远\n\n### 生平概述\n钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍。早年于无锡中小学任教期间即潜心治学，后凭《刘向歆父子年谱》等论著跻身主流学界，曾任教于北京燕京大学、北京大学等校。抗战爆发后辗转西南，于艰难岁月中完成《国史大纲》。1949年南渡香港，创办新亚书院，弘扬中国文化；1967年移居台北，晚年讲学著述不辍，1990年病逝于台北。钱穆毕生以阐扬中国传统文化为己任，被誉为\"为故国招魂\"的一代宗师。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：自江南故里出发，北上燕赵，南渡香江，终老宝岛台湾\n- ⏱️ **时间跨度**：1895年—1990年，共96年\n- 📍 **地理范围**：江苏、北京、云南、四川、香港、台湾\n- 🌟 **重要节点数量**：核心地点7处\n- 🚶 **总行程估算**：约 6057 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：无锡\n- **公元纪年**：1895年\n- **停留时间**：生于斯，长于斯，早年求学与任教均在此\n- **位置**：无锡（今江苏省无锡市）\n- **事迹**：1895年7月30日生于无锡县荡口镇七房桥，幼年丧父，家境清贫；12岁入新式小学，后因家贫辍学；辍学后自学不辍，1912年起先后于无锡三兼小学、鸿模小学等校任教，并开始系统治学\n- **意义**：故乡与学问启蒙之地，奠定其自学治学的志业根基\n\n### 📍 重要地点：北京\n- **公元纪年**：1930年\n- **停留时间**：1930年前后至抗战前，多次在京任教\n- **位置**：北京（今北京市）\n- **事迹**：1930年发表《刘向歆父子年谱》，一举成名；此后相继任教于燕京大学、北京大学等校，进入主流学术圈，与学界名流交往论学\n- **意义**：进入全国学术重镇，由地方学者跻身一流史家行列\n\n### 📍 重要地点：昆明\n- **公元纪年**：1938年前后\n- **停留时间**：约一至二年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：抗战爆发后随学界南迁，先至昆明西南联大任教\n- **意义**：辗转国难之际，坚持讲学著述\n\n### 📍 重要地点：成都\n- **公元纪年**：1939年—1940年\n- **停留时间**：约二至三年\n- **位置**：成都（今四川省成都市）\n- **事迹**：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著\n- **意义**：民族危亡之际写出通史巨著，是其学术生涯的高峰\n\n### 📍 重要地点：香港\n- **公元纪年**：1949年\n- **停留时间**：1949年至1967年，约十八年\n- **位置**：香港（今香港特别行政区）\n- **事迹**：1949年南下香港，创办新亚书院（今香港中文大学新亚书院前身），任院长，以\"宋明书院精神\"办学，弘扬中华文化，培育大批人才；又曾获选中央研究院院士（届次待考）\n- **意义**：孤悬海外续中华文脉的根据地，是其教育事业的奠基之所\n\n### 📍 重要地点：台北\n- **公元纪年**：1967年\n- **停留时间**：1967年至1990年，约二十三年\n- **位置**：台北（今台湾省台北市）\n- **事迹**：1967年移居台北，定居素书楼；继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；晚年生活恬淡，1990年8月30日病逝于台北\n- **意义**：晚年归宿与封笔之地\n\n### 🔴 去世地：台北\n- **公元纪年**：1990年\n- **停留时间**：晚年定居至辞世\n- **位置**：台北（今台湾省台北市）\n- **经过**：1990年8月30日在台北寓所病逝，享年96岁\n- **意义**：一代史学的最终归宿地；其骨灰后归葬太湖之滨，魂归故里\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1895年 | 无锡 | 江苏省无锡市 | 生于无锡县荡口镇七房桥 |\n| 1912年 | 无锡 | 江苏省无锡市 | 辍学后自学，赴无锡各小学任教，开始治学 |\n| 1930年 | 北京 | 北京市 | 发表《刘向歆父子年谱》，受学界瞩目 |\n| 1937年 | 昆明 | 云南省昆明市 | 抗战爆发，辗转西南，在西南联大任教 |\n| 1940年 | 成都 | 四川省成都市 | 完成《国史大纲》 |\n| 1949年 | 香港 | 香港特别行政区 | 赴香港创办新亚书院，任院长 |\n| 1967年 | 台北 | 台湾省台北市 | 移居台北，定居素书楼 |\n| 1990年 | 台北 | 台湾省台北市 | 病逝于台北 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n钱穆在抗战危局中撰写《国史大纲》，为民族文化保存精神火种；南渡后以一介书生创办新亚书院，在英属香港为中国文化开辟讲学重镇，使中华传统学术薪火相传。其民族文化本位史观与融贯通史的治学路径，深刻影响了同辈及后辈的史学走向。\n\n### 对后世的影响\n- 《国史大纲》成为近现代中国通史写作的典范之作，至今仍被广泛研读。\n- 新亚书院为香港中文大学奠基之一，育才无数，桃李遍及港澳台与海外华人学界。\n- 与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"，其民族文化本位立场对后世史学反思有持续影响。\n- 留下了数十种贯通经史子集的著述，构成现代国学的重要遗产。\n\n### 历史评价\n- 一代史学宗师，国学大师，为故国招魂。\n- 与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（\"现代四大史学家\"具体并称来源与时间待考）。\n- 其治学\"融会贯通，以文化生命统摄历史\"，为传统史学在现代学术体系中的延续开辟新路。\n- 创办新亚书院，承宋明书院讲学之风，被誉为\"在香港为中国文化续命\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：钱穆生于清末，卒于当代，跨越清末、民国、新中国成立初期及当代多个历史阶段。\n- **关键事件**：少年辍学而自学成才，是近代自学成才的典型代表。\n- **关键事件**：抗战期间坚持学术研究，体现中国知识分子在民族危亡中的担当。\n- **关键事件**：1949年南迁香港，创办新亚书院，是新中国成立前夕知识分子南迁的一个缩影。\n- **代表作品**：著有《国史大纲》，是中国近代影响深远的通史著作之一。\n- **代表作品**：《中国历代政治得失》以制度史视角剖析历代政治。\n- **易混点**：注意区分钱穆与钱玄同、钱钟书等同时代\"钱\"姓学者。\n- **易混点**：钱穆为历史学家，与哲学家冯友兰、思想家牟宗三等同时代学人各有侧重。\n\n### 高中阶段\n- **时代背景**：近代中国学术转型期，由传统经史走向现代史学，钱穆是其中的代表人物之一。\n- **关键事件**：1930年发表《刘向歆父子年谱》，在学界一举成名。\n- **关键事件**：抗战时期完成《国史大纲》，强调对本民族历史文化的温情与敬意。\n- **关键事件**：1949年后南下香港创办新亚书院，1967年迁台。\n- **史学思想**：倡导**民族文化本位史观**，主张治史应\"对本国历史怀有温情与敬意\"。\n- **史学地位**：与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源待考）。\n- **代表作品**：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》等。\n- **代表作品**：《国史大纲》采用\"综述\"与\"编年\"相结合的体例，为现代通史写作范式。\n- **易混点**：钱穆与陈寅恪虽同为现代史学大家，但学术取径与政治立场存在差异。\n- **易混点**：钱穆为新儒家代表人物之一，但更以史学名世，注意区分其与新儒家其他代表。\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 钱穆的生卒年（1895年—1990年）与籍贯（江苏无锡）。\n- 钱穆是著名的历史学家、国学大师。\n- 钱穆著有《国史大纲》，是其代表作。\n- 抗战期间钱穆在西南坚持学术研究。\n- 钱穆曾创办新亚书院（位于香港）。\n- 注意区分钱穆与钱钟书、钱玄同等同时代学者（存疑/说法不一）。\n\n### 高中考点\n- 钱穆的史学思想：民族文化本位史观，主张对本民族历史文化持温情与敬意。\n- 钱穆与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源存疑/说法不一）。\n- 《国史大纲》的成书背景（抗战时期，1940年于成都完成）与历史地位。\n- 钱穆1949年南下香港创办新亚书院的历史背景与意义。\n- 钱穆曾任中央研究院院士（具体届次与年份待考）。\n- 代表作品：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》。\n- 钱穆1967年移居台北，1990年病逝于台北。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 江苏省无锡市 | 江苏省无锡市 | 31.492953 | 120.307280 | WGS84 |\n| 北京市 | 北京市 | 39.902776 | 116.401145 | WGS84 |\n| 云南省昆明市 | 云南省昆明市 | 24.884561 | 102.832254 | WGS84 |\n| 四川省成都市 | 四川省成都市 | 30.575416 | 104.063796 | WGS84 |\n| 香港特别行政区 | 香港特别行政区 | 22.281096 | 114.165753 | WGS84 |\n| 台湾省台北市 | 台湾省台北市 | 30.854364 | 114.723474 | WGS84 |", "relatedGraph": {"center": {"id": "钱穆", "name": "钱穆", "file": "钱穆.html", "dynasty": "近现代（清末至民国及当代）", "aliases": [], "birth_year": 1895, "death_year": 1990, "quote": "一代史学宗师，国学大师，为故国招魂。", "review": "1930年发表《刘向歆父子年谱》，一举成名", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏无锡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钱穆", "name": "钱穆", "file": "钱穆.html", "dynasty": "近现代（清末至民国及当代）", "aliases": [], "birth_year": 1895, "death_year": 1990, "quote": "一代史学宗师，国学大师，为故国招魂。", "review": "1930年发表《刘向歆父子年谱》，一举成名", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏无锡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈寅恪", "name": "陈寅恪", "file": "陈寅恪.html", "dynasty": "近现代（清末民初至中华人民共和国初期）", "aliases": [], "birth_year": 1969, "death_year": 1969, "quote": "陈寅恪（1890—1969），江西义宁人，著名历史学家、古典文学研究家、语言学家，晚年双目失明仍口述完成《柳如是别传》等巨著，被视为二十世纪…", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "吕思勉", "name": "吕思勉", "file": "吕思勉.html", "dynasty": "近现代（清末至民国）", "aliases": [], "birth_year": 1884, "death_year": 1957, "quote": "吕思勉，字诚之，江苏武进人，当代著名历史学家", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏武进", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钱穆", "target": "陈寅恪", "label": "并称", "confidence": 0.55}, {"source": "钱穆", "target": "吕思勉", "label": "并称", "confidence": 0.55}, {"source": "钱穆", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "陈省身", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:49Z", "generated_at": "2026-06-22T11:31:49Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "钱穆", "title": "", "description": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍。早年于无锡中小学任教期间即潜心治学，后凭《刘向歆父子年谱》等论著跻身主流学界，曾任教于北京燕京大学、北京大学等校。抗战爆发后辗转西南，于艰难岁月中完成《国史大纲》。1949年南渡香港，创办新亚书院，弘扬中国文化；1967年移居台北，晚年讲学著述不辍，1990年病逝于台北。钱穆毕生以阐扬中国传统文化为己任，被誉为\"为故国招魂\"的一代宗师。", "quote": "1930年发表《刘向歆父子年谱》，一举成名", "shortReview": "1930年发表《刘向歆父子年谱》，一举成名", "dynasty": "近现代（清末至民国及当代）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏无锡", "avatar": "", "birth": {"date": "1895年", "location": "江苏无锡", "lat": 31.4912, "lng": 120.3119, "coordSystem": "WGS84"}, "death": {"date": "1990年", "location": "台湾台北", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "96岁", "highlights": {"honor": "", "status": "一代史学宗师，国学巨擘，与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"", "identities": "历史学家、国学大师、教育家、书斋学者、中央研究院院士", "achievements": "著《国史大纲》奠定现代通史书写范式；创办香港新亚书院，培育人才；著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；倡导民族文化本位史观，影响深远", "works": ["刘向歆父子年谱", "国史大纲", "国史新论", "中国历代政治得失", "中国文化史导论"], "reviews": ["一代史学宗师，国学大师，为故国招魂。", "与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（\"现代四大史学家\"具体并称来源与时间待考）。", "其治学\"融会贯通，以文化生命统摄历史\"，为传统史学在现代学术体系中的延续开辟新路。"]}}, "locations": [{"name": "无锡", "ancientName": "无锡", "modernName": "江苏省无锡市", "lat": 31.492953, "lng": 120.30728, "coordSystem": "WGS84", "type": "birth", "event": "1895年7月30日生于无锡县荡口镇七房桥，幼年丧父，家境清贫；12岁入新式小学，后因家贫辍学；辍学后自学不辍，1912年起先后于无锡三兼小学、鸿模小学等校任教，并开始系统治学", "time": "1895年", "duration": "生于斯，长于斯，早年求学与任教均在此", "significance": "故乡与学问启蒙之地，奠定其自学治学的志业根基", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "1930年发表《刘向歆父子年谱》，一举成名；此后相继任教于燕京大学、北京大学等校，进入主流学术圈，与学界名流交往论学", "time": "1930年", "duration": "1930年前后至抗战前，多次在京任教", "significance": "进入全国学术重镇，由地方学者跻身一流史家行列", "works": ["刘向歆父子年谱"], "quoteLines": []}, {"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 24.884561, "lng": 102.832254, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后随学界南迁，先至昆明西南联大任教", "time": "1938年前后", "duration": "约一至二年", "significance": "辗转国难之际，坚持讲学著述", "works": [], "quoteLines": []}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.575416, "lng": 104.063796, "coordSystem": "WGS84", "type": "normal", "event": "转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "time": "1939年—1940年", "duration": "约二至三年", "significance": "民族危亡之际写出通史巨著，是其学术生涯的高峰", "works": ["国史大纲"], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.281096, "lng": 114.165753, "coordSystem": "WGS84", "type": "normal", "event": "1949年南下香港，创办新亚书院（今香港中文大学新亚书院前身），任院长，以\"宋明书院精神\"办学，弘扬中华文化，培育大批人才；又曾获选中央研究院院士（届次待考）", "time": "1949年", "duration": "1949年至1967年，约十八年", "significance": "孤悬海外续中华文脉的根据地，是其教育事业的奠基之所", "works": [], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "台湾省台北市", "lat": 30.854364, "lng": 114.723474, "coordSystem": "WGS84", "type": "normal", "event": "1967年移居台北，定居素书楼；继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；晚年生活恬淡，1990年8月30日病逝于台北", "time": "1967年", "duration": "1967年至1990年，约二十三年", "significance": "晚年归宿与封笔之地", "works": ["朱子新学案", "中国学术思想史论丛"], "quoteLines": []}, {"name": "台北", "ancientName": "台北", "modernName": "台湾省台北市", "lat": 30.854364, "lng": 114.723474, "coordSystem": "WGS84", "type": "death", "event": "1990年8月30日在台北寓所病逝，享年96岁", "time": "1990年", "duration": "晚年定居至辞世", "significance": "一代史学的最终归宿地；其骨灰后归葬太湖之滨，魂归故里", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：钱穆生于清末，卒于当代，跨越清末、民国、新中国成立初期及当代多个历史阶段。\n- **关键事件**：少年辍学而自学成才，是近代自学成才的典型代表。\n- **关键事件**：抗战期间坚持学术研究，体现中国知识分子在民族危亡中的担当。\n- **关键事件**：1949年南迁香港，创办新亚书院，是新中国成立前夕知识分子南迁的一个缩影。\n- **代表作品**：著有《国史大纲》，是中国近代影响深远的通史著作之一。\n- **代表作品**：《中国历代政治得失》以制度史视角剖析历代政治。\n- **易混点**：注意区分钱穆与钱玄同、钱钟书等同时代\"钱\"姓学者。\n- **易混点**：钱穆为历史学家，与哲学家冯友兰、思想家牟宗三等同时代学人各有侧重。\n\n### 高中阶段\n- **时代背景**：近代中国学术转型期，由传统经史走向现代史学，钱穆是其中的代表人物之一。\n- **关键事件**：1930年发表《刘向歆父子年谱》，在学界一举成名。\n- **关键事件**：抗战时期完成《国史大纲》，强调对本民族历史文化的温情与敬意。\n- **关键事件**：1949年后南下香港创办新亚书院，1967年迁台。\n- **史学思想**：倡导**民族文化本位史观**，主张治史应\"对本国历史怀有温情与敬意\"。\n- **史学地位**：与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源待考）。\n- **代表作品**：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》等。\n- **代表作品**：《国史大纲》采用\"综述\"与\"编年\"相结合的体例，为现代通史写作范式。\n- **易混点**：钱穆与陈寅恪虽同为现代史学大家，但学术取径与政治立场存在差异。\n- **易混点**：钱穆为新儒家代表人物之一，但更以史学名世，注意区分其与新儒家其他代表。\n\n---", "examPoints": "### 初中考点\n- 钱穆的生卒年（1895年—1990年）与籍贯（江苏无锡）。\n- 钱穆是著名的历史学家、国学大师。\n- 钱穆著有《国史大纲》，是其代表作。\n- 抗战期间钱穆在西南坚持学术研究。\n- 钱穆曾创办新亚书院（位于香港）。\n- 注意区分钱穆与钱钟书、钱玄同等同时代学者（存疑/说法不一）。\n\n### 高中考点\n- 钱穆的史学思想：民族文化本位史观，主张对本民族历史文化持温情与敬意。\n- 钱穆与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源存疑/说法不一）。\n- 《国史大纲》的成书背景（抗战时期，1940年于成都完成）与历史地位。\n- 钱穆1949年南下香港创办新亚书院的历史背景与意义。\n- 钱穆曾任中央研究院院士（具体届次与年份待考）。\n- 代表作品：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》。\n- 钱穆1967年移居台北，1990年病逝于台北。", "workTexts": {"刘向歆父子年谱": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "国史大纲": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "中国历代政治得失": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。"}, "workSummaries": {"国史大纲": {"title": "国史大纲", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "summary": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "quote": "事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "quotes": ["事迹：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著", "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远"], "quote_policy": "preferred"}, "国史新论": {"title": "国史新论", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "论说文", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远", "创办香港新亚书院，培育人才；"], "quote_policy": "preferred"}, "中国历代政治得失": {"title": "中国历代政治得失", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。", "summary": "代表作品：《中国历代政治得失》以制度史视角剖析历代政治。", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "《中国历代政治得失》以制度史视角剖析历代政治。", "倡导民族文化本位史观，影响深远"], "quote_policy": "preferred"}, "中国文化史导论": {"title": "中国文化史导论", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "论说文", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "quotes": ["著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；", "倡导民族文化本位史观，影响深远", "创办香港新亚书院，培育人才；"], "quote_policy": "preferred"}, "刘向歆父子年谱": {"title": "刘向歆父子年谱", "aliases": [], "authors": [], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "", "genre": "", "one_liner": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "summary": "事迹：1930年发表《刘向歆父子年谱》，一举成名", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "朱子新学案": {"title": "朱子新学案", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "quotes": ["继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "晚年生活恬淡，1990年8月30日病逝于台北", "事迹：1967年移居台北，定居素书楼；"], "quote_policy": "preferred"}, "中国学术思想史论丛": {"title": "中国学术思想史论丛", "aliases": [], "authors": ["钱穆"], "related_people": ["钱穆"], "source_pages": ["钱穆"], "era": "近现代（清末至民国及当代）", "genre": "", "one_liner": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "summary": "钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍", "quote": "继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "quotes": ["继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；", "晚年生活恬淡，1990年8月30日病逝于台北", "事迹：1967年移居台北，定居素书楼；"], "quote_policy": "preferred"}}, "markdown": "# 钱穆\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：钱穆（字宾四）\n- **时代**：近现代（清末至民国及当代）\n- **出生**：1895年，江苏无锡\n- **去世**：1990年，台湾台北\n- **享年**：96岁\n- **主要身份**：历史学家、国学大师、教育家、书斋学者、中央研究院院士\n- **历史地位**：一代史学宗师，国学巨擘，与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"\n- **主要成就**：著《国史大纲》奠定现代通史书写范式；创办香港新亚书院，培育人才；著有《国史新论》《中国历代政治得失》《中国文化史导论》等数十种；倡导民族文化本位史观，影响深远\n\n### 生平概述\n钱穆生于清末江苏无锡的一个书香之家，自幼失学而自学不辍。早年于无锡中小学任教期间即潜心治学，后凭《刘向歆父子年谱》等论著跻身主流学界，曾任教于北京燕京大学、北京大学等校。抗战爆发后辗转西南，于艰难岁月中完成《国史大纲》。1949年南渡香港，创办新亚书院，弘扬中国文化；1967年移居台北，晚年讲学著述不辍，1990年病逝于台北。钱穆毕生以阐扬中国传统文化为己任，被誉为\"为故国招魂\"的一代宗师。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：自江南故里出发，北上燕赵，南渡香江，终老宝岛台湾\n- ⏱️ **时间跨度**：1895年—1990年，共96年\n- 📍 **地理范围**：江苏、北京、云南、四川、香港、台湾\n- 🌟 **重要节点数量**：核心地点7处\n- 🚶 **总行程估算**：约 6057 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：无锡\n- **公元纪年**：1895年\n- **停留时间**：生于斯，长于斯，早年求学与任教均在此\n- **位置**：无锡（今江苏省无锡市）\n- **事迹**：1895年7月30日生于无锡县荡口镇七房桥，幼年丧父，家境清贫；12岁入新式小学，后因家贫辍学；辍学后自学不辍，1912年起先后于无锡三兼小学、鸿模小学等校任教，并开始系统治学\n- **意义**：故乡与学问启蒙之地，奠定其自学治学的志业根基\n\n### 📍 重要地点：北京\n- **公元纪年**：1930年\n- **停留时间**：1930年前后至抗战前，多次在京任教\n- **位置**：北京（今北京市）\n- **事迹**：1930年发表《刘向歆父子年谱》，一举成名；此后相继任教于燕京大学、北京大学等校，进入主流学术圈，与学界名流交往论学\n- **意义**：进入全国学术重镇，由地方学者跻身一流史家行列\n\n### 📍 重要地点：昆明\n- **公元纪年**：1938年前后\n- **停留时间**：约一至二年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：抗战爆发后随学界南迁，先至昆明西南联大任教\n- **意义**：辗转国难之际，坚持讲学著述\n\n### 📍 重要地点：成都\n- **公元纪年**：1939年—1940年\n- **停留时间**：约二至三年\n- **位置**：成都（今四川省成都市）\n- **事迹**：转赴成都任教于齐鲁大学、华西坝诸校，并于1940年完成《国史大纲》之撰著\n- **意义**：民族危亡之际写出通史巨著，是其学术生涯的高峰\n\n### 📍 重要地点：香港\n- **公元纪年**：1949年\n- **停留时间**：1949年至1967年，约十八年\n- **位置**：香港（今香港特别行政区）\n- **事迹**：1949年南下香港，创办新亚书院（今香港中文大学新亚书院前身），任院长，以\"宋明书院精神\"办学，弘扬中华文化，培育大批人才；又曾获选中央研究院院士（届次待考）\n- **意义**：孤悬海外续中华文脉的根据地，是其教育事业的奠基之所\n\n### 📍 重要地点：台北\n- **公元纪年**：1967年\n- **停留时间**：1967年至1990年，约二十三年\n- **位置**：台北（今台湾省台北市）\n- **事迹**：1967年移居台北，定居素书楼；继续著述讲学，撰写《朱子新学案》《中国学术思想史论丛》等；晚年生活恬淡，1990年8月30日病逝于台北\n- **意义**：晚年归宿与封笔之地\n\n### 🔴 去世地：台北\n- **公元纪年**：1990年\n- **停留时间**：晚年定居至辞世\n- **位置**：台北（今台湾省台北市）\n- **经过**：1990年8月30日在台北寓所病逝，享年96岁\n- **意义**：一代史学的最终归宿地；其骨灰后归葬太湖之滨，魂归故里\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1895年 | 无锡 | 江苏省无锡市 | 生于无锡县荡口镇七房桥 |\n| 1912年 | 无锡 | 江苏省无锡市 | 辍学后自学，赴无锡各小学任教，开始治学 |\n| 1930年 | 北京 | 北京市 | 发表《刘向歆父子年谱》，受学界瞩目 |\n| 1937年 | 昆明 | 云南省昆明市 | 抗战爆发，辗转西南，在西南联大任教 |\n| 1940年 | 成都 | 四川省成都市 | 完成《国史大纲》 |\n| 1949年 | 香港 | 香港特别行政区 | 赴香港创办新亚书院，任院长 |\n| 1967年 | 台北 | 台湾省台北市 | 移居台北，定居素书楼 |\n| 1990年 | 台北 | 台湾省台北市 | 病逝于台北 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n钱穆在抗战危局中撰写《国史大纲》，为民族文化保存精神火种；南渡后以一介书生创办新亚书院，在英属香港为中国文化开辟讲学重镇，使中华传统学术薪火相传。其民族文化本位史观与融贯通史的治学路径，深刻影响了同辈及后辈的史学走向。\n\n### 对后世的影响\n- 《国史大纲》成为近现代中国通史写作的典范之作，至今仍被广泛研读。\n- 新亚书院为香港中文大学奠基之一，育才无数，桃李遍及港澳台与海外华人学界。\n- 与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"，其民族文化本位立场对后世史学反思有持续影响。\n- 留下了数十种贯通经史子集的著述，构成现代国学的重要遗产。\n\n### 历史评价\n- 一代史学宗师，国学大师，为故国招魂。\n- 与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（\"现代四大史学家\"具体并称来源与时间待考）。\n- 其治学\"融会贯通，以文化生命统摄历史\"，为传统史学在现代学术体系中的延续开辟新路。\n- 创办新亚书院，承宋明书院讲学之风，被誉为\"在香港为中国文化续命\"。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：钱穆生于清末，卒于当代，跨越清末、民国、新中国成立初期及当代多个历史阶段。\n- **关键事件**：少年辍学而自学成才，是近代自学成才的典型代表。\n- **关键事件**：抗战期间坚持学术研究，体现中国知识分子在民族危亡中的担当。\n- **关键事件**：1949年南迁香港，创办新亚书院，是新中国成立前夕知识分子南迁的一个缩影。\n- **代表作品**：著有《国史大纲》，是中国近代影响深远的通史著作之一。\n- **代表作品**：《中国历代政治得失》以制度史视角剖析历代政治。\n- **易混点**：注意区分钱穆与钱玄同、钱钟书等同时代\"钱\"姓学者。\n- **易混点**：钱穆为历史学家，与哲学家冯友兰、思想家牟宗三等同时代学人各有侧重。\n\n### 高中阶段\n- **时代背景**：近代中国学术转型期，由传统经史走向现代史学，钱穆是其中的代表人物之一。\n- **关键事件**：1930年发表《刘向歆父子年谱》，在学界一举成名。\n- **关键事件**：抗战时期完成《国史大纲》，强调对本民族历史文化的温情与敬意。\n- **关键事件**：1949年后南下香港创办新亚书院，1967年迁台。\n- **史学思想**：倡导**民族文化本位史观**，主张治史应\"对本国历史怀有温情与敬意\"。\n- **史学地位**：与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源待考）。\n- **代表作品**：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》等。\n- **代表作品**：《国史大纲》采用\"综述\"与\"编年\"相结合的体例，为现代通史写作范式。\n- **易混点**：钱穆与陈寅恪虽同为现代史学大家，但学术取径与政治立场存在差异。\n- **易混点**：钱穆为新儒家代表人物之一，但更以史学名世，注意区分其与新儒家其他代表。\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 钱穆的生卒年（1895年—1990年）与籍贯（江苏无锡）。\n- 钱穆是著名的历史学家、国学大师。\n- 钱穆著有《国史大纲》，是其代表作。\n- 抗战期间钱穆在西南坚持学术研究。\n- 钱穆曾创办新亚书院（位于香港）。\n- 注意区分钱穆与钱钟书、钱玄同等同时代学者（存疑/说法不一）。\n\n### 高中考点\n- 钱穆的史学思想：民族文化本位史观，主张对本民族历史文化持温情与敬意。\n- 钱穆与吕思勉、陈垣、陈寅恪并称\"现代四大史学家\"（具体并称来源存疑/说法不一）。\n- 《国史大纲》的成书背景（抗战时期，1940年于成都完成）与历史地位。\n- 钱穆1949年南下香港创办新亚书院的历史背景与意义。\n- 钱穆曾任中央研究院院士（具体届次与年份待考）。\n- 代表作品：《国史大纲》《国史新论》《中国历代政治得失》《中国文化史导论》《朱子新学案》。\n- 钱穆1967年移居台北，1990年病逝于台北。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 江苏省无锡市 | 江苏省无锡市 | 31.492953 | 120.307280 | WGS84 |\n| 北京市 | 北京市 | 39.902776 | 116.401145 | WGS84 |\n| 云南省昆明市 | 云南省昆明市 | 24.884561 | 102.832254 | WGS84 |\n| 四川省成都市 | 四川省成都市 | 30.575416 | 104.063796 | WGS84 |\n| 香港特别行政区 | 香港特别行政区 | 22.281096 | 114.165753 | WGS84 |\n| 台湾省台北市 | 台湾省台北市 | 30.854364 | 114.723474 | WGS84 |", "relatedGraph": {"center": {"id": "钱穆", "name": "钱穆", "file": "钱穆.html", "dynasty": "近现代（清末至民国及当代）", "aliases": [], "birth_year": 1895, "death_year": 1990, "quote": "一代史学宗师，国学大师，为故国招魂。", "review": "1930年发表《刘向歆父子年谱》，一举成名", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏无锡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "钱穆", "name": "钱穆", "file": "钱穆.html", "dynasty": "近现代（清末至民国及当代）", "aliases": [], "birth_year": 1895, "death_year": 1990, "quote": "一代史学宗师，国学大师，为故国招魂。", "review": "1930年发表《刘向歆父子年谱》，一举成名", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏无锡", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈寅恪", "name": "陈寅恪", "file": "陈寅恪.html", "dynasty": "近现代（清末民初至中华人民共和国初期）", "aliases": [], "birth_year": 1969, "death_year": 1969, "quote": "陈寅恪（1890—1969），江西义宁人，著名历史学家、古典文学研究家、语言学家，晚年双目失明仍口述完成《柳如是别传》等巨著，被视为二十世纪…", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "吕思勉", "name": "吕思勉", "file": "吕思勉.html", "dynasty": "近现代（清末至民国）", "aliases": [], "birth_year": 1884, "death_year": 1957, "quote": "吕思勉，字诚之，江苏武进人，当代著名历史学家", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏武进", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高岗", "name": "高岗", "file": "高岗.html", "dynasty": "近现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1905, "death_year": 1954, "quote": "高岗、饶漱石反党联盟", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "陕西省横山县", "birthplace_modern": "陕西省榆林市横山区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈省身", "name": "陈省身", "file": "陈省身.html", "dynasty": "现代（中华民国、中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2004, "quote": "微分几何之父", "review": "", "foreign_name": "", "main_role_label": "数学家（微分几何", "birthplace": "浙江嘉兴秀水县", "birthplace_modern": "浙江省嘉兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "钱穆", "target": "陈寅恪", "label": "并称", "confidence": 0.55}, {"source": "钱穆", "target": "吕思勉", "label": "并称", "confidence": 0.55}, {"source": "钱穆", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "高岗", "label": "同时代人物", "confidence": null}, {"source": "钱穆", "target": "陈省身", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:52Z", "generated_at": "2026-06-25T07:13:52Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:49Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:52Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

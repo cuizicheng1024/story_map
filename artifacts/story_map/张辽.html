@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "张辽", "title": "", "description": "张辽，字文远，雁门马邑人。早年先后事丁原、何进、董卓与吕布，见证了东汉末年的军阀混战。吕布败亡后，张辽归附曹操，自此成为曹魏集团最重要的外姓将领之一。他既能冲锋陷阵，也能独当一面镇守重镇。白狼山之战后，他逐渐成为北方名将；镇守合肥期间，尤其在公元215年的逍遥津之战中，面对孙权大军突袭，率少数精锐直冲敌阵，一举扭转战局，从此名震吴魏两国。曹丕继位后，张辽仍被委以方面重任，最终在东南前线劳疾而终。", "quote": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "shortReview": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "dynasty": "东汉末年→三国（曹魏）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "左右", "avatar": "", "birth": {"date": "169年", "location": "左右", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "222年", "location": "江都行军途中（今江苏省扬州市附近）", "lat": 32.3932, "lng": 119.4127, "coordSystem": "WGS84"}, "lifespan": "约53岁", "highlights": {"honor": "", "status": "曹魏前期最具威名的前线统帅之一，以机动突击、临阵决断和守边能力闻名。", "identities": "名将、方面统帅、曹魏五子良将之一", "achievements": "1. 早年辗转并州、河北诸军，后归曹操。2. 在白狼山之战等战役中立下大功。3. 镇守合肥，多次抵御孙吴进攻。4. 逍遥津之战以少击众，威震江东。", "works": [], "reviews": []}}, "locations": [{"name": "雁门马邑", "ancientName": "雁门马邑", "modernName": "山西省朔州市朔城区一带", "lat": 39.3316, "lng": 112.4334, "coordSystem": "WGS84", "type": "birth", "event": "出生于并州边地，自幼熟悉骑射与边塞军旅风气。", "time": "公元169年左右", "duration": "童年与少年时期", "significance": "北疆出身塑造了其善于骑兵机动和临阵果断的军事风格。", "works": [], "quoteLines": []}, {"name": "晋阳", "ancientName": "晋阳", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "早年在并州军中任职，先后依附丁原、何进系统，开始军旅生涯。", "time": "公元189年 - 公元191年", "duration": "数年", "significance": "完成从边地青年到职业军人的转变。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "董卓死后局势剧变，张辽辗转于朝廷与军阀之间，逐渐显露将才。", "time": "公元192年 - 公元195年", "duration": "数年", "significance": "经历汉末政治崩坏，也积累了复杂局势中的应变经验。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳", "modernName": "江苏省徐州市睢宁县古邳镇", "lat": 34.1033, "lng": 117.9453, "coordSystem": "WGS84", "type": "normal", "event": "吕布败亡于下邳，张辽被曹操收降并获重用。", "time": "公元198年", "duration": "战役期间", "significance": "人生转折点，自此进入曹操核心军事体系。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省邯郸市临漳县西南邺城遗址", "lat": 36.3347, "lng": 114.617, "coordSystem": "WGS84", "type": "normal", "event": "曹操平定河北后，张辽参与北方经营与军事整编。", "time": "公元204年后", "duration": "较长", "significance": "逐渐从降将成长为独当一面的曹魏名将。", "works": [], "quoteLines": []}, {"name": "白狼山", "ancientName": "白狼山", "modernName": "辽宁省朝阳市喀喇沁左翼蒙古族自治县一带", "lat": 41.1274, "lng": 119.7448, "coordSystem": "WGS84", "type": "normal", "event": "随曹操远征乌桓，在白狼山之战中冲锋陷阵，建立显著战功。", "time": "公元207年", "duration": "战役期间", "significance": "此战使其威名大振，成为北方前线重要统帅。", "works": [], "quoteLines": []}, {"name": "合肥", "ancientName": "合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "受命与乐进、李典等共同镇守合肥，长期防备孙吴北进。", "time": "公元214年起", "duration": "多年", "significance": "合肥成为其最具代表性的镇守之地，也奠定了“江淮屏障”的名声。", "works": [], "quoteLines": []}, {"name": "逍遥津", "ancientName": "逍遥津", "modernName": "安徽省合肥市庐阳区逍遥津周边", "lat": 31.8769, "lng": 117.2917, "coordSystem": "WGS84", "type": "normal", "event": "孙权率十万大军围攻合肥，张辽率八百精锐突击敌阵，随后又在逍遥津追击，几乎生擒孙权。", "time": "公元215年", "duration": "战役期间", "significance": "这是其军事生涯最著名的一战，“张辽止啼”也成为后世传播极广的典故。", "works": [], "quoteLines": []}, {"name": "江都行军途中", "ancientName": "江都", "modernName": "江苏省扬州市附近", "lat": 32.3932, "lng": 119.4127, "coordSystem": "WGS84", "type": "death", "event": "曹丕伐吴期间，张辽抱病随军，在东南前线病重去世。", "time": "公元222年", "duration": "最后时光", "significance": "其去世象征曹魏第一代外姓宿将的谢幕。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---", "examPoints": "### 考点\n### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---", "workTexts": {"三国演义": "重点：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。"}, "workSummaries": {"三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}}, "markdown": "# 张辽\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张辽\n- **时代**：东汉末年→三国（曹魏）\n- **出生**：公元169年左右，雁门马邑（今山西省朔州市朔城区一带）\n- **去世**：公元222年，江都行军途中（今江苏省扬州市附近）\n- **享年**：约53岁\n- **主要身份**：名将、方面统帅、曹魏五子良将之一\n- **历史地位**：曹魏前期最具威名的前线统帅之一，以机动突击、临阵决断和守边能力闻名。\n- **主要成就**：1. 早年辗转并州、河北诸军，后归曹操。2. 在白狼山之战等战役中立下大功。3. 镇守合肥，多次抵御孙吴进攻。4. 逍遥津之战以少击众，威震江东。\n\n### 生平概述\n张辽，字文远，雁门马邑人。早年先后事丁原、何进、董卓与吕布，见证了东汉末年的军阀混战。吕布败亡后，张辽归附曹操，自此成为曹魏集团最重要的外姓将领之一。他既能冲锋陷阵，也能独当一面镇守重镇。白狼山之战后，他逐渐成为北方名将；镇守合肥期间，尤其在公元215年的逍遥津之战中，面对孙权大军突袭，率少数精锐直冲敌阵，一举扭转战局，从此名震吴魏两国。曹丕继位后，张辽仍被委以方面重任，最终在东南前线劳疾而终。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹由并州、河北延伸到淮南与江淮前线，是典型的北方名将南下镇边路线。\n- ⏱️ **时间跨度**：约公元169年 - 公元222年，约53年。\n- 📍 **地理范围**：主要覆盖今山西、河南、河北、辽宁西部、安徽、江苏等地区。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：雁门马邑\n- **时间**：公元169年左右\n- **停留时间**：童年与少年时期\n- **地点**：雁门马邑（今山西省朔州市朔城区一带）\n- **事件**：出生于并州边地，自幼熟悉骑射与边塞军旅风气。\n- **意义**：北疆出身塑造了其善于骑兵机动和临阵果断的军事风格。\n\n### 📍 重要地点：晋阳\n- **时间**：公元189年 - 公元191年\n- **停留时间**：数年\n- **地点**：晋阳（今山西省太原市）\n- **事件**：早年在并州军中任职，先后依附丁原、何进系统，开始军旅生涯。\n- **意义**：完成从边地青年到职业军人的转变。\n\n### 📍 重要地点：长安\n- **时间**：公元192年 - 公元195年\n- **停留时间**：数年\n- **地点**：长安（今陕西省西安市）\n- **事件**：董卓死后局势剧变，张辽辗转于朝廷与军阀之间，逐渐显露将才。\n- **意义**：经历汉末政治崩坏，也积累了复杂局势中的应变经验。\n\n### 📍 重要地点：下邳\n- **时间**：公元198年\n- **停留时间**：战役期间\n- **地点**：下邳（今江苏省徐州市睢宁县古邳镇）\n- **事件**：吕布败亡于下邳，张辽被曹操收降并获重用。\n- **意义**：人生转折点，自此进入曹操核心军事体系。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年后\n- **停留时间**：较长\n- **地点**：邺城（今河北省邯郸市临漳县西南邺城遗址）\n- **事件**：曹操平定河北后，张辽参与北方经营与军事整编。\n- **意义**：逐渐从降将成长为独当一面的曹魏名将。\n\n### 📍 重要地点：白狼山\n- **时间**：公元207年\n- **停留时间**：战役期间\n- **地点**：白狼山（今辽宁省朝阳市喀喇沁左翼蒙古族自治县一带）\n- **事件**：随曹操远征乌桓，在白狼山之战中冲锋陷阵，建立显著战功。\n- **意义**：此战使其威名大振，成为北方前线重要统帅。\n\n### 📍 重要地点：合肥\n- **时间**：公元214年起\n- **停留时间**：多年\n- **地点**：合肥（今安徽省合肥市）\n- **事件**：受命与乐进、李典等共同镇守合肥，长期防备孙吴北进。\n- **意义**：合肥成为其最具代表性的镇守之地，也奠定了“江淮屏障”的名声。\n\n### 📍 重要地点：逍遥津\n- **时间**：公元215年\n- **停留时间**：战役期间\n- **地点**：逍遥津（今安徽省合肥市庐阳区逍遥津周边）\n- **事件**：孙权率十万大军围攻合肥，张辽率八百精锐突击敌阵，随后又在逍遥津追击，几乎生擒孙权。\n- **意义**：这是其军事生涯最著名的一战，“张辽止啼”也成为后世传播极广的典故。\n\n### 🔴 去世地：江都行军途中\n- **时间**：公元222年\n- **停留时间**：最后时光\n- **地点**：江都（今江苏省扬州市附近）\n- **事件**：曹丕伐吴期间，张辽抱病随军，在东南前线病重去世。\n- **意义**：其去世象征曹魏第一代外姓宿将的谢幕。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 169年左右 | 雁门马邑 | 山西省朔州市朔城区一带 | （阶段：早年）出生于边地马邑。 |\n| 189年 | 晋阳 | 山西省太原市 | （阶段：从军）在并州军中任职，开始军旅生涯。 |\n| 192年 | 长安 | 陕西省西安市 | （阶段：动荡）辗转于董卓余部与关中政局之间。 |\n| 198年 | 下邳 | 江苏省徐州市睢宁县古邳镇 | （阶段：转折）吕布败亡后归附曹操。 |\n| 204年 | 邺城 | 河北省邯郸市临漳县邺城遗址 | （阶段：崛起）参与河北经营，成为曹操麾下重将。 |\n| 207年 | 白狼山 | 辽宁省朝阳市喀喇沁左翼蒙古族自治县一带 | （阶段：征战）参加白狼山之战，威名大振。 |\n| 214年 | 合肥 | 安徽省合肥市 | （阶段：镇边）开始长期镇守淮南前线。 |\n| 215年 | 逍遥津 | 安徽省合肥市庐阳区逍遥津周边 | （阶段：巅峰）以少击众，大破孙权。 |\n| 222年 | 江都 | 江苏省扬州市附近 | （阶段：终章）抱病从征东吴，途中去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山西省朔州市朔城区 | 39.3316 | 112.4334 |\n| 山西省太原市 | 37.8706 | 112.5489 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 江苏省徐州市睢宁县古邳镇 | 34.1033 | 117.9453 |\n| 河北省邯郸市临漳县邺城遗址 | 36.3347 | 114.6170 |\n| 辽宁省朝阳市喀喇沁左翼蒙古族自治县一带 | 41.1274 | 119.7448 |\n| 安徽省合肥市 | 31.8206 | 117.2272 |\n| 安徽省合肥市庐阳区逍遥津周边 | 31.8769 | 117.2917 |\n| 江苏省扬州市 | 32.3932 | 119.4127 |\n", "relatedGraph": {"center": {"id": "张辽", "name": "张辽", "file": "张辽.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": 169, "death_year": 222, "quote": "**张辽止啼**", "review": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "foreign_name": "", "main_role_label": "名将", "birthplace": "左右", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张辽", "name": "张辽", "file": "张辽.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": 169, "death_year": 222, "quote": "**张辽止啼**", "review": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "foreign_name": "", "main_role_label": "名将", "birthplace": "左右", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "东汉末年至三国（曹魏）", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "秋风萧瑟天气凉，草木摇落露为霜。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "夏侯惇", "name": "夏侯惇", "file": "夏侯惇.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": null, "death_year": 220, "quote": "夏侯惇，字元让，沛国谯县人", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "张辽", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "张辽", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "张辽", "target": "夏侯惇", "label": "宗亲", "confidence": null}, {"source": "张辽", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "张辽", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "张辽", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:23Z", "generated_at": "2026-06-22T11:31:23Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "张辽", "title": "", "description": "张辽，字文远，雁门马邑人。早年先后事丁原、何进、董卓与吕布，见证了东汉末年的军阀混战。吕布败亡后，张辽归附曹操，自此成为曹魏集团最重要的外姓将领之一。他既能冲锋陷阵，也能独当一面镇守重镇。白狼山之战后，他逐渐成为北方名将；镇守合肥期间，尤其在公元215年的逍遥津之战中，面对孙权大军突袭，率少数精锐直冲敌阵，一举扭转战局，从此名震吴魏两国。曹丕继位后，张辽仍被委以方面重任，最终在东南前线劳疾而终。", "quote": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "shortReview": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "dynasty": "东汉末年→三国（曹魏）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "左右", "avatar": "", "birth": {"date": "169年", "location": "左右", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "222年", "location": "江都行军途中（今江苏省扬州市附近）", "lat": 32.3932, "lng": 119.4127, "coordSystem": "WGS84"}, "lifespan": "约53岁", "highlights": {"honor": "", "status": "曹魏前期最具威名的前线统帅之一，以机动突击、临阵决断和守边能力闻名。", "identities": "名将、方面统帅、曹魏五子良将之一", "achievements": "1. 早年辗转并州、河北诸军，后归曹操。2. 在白狼山之战等战役中立下大功。3. 镇守合肥，多次抵御孙吴进攻。4. 逍遥津之战以少击众，威震江东。", "works": [], "reviews": []}}, "locations": [{"name": "雁门马邑", "ancientName": "雁门马邑", "modernName": "山西省朔州市朔城区一带", "lat": 39.3316, "lng": 112.4334, "coordSystem": "WGS84", "type": "birth", "event": "出生于并州边地，自幼熟悉骑射与边塞军旅风气。", "time": "公元169年左右", "duration": "童年与少年时期", "significance": "北疆出身塑造了其善于骑兵机动和临阵果断的军事风格。", "works": [], "quoteLines": []}, {"name": "晋阳", "ancientName": "晋阳", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "早年在并州军中任职，先后依附丁原、何进系统，开始军旅生涯。", "time": "公元189年 - 公元191年", "duration": "数年", "significance": "完成从边地青年到职业军人的转变。", "works": [], "quoteLines": []}, {"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "董卓死后局势剧变，张辽辗转于朝廷与军阀之间，逐渐显露将才。", "time": "公元192年 - 公元195年", "duration": "数年", "significance": "经历汉末政治崩坏，也积累了复杂局势中的应变经验。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳", "modernName": "江苏省徐州市睢宁县古邳镇", "lat": 34.1033, "lng": 117.9453, "coordSystem": "WGS84", "type": "normal", "event": "吕布败亡于下邳，张辽被曹操收降并获重用。", "time": "公元198年", "duration": "战役期间", "significance": "人生转折点，自此进入曹操核心军事体系。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省邯郸市临漳县西南邺城遗址", "lat": 36.3347, "lng": 114.617, "coordSystem": "WGS84", "type": "normal", "event": "曹操平定河北后，张辽参与北方经营与军事整编。", "time": "公元204年后", "duration": "较长", "significance": "逐渐从降将成长为独当一面的曹魏名将。", "works": [], "quoteLines": []}, {"name": "白狼山", "ancientName": "白狼山", "modernName": "辽宁省朝阳市喀喇沁左翼蒙古族自治县一带", "lat": 41.1274, "lng": 119.7448, "coordSystem": "WGS84", "type": "normal", "event": "随曹操远征乌桓，在白狼山之战中冲锋陷阵，建立显著战功。", "time": "公元207年", "duration": "战役期间", "significance": "此战使其威名大振，成为北方前线重要统帅。", "works": [], "quoteLines": []}, {"name": "合肥", "ancientName": "合肥", "modernName": "安徽省合肥市", "lat": 31.8206, "lng": 117.2272, "coordSystem": "WGS84", "type": "normal", "event": "受命与乐进、李典等共同镇守合肥，长期防备孙吴北进。", "time": "公元214年起", "duration": "多年", "significance": "合肥成为其最具代表性的镇守之地，也奠定了“江淮屏障”的名声。", "works": [], "quoteLines": []}, {"name": "逍遥津", "ancientName": "逍遥津", "modernName": "安徽省合肥市庐阳区逍遥津周边", "lat": 31.8769, "lng": 117.2917, "coordSystem": "WGS84", "type": "normal", "event": "孙权率十万大军围攻合肥，张辽率八百精锐突击敌阵，随后又在逍遥津追击，几乎生擒孙权。", "time": "公元215年", "duration": "战役期间", "significance": "这是其军事生涯最著名的一战，“张辽止啼”也成为后世传播极广的典故。", "works": [], "quoteLines": []}, {"name": "江都行军途中", "ancientName": "江都", "modernName": "江苏省扬州市附近", "lat": 32.3932, "lng": 119.4127, "coordSystem": "WGS84", "type": "death", "event": "曹丕伐吴期间，张辽抱病随军，在东南前线病重去世。", "time": "公元222年", "duration": "最后时光", "significance": "其去世象征曹魏第一代外姓宿将的谢幕。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---", "examPoints": "### 考点\n### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---", "workTexts": {"三国演义": "重点：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。"}, "workSummaries": {"三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}}, "markdown": "# 张辽\n\n## 人物档案\n\n### 基本信息\n- **姓名**：张辽\n- **时代**：东汉末年→三国（曹魏）\n- **出生**：公元169年左右，雁门马邑（今山西省朔州市朔城区一带）\n- **去世**：公元222年，江都行军途中（今江苏省扬州市附近）\n- **享年**：约53岁\n- **主要身份**：名将、方面统帅、曹魏五子良将之一\n- **历史地位**：曹魏前期最具威名的前线统帅之一，以机动突击、临阵决断和守边能力闻名。\n- **主要成就**：1. 早年辗转并州、河北诸军，后归曹操。2. 在白狼山之战等战役中立下大功。3. 镇守合肥，多次抵御孙吴进攻。4. 逍遥津之战以少击众，威震江东。\n\n### 生平概述\n张辽，字文远，雁门马邑人。早年先后事丁原、何进、董卓与吕布，见证了东汉末年的军阀混战。吕布败亡后，张辽归附曹操，自此成为曹魏集团最重要的外姓将领之一。他既能冲锋陷阵，也能独当一面镇守重镇。白狼山之战后，他逐渐成为北方名将；镇守合肥期间，尤其在公元215年的逍遥津之战中，面对孙权大军突袭，率少数精锐直冲敌阵，一举扭转战局，从此名震吴魏两国。曹丕继位后，张辽仍被委以方面重任，最终在东南前线劳疾而终。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹由并州、河北延伸到淮南与江淮前线，是典型的北方名将南下镇边路线。\n- ⏱️ **时间跨度**：约公元169年 - 公元222年，约53年。\n- 📍 **地理范围**：主要覆盖今山西、河南、河北、辽宁西部、安徽、江苏等地区。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：雁门马邑\n- **时间**：公元169年左右\n- **停留时间**：童年与少年时期\n- **地点**：雁门马邑（今山西省朔州市朔城区一带）\n- **事件**：出生于并州边地，自幼熟悉骑射与边塞军旅风气。\n- **意义**：北疆出身塑造了其善于骑兵机动和临阵果断的军事风格。\n\n### 📍 重要地点：晋阳\n- **时间**：公元189年 - 公元191年\n- **停留时间**：数年\n- **地点**：晋阳（今山西省太原市）\n- **事件**：早年在并州军中任职，先后依附丁原、何进系统，开始军旅生涯。\n- **意义**：完成从边地青年到职业军人的转变。\n\n### 📍 重要地点：长安\n- **时间**：公元192年 - 公元195年\n- **停留时间**：数年\n- **地点**：长安（今陕西省西安市）\n- **事件**：董卓死后局势剧变，张辽辗转于朝廷与军阀之间，逐渐显露将才。\n- **意义**：经历汉末政治崩坏，也积累了复杂局势中的应变经验。\n\n### 📍 重要地点：下邳\n- **时间**：公元198年\n- **停留时间**：战役期间\n- **地点**：下邳（今江苏省徐州市睢宁县古邳镇）\n- **事件**：吕布败亡于下邳，张辽被曹操收降并获重用。\n- **意义**：人生转折点，自此进入曹操核心军事体系。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年后\n- **停留时间**：较长\n- **地点**：邺城（今河北省邯郸市临漳县西南邺城遗址）\n- **事件**：曹操平定河北后，张辽参与北方经营与军事整编。\n- **意义**：逐渐从降将成长为独当一面的曹魏名将。\n\n### 📍 重要地点：白狼山\n- **时间**：公元207年\n- **停留时间**：战役期间\n- **地点**：白狼山（今辽宁省朝阳市喀喇沁左翼蒙古族自治县一带）\n- **事件**：随曹操远征乌桓，在白狼山之战中冲锋陷阵，建立显著战功。\n- **意义**：此战使其威名大振，成为北方前线重要统帅。\n\n### 📍 重要地点：合肥\n- **时间**：公元214年起\n- **停留时间**：多年\n- **地点**：合肥（今安徽省合肥市）\n- **事件**：受命与乐进、李典等共同镇守合肥，长期防备孙吴北进。\n- **意义**：合肥成为其最具代表性的镇守之地，也奠定了“江淮屏障”的名声。\n\n### 📍 重要地点：逍遥津\n- **时间**：公元215年\n- **停留时间**：战役期间\n- **地点**：逍遥津（今安徽省合肥市庐阳区逍遥津周边）\n- **事件**：孙权率十万大军围攻合肥，张辽率八百精锐突击敌阵，随后又在逍遥津追击，几乎生擒孙权。\n- **意义**：这是其军事生涯最著名的一战，“张辽止啼”也成为后世传播极广的典故。\n\n### 🔴 去世地：江都行军途中\n- **时间**：公元222年\n- **停留时间**：最后时光\n- **地点**：江都（今江苏省扬州市附近）\n- **事件**：曹丕伐吴期间，张辽抱病随军，在东南前线病重去世。\n- **意义**：其去世象征曹魏第一代外姓宿将的谢幕。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 169年左右 | 雁门马邑 | 山西省朔州市朔城区一带 | （阶段：早年）出生于边地马邑。 |\n| 189年 | 晋阳 | 山西省太原市 | （阶段：从军）在并州军中任职，开始军旅生涯。 |\n| 192年 | 长安 | 陕西省西安市 | （阶段：动荡）辗转于董卓余部与关中政局之间。 |\n| 198年 | 下邳 | 江苏省徐州市睢宁县古邳镇 | （阶段：转折）吕布败亡后归附曹操。 |\n| 204年 | 邺城 | 河北省邯郸市临漳县邺城遗址 | （阶段：崛起）参与河北经营，成为曹操麾下重将。 |\n| 207年 | 白狼山 | 辽宁省朝阳市喀喇沁左翼蒙古族自治县一带 | （阶段：征战）参加白狼山之战，威名大振。 |\n| 214年 | 合肥 | 安徽省合肥市 | （阶段：镇边）开始长期镇守淮南前线。 |\n| 215年 | 逍遥津 | 安徽省合肥市庐阳区逍遥津周边 | （阶段：巅峰）以少击众，大破孙权。 |\n| 222年 | 江都 | 江苏省扬州市附近 | （阶段：终章）抱病从征东吴，途中去世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（人物与典故）\n- 课文/词作：张辽本人无传世文学作品，主要以三国历史人物与后世演义形象进入阅读材料。\n- 核心要点：\n    - **重点**：**逍遥津之战** 与“**张辽止啼**”是其最具代表性的历史与文化记忆。\n    - **重点**：在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。\n    - 可与关羽、赵云、周瑜等人物并读，比较不同阵营中“名将”形象的文学塑造方式。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：张辽是**曹魏五子良将**之一，在曹魏前线防御体系中地位极高。\n    - **重点**：**合肥之战、逍遥津之战** 是魏吴对峙的重要节点，体现了三国时期江淮前线的战略价值。\n    - 从吕布旧部转变为曹魏名将，说明汉末乱世中人才流动与重新整编非常频繁。\n- 核心要点：\n    - **重点**：张辽是兼具**冲锋能力**与**方面镇守能力**的统帅，不只是勇将。\n    - **重点**：其代表了曹魏集团中外姓将领的上升通道，与夏侯惇、曹仁等宗亲大将形成互补。\n    - 其威名长期影响孙吴前线，对魏吴心理战与边防稳定都有象征意义。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山西省朔州市朔城区 | 39.3316 | 112.4334 |\n| 山西省太原市 | 37.8706 | 112.5489 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 江苏省徐州市睢宁县古邳镇 | 34.1033 | 117.9453 |\n| 河北省邯郸市临漳县邺城遗址 | 36.3347 | 114.6170 |\n| 辽宁省朝阳市喀喇沁左翼蒙古族自治县一带 | 41.1274 | 119.7448 |\n| 安徽省合肥市 | 31.8206 | 117.2272 |\n| 安徽省合肥市庐阳区逍遥津周边 | 31.8769 | 117.2917 |\n| 江苏省扬州市 | 32.3932 | 119.4127 |\n", "relatedGraph": {"center": {"id": "张辽", "name": "张辽", "file": "张辽.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": 169, "death_year": 222, "quote": "**张辽止啼**", "review": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "foreign_name": "", "main_role_label": "名将", "birthplace": "左右", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "张辽", "name": "张辽", "file": "张辽.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": 169, "death_year": 222, "quote": "**张辽止啼**", "review": "在《三国演义》等文学作品中，张辽常被塑造成冷静、勇猛且极具执行力的名将形象。", "foreign_name": "", "main_role_label": "名将", "birthplace": "左右", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "东汉末年至三国（曹魏）", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "秋风萧瑟天气凉，草木摇落露为霜。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "夏侯惇", "name": "夏侯惇", "file": "夏侯惇.html", "dynasty": "东汉末年→三国（曹魏）", "aliases": [], "birth_year": null, "death_year": 220, "quote": "夏侯惇，字元让，沛国谯县人", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "张辽", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "张辽", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "张辽", "target": "夏侯惇", "label": "宗亲", "confidence": null}, {"source": "张辽", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "张辽", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "张辽", "target": "郭嘉", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:25Z", "generated_at": "2026-06-25T07:13:25Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:23Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:25Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

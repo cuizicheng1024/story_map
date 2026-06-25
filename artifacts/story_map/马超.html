@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "马超", "title": "", "description": "马超，字孟起，扶风茂陵人，东汉伏波将军马援之后，西凉军阀马腾之子。他少年成名，以勇武善战闻名于关西地区。建安十六年（211年），联合韩遂等关中诸侯起兵反曹，在潼关之战中一度大败曹操，威震天下。后因中离间计兵败，辗转投奔汉中张鲁，最终于建安十九年（214年）归附刘备，成为蜀汉开国元勋。刘备称帝后，拜其为骠骑将军，领凉州牧，镇守西境。他一生戎马，是三国时期极具传奇色彩的猛将。", "quote": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "shortReview": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "扶风茂陵（今陕西省咸阳市兴平市）", "avatar": "", "birth": {"date": "176年", "location": "扶风茂陵（今陕西省咸阳市兴平市）", "lat": 34.29, "lng": 108.48, "coordSystem": "WGS84"}, "death": {"date": "222年", "location": "成都（今四川省成都市）", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84"}, "lifespan": "享年不详（约46岁，据生卒年推算，存疑）", "highlights": {"honor": "", "status": "汉末三国时期蜀汉名将，以勇武著称，是蜀汉政权的重要军事支柱之一。", "identities": "将领、诸侯、蜀汉骠骑将军", "achievements": "潼关之战大破曹操；割据陇西，威震羌氐；辅佐刘备进取成都，建立蜀汉。", "works": [], "reviews": ["*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "*诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”", "*杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”", "**陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "**诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”", "**杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”"]}}, "locations": [{"name": "扶风茂陵", "ancientName": "扶风茂陵", "modernName": "陕西省咸阳市兴平市", "lat": 34.29, "lng": 108.48, "coordSystem": "WGS84", "type": "birth", "event": "出生于西凉豪族马氏，为马腾长子，自幼习武，闻名乡里。", "time": "约公元176年", "duration": "少年时期", "significance": "其家族根基所在，奠定了他作为西凉军事集团继承人的地位。", "works": [], "quoteLines": []}, {"name": "凉州（陇西）", "ancientName": "凉州（治所姑臧，", "modernName": "甘肃省武威市）", "lat": 37.93, "lng": 102.63, "coordSystem": "WGS84", "type": "normal", "event": "随父马腾征战，后接管马腾部曲，成为西凉军主要统帅之一，与韩遂等势力周旋。", "time": "约196年-211年", "duration": "约15年", "significance": "其军事生涯的起点和根据地，培养了强大的骑兵部队和威望。", "works": [], "quoteLines": ["《三国演义》：“西凉马超，有吕布之勇。”（此为小说家言，非正史评价）"]}, {"name": "潼关", "ancientName": "潼关", "modernName": "陕西省渭南市潼关县北", "lat": 34.61, "lng": 110.25, "coordSystem": "WGS84", "type": "normal", "event": "联合韩遂等十部起兵反曹，于潼关与曹军主力激战，杀得曹操“割须弃袍”。", "time": "211年", "duration": "数月", "significance": "其军事生涯的巅峰之战，一战成名，威震华夏。", "works": [], "quoteLines": ["《三国演义》：“潼关战败望风逃，孟德怆惶脱锦袍。”（此为小说情节，非正史记载）"]}, {"name": "陇西", "ancientName": "陇西郡（治所狄道，", "modernName": "甘肃省定西市临洮县）", "lat": 35.38, "lng": 103.86, "coordSystem": "WGS84", "type": "normal", "event": "潼关兵败后，退守陇上，割据陇西诸郡，自称征西将军，后被夏侯渊击败。", "time": "211年-213年", "duration": "约2年", "significance": "其独立割据的尝试，但最终失败，导致家族在邺城的亲人被曹操诛杀。", "works": [], "quoteLines": ["《三国志·马超传》：“超走保诸戎……超自称征西将军，领并州牧，督凉州军事。”"]}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.07, "lng": 107.02, "coordSystem": "WGS84", "type": "normal", "event": "兵败后投奔汉中张鲁，但未获重用，后在刘备使者李恢劝说下，决定归附刘备。", "time": "214年", "duration": "数月", "significance": "人生低谷期的避难所，也是其投奔刘备的跳板。", "works": [], "quoteLines": ["《三国志·马超传》：“鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。”"]}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84", "type": "normal", "event": "率军至成都城下，助刘备迅速迫降刘璋。刘备称帝后，拜为骠骑将军，领凉州牧，镇守阳平关。", "time": "214年-222年", "duration": "约8年", "significance": "其人生最后的归宿和政治生涯的顶点，成为蜀汉政权核心成员之一。", "works": [], "quoteLines": ["《三国志·马超传》：“先主遣人迎超，超将兵径到城下。城中震怖，璋即稽首。”"]}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84", "type": "death", "event": "章武二年（222年），马超病逝于成都，临终上疏刘备，托付其从弟马岱。", "time": "222年", "duration": "晚年直至去世", "significance": "结束了其波澜壮阔而又充满遗憾的一生，葬于成都。", "works": [], "quoteLines": ["《三国志·马超传》：“临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**东汉末年**，军阀割据，**三国鼎立**局面形成前夕。\n- **关键事件**：**潼关之战**，马超联合韩遂对抗曹操，是三国前期重要战役。\n- **代表作品/思想**：无文学作品，但作为**蜀汉五虎上将**（演义说法）之一广为人知。\n- **常见易混点/对比点**：\n    - 注意区分**历史上的马超**与**《三国演义》中的马超**，演义对其事迹有大量艺术加工。\n    - 与**吕布**并称“前表吕布，后表马超”，均以勇武著称，但政治品格和结局不同。\n    - 是**刘备集团**的重要成员，而非独立的诸侯。\n\n### 高中阶段\n- **时代背景**：**汉末三国**时期，中央集权崩溃，地方豪强与军事集团崛起。\n- **关键贡献**：作为**凉州军事集团**的代表人物，其活动深刻影响了西北地区的政治格局。归蜀后，对蜀汉**稳定西境**、**联结羌氐**有战略意义。\n- **代表思想**：体现了汉末**武人政治**和**家族武装**的特点。\n- **深入分析点**：\n    - **潼关之战的战略意义**：虽败，但展示了曹魏西线防御的压力。\n    - **马超的悲剧性**：家族被诛，辗转投靠，虽位高却无实权，反映了乱世武人的命运。\n    - 与**蜀汉政权的关系**：作为“客将”，其地位微妙，是刘备制衡益州本土势力的棋子之一。\n\n---", "examPoints": "### 初中阶段考点\n- 马超是**东汉末年**的著名将领。\n- 他与**韩遂**等人在**潼关**联合抵抗**曹操**。\n- 在《三国演义》中，他是**蜀汉五虎上将**之一（需注明此为小说设定）。\n- 他最终归附了**刘备**，成为蜀汉的重要将领。\n- 其形象以**勇猛善战**著称。\n\n### 高中阶段考点\n- 马超是**凉州军阀马腾**之子，代表了汉末的**地方豪强武装**。\n- **潼关之战**是其军事生涯的顶峰，也是**曹操统一北方过程中的重要挫折**。\n- 其家族在**邺城**被曹操诛杀，是其人生重大转折点。\n- 归蜀后，被刘备拜为**骠骑将军**，领**凉州牧**，主要作用在于**政治象征**和**威慑西境**。\n- 陈寿在《三国志》中评价其“阻戎负勇，以覆其族”，指出了其**勇武有余而政治谋略不足**的特点。\n- （存疑/说法不一）关于其是否为“五虎上将”，正史无此说法，仅为《三国演义》的艺术创作。", "workTexts": {"三国演义": "潼关战败望风逃，孟德怆惶脱锦袍。", "三国志·马超传": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "三国志": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "马超传": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’"}, "workSummaries": {"三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}, "三国志·马超传": {"title": "三国志·马超传", "aliases": ["三国志", "马超传"], "authors": ["马超"], "related_people": ["马超"], "source_pages": ["马超"], "era": "东汉末年至三国时期", "genre": "传记", "one_liner": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "summary": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "quote": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。", "quotes": ["临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。", "鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。", "超走保诸戎……超自称征西将军，领并州牧，督凉州军事。"], "quote_policy": "preferred"}, "三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 马超\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：马超（字孟起）\n- **时代**：东汉末年至三国时期\n- **出生**：生年不详（约176年，存疑），扶风茂陵（今陕西省咸阳市兴平市）\n- **去世**：公元222年，成都（今四川省成都市）\n- **享年**：享年不详（约46岁，据生卒年推算，存疑）\n- **主要身份**：将领、诸侯、蜀汉骠骑将军\n- **历史地位**：汉末三国时期蜀汉名将，以勇武著称，是蜀汉政权的重要军事支柱之一。\n- **主要成就**：潼关之战大破曹操；割据陇西，威震羌氐；辅佐刘备进取成都，建立蜀汉。\n\n### 生平概述\n马超，字孟起，扶风茂陵人，东汉伏波将军马援之后，西凉军阀马腾之子。他少年成名，以勇武善战闻名于关西地区。建安十六年（211年），联合韩遂等关中诸侯起兵反曹，在潼关之战中一度大败曹操，威震天下。后因中离间计兵败，辗转投奔汉中张鲁，最终于建安十九年（214年）归附刘备，成为蜀汉开国元勋。刘备称帝后，拜其为骠骑将军，领凉州牧，镇守西境。他一生戎马，是三国时期极具传奇色彩的猛将。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在西北（凉州、关中）与西南（汉中、益州）之间辗转。\n- ⏱️ **时间跨度**：约公元176年至222年，总跨度约46年。\n- 📍 **地理范围**：大致覆盖今陕西、甘肃、四川等地区。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：扶风茂陵\n- **公元纪年**：约公元176年\n- **停留时间**：少年时期\n- **位置**：扶风茂陵（今陕西省咸阳市兴平市）\n- **事迹**：出生于西凉豪族马氏，为马腾长子，自幼习武，闻名乡里。\n- **意义**：其家族根基所在，奠定了他作为西凉军事集团继承人的地位。\n\n### 📍 重要地点：凉州（陇西）\n- **公元纪年**：约196年-211年\n- **停留时间**：约15年\n- **位置**：凉州（治所姑臧，今甘肃省武威市）\n- **事迹**：随父马腾征战，后接管马腾部曲，成为西凉军主要统帅之一，与韩遂等势力周旋。\n- **意义**：其军事生涯的起点和根据地，培养了强大的骑兵部队和威望。\n- **名篇名句**：《三国演义》：“西凉马超，有吕布之勇。”（此为小说家言，非正史评价）\n\n### 📍 重要地点：潼关\n- **公元纪年**：211年\n- **停留时间**：数月\n- **位置**：潼关（今陕西省渭南市潼关县北）\n- **事迹**：联合韩遂等十部起兵反曹，于潼关与曹军主力激战，杀得曹操“割须弃袍”。\n- **意义**：其军事生涯的巅峰之战，一战成名，威震华夏。\n- **名篇名句**：《三国演义》：“潼关战败望风逃，孟德怆惶脱锦袍。”（此为小说情节，非正史记载）\n\n### 📍 重要地点：陇西\n- **公元纪年**：211年-213年\n- **停留时间**：约2年\n- **位置**：陇西郡（治所狄道，今甘肃省定西市临洮县）\n- **事迹**：潼关兵败后，退守陇上，割据陇西诸郡，自称征西将军，后被夏侯渊击败。\n- **意义**：其独立割据的尝试，但最终失败，导致家族在邺城的亲人被曹操诛杀。\n- **名篇名句**：《三国志·马超传》：“超走保诸戎……超自称征西将军，领并州牧，督凉州军事。”\n\n### 📍 重要地点：汉中\n- **公元纪年**：214年\n- **停留时间**：数月\n- **位置**：汉中（今陕西省汉中市）\n- **事迹**：兵败后投奔汉中张鲁，但未获重用，后在刘备使者李恢劝说下，决定归附刘备。\n- **意义**：人生低谷期的避难所，也是其投奔刘备的跳板。\n- **名篇名句**：《三国志·马超传》：“鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。”\n\n### 📍 重要地点：成都\n- **公元纪年**：214年-222年\n- **停留时间**：约8年\n- **位置**：成都（今四川省成都市）\n- **事迹**：率军至成都城下，助刘备迅速迫降刘璋。刘备称帝后，拜为骠骑将军，领凉州牧，镇守阳平关。\n- **意义**：其人生最后的归宿和政治生涯的顶点，成为蜀汉政权核心成员之一。\n- **名篇名句**：《三国志·马超传》：“先主遣人迎超，超将兵径到城下。城中震怖，璋即稽首。”\n\n### 🔴 去世地：成都\n- **公元纪年**：222年\n- **停留时间**：晚年直至去世\n- **位置**：成都（今四川省成都市）\n- **经过**：章武二年（222年），马超病逝于成都，临终上疏刘备，托付其从弟马岱。\n- **意义**：结束了其波澜壮阔而又充满遗憾的一生，葬于成都。\n- **名篇名句**：《三国志·马超传》：“临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约176年 | 扶风茂陵 | 陕西省咸阳市兴平市 | （年龄：0）出生于扶风茂陵。 |\n| 约196年 |  |  | （年龄：20）随父马腾征战，开始军事生涯。 |\n| 208年 |  |  | （年龄：32）马腾入朝为官，马超接管其部曲，成为西凉军首领（据生年推算）。 |\n| 211年 | 潼关 | 陕西省渭南市潼关县北 | （年龄：35）联合韩遂等起兵反曹，潼关之战大败曹操。 |\n| 213年 | 陇西 | 陇西郡 | （年龄：37）陇西兵败，家族在邺城被诛，投奔汉中张鲁。 |\n| 214年 | 成都 | 四川省成都市 | （年龄：38）归附刘备，率军至成都，助刘备夺取益州。 |\n| 219年 | 汉中 | 陕西省汉中市 | （年龄：43）刘备称汉中王，拜马超为左将军，假节。 |\n| 221年 | 凉州（陇西） | 凉州 | （年龄：45）刘备称帝，拜马超为骠骑将军，领凉州牧，进封斄乡侯。 |\n| 222年 | 成都 | 四川省成都市 | （年龄：46）病逝于成都。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n马超是汉末搅动西北局势的关键人物，其潼关之战严重打击了曹操集团的西进计划，延缓了曹操统一北方的进程。归蜀后，以其在西凉和羌、氐等少数民族中的崇高威望，为蜀汉稳定西北边疆、获取兵源起到了重要作用。\n\n### 对后世的影响\n- **文学形象**：在《三国演义》中被塑造为“锦马超”，成为勇武、忠义的化身，与关羽、张飞、赵云、黄忠并称“五虎上将”（此为演义设定，正史无此说法）。\n- **民族融合**：其家族与羌、氐等族关系密切，是历史上汉族与西北少数民族交流融合的代表人物之一。\n- **武将典范**：其英勇事迹成为后世武将崇拜的对象之一。\n\n### 历史评价\n- **陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”\n- **诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”\n- **杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**东汉末年**，军阀割据，**三国鼎立**局面形成前夕。\n- **关键事件**：**潼关之战**，马超联合韩遂对抗曹操，是三国前期重要战役。\n- **代表作品/思想**：无文学作品，但作为**蜀汉五虎上将**（演义说法）之一广为人知。\n- **常见易混点/对比点**：\n    - 注意区分**历史上的马超**与**《三国演义》中的马超**，演义对其事迹有大量艺术加工。\n    - 与**吕布**并称“前表吕布，后表马超”，均以勇武著称，但政治品格和结局不同。\n    - 是**刘备集团**的重要成员，而非独立的诸侯。\n\n### 高中阶段\n- **时代背景**：**汉末三国**时期，中央集权崩溃，地方豪强与军事集团崛起。\n- **关键贡献**：作为**凉州军事集团**的代表人物，其活动深刻影响了西北地区的政治格局。归蜀后，对蜀汉**稳定西境**、**联结羌氐**有战略意义。\n- **代表思想**：体现了汉末**武人政治**和**家族武装**的特点。\n- **深入分析点**：\n    - **潼关之战的战略意义**：虽败，但展示了曹魏西线防御的压力。\n    - **马超的悲剧性**：家族被诛，辗转投靠，虽位高却无实权，反映了乱世武人的命运。\n    - 与**蜀汉政权的关系**：作为“客将”，其地位微妙，是刘备制衡益州本土势力的棋子之一。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 马超是**东汉末年**的著名将领。\n- 他与**韩遂**等人在**潼关**联合抵抗**曹操**。\n- 在《三国演义》中，他是**蜀汉五虎上将**之一（需注明此为小说设定）。\n- 他最终归附了**刘备**，成为蜀汉的重要将领。\n- 其形象以**勇猛善战**著称。\n\n### 高中阶段考点\n- 马超是**凉州军阀马腾**之子，代表了汉末的**地方豪强武装**。\n- **潼关之战**是其军事生涯的顶峰，也是**曹操统一北方过程中的重要挫折**。\n- 其家族在**邺城**被曹操诛杀，是其人生重大转折点。\n- 归蜀后，被刘备拜为**骠骑将军**，领**凉州牧**，主要作用在于**政治象征**和**威慑西境**。\n- 陈寿在《三国志》中评价其“阻戎负勇，以覆其族”，指出了其**勇武有余而政治谋略不足**的特点。\n- （存疑/说法不一）关于其是否为“五虎上将”，正史无此说法，仅为《三国演义》的艺术创作。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n|---|---|---|---|\n| 扶风茂陵 | 陕西省咸阳市兴平市 | 34.29 | 108.48 |\n| 凉州（治所姑臧） | 甘肃省武威市 | 37.93 | 102.63 |\n| 潼关 | 陕西省渭南市潼关县北 | 34.61 | 110.25 |\n| 陇西（治所狄道） | 甘肃省定西市临洮县 | 35.38 | 103.86 |\n| 汉中 | 陕西省汉中市 | 33.07 | 107.02 |\n| 成都 | 四川省成都市 | 30.57 | 104.07 |", "relatedGraph": {"center": {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "赵云", "name": "赵云", "file": "赵云.html", "dynasty": "三国（蜀汉）", "aliases": [], "birth_year": 229, "death_year": 229, "quote": "赵云字子龙，常山真定人，蜀汉名将", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "东汉末年·三国", "aliases": [], "birth_year": null, "death_year": 221, "quote": "身是张益德也，可来共决死！", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 160, "death_year": 219, "quote": "华容道义释曹操", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "河东郡解县", "birthplace_modern": "山西省运城市盐湖区解州镇一带", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "马超", "target": "刘备", "label": "君臣", "confidence": null}, {"source": "马超", "target": "赵云", "label": "并称", "confidence": null}, {"source": "马超", "target": "张飞", "label": "并称", "confidence": null}, {"source": "马超", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "马超", "target": "关羽", "label": "并称", "confidence": null}, {"source": "马超", "target": "陈实", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:54Z", "generated_at": "2026-06-22T11:31:54Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "马超", "title": "", "description": "马超，字孟起，扶风茂陵人，东汉伏波将军马援之后，西凉军阀马腾之子。他少年成名，以勇武善战闻名于关西地区。建安十六年（211年），联合韩遂等关中诸侯起兵反曹，在潼关之战中一度大败曹操，威震天下。后因中离间计兵败，辗转投奔汉中张鲁，最终于建安十九年（214年）归附刘备，成为蜀汉开国元勋。刘备称帝后，拜其为骠骑将军，领凉州牧，镇守西境。他一生戎马，是三国时期极具传奇色彩的猛将。", "quote": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "shortReview": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "dynasty": "东汉末年至三国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "扶风茂陵（今陕西省咸阳市兴平市）", "avatar": "", "birth": {"date": "176年", "location": "扶风茂陵（今陕西省咸阳市兴平市）", "lat": 34.29, "lng": 108.48, "coordSystem": "WGS84"}, "death": {"date": "222年", "location": "成都（今四川省成都市）", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84"}, "lifespan": "享年不详（约46岁，据生卒年推算，存疑）", "highlights": {"honor": "", "status": "汉末三国时期蜀汉名将，以勇武著称，是蜀汉政权的重要军事支柱之一。", "identities": "将领、诸侯、蜀汉骠骑将军", "achievements": "潼关之战大破曹操；割据陇西，威震羌氐；辅佐刘备进取成都，建立蜀汉。", "works": [], "reviews": ["*陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "*诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”", "*杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”", "**陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”", "**诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”", "**杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”"]}}, "locations": [{"name": "扶风茂陵", "ancientName": "扶风茂陵", "modernName": "陕西省咸阳市兴平市", "lat": 34.29, "lng": 108.48, "coordSystem": "WGS84", "type": "birth", "event": "出生于西凉豪族马氏，为马腾长子，自幼习武，闻名乡里。", "time": "约公元176年", "duration": "少年时期", "significance": "其家族根基所在，奠定了他作为西凉军事集团继承人的地位。", "works": [], "quoteLines": []}, {"name": "凉州（陇西）", "ancientName": "凉州（治所姑臧，", "modernName": "甘肃省武威市）", "lat": 37.93, "lng": 102.63, "coordSystem": "WGS84", "type": "normal", "event": "随父马腾征战，后接管马腾部曲，成为西凉军主要统帅之一，与韩遂等势力周旋。", "time": "约196年-211年", "duration": "约15年", "significance": "其军事生涯的起点和根据地，培养了强大的骑兵部队和威望。", "works": [], "quoteLines": ["《三国演义》：“西凉马超，有吕布之勇。”（此为小说家言，非正史评价）"]}, {"name": "潼关", "ancientName": "潼关", "modernName": "陕西省渭南市潼关县北", "lat": 34.61, "lng": 110.25, "coordSystem": "WGS84", "type": "normal", "event": "联合韩遂等十部起兵反曹，于潼关与曹军主力激战，杀得曹操“割须弃袍”。", "time": "211年", "duration": "数月", "significance": "其军事生涯的巅峰之战，一战成名，威震华夏。", "works": [], "quoteLines": ["《三国演义》：“潼关战败望风逃，孟德怆惶脱锦袍。”（此为小说情节，非正史记载）"]}, {"name": "陇西", "ancientName": "陇西郡（治所狄道，", "modernName": "甘肃省定西市临洮县）", "lat": 35.38, "lng": 103.86, "coordSystem": "WGS84", "type": "normal", "event": "潼关兵败后，退守陇上，割据陇西诸郡，自称征西将军，后被夏侯渊击败。", "time": "211年-213年", "duration": "约2年", "significance": "其独立割据的尝试，但最终失败，导致家族在邺城的亲人被曹操诛杀。", "works": [], "quoteLines": ["《三国志·马超传》：“超走保诸戎……超自称征西将军，领并州牧，督凉州军事。”"]}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.07, "lng": 107.02, "coordSystem": "WGS84", "type": "normal", "event": "兵败后投奔汉中张鲁，但未获重用，后在刘备使者李恢劝说下，决定归附刘备。", "time": "214年", "duration": "数月", "significance": "人生低谷期的避难所，也是其投奔刘备的跳板。", "works": [], "quoteLines": ["《三国志·马超传》：“鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。”"]}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84", "type": "normal", "event": "率军至成都城下，助刘备迅速迫降刘璋。刘备称帝后，拜为骠骑将军，领凉州牧，镇守阳平关。", "time": "214年-222年", "duration": "约8年", "significance": "其人生最后的归宿和政治生涯的顶点，成为蜀汉政权核心成员之一。", "works": [], "quoteLines": ["《三国志·马超传》：“先主遣人迎超，超将兵径到城下。城中震怖，璋即稽首。”"]}, {"name": "成都", "ancientName": "成都", "modernName": "四川省成都市", "lat": 30.57, "lng": 104.07, "coordSystem": "WGS84", "type": "death", "event": "章武二年（222年），马超病逝于成都，临终上疏刘备，托付其从弟马岱。", "time": "222年", "duration": "晚年直至去世", "significance": "结束了其波澜壮阔而又充满遗憾的一生，葬于成都。", "works": [], "quoteLines": ["《三国志·马超传》：“临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**东汉末年**，军阀割据，**三国鼎立**局面形成前夕。\n- **关键事件**：**潼关之战**，马超联合韩遂对抗曹操，是三国前期重要战役。\n- **代表作品/思想**：无文学作品，但作为**蜀汉五虎上将**（演义说法）之一广为人知。\n- **常见易混点/对比点**：\n    - 注意区分**历史上的马超**与**《三国演义》中的马超**，演义对其事迹有大量艺术加工。\n    - 与**吕布**并称“前表吕布，后表马超”，均以勇武著称，但政治品格和结局不同。\n    - 是**刘备集团**的重要成员，而非独立的诸侯。\n\n### 高中阶段\n- **时代背景**：**汉末三国**时期，中央集权崩溃，地方豪强与军事集团崛起。\n- **关键贡献**：作为**凉州军事集团**的代表人物，其活动深刻影响了西北地区的政治格局。归蜀后，对蜀汉**稳定西境**、**联结羌氐**有战略意义。\n- **代表思想**：体现了汉末**武人政治**和**家族武装**的特点。\n- **深入分析点**：\n    - **潼关之战的战略意义**：虽败，但展示了曹魏西线防御的压力。\n    - **马超的悲剧性**：家族被诛，辗转投靠，虽位高却无实权，反映了乱世武人的命运。\n    - 与**蜀汉政权的关系**：作为“客将”，其地位微妙，是刘备制衡益州本土势力的棋子之一。\n\n---", "examPoints": "### 初中阶段考点\n- 马超是**东汉末年**的著名将领。\n- 他与**韩遂**等人在**潼关**联合抵抗**曹操**。\n- 在《三国演义》中，他是**蜀汉五虎上将**之一（需注明此为小说设定）。\n- 他最终归附了**刘备**，成为蜀汉的重要将领。\n- 其形象以**勇猛善战**著称。\n\n### 高中阶段考点\n- 马超是**凉州军阀马腾**之子，代表了汉末的**地方豪强武装**。\n- **潼关之战**是其军事生涯的顶峰，也是**曹操统一北方过程中的重要挫折**。\n- 其家族在**邺城**被曹操诛杀，是其人生重大转折点。\n- 归蜀后，被刘备拜为**骠骑将军**，领**凉州牧**，主要作用在于**政治象征**和**威慑西境**。\n- 陈寿在《三国志》中评价其“阻戎负勇，以覆其族”，指出了其**勇武有余而政治谋略不足**的特点。\n- （存疑/说法不一）关于其是否为“五虎上将”，正史无此说法，仅为《三国演义》的艺术创作。", "workTexts": {"三国演义": "潼关战败望风逃，孟德怆惶脱锦袍。", "三国志·马超传": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "三国志": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "马超传": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’"}, "workSummaries": {"三国演义": {"title": "三国演义", "aliases": [], "authors": ["汉献帝", "马超", "孙坚", "夏侯惇", "张飞"], "related_people": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "source_pages": ["成平", "陈韪", "董卓", "关羽", "汉献帝", "刘备", "马超", "毛主席", "孟获", "孙坚", "夏侯惇", "张飞", "张辽", "赵云", "诸葛亮"], "era": "东汉", "genre": "", "one_liner": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "summary": "重点：分析 《三国演义》 作为历史小说对 黄巾起义 的文学化处理，与正史记载的异同。", "quote": "重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "quotes": ["重点：“拔矢啖睛” 的典故（主要源于《三国演义》）是其性格刚烈、勇猛无畏的最集中体现，常被用作文学创作中塑造猛将形象的素材。", "事件：在此地大破董卓军，斩杀其都督华雄（据《三国志》等正史记载，与《三国演义》中‘温酒斩华雄’的文学演绎不同）。", "重点：《三国演义》 中“温酒斩华雄”情节的原型实为孙坚在阳人之战的功绩，体现了文学创作对历史事实的移花接木。"], "quote_policy": "preferred"}, "三国志·马超传": {"title": "三国志·马超传", "aliases": ["三国志", "马超传"], "authors": ["马超"], "related_people": ["马超"], "source_pages": ["马超"], "era": "东汉末年至三国时期", "genre": "传记", "one_liner": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "summary": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’", "quote": "临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。", "quotes": ["临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。", "鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。", "超走保诸戎……超自称征西将军，领并州牧，督凉州军事。"], "quote_policy": "preferred"}, "三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 马超\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：马超（字孟起）\n- **时代**：东汉末年至三国时期\n- **出生**：生年不详（约176年，存疑），扶风茂陵（今陕西省咸阳市兴平市）\n- **去世**：公元222年，成都（今四川省成都市）\n- **享年**：享年不详（约46岁，据生卒年推算，存疑）\n- **主要身份**：将领、诸侯、蜀汉骠骑将军\n- **历史地位**：汉末三国时期蜀汉名将，以勇武著称，是蜀汉政权的重要军事支柱之一。\n- **主要成就**：潼关之战大破曹操；割据陇西，威震羌氐；辅佐刘备进取成都，建立蜀汉。\n\n### 生平概述\n马超，字孟起，扶风茂陵人，东汉伏波将军马援之后，西凉军阀马腾之子。他少年成名，以勇武善战闻名于关西地区。建安十六年（211年），联合韩遂等关中诸侯起兵反曹，在潼关之战中一度大败曹操，威震天下。后因中离间计兵败，辗转投奔汉中张鲁，最终于建安十九年（214年）归附刘备，成为蜀汉开国元勋。刘备称帝后，拜其为骠骑将军，领凉州牧，镇守西境。他一生戎马，是三国时期极具传奇色彩的猛将。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要在西北（凉州、关中）与西南（汉中、益州）之间辗转。\n- ⏱️ **时间跨度**：约公元176年至222年，总跨度约46年。\n- 📍 **地理范围**：大致覆盖今陕西、甘肃、四川等地区。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：扶风茂陵\n- **公元纪年**：约公元176年\n- **停留时间**：少年时期\n- **位置**：扶风茂陵（今陕西省咸阳市兴平市）\n- **事迹**：出生于西凉豪族马氏，为马腾长子，自幼习武，闻名乡里。\n- **意义**：其家族根基所在，奠定了他作为西凉军事集团继承人的地位。\n\n### 📍 重要地点：凉州（陇西）\n- **公元纪年**：约196年-211年\n- **停留时间**：约15年\n- **位置**：凉州（治所姑臧，今甘肃省武威市）\n- **事迹**：随父马腾征战，后接管马腾部曲，成为西凉军主要统帅之一，与韩遂等势力周旋。\n- **意义**：其军事生涯的起点和根据地，培养了强大的骑兵部队和威望。\n- **名篇名句**：《三国演义》：“西凉马超，有吕布之勇。”（此为小说家言，非正史评价）\n\n### 📍 重要地点：潼关\n- **公元纪年**：211年\n- **停留时间**：数月\n- **位置**：潼关（今陕西省渭南市潼关县北）\n- **事迹**：联合韩遂等十部起兵反曹，于潼关与曹军主力激战，杀得曹操“割须弃袍”。\n- **意义**：其军事生涯的巅峰之战，一战成名，威震华夏。\n- **名篇名句**：《三国演义》：“潼关战败望风逃，孟德怆惶脱锦袍。”（此为小说情节，非正史记载）\n\n### 📍 重要地点：陇西\n- **公元纪年**：211年-213年\n- **停留时间**：约2年\n- **位置**：陇西郡（治所狄道，今甘肃省定西市临洮县）\n- **事迹**：潼关兵败后，退守陇上，割据陇西诸郡，自称征西将军，后被夏侯渊击败。\n- **意义**：其独立割据的尝试，但最终失败，导致家族在邺城的亲人被曹操诛杀。\n- **名篇名句**：《三国志·马超传》：“超走保诸戎……超自称征西将军，领并州牧，督凉州军事。”\n\n### 📍 重要地点：汉中\n- **公元纪年**：214年\n- **停留时间**：数月\n- **位置**：汉中（今陕西省汉中市）\n- **事迹**：兵败后投奔汉中张鲁，但未获重用，后在刘备使者李恢劝说下，决定归附刘备。\n- **意义**：人生低谷期的避难所，也是其投奔刘备的跳板。\n- **名篇名句**：《三国志·马超传》：“鲁不足与计事，内怀於邑，闻先主围刘璋於成都，密书请降。”\n\n### 📍 重要地点：成都\n- **公元纪年**：214年-222年\n- **停留时间**：约8年\n- **位置**：成都（今四川省成都市）\n- **事迹**：率军至成都城下，助刘备迅速迫降刘璋。刘备称帝后，拜为骠骑将军，领凉州牧，镇守阳平关。\n- **意义**：其人生最后的归宿和政治生涯的顶点，成为蜀汉政权核心成员之一。\n- **名篇名句**：《三国志·马超传》：“先主遣人迎超，超将兵径到城下。城中震怖，璋即稽首。”\n\n### 🔴 去世地：成都\n- **公元纪年**：222年\n- **停留时间**：晚年直至去世\n- **位置**：成都（今四川省成都市）\n- **经过**：章武二年（222年），马超病逝于成都，临终上疏刘备，托付其从弟马岱。\n- **意义**：结束了其波澜壮阔而又充满遗憾的一生，葬于成都。\n- **名篇名句**：《三国志·马超传》：“临没上疏曰：‘臣门宗二百余口，为孟德所诛略尽，惟有从弟岱，当为微宗血食之继，深托陛下，余无复言。’”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约176年 | 扶风茂陵 | 陕西省咸阳市兴平市 | （年龄：0）出生于扶风茂陵。 |\n| 约196年 |  |  | （年龄：20）随父马腾征战，开始军事生涯。 |\n| 208年 |  |  | （年龄：32）马腾入朝为官，马超接管其部曲，成为西凉军首领（据生年推算）。 |\n| 211年 | 潼关 | 陕西省渭南市潼关县北 | （年龄：35）联合韩遂等起兵反曹，潼关之战大败曹操。 |\n| 213年 | 陇西 | 陇西郡 | （年龄：37）陇西兵败，家族在邺城被诛，投奔汉中张鲁。 |\n| 214年 | 成都 | 四川省成都市 | （年龄：38）归附刘备，率军至成都，助刘备夺取益州。 |\n| 219年 | 汉中 | 陕西省汉中市 | （年龄：43）刘备称汉中王，拜马超为左将军，假节。 |\n| 221年 | 凉州（陇西） | 凉州 | （年龄：45）刘备称帝，拜马超为骠骑将军，领凉州牧，进封斄乡侯。 |\n| 222年 | 成都 | 四川省成都市 | （年龄：46）病逝于成都。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n马超是汉末搅动西北局势的关键人物，其潼关之战严重打击了曹操集团的西进计划，延缓了曹操统一北方的进程。归蜀后，以其在西凉和羌、氐等少数民族中的崇高威望，为蜀汉稳定西北边疆、获取兵源起到了重要作用。\n\n### 对后世的影响\n- **文学形象**：在《三国演义》中被塑造为“锦马超”，成为勇武、忠义的化身，与关羽、张飞、赵云、黄忠并称“五虎上将”（此为演义设定，正史无此说法）。\n- **民族融合**：其家族与羌、氐等族关系密切，是历史上汉族与西北少数民族交流融合的代表人物之一。\n- **武将典范**：其英勇事迹成为后世武将崇拜的对象之一。\n\n### 历史评价\n- **陈寿《三国志》**：“马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！”\n- **诸葛亮**：“孟起兼资文武，雄烈过人，一世之杰，黥、彭之徒。”\n- **杨阜**：“超有信、布之勇，甚得羌、胡心，西州畏之。”\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**东汉末年**，军阀割据，**三国鼎立**局面形成前夕。\n- **关键事件**：**潼关之战**，马超联合韩遂对抗曹操，是三国前期重要战役。\n- **代表作品/思想**：无文学作品，但作为**蜀汉五虎上将**（演义说法）之一广为人知。\n- **常见易混点/对比点**：\n    - 注意区分**历史上的马超**与**《三国演义》中的马超**，演义对其事迹有大量艺术加工。\n    - 与**吕布**并称“前表吕布，后表马超”，均以勇武著称，但政治品格和结局不同。\n    - 是**刘备集团**的重要成员，而非独立的诸侯。\n\n### 高中阶段\n- **时代背景**：**汉末三国**时期，中央集权崩溃，地方豪强与军事集团崛起。\n- **关键贡献**：作为**凉州军事集团**的代表人物，其活动深刻影响了西北地区的政治格局。归蜀后，对蜀汉**稳定西境**、**联结羌氐**有战略意义。\n- **代表思想**：体现了汉末**武人政治**和**家族武装**的特点。\n- **深入分析点**：\n    - **潼关之战的战略意义**：虽败，但展示了曹魏西线防御的压力。\n    - **马超的悲剧性**：家族被诛，辗转投靠，虽位高却无实权，反映了乱世武人的命运。\n    - 与**蜀汉政权的关系**：作为“客将”，其地位微妙，是刘备制衡益州本土势力的棋子之一。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 马超是**东汉末年**的著名将领。\n- 他与**韩遂**等人在**潼关**联合抵抗**曹操**。\n- 在《三国演义》中，他是**蜀汉五虎上将**之一（需注明此为小说设定）。\n- 他最终归附了**刘备**，成为蜀汉的重要将领。\n- 其形象以**勇猛善战**著称。\n\n### 高中阶段考点\n- 马超是**凉州军阀马腾**之子，代表了汉末的**地方豪强武装**。\n- **潼关之战**是其军事生涯的顶峰，也是**曹操统一北方过程中的重要挫折**。\n- 其家族在**邺城**被曹操诛杀，是其人生重大转折点。\n- 归蜀后，被刘备拜为**骠骑将军**，领**凉州牧**，主要作用在于**政治象征**和**威慑西境**。\n- 陈寿在《三国志》中评价其“阻戎负勇，以覆其族”，指出了其**勇武有余而政治谋略不足**的特点。\n- （存疑/说法不一）关于其是否为“五虎上将”，正史无此说法，仅为《三国演义》的艺术创作。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n|---|---|---|---|\n| 扶风茂陵 | 陕西省咸阳市兴平市 | 34.29 | 108.48 |\n| 凉州（治所姑臧） | 甘肃省武威市 | 37.93 | 102.63 |\n| 潼关 | 陕西省渭南市潼关县北 | 34.61 | 110.25 |\n| 陇西（治所狄道） | 甘肃省定西市临洮县 | 35.38 | 103.86 |\n| 汉中 | 陕西省汉中市 | 33.07 | 107.02 |\n| 成都 | 四川省成都市 | 30.57 | 104.07 |", "relatedGraph": {"center": {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "马超阻戎负勇，以覆其族，惜哉！能因穷致泰，不犹愈乎！", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "刘备", "name": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 161, "death_year": 223, "quote": "君臣之至公，古今之盛轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "涿郡涿县", "birthplace_modern": "河北省涿州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "赵云", "name": "赵云", "file": "赵云.html", "dynasty": "三国（蜀汉）", "aliases": [], "birth_year": 229, "death_year": 229, "quote": "赵云字子龙，常山真定人，蜀汉名将", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "张飞", "name": "张飞", "file": "张飞.html", "dynasty": "东汉末年·三国", "aliases": [], "birth_year": null, "death_year": 221, "quote": "身是张益德也，可来共决死！", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "幽州涿郡", "birthplace_modern": "河北省保定市涿州市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "关羽", "name": "关羽", "file": "关羽.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 160, "death_year": 219, "quote": "华容道义释曹操", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "河东郡解县", "birthplace_modern": "山西省运城市盐湖区解州镇一带", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "马超", "target": "刘备", "label": "君臣", "confidence": null}, {"source": "马超", "target": "赵云", "label": "并称", "confidence": null}, {"source": "马超", "target": "张飞", "label": "并称", "confidence": null}, {"source": "马超", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "马超", "target": "关羽", "label": "并称", "confidence": null}, {"source": "马超", "target": "陈实", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:57Z", "generated_at": "2026-06-25T07:13:57Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:54Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:57Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

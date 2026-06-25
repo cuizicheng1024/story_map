@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "乔治·克里孟梭", "title": "", "description": "克里孟梭出生于法国西部旺代省，早年学医，后因参与反对第二帝国的政治活动而短暂流亡美国。1869年返回法国，从巴黎区长做起，逐步成为激进共和派领袖。他以犀利的言辞和顽强的政治斗争闻名，多次出任议员，并一度担任内政部长。1906年首次出任总理，任内以强硬手段应对罢工和分离主义。一战爆发后，他成为坚定的主战派，1917年国家危难之际再度组阁，以铁腕整合资源，最终迎来胜利。战后，他以七旬高龄主导凡尔赛和会，为法国争取了最大利益，但也因条约的苛刻性而备受争议。晚年退出政坛，专注于写作直至去世。", "quote": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "shortReview": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "dynasty": "法兰西第三共和国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）", "avatar": "", "birth": {"date": "1841年", "location": "穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）", "lat": 46.7167, "lng": -0.85, "coordSystem": "WGS84"}, "death": {"date": "1929年", "location": "巴黎（今法国法兰西岛大区巴黎市）", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84"}, "lifespan": "88岁", "highlights": {"honor": "", "status": "法兰西第三共和国最强势的总理之一，领导法国赢得第一次世界大战，并主导了巴黎和会。", "identities": "政治家、医生、记者、作家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "穆耶龙昂帕雷", "ancientName": "穆耶龙昂帕雷", "modernName": "法国卢瓦尔河地区大区旺代省", "lat": 46.7167, "lng": -0.85, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个具有共和思想的医生家庭，父亲本杰明·克里孟梭对他影响深远。", "time": "1841年", "duration": "童年及青少年时期（约18年）", "significance": "塑造了其激进的共和主义思想与反教权主义的根源。", "works": [], "quoteLines": []}, {"name": "南特", "ancientName": "南特", "modernName": "法国卢瓦尔河地区大区大西洋卢瓦尔省省会", "lat": 47.2181, "lng": -1.5528, "coordSystem": "WGS84", "type": "normal", "event": "在此接受中学教育。", "time": "约1858-1860年", "duration": "约2年", "significance": "开阔了眼界，为前往巴黎深造做准备。", "works": [], "quoteLines": []}, {"name": "巴黎（学医时期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "在巴黎大学攻读医学，同时积极参与反对拿破仑三世第二帝国的政治活动，创办激进报刊。", "time": "1860-1865年", "duration": "约5年", "significance": "奠定了医学专业背景，并初步展现了其政治锋芒与新闻才能。", "works": [], "quoteLines": []}, {"name": "美国（流亡与婚姻）", "ancientName": "主要活动于美国纽约州纽约市及康涅狄格州", "modernName": "美国纽约州、康涅狄格州", "lat": 40.7128, "lng": -74.006, "coordSystem": "WGS84", "type": "normal", "event": "因政治原因短暂移居美国，以教授法语和绘画为生。婚姻具体时间说法不一，待考。", "time": "1865-1869年", "duration": "约4年", "significance": "体验了不同的政治与社会环境，婚姻生活对其早期思想产生一定影响。", "works": [], "quoteLines": []}, {"name": "巴黎（蒙马特区长时期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "第三共和国成立后回国，1871年当选巴黎蒙马特区区长，后长期担任国民议会议员。以激烈的演说和无情的质询闻名，获得“老虎”绰号。创办《正义报》，成为激进共和派核心人物。", "time": "1870年代至20世纪初", "duration": "长期居住", "significance": "确立了其作为政坛“角斗士”的地位，是其政治生涯的根基所在。", "works": ["正义报"], "quoteLines": []}, {"name": "巴黎（首次总理任期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "出任内政部长，后成为总理。任内强硬镇压矿工罢工，处理政教分离后续事宜。", "time": "1906-1909年", "duration": "约3年", "significance": "首次展示其执政的铁腕风格，为日后战时领导积累经验。", "works": [], "quoteLines": []}, {"name": "凡尔赛（巴黎和会）", "ancientName": "凡尔赛", "modernName": "法国法兰西岛大区伊夫林省凡尔赛市", "lat": 48.8049, "lng": 2.1204, "coordSystem": "WGS84", "type": "normal", "event": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "time": "1919年", "duration": "约数月", "significance": "主导了战后欧洲新秩序的构建，其强硬立场深刻影响了《凡尔赛和约》的内容。", "works": ["凡尔赛和约"], "quoteLines": []}, {"name": "巴黎（战时总理任期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "1917年11月，在法军士气低落、国内厌战情绪蔓延时出任总理兼陆军部长。亲赴前线鼓舞士气，整合协约国指挥权，坚持“战争至上”原则，最终领导法国取得胜利。", "time": "1917-1920年", "duration": "约3年", "significance": "其政治生涯的巅峰，被誉为“胜利之父”，在法国历史上留下深刻印记。", "works": [], "quoteLines": []}, {"name": "巴黎（晚年）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "death", "event": "退出政坛后隐居巴黎，从事写作，直至去世。法国为其举行了国葬。", "time": "1929年", "duration": "晚年长期居住", "significance": "一代政治强人的生命终点，其遗产（尤其是对德强硬政策）持续影响法国乃至欧洲政治。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---", "workTexts": {"凡尔赛和约": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "正义报": "“老虎”", "**凡尔赛和约**": "巴黎和会（1919）的核心主导者之一，力主严厉制裁德国，是《凡尔赛和约》的主要推动者。"}, "workSummaries": {"凡尔赛和约": {"title": "凡尔赛和约", "aliases": [], "authors": [], "related_people": ["克里孟梭", "劳合·乔治"], "source_pages": ["克里孟梭", "劳合·乔治"], "era": "", "genre": "", "one_liner": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "summary": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "正义报": {"title": "正义报", "aliases": [], "authors": [], "related_people": ["克里孟梭"], "source_pages": ["克里孟梭"], "era": "", "genre": "", "one_liner": "老虎", "summary": "老虎", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 克里孟梭\n\n## 人物档案\n\n### 基本信息\n- **姓名**：乔治·克里孟梭\n- **时代**：法兰西第三共和国时期\n- **出生**：1841年9月28日，穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）\n- **去世**：1929年11月24日，巴黎（今法国法兰西岛大区巴黎市）\n- **享年**：88岁\n- **主要身份**：政治家、医生、记者、作家\n- **历史地位**：法兰西第三共和国最强势的总理之一，领导法国赢得第一次世界大战，并主导了巴黎和会。\n- **主要成就**：\n    - 在第一次世界大战最艰难时期担任法国总理（1917-1920），稳定军心与政局，被誉为“胜利之父”。\n    - 作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。\n    - 以激进共和派身份活跃政坛数十年，捍卫世俗共和理念，绰号“老虎”。\n\n### 生平概述\n克里孟梭出生于法国西部旺代省，早年学医，后因参与反对第二帝国的政治活动而短暂流亡美国。1869年返回法国，从巴黎区长做起，逐步成为激进共和派领袖。他以犀利的言辞和顽强的政治斗争闻名，多次出任议员，并一度担任内政部长。1906年首次出任总理，任内以强硬手段应对罢工和分离主义。一战爆发后，他成为坚定的主战派，1917年国家危难之际再度组阁，以铁腕整合资源，最终迎来胜利。战后，他以七旬高龄主导凡尔赛和会，为法国争取了最大利益，但也因条约的苛刻性而备受争议。晚年退出政坛，专注于写作直至去世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从法国西部到政治中心巴黎，跨越大西洋至美国，再至国际舞台凡尔赛。\n- ⏱️ **时间跨度**：1841年 - 1929年，共计约88年。\n- 📍 **地理范围**：主要活动于法国巴黎、南特，曾旅居美国纽约州纽约市及康涅狄格州，晚年参与国际事务（凡尔赛）。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：穆耶龙昂帕雷\n- **时间**：1841年\n- **停留时间**：童年及青少年时期（约18年）\n- **地点**：穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）\n- **事件**：出生于一个具有共和思想的医生家庭，父亲本杰明·克里孟梭对他影响深远。\n- **意义**：塑造了其激进的共和主义思想与反教权主义的根源。\n\n### 📍 重要地点：南特\n- **时间**：约1858-1860年\n- **停留时间**：约2年\n- **地点**：南特（今法国卢瓦尔河地区大区大西洋卢瓦尔省省会）\n- **事件**：在此接受中学教育。\n- **意义**：开阔了眼界，为前往巴黎深造做准备。\n\n### 📍 重要地点：巴黎（学医时期）\n- **时间**：1860-1865年\n- **停留时间**：约5年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：在巴黎大学攻读医学，同时积极参与反对拿破仑三世第二帝国的政治活动，创办激进报刊。\n- **意义**：奠定了医学专业背景，并初步展现了其政治锋芒与新闻才能。\n\n### 📍 重要地点：美国（流亡与婚姻）\n- **时间**：1865-1869年\n- **停留时间**：约4年\n- **地点**：主要活动于美国纽约州纽约市及康涅狄格州（今美国纽约州、康涅狄格州）\n- **事件**：因政治原因短暂移居美国，以教授法语和绘画为生。婚姻具体时间说法不一，待考。\n- **意义**：体验了不同的政治与社会环境，婚姻生活对其早期思想产生一定影响。\n\n### 📍 重要地点：巴黎（蒙马特区长时期）\n- **时间**：1870年代至20世纪初\n- **停留时间**：长期居住\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：第三共和国成立后回国，1871年当选巴黎蒙马特区区长，后长期担任国民议会议员。以激烈的演说和无情的质询闻名，获得“老虎”绰号。创办《正义报》，成为激进共和派核心人物。\n- **意义**：确立了其作为政坛“角斗士”的地位，是其政治生涯的根基所在。\n\n### 📍 重要地点：巴黎（首次总理任期）\n- **时间**：1906-1909年\n- **停留时间**：约3年\n- **地点**：巴黎（马提尼翁宫，总理府）（今法国法兰西岛大区巴黎市）\n- **事件**：出任内政部长，后成为总理。任内强硬镇压矿工罢工，处理政教分离后续事宜。\n- **意义**：首次展示其执政的铁腕风格，为日后战时领导积累经验。\n\n### 📍 重要地点：巴黎（战时总理任期）\n- **时间**：1917-1920年\n- **停留时间**：约3年\n- **地点**：巴黎（马提尼翁宫及战争指挥中心）（今法国法兰西岛大区巴黎市）\n- **事件**：1917年11月，在法军士气低落、国内厌战情绪蔓延时出任总理兼陆军部长。亲赴前线鼓舞士气，整合协约国指挥权，坚持“战争至上”原则，最终领导法国取得胜利。\n- **意义**：其政治生涯的巅峰，被誉为“胜利之父”，在法国历史上留下深刻印记。\n\n### 📍 重要地点：凡尔赛（巴黎和会）\n- **时间**：1919年\n- **停留时间**：约数月\n- **地点**：凡尔赛（今法国法兰西岛大区伊夫林省凡尔赛市）\n- **事件**：作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。\n- **意义**：主导了战后欧洲新秩序的构建，其强硬立场深刻影响了《凡尔赛和约》的内容。\n\n### 🔴 去世地：巴黎（晚年）\n- **时间**：1929年\n- **停留时间**：晚年长期居住\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：退出政坛后隐居巴黎，从事写作，直至去世。法国为其举行了国葬。\n- **意义**：一代政治强人的生命终点，其遗产（尤其是对德强硬政策）持续影响法国乃至欧洲政治。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1841 | 穆耶龙昂帕雷 |  | （年龄：0）出生于穆耶龙昂帕雷。 |\n| 1860 | 巴黎（学医时期） | 法国法兰西岛大区巴黎市 | （年龄：19）赴巴黎学习医学。 |\n| 1865 | 美国（流亡与婚姻） |  | （年龄：24）因政治活动流亡美国。 |\n| 1869 |  |  | （年龄：28）返回法国（婚姻时间说法不一，待考）。 |\n| 1871 | 巴黎（学医时期） | 法国法兰西岛大区巴黎市 | （年龄：30）当选巴黎蒙马特区区长，步入政坛。 |\n| 1876 |  |  | （年龄：35）当选国民议会议员，逐渐成为激进共和派领袖。 |\n| 1906 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：65）出任内政部长，后成为总理（至1909年）。 |\n| 1917 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：76）再度出任总理，领导法国进行一战最后阶段。 |\n| 1919 | 凡尔赛（巴黎和会） | 法国法兰西岛大区伊夫林省凡尔赛市 | （年龄：78）主导巴黎和会，签署《凡尔赛和约》。 |\n| 1920 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：79）辞去总理职务。 |\n| 1929 | 巴黎（晚年） | 法国法兰西岛大区巴黎市 | （年龄：88）在巴黎逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 穆耶龙昂帕雷 | 46.7167 | -0.8500 |\n| 南特 | 47.2181 | -1.5528 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 纽约市 | 40.7128 | -74.0060 |\n| 凡尔赛 | 48.8049 | 2.1204 |", "relatedGraph": {"center": {"id": "克里孟梭", "name": "克里孟梭", "file": "克里孟梭.html", "dynasty": "法兰西第三共和国时期", "aliases": [], "birth_year": 1841, "death_year": 1929, "quote": "**老虎**", "review": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "穆耶龙昂帕雷", "birthplace_modern": "法国卢瓦尔河地区大区旺代省", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "克里孟梭", "name": "克里孟梭", "file": "克里孟梭.html", "dynasty": "法兰西第三共和国时期", "aliases": [], "birth_year": 1841, "death_year": 1929, "quote": "**老虎**", "review": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "穆耶龙昂帕雷", "birthplace_modern": "法国卢瓦尔河地区大区旺代省", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "拿破仑", "name": "拿破仑", "file": "拿破仑.html", "dynasty": "法国大革命与法兰西第一帝国时期", "aliases": [], "birth_year": 1769, "death_year": 1821, "quote": "不想当将军的士兵不是好士兵", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "科西嘉岛阿雅克肖当时属法国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "威尔逊", "name": "威尔逊", "file": "威尔逊.html", "dynasty": "19世纪末至20世纪初（美国进步时代及一战时期）", "aliases": [], "birth_year": 1856, "death_year": 1924, "quote": "公开的和平条约，公开达成……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "斯汤顿", "birthplace_modern": "美国弗吉尼亚州斯汤顿市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "劳合·乔治", "name": "劳合·乔治", "file": "劳合·乔治.html", "dynasty": "19世纪末至20世纪上半叶（维多利亚时代晚期至一战及战间期）", "aliases": [], "birth_year": 1863, "death_year": 1945, "quote": "福利国家之父", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曼彻斯特", "birthplace_modern": "英国英格兰曼彻斯特", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "克里孟梭", "target": "拿破仑", "label": "对手", "confidence": null}, {"source": "克里孟梭", "target": "威尔逊", "label": "同册共现", "confidence": 0.15}, {"source": "克里孟梭", "target": "劳合·乔治", "label": "同册共现", "confidence": 0.15}, {"source": "克里孟梭", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "克里孟梭", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "克里孟梭", "target": "黄兴", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:10Z", "generated_at": "2026-06-22T11:31:10Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "乔治·克里孟梭", "title": "", "description": "克里孟梭出生于法国西部旺代省，早年学医，后因参与反对第二帝国的政治活动而短暂流亡美国。1869年返回法国，从巴黎区长做起，逐步成为激进共和派领袖。他以犀利的言辞和顽强的政治斗争闻名，多次出任议员，并一度担任内政部长。1906年首次出任总理，任内以强硬手段应对罢工和分离主义。一战爆发后，他成为坚定的主战派，1917年国家危难之际再度组阁，以铁腕整合资源，最终迎来胜利。战后，他以七旬高龄主导凡尔赛和会，为法国争取了最大利益，但也因条约的苛刻性而备受争议。晚年退出政坛，专注于写作直至去世。", "quote": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "shortReview": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "dynasty": "法兰西第三共和国时期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）", "avatar": "", "birth": {"date": "1841年", "location": "穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）", "lat": 46.7167, "lng": -0.85, "coordSystem": "WGS84"}, "death": {"date": "1929年", "location": "巴黎（今法国法兰西岛大区巴黎市）", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84"}, "lifespan": "88岁", "highlights": {"honor": "", "status": "法兰西第三共和国最强势的总理之一，领导法国赢得第一次世界大战，并主导了巴黎和会。", "identities": "政治家、医生、记者、作家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "穆耶龙昂帕雷", "ancientName": "穆耶龙昂帕雷", "modernName": "法国卢瓦尔河地区大区旺代省", "lat": 46.7167, "lng": -0.85, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个具有共和思想的医生家庭，父亲本杰明·克里孟梭对他影响深远。", "time": "1841年", "duration": "童年及青少年时期（约18年）", "significance": "塑造了其激进的共和主义思想与反教权主义的根源。", "works": [], "quoteLines": []}, {"name": "南特", "ancientName": "南特", "modernName": "法国卢瓦尔河地区大区大西洋卢瓦尔省省会", "lat": 47.2181, "lng": -1.5528, "coordSystem": "WGS84", "type": "normal", "event": "在此接受中学教育。", "time": "约1858-1860年", "duration": "约2年", "significance": "开阔了眼界，为前往巴黎深造做准备。", "works": [], "quoteLines": []}, {"name": "巴黎（学医时期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "在巴黎大学攻读医学，同时积极参与反对拿破仑三世第二帝国的政治活动，创办激进报刊。", "time": "1860-1865年", "duration": "约5年", "significance": "奠定了医学专业背景，并初步展现了其政治锋芒与新闻才能。", "works": [], "quoteLines": []}, {"name": "美国（流亡与婚姻）", "ancientName": "主要活动于美国纽约州纽约市及康涅狄格州", "modernName": "美国纽约州、康涅狄格州", "lat": 40.7128, "lng": -74.006, "coordSystem": "WGS84", "type": "normal", "event": "因政治原因短暂移居美国，以教授法语和绘画为生。婚姻具体时间说法不一，待考。", "time": "1865-1869年", "duration": "约4年", "significance": "体验了不同的政治与社会环境，婚姻生活对其早期思想产生一定影响。", "works": [], "quoteLines": []}, {"name": "巴黎（蒙马特区长时期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "第三共和国成立后回国，1871年当选巴黎蒙马特区区长，后长期担任国民议会议员。以激烈的演说和无情的质询闻名，获得“老虎”绰号。创办《正义报》，成为激进共和派核心人物。", "time": "1870年代至20世纪初", "duration": "长期居住", "significance": "确立了其作为政坛“角斗士”的地位，是其政治生涯的根基所在。", "works": ["正义报"], "quoteLines": []}, {"name": "巴黎（首次总理任期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "出任内政部长，后成为总理。任内强硬镇压矿工罢工，处理政教分离后续事宜。", "time": "1906-1909年", "duration": "约3年", "significance": "首次展示其执政的铁腕风格，为日后战时领导积累经验。", "works": [], "quoteLines": []}, {"name": "凡尔赛（巴黎和会）", "ancientName": "凡尔赛", "modernName": "法国法兰西岛大区伊夫林省凡尔赛市", "lat": 48.8049, "lng": 2.1204, "coordSystem": "WGS84", "type": "normal", "event": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "time": "1919年", "duration": "约数月", "significance": "主导了战后欧洲新秩序的构建，其强硬立场深刻影响了《凡尔赛和约》的内容。", "works": ["凡尔赛和约"], "quoteLines": []}, {"name": "巴黎（战时总理任期）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "normal", "event": "1917年11月，在法军士气低落、国内厌战情绪蔓延时出任总理兼陆军部长。亲赴前线鼓舞士气，整合协约国指挥权，坚持“战争至上”原则，最终领导法国取得胜利。", "time": "1917-1920年", "duration": "约3年", "significance": "其政治生涯的巅峰，被誉为“胜利之父”，在法国历史上留下深刻印记。", "works": [], "quoteLines": []}, {"name": "巴黎（晚年）", "ancientName": "巴黎", "modernName": "法国法兰西岛大区巴黎市", "lat": 48.8566, "lng": 2.3522, "coordSystem": "WGS84", "type": "death", "event": "退出政坛后隐居巴黎，从事写作，直至去世。法国为其举行了国葬。", "time": "1929年", "duration": "晚年长期居住", "significance": "一代政治强人的生命终点，其遗产（尤其是对德强硬政策）持续影响法国乃至欧洲政治。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---", "workTexts": {"凡尔赛和约": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "正义报": "“老虎”", "**凡尔赛和约**": "巴黎和会（1919）的核心主导者之一，力主严厉制裁德国，是《凡尔赛和约》的主要推动者。"}, "workSummaries": {"凡尔赛和约": {"title": "凡尔赛和约", "aliases": [], "authors": [], "related_people": ["克里孟梭", "劳合·乔治"], "source_pages": ["克里孟梭", "劳合·乔治"], "era": "", "genre": "", "one_liner": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "summary": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "正义报": {"title": "正义报", "aliases": [], "authors": [], "related_people": ["克里孟梭"], "source_pages": ["克里孟梭"], "era": "", "genre": "", "one_liner": "老虎", "summary": "老虎", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 克里孟梭\n\n## 人物档案\n\n### 基本信息\n- **姓名**：乔治·克里孟梭\n- **时代**：法兰西第三共和国时期\n- **出生**：1841年9月28日，穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）\n- **去世**：1929年11月24日，巴黎（今法国法兰西岛大区巴黎市）\n- **享年**：88岁\n- **主要身份**：政治家、医生、记者、作家\n- **历史地位**：法兰西第三共和国最强势的总理之一，领导法国赢得第一次世界大战，并主导了巴黎和会。\n- **主要成就**：\n    - 在第一次世界大战最艰难时期担任法国总理（1917-1920），稳定军心与政局，被誉为“胜利之父”。\n    - 作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。\n    - 以激进共和派身份活跃政坛数十年，捍卫世俗共和理念，绰号“老虎”。\n\n### 生平概述\n克里孟梭出生于法国西部旺代省，早年学医，后因参与反对第二帝国的政治活动而短暂流亡美国。1869年返回法国，从巴黎区长做起，逐步成为激进共和派领袖。他以犀利的言辞和顽强的政治斗争闻名，多次出任议员，并一度担任内政部长。1906年首次出任总理，任内以强硬手段应对罢工和分离主义。一战爆发后，他成为坚定的主战派，1917年国家危难之际再度组阁，以铁腕整合资源，最终迎来胜利。战后，他以七旬高龄主导凡尔赛和会，为法国争取了最大利益，但也因条约的苛刻性而备受争议。晚年退出政坛，专注于写作直至去世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从法国西部到政治中心巴黎，跨越大西洋至美国，再至国际舞台凡尔赛。\n- ⏱️ **时间跨度**：1841年 - 1929年，共计约88年。\n- 📍 **地理范围**：主要活动于法国巴黎、南特，曾旅居美国纽约州纽约市及康涅狄格州，晚年参与国际事务（凡尔赛）。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：穆耶龙昂帕雷\n- **时间**：1841年\n- **停留时间**：童年及青少年时期（约18年）\n- **地点**：穆耶龙昂帕雷（今法国卢瓦尔河地区大区旺代省）\n- **事件**：出生于一个具有共和思想的医生家庭，父亲本杰明·克里孟梭对他影响深远。\n- **意义**：塑造了其激进的共和主义思想与反教权主义的根源。\n\n### 📍 重要地点：南特\n- **时间**：约1858-1860年\n- **停留时间**：约2年\n- **地点**：南特（今法国卢瓦尔河地区大区大西洋卢瓦尔省省会）\n- **事件**：在此接受中学教育。\n- **意义**：开阔了眼界，为前往巴黎深造做准备。\n\n### 📍 重要地点：巴黎（学医时期）\n- **时间**：1860-1865年\n- **停留时间**：约5年\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：在巴黎大学攻读医学，同时积极参与反对拿破仑三世第二帝国的政治活动，创办激进报刊。\n- **意义**：奠定了医学专业背景，并初步展现了其政治锋芒与新闻才能。\n\n### 📍 重要地点：美国（流亡与婚姻）\n- **时间**：1865-1869年\n- **停留时间**：约4年\n- **地点**：主要活动于美国纽约州纽约市及康涅狄格州（今美国纽约州、康涅狄格州）\n- **事件**：因政治原因短暂移居美国，以教授法语和绘画为生。婚姻具体时间说法不一，待考。\n- **意义**：体验了不同的政治与社会环境，婚姻生活对其早期思想产生一定影响。\n\n### 📍 重要地点：巴黎（蒙马特区长时期）\n- **时间**：1870年代至20世纪初\n- **停留时间**：长期居住\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：第三共和国成立后回国，1871年当选巴黎蒙马特区区长，后长期担任国民议会议员。以激烈的演说和无情的质询闻名，获得“老虎”绰号。创办《正义报》，成为激进共和派核心人物。\n- **意义**：确立了其作为政坛“角斗士”的地位，是其政治生涯的根基所在。\n\n### 📍 重要地点：巴黎（首次总理任期）\n- **时间**：1906-1909年\n- **停留时间**：约3年\n- **地点**：巴黎（马提尼翁宫，总理府）（今法国法兰西岛大区巴黎市）\n- **事件**：出任内政部长，后成为总理。任内强硬镇压矿工罢工，处理政教分离后续事宜。\n- **意义**：首次展示其执政的铁腕风格，为日后战时领导积累经验。\n\n### 📍 重要地点：巴黎（战时总理任期）\n- **时间**：1917-1920年\n- **停留时间**：约3年\n- **地点**：巴黎（马提尼翁宫及战争指挥中心）（今法国法兰西岛大区巴黎市）\n- **事件**：1917年11月，在法军士气低落、国内厌战情绪蔓延时出任总理兼陆军部长。亲赴前线鼓舞士气，整合协约国指挥权，坚持“战争至上”原则，最终领导法国取得胜利。\n- **意义**：其政治生涯的巅峰，被誉为“胜利之父”，在法国历史上留下深刻印记。\n\n### 📍 重要地点：凡尔赛（巴黎和会）\n- **时间**：1919年\n- **停留时间**：约数月\n- **地点**：凡尔赛（今法国法兰西岛大区伊夫林省凡尔赛市）\n- **事件**：作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。\n- **意义**：主导了战后欧洲新秩序的构建，其强硬立场深刻影响了《凡尔赛和约》的内容。\n\n### 🔴 去世地：巴黎（晚年）\n- **时间**：1929年\n- **停留时间**：晚年长期居住\n- **地点**：巴黎（今法国法兰西岛大区巴黎市）\n- **事件**：退出政坛后隐居巴黎，从事写作，直至去世。法国为其举行了国葬。\n- **意义**：一代政治强人的生命终点，其遗产（尤其是对德强硬政策）持续影响法国乃至欧洲政治。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1841 | 穆耶龙昂帕雷 |  | （年龄：0）出生于穆耶龙昂帕雷。 |\n| 1860 | 巴黎（学医时期） | 法国法兰西岛大区巴黎市 | （年龄：19）赴巴黎学习医学。 |\n| 1865 | 美国（流亡与婚姻） |  | （年龄：24）因政治活动流亡美国。 |\n| 1869 |  |  | （年龄：28）返回法国（婚姻时间说法不一，待考）。 |\n| 1871 | 巴黎（学医时期） | 法国法兰西岛大区巴黎市 | （年龄：30）当选巴黎蒙马特区区长，步入政坛。 |\n| 1876 |  |  | （年龄：35）当选国民议会议员，逐渐成为激进共和派领袖。 |\n| 1906 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：65）出任内政部长，后成为总理（至1909年）。 |\n| 1917 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：76）再度出任总理，领导法国进行一战最后阶段。 |\n| 1919 | 凡尔赛（巴黎和会） | 法国法兰西岛大区伊夫林省凡尔赛市 | （年龄：78）主导巴黎和会，签署《凡尔赛和约》。 |\n| 1920 | 巴黎（首次总理任期） | 法国法兰西岛大区巴黎市 | （年龄：79）辞去总理职务。 |\n| 1929 | 巴黎（晚年） | 法国法兰西岛大区巴黎市 | （年龄：88）在巴黎逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：克里孟梭的作品在中文语文教材中较少直接收录，但其**战时演讲**和**政治评论**的片段可能作为历史背景材料出现。\n- 核心要点：\n    - **重点**：其演说以**犀利**、**雄辩**和**富有煽动性**著称，是研究**一战时期政治修辞**的范例。\n    - **重点**：文字中充满**爱国主义激情**与对敌人的**毫不妥协**，体现了“老虎”的**强硬性格**。\n    - **重点**：作为**记者出身**的政治家，其文风**简洁有力**，善于运用**讽刺**与**抨击**。\n    - 在分析**历史人物演讲**时，其文本是理解**战时宣传**与**领导艺术**的重要素材。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**法兰西第三共和国**时期重要的**激进共和派**政治家，活跃于19世纪末至20世纪初。\n    - **重点**：**第一次世界大战**后期（1917-1920）的法国**总理**，领导法国走向**最终胜利**。\n    - **巴黎和会**（1919）的**核心主导者**之一，力主严厉制裁德国，是《**凡尔赛和约**》的主要推动者。\n    - 其政治生涯贯穿了第三共和国从**确立**到**一战胜利**的关键阶段。\n- 核心要点：\n    - **重点**：其政治立场以**对德强硬**、**维护法国安全**与**霸权**为核心，深刻影响了**战后欧洲格局**。\n    - **重点**：绰号“**老虎**”，象征其**不屈不挠**、**斗争性强**的政治风格。\n    - **重点**：对**凡尔赛体系**的建立起到了**决定性作用**，但该体系的**苛刻性**也被认为埋下了**二战隐患**。\n    - 是**民族主义**与**现实政治**的典型代表人物。\n    - 其执政时期是**法国在一战中付出巨大牺牲**并最终**获得主导权**的象征。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 穆耶龙昂帕雷 | 46.7167 | -0.8500 |\n| 南特 | 47.2181 | -1.5528 |\n| 巴黎 | 48.8566 | 2.3522 |\n| 纽约市 | 40.7128 | -74.0060 |\n| 凡尔赛 | 48.8049 | 2.1204 |", "relatedGraph": {"center": {"id": "克里孟梭", "name": "克里孟梭", "file": "克里孟梭.html", "dynasty": "法兰西第三共和国时期", "aliases": [], "birth_year": 1841, "death_year": 1929, "quote": "**老虎**", "review": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "穆耶龙昂帕雷", "birthplace_modern": "法国卢瓦尔河地区大区旺代省", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "克里孟梭", "name": "克里孟梭", "file": "克里孟梭.html", "dynasty": "法兰西第三共和国时期", "aliases": [], "birth_year": 1841, "death_year": 1929, "quote": "**老虎**", "review": "作为法国首席代表出席巴黎和会，力主严厉制裁德国，主导《凡尔赛和约》的签订。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "穆耶龙昂帕雷", "birthplace_modern": "法国卢瓦尔河地区大区旺代省", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "拿破仑", "name": "拿破仑", "file": "拿破仑.html", "dynasty": "法国大革命与法兰西第一帝国时期", "aliases": [], "birth_year": 1769, "death_year": 1821, "quote": "不想当将军的士兵不是好士兵", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "科西嘉岛阿雅克肖当时属法国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "对手", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "威尔逊", "name": "威尔逊", "file": "威尔逊.html", "dynasty": "19世纪末至20世纪初（美国进步时代及一战时期）", "aliases": [], "birth_year": 1856, "death_year": 1924, "quote": "公开的和平条约，公开达成……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "斯汤顿", "birthplace_modern": "美国弗吉尼亚州斯汤顿市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "劳合·乔治", "name": "劳合·乔治", "file": "劳合·乔治.html", "dynasty": "19世纪末至20世纪上半叶（维多利亚时代晚期至一战及战间期）", "aliases": [], "birth_year": 1863, "death_year": 1945, "quote": "福利国家之父", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曼彻斯特", "birthplace_modern": "英国英格兰曼彻斯特", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "克里孟梭", "target": "拿破仑", "label": "对手", "confidence": null}, {"source": "克里孟梭", "target": "威尔逊", "label": "同册共现", "confidence": 0.15}, {"source": "克里孟梭", "target": "劳合·乔治", "label": "同册共现", "confidence": 0.15}, {"source": "克里孟梭", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "克里孟梭", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "克里孟梭", "target": "黄兴", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:11Z", "generated_at": "2026-06-25T07:13:11Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:10Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:11Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

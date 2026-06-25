@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "齐桓公", "title": "", "description": "齐桓公，姜姓，名小白，齐国第十五位国君，春秋五霸之首。早年因齐国内乱出奔莒国，后在鲍叔牙扶持下于前685年即位。即位后不计前嫌任管仲为相，推行改革，整顿内政军制，使齐国迅速富强。他打出\"尊王攘夷\"的旗号，九合诸侯，北伐山戎，南抑强楚，救燕、存邢、卫，兵临召陵、盟于葵丘，最终成为春秋首位被诸侯公认的霸主。晚年信用佞臣，疏远管仲、甯戚，霸业随之衰落。", "quote": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "shortReview": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "dynasty": "春秋时期（齐国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "齐国（都城临淄", "avatar": "", "birth": {"date": "前716年", "location": "齐国（都城临淄", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "前643年", "location": "齐国（都城临淄", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约73岁（依生卒年推算，传统纪年存疑/说法不一）", "highlights": {"honor": "", "status": "春秋时期首位被诸侯公认的霸主，开创\"尊王攘夷\"的政治格局", "identities": "齐国国君、春秋五霸之首", "achievements": "任用管仲为相推行改革富国强兵；尊王攘夷安定周王室；九合诸侯成就霸业；北伐山戎救燕存邢卫，扩展齐国威势", "works": [], "reviews": ["九合诸侯，一匡天下，春秋首霸。", "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。——《论语·宪问》", "五霸，桓公为盛。——《孟子·告子下》"]}}, "locations": [{"name": "齐国", "ancientName": "齐国（都城临淄，", "modernName": "山东省淄博市临淄区）", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "birth", "event": "姜姓，名小白，齐襄公之弟，出生于齐国公室", "time": "约前716年（存疑/说法不一）", "duration": "少年至青年早期", "significance": "齐国公室出身为其日后继承君位提供了法统基础", "works": [], "quoteLines": []}, {"name": "莒国", "ancientName": "莒国", "modernName": "山东省日照市莒县一带", "lat": 35.591512, "lng": 118.86367, "coordSystem": "WGS84", "type": "normal", "event": "因齐襄公乱政而出奔莒国，受鲍叔牙扶持，静待时变", "time": "约前698年—前685年", "duration": "约13年", "significance": "流亡期间结识并信任鲍叔牙，为日后君臣相得奠定基础", "works": [], "quoteLines": []}, {"name": "齐国（临淄）", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "normal", "event": "即位后任管仲为相，推行改革，富国强兵，使齐国成为诸侯中最具实力的国家", "time": "前685年起", "duration": "在位期间约42年", "significance": "齐桓公成就霸业的政治与军事中心", "works": [], "quoteLines": ["《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也"]}, {"name": "北燕", "ancientName": "北燕", "modernName": "北京市密云区、怀柔区及河北北部一带", "lat": 40.566037, "lng": 116.820803, "coordSystem": "WGS84", "type": "normal", "event": "山戎攻燕，齐桓公出兵北伐山戎，救燕于危难", "time": "约前663年—前662年", "duration": "战役持续数年", "significance": "践行\"攘夷\"之策，扩展齐国威势于北方", "works": [], "quoteLines": []}, {"name": "召陵", "ancientName": "召陵", "modernName": "河南省漯河市召陵区", "lat": 33.587858, "lng": 114.087852, "coordSystem": "WGS84", "type": "normal", "event": "率八国诸侯之师伐楚，兵临召陵，迫楚盟于境上，遏止楚北上势头", "time": "前656年", "duration": "战役期间", "significance": "齐国霸业向南推进的关键一役", "works": [], "quoteLines": ["《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚"]}, {"name": "葵丘", "ancientName": "葵丘", "modernName": "河南省商丘市民权县一带，存疑/说法不一", "lat": 34.649374, "lng": 115.169212, "coordSystem": "WGS84", "type": "normal", "event": "齐桓公在此九合诸侯，周襄王派代表赐胙，正式确立其春秋首霸地位", "time": "前651年", "duration": "会盟期间", "significance": "齐桓公霸业达到顶峰的标志", "works": [], "quoteLines": ["《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血"]}, {"name": "齐国（临淄）", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "death", "event": "晚年信用竖刁、易牙、开方等佞臣，管仲卒后霸业渐衰，最终病饿死于宫中（存疑/说法不一）", "time": "前643年", "duration": "去世于此", "significance": "一代霸主的谢幕，齐国霸业随之终结", "works": [], "quoteLines": ["《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **春秋时期**首位被诸侯公认的**霸主**\n- 齐桓公**任用管仲为相**，推行**改革**，使齐国富强\n- 提出**\"尊王攘夷\"**的口号（核心考点）\n- **九合诸侯**，**葵丘之盟**确立霸主地位\n- **北伐山戎**，**救燕存邢卫**\n- **前656年**率诸侯**伐楚**，**兵临召陵**\n- 晚年昏庸，信用**竖刁、易牙、开方**等佞臣\n- 春秋五霸的常见版本（齐桓公、宋襄公、晋文公、秦穆公、楚庄王）\n- 与\"管鲍之交\"典故关联，**鲍叔牙**举荐**管仲**的佳话\n\n### 高中阶段\n- 齐桓公**尊王攘夷**政策的**政治内涵**：尊奉周王以号令诸侯，抵御外夷以维系华夏秩序\n- **管仲改革**的**经济与军事举措**：发展工商、整顿军制、划分行政区\n- **春秋霸政**的**形成机制**：霸主通过会盟、征伐、调停构建诸侯秩序\n- **葵丘之盟**的**历史意义**：周王赐胙，标志霸主地位获天子认可\n- **齐桓公晚年悲剧**反映的**政治规律**：信用佞臣、疏远贤臣导致霸业衰落\n- 与**晋文公**崛起的**比较**：均借助\"尊王攘夷\"，但晋侧重\"攘夷\"以取威\n- \"**九合诸侯，不以兵车**\"的**外交理想**：会盟胜于征伐的政治伦理\n- **《左传》《史记》**对齐桓公形象的不同塑造，需注意**史实与文学加工**的区分\n\n---", "examPoints": "### 初中考点\n- 齐桓公是春秋五霸之首\n- 任用管仲为相进行改革\n- \"尊王攘夷\"是齐桓公霸业的核心策略\n- 北伐山戎、救燕、伐楚、葵丘会盟等关键事件\n- 晚年昏庸、饿死宫中的结局（存疑/说法不一）\n- 鲍叔牙与管仲的友谊典故\n\n### 高中考点\n- 春秋霸政的政治体制特征\n- 管仲改革的具体内容及其历史作用（存疑/说法不一，部分细节见于后世追述）\n- \"尊王攘夷\"口号的双重政治功能\n- 葵丘之盟的历史定位与周王赐胙的意义\n- 齐桓公晚年悲剧的政治警示意义\n- 齐桓公与晋文公霸业的异同比较\n- 史料中齐桓公形象的前后变化与史源差异\n- 春秋时期会盟外交的运作机制", "workTexts": {"论语·宪问": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "论语": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "宪问": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "左传·僖公四年": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "左传": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "僖公四年": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "孟子·告子下": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "孟子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "告子下": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "孟子·告子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "告子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "史记·齐太公世家": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "史记": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "齐太公世家": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人"}, "workSummaries": {"论语·宪问": {"title": "论语·宪问", "aliases": ["论语", "宪问"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "summary": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "quote": "桓公九合诸侯，不以兵车，管仲之力也。", "quotes": ["桓公九合诸侯，不以兵车，管仲之力也。", "如其仁，如其仁。"], "quote_policy": "preferred"}, "左传·僖公四年": {"title": "左传·僖公四年", "aliases": ["左传", "僖公四年"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "summary": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "quote": "齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "quotes": ["齐侯以诸侯之师侵蔡，蔡溃，遂伐楚"], "quote_policy": "preferred"}, "孟子·告子下": {"title": "孟子·告子下", "aliases": ["孟子", "告子下", "孟子·告子", "告子"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "summary": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "quote": "五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "quotes": ["五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "五霸，桓公为盛。"], "quote_policy": "preferred"}, "史记·齐太公世家": {"title": "史记·齐太公世家", "aliases": ["史记", "齐太公世家"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "summary": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "左传": {"title": "左传", "aliases": [], "authors": ["重耳"], "related_people": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "source_pages": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "era": "春秋时期", "genre": "传记", "one_liner": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "summary": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}}, "markdown": "# 齐桓公\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：齐桓公（姜姓，名小白）\n- **时代**：春秋时期（齐国）\n- **出生**：约前716年，存疑/说法不一；齐国（都城临淄，今山东省淄博市临淄区一带）\n- **去世**：前643年，齐国（都城临淄，今山东省淄博市临淄区一带）\n- **享年**：约73岁（依生卒年推算，传统纪年存疑/说法不一）\n- **主要身份**：齐国国君、春秋五霸之首\n- **历史地位**：春秋时期首位被诸侯公认的霸主，开创\"尊王攘夷\"的政治格局\n- **主要成就**：任用管仲为相推行改革富国强兵；尊王攘夷安定周王室；九合诸侯成就霸业；北伐山戎救燕存邢卫，扩展齐国威势\n\n### 生平概述\n齐桓公，姜姓，名小白，齐国第十五位国君，春秋五霸之首。早年因齐国内乱出奔莒国，后在鲍叔牙扶持下于前685年即位。即位后不计前嫌任管仲为相，推行改革，整顿内政军制，使齐国迅速富强。他打出\"尊王攘夷\"的旗号，九合诸侯，北伐山戎，南抑强楚，救燕、存邢、卫，兵临召陵、盟于葵丘，最终成为春秋首位被诸侯公认的霸主。晚年信用佞臣，疏远管仲、甯戚，霸业随之衰落。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以齐国都城临淄为核心，辐射中原诸侯国与北方山戎边地的会盟征伐之路\n- ⏱️ **时间跨度**：约前716年—前643年，约73年\n- 📍 **地理范围**：今山东、河南、河北、北京（燕地）、安徽（莒地）等地\n- 🌟 **重要节点数量**：核心地点6个\n- 🚶 **总行程估算**：约 1695 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：齐国\n- **公元纪年**：约前716年（存疑/说法不一）\n- **停留时间**：少年至青年早期\n- **位置**：齐国（都城临淄，今山东省淄博市临淄区）\n- **事迹**：姜姓，名小白，齐襄公之弟，出生于齐国公室\n- **意义**：齐国公室出身为其日后继承君位提供了法统基础\n\n### 📍 重要地点：莒国\n- **公元纪年**：约前698年—前685年\n- **停留时间**：约13年\n- **位置**：莒国（今山东省日照市莒县一带）\n- **事迹**：因齐襄公乱政而出奔莒国，受鲍叔牙扶持，静待时变\n- **意义**：流亡期间结识并信任鲍叔牙，为日后君臣相得奠定基础\n\n### 📍 重要地点：齐国（临淄）\n- **公元纪年**：前685年起\n- **停留时间**：在位期间约42年\n- **位置**：齐国都城临淄（今山东省淄博市临淄区）\n- **事迹**：即位后任管仲为相，推行改革，富国强兵，使齐国成为诸侯中最具实力的国家\n- **意义**：齐桓公成就霸业的政治与军事中心\n- **名篇名句**：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也\n\n### 📍 重要地点：北燕\n- **公元纪年**：约前663年—前662年\n- **停留时间**：战役持续数年\n- **位置**：北燕（今北京市密云区、怀柔区及河北北部一带）\n- **事迹**：山戎攻燕，齐桓公出兵北伐山戎，救燕于危难\n- **意义**：践行\"攘夷\"之策，扩展齐国威势于北方\n\n### 📍 重要地点：召陵\n- **公元纪年**：前656年\n- **停留时间**：战役期间\n- **位置**：召陵（今河南省漯河市召陵区）\n- **事迹**：率八国诸侯之师伐楚，兵临召陵，迫楚盟于境上，遏止楚北上势头\n- **意义**：齐国霸业向南推进的关键一役\n- **名篇名句**：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚\n\n### 📍 重要地点：葵丘\n- **公元纪年**：前651年\n- **停留时间**：会盟期间\n- **位置**：葵丘（今河南省商丘市民权县一带，存疑/说法不一）\n- **事迹**：齐桓公在此九合诸侯，周襄王派代表赐胙，正式确立其春秋首霸地位\n- **意义**：齐桓公霸业达到顶峰的标志\n- **名篇名句**：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血\n\n### 🔴 去世地：齐国（临淄）\n- **公元纪年**：前643年\n- **停留时间**：去世于此\n- **位置**：齐国都城临淄（今山东省淄博市临淄区）\n- **经过**：晚年信用竖刁、易牙、开方等佞臣，管仲卒后霸业渐衰，最终病饿死于宫中（存疑/说法不一）\n- **意义**：一代霸主的谢幕，齐国霸业随之终结\n- **名篇名句**：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前716年（存疑/说法不一） | 齐国 | 山东省淄博市临淄区 | 姜姓，名小白，出生于齐国公室 |\n| 约前698年—前685年 | 莒国 | 山东省日照市莒县一带 | 因齐乱出奔莒国，受鲍叔牙扶持 |\n| 前685年 | 齐国 | 山东省淄博市临淄区 | 即位为齐国国君 |\n| 前685年 | 齐国 | 山东省淄博市临淄区 | 任管仲为相，推行新政 |\n| 约前663年—前662年 | 北燕 | 北京市密云、怀柔及河北北部一带 | 出兵救燕，北伐山戎 |\n| 前656年 | 召陵 | 河南省漯河市召陵区 | 率诸侯伐楚，兵临召陵 |\n| 前651年 | 葵丘 | 河南省商丘市民权县一带（存疑/说法不一） | 葵丘之盟，九合诸侯成就霸业 |\n| 前643年 | 齐国 | 山东省淄博市临淄区 | 病饿死于宫中，霸业终结 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n齐桓公以\"尊王攘夷\"为旗号，九合诸侯，确立了以齐国为核心的诸侯会盟秩序，遏止了楚北进与山戎南下之势，安定了周王室的天下共主名义，使春秋前期的政治格局呈现出相对稳定的霸权主导态势。\n\n### 对后世的影响\n- **开创\"霸政\"模式**：以诸侯盟主身份代行王权的政治模式，为后世霸主提供范本\n- **树立\"尊王攘夷\"传统**：成为后世抵御外族入侵、维系华夏秩序的重要政治口号\n- **彰显贤臣治国之效**：齐桓公任管仲的故事成为君臣相得的典型，流传后世\n- **推动会盟外交制度**：九合诸侯的实践丰富了中国古代多边外交与盟誓传统\n\n### 历史评价\n- 九合诸侯，一匡天下，春秋首霸。\n- 桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。——《论语·宪问》\n- 五霸，桓公为盛。——《孟子·告子下》\n- 桓公之薨也，竖刁、易牙争权，桓公不得其死。——《史记·齐太公世家》\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **春秋时期**首位被诸侯公认的**霸主**\n- 齐桓公**任用管仲为相**，推行**改革**，使齐国富强\n- 提出**\"尊王攘夷\"**的口号（核心考点）\n- **九合诸侯**，**葵丘之盟**确立霸主地位\n- **北伐山戎**，**救燕存邢卫**\n- **前656年**率诸侯**伐楚**，**兵临召陵**\n- 晚年昏庸，信用**竖刁、易牙、开方**等佞臣\n- 春秋五霸的常见版本（齐桓公、宋襄公、晋文公、秦穆公、楚庄王）\n- 与\"管鲍之交\"典故关联，**鲍叔牙**举荐**管仲**的佳话\n\n### 高中阶段\n- 齐桓公**尊王攘夷**政策的**政治内涵**：尊奉周王以号令诸侯，抵御外夷以维系华夏秩序\n- **管仲改革**的**经济与军事举措**：发展工商、整顿军制、划分行政区\n- **春秋霸政**的**形成机制**：霸主通过会盟、征伐、调停构建诸侯秩序\n- **葵丘之盟**的**历史意义**：周王赐胙，标志霸主地位获天子认可\n- **齐桓公晚年悲剧**反映的**政治规律**：信用佞臣、疏远贤臣导致霸业衰落\n- 与**晋文公**崛起的**比较**：均借助\"尊王攘夷\"，但晋侧重\"攘夷\"以取威\n- \"**九合诸侯，不以兵车**\"的**外交理想**：会盟胜于征伐的政治伦理\n- **《左传》《史记》**对齐桓公形象的不同塑造，需注意**史实与文学加工**的区分\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 齐桓公是春秋五霸之首\n- 任用管仲为相进行改革\n- \"尊王攘夷\"是齐桓公霸业的核心策略\n- 北伐山戎、救燕、伐楚、葵丘会盟等关键事件\n- 晚年昏庸、饿死宫中的结局（存疑/说法不一）\n- 鲍叔牙与管仲的友谊典故\n\n### 高中考点\n- 春秋霸政的政治体制特征\n- 管仲改革的具体内容及其历史作用（存疑/说法不一，部分细节见于后世追述）\n- \"尊王攘夷\"口号的双重政治功能\n- 葵丘之盟的历史定位与周王赐胙的意义\n- 齐桓公晚年悲剧的政治警示意义\n- 齐桓公与晋文公霸业的异同比较\n- 史料中齐桓公形象的前后变化与史源差异\n- 春秋时期会盟外交的运作机制\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 山东省淄博市临淄区 | 山东省淄博市临淄区 | 36.826428 | 118.303542 | WGS84 |\n| 山东省日照市莒县一带 | 山东省日照市莒县一带 | 35.591512 | 118.863670 | WGS84 |\n| 北京市密云、怀柔及河北北部一带 | 北京市密云、怀柔及河北北部一带 | 40.566037 | 116.820803 | WGS84 |\n| 河南省漯河市召陵区 | 河南省漯河市召陵区 | 33.587858 | 114.087852 | WGS84 |\n| 河南省商丘市民权县一带 | 河南省商丘市民权县一带 | 34.649374 | 115.169212 | WGS84 |", "relatedGraph": {"center": {"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "宋襄公", "name": "宋襄公", "file": "宋襄公.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -652, "death_year": -637, "quote": "假仁仗义，自取败亡——宋襄之仁，迂腐之甚。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "前后", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "治大国，若烹小鲜。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋时期", "aliases": [], "birth_year": null, "death_year": -629, "quote": "晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -630, "death_year": null, "quote": "不战而屈人之兵", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "齐桓公", "target": "重耳", "label": "并称", "confidence": 0.55}, {"source": "齐桓公", "target": "宋襄公", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "卫文公", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "老子", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "狐偃", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "烛之武", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:56Z", "generated_at": "2026-06-22T11:31:56Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "齐桓公", "title": "", "description": "齐桓公，姜姓，名小白，齐国第十五位国君，春秋五霸之首。早年因齐国内乱出奔莒国，后在鲍叔牙扶持下于前685年即位。即位后不计前嫌任管仲为相，推行改革，整顿内政军制，使齐国迅速富强。他打出\"尊王攘夷\"的旗号，九合诸侯，北伐山戎，南抑强楚，救燕、存邢、卫，兵临召陵、盟于葵丘，最终成为春秋首位被诸侯公认的霸主。晚年信用佞臣，疏远管仲、甯戚，霸业随之衰落。", "quote": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "shortReview": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "dynasty": "春秋时期（齐国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "齐国（都城临淄", "avatar": "", "birth": {"date": "前716年", "location": "齐国（都城临淄", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "前643年", "location": "齐国（都城临淄", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "约73岁（依生卒年推算，传统纪年存疑/说法不一）", "highlights": {"honor": "", "status": "春秋时期首位被诸侯公认的霸主，开创\"尊王攘夷\"的政治格局", "identities": "齐国国君、春秋五霸之首", "achievements": "任用管仲为相推行改革富国强兵；尊王攘夷安定周王室；九合诸侯成就霸业；北伐山戎救燕存邢卫，扩展齐国威势", "works": [], "reviews": ["九合诸侯，一匡天下，春秋首霸。", "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。——《论语·宪问》", "五霸，桓公为盛。——《孟子·告子下》"]}}, "locations": [{"name": "齐国", "ancientName": "齐国（都城临淄，", "modernName": "山东省淄博市临淄区）", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "birth", "event": "姜姓，名小白，齐襄公之弟，出生于齐国公室", "time": "约前716年（存疑/说法不一）", "duration": "少年至青年早期", "significance": "齐国公室出身为其日后继承君位提供了法统基础", "works": [], "quoteLines": []}, {"name": "莒国", "ancientName": "莒国", "modernName": "山东省日照市莒县一带", "lat": 35.591512, "lng": 118.86367, "coordSystem": "WGS84", "type": "normal", "event": "因齐襄公乱政而出奔莒国，受鲍叔牙扶持，静待时变", "time": "约前698年—前685年", "duration": "约13年", "significance": "流亡期间结识并信任鲍叔牙，为日后君臣相得奠定基础", "works": [], "quoteLines": []}, {"name": "齐国（临淄）", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "normal", "event": "即位后任管仲为相，推行改革，富国强兵，使齐国成为诸侯中最具实力的国家", "time": "前685年起", "duration": "在位期间约42年", "significance": "齐桓公成就霸业的政治与军事中心", "works": [], "quoteLines": ["《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也"]}, {"name": "北燕", "ancientName": "北燕", "modernName": "北京市密云区、怀柔区及河北北部一带", "lat": 40.566037, "lng": 116.820803, "coordSystem": "WGS84", "type": "normal", "event": "山戎攻燕，齐桓公出兵北伐山戎，救燕于危难", "time": "约前663年—前662年", "duration": "战役持续数年", "significance": "践行\"攘夷\"之策，扩展齐国威势于北方", "works": [], "quoteLines": []}, {"name": "召陵", "ancientName": "召陵", "modernName": "河南省漯河市召陵区", "lat": 33.587858, "lng": 114.087852, "coordSystem": "WGS84", "type": "normal", "event": "率八国诸侯之师伐楚，兵临召陵，迫楚盟于境上，遏止楚北上势头", "time": "前656年", "duration": "战役期间", "significance": "齐国霸业向南推进的关键一役", "works": [], "quoteLines": ["《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚"]}, {"name": "葵丘", "ancientName": "葵丘", "modernName": "河南省商丘市民权县一带，存疑/说法不一", "lat": 34.649374, "lng": 115.169212, "coordSystem": "WGS84", "type": "normal", "event": "齐桓公在此九合诸侯，周襄王派代表赐胙，正式确立其春秋首霸地位", "time": "前651年", "duration": "会盟期间", "significance": "齐桓公霸业达到顶峰的标志", "works": [], "quoteLines": ["《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血"]}, {"name": "齐国（临淄）", "ancientName": "齐国都城临淄", "modernName": "山东省淄博市临淄区", "lat": 36.826428, "lng": 118.303542, "coordSystem": "WGS84", "type": "death", "event": "晚年信用竖刁、易牙、开方等佞臣，管仲卒后霸业渐衰，最终病饿死于宫中（存疑/说法不一）", "time": "前643年", "duration": "去世于此", "significance": "一代霸主的谢幕，齐国霸业随之终结", "works": [], "quoteLines": ["《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **春秋时期**首位被诸侯公认的**霸主**\n- 齐桓公**任用管仲为相**，推行**改革**，使齐国富强\n- 提出**\"尊王攘夷\"**的口号（核心考点）\n- **九合诸侯**，**葵丘之盟**确立霸主地位\n- **北伐山戎**，**救燕存邢卫**\n- **前656年**率诸侯**伐楚**，**兵临召陵**\n- 晚年昏庸，信用**竖刁、易牙、开方**等佞臣\n- 春秋五霸的常见版本（齐桓公、宋襄公、晋文公、秦穆公、楚庄王）\n- 与\"管鲍之交\"典故关联，**鲍叔牙**举荐**管仲**的佳话\n\n### 高中阶段\n- 齐桓公**尊王攘夷**政策的**政治内涵**：尊奉周王以号令诸侯，抵御外夷以维系华夏秩序\n- **管仲改革**的**经济与军事举措**：发展工商、整顿军制、划分行政区\n- **春秋霸政**的**形成机制**：霸主通过会盟、征伐、调停构建诸侯秩序\n- **葵丘之盟**的**历史意义**：周王赐胙，标志霸主地位获天子认可\n- **齐桓公晚年悲剧**反映的**政治规律**：信用佞臣、疏远贤臣导致霸业衰落\n- 与**晋文公**崛起的**比较**：均借助\"尊王攘夷\"，但晋侧重\"攘夷\"以取威\n- \"**九合诸侯，不以兵车**\"的**外交理想**：会盟胜于征伐的政治伦理\n- **《左传》《史记》**对齐桓公形象的不同塑造，需注意**史实与文学加工**的区分\n\n---", "examPoints": "### 初中考点\n- 齐桓公是春秋五霸之首\n- 任用管仲为相进行改革\n- \"尊王攘夷\"是齐桓公霸业的核心策略\n- 北伐山戎、救燕、伐楚、葵丘会盟等关键事件\n- 晚年昏庸、饿死宫中的结局（存疑/说法不一）\n- 鲍叔牙与管仲的友谊典故\n\n### 高中考点\n- 春秋霸政的政治体制特征\n- 管仲改革的具体内容及其历史作用（存疑/说法不一，部分细节见于后世追述）\n- \"尊王攘夷\"口号的双重政治功能\n- 葵丘之盟的历史定位与周王赐胙的意义\n- 齐桓公晚年悲剧的政治警示意义\n- 齐桓公与晋文公霸业的异同比较\n- 史料中齐桓公形象的前后变化与史源差异\n- 春秋时期会盟外交的运作机制", "workTexts": {"论语·宪问": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "论语": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "宪问": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "左传·僖公四年": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "左传": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "僖公四年": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "孟子·告子下": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "孟子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "告子下": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "孟子·告子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "告子": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "史记·齐太公世家": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "史记": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "齐太公世家": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人"}, "workSummaries": {"论语·宪问": {"title": "论语·宪问", "aliases": ["论语", "宪问"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "summary": "名篇名句：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也", "quote": "桓公九合诸侯，不以兵车，管仲之力也。", "quotes": ["桓公九合诸侯，不以兵车，管仲之力也。", "如其仁，如其仁。"], "quote_policy": "preferred"}, "左传·僖公四年": {"title": "左传·僖公四年", "aliases": ["左传", "僖公四年"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "summary": "名篇名句：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "quote": "齐侯以诸侯之师侵蔡，蔡溃，遂伐楚", "quotes": ["齐侯以诸侯之师侵蔡，蔡溃，遂伐楚"], "quote_policy": "preferred"}, "孟子·告子下": {"title": "孟子·告子下", "aliases": ["孟子", "告子下", "孟子·告子", "告子"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "summary": "名篇名句：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "quote": "五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "quotes": ["五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血", "五霸，桓公为盛。"], "quote_policy": "preferred"}, "史记·齐太公世家": {"title": "史记·齐太公世家", "aliases": ["史记", "齐太公世家"], "authors": ["齐桓公"], "related_people": ["齐桓公"], "source_pages": ["齐桓公"], "era": "春秋时期（齐国）", "genre": "", "one_liner": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "summary": "名篇名句：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "左传": {"title": "左传", "aliases": [], "authors": ["重耳"], "related_people": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "source_pages": ["狐偃", "齐桓公", "宋襄公", "卫文公", "重耳", "烛之武"], "era": "春秋时期", "genre": "传记", "one_liner": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "summary": "（晋）于是乎蒐于被庐，作三军，谋元帅。赵衰曰：‘郤縠可。’…乃使郤縠将中军，郤溱佐之；使狐偃将上军，让于狐毛，而佐之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}}, "markdown": "# 齐桓公\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：齐桓公（姜姓，名小白）\n- **时代**：春秋时期（齐国）\n- **出生**：约前716年，存疑/说法不一；齐国（都城临淄，今山东省淄博市临淄区一带）\n- **去世**：前643年，齐国（都城临淄，今山东省淄博市临淄区一带）\n- **享年**：约73岁（依生卒年推算，传统纪年存疑/说法不一）\n- **主要身份**：齐国国君、春秋五霸之首\n- **历史地位**：春秋时期首位被诸侯公认的霸主，开创\"尊王攘夷\"的政治格局\n- **主要成就**：任用管仲为相推行改革富国强兵；尊王攘夷安定周王室；九合诸侯成就霸业；北伐山戎救燕存邢卫，扩展齐国威势\n\n### 生平概述\n齐桓公，姜姓，名小白，齐国第十五位国君，春秋五霸之首。早年因齐国内乱出奔莒国，后在鲍叔牙扶持下于前685年即位。即位后不计前嫌任管仲为相，推行改革，整顿内政军制，使齐国迅速富强。他打出\"尊王攘夷\"的旗号，九合诸侯，北伐山戎，南抑强楚，救燕、存邢、卫，兵临召陵、盟于葵丘，最终成为春秋首位被诸侯公认的霸主。晚年信用佞臣，疏远管仲、甯戚，霸业随之衰落。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以齐国都城临淄为核心，辐射中原诸侯国与北方山戎边地的会盟征伐之路\n- ⏱️ **时间跨度**：约前716年—前643年，约73年\n- 📍 **地理范围**：今山东、河南、河北、北京（燕地）、安徽（莒地）等地\n- 🌟 **重要节点数量**：核心地点6个\n- 🚶 **总行程估算**：约 1695 公里\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：齐国\n- **公元纪年**：约前716年（存疑/说法不一）\n- **停留时间**：少年至青年早期\n- **位置**：齐国（都城临淄，今山东省淄博市临淄区）\n- **事迹**：姜姓，名小白，齐襄公之弟，出生于齐国公室\n- **意义**：齐国公室出身为其日后继承君位提供了法统基础\n\n### 📍 重要地点：莒国\n- **公元纪年**：约前698年—前685年\n- **停留时间**：约13年\n- **位置**：莒国（今山东省日照市莒县一带）\n- **事迹**：因齐襄公乱政而出奔莒国，受鲍叔牙扶持，静待时变\n- **意义**：流亡期间结识并信任鲍叔牙，为日后君臣相得奠定基础\n\n### 📍 重要地点：齐国（临淄）\n- **公元纪年**：前685年起\n- **停留时间**：在位期间约42年\n- **位置**：齐国都城临淄（今山东省淄博市临淄区）\n- **事迹**：即位后任管仲为相，推行改革，富国强兵，使齐国成为诸侯中最具实力的国家\n- **意义**：齐桓公成就霸业的政治与军事中心\n- **名篇名句**：《论语·宪问》：桓公九合诸侯，不以兵车，管仲之力也\n\n### 📍 重要地点：北燕\n- **公元纪年**：约前663年—前662年\n- **停留时间**：战役持续数年\n- **位置**：北燕（今北京市密云区、怀柔区及河北北部一带）\n- **事迹**：山戎攻燕，齐桓公出兵北伐山戎，救燕于危难\n- **意义**：践行\"攘夷\"之策，扩展齐国威势于北方\n\n### 📍 重要地点：召陵\n- **公元纪年**：前656年\n- **停留时间**：战役期间\n- **位置**：召陵（今河南省漯河市召陵区）\n- **事迹**：率八国诸侯之师伐楚，兵临召陵，迫楚盟于境上，遏止楚北上势头\n- **意义**：齐国霸业向南推进的关键一役\n- **名篇名句**：《左传·僖公四年》：齐侯以诸侯之师侵蔡，蔡溃，遂伐楚\n\n### 📍 重要地点：葵丘\n- **公元纪年**：前651年\n- **停留时间**：会盟期间\n- **位置**：葵丘（今河南省商丘市民权县一带，存疑/说法不一）\n- **事迹**：齐桓公在此九合诸侯，周襄王派代表赐胙，正式确立其春秋首霸地位\n- **意义**：齐桓公霸业达到顶峰的标志\n- **名篇名句**：《孟子·告子下》：五霸，桓公为盛，葵丘之会诸侯，束牲载书而不歃血\n\n### 🔴 去世地：齐国（临淄）\n- **公元纪年**：前643年\n- **停留时间**：去世于此\n- **位置**：齐国都城临淄（今山东省淄博市临淄区）\n- **经过**：晚年信用竖刁、易牙、开方等佞臣，管仲卒后霸业渐衰，最终病饿死于宫中（存疑/说法不一）\n- **意义**：一代霸主的谢幕，齐国霸业随之终结\n- **名篇名句**：《史记·齐太公世家》：桓公好内，多内宠，如夫人者六人\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前716年（存疑/说法不一） | 齐国 | 山东省淄博市临淄区 | 姜姓，名小白，出生于齐国公室 |\n| 约前698年—前685年 | 莒国 | 山东省日照市莒县一带 | 因齐乱出奔莒国，受鲍叔牙扶持 |\n| 前685年 | 齐国 | 山东省淄博市临淄区 | 即位为齐国国君 |\n| 前685年 | 齐国 | 山东省淄博市临淄区 | 任管仲为相，推行新政 |\n| 约前663年—前662年 | 北燕 | 北京市密云、怀柔及河北北部一带 | 出兵救燕，北伐山戎 |\n| 前656年 | 召陵 | 河南省漯河市召陵区 | 率诸侯伐楚，兵临召陵 |\n| 前651年 | 葵丘 | 河南省商丘市民权县一带（存疑/说法不一） | 葵丘之盟，九合诸侯成就霸业 |\n| 前643年 | 齐国 | 山东省淄博市临淄区 | 病饿死于宫中，霸业终结 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n齐桓公以\"尊王攘夷\"为旗号，九合诸侯，确立了以齐国为核心的诸侯会盟秩序，遏止了楚北进与山戎南下之势，安定了周王室的天下共主名义，使春秋前期的政治格局呈现出相对稳定的霸权主导态势。\n\n### 对后世的影响\n- **开创\"霸政\"模式**：以诸侯盟主身份代行王权的政治模式，为后世霸主提供范本\n- **树立\"尊王攘夷\"传统**：成为后世抵御外族入侵、维系华夏秩序的重要政治口号\n- **彰显贤臣治国之效**：齐桓公任管仲的故事成为君臣相得的典型，流传后世\n- **推动会盟外交制度**：九合诸侯的实践丰富了中国古代多边外交与盟誓传统\n\n### 历史评价\n- 九合诸侯，一匡天下，春秋首霸。\n- 桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。——《论语·宪问》\n- 五霸，桓公为盛。——《孟子·告子下》\n- 桓公之薨也，竖刁、易牙争权，桓公不得其死。——《史记·齐太公世家》\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **春秋时期**首位被诸侯公认的**霸主**\n- 齐桓公**任用管仲为相**，推行**改革**，使齐国富强\n- 提出**\"尊王攘夷\"**的口号（核心考点）\n- **九合诸侯**，**葵丘之盟**确立霸主地位\n- **北伐山戎**，**救燕存邢卫**\n- **前656年**率诸侯**伐楚**，**兵临召陵**\n- 晚年昏庸，信用**竖刁、易牙、开方**等佞臣\n- 春秋五霸的常见版本（齐桓公、宋襄公、晋文公、秦穆公、楚庄王）\n- 与\"管鲍之交\"典故关联，**鲍叔牙**举荐**管仲**的佳话\n\n### 高中阶段\n- 齐桓公**尊王攘夷**政策的**政治内涵**：尊奉周王以号令诸侯，抵御外夷以维系华夏秩序\n- **管仲改革**的**经济与军事举措**：发展工商、整顿军制、划分行政区\n- **春秋霸政**的**形成机制**：霸主通过会盟、征伐、调停构建诸侯秩序\n- **葵丘之盟**的**历史意义**：周王赐胙，标志霸主地位获天子认可\n- **齐桓公晚年悲剧**反映的**政治规律**：信用佞臣、疏远贤臣导致霸业衰落\n- 与**晋文公**崛起的**比较**：均借助\"尊王攘夷\"，但晋侧重\"攘夷\"以取威\n- \"**九合诸侯，不以兵车**\"的**外交理想**：会盟胜于征伐的政治伦理\n- **《左传》《史记》**对齐桓公形象的不同塑造，需注意**史实与文学加工**的区分\n\n---\n\n## 初高中阶段考点\n\n### 初中考点\n- 齐桓公是春秋五霸之首\n- 任用管仲为相进行改革\n- \"尊王攘夷\"是齐桓公霸业的核心策略\n- 北伐山戎、救燕、伐楚、葵丘会盟等关键事件\n- 晚年昏庸、饿死宫中的结局（存疑/说法不一）\n- 鲍叔牙与管仲的友谊典故\n\n### 高中考点\n- 春秋霸政的政治体制特征\n- 管仲改革的具体内容及其历史作用（存疑/说法不一，部分细节见于后世追述）\n- \"尊王攘夷\"口号的双重政治功能\n- 葵丘之盟的历史定位与周王赐胙的意义\n- 齐桓公晚年悲剧的政治警示意义\n- 齐桓公与晋文公霸业的异同比较\n- 史料中齐桓公形象的前后变化与史源差异\n- 春秋时期会盟外交的运作机制\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 山东省淄博市临淄区 | 山东省淄博市临淄区 | 36.826428 | 118.303542 | WGS84 |\n| 山东省日照市莒县一带 | 山东省日照市莒县一带 | 35.591512 | 118.863670 | WGS84 |\n| 北京市密云、怀柔及河北北部一带 | 北京市密云、怀柔及河北北部一带 | 40.566037 | 116.820803 | WGS84 |\n| 河南省漯河市召陵区 | 河南省漯河市召陵区 | 33.587858 | 114.087852 | WGS84 |\n| 河南省商丘市民权县一带 | 河南省商丘市民权县一带 | 34.649374 | 115.169212 | WGS84 |", "relatedGraph": {"center": {"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "齐桓公", "name": "齐桓公", "file": "齐桓公.html", "dynasty": "春秋时期（齐国）", "aliases": [], "birth_year": -716, "death_year": -643, "quote": "九合诸侯，一匡天下，春秋首霸。", "review": "桓公九合诸侯，不以兵车，管仲之力也。如其仁，如其仁。", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省淄博市临淄区一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "重耳", "name": "重耳", "file": "重耳.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -697, "death_year": -628, "quote": "（重耳）奔狄。从者狐偃、赵衰、颠颉、魏犨、胥臣、狐毛、贾佗……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曲沃", "birthplace_modern": "山西省运城市闻喜县", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "bio", "confidence": 0.55, "isCenter": false}, {"id": "宋襄公", "name": "宋襄公", "file": "宋襄公.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -652, "death_year": -637, "quote": "假仁仗义，自取败亡——宋襄之仁，迂腐之甚。", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "前后", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "卫文公", "name": "卫文公", "file": "卫文公.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -670, "death_year": -635, "quote": "务材训农，通商惠工", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "卫国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "治大国，若烹小鲜。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "狐偃", "name": "狐偃", "file": "狐偃.html", "dynasty": "春秋时期", "aliases": [], "birth_year": null, "death_year": -629, "quote": "晋公子重耳之及于难也，晋人伐诸蒲城…遂奔狄。从者狐偃、赵衰、颠颉、魏武子、司空季子。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "晋国", "birthplace_modern": "核心区域约在今山西省西南部", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "烛之武", "name": "烛之武", "file": "烛之武.html", "dynasty": "春秋时期（东周）", "aliases": [], "birth_year": -630, "death_year": null, "quote": "不战而屈人之兵", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "推断为郑国", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "齐桓公", "target": "重耳", "label": "并称", "confidence": 0.55}, {"source": "齐桓公", "target": "宋襄公", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "卫文公", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "老子", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "狐偃", "label": "同时代人物", "confidence": null}, {"source": "齐桓公", "target": "烛之武", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:59Z", "generated_at": "2026-06-25T07:13:59Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:56Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:14:00Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

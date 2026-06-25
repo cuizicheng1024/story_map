@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "约瑟夫·维萨里奥诺维奇·斯大林", "title": "", "description": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放。1917年参与领导十月革命，后在苏俄内战中发挥重要作用。列宁逝世后，他通过一系列政治斗争巩固权力，成为苏联最高领导人。他推行激进的工业化和农业集体化政策，使苏联迅速成为工业强国，但也造成了严重的社会代价。二战期间，他领导苏联军民战胜纳粹德国，战后主导了苏联及东欧社会主义阵营的建立，其执政时期深刻塑造了苏联乃至世界历史的进程。", "quote": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "shortReview": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "哥里（今格鲁吉亚哥里市）", "avatar": "", "birth": {"date": "1878年", "location": "哥里（今格鲁吉亚哥里市）", "lat": 41.9853, "lng": 44.1117, "coordSystem": "WGS84"}, "death": {"date": "1953年", "location": "莫斯科（今俄罗斯莫斯科）", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84"}, "lifespan": "存疑（约73-74岁，取决于出生年份）", "highlights": {"honor": "", "status": "苏联党和国家最高领导人，对20世纪国际格局产生深远影响。", "identities": "政治家、革命家、苏联最高领导人", "achievements": "领导苏联实现工业化；领导苏联赢得第二次世界大战苏德战争；确立并巩固了苏联作为世界超级大国的地位。", "works": [], "reviews": []}}, "locations": [{"name": "哥里", "ancientName": "哥里", "modernName": "格鲁吉亚哥里市", "lat": 41.9853, "lng": 44.1117, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个鞋匠家庭，在此度过童年并进入教会学校学习。", "time": "1878年12月18日", "duration": "约15年", "significance": "其格鲁吉亚出身与早年经历，是理解其民族观念和早期思想形成的基础。", "works": [], "quoteLines": []}, {"name": "第比利斯", "ancientName": "梯弗里斯", "modernName": "格鲁吉亚第比利斯", "lat": 41.7151, "lng": 44.8271, "coordSystem": "WGS84", "type": "normal", "event": "进入梯弗里斯东正教中学读书，开始接触马克思主义，并加入社会民主工党，组织工人罢工和示威。", "time": "1894年 - 1903年", "duration": "约9年", "significance": "完成了从学生到职业革命家的转变，成为高加索地区工人运动的重要组织者。", "works": [], "quoteLines": []}, {"name": "图鲁汉斯克区", "ancientName": "图鲁汉斯克", "modernName": "俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区", "lat": 65.7833, "lng": 87.9667, "coordSystem": "WGS84", "type": "normal", "event": "被沙皇政府流放至西伯利亚极北地区，进行艰苦的流放生活。", "time": "1913年 - 1917年", "duration": "约4年", "significance": "这是他革命生涯中最长的一次流放，磨练了意志。关于其开始使用“斯大林”笔名的时间说法不一（一说始于1912年，一说始于此次流放期间）。", "works": [], "quoteLines": []}, {"name": "彼得格勒", "ancientName": "彼得格勒", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "time": "1917年", "duration": "数月", "significance": "直接参与了十月革命的领导工作，进入新生苏维埃政权的权力核心。", "works": ["真理报"], "quoteLines": []}, {"name": "察里津", "ancientName": "察里津", "modernName": "俄罗斯伏尔加格勒", "lat": 48.708, "lng": 44.5133, "coordSystem": "WGS84", "type": "normal", "event": "在苏俄内战期间被派往南方组织粮食运输和城市防御，指挥红军击退白军进攻。", "time": "1918年", "duration": "数月", "significance": "积累了军事指挥经验，巩固了在党内的地位，该城后更名为斯大林格勒以纪念此段历史。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "1922年出任党中央总书记，逐步掌握最高权力。在此领导了国家工业化、农业集体化、大清洗，并指挥了卫国战争。晚年在此处理战后国际事务。", "time": "1922年 - 1953年", "duration": "约31年", "significance": "作为苏联首都，是他执政期间绝大部分政治决策和国家活动的中心。", "works": [], "quoteLines": []}, {"name": "雅尔塔", "ancientName": "雅尔塔", "modernName": "乌克兰克里米亚雅尔塔", "lat": 44.4952, "lng": 34.1663, "coordSystem": "WGS84", "type": "normal", "event": "与美国总统罗斯福、英国首相丘吉尔举行雅尔塔会议，讨论战后世界秩序安排。", "time": "1945年2月", "duration": "约一周", "significance": "标志着苏联国际地位达到顶峰，会议奠定了战后“雅尔塔体系”的基础。", "works": [], "quoteLines": []}, {"name": "波茨坦", "ancientName": "波茨坦", "modernName": "德国勃兰登堡州波茨坦", "lat": 52.3906, "lng": 13.0645, "coordSystem": "WGS84", "type": "normal", "event": "与美国总统杜鲁门、英国首相丘吉尔（后为艾德礼）举行波茨坦会议，处理德国战后问题并发表公告敦促日本投降。", "time": "1945年7月 - 8月", "duration": "约两周", "significance": "巩固了苏联在东欧的势力范围，是二战同盟国最后一次首脑会议。", "works": [], "quoteLines": []}, {"name": "孔策沃别墅", "ancientName": "孔策沃别墅", "modernName": "俄罗斯莫斯科西郊孔策沃区", "lat": 55.7283, "lng": 37.453, "coordSystem": "WGS84", "type": "death", "event": "在此突发脑溢血去世。", "time": "1953年3月5日", "duration": "晚年常居地", "significance": "其去世标志着苏联一个时代的结束。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---", "workTexts": {"真理报": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。"}, "workSummaries": {"真理报": {"title": "真理报", "aliases": [], "authors": [], "related_people": ["列宁", "斯大林"], "source_pages": ["列宁", "斯大林"], "era": "", "genre": "", "one_liner": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "summary": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "论列宁主义基础": {"title": "论列宁主义基础", "aliases": [], "authors": [], "related_people": ["斯大林"], "source_pages": ["斯大林"], "era": "", "genre": "", "one_liner": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放", "summary": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 斯大林\n\n## 人物档案\n\n### 基本信息\n- **姓名**：约瑟夫·维萨里奥诺维奇·斯大林（Иосиф Виссарионович Сталин）\n- **时代**：苏联时期（19世纪末至20世纪中叶）\n- **出生**：1878年12月18日（存疑，另有1879年说法），哥里（今格鲁吉亚哥里市）\n- **去世**：1953年3月5日，莫斯科（今俄罗斯莫斯科）\n- **享年**：存疑（约73-74岁，取决于出生年份）\n- **主要身份**：政治家、革命家、苏联最高领导人\n- **历史地位**：苏联党和国家最高领导人，对20世纪国际格局产生深远影响。\n- **主要成就**：领导苏联实现工业化；领导苏联赢得第二次世界大战苏德战争；确立并巩固了苏联作为世界超级大国的地位。\n\n### 生平概述\n斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放。1917年参与领导十月革命，后在苏俄内战中发挥重要作用。列宁逝世后，他通过一系列政治斗争巩固权力，成为苏联最高领导人。他推行激进的工业化和农业集体化政策，使苏联迅速成为工业强国，但也造成了严重的社会代价。二战期间，他领导苏联军民战胜纳粹德国，战后主导了苏联及东欧社会主义阵营的建立，其执政时期深刻塑造了苏联乃至世界历史的进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从格鲁吉亚的哥里到俄罗斯的莫斯科，足迹遍及苏联主要地区，核心活动区域在俄罗斯欧洲部分。\n- ⏱️ **时间跨度**：约1878年至1953年，总计约75年。\n- 📍 **地理范围**：主要覆盖今格鲁吉亚、俄罗斯（西伯利亚、欧洲部分）等地。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：哥里\n- **时间**：1878年12月18日\n- **停留时间**：约15年\n- **地点**：哥里（今格鲁吉亚哥里市）\n- **事件**：出生于一个鞋匠家庭，在此度过童年并进入教会学校学习。\n- **意义**：其格鲁吉亚出身与早年经历，是理解其民族观念和早期思想形成的基础。\n\n### 📍 重要地点：第比利斯\n- **时间**：1894年 - 1903年\n- **停留时间**：约9年\n- **地点**：梯弗里斯（今格鲁吉亚第比利斯）\n- **事件**：进入梯弗里斯东正教中学读书，开始接触马克思主义，并加入社会民主工党，组织工人罢工和示威。\n- **意义**：完成了从学生到职业革命家的转变，成为高加索地区工人运动的重要组织者。\n\n### 📍 重要地点：图鲁汉斯克区\n- **时间**：1913年 - 1917年\n- **停留时间**：约4年\n- **地点**：图鲁汉斯克（今俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区）\n- **事件**：被沙皇政府流放至西伯利亚极北地区，进行艰苦的流放生活。\n- **意义**：这是他革命生涯中最长的一次流放，磨练了意志。关于其开始使用“斯大林”笔名的时间说法不一（一说始于1912年，一说始于此次流放期间）。\n\n### 📍 重要地点：彼得格勒\n- **时间**：1917年\n- **停留时间**：数月\n- **地点**：彼得格勒（今俄罗斯圣彼得堡）\n- **事件**：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。\n- **意义**：直接参与了十月革命的领导工作，进入新生苏维埃政权的权力核心。\n\n### 📍 重要地点：察里津\n- **时间**：1918年\n- **停留时间**：数月\n- **地点**：察里津（今俄罗斯伏尔加格勒）\n- **事件**：在苏俄内战期间被派往南方组织粮食运输和城市防御，指挥红军击退白军进攻。\n- **意义**：积累了军事指挥经验，巩固了在党内的地位，该城后更名为斯大林格勒以纪念此段历史。\n\n### 📍 重要地点：莫斯科\n- **时间**：1922年 - 1953年\n- **停留时间**：约31年\n- **地点**：莫斯科（今俄罗斯莫斯科）\n- **事件**：1922年出任党中央总书记，逐步掌握最高权力。在此领导了国家工业化、农业集体化、大清洗，并指挥了卫国战争。晚年在此处理战后国际事务。\n- **意义**：作为苏联首都，是他执政期间绝大部分政治决策和国家活动的中心。\n\n### 📍 重要地点：雅尔塔\n- **时间**：1945年2月\n- **停留时间**：约一周\n- **地点**：雅尔塔（今乌克兰克里米亚雅尔塔）\n- **事件**：与美国总统罗斯福、英国首相丘吉尔举行雅尔塔会议，讨论战后世界秩序安排。\n- **意义**：标志着苏联国际地位达到顶峰，会议奠定了战后“雅尔塔体系”的基础。\n\n### 📍 重要地点：波茨坦\n- **时间**：1945年7月 - 8月\n- **停留时间**：约两周\n- **地点**：波茨坦（今德国勃兰登堡州波茨坦）\n- **事件**：与美国总统杜鲁门、英国首相丘吉尔（后为艾德礼）举行波茨坦会议，处理德国战后问题并发表公告敦促日本投降。\n- **意义**：巩固了苏联在东欧的势力范围，是二战同盟国最后一次首脑会议。\n\n### 📍 去世地：孔策沃别墅\n- **时间**：1953年3月5日\n- **停留时间**：晚年常居地\n- **地点**：孔策沃别墅（今俄罗斯莫斯科西郊孔策沃区）\n- **事件**：在此突发脑溢血去世。\n- **意义**：其去世标志着苏联一个时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1878 | 哥里 | 格鲁吉亚哥里市 | （年龄：0）出生于格鲁吉亚哥里（出生年份存疑）。 |\n| 1894 | 第比利斯 | 格鲁吉亚第比利斯 | （年龄：16）进入梯弗里斯东正教中学，开始革命活动。 |\n| 1899 |  |  | （年龄：21）因宣传马克思主义被学校开除。 |\n| 1902 |  |  | （年龄：24）首次被捕并流放。 |\n| 1912 |  |  | （年龄：34）当选为党中央委员。关于开始使用“斯大林”笔名的时间说法不一（一说始于本年，一说始于1913-1917年流放期间）。 |\n| 1913 | 图鲁汉斯克区 | 俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区 | （年龄：35）被流放至西伯利亚图鲁汉斯克。 |\n| 1917 | 彼得格勒 | 俄罗斯圣彼得堡 | （年龄：39）返回彼得格勒，参与十月革命。 |\n| 1922 |  |  | （年龄：44）出任俄共（布）中央总书记。 |\n| 1924 |  |  | （年龄：46）列宁逝世，开始巩固个人权力。 |\n| 1928 |  |  | （年龄：50）推行第一个五年计划，开始全盘农业集体化。 |\n| 1936 |  |  | （年龄：58）主持制定苏联新宪法，大清洗开始。 |\n| 1941 |  |  | （年龄：63）任苏联人民委员会主席（部长会议主席），领导卫国战争。 |\n| 1945 | 雅尔塔 | 乌克兰克里米亚雅尔塔 | （年龄：67）参加雅尔塔会议和波茨坦会议。 |\n| 1953 | 孔策沃别墅 | 俄罗斯莫斯科西郊孔策沃区 | （年龄：74）在莫斯科郊外孔策沃别墅去世（享年存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：哥里 | 哥里 | 41.9853 | 44.1117 |\n| 重要地点：第比利斯 | 第比利斯 | 41.7151 | 44.8271 |\n| 重要地点：图鲁汉斯克区 | 图鲁汉斯克区 | 65.7833 | 87.9667 |\n| 重要地点：彼得格勒 | 圣彼得堡 | 59.9343 | 30.3351 |\n| 重要地点：察里津 | 伏尔加格勒 | 48.7080 | 44.5133 |\n| 重要地点：莫斯科 | 莫斯科 | 55.7558 | 37.6173 |\n| 重要地点：雅尔塔 | 雅尔塔 | 44.4952 | 34.1663 |\n| 重要地点：波茨坦 | 波茨坦 | 52.3906 | 13.0645 |\n| 去世地：孔策沃别墅 | 孔策沃区（莫斯科西郊） | 55.7283 | 37.4530 |\n|---|---|---|\n| 哥里 | 41.9853 | 44.1117 |\n| 第比利斯 | 41.7151 | 44.8271 |\n| 图鲁汉斯克区 | 65.7833 | 87.9667 |\n| 圣彼得堡 | 59.9343 | 30.3351 |\n| 伏尔加格勒 | 48.7080 | 44.5133 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 雅尔塔 | 44.4952 | 34.1663 |\n| 波茨坦 | 52.3906 | 13.0645 |\n| 孔策沃区（莫斯科西郊） | 55.7283 | 37.4530 |", "relatedGraph": {"center": {"id": "斯大林", "name": "斯大林", "file": "斯大林.html", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "aliases": [], "birth_year": 1878, "death_year": 1953, "quote": "**斯大林模式**", "review": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "哥里", "birthplace_modern": "格鲁吉亚哥里市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "斯大林", "name": "斯大林", "file": "斯大林.html", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "aliases": [], "birth_year": 1878, "death_year": 1953, "quote": "**斯大林模式**", "review": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "哥里", "birthplace_modern": "格鲁吉亚哥里市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "高尔基", "name": "高尔基", "file": "高尔基.html", "dynasty": "俄罗斯帝国末期至苏联初期", "aliases": [], "birth_year": 1868, "death_year": 1936, "quote": "无产阶级艺术最杰出的代表", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "诺夫哥罗德省下诺夫哥罗德", "birthplace_modern": "俄罗斯下诺夫哥罗德", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "斯大林", "target": "高尔基", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:25Z", "generated_at": "2026-06-22T11:31:25Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "约瑟夫·维萨里奥诺维奇·斯大林", "title": "", "description": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放。1917年参与领导十月革命，后在苏俄内战中发挥重要作用。列宁逝世后，他通过一系列政治斗争巩固权力，成为苏联最高领导人。他推行激进的工业化和农业集体化政策，使苏联迅速成为工业强国，但也造成了严重的社会代价。二战期间，他领导苏联军民战胜纳粹德国，战后主导了苏联及东欧社会主义阵营的建立，其执政时期深刻塑造了苏联乃至世界历史的进程。", "quote": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "shortReview": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "哥里（今格鲁吉亚哥里市）", "avatar": "", "birth": {"date": "1878年", "location": "哥里（今格鲁吉亚哥里市）", "lat": 41.9853, "lng": 44.1117, "coordSystem": "WGS84"}, "death": {"date": "1953年", "location": "莫斯科（今俄罗斯莫斯科）", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84"}, "lifespan": "存疑（约73-74岁，取决于出生年份）", "highlights": {"honor": "", "status": "苏联党和国家最高领导人，对20世纪国际格局产生深远影响。", "identities": "政治家、革命家、苏联最高领导人", "achievements": "领导苏联实现工业化；领导苏联赢得第二次世界大战苏德战争；确立并巩固了苏联作为世界超级大国的地位。", "works": [], "reviews": []}}, "locations": [{"name": "哥里", "ancientName": "哥里", "modernName": "格鲁吉亚哥里市", "lat": 41.9853, "lng": 44.1117, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个鞋匠家庭，在此度过童年并进入教会学校学习。", "time": "1878年12月18日", "duration": "约15年", "significance": "其格鲁吉亚出身与早年经历，是理解其民族观念和早期思想形成的基础。", "works": [], "quoteLines": []}, {"name": "第比利斯", "ancientName": "梯弗里斯", "modernName": "格鲁吉亚第比利斯", "lat": 41.7151, "lng": 44.8271, "coordSystem": "WGS84", "type": "normal", "event": "进入梯弗里斯东正教中学读书，开始接触马克思主义，并加入社会民主工党，组织工人罢工和示威。", "time": "1894年 - 1903年", "duration": "约9年", "significance": "完成了从学生到职业革命家的转变，成为高加索地区工人运动的重要组织者。", "works": [], "quoteLines": []}, {"name": "图鲁汉斯克区", "ancientName": "图鲁汉斯克", "modernName": "俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区", "lat": 65.7833, "lng": 87.9667, "coordSystem": "WGS84", "type": "normal", "event": "被沙皇政府流放至西伯利亚极北地区，进行艰苦的流放生活。", "time": "1913年 - 1917年", "duration": "约4年", "significance": "这是他革命生涯中最长的一次流放，磨练了意志。关于其开始使用“斯大林”笔名的时间说法不一（一说始于1912年，一说始于此次流放期间）。", "works": [], "quoteLines": []}, {"name": "彼得格勒", "ancientName": "彼得格勒", "modernName": "俄罗斯圣彼得堡", "lat": 59.9343, "lng": 30.3351, "coordSystem": "WGS84", "type": "normal", "event": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "time": "1917年", "duration": "数月", "significance": "直接参与了十月革命的领导工作，进入新生苏维埃政权的权力核心。", "works": ["真理报"], "quoteLines": []}, {"name": "察里津", "ancientName": "察里津", "modernName": "俄罗斯伏尔加格勒", "lat": 48.708, "lng": 44.5133, "coordSystem": "WGS84", "type": "normal", "event": "在苏俄内战期间被派往南方组织粮食运输和城市防御，指挥红军击退白军进攻。", "time": "1918年", "duration": "数月", "significance": "积累了军事指挥经验，巩固了在党内的地位，该城后更名为斯大林格勒以纪念此段历史。", "works": [], "quoteLines": []}, {"name": "莫斯科", "ancientName": "莫斯科", "modernName": "俄罗斯莫斯科", "lat": 55.7558, "lng": 37.6173, "coordSystem": "WGS84", "type": "normal", "event": "1922年出任党中央总书记，逐步掌握最高权力。在此领导了国家工业化、农业集体化、大清洗，并指挥了卫国战争。晚年在此处理战后国际事务。", "time": "1922年 - 1953年", "duration": "约31年", "significance": "作为苏联首都，是他执政期间绝大部分政治决策和国家活动的中心。", "works": [], "quoteLines": []}, {"name": "雅尔塔", "ancientName": "雅尔塔", "modernName": "乌克兰克里米亚雅尔塔", "lat": 44.4952, "lng": 34.1663, "coordSystem": "WGS84", "type": "normal", "event": "与美国总统罗斯福、英国首相丘吉尔举行雅尔塔会议，讨论战后世界秩序安排。", "time": "1945年2月", "duration": "约一周", "significance": "标志着苏联国际地位达到顶峰，会议奠定了战后“雅尔塔体系”的基础。", "works": [], "quoteLines": []}, {"name": "波茨坦", "ancientName": "波茨坦", "modernName": "德国勃兰登堡州波茨坦", "lat": 52.3906, "lng": 13.0645, "coordSystem": "WGS84", "type": "normal", "event": "与美国总统杜鲁门、英国首相丘吉尔（后为艾德礼）举行波茨坦会议，处理德国战后问题并发表公告敦促日本投降。", "time": "1945年7月 - 8月", "duration": "约两周", "significance": "巩固了苏联在东欧的势力范围，是二战同盟国最后一次首脑会议。", "works": [], "quoteLines": []}, {"name": "孔策沃别墅", "ancientName": "孔策沃别墅", "modernName": "俄罗斯莫斯科西郊孔策沃区", "lat": 55.7283, "lng": 37.453, "coordSystem": "WGS84", "type": "death", "event": "在此突发脑溢血去世。", "time": "1953年3月5日", "duration": "晚年常居地", "significance": "其去世标志着苏联一个时代的结束。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---", "workTexts": {"真理报": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。"}, "workSummaries": {"真理报": {"title": "真理报", "aliases": [], "authors": [], "related_people": ["列宁", "斯大林"], "source_pages": ["列宁", "斯大林"], "era": "", "genre": "", "one_liner": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "summary": "事件：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "论列宁主义基础": {"title": "论列宁主义基础", "aliases": [], "authors": [], "related_people": ["斯大林"], "source_pages": ["斯大林"], "era": "", "genre": "", "one_liner": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放", "summary": "斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 斯大林\n\n## 人物档案\n\n### 基本信息\n- **姓名**：约瑟夫·维萨里奥诺维奇·斯大林（Иосиф Виссарионович Сталин）\n- **时代**：苏联时期（19世纪末至20世纪中叶）\n- **出生**：1878年12月18日（存疑，另有1879年说法），哥里（今格鲁吉亚哥里市）\n- **去世**：1953年3月5日，莫斯科（今俄罗斯莫斯科）\n- **享年**：存疑（约73-74岁，取决于出生年份）\n- **主要身份**：政治家、革命家、苏联最高领导人\n- **历史地位**：苏联党和国家最高领导人，对20世纪国际格局产生深远影响。\n- **主要成就**：领导苏联实现工业化；领导苏联赢得第二次世界大战苏德战争；确立并巩固了苏联作为世界超级大国的地位。\n\n### 生平概述\n斯大林出生于格鲁吉亚哥里，早年投身革命，多次被流放。1917年参与领导十月革命，后在苏俄内战中发挥重要作用。列宁逝世后，他通过一系列政治斗争巩固权力，成为苏联最高领导人。他推行激进的工业化和农业集体化政策，使苏联迅速成为工业强国，但也造成了严重的社会代价。二战期间，他领导苏联军民战胜纳粹德国，战后主导了苏联及东欧社会主义阵营的建立，其执政时期深刻塑造了苏联乃至世界历史的进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从格鲁吉亚的哥里到俄罗斯的莫斯科，足迹遍及苏联主要地区，核心活动区域在俄罗斯欧洲部分。\n- ⏱️ **时间跨度**：约1878年至1953年，总计约75年。\n- 📍 **地理范围**：主要覆盖今格鲁吉亚、俄罗斯（西伯利亚、欧洲部分）等地。\n- 🌟 **重要节点数量**：9个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：哥里\n- **时间**：1878年12月18日\n- **停留时间**：约15年\n- **地点**：哥里（今格鲁吉亚哥里市）\n- **事件**：出生于一个鞋匠家庭，在此度过童年并进入教会学校学习。\n- **意义**：其格鲁吉亚出身与早年经历，是理解其民族观念和早期思想形成的基础。\n\n### 📍 重要地点：第比利斯\n- **时间**：1894年 - 1903年\n- **停留时间**：约9年\n- **地点**：梯弗里斯（今格鲁吉亚第比利斯）\n- **事件**：进入梯弗里斯东正教中学读书，开始接触马克思主义，并加入社会民主工党，组织工人罢工和示威。\n- **意义**：完成了从学生到职业革命家的转变，成为高加索地区工人运动的重要组织者。\n\n### 📍 重要地点：图鲁汉斯克区\n- **时间**：1913年 - 1917年\n- **停留时间**：约4年\n- **地点**：图鲁汉斯克（今俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区）\n- **事件**：被沙皇政府流放至西伯利亚极北地区，进行艰苦的流放生活。\n- **意义**：这是他革命生涯中最长的一次流放，磨练了意志。关于其开始使用“斯大林”笔名的时间说法不一（一说始于1912年，一说始于此次流放期间）。\n\n### 📍 重要地点：彼得格勒\n- **时间**：1917年\n- **停留时间**：数月\n- **地点**：彼得格勒（今俄罗斯圣彼得堡）\n- **事件**：二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。\n- **意义**：直接参与了十月革命的领导工作，进入新生苏维埃政权的权力核心。\n\n### 📍 重要地点：察里津\n- **时间**：1918年\n- **停留时间**：数月\n- **地点**：察里津（今俄罗斯伏尔加格勒）\n- **事件**：在苏俄内战期间被派往南方组织粮食运输和城市防御，指挥红军击退白军进攻。\n- **意义**：积累了军事指挥经验，巩固了在党内的地位，该城后更名为斯大林格勒以纪念此段历史。\n\n### 📍 重要地点：莫斯科\n- **时间**：1922年 - 1953年\n- **停留时间**：约31年\n- **地点**：莫斯科（今俄罗斯莫斯科）\n- **事件**：1922年出任党中央总书记，逐步掌握最高权力。在此领导了国家工业化、农业集体化、大清洗，并指挥了卫国战争。晚年在此处理战后国际事务。\n- **意义**：作为苏联首都，是他执政期间绝大部分政治决策和国家活动的中心。\n\n### 📍 重要地点：雅尔塔\n- **时间**：1945年2月\n- **停留时间**：约一周\n- **地点**：雅尔塔（今乌克兰克里米亚雅尔塔）\n- **事件**：与美国总统罗斯福、英国首相丘吉尔举行雅尔塔会议，讨论战后世界秩序安排。\n- **意义**：标志着苏联国际地位达到顶峰，会议奠定了战后“雅尔塔体系”的基础。\n\n### 📍 重要地点：波茨坦\n- **时间**：1945年7月 - 8月\n- **停留时间**：约两周\n- **地点**：波茨坦（今德国勃兰登堡州波茨坦）\n- **事件**：与美国总统杜鲁门、英国首相丘吉尔（后为艾德礼）举行波茨坦会议，处理德国战后问题并发表公告敦促日本投降。\n- **意义**：巩固了苏联在东欧的势力范围，是二战同盟国最后一次首脑会议。\n\n### 📍 去世地：孔策沃别墅\n- **时间**：1953年3月5日\n- **停留时间**：晚年常居地\n- **地点**：孔策沃别墅（今俄罗斯莫斯科西郊孔策沃区）\n- **事件**：在此突发脑溢血去世。\n- **意义**：其去世标志着苏联一个时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1878 | 哥里 | 格鲁吉亚哥里市 | （年龄：0）出生于格鲁吉亚哥里（出生年份存疑）。 |\n| 1894 | 第比利斯 | 格鲁吉亚第比利斯 | （年龄：16）进入梯弗里斯东正教中学，开始革命活动。 |\n| 1899 |  |  | （年龄：21）因宣传马克思主义被学校开除。 |\n| 1902 |  |  | （年龄：24）首次被捕并流放。 |\n| 1912 |  |  | （年龄：34）当选为党中央委员。关于开始使用“斯大林”笔名的时间说法不一（一说始于本年，一说始于1913-1917年流放期间）。 |\n| 1913 | 图鲁汉斯克区 | 俄罗斯克拉斯诺亚尔斯克边疆区图鲁汉斯克区 | （年龄：35）被流放至西伯利亚图鲁汉斯克。 |\n| 1917 | 彼得格勒 | 俄罗斯圣彼得堡 | （年龄：39）返回彼得格勒，参与十月革命。 |\n| 1922 |  |  | （年龄：44）出任俄共（布）中央总书记。 |\n| 1924 |  |  | （年龄：46）列宁逝世，开始巩固个人权力。 |\n| 1928 |  |  | （年龄：50）推行第一个五年计划，开始全盘农业集体化。 |\n| 1936 |  |  | （年龄：58）主持制定苏联新宪法，大清洗开始。 |\n| 1941 |  |  | （年龄：63）任苏联人民委员会主席（部长会议主席），领导卫国战争。 |\n| 1945 | 雅尔塔 | 乌克兰克里米亚雅尔塔 | （年龄：67）参加雅尔塔会议和波茨坦会议。 |\n| 1953 | 孔策沃别墅 | 俄罗斯莫斯科西郊孔策沃区 | （年龄：74）在莫斯科郊外孔策沃别墅去世（享年存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：斯大林的著作与演讲在语文教材中较少作为文学作品出现，其相关内容更多见于历史教材。其**《论列宁主义基础》**等理论著作是政治文献。\n- 核心要点：\n    - **重点**：其语言风格以**强硬、明确、富有鼓动性**著称，体现了高度的**政治宣传**目的。\n    - **重点**：在历史叙述中，常作为**关键历史人物**被提及，其言论常被引用来说明特定时期的**政策导向**。\n    - **重点**：其形象在不同历史时期的**文学与影视作品**中呈现复杂多变的解读，是**意识形态**与**历史评价**交织的典型案例。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：领导苏联实施**五年计划**，实现了国家**工业化**，特别是重工业的飞速发展。\n    - **重点**：推行**农业全盘集体化**，对富农采取了严厉措施，对农业生产和农民生活产生了深远影响。\n    - **重点**：在20世纪30年代进行**大清洗**，严重削弱了党和国家的干部队伍。\n    - **重点**：领导苏联人民取得**卫国战争**（苏德战争）的伟大胜利。\n    - **重点**：战后主导建立**社会主义阵营**，与西方展开**冷战**。\n- 核心要点：\n    - **重点**：其执政时期被称为“**斯大林模式**”或“**苏联模式**”，其特点是**高度集中的计划经济体制**和**高度集权的政治体制**。\n    - **重点**：对其评价具有**高度复杂性**和**争议性**，涉及**功过是非**的全面历史分析。\n    - **重点**：其外交政策深刻影响了**二战后的世界格局**，形成了以美苏为首的两大阵营对峙的**雅尔塔体系**。\n    - **重点**：其民族政策对**苏联的民族关系**产生了长远影响。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：哥里 | 哥里 | 41.9853 | 44.1117 |\n| 重要地点：第比利斯 | 第比利斯 | 41.7151 | 44.8271 |\n| 重要地点：图鲁汉斯克区 | 图鲁汉斯克区 | 65.7833 | 87.9667 |\n| 重要地点：彼得格勒 | 圣彼得堡 | 59.9343 | 30.3351 |\n| 重要地点：察里津 | 伏尔加格勒 | 48.7080 | 44.5133 |\n| 重要地点：莫斯科 | 莫斯科 | 55.7558 | 37.6173 |\n| 重要地点：雅尔塔 | 雅尔塔 | 44.4952 | 34.1663 |\n| 重要地点：波茨坦 | 波茨坦 | 52.3906 | 13.0645 |\n| 去世地：孔策沃别墅 | 孔策沃区（莫斯科西郊） | 55.7283 | 37.4530 |\n|---|---|---|\n| 哥里 | 41.9853 | 44.1117 |\n| 第比利斯 | 41.7151 | 44.8271 |\n| 图鲁汉斯克区 | 65.7833 | 87.9667 |\n| 圣彼得堡 | 59.9343 | 30.3351 |\n| 伏尔加格勒 | 48.7080 | 44.5133 |\n| 莫斯科 | 55.7558 | 37.6173 |\n| 雅尔塔 | 44.4952 | 34.1663 |\n| 波茨坦 | 52.3906 | 13.0645 |\n| 孔策沃区（莫斯科西郊） | 55.7283 | 37.4530 |", "relatedGraph": {"center": {"id": "斯大林", "name": "斯大林", "file": "斯大林.html", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "aliases": [], "birth_year": 1878, "death_year": 1953, "quote": "**斯大林模式**", "review": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "哥里", "birthplace_modern": "格鲁吉亚哥里市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "斯大林", "name": "斯大林", "file": "斯大林.html", "dynasty": "苏联时期（19世纪末至20世纪中叶）", "aliases": [], "birth_year": 1878, "death_year": 1953, "quote": "**斯大林模式**", "review": "二月革命后从流放地返回，参与编辑《真理报》，进入布尔什维克党中央核心层，参与领导十月革命武装起义。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "哥里", "birthplace_modern": "格鲁吉亚哥里市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "高尔基", "name": "高尔基", "file": "高尔基.html", "dynasty": "俄罗斯帝国末期至苏联初期", "aliases": [], "birth_year": 1868, "death_year": 1936, "quote": "无产阶级艺术最杰出的代表", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "诺夫哥罗德省下诺夫哥罗德", "birthplace_modern": "俄罗斯下诺夫哥罗德", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "斯大林", "target": "高尔基", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "斯大林", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:27Z", "generated_at": "2026-06-25T07:13:27Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:25Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:27Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

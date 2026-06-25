@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "郭嘉", "title": "才策谋略，世之奇士", "description": "郭嘉，字奉孝，颍川阳翟人。他早年预见汉末天下将乱，北投袁绍，但认为袁绍好谋无决，难成大事，遂离去。后经荀彧推荐，成为曹操谋士，两人相见恨晚。他随曹操征战十余年，在擒吕布、破袁绍、定乌桓等关键战役中屡献奇策，为曹操统一北方立下汗马功劳。其谋略特点是洞察人心，善抓战机，敢于冒险。公元207年，在从柳城回军途中病逝，曹操痛惜不已。赤壁之战后，曹操曾哀叹：“郭奉孝在，不使孤至此。”", "quote": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "shortReview": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "dynasty": "东汉末年（三国时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（据《三国志》载其享年三十八岁", "avatar": "", "birth": {"date": "170年", "location": "（据《三国志》载其享年三十八岁", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "207年", "location": "柳城（今辽宁省朝阳市）", "lat": 41.5768, "lng": 120.4504, "coordSystem": "WGS84"}, "lifespan": "三十八岁（《三国志》原文记载）", "highlights": {"honor": "才策谋略，世之奇士", "status": "曹操统一中国北方的核心谋士之一，以奇谋善断著称，被誉为“才策谋略，世之奇士”。", "identities": "谋士、军师祭酒", "achievements": "十胜十败论坚定了曹操对抗袁绍的决心；力主急攻吕布，助曹操擒杀吕布；在官渡之战前精准分析袁绍性格与谋士内部矛盾；力排众议，献计远征乌桓，为曹操彻底肃清袁氏残余势力。", "works": [], "reviews": []}}, "locations": [{"name": "颍川阳翟", "ancientName": "颍川阳翟", "modernName": "河南省禹州市", "lat": 34.1416, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于颍川郭氏，自幼聪慧，胸怀大志。", "time": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算）", "duration": "青年时期", "significance": "颍川是汉末人才聚集之地，郭嘉在此成长并结识了许多后来的名士与同僚。", "works": [], "quoteLines": []}, {"name": "邺城（袁绍处）", "ancientName": "邺城", "modernName": "河北省临漳县", "lat": 36.3333, "lng": 114.6167, "coordSystem": "WGS84", "type": "normal", "event": "北上投奔当时势力强大的袁绍，但发现袁绍“多谋少决”，并非明主，遂选择离开。", "time": "约公元190年-196年（具体时间待考）", "duration": "数年（说法不一）", "significance": "这段经历使他对袁绍集团的内部问题有了深刻认识，为日后献策击败袁绍奠定了基础。", "works": [], "quoteLines": []}, {"name": "许都", "ancientName": "许都", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "经荀彧推荐，与曹操论天下事，提出“十胜十败”之说，深受曹操器重，被任命为军师祭酒。", "time": "公元196年", "duration": "数月", "significance": "正式加入曹操阵营，开启了其作为首席谋士的生涯，与曹操建立了“使孤成大业者，必此人也”的信任关系。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳", "modernName": "江苏省睢宁县古邳镇", "lat": 34.0853, "lng": 117.9353, "coordSystem": "WGS84", "type": "normal", "event": "曹操征讨吕布，久攻不下，欲退兵。郭嘉与荀攸力劝曹操急攻，并料定吕布有勇无谋、陈宫计迟，最终水淹下邳，擒杀吕布。", "time": "公元198年", "duration": "数月", "significance": "展现了郭嘉善于把握战机、洞察对手心理的谋略特点，帮助曹操扫除了一个重要的东方对手。", "works": [], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县", "lat": 34.7203, "lng": 113.9763, "coordSystem": "WGS84", "type": "normal", "event": "官渡之战前夕，曹操对袁绍兵力感到忧虑，郭嘉详细分析双方优劣，提出著名的“十胜十败”论，极大鼓舞了曹军士气。战前，他准确预言孙策将死于刺客之手，解除了曹操的后顾之忧。", "time": "公元200年", "duration": "战役期间", "significance": "其战略分析是曹操决心与袁绍决战的关键因素之一，对官渡之战的胜利有重要贡献。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县", "lat": 36.3333, "lng": 114.6167, "coordSystem": "WGS84", "type": "normal", "event": "曹操攻克邺城，基本平定冀州。郭嘉建议曹操广施恩德，招揽河北人才，稳定新占领区。", "time": "公元204年", "duration": "数年", "significance": "协助曹操消化袁绍的根据地，为彻底消灭袁氏势力、巩固北方统治出谋划策。", "works": [], "quoteLines": []}, {"name": "南皮", "ancientName": "南皮", "modernName": "河北省南皮县", "lat": 38.0386, "lng": 116.7039, "coordSystem": "WGS84", "type": "normal", "event": "曹操追击袁谭至南皮，并最终击杀袁谭。", "time": "公元205年", "duration": "短暂", "significance": "参与了平定冀州残余反抗势力的军事行动。", "works": [], "quoteLines": []}, {"name": "易京", "ancientName": "易京", "modernName": "河北省雄县", "lat": 38.9947, "lng": 116.1086, "coordSystem": "WGS84", "type": "normal", "event": "曹操准备北征乌桓，诸将担心刘表派刘备袭击许都。郭嘉分析刘表与刘备“表，坐谈客耳，自知才不足以御备”，力主轻兵速进，远征乌桓。", "time": "公元206年", "duration": "短暂", "significance": "其精准的战略判断，促使曹操下定决心进行这场风险极高的远征，以彻底解决北方边患。", "works": [], "quoteLines": []}, {"name": "白狼山", "ancientName": "白狼山", "modernName": "辽宁省喀左县", "lat": 41.1253, "lng": 119.7447, "coordSystem": "WGS84", "type": "normal", "event": "曹军轻兵出卢龙塞，直指柳城，在白狼山与乌桓主力遭遇。郭嘉献计“兵贵神速”，曹操采纳，大破乌桓，斩杀蹋顿单于。", "time": "公元207年", "duration": "战役期间", "significance": "此战是郭嘉军事生涯的巅峰之作，为曹操统一北方画上了句号。", "works": [], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市", "lat": 41.5768, "lng": 120.4504, "coordSystem": "WGS84", "type": "death", "event": "在从柳城班师回朝的途中，因水土不服，加之长途劳顿，病逝。", "time": "公元207年", "duration": "数日", "significance": "英年早逝，令曹操悲痛欲绝。他的离世被认为是曹操在赤壁之战中失利的原因之一，对曹魏集团是重大损失。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---", "workTexts": {"三国志": "出生：约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟（今河南省禹州市）"}, "workSummaries": {"三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "赤壁赋": {"title": "赤壁赋", "aliases": [], "authors": ["苏东坡"], "related_people": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "source_pages": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "era": "北宋（仁宗至徽宗年间）", "genre": "赋", "one_liner": "即《前赤壁赋》，借泛舟夜游与主客问答阐发旷达的人生哲理。", "summary": "通过赤壁秋夜的江月清风与主客对话，展开对“变”与“不变”的哲思。", "quote": "寄蜉蝣于天地，渺沧海之一粟。", "quotes": ["寄蜉蝣于天地，渺沧海之一粟。", "哀吾生之须臾，羡长江之无穷。"], "quote_policy": "preferred"}}, "markdown": "# 郭嘉\n\n## 人物档案\n\n### 基本信息\n- **姓名**：郭嘉\n- **时代**：东汉末年（三国时期）\n- **出生**：约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟（今河南省禹州市）\n- **去世**：公元207年，柳城（今辽宁省朝阳市）\n- **享年**：三十八岁（《三国志》原文记载）\n- **主要身份**：谋士、军师祭酒\n- **历史地位**：曹操统一中国北方的核心谋士之一，以奇谋善断著称，被誉为“才策谋略，世之奇士”。\n- **主要成就**：十胜十败论坚定了曹操对抗袁绍的决心；力主急攻吕布，助曹操擒杀吕布；在官渡之战前精准分析袁绍性格与谋士内部矛盾；力排众议，献计远征乌桓，为曹操彻底肃清袁氏残余势力。\n\n### 生平概述\n郭嘉，字奉孝，颍川阳翟人。他早年预见汉末天下将乱，北投袁绍，但认为袁绍好谋无决，难成大事，遂离去。后经荀彧推荐，成为曹操谋士，两人相见恨晚。他随曹操征战十余年，在擒吕布、破袁绍、定乌桓等关键战役中屡献奇策，为曹操统一北方立下汗马功劳。其谋略特点是洞察人心，善抓战机，敢于冒险。公元207年，在从柳城回军途中病逝，曹操痛惜不已。赤壁之战后，曹操曾哀叹：“郭奉孝在，不使孤至此。”\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于中原及河北地区，最远随军抵达辽西柳城。\n- ⏱️ **时间跨度**：约公元196年至公元207年，共11年。\n- 📍 **地理范围**：覆盖今河南、山东、河北、辽宁等省。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：颍川阳翟\n- **时间**：约公元170年（据《三国志》载其享年三十八岁，后人据此推算）\n- **停留时间**：青年时期\n- **地点**：颍川阳翟（今河南省禹州市）\n- **事件**：出生于颍川郭氏，自幼聪慧，胸怀大志。\n- **意义**：颍川是汉末人才聚集之地，郭嘉在此成长并结识了许多后来的名士与同僚。\n\n### 📍 重要地点：邺城（袁绍处）\n- **时间**：约公元190年-196年（具体时间待考）\n- **停留时间**：数年（说法不一）\n- **地点**：邺城（今河北省临漳县）\n- **事件**：北上投奔当时势力强大的袁绍，但发现袁绍“多谋少决”，并非明主，遂选择离开。\n- **意义**：这段经历使他对袁绍集团的内部问题有了深刻认识，为日后献策击败袁绍奠定了基础。\n\n### 📍 重要地点：许都\n- **时间**：公元196年\n- **停留时间**：数月\n- **地点**：许都（今河南省许昌市）\n- **事件**：经荀彧推荐，与曹操论天下事，提出“十胜十败”之说，深受曹操器重，被任命为军师祭酒。\n- **意义**：正式加入曹操阵营，开启了其作为首席谋士的生涯，与曹操建立了“使孤成大业者，必此人也”的信任关系。\n\n### 📍 重要地点：下邳\n- **时间**：公元198年\n- **停留时间**：数月\n- **地点**：下邳（今江苏省睢宁县古邳镇）\n- **事件**：曹操征讨吕布，久攻不下，欲退兵。郭嘉与荀攸力劝曹操急攻，并料定吕布有勇无谋、陈宫计迟，最终水淹下邳，擒杀吕布。\n- **意义**：展现了郭嘉善于把握战机、洞察对手心理的谋略特点，帮助曹操扫除了一个重要的东方对手。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：战役期间\n- **地点**：官渡（今河南省中牟县）\n- **事件**：官渡之战前夕，曹操对袁绍兵力感到忧虑，郭嘉详细分析双方优劣，提出著名的“十胜十败”论，极大鼓舞了曹军士气。战前，他准确预言孙策将死于刺客之手，解除了曹操的后顾之忧。\n- **意义**：其战略分析是曹操决心与袁绍决战的关键因素之一，对官渡之战的胜利有重要贡献。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年\n- **停留时间**：数年\n- **地点**：邺城（今河北省临漳县）\n- **事件**：曹操攻克邺城，基本平定冀州。郭嘉建议曹操广施恩德，招揽河北人才，稳定新占领区。\n- **意义**：协助曹操消化袁绍的根据地，为彻底消灭袁氏势力、巩固北方统治出谋划策。\n\n### 📍 重要地点：南皮\n- **时间**：公元205年\n- **停留时间**：短暂\n- **地点**：南皮（今河北省南皮县）\n- **事件**：曹操追击袁谭至南皮，并最终击杀袁谭。\n- **意义**：参与了平定冀州残余反抗势力的军事行动。\n\n### 📍 重要地点：易京\n- **时间**：公元206年\n- **停留时间**：短暂\n- **地点**：易京（今河北省雄县）\n- **事件**：曹操准备北征乌桓，诸将担心刘表派刘备袭击许都。郭嘉分析刘表与刘备“表，坐谈客耳，自知才不足以御备”，力主轻兵速进，远征乌桓。\n- **意义**：其精准的战略判断，促使曹操下定决心进行这场风险极高的远征，以彻底解决北方边患。\n\n### 📍 重要地点：白狼山\n- **时间**：公元207年\n- **停留时间**：战役期间\n- **地点**：白狼山（今辽宁省喀左县）\n- **事件**：曹军轻兵出卢龙塞，直指柳城，在白狼山与乌桓主力遭遇。郭嘉献计“兵贵神速”，曹操采纳，大破乌桓，斩杀蹋顿单于。\n- **意义**：此战是郭嘉军事生涯的巅峰之作，为曹操统一北方画上了句号。\n\n### 🔴 去世地：柳城\n- **时间**：公元207年\n- **停留时间**：数日\n- **地点**：柳城（今辽宁省朝阳市）\n- **事件**：在从柳城班师回朝的途中，因水土不服，加之长途劳顿，病逝。\n- **意义**：英年早逝，令曹操悲痛欲绝。他的离世被认为是曹操在赤壁之战中失利的原因之一，对曹魏集团是重大损失。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约170年（据《三国志》载其享年三十八岁，后人据此推算） | 颍川阳翟 | 河南省禹州市 | （年龄：0岁）生于颍川阳翟。 |\n| 约190年-196年（具体时间待考） |  |  | （年龄：约20岁）北上投奔袁绍，后离去（时间不详）。 |\n| 196年 |  |  | （年龄：约26岁）经荀彧推荐，投效曹操，任军师祭酒。 |\n| 198年 |  |  | （年龄：约28岁）随曹操征吕布，献急攻之计，擒杀吕布。 |\n| 200年 | 官渡 | 河南省中牟县 | （年龄：约30岁）参与官渡之战，献“十胜十败”论，预言孙策之死。 |\n| 204年 | 邺城 | 河北省临漳县 | （年龄：约34岁）随曹操攻克邺城，参与平定冀州。 |\n| 205年 | 南皮 | 河北省南皮县 | （年龄：约35岁）随曹操击杀袁谭于南皮。 |\n| 206年 |  |  | （年龄：约36岁）力排众议，建议曹操远征乌桓。 |\n| 207年 | 白狼山 | 辽宁省喀左县 | （年龄：约37岁）随军北征，献“兵贵神速”之计，大破乌桓于白狼山。 |\n| 207年 | 柳城 | 辽宁省朝阳市 | （年龄：38岁（《三国志》原文记载））自柳城还军途中，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省禹州市 | 34.1416 | 113.4881 |\n| 河北省临漳县 | 36.3333 | 114.6167 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 江苏省睢宁县古邳镇 | 34.0853 | 117.9353 |\n| 河南省中牟县 | 34.7203 | 113.9763 |\n| 河北省南皮县 | 38.0386 | 116.7039 |\n| 河北省雄县 | 38.9947 | 116.1086 |\n| 辽宁省喀左县 | 41.1253 | 119.7447 |\n| 辽宁省朝阳市 | 41.5768 | 120.4504 |", "relatedGraph": {"center": {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1101, "death_year": 1101, "quote": "苏轼，字子瞻，号东坡居士，北宋著名文学家、政治家、书法家、画家，唐宋八大家之一", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董卓", "name": "董卓", "file": "董卓.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 132, "death_year": 192, "quote": "卓膂力过人，双带两鞬，左右驰射，为羌胡所畏。", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "凉州陇西郡临洮县", "birthplace_modern": "甘肃省定西市临洮县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "郭嘉", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "郭嘉", "target": "苏轼", "label": "君臣", "confidence": null}, {"source": "郭嘉", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "董卓", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:48Z", "generated_at": "2026-06-22T11:31:48Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "郭嘉", "title": "才策谋略，世之奇士", "description": "郭嘉，字奉孝，颍川阳翟人。他早年预见汉末天下将乱，北投袁绍，但认为袁绍好谋无决，难成大事，遂离去。后经荀彧推荐，成为曹操谋士，两人相见恨晚。他随曹操征战十余年，在擒吕布、破袁绍、定乌桓等关键战役中屡献奇策，为曹操统一北方立下汗马功劳。其谋略特点是洞察人心，善抓战机，敢于冒险。公元207年，在从柳城回军途中病逝，曹操痛惜不已。赤壁之战后，曹操曾哀叹：“郭奉孝在，不使孤至此。”", "quote": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "shortReview": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "dynasty": "东汉末年（三国时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（据《三国志》载其享年三十八岁", "avatar": "", "birth": {"date": "170年", "location": "（据《三国志》载其享年三十八岁", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "207年", "location": "柳城（今辽宁省朝阳市）", "lat": 41.5768, "lng": 120.4504, "coordSystem": "WGS84"}, "lifespan": "三十八岁（《三国志》原文记载）", "highlights": {"honor": "才策谋略，世之奇士", "status": "曹操统一中国北方的核心谋士之一，以奇谋善断著称，被誉为“才策谋略，世之奇士”。", "identities": "谋士、军师祭酒", "achievements": "十胜十败论坚定了曹操对抗袁绍的决心；力主急攻吕布，助曹操擒杀吕布；在官渡之战前精准分析袁绍性格与谋士内部矛盾；力排众议，献计远征乌桓，为曹操彻底肃清袁氏残余势力。", "works": [], "reviews": []}}, "locations": [{"name": "颍川阳翟", "ancientName": "颍川阳翟", "modernName": "河南省禹州市", "lat": 34.1416, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于颍川郭氏，自幼聪慧，胸怀大志。", "time": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算）", "duration": "青年时期", "significance": "颍川是汉末人才聚集之地，郭嘉在此成长并结识了许多后来的名士与同僚。", "works": [], "quoteLines": []}, {"name": "邺城（袁绍处）", "ancientName": "邺城", "modernName": "河北省临漳县", "lat": 36.3333, "lng": 114.6167, "coordSystem": "WGS84", "type": "normal", "event": "北上投奔当时势力强大的袁绍，但发现袁绍“多谋少决”，并非明主，遂选择离开。", "time": "约公元190年-196年（具体时间待考）", "duration": "数年（说法不一）", "significance": "这段经历使他对袁绍集团的内部问题有了深刻认识，为日后献策击败袁绍奠定了基础。", "works": [], "quoteLines": []}, {"name": "许都", "ancientName": "许都", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "经荀彧推荐，与曹操论天下事，提出“十胜十败”之说，深受曹操器重，被任命为军师祭酒。", "time": "公元196年", "duration": "数月", "significance": "正式加入曹操阵营，开启了其作为首席谋士的生涯，与曹操建立了“使孤成大业者，必此人也”的信任关系。", "works": [], "quoteLines": []}, {"name": "下邳", "ancientName": "下邳", "modernName": "江苏省睢宁县古邳镇", "lat": 34.0853, "lng": 117.9353, "coordSystem": "WGS84", "type": "normal", "event": "曹操征讨吕布，久攻不下，欲退兵。郭嘉与荀攸力劝曹操急攻，并料定吕布有勇无谋、陈宫计迟，最终水淹下邳，擒杀吕布。", "time": "公元198年", "duration": "数月", "significance": "展现了郭嘉善于把握战机、洞察对手心理的谋略特点，帮助曹操扫除了一个重要的东方对手。", "works": [], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县", "lat": 34.7203, "lng": 113.9763, "coordSystem": "WGS84", "type": "normal", "event": "官渡之战前夕，曹操对袁绍兵力感到忧虑，郭嘉详细分析双方优劣，提出著名的“十胜十败”论，极大鼓舞了曹军士气。战前，他准确预言孙策将死于刺客之手，解除了曹操的后顾之忧。", "time": "公元200年", "duration": "战役期间", "significance": "其战略分析是曹操决心与袁绍决战的关键因素之一，对官渡之战的胜利有重要贡献。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县", "lat": 36.3333, "lng": 114.6167, "coordSystem": "WGS84", "type": "normal", "event": "曹操攻克邺城，基本平定冀州。郭嘉建议曹操广施恩德，招揽河北人才，稳定新占领区。", "time": "公元204年", "duration": "数年", "significance": "协助曹操消化袁绍的根据地，为彻底消灭袁氏势力、巩固北方统治出谋划策。", "works": [], "quoteLines": []}, {"name": "南皮", "ancientName": "南皮", "modernName": "河北省南皮县", "lat": 38.0386, "lng": 116.7039, "coordSystem": "WGS84", "type": "normal", "event": "曹操追击袁谭至南皮，并最终击杀袁谭。", "time": "公元205年", "duration": "短暂", "significance": "参与了平定冀州残余反抗势力的军事行动。", "works": [], "quoteLines": []}, {"name": "易京", "ancientName": "易京", "modernName": "河北省雄县", "lat": 38.9947, "lng": 116.1086, "coordSystem": "WGS84", "type": "normal", "event": "曹操准备北征乌桓，诸将担心刘表派刘备袭击许都。郭嘉分析刘表与刘备“表，坐谈客耳，自知才不足以御备”，力主轻兵速进，远征乌桓。", "time": "公元206年", "duration": "短暂", "significance": "其精准的战略判断，促使曹操下定决心进行这场风险极高的远征，以彻底解决北方边患。", "works": [], "quoteLines": []}, {"name": "白狼山", "ancientName": "白狼山", "modernName": "辽宁省喀左县", "lat": 41.1253, "lng": 119.7447, "coordSystem": "WGS84", "type": "normal", "event": "曹军轻兵出卢龙塞，直指柳城，在白狼山与乌桓主力遭遇。郭嘉献计“兵贵神速”，曹操采纳，大破乌桓，斩杀蹋顿单于。", "time": "公元207年", "duration": "战役期间", "significance": "此战是郭嘉军事生涯的巅峰之作，为曹操统一北方画上了句号。", "works": [], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市", "lat": 41.5768, "lng": 120.4504, "coordSystem": "WGS84", "type": "death", "event": "在从柳城班师回朝的途中，因水土不服，加之长途劳顿，病逝。", "time": "公元207年", "duration": "数日", "significance": "英年早逝，令曹操悲痛欲绝。他的离世被认为是曹操在赤壁之战中失利的原因之一，对曹魏集团是重大损失。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---", "workTexts": {"三国志": "出生：约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟（今河南省禹州市）"}, "workSummaries": {"三国志": {"title": "三国志", "aliases": [], "authors": ["张飞"], "related_people": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "source_pages": ["陈韪", "法正", "关羽", "郭嘉", "刘备", "马超", "孟获", "孙坚", "孙权", "张飞"], "era": "东汉末年·三国", "genre": "史志", "one_liner": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "summary": "关羽、张飞皆称万人之敌，为世虎臣……然羽刚而自矜，飞暴而无恩，以短取败，理数之常也。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "赤壁赋": {"title": "赤壁赋", "aliases": [], "authors": ["苏东坡", "苏轼"], "related_people": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "source_pages": ["郭嘉", "苏东坡", "苏轼", "魏学洢"], "era": "北宋（仁宗至徽宗年间）", "genre": "赋", "one_liner": "即《前赤壁赋》，借泛舟夜游与主客问答阐发旷达的人生哲理。", "summary": "通过赤壁秋夜的江月清风与主客对话，展开对“变”与“不变”的哲思。", "quote": "寄蜉蝣于天地，渺沧海之一粟。", "quotes": ["寄蜉蝣于天地，渺沧海之一粟。", "哀吾生之须臾，羡长江之无穷。"], "quote_policy": "preferred"}}, "markdown": "# 郭嘉\n\n## 人物档案\n\n### 基本信息\n- **姓名**：郭嘉\n- **时代**：东汉末年（三国时期）\n- **出生**：约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟（今河南省禹州市）\n- **去世**：公元207年，柳城（今辽宁省朝阳市）\n- **享年**：三十八岁（《三国志》原文记载）\n- **主要身份**：谋士、军师祭酒\n- **历史地位**：曹操统一中国北方的核心谋士之一，以奇谋善断著称，被誉为“才策谋略，世之奇士”。\n- **主要成就**：十胜十败论坚定了曹操对抗袁绍的决心；力主急攻吕布，助曹操擒杀吕布；在官渡之战前精准分析袁绍性格与谋士内部矛盾；力排众议，献计远征乌桓，为曹操彻底肃清袁氏残余势力。\n\n### 生平概述\n郭嘉，字奉孝，颍川阳翟人。他早年预见汉末天下将乱，北投袁绍，但认为袁绍好谋无决，难成大事，遂离去。后经荀彧推荐，成为曹操谋士，两人相见恨晚。他随曹操征战十余年，在擒吕布、破袁绍、定乌桓等关键战役中屡献奇策，为曹操统一北方立下汗马功劳。其谋略特点是洞察人心，善抓战机，敢于冒险。公元207年，在从柳城回军途中病逝，曹操痛惜不已。赤壁之战后，曹操曾哀叹：“郭奉孝在，不使孤至此。”\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于中原及河北地区，最远随军抵达辽西柳城。\n- ⏱️ **时间跨度**：约公元196年至公元207年，共11年。\n- 📍 **地理范围**：覆盖今河南、山东、河北、辽宁等省。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：颍川阳翟\n- **时间**：约公元170年（据《三国志》载其享年三十八岁，后人据此推算）\n- **停留时间**：青年时期\n- **地点**：颍川阳翟（今河南省禹州市）\n- **事件**：出生于颍川郭氏，自幼聪慧，胸怀大志。\n- **意义**：颍川是汉末人才聚集之地，郭嘉在此成长并结识了许多后来的名士与同僚。\n\n### 📍 重要地点：邺城（袁绍处）\n- **时间**：约公元190年-196年（具体时间待考）\n- **停留时间**：数年（说法不一）\n- **地点**：邺城（今河北省临漳县）\n- **事件**：北上投奔当时势力强大的袁绍，但发现袁绍“多谋少决”，并非明主，遂选择离开。\n- **意义**：这段经历使他对袁绍集团的内部问题有了深刻认识，为日后献策击败袁绍奠定了基础。\n\n### 📍 重要地点：许都\n- **时间**：公元196年\n- **停留时间**：数月\n- **地点**：许都（今河南省许昌市）\n- **事件**：经荀彧推荐，与曹操论天下事，提出“十胜十败”之说，深受曹操器重，被任命为军师祭酒。\n- **意义**：正式加入曹操阵营，开启了其作为首席谋士的生涯，与曹操建立了“使孤成大业者，必此人也”的信任关系。\n\n### 📍 重要地点：下邳\n- **时间**：公元198年\n- **停留时间**：数月\n- **地点**：下邳（今江苏省睢宁县古邳镇）\n- **事件**：曹操征讨吕布，久攻不下，欲退兵。郭嘉与荀攸力劝曹操急攻，并料定吕布有勇无谋、陈宫计迟，最终水淹下邳，擒杀吕布。\n- **意义**：展现了郭嘉善于把握战机、洞察对手心理的谋略特点，帮助曹操扫除了一个重要的东方对手。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：战役期间\n- **地点**：官渡（今河南省中牟县）\n- **事件**：官渡之战前夕，曹操对袁绍兵力感到忧虑，郭嘉详细分析双方优劣，提出著名的“十胜十败”论，极大鼓舞了曹军士气。战前，他准确预言孙策将死于刺客之手，解除了曹操的后顾之忧。\n- **意义**：其战略分析是曹操决心与袁绍决战的关键因素之一，对官渡之战的胜利有重要贡献。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年\n- **停留时间**：数年\n- **地点**：邺城（今河北省临漳县）\n- **事件**：曹操攻克邺城，基本平定冀州。郭嘉建议曹操广施恩德，招揽河北人才，稳定新占领区。\n- **意义**：协助曹操消化袁绍的根据地，为彻底消灭袁氏势力、巩固北方统治出谋划策。\n\n### 📍 重要地点：南皮\n- **时间**：公元205年\n- **停留时间**：短暂\n- **地点**：南皮（今河北省南皮县）\n- **事件**：曹操追击袁谭至南皮，并最终击杀袁谭。\n- **意义**：参与了平定冀州残余反抗势力的军事行动。\n\n### 📍 重要地点：易京\n- **时间**：公元206年\n- **停留时间**：短暂\n- **地点**：易京（今河北省雄县）\n- **事件**：曹操准备北征乌桓，诸将担心刘表派刘备袭击许都。郭嘉分析刘表与刘备“表，坐谈客耳，自知才不足以御备”，力主轻兵速进，远征乌桓。\n- **意义**：其精准的战略判断，促使曹操下定决心进行这场风险极高的远征，以彻底解决北方边患。\n\n### 📍 重要地点：白狼山\n- **时间**：公元207年\n- **停留时间**：战役期间\n- **地点**：白狼山（今辽宁省喀左县）\n- **事件**：曹军轻兵出卢龙塞，直指柳城，在白狼山与乌桓主力遭遇。郭嘉献计“兵贵神速”，曹操采纳，大破乌桓，斩杀蹋顿单于。\n- **意义**：此战是郭嘉军事生涯的巅峰之作，为曹操统一北方画上了句号。\n\n### 🔴 去世地：柳城\n- **时间**：公元207年\n- **停留时间**：数日\n- **地点**：柳城（今辽宁省朝阳市）\n- **事件**：在从柳城班师回朝的途中，因水土不服，加之长途劳顿，病逝。\n- **意义**：英年早逝，令曹操悲痛欲绝。他的离世被认为是曹操在赤壁之战中失利的原因之一，对曹魏集团是重大损失。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约170年（据《三国志》载其享年三十八岁，后人据此推算） | 颍川阳翟 | 河南省禹州市 | （年龄：0岁）生于颍川阳翟。 |\n| 约190年-196年（具体时间待考） |  |  | （年龄：约20岁）北上投奔袁绍，后离去（时间不详）。 |\n| 196年 |  |  | （年龄：约26岁）经荀彧推荐，投效曹操，任军师祭酒。 |\n| 198年 |  |  | （年龄：约28岁）随曹操征吕布，献急攻之计，擒杀吕布。 |\n| 200年 | 官渡 | 河南省中牟县 | （年龄：约30岁）参与官渡之战，献“十胜十败”论，预言孙策之死。 |\n| 204年 | 邺城 | 河北省临漳县 | （年龄：约34岁）随曹操攻克邺城，参与平定冀州。 |\n| 205年 | 南皮 | 河北省南皮县 | （年龄：约35岁）随曹操击杀袁谭于南皮。 |\n| 206年 |  |  | （年龄：约36岁）力排众议，建议曹操远征乌桓。 |\n| 207年 | 白狼山 | 辽宁省喀左县 | （年龄：约37岁）随军北征，献“兵贵神速”之计，大破乌桓于白狼山。 |\n| 207年 | 柳城 | 辽宁省朝阳市 | （年龄：38岁（《三国志》原文记载））自柳城还军途中，病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：郭嘉本人无文学作品传世，但其事迹常作为典故出现在后世诗文中，如苏轼《赤壁赋》中“固一世之雄也”的曹操形象，其成功离不开郭嘉等谋士的辅佐。\n- 核心要点：\n    - **重点**：作为 **“谋士”** 的典型形象，代表了 **“运筹帷幄”**、 **“洞察人心”** 的智慧。\n    - 其 **“十胜十败”** 论是古代战略分析的经典范例，体现了 **逻辑严密**、 **气势磅礴** 的论说风格。\n    - 与曹操的 **“君臣相得”** 关系，常被后世用来比喻 **知遇之恩** 与 **信任托付**。\n    - **重点**：其 **“奇谋”** 特点，如料定孙策之死、力主远征乌桓，展现了 **出其不意**、 **险中求胜** 的决策思维。\n    - 英年早逝的结局，常引发关于 **“天妒英才”**、 **“历史偶然性”** 的感慨与讨论。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：东汉末年 **颍川士人** 的代表之一，该群体是曹操智囊团的核心。\n    - 在 **官渡之战** 前的关键时刻，为曹操提供了坚实的战略信心支撑。\n    - **重点**：力主并参与 **北征乌桓** 之战，此战是曹操统一北方的收官之战，解除了边境的长期威胁。\n    - 其早逝与后来曹操在 **赤壁之战** 的失败，常被史家联系起来讨论。\n- 核心要点：\n    - **重点**：是曹操 **“唯才是举”** 政策下脱颖而出的杰出人才，代表了寒门或非顶级士族谋士的崛起。\n    - 其谋略风格以 **“险”** 和 **“奇”** 著称，敢于在关键时刻建议冒险，与荀彧、荀攸等稳健型谋士形成互补。\n    - **重点**：曹操在赤壁战后的哀叹，使郭嘉的历史形象被 **“神话”** 和 **“符号化”**，成为后世评价谋士的一个标杆。\n    - 从其生平可以看出 **东汉末年人才流动** 的特点，即“良禽择木而栖”，谋士主动选择明主。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 河南省禹州市 | 34.1416 | 113.4881 |\n| 河北省临漳县 | 36.3333 | 114.6167 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 江苏省睢宁县古邳镇 | 34.0853 | 117.9353 |\n| 河南省中牟县 | 34.7203 | 113.9763 |\n| 河北省南皮县 | 38.0386 | 116.7039 |\n| 河北省雄县 | 38.9947 | 116.1086 |\n| 辽宁省喀左县 | 41.1253 | 119.7447 |\n| 辽宁省朝阳市 | 41.5768 | 120.4504 |", "relatedGraph": {"center": {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "约公元170年（据《三国志》载其享年三十八岁，后人据此推算），颍川阳翟", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏轼", "name": "苏轼", "file": "苏轼.html", "dynasty": "北宋", "aliases": [], "birth_year": 1037, "death_year": 1101, "quote": "但愿人长久，千里共婵娟", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董卓", "name": "董卓", "file": "董卓.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 132, "death_year": 192, "quote": "卓膂力过人，双带两鞬，左右驰射，为羌胡所畏。", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "凉州陇西郡临洮县", "birthplace_modern": "甘肃省定西市临洮县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "郭嘉", "target": "曹操", "label": "君臣", "confidence": null}, {"source": "郭嘉", "target": "苏轼", "label": "君臣", "confidence": null}, {"source": "郭嘉", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "诸葛亮", "label": "同时代人物", "confidence": null}, {"source": "郭嘉", "target": "董卓", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:51Z", "generated_at": "2026-06-25T07:13:51Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:48Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:51Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "郑森，字明俨，号大木", "title": "", "description": "郑成功生于日本平户，祖籍福建南安。七岁返国读书，后入南京国子监。清军入关后，其父郑芝龙降清，郑成功毅然与父决裂，在南澳（今广东南澳县）起兵抗清，以金门、厦门为基地，多次北伐、南征，成为东南沿海抗清支柱。1659年北伐南京失败后，为建立稳固的抗清基地，于1661年率军东征台湾，经数月激战，迫使荷兰总督揆一投降，结束了荷兰在台湾38年的殖民统治。收复台湾后，他建立政权，推行屯田，开发宝岛，不久病逝。", "quote": "", "shortReview": "", "dynasty": "明末清初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "日本肥前国平户（今日本长崎县平户市）", "avatar": "", "birth": {"date": "1624年", "location": "日本肥前国平户（今日本长崎县平户市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1662年", "location": "东都明京（今台湾台南市安平区）", "lat": 23.0015, "lng": 120.1605, "coordSystem": "WGS84"}, "lifespan": "38岁（虚岁39）", "highlights": {"honor": "", "status": "南明抗清名将，驱逐荷兰殖民者、收复台湾的民族英雄。", "identities": "军事家、政治家、民族英雄", "achievements": "1. 以金门、厦门为基地，长期坚持抗清斗争；2. 1661年率军东征，驱逐荷兰殖民者；3. 1662年收复并经略台湾，建立行政制度；4. 被南明永历帝封为延平王。", "works": [], "reviews": []}}, "locations": [{"name": "日本平户", "ancientName": "日本肥前国平户", "modernName": "日本长崎县平户市", "lat": 33.3667, "lng": 129.55, "coordSystem": "WGS84", "type": "birth", "event": "出生于日本平户，幼名福松。其父为海商兼海盗首领郑芝龙，其母为日本女子田川氏。", "time": "公元1624年", "duration": "约7年", "significance": "其特殊的跨国出身背景，为其日后活跃于东亚海域埋下伏笔。", "works": [], "quoteLines": []}, {"name": "福建南安", "ancientName": "福建南安", "modernName": "福建省泉州市南安市", "lat": 24.96, "lng": 118.39, "coordSystem": "WGS84", "type": "normal", "event": "被接回故乡，接受传统儒家教育，15岁考中秀才。后入南京国子监，拜钱谦益为师。1645年，南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。", "time": "公元1630年 - 1644年", "duration": "约14年", "significance": "奠定了其汉文化修养与忠君报国的思想基础，并获得了关键的政治身份。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 23.0003, "lng": 120.2025, "coordSystem": "WGS84", "type": "normal", "event": "在南京国子监学习。目睹明朝覆灭、清军南下的动荡时局。", "time": "约公元1644年 - 1645年", "duration": "约1年", "significance": "开阔了眼界，也亲身感受到国破家亡的危机，促使其投身抗清事业。", "works": [], "quoteLines": []}, {"name": "南澳", "ancientName": "广东南澳", "modernName": "广东省汕头市南澳县", "lat": 23.42, "lng": 117.02, "coordSystem": "WGS84", "type": "normal", "event": "其父郑芝龙降清后，郑成功在此誓师起兵，打出“背父救国”旗号，招兵买马。", "time": "公元1646年", "duration": "短暂驻扎", "significance": "正式开启其独立抗清的军事生涯，南澳成为其早期重要的军事据点。", "works": [], "quoteLines": []}, {"name": "厦门（中左所）", "ancientName": "中左所", "modernName": "福建省厦门市", "lat": 24.48, "lng": 118.09, "coordSystem": "WGS84", "type": "normal", "event": "袭取厦门（时称中左所）作为抗清核心基地，建立“思明州”。以此为中心，多次北伐南征，发展海上贸易，力量达到鼎盛。", "time": "公元1650年 - 1660年", "duration": "约10年", "significance": "郑成功政权的政治、经济和军事中心，是其抗清事业的大本营。", "works": [], "quoteLines": []}, {"name": "南京（城下）", "ancientName": "江宁府", "modernName": "江苏省南京市", "lat": 23.0003, "lng": 120.2025, "coordSystem": "WGS84", "type": "normal", "event": "率水陆大军北伐，连克瓜州、镇江，兵临南京城下。因中清军缓兵之计，延误战机，最终被清军援军击败，损失惨重。", "time": "公元1659年", "duration": "围城约一个月", "significance": "其抗清事业中最具战略意义的进攻，也是最重大的军事挫折，迫使其战略重心转向海外。", "works": [], "quoteLines": []}, {"name": "澎湖", "ancientName": "澎湖", "modernName": "台湾澎湖县", "lat": 23.57, "lng": 119.58, "coordSystem": "WGS84", "type": "normal", "event": "东征台湾途中，在澎湖列岛休整，等待顺风，并最终决策冒风浪横渡海峡。", "time": "公元1661年农历三月", "duration": "数日", "significance": "进军台湾的关键中转站和决策地，体现了其坚定的决心。", "works": [], "quoteLines": []}, {"name": "鹿耳门水道与普罗民遮城", "ancientName": "鹿耳门水道、普罗民遮城", "modernName": "台湾台南市安南区", "lat": 23.0486, "lng": 120.1292, "coordSystem": "WGS84", "type": "normal", "event": "利用涨潮，率舰队奇迹般通过鹿耳门水道，在禾寮港登陆。迅速包围并攻占荷兰殖民者的行政中心普罗民遮城（Provintia，即赤崁楼）。", "time": "公元1661年农历四月", "duration": "登陆及初期作战", "significance": "成功登陆台湾并取得关键性胜利，奠定了收复台湾的基础。", "works": [], "quoteLines": []}, {"name": "东都明京（安平）", "ancientName": "东都明京、热兰遮城", "modernName": "台湾台南市安平区", "lat": 23.0015, "lng": 120.1605, "coordSystem": "WGS84", "type": "death", "event": "在围困热兰遮城（Zeelandia）九个月后，迫使荷兰总督揆一投降，正式收复台湾。随后建立政权，改赤崁为东都明京。同年，得知其在大陆的最后据点被清军攻破，其父及家人被杀，悲愤成疾，病逝于台湾。", "time": "公元1662年农历五月", "duration": "约1年", "significance": "完成收复台湾的伟业，也是其生命的终点。他为台湾的开发与建设奠定了初步基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---", "workTexts": {}, "workSummaries": {"复台": {"title": "复台", "aliases": [], "authors": [], "related_people": ["郑成功"], "source_pages": ["郑成功"], "era": "", "genre": "", "one_liner": "郑成功生于日本平户，祖籍福建南安", "summary": "郑成功生于日本平户，祖籍福建南安", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "开辟荆榛逐荷夷": {"title": "开辟荆榛逐荷夷", "aliases": [], "authors": [], "related_people": ["郑成功"], "source_pages": ["郑成功"], "era": "", "genre": "", "one_liner": "郑成功生于日本平户，祖籍福建南安", "summary": "郑成功生于日本平户，祖籍福建南安", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 郑成功\n\n## 人物档案\n\n### 基本信息\n- **姓名**：郑森，字明俨，号大木\n- **时代**：明末清初\n- **出生**：公元1624年，日本肥前国平户（今日本长崎县平户市）\n- **去世**：公元1662年6月23日（农历五月初八），东都明京（今台湾台南市安平区）\n- **享年**：38岁（虚岁39）\n- **主要身份**：军事家、政治家、民族英雄\n- **历史地位**：南明抗清名将，驱逐荷兰殖民者、收复台湾的民族英雄。\n- **主要成就**：1. 以金门、厦门为基地，长期坚持抗清斗争；2. 1661年率军东征，驱逐荷兰殖民者；3. 1662年收复并经略台湾，建立行政制度；4. 被南明永历帝封为延平王。\n\n### 生平概述\n郑成功生于日本平户，祖籍福建南安。七岁返国读书，后入南京国子监。清军入关后，其父郑芝龙降清，郑成功毅然与父决裂，在南澳（今广东南澳县）起兵抗清，以金门、厦门为基地，多次北伐、南征，成为东南沿海抗清支柱。1659年北伐南京失败后，为建立稳固的抗清基地，于1661年率军东征台湾，经数月激战，迫使荷兰总督揆一投降，结束了荷兰在台湾38年的殖民统治。收复台湾后，他建立政权，推行屯田，开发宝岛，不久病逝。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及日本、中国东南沿海（闽、浙、苏、粤）及台湾。\n- ⏱️ **时间跨度**：公元1624年 - 1662年，共38年。\n- 📍 **地理范围**：东亚沿海地区，核心区域为福建、台湾及长江下游。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：日本平户\n- **时间**：公元1624年\n- **停留时间**：约7年\n- **地点**：日本肥前国平户（今日本长崎县平户市）\n- **事件**：出生于日本平户，幼名福松。其父为海商兼海盗首领郑芝龙，其母为日本女子田川氏。\n- **意义**：其特殊的跨国出身背景，为其日后活跃于东亚海域埋下伏笔。\n\n### 📍 重要地点：福建南安\n- **时间**：公元1630年 - 1644年\n- **停留时间**：约14年\n- **地点**：福建南安（今福建省泉州市南安市）\n- **事件**：被接回故乡，接受传统儒家教育，15岁考中秀才。后入南京国子监，拜钱谦益为师。1645年，南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。\n- **意义**：奠定了其汉文化修养与忠君报国的思想基础，并获得了关键的政治身份。\n\n### 📍 重要地点：南京\n- **时间**：约公元1644年 - 1645年\n- **停留时间**：约1年\n- **地点**：应天府（今江苏省南京市）\n- **事件**：在南京国子监学习。目睹明朝覆灭、清军南下的动荡时局。\n- **意义**：开阔了眼界，也亲身感受到国破家亡的危机，促使其投身抗清事业。\n\n### 📍 重要地点：南澳\n- **时间**：公元1646年\n- **停留时间**：短暂驻扎\n- **地点**：广东南澳（今广东省汕头市南澳县）\n- **事件**：其父郑芝龙降清后，郑成功在此誓师起兵，打出“背父救国”旗号，招兵买马。\n- **意义**：正式开启其独立抗清的军事生涯，南澳成为其早期重要的军事据点。\n\n### 📍 重要地点：厦门（中左所）\n- **时间**：公元1650年 - 1660年\n- **停留时间**：约10年\n- **地点**：中左所（今福建省厦门市）\n- **事件**：袭取厦门（时称中左所）作为抗清核心基地，建立“思明州”。以此为中心，多次北伐南征，发展海上贸易，力量达到鼎盛。\n- **意义**：郑成功政权的政治、经济和军事中心，是其抗清事业的大本营。\n\n### 📍 重要地点：南京（城下）\n- **时间**：公元1659年\n- **停留时间**：围城约一个月\n- **地点**：江宁府（今江苏省南京市）\n- **事件**：率水陆大军北伐，连克瓜州、镇江，兵临南京城下。因中清军缓兵之计，延误战机，最终被清军援军击败，损失惨重。\n- **意义**：其抗清事业中最具战略意义的进攻，也是最重大的军事挫折，迫使其战略重心转向海外。\n\n### 📍 重要地点：澎湖\n- **时间**：公元1661年农历三月\n- **停留时间**：数日\n- **地点**：澎湖（今台湾澎湖县）\n- **事件**：东征台湾途中，在澎湖列岛休整，等待顺风，并最终决策冒风浪横渡海峡。\n- **意义**：进军台湾的关键中转站和决策地，体现了其坚定的决心。\n\n### 📍 重要地点：鹿耳门水道与普罗民遮城\n- **时间**：公元1661年农历四月\n- **停留时间**：登陆及初期作战\n- **地点**：鹿耳门水道（今台湾台南市安南区）、普罗民遮城（今台湾台南市中西区赤崁楼）\n- **事件**：利用涨潮，率舰队奇迹般通过鹿耳门水道，在禾寮港登陆。迅速包围并攻占荷兰殖民者的行政中心普罗民遮城（Provintia，即赤崁楼）。\n- **意义**：成功登陆台湾并取得关键性胜利，奠定了收复台湾的基础。\n\n### 🔴 去世地：东都明京（安平）\n- **时间**：公元1662年农历五月\n- **停留时间**：约1年\n- **地点**：东都明京、热兰遮城（今台湾台南市安平区）\n- **事件**：在围困热兰遮城（Zeelandia）九个月后，迫使荷兰总督揆一投降，正式收复台湾。随后建立政权，改赤崁为东都明京。同年，得知其在大陆的最后据点被清军攻破，其父及家人被杀，悲愤成疾，病逝于台湾。\n- **意义**：完成收复台湾的伟业，也是其生命的终点。他为台湾的开发与建设奠定了初步基础。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1624 | 日本平户 | 日本长崎县平户市 | （年龄：1岁）生于日本平户，幼名福松。 |\n| 1630 | 福建南安 | 福建省泉州市南安市 | （年龄：7岁）回到福建南安，接受儒家教育。 |\n| 1644 | 南京 | 江苏省南京市 | （年龄：21岁）进入南京国子监学习，师从钱谦益。 |\n| 1645 |  |  | （年龄：22岁）南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。 |\n| 1646 | 南澳 | 广东省汕头市南澳县 | （年龄：23岁）父郑芝龙降清，郑成功拒降，在南澳起兵抗清。 |\n| 1650 | 厦门（中左所） | 福建省厦门市 | （年龄：27岁）占据厦门（中左所），建立稳固基地。 |\n| 1653 |  |  | （年龄：30岁）南明永历帝封其为“延平王”。 |\n| 1659 | 南京（城下） | 江苏省南京市 | （年龄：36岁）北伐南京，兵败退回厦门。 |\n| 1661 |  |  | （年龄：38岁）决策东征台湾；四月登陆台湾，围攻热兰遮城。 |\n| 1662 | 东都明京（安平） | 台湾台南市安平区 | （年龄：39岁）二月，荷兰总督投降，收复台湾；五月，病逝于台湾。 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：日本平户 | 日本长崎县平户市 | 33.3667 | 129.5500 |\n| 重要地点：福建南安 | 福建省泉州市南安市 | 24.9600 | 118.3900 |\n| 重要地点：南京 | 江苏省南京市 | 32.0600 | 118.8000 |\n| 重要地点：南澳 | 广东省汕头市南澳县 | 23.4200 | 117.0200 |\n| 重要地点：厦门（中左所） | 福建省厦门市 | 24.4800 | 118.0900 |\n| 重要地点：南京（城下） | 台湾省台南市中西区（赤崁楼） | 23.0003 | 120.2025 |\n| 重要地点：澎湖 | 台湾省澎湖县 | 23.5700 | 119.5800 |\n| 重要地点：鹿耳门水道与普罗民遮城 | 台湾省台南市安南区（鹿耳门水道） | 23.0486 | 120.1292 |\n| 去世地：东都明京（安平） | 台湾省台南市安平区（安平古堡） | 23.0015 | 120.1605 |\n| --- | --- | --- |\n| 日本长崎县平户市 | 33.3667 | 129.5500 |\n| 福建省泉州市南安市 | 24.9600 | 118.3900 |\n| 江苏省南京市 | 32.0600 | 118.8000 |\n| 广东省汕头市南澳县 | 23.4200 | 117.0200 |\n| 福建省厦门市 | 24.4800 | 118.0900 |\n| 台湾省台南市中西区（赤崁楼） | 23.0003 | 120.2025 |\n| 台湾省澎湖县 | 23.5700 | 119.5800 |\n| 台湾省台南市安南区（鹿耳门水道） | 23.0486 | 120.1292 |\n| 台湾省台南市安平区（安平古堡） | 23.0015 | 120.1605 |", "relatedGraph": {"center": {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "**开辟荆榛逐荷夷**", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "**开辟荆榛逐荷夷**", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "徐霞客", "name": "徐霞客", "file": "徐霞客.html", "dynasty": "明末", "aliases": [], "birth_year": 1587, "death_year": 1641, "quote": "徐霞客，名弘祖，字振之，明代地理学家、旅行家、探险家", "review": "", "foreign_name": "", "main_role_label": "地理学家", "birthplace": "江阴", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张岱", "name": "张岱", "file": "张岱.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1597, "death_year": 1689, "quote": "雾凇沆砀，天与云与山与水，上下一白。", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "夏完淳", "name": "夏完淳", "file": "夏完淳.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1631, "death_year": 1647, "quote": "毅魄归来日，灵旗空际看。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "松江府华亭县", "birthplace_modern": "上海市松江区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "业余数学家之王", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "世界短篇小说之王", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "郑成功", "target": "徐霞客", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "张岱", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "夏完淳", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "费马", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "蒲松龄", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:48Z", "generated_at": "2026-06-22T11:31:48Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "郑森，字明俨，号大木", "title": "", "description": "郑成功生于日本平户，祖籍福建南安。七岁返国读书，后入南京国子监。清军入关后，其父郑芝龙降清，郑成功毅然与父决裂，在南澳（今广东南澳县）起兵抗清，以金门、厦门为基地，多次北伐、南征，成为东南沿海抗清支柱。1659年北伐南京失败后，为建立稳固的抗清基地，于1661年率军东征台湾，经数月激战，迫使荷兰总督揆一投降，结束了荷兰在台湾38年的殖民统治。收复台湾后，他建立政权，推行屯田，开发宝岛，不久病逝。", "quote": "", "shortReview": "", "dynasty": "明末清初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "日本肥前国平户（今日本长崎县平户市）", "avatar": "", "birth": {"date": "1624年", "location": "日本肥前国平户（今日本长崎县平户市）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1662年", "location": "东都明京（今台湾台南市安平区）", "lat": 23.0015, "lng": 120.1605, "coordSystem": "WGS84"}, "lifespan": "38岁（虚岁39）", "highlights": {"honor": "", "status": "南明抗清名将，驱逐荷兰殖民者、收复台湾的民族英雄。", "identities": "军事家、政治家、民族英雄", "achievements": "1. 以金门、厦门为基地，长期坚持抗清斗争；2. 1661年率军东征，驱逐荷兰殖民者；3. 1662年收复并经略台湾，建立行政制度；4. 被南明永历帝封为延平王。", "works": [], "reviews": []}}, "locations": [{"name": "日本平户", "ancientName": "日本肥前国平户", "modernName": "日本长崎县平户市", "lat": 33.3667, "lng": 129.55, "coordSystem": "WGS84", "type": "birth", "event": "出生于日本平户，幼名福松。其父为海商兼海盗首领郑芝龙，其母为日本女子田川氏。", "time": "公元1624年", "duration": "约7年", "significance": "其特殊的跨国出身背景，为其日后活跃于东亚海域埋下伏笔。", "works": [], "quoteLines": []}, {"name": "福建南安", "ancientName": "福建南安", "modernName": "福建省泉州市南安市", "lat": 24.96, "lng": 118.39, "coordSystem": "WGS84", "type": "normal", "event": "被接回故乡，接受传统儒家教育，15岁考中秀才。后入南京国子监，拜钱谦益为师。1645年，南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。", "time": "公元1630年 - 1644年", "duration": "约14年", "significance": "奠定了其汉文化修养与忠君报国的思想基础，并获得了关键的政治身份。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "应天府", "modernName": "江苏省南京市", "lat": 23.0003, "lng": 120.2025, "coordSystem": "WGS84", "type": "normal", "event": "在南京国子监学习。目睹明朝覆灭、清军南下的动荡时局。", "time": "约公元1644年 - 1645年", "duration": "约1年", "significance": "开阔了眼界，也亲身感受到国破家亡的危机，促使其投身抗清事业。", "works": [], "quoteLines": []}, {"name": "南澳", "ancientName": "广东南澳", "modernName": "广东省汕头市南澳县", "lat": 23.42, "lng": 117.02, "coordSystem": "WGS84", "type": "normal", "event": "其父郑芝龙降清后，郑成功在此誓师起兵，打出“背父救国”旗号，招兵买马。", "time": "公元1646年", "duration": "短暂驻扎", "significance": "正式开启其独立抗清的军事生涯，南澳成为其早期重要的军事据点。", "works": [], "quoteLines": []}, {"name": "厦门（中左所）", "ancientName": "中左所", "modernName": "福建省厦门市", "lat": 24.48, "lng": 118.09, "coordSystem": "WGS84", "type": "normal", "event": "袭取厦门（时称中左所）作为抗清核心基地，建立“思明州”。以此为中心，多次北伐南征，发展海上贸易，力量达到鼎盛。", "time": "公元1650年 - 1660年", "duration": "约10年", "significance": "郑成功政权的政治、经济和军事中心，是其抗清事业的大本营。", "works": [], "quoteLines": []}, {"name": "南京（城下）", "ancientName": "江宁府", "modernName": "江苏省南京市", "lat": 23.0003, "lng": 120.2025, "coordSystem": "WGS84", "type": "normal", "event": "率水陆大军北伐，连克瓜州、镇江，兵临南京城下。因中清军缓兵之计，延误战机，最终被清军援军击败，损失惨重。", "time": "公元1659年", "duration": "围城约一个月", "significance": "其抗清事业中最具战略意义的进攻，也是最重大的军事挫折，迫使其战略重心转向海外。", "works": [], "quoteLines": []}, {"name": "澎湖", "ancientName": "澎湖", "modernName": "台湾澎湖县", "lat": 23.57, "lng": 119.58, "coordSystem": "WGS84", "type": "normal", "event": "东征台湾途中，在澎湖列岛休整，等待顺风，并最终决策冒风浪横渡海峡。", "time": "公元1661年农历三月", "duration": "数日", "significance": "进军台湾的关键中转站和决策地，体现了其坚定的决心。", "works": [], "quoteLines": []}, {"name": "鹿耳门水道与普罗民遮城", "ancientName": "鹿耳门水道、普罗民遮城", "modernName": "台湾台南市安南区", "lat": 23.0486, "lng": 120.1292, "coordSystem": "WGS84", "type": "normal", "event": "利用涨潮，率舰队奇迹般通过鹿耳门水道，在禾寮港登陆。迅速包围并攻占荷兰殖民者的行政中心普罗民遮城（Provintia，即赤崁楼）。", "time": "公元1661年农历四月", "duration": "登陆及初期作战", "significance": "成功登陆台湾并取得关键性胜利，奠定了收复台湾的基础。", "works": [], "quoteLines": []}, {"name": "东都明京（安平）", "ancientName": "东都明京、热兰遮城", "modernName": "台湾台南市安平区", "lat": 23.0015, "lng": 120.1605, "coordSystem": "WGS84", "type": "death", "event": "在围困热兰遮城（Zeelandia）九个月后，迫使荷兰总督揆一投降，正式收复台湾。随后建立政权，改赤崁为东都明京。同年，得知其在大陆的最后据点被清军攻破，其父及家人被杀，悲愤成疾，病逝于台湾。", "time": "公元1662年农历五月", "duration": "约1年", "significance": "完成收复台湾的伟业，也是其生命的终点。他为台湾的开发与建设奠定了初步基础。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---", "workTexts": {}, "workSummaries": {"复台": {"title": "复台", "aliases": [], "authors": [], "related_people": ["郑成功"], "source_pages": ["郑成功"], "era": "", "genre": "", "one_liner": "郑成功生于日本平户，祖籍福建南安", "summary": "郑成功生于日本平户，祖籍福建南安", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "开辟荆榛逐荷夷": {"title": "开辟荆榛逐荷夷", "aliases": [], "authors": [], "related_people": ["郑成功"], "source_pages": ["郑成功"], "era": "", "genre": "", "one_liner": "郑成功生于日本平户，祖籍福建南安", "summary": "郑成功生于日本平户，祖籍福建南安", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 郑成功\n\n## 人物档案\n\n### 基本信息\n- **姓名**：郑森，字明俨，号大木\n- **时代**：明末清初\n- **出生**：公元1624年，日本肥前国平户（今日本长崎县平户市）\n- **去世**：公元1662年6月23日（农历五月初八），东都明京（今台湾台南市安平区）\n- **享年**：38岁（虚岁39）\n- **主要身份**：军事家、政治家、民族英雄\n- **历史地位**：南明抗清名将，驱逐荷兰殖民者、收复台湾的民族英雄。\n- **主要成就**：1. 以金门、厦门为基地，长期坚持抗清斗争；2. 1661年率军东征，驱逐荷兰殖民者；3. 1662年收复并经略台湾，建立行政制度；4. 被南明永历帝封为延平王。\n\n### 生平概述\n郑成功生于日本平户，祖籍福建南安。七岁返国读书，后入南京国子监。清军入关后，其父郑芝龙降清，郑成功毅然与父决裂，在南澳（今广东南澳县）起兵抗清，以金门、厦门为基地，多次北伐、南征，成为东南沿海抗清支柱。1659年北伐南京失败后，为建立稳固的抗清基地，于1661年率军东征台湾，经数月激战，迫使荷兰总督揆一投降，结束了荷兰在台湾38年的殖民统治。收复台湾后，他建立政权，推行屯田，开发宝岛，不久病逝。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及日本、中国东南沿海（闽、浙、苏、粤）及台湾。\n- ⏱️ **时间跨度**：公元1624年 - 1662年，共38年。\n- 📍 **地理范围**：东亚沿海地区，核心区域为福建、台湾及长江下游。\n- 🌟 **重要节点数量**：10个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：日本平户\n- **时间**：公元1624年\n- **停留时间**：约7年\n- **地点**：日本肥前国平户（今日本长崎县平户市）\n- **事件**：出生于日本平户，幼名福松。其父为海商兼海盗首领郑芝龙，其母为日本女子田川氏。\n- **意义**：其特殊的跨国出身背景，为其日后活跃于东亚海域埋下伏笔。\n\n### 📍 重要地点：福建南安\n- **时间**：公元1630年 - 1644年\n- **停留时间**：约14年\n- **地点**：福建南安（今福建省泉州市南安市）\n- **事件**：被接回故乡，接受传统儒家教育，15岁考中秀才。后入南京国子监，拜钱谦益为师。1645年，南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。\n- **意义**：奠定了其汉文化修养与忠君报国的思想基础，并获得了关键的政治身份。\n\n### 📍 重要地点：南京\n- **时间**：约公元1644年 - 1645年\n- **停留时间**：约1年\n- **地点**：应天府（今江苏省南京市）\n- **事件**：在南京国子监学习。目睹明朝覆灭、清军南下的动荡时局。\n- **意义**：开阔了眼界，也亲身感受到国破家亡的危机，促使其投身抗清事业。\n\n### 📍 重要地点：南澳\n- **时间**：公元1646年\n- **停留时间**：短暂驻扎\n- **地点**：广东南澳（今广东省汕头市南澳县）\n- **事件**：其父郑芝龙降清后，郑成功在此誓师起兵，打出“背父救国”旗号，招兵买马。\n- **意义**：正式开启其独立抗清的军事生涯，南澳成为其早期重要的军事据点。\n\n### 📍 重要地点：厦门（中左所）\n- **时间**：公元1650年 - 1660年\n- **停留时间**：约10年\n- **地点**：中左所（今福建省厦门市）\n- **事件**：袭取厦门（时称中左所）作为抗清核心基地，建立“思明州”。以此为中心，多次北伐南征，发展海上贸易，力量达到鼎盛。\n- **意义**：郑成功政权的政治、经济和军事中心，是其抗清事业的大本营。\n\n### 📍 重要地点：南京（城下）\n- **时间**：公元1659年\n- **停留时间**：围城约一个月\n- **地点**：江宁府（今江苏省南京市）\n- **事件**：率水陆大军北伐，连克瓜州、镇江，兵临南京城下。因中清军缓兵之计，延误战机，最终被清军援军击败，损失惨重。\n- **意义**：其抗清事业中最具战略意义的进攻，也是最重大的军事挫折，迫使其战略重心转向海外。\n\n### 📍 重要地点：澎湖\n- **时间**：公元1661年农历三月\n- **停留时间**：数日\n- **地点**：澎湖（今台湾澎湖县）\n- **事件**：东征台湾途中，在澎湖列岛休整，等待顺风，并最终决策冒风浪横渡海峡。\n- **意义**：进军台湾的关键中转站和决策地，体现了其坚定的决心。\n\n### 📍 重要地点：鹿耳门水道与普罗民遮城\n- **时间**：公元1661年农历四月\n- **停留时间**：登陆及初期作战\n- **地点**：鹿耳门水道（今台湾台南市安南区）、普罗民遮城（今台湾台南市中西区赤崁楼）\n- **事件**：利用涨潮，率舰队奇迹般通过鹿耳门水道，在禾寮港登陆。迅速包围并攻占荷兰殖民者的行政中心普罗民遮城（Provintia，即赤崁楼）。\n- **意义**：成功登陆台湾并取得关键性胜利，奠定了收复台湾的基础。\n\n### 🔴 去世地：东都明京（安平）\n- **时间**：公元1662年农历五月\n- **停留时间**：约1年\n- **地点**：东都明京、热兰遮城（今台湾台南市安平区）\n- **事件**：在围困热兰遮城（Zeelandia）九个月后，迫使荷兰总督揆一投降，正式收复台湾。随后建立政权，改赤崁为东都明京。同年，得知其在大陆的最后据点被清军攻破，其父及家人被杀，悲愤成疾，病逝于台湾。\n- **意义**：完成收复台湾的伟业，也是其生命的终点。他为台湾的开发与建设奠定了初步基础。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1624 | 日本平户 | 日本长崎县平户市 | （年龄：1岁）生于日本平户，幼名福松。 |\n| 1630 | 福建南安 | 福建省泉州市南安市 | （年龄：7岁）回到福建南安，接受儒家教育。 |\n| 1644 | 南京 | 江苏省南京市 | （年龄：21岁）进入南京国子监学习，师从钱谦益。 |\n| 1645 |  |  | （年龄：22岁）南明隆武帝在福州即位，赐其国姓“朱”，改名“成功”，号“国姓爷”。 |\n| 1646 | 南澳 | 广东省汕头市南澳县 | （年龄：23岁）父郑芝龙降清，郑成功拒降，在南澳起兵抗清。 |\n| 1650 | 厦门（中左所） | 福建省厦门市 | （年龄：27岁）占据厦门（中左所），建立稳固基地。 |\n| 1653 |  |  | （年龄：30岁）南明永历帝封其为“延平王”。 |\n| 1659 | 南京（城下） | 江苏省南京市 | （年龄：36岁）北伐南京，兵败退回厦门。 |\n| 1661 |  |  | （年龄：38岁）决策东征台湾；四月登陆台湾，围攻热兰遮城。 |\n| 1662 | 东都明京（安平） | 台湾台南市安平区 | （年龄：39岁）二月，荷兰总督投降，收复台湾；五月，病逝于台湾。 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：**《复台》**（即《开辟荆榛逐荷夷》）\n- 核心要点：\n    - **重点**：诗歌主题是歌颂**驱逐荷兰殖民者**、**收复台湾**的艰辛与功绩，展现了不畏艰难的开拓精神。\n    - 诗句“**开辟荆榛逐荷夷**”高度概括了其收复和开发台湾的双重历史使命。\n    - **重点**：诗歌情感基调是**慷慨激昂**与**自豪坚定**，体现了民族英雄的豪迈气概。\n    - 诗中“**十年始克复先基**”反映了收复过程的漫长与不易（“十年”为虚指，概言其长期抗清与最终目标实现）。\n    - **重点**：该诗是理解郑成功**历史功绩**与**个人情怀**最直接、最核心的文学文本。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**1662年**，郑成功驱逐荷兰殖民者，**收复台湾**，结束了荷兰对台湾38年的殖民统治。\n    - 其父**郑芝龙**降清，郑成功拒不投降，体现了坚定的民族气节。\n    - 以**金门、厦门**为基地，长期进行**抗清斗争**。\n    - **北伐南京**是其军事生涯的高峰与转折点。\n- 核心要点：\n    - **重点**：郑成功是中国历史上著名的**民族英雄**，其最伟大的历史贡献是**收复台湾**，维护了中国领土和主权的完整。\n    - 他收复台湾后，建立政权，推行**屯田**，发展经济，促进了台湾的开发。\n    - **重点**：其行动发生在**明末清初**的朝代更迭大背景下，具有反抗民族压迫和外来殖民侵略的双重意义。\n    - **重点**：郑成功的事迹是**爱国主义教育**的重要素材，其雕像矗立在厦门鼓浪屿等地，成为民族精神的象征。\n    - 他被明朝赐姓“朱”，民间尊称其为“**国姓爷**”。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：日本平户 | 日本长崎县平户市 | 33.3667 | 129.5500 |\n| 重要地点：福建南安 | 福建省泉州市南安市 | 24.9600 | 118.3900 |\n| 重要地点：南京 | 江苏省南京市 | 32.0600 | 118.8000 |\n| 重要地点：南澳 | 广东省汕头市南澳县 | 23.4200 | 117.0200 |\n| 重要地点：厦门（中左所） | 福建省厦门市 | 24.4800 | 118.0900 |\n| 重要地点：南京（城下） | 台湾省台南市中西区（赤崁楼） | 23.0003 | 120.2025 |\n| 重要地点：澎湖 | 台湾省澎湖县 | 23.5700 | 119.5800 |\n| 重要地点：鹿耳门水道与普罗民遮城 | 台湾省台南市安南区（鹿耳门水道） | 23.0486 | 120.1292 |\n| 去世地：东都明京（安平） | 台湾省台南市安平区（安平古堡） | 23.0015 | 120.1605 |\n| --- | --- | --- |\n| 日本长崎县平户市 | 33.3667 | 129.5500 |\n| 福建省泉州市南安市 | 24.9600 | 118.3900 |\n| 江苏省南京市 | 32.0600 | 118.8000 |\n| 广东省汕头市南澳县 | 23.4200 | 117.0200 |\n| 福建省厦门市 | 24.4800 | 118.0900 |\n| 台湾省台南市中西区（赤崁楼） | 23.0003 | 120.2025 |\n| 台湾省澎湖县 | 23.5700 | 119.5800 |\n| 台湾省台南市安南区（鹿耳门水道） | 23.0486 | 120.1292 |\n| 台湾省台南市安平区（安平古堡） | 23.0015 | 120.1605 |", "relatedGraph": {"center": {"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "**开辟荆榛逐荷夷**", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "郑成功", "name": "郑成功", "file": "郑成功.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1624, "death_year": 1662, "quote": "**开辟荆榛逐荷夷**", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "日本肥前国平户", "birthplace_modern": "日本长崎县平户市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "徐霞客", "name": "徐霞客", "file": "徐霞客.html", "dynasty": "明末", "aliases": [], "birth_year": 1587, "death_year": 1641, "quote": "徐霞客，名弘祖，字振之，明代地理学家、旅行家、探险家", "review": "", "foreign_name": "", "main_role_label": "地理学家", "birthplace": "江阴", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "张岱", "name": "张岱", "file": "张岱.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1597, "death_year": 1689, "quote": "雾凇沆砀，天与云与山与水，上下一白。", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "山阴", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "夏完淳", "name": "夏完淳", "file": "夏完淳.html", "dynasty": "明末清初", "aliases": [], "birth_year": 1631, "death_year": 1647, "quote": "毅魄归来日，灵旗空际看。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "松江府华亭县", "birthplace_modern": "上海市松江区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "业余数学家之王", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "蒲松龄", "name": "蒲松龄", "file": "蒲松龄.html", "dynasty": "清代", "aliases": [], "birth_year": 1640, "death_year": 1715, "quote": "世界短篇小说之王", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "古称般阳蒲家庄", "birthplace_modern": "山东省淄博市淄川区蒲家庄", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "郑成功", "target": "徐霞客", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "张岱", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "夏完淳", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "费马", "label": "同时代人物", "confidence": null}, {"source": "郑成功", "target": "蒲松龄", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:51Z", "generated_at": "2026-06-25T07:13:51Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:48Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:51Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "孔繁森", "title": "", "description": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党。他曾在山东聊城工作，1979年首次响应国家号召赴藏，担任日喀则地区岗巴县委副书记。1988年，他克服家庭困难再次援藏，先后任拉萨市副市长、阿里地委书记。在阿里这个“世界屋脊的屋脊”，他深入基层，致力于经济发展、民族团结和民生改善，将生命中最宝贵的年华奉献给了雪域高原。1994年11月29日，在赴新疆塔城考察边贸途中不幸遭遇车祸，后因伤势过重在乌鲁木齐殉职，用生命铸就了一座不朽的精神丰碑。", "quote": "一个共产党员爱的最高境界是爱人民", "shortReview": "一个共产党员爱的最高境界是爱人民", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "山东省聊城市", "avatar": "", "birth": {"date": "1944年", "location": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84"}, "death": {"date": "1994年", "location": "新疆维吾尔自治区乌鲁木齐市（在新疆塔城考察边贸途中遭遇车祸", "lat": 43.8256, "lng": 87.6168, "coordSystem": "WGS84"}, "lifespan": "50岁", "highlights": {"honor": "", "status": "新时期领导干部的楷模，民族团结的杰出代表。", "identities": "中国共产党党员、援藏干部、领导干部楷模", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "聊城", "ancientName": "聊城", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "birth", "event": "出生、成长、求学。", "time": "1944年", "duration": "约20年（至1964年前后）", "significance": "塑造了他朴实、坚韧的品格基础。", "works": [], "quoteLines": []}, {"name": "聊城（工作岗位）", "ancientName": "聊城（工作岗位）", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "normal", "event": "加入中国共产党，在聊城地委宣传部、聊城地区行署办公室等部门工作。", "time": "1966年-1979年", "duration": "约13年", "significance": "积累了地方工作经验，坚定了为人民服务的信念。", "works": [], "quoteLines": []}, {"name": "岗巴", "ancientName": "岗巴县", "modernName": "西藏自治区日喀则市岗巴县", "lat": 28.2747, "lng": 88.5217, "coordSystem": "WGS84", "type": "normal", "event": "首次援藏，任岗巴县委副书记。深入乡村调研，与当地群众同甘共苦。", "time": "1979年-1981年", "duration": "约3年", "significance": "开启了援藏生涯，与西藏人民结下深厚感情，学会了藏语。", "works": [], "quoteLines": []}, {"name": "聊城（返鲁工作）", "ancientName": "聊城（返鲁工作）", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "normal", "event": "援藏结束后返回山东，先后担任聊城地区林业局副局长、地区行署副专员等职。", "time": "1981年-1988年", "duration": "约7年", "significance": "在更广阔的岗位上锻炼了领导能力。", "works": [], "quoteLines": []}, {"name": "拉萨", "ancientName": "拉萨", "modernName": "西藏自治区拉萨市", "lat": 29.65, "lng": 91.1, "coordSystem": "WGS84", "type": "normal", "event": "第二次援藏，任拉萨市副市长，分管文教、卫生和民政工作。期间收养三名藏族孤儿。", "time": "1988年-1993年", "duration": "约5年", "significance": "在拉萨市层面推动社会事业发展，其收养孤儿的行为体现了超越民族的大爱。", "works": [], "quoteLines": []}, {"name": "阿里", "ancientName": "阿里", "modernName": "西藏自治区阿里地区噶尔县狮泉河镇（地区行署驻地）", "lat": 32.5012, "lng": 80.106, "coordSystem": "WGS84", "type": "normal", "event": "任阿里地委书记。跑遍全地区106个乡中的98个，行程8万多公里，调研规划阿里发展蓝图。", "time": "1993年-1994年", "duration": "约1年", "significance": "在生命最后阶段，为阿里地区的稳定与发展殚精竭虑，是其奉献精神的集中体现地。", "works": [], "quoteLines": ["其名言“一个共产党员爱的最高境界是爱人民”广为传颂。"]}, {"name": "塔城", "ancientName": "塔城", "modernName": "新疆维吾尔自治区塔城地区塔城市", "lat": 46.7515, "lng": 82.987, "coordSystem": "WGS84", "type": "normal", "event": "为阿里地区考察边贸、寻求发展项目，在新疆塔城遭遇车祸。", "time": "1994年11月", "duration": "短暂", "significance": "因公殉职的地点，为其光辉而短暂的一生画上了句号。", "works": [], "quoteLines": []}, {"name": "乌鲁木齐", "ancientName": "乌鲁木齐", "modernName": "新疆维吾尔自治区乌鲁木齐市", "lat": 43.8256, "lng": 87.6168, "coordSystem": "WGS84", "type": "death", "event": "因车祸伤势过重，经抢救无效不幸殉职。", "time": "1994年11月29日", "duration": "殉职地", "significance": "生命终点，其牺牲震动全国，引发了广泛的学习活动。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---", "workTexts": {}, "workSummaries": {"纪念白求恩": {"title": "纪念白求恩", "aliases": [], "authors": [], "related_people": ["白求恩", "柯棣华", "孔繁森"], "source_pages": ["白求恩", "柯棣华", "孔繁森"], "era": "", "genre": "", "one_liner": "重点：毛泽东的《纪念白求恩》一文，使其精神升为中国共产党思想建设和道德教育的重要典范，影响深远。", "summary": "重点：毛泽东的《纪念白求恩》一文，使其精神升为中国共产党思想建设和道德教育的重要典范，影响深远。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "为人民服务": {"title": "为人民服务", "aliases": [], "authors": ["毛泽东"], "related_people": ["孔繁森", "毛泽东", "张思德"], "source_pages": ["孔繁森", "毛泽东", "张思德"], "era": "中国近现代", "genre": "", "one_liner": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党", "summary": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党", "quote": "为人民利益而死，就比泰山还重。", "quotes": ["为人民利益而死，就比泰山还重。", "俱往矣，数风流人物，还看今朝。"], "quote_policy": "preferred"}}, "markdown": "# 孔繁森\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孔繁森\n- **时代**：中华人民共和国\n- **出生**：1944年，今山东省聊城市（出生日期具体月日有不同说法，存疑）\n- **去世**：1994年11月29日，今新疆维吾尔自治区乌鲁木齐市（在新疆塔城考察边贸途中遭遇车祸，后因伤势过重在乌鲁木齐殉职）\n- **享年**：50岁\n- **主要身份**：中国共产党党员、援藏干部、领导干部楷模\n- **历史地位**：新时期领导干部的楷模，民族团结的杰出代表。\n- **主要成就**：\n    - 两次主动赴藏工作，历时十载，为西藏的发展和稳定呕心沥血。\n    - 在担任阿里地委书记期间，带领群众发展经济、改善民生，跑遍全地区偏远乡村。\n    - 收养藏族孤儿，用实际行动践行了“一个共产党员爱的最高境界是爱人民”的誓言。\n    - 其清正廉洁、无私奉献的事迹成为全国学习的典范。\n\n### 生平概述\n孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党。他曾在山东聊城工作，1979年首次响应国家号召赴藏，担任日喀则地区岗巴县委副书记。1988年，他克服家庭困难再次援藏，先后任拉萨市副市长、阿里地委书记。在阿里这个“世界屋脊的屋脊”，他深入基层，致力于经济发展、民族团结和民生改善，将生命中最宝贵的年华奉献给了雪域高原。1994年11月29日，在赴新疆塔城考察边贸途中不幸遭遇车祸，后因伤势过重在乌鲁木齐殉职，用生命铸就了一座不朽的精神丰碑。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要往返于山东故乡与西藏工作地之间，足迹遍及西藏日喀则、拉萨、阿里及新疆部分地区。\n- ⏱️ **时间跨度**：1944年-1994年，共50年。\n- 📍 **地理范围**：中国华东地区（山东）、西南地区（西藏）、西北地区（新疆）。\n- 🌟 **重要节点数量**：核心地点8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：聊城\n- **时间**：1944年\n- **停留时间**：约20年（至1964年前后）\n- **地点**：今山东省聊城市\n- **事件**：出生、成长、求学。\n- **意义**：塑造了他朴实、坚韧的品格基础。\n\n### 📍 重要地点：聊城（工作岗位）\n- **时间**：1966年-1979年\n- **停留时间**：约13年\n- **地点**：今山东省聊城市\n- **事件**：加入中国共产党，在聊城地委宣传部、聊城地区行署办公室等部门工作。\n- **意义**：积累了地方工作经验，坚定了为人民服务的信念。\n\n### 📍 重要地点：岗巴\n- **时间**：1979年-1981年\n- **停留时间**：约3年\n- **地点**：岗巴县（今西藏自治区日喀则市岗巴县）\n- **事件**：首次援藏，任岗巴县委副书记。深入乡村调研，与当地群众同甘共苦。\n- **意义**：开启了援藏生涯，与西藏人民结下深厚感情，学会了藏语。\n\n### 📍 重要地点：聊城（返鲁工作）\n- **时间**：1981年-1988年\n- **停留时间**：约7年\n- **地点**：今山东省聊城市\n- **事件**：援藏结束后返回山东，先后担任聊城地区林业局副局长、地区行署副专员等职。\n- **意义**：在更广阔的岗位上锻炼了领导能力。\n\n### 📍 重要地点：拉萨\n- **时间**：1988年-1993年\n- **停留时间**：约5年\n- **地点**：今西藏自治区拉萨市\n- **事件**：第二次援藏，任拉萨市副市长，分管文教、卫生和民政工作。期间收养三名藏族孤儿。\n- **意义**：在拉萨市层面推动社会事业发展，其收养孤儿的行为体现了超越民族的大爱。\n\n### 📍 重要地点：阿里\n- **时间**：1993年-1994年\n- **停留时间**：约1年\n- **地点**：今西藏自治区阿里地区噶尔县狮泉河镇（地区行署驻地）\n- **事件**：任阿里地委书记。跑遍全地区106个乡中的98个，行程8万多公里，调研规划阿里发展蓝图。\n- **意义**：在生命最后阶段，为阿里地区的稳定与发展殚精竭虑，是其奉献精神的集中体现地。\n- **名篇名句**：其名言“一个共产党员爱的最高境界是爱人民”广为传颂。\n\n### 📍 重要地点：塔城\n- **时间**：1994年11月\n- **停留时间**：短暂\n- **地点**：今新疆维吾尔自治区塔城地区塔城市\n- **事件**：为阿里地区考察边贸、寻求发展项目，在新疆塔城遭遇车祸。\n- **意义**：因公殉职的地点，为其光辉而短暂的一生画上了句号。\n\n### 🔴 去世地：乌鲁木齐\n- **时间**：1994年11月29日\n- **停留时间**：殉职地\n- **地点**：今新疆维吾尔自治区乌鲁木齐市\n- **事件**：因车祸伤势过重，经抢救无效不幸殉职。\n- **意义**：生命终点，其牺牲震动全国，引发了广泛的学习活动。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1944年 | 聊城 | 山东省聊城市 | （年龄：0岁）出生于山东聊城。 |\n| 1966年 |  |  | （年龄：22岁）加入中国共产党。 |\n| 1979年 | 岗巴 | 西藏自治区日喀则市岗巴县 | （年龄：35岁）第一次赴藏，任岗巴县委副书记。 |\n| 1981年 | 聊城（返鲁工作） | 山东省聊城市 | （年龄：37岁）结束第一次援藏，返回山东聊城工作。 |\n| 1988年 | 拉萨 | 西藏自治区拉萨市 | （年龄：44岁）第二次赴藏，任拉萨市副市长。 |\n| 1992年 | 拉萨 | 西藏自治区拉萨市 | （年龄：48岁）在拉萨收养三名藏族孤儿。 |\n| 1993年 | 阿里 |  | （年龄：49岁）调任阿里地委书记。 |\n| 1994年11月29日 |  |  | （年龄：50岁）在新疆考察边贸时因车祸殉职。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 山东省聊城市 | 36.4567 | 115.9853 | |\n| 西藏自治区日喀则市岗巴县 | 28.2747 | 88.5217 | |\n| 西藏自治区拉萨市 | 29.6500 | 91.1000 | |\n| 西藏自治区阿里地区噶尔县（狮泉河镇） | 32.5012 | 80.1060 | 阿里地区行政公署驻地，代表阿里地区 |\n| 新疆维吾尔自治区塔城市 | 46.7515 | 82.9870 | 车祸发生地附近 |\n| 新疆维吾尔自治区乌鲁木齐市 | 43.8256 | 87.6168 | 殉职地 |\n| 西藏自治区日喀则市 | 29.2671 | 88.8804 | |\n", "relatedGraph": {"center": {"id": "孔繁森", "name": "孔繁森", "file": "孔繁森.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1944, "death_year": 1994, "quote": "一个共产党员爱的最高境界是爱人民", "review": "一个共产党员爱的最高境界是爱人民", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省聊城市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "孔繁森", "name": "孔繁森", "file": "孔繁森.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1944, "death_year": 1994, "quote": "一个共产党员爱的最高境界是爱人民", "review": "一个共产党员爱的最高境界是爱人民", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省聊城市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾准", "name": "顾准", "file": "顾准.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1974, "death_year": 1974, "quote": "顾准（1915—1974），中国当代著名经济学家、思想家、会计学家，曾任中国科学院经济研究所副所长", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "向雷锋同志学习", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郅顺义", "name": "郅顺义", "file": "郅顺义.html", "dynasty": "解放战争时期至中华人民共和国", "aliases": [], "birth_year": 1918, "death_year": 1998, "quote": "全国战斗英雄", "review": "", "foreign_name": "", "main_role_label": "军人", "birthplace": "河北省丰润县", "birthplace_modern": "唐山市丰润区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "孔繁森", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "顾准", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "郅顺义", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:18Z", "generated_at": "2026-06-22T11:31:18Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "孔繁森", "title": "", "description": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党。他曾在山东聊城工作，1979年首次响应国家号召赴藏，担任日喀则地区岗巴县委副书记。1988年，他克服家庭困难再次援藏，先后任拉萨市副市长、阿里地委书记。在阿里这个“世界屋脊的屋脊”，他深入基层，致力于经济发展、民族团结和民生改善，将生命中最宝贵的年华奉献给了雪域高原。1994年11月29日，在赴新疆塔城考察边贸途中不幸遭遇车祸，后因伤势过重在乌鲁木齐殉职，用生命铸就了一座不朽的精神丰碑。", "quote": "一个共产党员爱的最高境界是爱人民", "shortReview": "一个共产党员爱的最高境界是爱人民", "dynasty": "中华人民共和国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "山东省聊城市", "avatar": "", "birth": {"date": "1944年", "location": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84"}, "death": {"date": "1994年", "location": "新疆维吾尔自治区乌鲁木齐市（在新疆塔城考察边贸途中遭遇车祸", "lat": 43.8256, "lng": 87.6168, "coordSystem": "WGS84"}, "lifespan": "50岁", "highlights": {"honor": "", "status": "新时期领导干部的楷模，民族团结的杰出代表。", "identities": "中国共产党党员、援藏干部、领导干部楷模", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "聊城", "ancientName": "聊城", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "birth", "event": "出生、成长、求学。", "time": "1944年", "duration": "约20年（至1964年前后）", "significance": "塑造了他朴实、坚韧的品格基础。", "works": [], "quoteLines": []}, {"name": "聊城（工作岗位）", "ancientName": "聊城（工作岗位）", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "normal", "event": "加入中国共产党，在聊城地委宣传部、聊城地区行署办公室等部门工作。", "time": "1966年-1979年", "duration": "约13年", "significance": "积累了地方工作经验，坚定了为人民服务的信念。", "works": [], "quoteLines": []}, {"name": "岗巴", "ancientName": "岗巴县", "modernName": "西藏自治区日喀则市岗巴县", "lat": 28.2747, "lng": 88.5217, "coordSystem": "WGS84", "type": "normal", "event": "首次援藏，任岗巴县委副书记。深入乡村调研，与当地群众同甘共苦。", "time": "1979年-1981年", "duration": "约3年", "significance": "开启了援藏生涯，与西藏人民结下深厚感情，学会了藏语。", "works": [], "quoteLines": []}, {"name": "聊城（返鲁工作）", "ancientName": "聊城（返鲁工作）", "modernName": "山东省聊城市", "lat": 36.4567, "lng": 115.9853, "coordSystem": "WGS84", "type": "normal", "event": "援藏结束后返回山东，先后担任聊城地区林业局副局长、地区行署副专员等职。", "time": "1981年-1988年", "duration": "约7年", "significance": "在更广阔的岗位上锻炼了领导能力。", "works": [], "quoteLines": []}, {"name": "拉萨", "ancientName": "拉萨", "modernName": "西藏自治区拉萨市", "lat": 29.65, "lng": 91.1, "coordSystem": "WGS84", "type": "normal", "event": "第二次援藏，任拉萨市副市长，分管文教、卫生和民政工作。期间收养三名藏族孤儿。", "time": "1988年-1993年", "duration": "约5年", "significance": "在拉萨市层面推动社会事业发展，其收养孤儿的行为体现了超越民族的大爱。", "works": [], "quoteLines": []}, {"name": "阿里", "ancientName": "阿里", "modernName": "西藏自治区阿里地区噶尔县狮泉河镇（地区行署驻地）", "lat": 32.5012, "lng": 80.106, "coordSystem": "WGS84", "type": "normal", "event": "任阿里地委书记。跑遍全地区106个乡中的98个，行程8万多公里，调研规划阿里发展蓝图。", "time": "1993年-1994年", "duration": "约1年", "significance": "在生命最后阶段，为阿里地区的稳定与发展殚精竭虑，是其奉献精神的集中体现地。", "works": [], "quoteLines": ["其名言“一个共产党员爱的最高境界是爱人民”广为传颂。"]}, {"name": "塔城", "ancientName": "塔城", "modernName": "新疆维吾尔自治区塔城地区塔城市", "lat": 46.7515, "lng": 82.987, "coordSystem": "WGS84", "type": "normal", "event": "为阿里地区考察边贸、寻求发展项目，在新疆塔城遭遇车祸。", "time": "1994年11月", "duration": "短暂", "significance": "因公殉职的地点，为其光辉而短暂的一生画上了句号。", "works": [], "quoteLines": []}, {"name": "乌鲁木齐", "ancientName": "乌鲁木齐", "modernName": "新疆维吾尔自治区乌鲁木齐市", "lat": 43.8256, "lng": 87.6168, "coordSystem": "WGS84", "type": "death", "event": "因车祸伤势过重，经抢救无效不幸殉职。", "time": "1994年11月29日", "duration": "殉职地", "significance": "生命终点，其牺牲震动全国，引发了广泛的学习活动。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---", "workTexts": {}, "workSummaries": {"纪念白求恩": {"title": "纪念白求恩", "aliases": [], "authors": [], "related_people": ["白求恩", "柯棣华", "孔繁森"], "source_pages": ["白求恩", "柯棣华", "孔繁森"], "era": "", "genre": "", "one_liner": "重点：毛泽东的《纪念白求恩》一文，使其精神升为中国共产党思想建设和道德教育的重要典范，影响深远。", "summary": "重点：毛泽东的《纪念白求恩》一文，使其精神升为中国共产党思想建设和道德教育的重要典范，影响深远。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "为人民服务": {"title": "为人民服务", "aliases": [], "authors": ["毛泽东"], "related_people": ["孔繁森", "毛泽东", "张思德"], "source_pages": ["孔繁森", "毛泽东", "张思德"], "era": "中国近现代", "genre": "", "one_liner": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党", "summary": "孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党", "quote": "为人民利益而死，就比泰山还重。", "quotes": ["为人民利益而死，就比泰山还重。", "俱往矣，数风流人物，还看今朝。"], "quote_policy": "preferred"}}, "markdown": "# 孔繁森\n\n## 人物档案\n\n### 基本信息\n- **姓名**：孔繁森\n- **时代**：中华人民共和国\n- **出生**：1944年，今山东省聊城市（出生日期具体月日有不同说法，存疑）\n- **去世**：1994年11月29日，今新疆维吾尔自治区乌鲁木齐市（在新疆塔城考察边贸途中遭遇车祸，后因伤势过重在乌鲁木齐殉职）\n- **享年**：50岁\n- **主要身份**：中国共产党党员、援藏干部、领导干部楷模\n- **历史地位**：新时期领导干部的楷模，民族团结的杰出代表。\n- **主要成就**：\n    - 两次主动赴藏工作，历时十载，为西藏的发展和稳定呕心沥血。\n    - 在担任阿里地委书记期间，带领群众发展经济、改善民生，跑遍全地区偏远乡村。\n    - 收养藏族孤儿，用实际行动践行了“一个共产党员爱的最高境界是爱人民”的誓言。\n    - 其清正廉洁、无私奉献的事迹成为全国学习的典范。\n\n### 生平概述\n孔繁森出生于山东聊城一个贫苦家庭，1966年加入中国共产党。他曾在山东聊城工作，1979年首次响应国家号召赴藏，担任日喀则地区岗巴县委副书记。1988年，他克服家庭困难再次援藏，先后任拉萨市副市长、阿里地委书记。在阿里这个“世界屋脊的屋脊”，他深入基层，致力于经济发展、民族团结和民生改善，将生命中最宝贵的年华奉献给了雪域高原。1994年11月29日，在赴新疆塔城考察边贸途中不幸遭遇车祸，后因伤势过重在乌鲁木齐殉职，用生命铸就了一座不朽的精神丰碑。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要往返于山东故乡与西藏工作地之间，足迹遍及西藏日喀则、拉萨、阿里及新疆部分地区。\n- ⏱️ **时间跨度**：1944年-1994年，共50年。\n- 📍 **地理范围**：中国华东地区（山东）、西南地区（西藏）、西北地区（新疆）。\n- 🌟 **重要节点数量**：核心地点8个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：聊城\n- **时间**：1944年\n- **停留时间**：约20年（至1964年前后）\n- **地点**：今山东省聊城市\n- **事件**：出生、成长、求学。\n- **意义**：塑造了他朴实、坚韧的品格基础。\n\n### 📍 重要地点：聊城（工作岗位）\n- **时间**：1966年-1979年\n- **停留时间**：约13年\n- **地点**：今山东省聊城市\n- **事件**：加入中国共产党，在聊城地委宣传部、聊城地区行署办公室等部门工作。\n- **意义**：积累了地方工作经验，坚定了为人民服务的信念。\n\n### 📍 重要地点：岗巴\n- **时间**：1979年-1981年\n- **停留时间**：约3年\n- **地点**：岗巴县（今西藏自治区日喀则市岗巴县）\n- **事件**：首次援藏，任岗巴县委副书记。深入乡村调研，与当地群众同甘共苦。\n- **意义**：开启了援藏生涯，与西藏人民结下深厚感情，学会了藏语。\n\n### 📍 重要地点：聊城（返鲁工作）\n- **时间**：1981年-1988年\n- **停留时间**：约7年\n- **地点**：今山东省聊城市\n- **事件**：援藏结束后返回山东，先后担任聊城地区林业局副局长、地区行署副专员等职。\n- **意义**：在更广阔的岗位上锻炼了领导能力。\n\n### 📍 重要地点：拉萨\n- **时间**：1988年-1993年\n- **停留时间**：约5年\n- **地点**：今西藏自治区拉萨市\n- **事件**：第二次援藏，任拉萨市副市长，分管文教、卫生和民政工作。期间收养三名藏族孤儿。\n- **意义**：在拉萨市层面推动社会事业发展，其收养孤儿的行为体现了超越民族的大爱。\n\n### 📍 重要地点：阿里\n- **时间**：1993年-1994年\n- **停留时间**：约1年\n- **地点**：今西藏自治区阿里地区噶尔县狮泉河镇（地区行署驻地）\n- **事件**：任阿里地委书记。跑遍全地区106个乡中的98个，行程8万多公里，调研规划阿里发展蓝图。\n- **意义**：在生命最后阶段，为阿里地区的稳定与发展殚精竭虑，是其奉献精神的集中体现地。\n- **名篇名句**：其名言“一个共产党员爱的最高境界是爱人民”广为传颂。\n\n### 📍 重要地点：塔城\n- **时间**：1994年11月\n- **停留时间**：短暂\n- **地点**：今新疆维吾尔自治区塔城地区塔城市\n- **事件**：为阿里地区考察边贸、寻求发展项目，在新疆塔城遭遇车祸。\n- **意义**：因公殉职的地点，为其光辉而短暂的一生画上了句号。\n\n### 🔴 去世地：乌鲁木齐\n- **时间**：1994年11月29日\n- **停留时间**：殉职地\n- **地点**：今新疆维吾尔自治区乌鲁木齐市\n- **事件**：因车祸伤势过重，经抢救无效不幸殉职。\n- **意义**：生命终点，其牺牲震动全国，引发了广泛的学习活动。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1944年 | 聊城 | 山东省聊城市 | （年龄：0岁）出生于山东聊城。 |\n| 1966年 |  |  | （年龄：22岁）加入中国共产党。 |\n| 1979年 | 岗巴 | 西藏自治区日喀则市岗巴县 | （年龄：35岁）第一次赴藏，任岗巴县委副书记。 |\n| 1981年 | 聊城（返鲁工作） | 山东省聊城市 | （年龄：37岁）结束第一次援藏，返回山东聊城工作。 |\n| 1988年 | 拉萨 | 西藏自治区拉萨市 | （年龄：44岁）第二次赴藏，任拉萨市副市长。 |\n| 1992年 | 拉萨 | 西藏自治区拉萨市 | （年龄：48岁）在拉萨收养三名藏族孤儿。 |\n| 1993年 | 阿里 |  | （年龄：49岁）调任阿里地委书记。 |\n| 1994年11月29日 |  |  | （年龄：50岁）在新疆考察边贸时因车祸殉职。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：孔繁森的事迹常作为**议论文**、**记叙文**的素材，或出现在**通讯报道**中，其精神与**《纪念白求恩》**、**《为人民服务》**等课文倡导的价值观高度契合。\n- 核心要点：\n    - **重点**：其事迹是诠释“**全心全意为人民服务**”宗旨的生动案例。\n    - **重点**：体现了“**无私奉献**”、“**艰苦奋斗**”的崇高精神。\n    - **重点**：是“**民族团结**”的典范，超越了血缘与地域的界限。\n    - 其人生选择展现了强烈的“**家国情怀**”与“**责任担当**”。\n    - 通过具体事迹（如收养孤儿、深入基层）塑造了感人至深的“**人物形象**”。\n    - 其语言朴实而有力，如“爱的最高境界是爱人民”，具有强烈的“**感染力**”和“**号召力**”。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**两次援藏**（1979-1981，1988-1994），是改革开放后**援藏干部**的杰出代表。\n    - 在**阿里地区**担任地委书记，致力于当地的**经济发展**与**社会稳定**。\n    - **因公殉职**，成为全国性的**模范人物**，被追授“模范共产党员”、“优秀领导干部”等称号。\n- 核心要点：\n    - **重点**：其人生轨迹与**改革开放**和**社会主义现代化建设**的时代背景紧密相连。\n    - **重点**：是**新时期**（20世纪90年代）**领导干部**的楷模，其事迹具有鲜明的时代特征。\n    - 体现了中国共产党对**边疆地区发展**和**民族团结**的高度重视。\n    - 其精神被概括为“**孔繁森精神**”，成为党的宝贵精神财富。\n    - **重点**：其事迹的广泛宣传，反映了当时社会对**奉献精神**和**清廉作风**的呼唤。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| :--- | :--- | :--- | :--- |\n| 山东省聊城市 | 36.4567 | 115.9853 | |\n| 西藏自治区日喀则市岗巴县 | 28.2747 | 88.5217 | |\n| 西藏自治区拉萨市 | 29.6500 | 91.1000 | |\n| 西藏自治区阿里地区噶尔县（狮泉河镇） | 32.5012 | 80.1060 | 阿里地区行政公署驻地，代表阿里地区 |\n| 新疆维吾尔自治区塔城市 | 46.7515 | 82.9870 | 车祸发生地附近 |\n| 新疆维吾尔自治区乌鲁木齐市 | 43.8256 | 87.6168 | 殉职地 |\n| 西藏自治区日喀则市 | 29.2671 | 88.8804 | |\n", "relatedGraph": {"center": {"id": "孔繁森", "name": "孔繁森", "file": "孔繁森.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1944, "death_year": 1994, "quote": "一个共产党员爱的最高境界是爱人民", "review": "一个共产党员爱的最高境界是爱人民", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省聊城市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "孔繁森", "name": "孔繁森", "file": "孔繁森.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1944, "death_year": 1994, "quote": "一个共产党员爱的最高境界是爱人民", "review": "一个共产党员爱的最高境界是爱人民", "foreign_name": "", "main_role_label": "其他", "birthplace": "今山东省聊城市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾准", "name": "顾准", "file": "顾准.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1974, "death_year": 1974, "quote": "顾准（1915—1974），中国当代著名经济学家、思想家、会计学家，曾任中国科学院经济研究所副所长", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雷锋", "name": "雷锋", "file": "雷锋.html", "dynasty": "中华人民共和国", "aliases": [], "birth_year": 1940, "death_year": 1962, "quote": "向雷锋同志学习", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "湖南省望城县安庆乡", "birthplace_modern": "湖南省长沙市望城区雷锋街道", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱三强", "name": "钱三强", "file": "钱三强.html", "dynasty": "中华人民共和国（近现代）", "aliases": [], "birth_year": 1913, "death_year": 1992, "quote": "*中国原子能科学之父。**", "review": "", "foreign_name": "", "main_role_label": "核物理学家", "birthplace": "浙江湖州", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "孔繁森", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "顾准", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "雷锋", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "孔繁森", "target": "钱三强", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:19Z", "generated_at": "2026-06-25T07:13:19Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:18Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:19Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

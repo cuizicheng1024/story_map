@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "李斯", "title": "", "description": "李斯生于战国末期楚国，曾师从荀子学习帝王之术。学成后西入秦国，先为吕不韦门客，后得秦王嬴政赏识，官至廷尉、丞相。他辅佐嬴政运筹帷幄，离间六国，对统一战争贡献卓著。秦朝建立后，他力排众议，反对分封，推行郡县制，并主持“书同文、车同轨”等统一措施，参与制定《秦律》。秦始皇死后，李斯在赵高胁迫下合谋篡改遗诏，立胡亥为帝，后遭赵高构陷，被具五刑处死于咸阳，并夷三族。", "quote": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "shortReview": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "dynasty": "战国末期至秦朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "据《史记》等推算", "avatar": "", "birth": {"date": "公元前284年", "location": "据《史记》等推算", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前208年", "location": "秦都咸阳（今陕西省咸阳市）", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84"}, "lifespan": "约76岁（存疑，基于出生年份推算）", "highlights": {"honor": "", "status": "秦朝统一六国和建立中央集权制度的核心谋臣与执行者，对中国古代政治制度与文化统一产生深远影响。", "identities": "政治家、文学家、书法家", "achievements": "辅佐秦始皇完成统一大业；力主废分封、行郡县；主持统一文字、货币、度量衡；参与制定秦朝法律制度。", "works": ["秦律"], "reviews": []}}, "locations": [{"name": "上蔡", "ancientName": "楚国上蔡", "modernName": "河南省驻马店市上蔡县", "lat": 33.2637, "lng": 114.2643, "coordSystem": "WGS84", "type": "birth", "event": "出身于“闾巷布衣”，年轻时曾为郡小吏。", "time": "约公元前284年", "duration": "青年时期", "significance": "李斯早年生活与思想启蒙之地，观“仓中鼠”与“厕中鼠”而悟出处世哲学，决心追求功名富贵。", "works": [], "quoteLines": []}, {"name": "兰陵", "ancientName": "楚国兰陵", "modernName": "山东省临沂市兰陵县", "lat": 34.8573, "lng": 118.0706, "coordSystem": "WGS84", "type": "normal", "event": "拜著名儒学大师荀况为师，学习“帝王之术”。", "time": "青年时期", "duration": "数年（存疑）", "significance": "系统接受法家兼融儒家的思想训练，为其日后政治理念奠定基础，并结识韩非。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "初入秦，为丞相吕不韦舍人，后任郎官，得以游说秦王嬴政。", "time": "约公元前247年 - 前237年", "duration": "初期约十年", "significance": "获得接近秦王的机会，提出“灭诸侯，成帝业，为天下一统”的战略，受到重用。", "works": [], "quoteLines": []}, {"name": "咸阳（谏逐客）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "time": "公元前237年", "duration": "事件发生于咸阳", "significance": "成功说服秦王撤销逐客令，巩固了自己在秦的政治地位，也保留了秦国吸纳天下人才的优势。", "works": ["谏逐客书"], "quoteLines": ["《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”"]}, {"name": "咸阳（参与统一战争决策）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "官至廷尉，参与制定统一六国的战略，实施离间计等。", "time": "公元前236年 - 前221年", "duration": "约15年", "significance": "作为核心决策层成员，为秦统一战争的胜利提供了关键谋略。", "works": [], "quoteLines": []}, {"name": "咸阳（秦朝建立后的制度设计）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "任丞相，力主郡县制，反对分封；主持统一文字（小篆）、货币、度量衡；参与制定《秦律》。", "time": "公元前221年 - 前213年", "duration": "约8年", "significance": "将政治理念付诸实践，奠定了中国两千多年中央集权制度的基本框架，影响极其深远。", "works": ["秦律"], "quoteLines": ["《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。”"]}, {"name": "沙丘平台", "ancientName": "沙丘平台", "modernName": "河北省邢台市广宗县", "lat": 37.0746, "lng": 115.1428, "coordSystem": "WGS84", "type": "normal", "event": "秦始皇于巡游途中病逝，李斯在赵高胁迫与利诱下，合谋篡改遗诏，赐死扶苏，立胡亥为帝（沙丘之变）。", "time": "公元前210年", "duration": "短暂", "significance": "李斯政治生涯的转折点，此举直接导致秦朝政局急剧恶化，为其个人悲剧埋下祸根。", "works": [], "quoteLines": []}, {"name": "咸阳（赵高弄权与李斯失势）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "秦二世胡亥即位后，赵高独揽大权，李斯为保爵位一度迎合，后多次进谏遭二世疏远，并被赵高诬陷谋反。", "time": "公元前209年 - 前208年", "duration": "约2年", "significance": "与赵高的权力斗争失败，身陷囹圄。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "death", "event": "被赵高诬陷，经严刑拷打后认罪，被判处“具五刑”，腰斩于市，夷灭三族。", "time": "公元前208年", "duration": "生命最后阶段", "significance": "作为秦朝开国元勋，落得极为惨烈的结局，标志着秦法家政治的残酷性与内部崩溃。", "works": [], "quoteLines": ["临刑前对儿子感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---", "workTexts": {"谏逐客书": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "史记": "出生：约公元前284年（存疑，据《史记》等推算，生年不详），楚国上蔡（今河南省驻马店市上蔡县）", "秦律": "“书同文、车同轨”", "泰山刻石文": "“皇帝临位，作制明法，臣下修饬。”"}, "workSummaries": {"史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}, "秦律": {"title": "秦律", "aliases": [], "authors": [], "related_people": ["李斯"], "source_pages": ["李斯"], "era": "", "genre": "", "one_liner": "书同文、车同轨", "summary": "书同文、车同轨", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "谏逐客书": {"title": "谏逐客书", "aliases": [], "authors": ["李斯"], "related_people": ["李斯", "秦始皇"], "source_pages": ["李斯", "秦始皇"], "era": "战国末期至秦朝", "genre": "书信/论说文", "one_liner": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "summary": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "quote": "事件：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "quotes": ["事件：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "是以泰山不让土壤，故能成其大；"], "quote_policy": "preferred"}, "泰山刻石文": {"title": "泰山刻石文", "aliases": [], "authors": ["李斯"], "related_people": ["李斯"], "source_pages": ["李斯"], "era": "战国末期至秦朝", "genre": "", "one_liner": "皇帝临位，作制明法，臣下修饬。", "summary": "皇帝临位，作制明法，臣下修饬。", "quote": "《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。", "quotes": ["《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。", "皇帝临位，作制明法，臣下修饬。"], "quote_policy": "preferred"}}, "markdown": "# 李斯\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李斯\n- **时代**：战国末期至秦朝\n- **出生**：约公元前284年（存疑，据《史记》等推算，生年不详），楚国上蔡（今河南省驻马店市上蔡县）\n- **去世**：公元前208年，秦都咸阳（今陕西省咸阳市）\n- **享年**：约76岁（存疑，基于出生年份推算）\n- **主要身份**：政治家、文学家、书法家\n- **历史地位**：秦朝统一六国和建立中央集权制度的核心谋臣与执行者，对中国古代政治制度与文化统一产生深远影响。\n- **主要成就**：辅佐秦始皇完成统一大业；力主废分封、行郡县；主持统一文字、货币、度量衡；参与制定秦朝法律制度。\n\n### 生平概述\n李斯生于战国末期楚国，曾师从荀子学习帝王之术。学成后西入秦国，先为吕不韦门客，后得秦王嬴政赏识，官至廷尉、丞相。他辅佐嬴政运筹帷幄，离间六国，对统一战争贡献卓著。秦朝建立后，他力排众议，反对分封，推行郡县制，并主持“书同文、车同轨”等统一措施，参与制定《秦律》。秦始皇死后，李斯在赵高胁迫下合谋篡改遗诏，立胡亥为帝，后遭赵高构陷，被具五刑处死于咸阳，并夷三族。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从楚国上蔡出发，求学兰陵，西入秦国，一生主要政治活动于秦都咸阳及关中地区，随秦始皇巡行天下。\n- ⏱️ **时间跨度**：约公元前284年 - 公元前208年，约76年。\n- 📍 **地理范围**：主要覆盖今河南、山东、陕西，及秦朝统一后的巡行区域（如河北、浙江等地）。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：上蔡\n- **时间**：约公元前284年\n- **停留时间**：青年时期\n- **地点**：楚国上蔡（今河南省驻马店市上蔡县）\n- **事件**：出身于“闾巷布衣”，年轻时曾为郡小吏。\n- **意义**：李斯早年生活与思想启蒙之地，观“仓中鼠”与“厕中鼠”而悟出处世哲学，决心追求功名富贵。\n\n### 📍 重要地点：兰陵\n- **时间**：青年时期\n- **停留时间**：数年（存疑）\n- **地点**：楚国兰陵（今山东省临沂市兰陵县）\n- **事件**：拜著名儒学大师荀况为师，学习“帝王之术”。\n- **意义**：系统接受法家兼融儒家的思想训练，为其日后政治理念奠定基础，并结识韩非。\n\n### 📍 重要地点：咸阳\n- **时间**：约公元前247年 - 前237年\n- **停留时间**：初期约十年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：初入秦，为丞相吕不韦舍人，后任郎官，得以游说秦王嬴政。\n- **意义**：获得接近秦王的机会，提出“灭诸侯，成帝业，为天下一统”的战略，受到重用。\n\n### 📍 重要地点：咸阳（谏逐客）\n- **时间**：公元前237年\n- **停留时间**：事件发生于咸阳\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。\n- **意义**：成功说服秦王撤销逐客令，巩固了自己在秦的政治地位，也保留了秦国吸纳天下人才的优势。\n- **名篇名句**：《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”\n\n### 📍 重要地点：咸阳（参与统一战争决策）\n- **时间**：公元前236年 - 前221年\n- **停留时间**：约15年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：官至廷尉，参与制定统一六国的战略，实施离间计等。\n- **意义**：作为核心决策层成员，为秦统一战争的胜利提供了关键谋略。\n\n### 📍 重要地点：咸阳（秦朝建立后的制度设计）\n- **时间**：公元前221年 - 前213年\n- **停留时间**：约8年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：任丞相，力主郡县制，反对分封；主持统一文字（小篆）、货币、度量衡；参与制定《秦律》。\n- **意义**：将政治理念付诸实践，奠定了中国两千多年中央集权制度的基本框架，影响极其深远。\n- **名篇名句**：《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。”\n\n### 📍 重要地点：沙丘平台\n- **时间**：公元前210年\n- **停留时间**：短暂\n- **地点**：沙丘平台（今河北省邢台市广宗县）\n- **事件**：秦始皇于巡游途中病逝，李斯在赵高胁迫与利诱下，合谋篡改遗诏，赐死扶苏，立胡亥为帝（沙丘之变）。\n- **意义**：李斯政治生涯的转折点，此举直接导致秦朝政局急剧恶化，为其个人悲剧埋下祸根。\n\n### 📍 重要地点：咸阳（赵高弄权与李斯失势）\n- **时间**：公元前209年 - 前208年\n- **停留时间**：约2年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：秦二世胡亥即位后，赵高独揽大权，李斯为保爵位一度迎合，后多次进谏遭二世疏远，并被赵高诬陷谋反。\n- **意义**：与赵高的权力斗争失败，身陷囹圄。\n\n### 🔴 去世地：咸阳\n- **时间**：公元前208年\n- **停留时间**：生命最后阶段\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：被赵高诬陷，经严刑拷打后认罪，被判处“具五刑”，腰斩于市，夷灭三族。\n- **意义**：作为秦朝开国元勋，落得极为惨烈的结局，标志着秦法家政治的残酷性与内部崩溃。\n- **名篇名句**：临刑前对儿子感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前284年 | 上蔡 | 河南省驻马店市上蔡县 | （年龄（约）：0）生于楚国上蔡。 |\n| 青年时期 | 兰陵 | 山东省临沂市兰陵县 | 为郡小吏，后赴兰陵师从荀子。 |\n| 约前247年 |  |  | （年龄（约）：约37岁）西入秦，初为吕不韦舍人。 |\n| 约前237年 | 咸阳（谏逐客） | 陕西省咸阳市 | （年龄（约）：约47岁）上《谏逐客书》，使秦王撤销逐客令。 |\n| 前236-前221年 |  |  | （年龄（约）：约48-63岁）任廷尉，辅佐秦王嬴政统一六国。 |\n| 前221年 |  |  | （年龄（约）：约63岁）秦朝建立，任丞相，力主郡县制，参与统一制度设计。 |\n| 前213年 |  |  | （年龄（约）：约71岁）建议秦始皇“焚书”。 |\n| 前210年 |  |  | （年龄（约）：约74岁）秦始皇卒于沙丘，李斯参与“沙丘之变”，篡改遗诏。 |\n| 前209年 |  |  | （年龄（约）：约75岁）秦二世即位，赵高弄权，李斯逐渐失势。 |\n| 前208年 | 咸阳 | 陕西省咸阳市 | （年龄（约）：约76岁）被赵高诬陷谋反，具五刑，腰斩于咸阳，夷三族。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省驻马店市上蔡县 | 33.2637 | 114.2643 |\n| 山东省临沂市兰陵县 | 34.8573 | 118.0706 |\n| 陕西省咸阳市 | 34.3296 | 108.7086 |\n| 河北省邢台市广宗县 | 37.0746 | 115.1428 |", "relatedGraph": {"center": {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "赵高", "name": "赵高", "file": "赵高.html", "dynasty": "秦朝", "aliases": [], "birth_year": -210, "death_year": -210, "quote": "赵高本赵国宗族后裔，入秦宫后为宦官", "review": "", "foreign_name": "", "main_role_label": "秦二世丞相", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "蒙恬", "name": "蒙恬", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": [], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李斯", "target": "赵高", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "秦始皇", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "荀子", "label": "师生", "confidence": null}, {"source": "李斯", "target": "蒙恬", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "韩非子", "label": "同时代人物", "confidence": null}, {"source": "李斯", "target": "屈原", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:28Z", "generated_at": "2026-06-22T11:31:28Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "李斯", "title": "", "description": "李斯生于战国末期楚国，曾师从荀子学习帝王之术。学成后西入秦国，先为吕不韦门客，后得秦王嬴政赏识，官至廷尉、丞相。他辅佐嬴政运筹帷幄，离间六国，对统一战争贡献卓著。秦朝建立后，他力排众议，反对分封，推行郡县制，并主持“书同文、车同轨”等统一措施，参与制定《秦律》。秦始皇死后，李斯在赵高胁迫下合谋篡改遗诏，立胡亥为帝，后遭赵高构陷，被具五刑处死于咸阳，并夷三族。", "quote": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "shortReview": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "dynasty": "战国末期至秦朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "据《史记》等推算", "avatar": "", "birth": {"date": "公元前284年", "location": "据《史记》等推算", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前208年", "location": "秦都咸阳（今陕西省咸阳市）", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84"}, "lifespan": "约76岁（存疑，基于出生年份推算）", "highlights": {"honor": "", "status": "秦朝统一六国和建立中央集权制度的核心谋臣与执行者，对中国古代政治制度与文化统一产生深远影响。", "identities": "政治家、文学家、书法家", "achievements": "辅佐秦始皇完成统一大业；力主废分封、行郡县；主持统一文字、货币、度量衡；参与制定秦朝法律制度。", "works": ["秦律"], "reviews": []}}, "locations": [{"name": "上蔡", "ancientName": "楚国上蔡", "modernName": "河南省驻马店市上蔡县", "lat": 33.2637, "lng": 114.2643, "coordSystem": "WGS84", "type": "birth", "event": "出身于“闾巷布衣”，年轻时曾为郡小吏。", "time": "约公元前284年", "duration": "青年时期", "significance": "李斯早年生活与思想启蒙之地，观“仓中鼠”与“厕中鼠”而悟出处世哲学，决心追求功名富贵。", "works": [], "quoteLines": []}, {"name": "兰陵", "ancientName": "楚国兰陵", "modernName": "山东省临沂市兰陵县", "lat": 34.8573, "lng": 118.0706, "coordSystem": "WGS84", "type": "normal", "event": "拜著名儒学大师荀况为师，学习“帝王之术”。", "time": "青年时期", "duration": "数年（存疑）", "significance": "系统接受法家兼融儒家的思想训练，为其日后政治理念奠定基础，并结识韩非。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "初入秦，为丞相吕不韦舍人，后任郎官，得以游说秦王嬴政。", "time": "约公元前247年 - 前237年", "duration": "初期约十年", "significance": "获得接近秦王的机会，提出“灭诸侯，成帝业，为天下一统”的战略，受到重用。", "works": [], "quoteLines": []}, {"name": "咸阳（谏逐客）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "time": "公元前237年", "duration": "事件发生于咸阳", "significance": "成功说服秦王撤销逐客令，巩固了自己在秦的政治地位，也保留了秦国吸纳天下人才的优势。", "works": ["谏逐客书"], "quoteLines": ["《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”"]}, {"name": "咸阳（参与统一战争决策）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "官至廷尉，参与制定统一六国的战略，实施离间计等。", "time": "公元前236年 - 前221年", "duration": "约15年", "significance": "作为核心决策层成员，为秦统一战争的胜利提供了关键谋略。", "works": [], "quoteLines": []}, {"name": "咸阳（秦朝建立后的制度设计）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "任丞相，力主郡县制，反对分封；主持统一文字（小篆）、货币、度量衡；参与制定《秦律》。", "time": "公元前221年 - 前213年", "duration": "约8年", "significance": "将政治理念付诸实践，奠定了中国两千多年中央集权制度的基本框架，影响极其深远。", "works": ["秦律"], "quoteLines": ["《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。”"]}, {"name": "沙丘平台", "ancientName": "沙丘平台", "modernName": "河北省邢台市广宗县", "lat": 37.0746, "lng": 115.1428, "coordSystem": "WGS84", "type": "normal", "event": "秦始皇于巡游途中病逝，李斯在赵高胁迫与利诱下，合谋篡改遗诏，赐死扶苏，立胡亥为帝（沙丘之变）。", "time": "公元前210年", "duration": "短暂", "significance": "李斯政治生涯的转折点，此举直接导致秦朝政局急剧恶化，为其个人悲剧埋下祸根。", "works": [], "quoteLines": []}, {"name": "咸阳（赵高弄权与李斯失势）", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "normal", "event": "秦二世胡亥即位后，赵高独揽大权，李斯为保爵位一度迎合，后多次进谏遭二世疏远，并被赵高诬陷谋反。", "time": "公元前209年 - 前208年", "duration": "约2年", "significance": "与赵高的权力斗争失败，身陷囹圄。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "秦都咸阳", "modernName": "陕西省咸阳市", "lat": 34.3296, "lng": 108.7086, "coordSystem": "WGS84", "type": "death", "event": "被赵高诬陷，经严刑拷打后认罪，被判处“具五刑”，腰斩于市，夷灭三族。", "time": "公元前208年", "duration": "生命最后阶段", "significance": "作为秦朝开国元勋，落得极为惨烈的结局，标志着秦法家政治的残酷性与内部崩溃。", "works": [], "quoteLines": ["临刑前对儿子感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---", "workTexts": {"谏逐客书": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "史记": "出生：约公元前284年（存疑，据《史记》等推算，生年不详），楚国上蔡（今河南省驻马店市上蔡县）", "秦律": "“书同文、车同轨”", "泰山刻石文": "“皇帝临位，作制明法，臣下修饬。”"}, "workSummaries": {"史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}, "秦律": {"title": "秦律", "aliases": [], "authors": [], "related_people": ["李斯"], "source_pages": ["李斯"], "era": "", "genre": "", "one_liner": "书同文、车同轨", "summary": "书同文、车同轨", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "谏逐客书": {"title": "谏逐客书", "aliases": [], "authors": ["李斯"], "related_people": ["李斯", "秦始皇"], "source_pages": ["李斯", "秦始皇"], "era": "战国末期至秦朝", "genre": "书信/论说文", "one_liner": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "summary": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "quote": "事件：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "quotes": ["事件：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。", "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "是以泰山不让土壤，故能成其大；"], "quote_policy": "preferred"}, "泰山刻石文": {"title": "泰山刻石文", "aliases": [], "authors": ["李斯"], "related_people": ["李斯"], "source_pages": ["李斯"], "era": "战国末期至秦朝", "genre": "", "one_liner": "皇帝临位，作制明法，臣下修饬。", "summary": "皇帝临位，作制明法，臣下修饬。", "quote": "《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。", "quotes": ["《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。", "皇帝临位，作制明法，臣下修饬。"], "quote_policy": "preferred"}}, "markdown": "# 李斯\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李斯\n- **时代**：战国末期至秦朝\n- **出生**：约公元前284年（存疑，据《史记》等推算，生年不详），楚国上蔡（今河南省驻马店市上蔡县）\n- **去世**：公元前208年，秦都咸阳（今陕西省咸阳市）\n- **享年**：约76岁（存疑，基于出生年份推算）\n- **主要身份**：政治家、文学家、书法家\n- **历史地位**：秦朝统一六国和建立中央集权制度的核心谋臣与执行者，对中国古代政治制度与文化统一产生深远影响。\n- **主要成就**：辅佐秦始皇完成统一大业；力主废分封、行郡县；主持统一文字、货币、度量衡；参与制定秦朝法律制度。\n\n### 生平概述\n李斯生于战国末期楚国，曾师从荀子学习帝王之术。学成后西入秦国，先为吕不韦门客，后得秦王嬴政赏识，官至廷尉、丞相。他辅佐嬴政运筹帷幄，离间六国，对统一战争贡献卓著。秦朝建立后，他力排众议，反对分封，推行郡县制，并主持“书同文、车同轨”等统一措施，参与制定《秦律》。秦始皇死后，李斯在赵高胁迫下合谋篡改遗诏，立胡亥为帝，后遭赵高构陷，被具五刑处死于咸阳，并夷三族。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：从楚国上蔡出发，求学兰陵，西入秦国，一生主要政治活动于秦都咸阳及关中地区，随秦始皇巡行天下。\n- ⏱️ **时间跨度**：约公元前284年 - 公元前208年，约76年。\n- 📍 **地理范围**：主要覆盖今河南、山东、陕西，及秦朝统一后的巡行区域（如河北、浙江等地）。\n- 🌟 **重要节点数量**：9个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：上蔡\n- **时间**：约公元前284年\n- **停留时间**：青年时期\n- **地点**：楚国上蔡（今河南省驻马店市上蔡县）\n- **事件**：出身于“闾巷布衣”，年轻时曾为郡小吏。\n- **意义**：李斯早年生活与思想启蒙之地，观“仓中鼠”与“厕中鼠”而悟出处世哲学，决心追求功名富贵。\n\n### 📍 重要地点：兰陵\n- **时间**：青年时期\n- **停留时间**：数年（存疑）\n- **地点**：楚国兰陵（今山东省临沂市兰陵县）\n- **事件**：拜著名儒学大师荀况为师，学习“帝王之术”。\n- **意义**：系统接受法家兼融儒家的思想训练，为其日后政治理念奠定基础，并结识韩非。\n\n### 📍 重要地点：咸阳\n- **时间**：约公元前247年 - 前237年\n- **停留时间**：初期约十年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：初入秦，为丞相吕不韦舍人，后任郎官，得以游说秦王嬴政。\n- **意义**：获得接近秦王的机会，提出“灭诸侯，成帝业，为天下一统”的战略，受到重用。\n\n### 📍 重要地点：咸阳（谏逐客）\n- **时间**：公元前237年\n- **停留时间**：事件发生于咸阳\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：秦王因郑国渠事件下“逐客令”，李斯上《谏逐客书》。\n- **意义**：成功说服秦王撤销逐客令，巩固了自己在秦的政治地位，也保留了秦国吸纳天下人才的优势。\n- **名篇名句**：《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”\n\n### 📍 重要地点：咸阳（参与统一战争决策）\n- **时间**：公元前236年 - 前221年\n- **停留时间**：约15年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：官至廷尉，参与制定统一六国的战略，实施离间计等。\n- **意义**：作为核心决策层成员，为秦统一战争的胜利提供了关键谋略。\n\n### 📍 重要地点：咸阳（秦朝建立后的制度设计）\n- **时间**：公元前221年 - 前213年\n- **停留时间**：约8年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：任丞相，力主郡县制，反对分封；主持统一文字（小篆）、货币、度量衡；参与制定《秦律》。\n- **意义**：将政治理念付诸实践，奠定了中国两千多年中央集权制度的基本框架，影响极其深远。\n- **名篇名句**：《泰山刻石文》（传为李斯手笔）：“皇帝临位，作制明法，臣下修饬。”\n\n### 📍 重要地点：沙丘平台\n- **时间**：公元前210年\n- **停留时间**：短暂\n- **地点**：沙丘平台（今河北省邢台市广宗县）\n- **事件**：秦始皇于巡游途中病逝，李斯在赵高胁迫与利诱下，合谋篡改遗诏，赐死扶苏，立胡亥为帝（沙丘之变）。\n- **意义**：李斯政治生涯的转折点，此举直接导致秦朝政局急剧恶化，为其个人悲剧埋下祸根。\n\n### 📍 重要地点：咸阳（赵高弄权与李斯失势）\n- **时间**：公元前209年 - 前208年\n- **停留时间**：约2年\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：秦二世胡亥即位后，赵高独揽大权，李斯为保爵位一度迎合，后多次进谏遭二世疏远，并被赵高诬陷谋反。\n- **意义**：与赵高的权力斗争失败，身陷囹圄。\n\n### 🔴 去世地：咸阳\n- **时间**：公元前208年\n- **停留时间**：生命最后阶段\n- **地点**：秦都咸阳（今陕西省咸阳市）\n- **事件**：被赵高诬陷，经严刑拷打后认罪，被判处“具五刑”，腰斩于市，夷灭三族。\n- **意义**：作为秦朝开国元勋，落得极为惨烈的结局，标志着秦法家政治的残酷性与内部崩溃。\n- **名篇名句**：临刑前对儿子感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前284年 | 上蔡 | 河南省驻马店市上蔡县 | （年龄（约）：0）生于楚国上蔡。 |\n| 青年时期 | 兰陵 | 山东省临沂市兰陵县 | 为郡小吏，后赴兰陵师从荀子。 |\n| 约前247年 |  |  | （年龄（约）：约37岁）西入秦，初为吕不韦舍人。 |\n| 约前237年 | 咸阳（谏逐客） | 陕西省咸阳市 | （年龄（约）：约47岁）上《谏逐客书》，使秦王撤销逐客令。 |\n| 前236-前221年 |  |  | （年龄（约）：约48-63岁）任廷尉，辅佐秦王嬴政统一六国。 |\n| 前221年 |  |  | （年龄（约）：约63岁）秦朝建立，任丞相，力主郡县制，参与统一制度设计。 |\n| 前213年 |  |  | （年龄（约）：约71岁）建议秦始皇“焚书”。 |\n| 前210年 |  |  | （年龄（约）：约74岁）秦始皇卒于沙丘，李斯参与“沙丘之变”，篡改遗诏。 |\n| 前209年 |  |  | （年龄（约）：约75岁）秦二世即位，赵高弄权，李斯逐渐失势。 |\n| 前208年 | 咸阳 | 陕西省咸阳市 | （年龄（约）：约76岁）被赵高诬陷谋反，具五刑，腰斩于咸阳，夷三族。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《谏逐客书》**（节选入多种高中语文教材）\n- 核心要点：\n    - **重点**：文章以**纳客**与**逐客**对举，论证“**王者不却众庶**”才能成就大业的核心观点。\n    - 运用大量**铺陈**、**排比**和**类比**（如以秦王好异国之色乐珠玉类比应纳异国之人才），气势充沛，极具说服力。\n    - **重点**：体现了**法家**务实功利的人才观与政治策略，是古代**奏议文**的典范。\n    - 文章逻辑严密，从**历史**（穆公、孝公等用客卿之功）、**现实**（秦王好异国物产）、**理论**（泰山河海之喻）多角度论证。\n    - **重点**：名句“**是以泰山不让土壤，故能成其大；河海不择细流，故能就其深**”常被引用，强调包容开放的重要性。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：李斯是**秦始皇**推行**郡县制**、建立**中央集权**体制的主要支持者和执行者。\n    - 主持“**书同文**”，统一文字为**小篆**（后发展出隶书），对中华文化统一与传承有不可磨灭的贡献。\n    - 参与统一**货币**、**度量衡**和**车轨**，促进全国经济交流与政令畅通。\n    - **重点**：秦始皇死后，李斯与赵高合谋发动“沙丘之变”，矫诏立**胡亥**为帝，赐死**扶苏**与**蒙恬**，是秦朝迅速灭亡的关键转折点。\n- 核心要点：\n    - **重点**：李斯是**战国末期至秦朝**最具代表性的**法家**政治家之一，其政治实践将法家理论推向顶峰，也暴露了其严刑峻法、刻薄寡恩的弊端。\n    - 他的一生体现了**布衣卿相**的传奇与**权力斗争**的残酷，其个人结局（**具五刑**、**腰斩**）极具悲剧色彩。\n    - **重点**：对李斯的评价历来复杂：一方面肯定其**统一之功**与**制度创建**之绩；另一方面批判其**焚书**之议、**沙丘之谋**的道德污点与政治短视。\n    - 他与**韩非**同为荀子学生，但将法家思想付诸实践，其命运也与秦帝国的兴亡紧密相连。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省驻马店市上蔡县 | 33.2637 | 114.2643 |\n| 山东省临沂市兰陵县 | 34.8573 | 118.0706 |\n| 陕西省咸阳市 | 34.3296 | 108.7086 |\n| 河北省邢台市广宗县 | 37.0746 | 115.1428 |", "relatedGraph": {"center": {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "赵高", "name": "赵高", "file": "赵高.html", "dynasty": "秦朝", "aliases": [], "birth_year": -210, "death_year": -210, "quote": "赵高本赵国宗族后裔，入秦宫后为宦官", "review": "", "foreign_name": "", "main_role_label": "秦二世丞相", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "蒙恬", "name": "蒙恬", "file": "蒙恬.html", "dynasty": "秦朝", "aliases": [], "birth_year": -244, "death_year": -210, "quote": "千古第一笔——改良毛笔，功在千秋（后世民间评价，存疑）。", "review": "", "foreign_name": "", "main_role_label": "秦国将领", "birthplace": "出身于秦国将门", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "李斯", "target": "赵高", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "秦始皇", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "荀子", "label": "师生", "confidence": null}, {"source": "李斯", "target": "蒙恬", "label": "君臣", "confidence": null}, {"source": "李斯", "target": "韩非子", "label": "同时代人物", "confidence": null}, {"source": "李斯", "target": "屈原", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:30Z", "generated_at": "2026-06-25T07:13:30Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:28Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:30Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

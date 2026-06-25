@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "余书芬", "title": "三绝", "description": "据称，余书芬生活在清代乾嘉盛世。他出身于书香门第，自幼习文，但未走科举仕途，选择以布衣身份游历、创作。其一生主要活动于江浙一带，与当地文人交往密切（存疑）。晚年归隐杭州，潜心艺术（存疑）。", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "shortReview": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "dynasty": "清代（乾隆至嘉庆年间）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江绍兴府山阴县（今浙江省绍兴市）", "avatar": "", "birth": {"date": "1755年", "location": "浙江绍兴府山阴县（今浙江省绍兴市）", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84"}, "death": {"date": "1815年", "location": "卒于浙江杭州府钱塘县（今浙江省杭州市）", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84"}, "lifespan": "约60岁（存疑）", "highlights": {"honor": "三绝", "status": "据称为乾嘉时期江南地区有一定影响力的布衣文人，以诗书画“三绝”著称于乡里（存疑）。", "identities": "诗人、书画家、地方文人（存疑）", "achievements": "据称创作了大量描绘江南风物的诗篇；书法承袭帖学，画作以山水小品见长；参与地方文人雅集（存疑）。", "works": [], "reviews": ["据《绍兴府志》（存疑/说法不一）记载：“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”", "据后世地方文史研究者（存疑/说法不一）称：“余氏艺术虽未臻大家之列，然其作品真挚清新，是窥探乾嘉时期江南市井文人精神世界的一扇小窗。”", "据现代学者（存疑/说法不一）称：“余书芬的个案表明，清代艺术史的丰富性不仅在于大师巨匠，更在于无数像他这样默默耕耘的地方文人。”"]}}, "locations": [{"name": "山阴县", "ancientName": "山阴县", "modernName": "浙江省绍兴市", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84", "type": "birth", "event": "据称出生于书香之家，接受传统蒙学教育，开始习诗练字（存疑）。", "time": "约1755年（存疑）", "duration": "童年至青年时期（约前20年）（存疑）", "significance": "据称为其文化启蒙之地（存疑）。", "works": [], "quoteLines": []}, {"name": "杭州西湖", "ancientName": "杭州西湖", "modernName": "浙江省杭州市西湖区", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "normal", "event": "据称结交杭城文人，参与湖畔诗会，创作大量西湖题材诗画（存疑）。", "time": "约1775-1785年（存疑）", "duration": "青年游学时期，多次往返（存疑）", "significance": "据称为其艺术风格成熟之地（存疑）。", "works": [], "quoteLines": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"]}, {"name": "嘉兴南湖", "ancientName": "嘉兴南湖", "modernName": "浙江省嘉兴市南湖区", "lat": 30.7, "lng": 120.7, "coordSystem": "WGS84", "type": "normal", "event": "据称访友期间，泛舟南湖，即景赋诗（存疑）。", "time": "约1790年（存疑）", "duration": "短期游历（存疑）", "significance": "据称丰富了其江南水乡的创作意象（存疑）。", "works": [], "quoteLines": ["据称为《南湖秋泛》（存疑）。"]}, {"name": "苏州拙政园", "ancientName": "拙政园", "modernName": "江苏省苏州市姑苏区", "lat": 31.3, "lng": 120.6, "coordSystem": "WGS84", "type": "normal", "event": "据称受园主之邀，于园中作画题诗，与苏州文人交流艺事（存疑）。", "time": "约1795年（存疑）", "duration": "客居数月（存疑）", "significance": "据称接触到了更为精致的园林艺术与收藏（存疑）。", "works": [], "quoteLines": ["据称为《拙政园小憩》（存疑）。"]}, {"name": "绍兴兰亭", "ancientName": "兰亭", "modernName": "浙江省绍兴市柯桥区", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84", "type": "normal", "event": "据称追慕王羲之风雅，于兰亭雅集故地挥毫（存疑）。", "time": "约1800年（存疑）", "duration": "返乡祭祖期间游览（存疑）", "significance": "据称强化了其书法艺术中对晋韵的追求（存疑）。", "works": [], "quoteLines": ["据称为《兰亭怀古》（存疑）。"]}, {"name": "杭州孤山", "ancientName": "孤山", "modernName": "浙江省杭州市西湖区", "lat": 30.2, "lng": 120.2, "coordSystem": "WGS84", "type": "normal", "event": "据称筑“雪汀小筑”隐居，以卖字画为生，整理毕生诗稿（存疑）。", "time": "约1805-1815年（存疑）", "duration": "晚年主要居住地（存疑）", "significance": "据称为其艺术创作的总结期（存疑）。", "works": [], "quoteLines": ["据称为《孤山夜坐》（存疑）。"]}, {"name": "钱塘县寓所", "ancientName": "钱塘县", "modernName": "浙江省杭州市", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "normal", "event": "据称在此地病逝，友人整理其遗作（存疑）。", "time": "约1810-1815年（存疑）", "duration": "生命最后几年（存疑）", "significance": "据称为其人生终点（存疑）。", "works": [], "quoteLines": []}, {"name": "钱塘县", "ancientName": "钱塘县", "modernName": "浙江省杭州市", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "death", "event": "据称晚年贫病交加，于寓所中安然离世，友人资助丧葬（存疑）。", "time": "约1815年（存疑）", "duration": "晚年直至去世（存疑）", "significance": "据称为其一生漂泊的终点（存疑）。", "works": [], "quoteLines": ["据称为《临终口占》（存疑）。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**清代中期**（乾嘉时期），社会相对稳定，**江南经济文化繁荣**。\n- **关键事件/贡献**：作为**地方文人**的代表（存疑），其生平反映了当时**布衣阶层**的文化活动（存疑）。\n- **代表作品/思想**：诗画作品多描绘**江南水乡**风光（存疑），体现**隐逸情怀**与**文人雅趣**（存疑）。\n- **常见易混点/对比点**：与同时期**宫廷画家**或**主流文人**（如“扬州八怪”）的艺术追求和生存状态不同（存疑）。\n\n### 高中阶段\n- **时代背景**：处于**考据学兴盛**、**文字狱**高压下的文化环境，文人转向艺术与考据。\n- **关键事件/贡献**：其艺术生涯是**乾嘉文化生态**的一个微观体现（存疑），展示了**非仕途文人**的生存与创作路径（存疑）。\n- **代表作品/思想**：艺术上追求**诗书画“三绝”**（存疑），风格**清新淡雅**（存疑），是**帖学书法**与**文人画**传统在地方的延续（存疑）。\n- **常见易混点/对比点**：可与**袁枚**的“性灵说”在地方上的影响进行对比思考（存疑）；其艺术成就与**职业画家**有本质区别（存疑）。\n\n---", "examPoints": "### 初中阶段考点\n- 清代**乾嘉时期**的社会文化特征。\n- **江南地区**在清代经济文化中的地位。\n- **布衣文人**（或称“山人”）群体的基本生活与创作状态（存疑）。\n- **诗、书、画**相结合的中国传统文人艺术特点。\n- （存疑）余书芬作为**地方文化代表**的个案意义（存疑）。\n\n### 高中阶段考点\n- **乾嘉学派**（考据学）兴起对文人精神世界的影响。\n- 清代**文字狱**背景下文人的生存策略与艺术转向。\n- **文人画**的审美标准与创作理念（如“逸品”追求）。\n- 清代**地域文化**（如江南文化）的多样性与复杂性。\n- （存疑）如何评价**非主流、非名家**文人在艺术史与文化史中的价值（存疑）。", "workTexts": {"南湖秋泛": "名篇名句：据称为《南湖秋泛》（存疑）。", "拙政园小憩": "名篇名句：据称为《拙政园小憩》（存疑）。", "兰亭怀古": "名篇名句：据称为《兰亭怀古》（存疑）。", "孤山夜坐": "名篇名句：据称为《孤山夜坐》（存疑）。", "临终口占": "名篇名句：据称为《临终口占》（存疑）。", "绍兴府志": "“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”"}, "workSummaries": {"西湖春晓": {"title": "西湖春晓", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "据称，余书芬生活在清代乾嘉盛世", "summary": "据称，余书芬生活在清代乾嘉盛世", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "quotes": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"], "quote_policy": "preferred"}, "湖上偶成": {"title": "湖上偶成", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "据称，余书芬生活在清代乾嘉盛世", "summary": "据称，余书芬生活在清代乾嘉盛世", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "quotes": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"], "quote_policy": "preferred"}, "南湖秋泛": {"title": "南湖秋泛", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《南湖秋泛》（存疑）。", "summary": "名篇名句：据称为《南湖秋泛》（存疑）。", "quote": "据称为《南湖秋泛》（存疑）。", "quotes": ["据称为《南湖秋泛》（存疑）。"], "quote_policy": "preferred"}, "拙政园小憩": {"title": "拙政园小憩", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《拙政园小憩》（存疑）。", "summary": "名篇名句：据称为《拙政园小憩》（存疑）。", "quote": "据称为《拙政园小憩》（存疑）。", "quotes": ["据称为《拙政园小憩》（存疑）。"], "quote_policy": "preferred"}, "兰亭怀古": {"title": "兰亭怀古", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《兰亭怀古》（存疑）。", "summary": "名篇名句：据称为《兰亭怀古》（存疑）。", "quote": "据称为《兰亭怀古》（存疑）。", "quotes": ["据称为《兰亭怀古》（存疑）。"], "quote_policy": "preferred"}, "孤山夜坐": {"title": "孤山夜坐", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《孤山夜坐》（存疑）。", "summary": "名篇名句：据称为《孤山夜坐》（存疑）。", "quote": "据称为《孤山夜坐》（存疑）。", "quotes": ["据称为《孤山夜坐》（存疑）。"], "quote_policy": "preferred"}, "临终口占": {"title": "临终口占", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《临终口占》（存疑）。", "summary": "名篇名句：据称为《临终口占》（存疑）。", "quote": "据称为《临终口占》（存疑）。", "quotes": ["据称为《临终口占》（存疑）。"], "quote_policy": "preferred"}, "绍兴府志": {"title": "绍兴府志", "aliases": [], "authors": [], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "", "genre": "史志", "one_liner": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "summary": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 余书芬（字兰谷，号雪汀）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：余书芬（字兰谷，号雪汀）\n- **时代**：清代（乾隆至嘉庆年间）\n- **出生**：约乾隆二十年（1755年），生于浙江绍兴府山阴县（今浙江省绍兴市）（存疑）\n- **去世**：约嘉庆二十年（1815年），卒于浙江杭州府钱塘县（今浙江省杭州市）（存疑）\n- **享年**：约60岁（存疑）\n- **主要身份**：诗人、书画家、地方文人（存疑）\n- **历史地位**：据称为乾嘉时期江南地区有一定影响力的布衣文人，以诗书画“三绝”著称于乡里（存疑）。\n- **主要成就**：据称创作了大量描绘江南风物的诗篇；书法承袭帖学，画作以山水小品见长；参与地方文人雅集（存疑）。\n\n### 生平概述\n据称，余书芬生活在清代乾嘉盛世。他出身于书香门第，自幼习文，但未走科举仕途，选择以布衣身份游历、创作。其一生主要活动于江浙一带，与当地文人交往密切（存疑）。晚年归隐杭州，潜心艺术（存疑）。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：据称一生足迹主要环绕浙江杭州、绍兴及周边江南城镇（存疑）。\n- ⏱️ **时间跨度**：约1755年至1815年，总跨度约60年（存疑）。\n- 📍 **地理范围**：以今浙江省为核心，涉及杭州、绍兴、嘉兴、苏州等地（存疑）。\n- 🌟 **重要节点数量**：8个核心地点（存疑）。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：山阴县\n- **公元纪年**：约1755年（存疑）\n- **停留时间**：童年至青年时期（约前20年）（存疑）\n- **位置**：山阴县（今浙江省绍兴市）\n- **事迹**：据称出生于书香之家，接受传统蒙学教育，开始习诗练字（存疑）。\n- **意义**：据称为其文化启蒙之地（存疑）。\n\n### 📍 重要地点：杭州西湖\n- **公元纪年**：约1775-1785年（存疑）\n- **停留时间**：青年游学时期，多次往返（存疑）\n- **位置**：杭州西湖（今浙江省杭州市西湖区）\n- **事迹**：据称结交杭城文人，参与湖畔诗会，创作大量西湖题材诗画（存疑）。\n- **意义**：据称为其艺术风格成熟之地（存疑）。\n- **名篇名句**：据称为《西湖春晓》、《湖上偶成》等（存疑）。\n\n### 📍 重要地点：嘉兴南湖\n- **公元纪年**：约1790年（存疑）\n- **停留时间**：短期游历（存疑）\n- **位置**：嘉兴南湖（今浙江省嘉兴市南湖区）\n- **事迹**：据称访友期间，泛舟南湖，即景赋诗（存疑）。\n- **意义**：据称丰富了其江南水乡的创作意象（存疑）。\n- **名篇名句**：据称为《南湖秋泛》（存疑）。\n\n### 📍 重要地点：苏州拙政园\n- **公元纪年**：约1795年（存疑）\n- **停留时间**：客居数月（存疑）\n- **位置**：拙政园（今江苏省苏州市姑苏区）\n- **事迹**：据称受园主之邀，于园中作画题诗，与苏州文人交流艺事（存疑）。\n- **意义**：据称接触到了更为精致的园林艺术与收藏（存疑）。\n- **名篇名句**：据称为《拙政园小憩》（存疑）。\n\n### 📍 重要地点：绍兴兰亭\n- **公元纪年**：约1800年（存疑）\n- **停留时间**：返乡祭祖期间游览（存疑）\n- **位置**：兰亭（今浙江省绍兴市柯桥区）\n- **事迹**：据称追慕王羲之风雅，于兰亭雅集故地挥毫（存疑）。\n- **意义**：据称强化了其书法艺术中对晋韵的追求（存疑）。\n- **名篇名句**：据称为《兰亭怀古》（存疑）。\n\n### 📍 重要地点：杭州孤山\n- **公元纪年**：约1805-1815年（存疑）\n- **停留时间**：晚年主要居住地（存疑）\n- **位置**：孤山（今浙江省杭州市西湖区）\n- **事迹**：据称筑“雪汀小筑”隐居，以卖字画为生，整理毕生诗稿（存疑）。\n- **意义**：据称为其艺术创作的总结期（存疑）。\n- **名篇名句**：据称为《孤山夜坐》（存疑）。\n\n### 📍 重要地点：钱塘县寓所\n- **公元纪年**：约1810-1815年（存疑）\n- **停留时间**：生命最后几年（存疑）\n- **位置**：钱塘县（今浙江省杭州市）\n- **事迹**：据称在此地病逝，友人整理其遗作（存疑）。\n- **意义**：据称为其人生终点（存疑）。\n\n### 🔴 去世地：钱塘县\n- **公元纪年**：约1815年（存疑）\n- **停留时间**：晚年直至去世（存疑）\n- **位置**：钱塘县（今浙江省杭州市）\n- **经过**：据称晚年贫病交加，于寓所中安然离世，友人资助丧葬（存疑）。\n- **意义**：据称为其一生漂泊的终点（存疑）。\n- **名篇名句**：据称为《临终口占》（存疑）。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约1755年 | 山阴县 | 浙江省绍兴市 | （年龄：0岁）据称出生于浙江山阴县（存疑）。 |\n| 约1770年 |  |  | （年龄：15岁）据称完成基础教育，开始系统学习诗文书画（存疑）。 |\n| 约1775年 |  |  | （年龄：20岁）据称初次赴杭州，游历西湖，结交文人（存疑）。 |\n| 约1785年 |  |  | （年龄：30岁）据称诗画风格初成，在地方文人圈中崭露头角（存疑）。 |\n| 约1790年 |  |  | （年龄：35岁）据称游历嘉兴、苏州等地，艺术视野进一步开阔（存疑）。 |\n| 约1795年 |  |  | （年龄：40岁）据称客居苏州，受园林艺术熏陶（存疑）。 |\n| 约1800年 | 绍兴兰亭 | 浙江省绍兴市柯桥区 | （年龄：45岁）据称返回绍兴，祭祖并游览兰亭（存疑）。 |\n| 约1805年 | 杭州孤山 | 浙江省杭州市西湖区 | （年龄：50岁）据称定居杭州孤山，开始隐居生活（存疑）。 |\n| 约1810年 |  |  | （年龄：55岁）据称晚年生活清贫，但仍坚持创作（存疑）。 |\n| 约1815年 | 钱塘县 | 浙江省杭州市 | （年龄：60岁）据称病逝于杭州钱塘县寓所（存疑）。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n据称，余书芬作为乾嘉时期江南布衣文人的代表之一，其诗画作品在地方上流传，丰富了当时江南地区的文化艺术生态（存疑）。\n\n### 对后世的影响\n- 据称其诗画作品为研究清代江南地域文化、文人日常生活提供了珍贵的个案资料（存疑）。\n- 据称其“诗画一体”的创作实践，体现了中国传统文人艺术的典型特征（存疑）。\n\n### 历史评价\n- 据《绍兴府志》（存疑/说法不一）记载：“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”\n- 据后世地方文史研究者（存疑/说法不一）称：“余氏艺术虽未臻大家之列，然其作品真挚清新，是窥探乾嘉时期江南市井文人精神世界的一扇小窗。”\n- 据现代学者（存疑/说法不一）称：“余书芬的个案表明，清代艺术史的丰富性不仅在于大师巨匠，更在于无数像他这样默默耕耘的地方文人。”\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**清代中期**（乾嘉时期），社会相对稳定，**江南经济文化繁荣**。\n- **关键事件/贡献**：作为**地方文人**的代表（存疑），其生平反映了当时**布衣阶层**的文化活动（存疑）。\n- **代表作品/思想**：诗画作品多描绘**江南水乡**风光（存疑），体现**隐逸情怀**与**文人雅趣**（存疑）。\n- **常见易混点/对比点**：与同时期**宫廷画家**或**主流文人**（如“扬州八怪”）的艺术追求和生存状态不同（存疑）。\n\n### 高中阶段\n- **时代背景**：处于**考据学兴盛**、**文字狱**高压下的文化环境，文人转向艺术与考据。\n- **关键事件/贡献**：其艺术生涯是**乾嘉文化生态**的一个微观体现（存疑），展示了**非仕途文人**的生存与创作路径（存疑）。\n- **代表作品/思想**：艺术上追求**诗书画“三绝”**（存疑），风格**清新淡雅**（存疑），是**帖学书法**与**文人画**传统在地方的延续（存疑）。\n- **常见易混点/对比点**：可与**袁枚**的“性灵说”在地方上的影响进行对比思考（存疑）；其艺术成就与**职业画家**有本质区别（存疑）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 清代**乾嘉时期**的社会文化特征。\n- **江南地区**在清代经济文化中的地位。\n- **布衣文人**（或称“山人”）群体的基本生活与创作状态（存疑）。\n- **诗、书、画**相结合的中国传统文人艺术特点。\n- （存疑）余书芬作为**地方文化代表**的个案意义（存疑）。\n\n### 高中阶段考点\n- **乾嘉学派**（考据学）兴起对文人精神世界的影响。\n- 清代**文字狱**背景下文人的生存策略与艺术转向。\n- **文人画**的审美标准与创作理念（如“逸品”追求）。\n- 清代**地域文化**（如江南文化）的多样性与复杂性。\n- （存疑）如何评价**非主流、非名家**文人在艺术史与文化史中的价值（存疑）。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 山阴县 | 浙江省绍兴市 | 30.0 | 120.5 |\n| 杭州西湖 | 浙江省杭州市西湖区 | 30.2 | 120.1 |\n| 嘉兴南湖 | 浙江省嘉兴市南湖区 | 30.7 | 120.7 |\n| 苏州拙政园 | 江苏省苏州市姑苏区 | 31.3 | 120.6 |\n| 绍兴兰亭 | 浙江省绍兴市柯桥区 | 30.0 | 120.5 |\n| 杭州孤山 | 浙江省杭州市西湖区 | 30.2 | 120.2 |\n| 钱塘县 | 浙江省杭州市 | 30.2 | 120.1 |", "relatedGraph": {"center": {"id": "余书芬（字兰谷，号雪汀）", "name": "余书芬（字兰谷，号雪汀）", "file": "余书芬.html", "dynasty": "清代（乾隆至嘉庆年间）", "aliases": ["余书芬"], "birth_year": 1755, "death_year": 1815, "quote": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "review": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "浙江绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "余书芬（字兰谷，号雪汀）", "name": "余书芬（字兰谷，号雪汀）", "file": "余书芬.html", "dynasty": "清代（乾隆至嘉庆年间）", "aliases": ["余书芬"], "birth_year": 1755, "death_year": 1815, "quote": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "review": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "浙江绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "乞食山僧庙，缝衣歌妓家", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "江山代有才人出，各领风骚数百年", "review": "", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "到处歌楼到处花，塞垣此地擅繁华。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "锦衣纨绔、饫甘餍肥", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁织造府今江苏省南京市玄武区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "姚鼐", "name": "姚鼐", "file": "姚鼐.html", "dynasty": "清代", "aliases": [], "birth_year": 1731, "death_year": 1815, "quote": "义理、考据、辞章", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "安徽省安庆市枞阳县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "余书芬（字兰谷，号雪汀）", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "赵翼", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "纪昀", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "曹雪芹", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "姚鼐", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:10Z", "generated_at": "2026-06-22T11:31:10Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "余书芬", "title": "三绝", "description": "据称，余书芬生活在清代乾嘉盛世。他出身于书香门第，自幼习文，但未走科举仕途，选择以布衣身份游历、创作。其一生主要活动于江浙一带，与当地文人交往密切（存疑）。晚年归隐杭州，潜心艺术（存疑）。", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "shortReview": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "dynasty": "清代（乾隆至嘉庆年间）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "浙江绍兴府山阴县（今浙江省绍兴市）", "avatar": "", "birth": {"date": "1755年", "location": "浙江绍兴府山阴县（今浙江省绍兴市）", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84"}, "death": {"date": "1815年", "location": "卒于浙江杭州府钱塘县（今浙江省杭州市）", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84"}, "lifespan": "约60岁（存疑）", "highlights": {"honor": "三绝", "status": "据称为乾嘉时期江南地区有一定影响力的布衣文人，以诗书画“三绝”著称于乡里（存疑）。", "identities": "诗人、书画家、地方文人（存疑）", "achievements": "据称创作了大量描绘江南风物的诗篇；书法承袭帖学，画作以山水小品见长；参与地方文人雅集（存疑）。", "works": [], "reviews": ["据《绍兴府志》（存疑/说法不一）记载：“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”", "据后世地方文史研究者（存疑/说法不一）称：“余氏艺术虽未臻大家之列，然其作品真挚清新，是窥探乾嘉时期江南市井文人精神世界的一扇小窗。”", "据现代学者（存疑/说法不一）称：“余书芬的个案表明，清代艺术史的丰富性不仅在于大师巨匠，更在于无数像他这样默默耕耘的地方文人。”"]}}, "locations": [{"name": "山阴县", "ancientName": "山阴县", "modernName": "浙江省绍兴市", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84", "type": "birth", "event": "据称出生于书香之家，接受传统蒙学教育，开始习诗练字（存疑）。", "time": "约1755年（存疑）", "duration": "童年至青年时期（约前20年）（存疑）", "significance": "据称为其文化启蒙之地（存疑）。", "works": [], "quoteLines": []}, {"name": "杭州西湖", "ancientName": "杭州西湖", "modernName": "浙江省杭州市西湖区", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "normal", "event": "据称结交杭城文人，参与湖畔诗会，创作大量西湖题材诗画（存疑）。", "time": "约1775-1785年（存疑）", "duration": "青年游学时期，多次往返（存疑）", "significance": "据称为其艺术风格成熟之地（存疑）。", "works": [], "quoteLines": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"]}, {"name": "嘉兴南湖", "ancientName": "嘉兴南湖", "modernName": "浙江省嘉兴市南湖区", "lat": 30.7, "lng": 120.7, "coordSystem": "WGS84", "type": "normal", "event": "据称访友期间，泛舟南湖，即景赋诗（存疑）。", "time": "约1790年（存疑）", "duration": "短期游历（存疑）", "significance": "据称丰富了其江南水乡的创作意象（存疑）。", "works": [], "quoteLines": ["据称为《南湖秋泛》（存疑）。"]}, {"name": "苏州拙政园", "ancientName": "拙政园", "modernName": "江苏省苏州市姑苏区", "lat": 31.3, "lng": 120.6, "coordSystem": "WGS84", "type": "normal", "event": "据称受园主之邀，于园中作画题诗，与苏州文人交流艺事（存疑）。", "time": "约1795年（存疑）", "duration": "客居数月（存疑）", "significance": "据称接触到了更为精致的园林艺术与收藏（存疑）。", "works": [], "quoteLines": ["据称为《拙政园小憩》（存疑）。"]}, {"name": "绍兴兰亭", "ancientName": "兰亭", "modernName": "浙江省绍兴市柯桥区", "lat": 30.0, "lng": 120.5, "coordSystem": "WGS84", "type": "normal", "event": "据称追慕王羲之风雅，于兰亭雅集故地挥毫（存疑）。", "time": "约1800年（存疑）", "duration": "返乡祭祖期间游览（存疑）", "significance": "据称强化了其书法艺术中对晋韵的追求（存疑）。", "works": [], "quoteLines": ["据称为《兰亭怀古》（存疑）。"]}, {"name": "杭州孤山", "ancientName": "孤山", "modernName": "浙江省杭州市西湖区", "lat": 30.2, "lng": 120.2, "coordSystem": "WGS84", "type": "normal", "event": "据称筑“雪汀小筑”隐居，以卖字画为生，整理毕生诗稿（存疑）。", "time": "约1805-1815年（存疑）", "duration": "晚年主要居住地（存疑）", "significance": "据称为其艺术创作的总结期（存疑）。", "works": [], "quoteLines": ["据称为《孤山夜坐》（存疑）。"]}, {"name": "钱塘县寓所", "ancientName": "钱塘县", "modernName": "浙江省杭州市", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "normal", "event": "据称在此地病逝，友人整理其遗作（存疑）。", "time": "约1810-1815年（存疑）", "duration": "生命最后几年（存疑）", "significance": "据称为其人生终点（存疑）。", "works": [], "quoteLines": []}, {"name": "钱塘县", "ancientName": "钱塘县", "modernName": "浙江省杭州市", "lat": 30.2, "lng": 120.1, "coordSystem": "WGS84", "type": "death", "event": "据称晚年贫病交加，于寓所中安然离世，友人资助丧葬（存疑）。", "time": "约1815年（存疑）", "duration": "晚年直至去世（存疑）", "significance": "据称为其一生漂泊的终点（存疑）。", "works": [], "quoteLines": ["据称为《临终口占》（存疑）。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**清代中期**（乾嘉时期），社会相对稳定，**江南经济文化繁荣**。\n- **关键事件/贡献**：作为**地方文人**的代表（存疑），其生平反映了当时**布衣阶层**的文化活动（存疑）。\n- **代表作品/思想**：诗画作品多描绘**江南水乡**风光（存疑），体现**隐逸情怀**与**文人雅趣**（存疑）。\n- **常见易混点/对比点**：与同时期**宫廷画家**或**主流文人**（如“扬州八怪”）的艺术追求和生存状态不同（存疑）。\n\n### 高中阶段\n- **时代背景**：处于**考据学兴盛**、**文字狱**高压下的文化环境，文人转向艺术与考据。\n- **关键事件/贡献**：其艺术生涯是**乾嘉文化生态**的一个微观体现（存疑），展示了**非仕途文人**的生存与创作路径（存疑）。\n- **代表作品/思想**：艺术上追求**诗书画“三绝”**（存疑），风格**清新淡雅**（存疑），是**帖学书法**与**文人画**传统在地方的延续（存疑）。\n- **常见易混点/对比点**：可与**袁枚**的“性灵说”在地方上的影响进行对比思考（存疑）；其艺术成就与**职业画家**有本质区别（存疑）。\n\n---", "examPoints": "### 初中阶段考点\n- 清代**乾嘉时期**的社会文化特征。\n- **江南地区**在清代经济文化中的地位。\n- **布衣文人**（或称“山人”）群体的基本生活与创作状态（存疑）。\n- **诗、书、画**相结合的中国传统文人艺术特点。\n- （存疑）余书芬作为**地方文化代表**的个案意义（存疑）。\n\n### 高中阶段考点\n- **乾嘉学派**（考据学）兴起对文人精神世界的影响。\n- 清代**文字狱**背景下文人的生存策略与艺术转向。\n- **文人画**的审美标准与创作理念（如“逸品”追求）。\n- 清代**地域文化**（如江南文化）的多样性与复杂性。\n- （存疑）如何评价**非主流、非名家**文人在艺术史与文化史中的价值（存疑）。", "workTexts": {"南湖秋泛": "名篇名句：据称为《南湖秋泛》（存疑）。", "拙政园小憩": "名篇名句：据称为《拙政园小憩》（存疑）。", "兰亭怀古": "名篇名句：据称为《兰亭怀古》（存疑）。", "孤山夜坐": "名篇名句：据称为《孤山夜坐》（存疑）。", "临终口占": "名篇名句：据称为《临终口占》（存疑）。", "绍兴府志": "“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”"}, "workSummaries": {"西湖春晓": {"title": "西湖春晓", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "据称，余书芬生活在清代乾嘉盛世", "summary": "据称，余书芬生活在清代乾嘉盛世", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "quotes": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"], "quote_policy": "preferred"}, "湖上偶成": {"title": "湖上偶成", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "据称，余书芬生活在清代乾嘉盛世", "summary": "据称，余书芬生活在清代乾嘉盛世", "quote": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "quotes": ["据称为《西湖春晓》、《湖上偶成》等（存疑）。"], "quote_policy": "preferred"}, "南湖秋泛": {"title": "南湖秋泛", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《南湖秋泛》（存疑）。", "summary": "名篇名句：据称为《南湖秋泛》（存疑）。", "quote": "据称为《南湖秋泛》（存疑）。", "quotes": ["据称为《南湖秋泛》（存疑）。"], "quote_policy": "preferred"}, "拙政园小憩": {"title": "拙政园小憩", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《拙政园小憩》（存疑）。", "summary": "名篇名句：据称为《拙政园小憩》（存疑）。", "quote": "据称为《拙政园小憩》（存疑）。", "quotes": ["据称为《拙政园小憩》（存疑）。"], "quote_policy": "preferred"}, "兰亭怀古": {"title": "兰亭怀古", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《兰亭怀古》（存疑）。", "summary": "名篇名句：据称为《兰亭怀古》（存疑）。", "quote": "据称为《兰亭怀古》（存疑）。", "quotes": ["据称为《兰亭怀古》（存疑）。"], "quote_policy": "preferred"}, "孤山夜坐": {"title": "孤山夜坐", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《孤山夜坐》（存疑）。", "summary": "名篇名句：据称为《孤山夜坐》（存疑）。", "quote": "据称为《孤山夜坐》（存疑）。", "quotes": ["据称为《孤山夜坐》（存疑）。"], "quote_policy": "preferred"}, "临终口占": {"title": "临终口占", "aliases": [], "authors": ["余书芬"], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "清代（乾隆至嘉庆年间）", "genre": "", "one_liner": "名篇名句：据称为《临终口占》（存疑）。", "summary": "名篇名句：据称为《临终口占》（存疑）。", "quote": "据称为《临终口占》（存疑）。", "quotes": ["据称为《临终口占》（存疑）。"], "quote_policy": "preferred"}, "绍兴府志": {"title": "绍兴府志", "aliases": [], "authors": [], "related_people": ["余书芬"], "source_pages": ["余书芬"], "era": "", "genre": "史志", "one_liner": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "summary": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 余书芬（字兰谷，号雪汀）\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：余书芬（字兰谷，号雪汀）\n- **时代**：清代（乾隆至嘉庆年间）\n- **出生**：约乾隆二十年（1755年），生于浙江绍兴府山阴县（今浙江省绍兴市）（存疑）\n- **去世**：约嘉庆二十年（1815年），卒于浙江杭州府钱塘县（今浙江省杭州市）（存疑）\n- **享年**：约60岁（存疑）\n- **主要身份**：诗人、书画家、地方文人（存疑）\n- **历史地位**：据称为乾嘉时期江南地区有一定影响力的布衣文人，以诗书画“三绝”著称于乡里（存疑）。\n- **主要成就**：据称创作了大量描绘江南风物的诗篇；书法承袭帖学，画作以山水小品见长；参与地方文人雅集（存疑）。\n\n### 生平概述\n据称，余书芬生活在清代乾嘉盛世。他出身于书香门第，自幼习文，但未走科举仕途，选择以布衣身份游历、创作。其一生主要活动于江浙一带，与当地文人交往密切（存疑）。晚年归隐杭州，潜心艺术（存疑）。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：据称一生足迹主要环绕浙江杭州、绍兴及周边江南城镇（存疑）。\n- ⏱️ **时间跨度**：约1755年至1815年，总跨度约60年（存疑）。\n- 📍 **地理范围**：以今浙江省为核心，涉及杭州、绍兴、嘉兴、苏州等地（存疑）。\n- 🌟 **重要节点数量**：8个核心地点（存疑）。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：山阴县\n- **公元纪年**：约1755年（存疑）\n- **停留时间**：童年至青年时期（约前20年）（存疑）\n- **位置**：山阴县（今浙江省绍兴市）\n- **事迹**：据称出生于书香之家，接受传统蒙学教育，开始习诗练字（存疑）。\n- **意义**：据称为其文化启蒙之地（存疑）。\n\n### 📍 重要地点：杭州西湖\n- **公元纪年**：约1775-1785年（存疑）\n- **停留时间**：青年游学时期，多次往返（存疑）\n- **位置**：杭州西湖（今浙江省杭州市西湖区）\n- **事迹**：据称结交杭城文人，参与湖畔诗会，创作大量西湖题材诗画（存疑）。\n- **意义**：据称为其艺术风格成熟之地（存疑）。\n- **名篇名句**：据称为《西湖春晓》、《湖上偶成》等（存疑）。\n\n### 📍 重要地点：嘉兴南湖\n- **公元纪年**：约1790年（存疑）\n- **停留时间**：短期游历（存疑）\n- **位置**：嘉兴南湖（今浙江省嘉兴市南湖区）\n- **事迹**：据称访友期间，泛舟南湖，即景赋诗（存疑）。\n- **意义**：据称丰富了其江南水乡的创作意象（存疑）。\n- **名篇名句**：据称为《南湖秋泛》（存疑）。\n\n### 📍 重要地点：苏州拙政园\n- **公元纪年**：约1795年（存疑）\n- **停留时间**：客居数月（存疑）\n- **位置**：拙政园（今江苏省苏州市姑苏区）\n- **事迹**：据称受园主之邀，于园中作画题诗，与苏州文人交流艺事（存疑）。\n- **意义**：据称接触到了更为精致的园林艺术与收藏（存疑）。\n- **名篇名句**：据称为《拙政园小憩》（存疑）。\n\n### 📍 重要地点：绍兴兰亭\n- **公元纪年**：约1800年（存疑）\n- **停留时间**：返乡祭祖期间游览（存疑）\n- **位置**：兰亭（今浙江省绍兴市柯桥区）\n- **事迹**：据称追慕王羲之风雅，于兰亭雅集故地挥毫（存疑）。\n- **意义**：据称强化了其书法艺术中对晋韵的追求（存疑）。\n- **名篇名句**：据称为《兰亭怀古》（存疑）。\n\n### 📍 重要地点：杭州孤山\n- **公元纪年**：约1805-1815年（存疑）\n- **停留时间**：晚年主要居住地（存疑）\n- **位置**：孤山（今浙江省杭州市西湖区）\n- **事迹**：据称筑“雪汀小筑”隐居，以卖字画为生，整理毕生诗稿（存疑）。\n- **意义**：据称为其艺术创作的总结期（存疑）。\n- **名篇名句**：据称为《孤山夜坐》（存疑）。\n\n### 📍 重要地点：钱塘县寓所\n- **公元纪年**：约1810-1815年（存疑）\n- **停留时间**：生命最后几年（存疑）\n- **位置**：钱塘县（今浙江省杭州市）\n- **事迹**：据称在此地病逝，友人整理其遗作（存疑）。\n- **意义**：据称为其人生终点（存疑）。\n\n### 🔴 去世地：钱塘县\n- **公元纪年**：约1815年（存疑）\n- **停留时间**：晚年直至去世（存疑）\n- **位置**：钱塘县（今浙江省杭州市）\n- **经过**：据称晚年贫病交加，于寓所中安然离世，友人资助丧葬（存疑）。\n- **意义**：据称为其一生漂泊的终点（存疑）。\n- **名篇名句**：据称为《临终口占》（存疑）。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约1755年 | 山阴县 | 浙江省绍兴市 | （年龄：0岁）据称出生于浙江山阴县（存疑）。 |\n| 约1770年 |  |  | （年龄：15岁）据称完成基础教育，开始系统学习诗文书画（存疑）。 |\n| 约1775年 |  |  | （年龄：20岁）据称初次赴杭州，游历西湖，结交文人（存疑）。 |\n| 约1785年 |  |  | （年龄：30岁）据称诗画风格初成，在地方文人圈中崭露头角（存疑）。 |\n| 约1790年 |  |  | （年龄：35岁）据称游历嘉兴、苏州等地，艺术视野进一步开阔（存疑）。 |\n| 约1795年 |  |  | （年龄：40岁）据称客居苏州，受园林艺术熏陶（存疑）。 |\n| 约1800年 | 绍兴兰亭 | 浙江省绍兴市柯桥区 | （年龄：45岁）据称返回绍兴，祭祖并游览兰亭（存疑）。 |\n| 约1805年 | 杭州孤山 | 浙江省杭州市西湖区 | （年龄：50岁）据称定居杭州孤山，开始隐居生活（存疑）。 |\n| 约1810年 |  |  | （年龄：55岁）据称晚年生活清贫，但仍坚持创作（存疑）。 |\n| 约1815年 | 钱塘县 | 浙江省杭州市 | （年龄：60岁）据称病逝于杭州钱塘县寓所（存疑）。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n据称，余书芬作为乾嘉时期江南布衣文人的代表之一，其诗画作品在地方上流传，丰富了当时江南地区的文化艺术生态（存疑）。\n\n### 对后世的影响\n- 据称其诗画作品为研究清代江南地域文化、文人日常生活提供了珍贵的个案资料（存疑）。\n- 据称其“诗画一体”的创作实践，体现了中国传统文人艺术的典型特征（存疑）。\n\n### 历史评价\n- 据《绍兴府志》（存疑/说法不一）记载：“余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。”\n- 据后世地方文史研究者（存疑/说法不一）称：“余氏艺术虽未臻大家之列，然其作品真挚清新，是窥探乾嘉时期江南市井文人精神世界的一扇小窗。”\n- 据现代学者（存疑/说法不一）称：“余书芬的个案表明，清代艺术史的丰富性不仅在于大师巨匠，更在于无数像他这样默默耕耘的地方文人。”\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**清代中期**（乾嘉时期），社会相对稳定，**江南经济文化繁荣**。\n- **关键事件/贡献**：作为**地方文人**的代表（存疑），其生平反映了当时**布衣阶层**的文化活动（存疑）。\n- **代表作品/思想**：诗画作品多描绘**江南水乡**风光（存疑），体现**隐逸情怀**与**文人雅趣**（存疑）。\n- **常见易混点/对比点**：与同时期**宫廷画家**或**主流文人**（如“扬州八怪”）的艺术追求和生存状态不同（存疑）。\n\n### 高中阶段\n- **时代背景**：处于**考据学兴盛**、**文字狱**高压下的文化环境，文人转向艺术与考据。\n- **关键事件/贡献**：其艺术生涯是**乾嘉文化生态**的一个微观体现（存疑），展示了**非仕途文人**的生存与创作路径（存疑）。\n- **代表作品/思想**：艺术上追求**诗书画“三绝”**（存疑），风格**清新淡雅**（存疑），是**帖学书法**与**文人画**传统在地方的延续（存疑）。\n- **常见易混点/对比点**：可与**袁枚**的“性灵说”在地方上的影响进行对比思考（存疑）；其艺术成就与**职业画家**有本质区别（存疑）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 清代**乾嘉时期**的社会文化特征。\n- **江南地区**在清代经济文化中的地位。\n- **布衣文人**（或称“山人”）群体的基本生活与创作状态（存疑）。\n- **诗、书、画**相结合的中国传统文人艺术特点。\n- （存疑）余书芬作为**地方文化代表**的个案意义（存疑）。\n\n### 高中阶段考点\n- **乾嘉学派**（考据学）兴起对文人精神世界的影响。\n- 清代**文字狱**背景下文人的生存策略与艺术转向。\n- **文人画**的审美标准与创作理念（如“逸品”追求）。\n- 清代**地域文化**（如江南文化）的多样性与复杂性。\n- （存疑）如何评价**非主流、非名家**文人在艺术史与文化史中的价值（存疑）。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 山阴县 | 浙江省绍兴市 | 30.0 | 120.5 |\n| 杭州西湖 | 浙江省杭州市西湖区 | 30.2 | 120.1 |\n| 嘉兴南湖 | 浙江省嘉兴市南湖区 | 30.7 | 120.7 |\n| 苏州拙政园 | 江苏省苏州市姑苏区 | 31.3 | 120.6 |\n| 绍兴兰亭 | 浙江省绍兴市柯桥区 | 30.0 | 120.5 |\n| 杭州孤山 | 浙江省杭州市西湖区 | 30.2 | 120.2 |\n| 钱塘县 | 浙江省杭州市 | 30.2 | 120.1 |", "relatedGraph": {"center": {"id": "余书芬（字兰谷，号雪汀）", "name": "余书芬（字兰谷，号雪汀）", "file": "余书芬.html", "dynasty": "清代（乾隆至嘉庆年间）", "aliases": ["余书芬"], "birth_year": 1755, "death_year": 1815, "quote": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "review": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "浙江绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "余书芬（字兰谷，号雪汀）", "name": "余书芬（字兰谷，号雪汀）", "file": "余书芬.html", "dynasty": "清代（乾隆至嘉庆年间）", "aliases": ["余书芬"], "birth_year": 1755, "death_year": 1815, "quote": "余书芬，字兰谷，工诗善画，性淡泊，不求闻达，有隐士风。", "review": "据称为《西湖春晓》、《湖上偶成》等（存疑）。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "浙江绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "龚自珍", "name": "龚自珍", "file": "龚自珍.html", "dynasty": "清代（清末）", "aliases": ["龚巩祚", "龚定庵"], "birth_year": 1792, "death_year": 1841, "quote": "士皆知有耻，则国家永无耻矣；士不知耻，为国之大耻。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "仁和", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑燮", "name": "郑燮", "file": "郑燮.html", "dynasty": "清代（康熙、雍正、乾隆年间）", "aliases": [], "birth_year": 1693, "death_year": 1765, "quote": "乞食山僧庙，缝衣歌妓家", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "江苏兴化", "birthplace_modern": "江苏省泰州市兴化市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵翼", "name": "赵翼", "file": "赵翼.html", "dynasty": "清代（乾隆、嘉庆年间）", "aliases": [], "birth_year": 1727, "death_year": 1814, "quote": "江山代有才人出，各领风骚数百年", "review": "", "foreign_name": "", "main_role_label": "史学家", "birthplace": "江苏阳湖", "birthplace_modern": "江苏省常州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪昀", "name": "纪昀", "file": "纪昀.html", "dynasty": "清代", "aliases": [], "birth_year": 1724, "death_year": 1805, "quote": "到处歌楼到处花，塞垣此地擅繁华。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "直隶献县", "birthplace_modern": "河北省沧州市献县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹雪芹", "name": "曹雪芹", "file": "曹雪芹.html", "dynasty": "清代（清康熙末年至乾隆中期）", "aliases": [], "birth_year": 1715, "death_year": 1763, "quote": "锦衣纨绔、饫甘餍肥", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "江宁织造府今江苏省南京市玄武区", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "姚鼐", "name": "姚鼐", "file": "姚鼐.html", "dynasty": "清代", "aliases": [], "birth_year": 1731, "death_year": 1815, "quote": "义理、考据、辞章", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "安徽省安庆市枞阳县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "余书芬（字兰谷，号雪汀）", "target": "龚自珍", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "郑燮", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "赵翼", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "纪昀", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "曹雪芹", "label": "同时代人物", "confidence": null}, {"source": "余书芬（字兰谷，号雪汀）", "target": "姚鼐", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:10Z", "generated_at": "2026-06-25T07:13:10Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:10Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:10Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

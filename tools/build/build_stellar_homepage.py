@@ -1547,8 +1547,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           0 0 0 4px rgba(8, 15, 37, 0.92),
           0 6px 10px rgba(9, 15, 37, 0.22);
       }}
-      .pixel-progress-shell[role="button"] {{
-        cursor: pointer;
+      .pixel-progress-shell {{
+        cursor: default;
       }}
       .pixel-progress-panel::before {{
         content: "";
@@ -1605,7 +1605,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         flex: 0 0 auto;
       }}
       .pixel-progress-shell.is-collapsed .pixel-progress-actions {{
-        display: none;
+        display: flex;
       }}
       .pixel-progress-lamp {{
         width: 10px;
@@ -2767,6 +2767,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               <span class="sr-only home-search-submit-label">开始分析</span>
             </button>
           </div>
+          <div id="searchValidation" class="hidden mt-2 text-xs text-amber-200"></div>
           <div id="searchHint" class="home-title-sub mt-2"><span class="home-search-hint-line"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong></span><span class="home-bili-highlight">2. 欢迎B站用户投币 投币 三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="theme-subtitle">快速体验：</span>
@@ -2778,7 +2779,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         </div>
         <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>
       </div>
-      <div id="pixelGenPanel" class="pixel-progress-shell is-collapsed" tabindex="0" role="button" aria-label="打开橙子Agent工作台" title="打开橙子Agent工作台">
+      <div id="pixelGenPanel" class="pixel-progress-shell is-collapsed" role="status" aria-live="polite" aria-label="系统状态：待命中" title="系统状态：只读展示，不能手动暂停或恢复">
         <div class="pixel-progress-panel">
           <div class="pixel-progress-header">
             <div class="pixel-progress-title">
@@ -2791,7 +2792,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
               <div id="pixelGenStatusBadge" class="pixel-progress-badge is-idle">待命</div>
             </div>
             <div class="pixel-progress-actions">
-              <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button" aria-expanded="false" aria-label="展开看板" title="展开看板">+</button>
+              <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button" aria-expanded="false" aria-label="查看 Orange Office 详情（状态只读）" title="查看 Orange Office 详情（状态只读，不能手动暂停或恢复）">↗</button>
             </div>
           </div>
           <div id="pixelGenBody" class="pixel-progress-body is-star-office-only" style="display:none">
@@ -2911,7 +2912,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           </div>
           <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70 relative">
             <div class="relative">
-              <input id="mapSearchInput" type="text" placeholder="按省份/城市查找"
+              <input id="mapSearchInput" type="text" placeholder="按省份查找"
                 class="pl-2 pr-6 py-1 rounded-lg bg-white/10 border border-white/15 text-white/85 placeholder-white/40 outline-none focus:ring-2 focus:ring-white/20 w-[160px]"
                 autocomplete="off" />
               <button id="mapSearchClear" class="hidden absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 leading-[14px] text-center rounded-full bg-white/15 text-white/70 hover:bg-white/25" type="button" aria-label="清除">×</button>
@@ -2938,6 +2939,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
                 <div class="flex items-center justify-between text-[11px]">
                   <div class="text-white/80 font-bold">各省份名人数量 Top5</div>
                 </div>
+                <div class="mt-1 text-[10px] text-white/50">按出生地汇总</div>
                 <div id="provinceBars" class="mt-2 max-h-[136px] overflow-y-auto pr-1" style="scrollbar-width: thin;"></div>
               </div>
             </div>
@@ -2963,14 +2965,15 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           <div class="flex items-center justify-between mt-2 text-[11px] text-white/55">
             <div class="flex items-center gap-2">
               <span>起：</span>
-              <input id="startYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" />
+              <input id="startYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
             </div>
             <div>窗口跨度：约 <span id="spanYear">-</span> 年</div>
             <div class="flex items-center gap-2">
               <span>止：</span>
-              <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" />
+              <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
             </div>
           </div>
+          <div id="timeRangeHint" class="hidden mt-2 text-[11px] text-amber-200"></div>
           <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3 text-[11px] text-white/60 max-w-[1020px] mx-auto" id="presetBar">
             <button data-preset="all" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">全部</button>
             <button data-preset="preqin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">春秋战国</button>
@@ -3028,6 +3031,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
       const $goLabel = $go ? $go.querySelector(".home-search-submit-label") : null;
+      const $searchValidation = document.getElementById("searchValidation");
       const $searchHint = document.getElementById("searchHint");
       const $searchSuggest = document.getElementById("searchSuggest");
       const $c = document.getElementById("c");
@@ -3050,6 +3054,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const $spanYear = document.getElementById("spanYear");
       const $startYearInput = document.getElementById("startYearInput");
       const $endYearInput = document.getElementById("endYearInput");
+      const $timeRangeHint = document.getElementById("timeRangeHint");
       const $minLabel = document.getElementById("minLabel");
       const $maxLabel = document.getElementById("maxLabel");
       const $midLabel = document.getElementById("midLabel");
@@ -3091,6 +3096,10 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       const pixelGenSceneLights = Array.from(document.querySelectorAll("#pixelGenSceneLights .pixel-progress-scene-light"));
       const STAR_OFFICE_URL = "./orange-office.html";
       const STAR_OFFICE_OPEN_IN_NEW_TAB = true;
+      const YEAR_INPUT_MIN = {MIN_YEAR};
+      const YEAR_INPUT_MAX = {MAX_YEAR};
+      const PERSON_NAME_MAX_LENGTH = 12;
+      const PERSON_NAME_ALLOWED_RE = /^[A-Za-z\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF\u3007\u00B7.\-'\s]+$/u;
       const $resetMap = document.getElementById("resetMap");
       const $mapStyle = document.getElementById("mapStyle");
       const $mapToolbar = document.getElementById("mapToolbar");
@@ -3600,11 +3609,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         const step = tickConfig.step;
         const r = $ticks.getBoundingClientRect();
         const w = r.width || 1;
-        const x0 = clamp(toT(startYear), 0, 1) * w;
-        const x1 = clamp(toT(endYear), 0, 1) * w;
-        const ww = Math.max(1, x1 - x0);
         const density = Math.max(1, Math.floor((span / step)));
-        const pxPerStep = (ww * step) / span;
+        const pxPerStep = Math.max(1, Math.abs(clamp(toT(startYear + step), 0, 1) - clamp(toT(startYear), 0, 1)) * w);
         const maxLabels = tickConfig.maxLabels;
         const minPxPerLabel = tickConfig.minPxPerLabel;
         let labelEvery = Math.max(1, Math.ceil(density / maxLabels));
@@ -3616,8 +3622,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         for (let y = y0; y <= endYear + step; y += step) {{
           if (y < startYear - step) continue;
           if (y > endYear + step) break;
-          const t = clamp((y - startYear) / span, 0, 1);
-          const left = x0 + (t * ww);
+          const left = clamp(toT(y), 0, 1) * w;
           const major = (idx % labelEvery) === 0;
           const h = major ? 16 : 10;
           const op = major ? 0.32 : 0.14;
@@ -3731,6 +3736,117 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         const innerW = Math.max(1, outerW - inset * 2);
         return {{ outerW, innerW, inset }};
       }};
+      const setSearchValidation = (txt) => {{
+        if (!$searchValidation) return;
+        const msg = String(txt || "").trim();
+        if (!msg) {{
+          $searchValidation.textContent = "";
+          $searchValidation.classList.add("hidden");
+          return;
+        }}
+        $searchValidation.textContent = msg;
+        $searchValidation.classList.remove("hidden");
+      }};
+      const setTimeRangeHint = (txt) => {{
+        if (!$timeRangeHint) return;
+        const msg = String(txt || "").trim();
+        if (!msg) {{
+          $timeRangeHint.textContent = "";
+          $timeRangeHint.classList.add("hidden");
+          return;
+        }}
+        $timeRangeHint.textContent = msg;
+        $timeRangeHint.classList.remove("hidden");
+      }};
+      const validatePersonInput = (rawValue, options = {{}}) => {{
+        const allowEmpty = !!(options && options.allowEmpty);
+        const normalized = String(rawValue || "").replace(/\s+/g, " ").trim();
+        if (!normalized) {{
+          return {{
+            value: "",
+            hasValue: false,
+            ok: allowEmpty,
+            reason: allowEmpty ? "" : "请输入历史人物姓名",
+          }};
+        }}
+        if (normalized.length > PERSON_NAME_MAX_LENGTH) {{
+          return {{
+            value: normalized,
+            hasValue: true,
+            ok: false,
+            reason: "人物姓名最多支持 12 个字符",
+          }};
+        }}
+        if (!PERSON_NAME_ALLOWED_RE.test(normalized)) {{
+          return {{
+            value: normalized,
+            hasValue: true,
+            ok: false,
+            reason: "请输入 12 字以内的历史人物姓名，仅支持汉字、字母和常见人名连接符",
+          }};
+        }}
+        if (!/[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFFA-Za-z]/u.test(normalized)) {{
+          return {{
+            value: normalized,
+            hasValue: true,
+            ok: false,
+            reason: "请输入有效的历史人物姓名",
+          }};
+        }}
+        return {{
+          value: normalized,
+          hasValue: true,
+          ok: true,
+          reason: "",
+        }};
+      }};
+      const syncSearchActionState = (options = {{}}) => {{
+        const showReason = !!(options && options.showReason);
+        const generating = !!(options && options.generating);
+        const validation = validatePersonInput($q ? $q.value : "", {{ allowEmpty: true }});
+        if (generating) {{
+          if ($go) $go.disabled = true;
+          return validation;
+        }}
+        const disabled = !validation.hasValue || !validation.ok;
+        if ($go) $go.disabled = disabled;
+        if (!validation.hasValue) {{
+          setSearchValidation("");
+        }} else if (!validation.ok && showReason) {{
+          setSearchValidation(validation.reason);
+        }} else if (validation.ok) {{
+          setSearchValidation("");
+        }}
+        return validation;
+      }};
+      const normalizeYearInputRange = (a, b) => {{
+        let start = Math.round(a);
+        let end = Math.round(b);
+        const notes = [];
+        if (start > end) {{
+          const temp = start;
+          start = end;
+          end = temp;
+          notes.push("起止年份已自动按先后顺序调整");
+        }}
+        const rawStart = start;
+        const rawEnd = end;
+        start = clamp(start, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+        end = clamp(end, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+        if (start !== rawStart || end !== rawEnd) {{
+          notes.push(`年份范围已限制在 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}}`);
+        }}
+        if (start === end) {{
+          end = clamp(start + 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+          if (end === start) start = clamp(end - 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+          notes.push("时间窗口至少需要 1 年跨度");
+        }}
+        return {{
+          start,
+          end,
+          message: notes.join("；"),
+        }};
+      }};
       const setYearInputs = () => {{
         if ($startYearInput) $startYearInput.value = String(startYear);
         if ($endYearInput) $endYearInput.value = String(endYear);
@@ -3739,17 +3855,14 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         const a = $startYearInput ? Number($startYearInput.value) : NaN;
         const b = $endYearInput ? Number($endYearInput.value) : NaN;
         if (!Number.isFinite(a) || !Number.isFinite(b)) {{
+          setTimeRangeHint(`请输入 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}} 之间的年份`);
           setYearInputs();
           return;
         }}
-        let na = Math.round(a);
-        let nb = Math.round(b);
-        if (na > nb) {{ const t = na; na = nb; nb = t; }}
-        na = clamp(na, minYear, maxYear);
-        nb = clamp(nb, minYear, maxYear);
-        if (na === nb) nb = clamp(na + 1, minYear, maxYear);
-        startYear = na;
-        endYear = nb;
+        const normalized = normalizeYearInputRange(a, b);
+        startYear = normalized.start;
+        endYear = normalized.end;
+        setTimeRangeHint(normalized.message);
         setHandles();
         updateActiveCount();
         updateCoordCount();
@@ -4703,13 +4816,19 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         pixelGenCollapsed = !!collapsed;
         if ($pixelGenBody) $pixelGenBody.style.display = pixelGenCollapsed ? "none" : "";
         if ($pixelGenPanel) $pixelGenPanel.classList.toggle("is-collapsed", pixelGenCollapsed);
+        if ($pixelGenPanel) {{
+          $pixelGenPanel.setAttribute("aria-label", `系统状态：${{resolvePixelCompactText(String(pixelGenState.status || "idle"), String(pixelGenState.stageKey || ""))}}`);
+          $pixelGenPanel.setAttribute("title", "系统状态：只读展示，不能手动暂停或恢复");
+        }}
         if ($pixelGenToggle) {{
-          $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
-          $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
           if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
-            $pixelGenToggle.setAttribute("aria-label", "新标签打开工作台");
-            $pixelGenToggle.setAttribute("title", "新标签打开工作台");
+            $pixelGenToggle.textContent = "↗";
+            $pixelGenToggle.setAttribute("aria-expanded", "false");
+            $pixelGenToggle.setAttribute("aria-label", "查看 Orange Office 详情（状态只读）");
+            $pixelGenToggle.setAttribute("title", "查看 Orange Office 详情（状态只读，不能手动暂停或恢复）");
           }} else {{
+            $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
+            $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
             $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
             $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
           }}
@@ -4821,11 +4940,11 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         if (status === "queued") return "排队中";
         if (status === "completed") return "已生成";
         if (status === "failed" || status === "partial_failed") return "查看异常";
-        if (runtimeAvailability.mode === "browser_only") return "只读浏览";
-        if (runtimeAvailability.mode === "backend_unreachable") return "后端离线";
-        if (runtimeAvailability.mode === "serve_unready") return "恢复中";
-        if (runtimeAvailability.mode === "generate_paused") return "生成暂停";
-        return "待命中";
+        if (runtimeAvailability.mode === "browser_only") return "系统 · 只读";
+        if (runtimeAvailability.mode === "backend_unreachable") return "系统 · 离线";
+        if (runtimeAvailability.mode === "serve_unready") return "系统 · 恢复中";
+        if (runtimeAvailability.mode === "generate_paused") return "系统 · 生成暂停";
+        return "系统 · 待命";
       }};
       const renderPixelAgentCards = (status, stageKey) => {{
         if (!$pixelGenAgents) return;
@@ -4960,17 +5079,6 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
           $pixelGenPanel.addEventListener("mouseenter", openPixelPanelTemporarily);
           $pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);
           $pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);
-          $pixelGenPanel.addEventListener("click", (event) => {{
-            if (!shouldOpenStarOfficeFromPanelEvent(event.target)) return;
-            openStarOfficeInNewTab();
-          }});
-          $pixelGenPanel.addEventListener("keydown", (event) => {{
-            if (!STAR_OFFICE_OPEN_IN_NEW_TAB) return;
-            if (event.key !== "Enter" && event.key !== " ") return;
-            if (!shouldOpenStarOfficeFromPanelEvent(event.target)) return;
-            event.preventDefault();
-            openStarOfficeInNewTab();
-          }});
           $pixelGenPanel.addEventListener("focusout", () => {{
             try {{
               if ($pixelGenPanel.contains(document.activeElement)) return;
@@ -5059,7 +5167,6 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       }};
       const setGeneratingUI = (isGenerating) => {{
         const on = !!isGenerating;
-        try {{ $go.disabled = on; }} catch (_) {{}}
         try {{
           if ($go) {{
             $go.dataset.loading = on ? "true" : "false";
@@ -5077,6 +5184,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             $go.classList.remove("cursor-not-allowed");
           }}
         }} catch (_) {{}}
+        syncSearchActionState({{ generating: on }});
       }};
       const fetchWithTimeout = (url, ms, init) => {{
         const controller = new AbortController();
@@ -5838,20 +5946,31 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
       }};
 
       const onSearch = (ev) => {{
-        const rawName = String($q.value || "").trim();
+        const validation = validatePersonInput($q ? $q.value : "");
+        if (!validation.ok) {{
+          setSearchValidation(validation.reason);
+          syncSearchActionState({{ showReason: true }});
+          return;
+        }}
+        const rawName = validation.value;
+        if ($q && rawName) $q.value = rawName;
         const picked = pickSearchMatch(rawName);
         const name = picked && picked.node ? String(picked.node.person || "").trim() : rawName;
         if (name) $q.value = name;
         hideSearchSuggest();
         if (focusKnownPerson(name)) return;
+        const shouldGenerate = window.confirm(`该人物未收录，是否仍要尝试生成「${{rawName}}」？`);
+        if (!shouldGenerate) return;
         openPerson(name || rawName);
       }};
 
       $go.addEventListener("click", (ev) => onSearch(ev));
       $q.addEventListener("input", () => {{
+        syncSearchActionState();
         renderSearchSuggest($q.value);
       }});
       $q.addEventListener("focus", () => {{
+        syncSearchActionState();
         renderSearchSuggest($q.value);
       }});
       $q.addEventListener("keydown", (e) => {{
@@ -6260,6 +6379,23 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         runSharedCoordFill(cache, null);
       }};
 
+      const refreshVisibleMapViewport = () => {{
+        if (!mapInited || !amap || currentTab !== "map") return;
+        setTimeout(() => {{
+          if (!mapInited || !amap || currentTab !== "map") return;
+          try {{
+            if (typeof amap.resize === "function") amap.resize();
+          }} catch (_) {{}}
+          try {{
+            updateMapMarkers();
+          }} catch (_) {{}}
+          if (mapSearchQuery) {{
+            try {{
+              focusMapOnSearchMatch();
+            }} catch (_) {{}}
+          }}
+        }}, 32);
+      }};
       const setTab = (tab) => {{
         currentTab = tab;
         if ($graphPane) {{
@@ -6281,6 +6417,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         }}
         if (tab === "map") {{
           initMapOnce();
+          refreshVisibleMapViewport();
         }}
         if ($mapToolbar) {{
           if (tab === "map") $mapToolbar.classList.remove("hidden");
@@ -6953,18 +7090,21 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         $startYearInput.addEventListener("keydown", (e) => {{
           if (e.key === "Enter") applyYearInputs();
         }});
+        $startYearInput.addEventListener("change", applyYearInputs);
         $startYearInput.addEventListener("blur", applyYearInputs);
       }}
       if ($endYearInput) {{
         $endYearInput.addEventListener("keydown", (e) => {{
           if (e.key === "Enter") applyYearInputs();
         }});
+        $endYearInput.addEventListener("change", applyYearInputs);
         $endYearInput.addEventListener("blur", applyYearInputs);
       }}
       window.addEventListener("resize", () => {{
         syncCanvasSize();
         renderBands();
         setHandles();
+        syncSearchActionState();
         draw();
       }});
 
@@ -7077,6 +7217,9 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         edgesAll = [];
         startYear = data.default_start ?? 100;
         endYear = data.default_end ?? 1600;
+        startYear = clamp(Math.round(startYear), YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+        endYear = clamp(Math.round(endYear), YEAR_INPUT_MIN, YEAR_INPUT_MAX);
+        if (startYear >= endYear) endYear = clamp(startYear + 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
         timeWindowSignature = [minYear, maxYear, startYear, endYear].join(":");
         clearLegacyTimeWindow();
         applyEdgeFilters();
@@ -7085,6 +7228,7 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
         updateActiveCount();
         updateCoordCount();
         prefillCoordsNoMap();
+        syncSearchActionState();
         window.requestAnimationFrame(animate);
         if (DATA_DETAIL_FILE) {{
           if (typeof window.requestIdleCallback === "function") {{

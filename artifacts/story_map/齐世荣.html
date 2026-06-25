@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "齐世荣", "title": "", "description": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。他主编的《世界史》（六卷本）等教材影响深远，为几代学子构建了系统的全球历史视野。其学术生涯贯穿了新中国世界史学科从初创到发展的完整历程，以严谨的学风和宏阔的视野著称。", "quote": "此阶段为求学时期，无公开著述。", "shortReview": "此阶段为求学时期，无公开著述。", "dynasty": "现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏省灌云县板浦镇（今属江苏省连云港市海州区）", "avatar": "", "birth": {"date": "1926年", "location": "江苏省灌云县板浦镇（今属江苏省连云港市海州区）", "lat": 34.596, "lng": 119.179, "coordSystem": "WGS84"}, "death": {"date": "2015年", "location": "北京", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "89岁", "highlights": {"honor": "", "status": "中国世界史学科的重要开拓者和建设者，为新中国世界史研究体系的建立与人才培养做出了卓越贡献。", "identities": "历史学家、教育家、世界史学科奠基人之一", "achievements": "构建新中国世界史教学与研究体系；主编多部权威世界史教材；培养大批世界史专业人才；推动世界现代史研究。", "works": ["世界史"], "reviews": ["学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "同行评价他“学问博洽，为人谦和，有长者之风”。", "学生感念他“不仅是严师，更是引领我们认识广阔世界的向导”。"]}}, "locations": [{"name": "江苏省灌云县板浦镇", "ancientName": "江苏省灌云县板浦镇", "modernName": "江苏省连云港市海州区板浦镇", "lat": 34.596, "lng": 119.179, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年，接受启蒙教育。", "time": "1926年", "duration": "童年时期（约1926-1937年）", "significance": "人生起点，早年乡土经历塑造了其基本品格。", "works": [], "quoteLines": []}, {"name": "成都（华西坝）", "ancientName": "成都（华西坝）", "modernName": "四川省成都市武侯区华西坝（历史地名", "lat": 30.6424, "lng": 104.0606, "coordSystem": "WGS84", "type": "normal", "event": "1942年考入内迁成都的燕京大学历史系，师从齐思和、翁独健等名家，系统接受历史学专业训练。", "time": "1940年代初期", "duration": "约4年（1942-1946年）", "significance": "奠定了其历史学的专业基础，尤其在世界史领域受到启蒙，确立了学术志向。", "works": [], "quoteLines": ["此阶段为求学时期，无公开著述。"]}, {"name": "北京（清华大学）", "ancientName": "北京（清华大学）", "modernName": "北京市海淀区清华大学", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1946年随校复员，转入清华大学历史系继续学习至毕业。", "time": "1946年 - 1949年", "duration": "约3年", "significance": "在顶尖学府完成学业，接触更广阔的学术圈，为日后工作打下基础。", "works": [], "quoteLines": []}, {"name": "北京（北京师范学院/首都师范大学）", "ancientName": "北京（北京师范学院/首都师范大学）", "modernName": "北京市海淀区首都师范大学（原北京师范学院）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1954年调入北京师范学院历史系，此后长期在此工作，历任教员、系主任、院长等职。主持编写《世界史》教材，创建世界史学科点，培养了大量师资和研究人才。", "time": "1954年 - 2015年", "duration": "约61年（核心工作地）", "significance": "学术事业的核心舞台与归宿，是其成为世界史学科主要奠基人的实践地。", "works": ["世界史"], "quoteLines": ["以世界史教学与教材编写见长，此阶段以学术组织和教育实践为主。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效逝世。", "time": "2015年12月3日", "duration": "晚年长期居住直至去世", "significance": "学术生涯的终点，其毕生事业与精神遗产留存于此。", "works": [], "quoteLines": []}, {"name": "北京（国家图书馆/学术会议场所）", "ancientName": "北京（国家图书馆/学术会议场所）", "modernName": "北京市海淀区国家图书馆（总馆）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁参与国内外学术会议，担任中国史学会副会长、中国世界近现代史研究会会长等学术职务，利用国家图书馆等资源进行深度研究。", "time": "1980年代 - 2000年代", "duration": "间断性参与", "significance": "作为学术领袖，推动全国世界史研究的交流与发展，提升学科影响力。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**新中国成立后**，国家需要建立自己的**世界史学科体系**。\n- **关键事件/贡献**：**齐世荣**是参与构建新中国世界史教学体系的**代表学者**之一。\n- **代表作品/思想**：主编的**《世界史》教材**是长期广泛使用的权威课本，强调**全球史观**和**历史发展的整体性**。\n- **常见易混点/对比点**：注意区分**中国史**与**世界史**在教材体系中的不同编纂逻辑；齐世荣主要贡献在**世界史**领域。\n\n### 高中阶段\n- **时代背景**：**改革开放后**，学术界思想解放，世界史研究迎来新发展。\n- **关键事件/贡献**：**齐世荣**长期推动**首都师范大学**及相关院校的世界史学科建设，促进了**世界现代史**研究的发展。\n- **代表作品/思想**：其学术思想强调**历史研究的现实关怀**，认为“**历史感**”对于理解当代国际关系至关重要。在**第二次世界大战史**、**国际关系史**等领域有深入研究。\n- **常见易混点/对比点**：注意其学术身份（**教育家、学科奠基人**）与一般政治人物的区别；其贡献主要在**学术与教育领域**，而非政治实践。\n\n---", "examPoints": "### 初中阶段\n- 了解新中国成立后**历史教育体系**的建立背景。\n- 知道**齐世荣**是重要的**历史学家**和**教育家**。\n- 简单了解其主编的**《世界史》** 是重要的历史教材。\n\n### 高中阶段\n- 理解**齐世荣**作为**中国世界史学科奠基人**之一的历史地位。\n- 掌握其主要贡献：**学科建设**、**教材编写**、**人才培养**。\n- 了解其学术观点：强调**历史学的通识性**与**现实关怀**。\n- 知道其代表作品：**《齐世荣文集》**、**《世界史》（六卷本）**。\n- 对比其与同时代其他**史学家**（如吴于廑）在**世界史体系**构建上的异同（需具体学术比较）。\n\n---", "workTexts": {"世界史": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。"}, "workSummaries": {"世界史": {"title": "世界史", "aliases": [], "authors": ["齐世荣"], "related_people": ["侯建新", "齐世荣"], "source_pages": ["侯建新", "齐世荣"], "era": "现当代", "genre": "", "one_liner": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "summary": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "quote": "他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。", "quotes": ["他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。", "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。", "他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。"], "quote_policy": "preferred"}, "齐世荣文集": {"title": "齐世荣文集", "aliases": [], "authors": ["齐世荣"], "related_people": ["齐世荣"], "source_pages": ["齐世荣"], "era": "现当代", "genre": "", "one_liner": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立", "summary": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 齐世荣\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：齐世荣\n- **时代**：现当代\n- **出生**：1926年10月29日，江苏省灌云县板浦镇（今属江苏省连云港市海州区）\n- **去世**：2015年12月3日，北京\n- **享年**：89岁\n- **主要身份**：历史学家、教育家、世界史学科奠基人之一\n- **历史地位**：中国世界史学科的重要开拓者和建设者，为新中国世界史研究体系的建立与人才培养做出了卓越贡献。\n- **主要成就**：构建新中国世界史教学与研究体系；主编多部权威世界史教材；培养大批世界史专业人才；推动世界现代史研究。\n\n### 生平概述\n齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。他主编的《世界史》（六卷本）等教材影响深远，为几代学子构建了系统的全球历史视野。其学术生涯贯穿了新中国世界史学科从初创到发展的完整历程，以严谨的学风和宏阔的视野著称。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动轨迹集中于中国东部，从江苏出生地辗转四川求学，最终在北京长期工作与生活。\n- ⏱️ **时间跨度**：1926年 - 2015年，共计约89年。\n- 📍 **地理范围**：覆盖江苏、四川、北京等地。\n- 🌟 **重要节点数量**：核心地点约6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：江苏省灌云县板浦镇\n- **公元纪年**：1926年\n- **停留时间**：童年时期（约1926-1937年）\n- **位置**：今江苏省连云港市海州区板浦镇\n- **事迹**：在此度过童年，接受启蒙教育。\n- **意义**：人生起点，早年乡土经历塑造了其基本品格。\n\n### 📍 重要地点：成都（华西坝）\n- **公元纪年**：1940年代初期\n- **停留时间**：约4年（1942-1946年）\n- **位置**：今四川省成都市武侯区华西坝（历史地名，抗战时期燕京大学、金陵大学等高校内迁办学地）\n- **事迹**：1942年考入内迁成都的燕京大学历史系，师从齐思和、翁独健等名家，系统接受历史学专业训练。\n- **意义**：奠定了其历史学的专业基础，尤其在世界史领域受到启蒙，确立了学术志向。\n- **名篇名句**：此阶段为求学时期，无公开著述。\n\n### 📍 重要地点：北京（清华大学）\n- **公元纪年**：1946年 - 1949年\n- **停留时间**：约3年\n- **位置**：今北京市海淀区清华大学\n- **事迹**：1946年随校复员，转入清华大学历史系继续学习至毕业。\n- **意义**：在顶尖学府完成学业，接触更广阔的学术圈，为日后工作打下基础。\n\n### 📍 重要地点：北京（北京师范学院/首都师范大学）\n- **公元纪年**：1954年 - 2015年\n- **停留时间**：约61年（核心工作地）\n- **位置**：今北京市海淀区首都师范大学（原北京师范学院）\n- **事迹**：1954年调入北京师范学院历史系，此后长期在此工作，历任教员、系主任、院长等职。主持编写《世界史》教材，创建世界史学科点，培养了大量师资和研究人才。\n- **意义**：学术事业的核心舞台与归宿，是其成为世界史学科主要奠基人的实践地。\n- **名篇名句**：以世界史教学与教材编写见长，此阶段以学术组织和教育实践为主。\n\n### 📍 重要地点：北京（国家图书馆/学术会议场所）\n- **公元纪年**：1980年代 - 2000年代\n- **停留时间**：间断性参与\n- **位置**：今北京市海淀区国家图书馆（总馆）\n- **事迹**：频繁参与国内外学术会议，担任中国史学会副会长、中国世界近现代史研究会会长等学术职务，利用国家图书馆等资源进行深度研究。\n- **意义**：作为学术领袖，推动全国世界史研究的交流与发展，提升学科影响力。\n\n### 🔴 去世地：北京\n- **公元纪年**：2015年12月3日\n- **停留时间**：晚年长期居住直至去世\n- **位置**：今北京市\n- **经过**：因病医治无效逝世。\n- **意义**：学术生涯的终点，其毕生事业与精神遗产留存于此。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1926 | 江苏省灌云县板浦镇 | 江苏省连云港市海州区板浦镇 | （年龄：0岁）出生于江苏省灌云县板浦镇。 |\n| 1942 | 成都（华西坝） | 四川省成都市武侯区华西坝 | （年龄：16岁）考入内迁成都的燕京大学历史系。 |\n| 1946 | 北京（清华大学） | 北京市海淀区清华大学 | （年龄：20岁）随校复员，转入北平清华大学历史系。 |\n| 1949 | 北京（清华大学） | 北京市海淀区清华大学 | （年龄：23岁）毕业于清华大学（毕业后去向说法不一，待考）。 |\n| 1954 | 北京 | 北京市 | （年龄：28岁）调入北京师范学院（今首都师范大学）历史系任教。 |\n| 1980年代 | 北京 | 北京市 | （年龄：50余岁）担任北京师范学院行政与学术领导职务（具体职务及时间待考），主编《世界史》（六卷本）等教材出版。 |\n| 1990年代 | 北京（北京师范学院/首都师范大学） | 北京市海淀区首都师范大学 | （年龄：60余岁）任首都师范大学历史系教授、博士生导师，获多项学术荣誉。 |\n| 2015 | 北京 | 北京市 | （年龄：89岁）12月3日于北京逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n齐世荣先生是新中国世界史学科建设的核心参与者之一。他通过在北京师范学院建立完整的教学与研究体系，为全国师范院校和历史学界培养了大批骨干教师与研究者。他主编的教材统一和提升了国内世界史教学的知识框架与水平，直接影响了数十年的历史教育。\n\n### 对后世的影响\n- **学术体系遗产**：其构建的世界史（尤其是现代史）教学与研究范式，至今仍深刻影响着中国高校的相关学科。\n- **人才培养**：作为导师，培养了几代世界史学者，其中许多人已成为学科带头人。\n- **学风垂范**：倡导宏观视野与扎实史料相结合的研究方法，强调历史学的通识教育与社会功能，为后世学者树立了典范。\n\n### 历史评价\n- 学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。\n- 同行评价他“学问博洽，为人谦和，有长者之风”。\n- 学生感念他“不仅是严师，更是引领我们认识广阔世界的向导”。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**新中国成立后**，国家需要建立自己的**世界史学科体系**。\n- **关键事件/贡献**：**齐世荣**是参与构建新中国世界史教学体系的**代表学者**之一。\n- **代表作品/思想**：主编的**《世界史》教材**是长期广泛使用的权威课本，强调**全球史观**和**历史发展的整体性**。\n- **常见易混点/对比点**：注意区分**中国史**与**世界史**在教材体系中的不同编纂逻辑；齐世荣主要贡献在**世界史**领域。\n\n### 高中阶段\n- **时代背景**：**改革开放后**，学术界思想解放，世界史研究迎来新发展。\n- **关键事件/贡献**：**齐世荣**长期推动**首都师范大学**及相关院校的世界史学科建设，促进了**世界现代史**研究的发展。\n- **代表作品/思想**：其学术思想强调**历史研究的现实关怀**，认为“**历史感**”对于理解当代国际关系至关重要。在**第二次世界大战史**、**国际关系史**等领域有深入研究。\n- **常见易混点/对比点**：注意其学术身份（**教育家、学科奠基人**）与一般政治人物的区别；其贡献主要在**学术与教育领域**，而非政治实践。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 了解新中国成立后**历史教育体系**的建立背景。\n- 知道**齐世荣**是重要的**历史学家**和**教育家**。\n- 简单了解其主编的**《世界史》** 是重要的历史教材。\n\n### 高中阶段\n- 理解**齐世荣**作为**中国世界史学科奠基人**之一的历史地位。\n- 掌握其主要贡献：**学科建设**、**教材编写**、**人才培养**。\n- 了解其学术观点：强调**历史学的通识性**与**现实关怀**。\n- 知道其代表作品：**《齐世荣文集》**、**《世界史》（六卷本）**。\n- 对比其与同时代其他**史学家**（如吴于廑）在**世界史体系**构建上的异同（需具体学术比较）。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 江苏省灌云县板浦镇 | 江苏省连云港市海州区板浦镇 | 34.5960 | 119.1790 |\n| 成都（华西坝） | 四川省成都市武侯区华西坝 | 30.6424 | 104.0606 |\n| 北京（清华大学） | 北京市海淀区清华大学 | 40.0030 | 116.3269 |\n| 北京（北京师范学院/首都师范大学） | 北京市海淀区首都师范大学 | 39.9298 | 116.3030 |\n| 北京（国家图书馆/学术会议场所） | 北京市海淀区国家图书馆 | 39.9492 | 116.3250 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |\n", "relatedGraph": {"center": {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "此阶段为求学时期，无公开著述。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "此阶段为求学时期，无公开著述。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "问苍茫大地，谁主沉浮？", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "朱德", "name": "朱德", "file": "朱德.html", "dynasty": "近现代", "aliases": [], "birth_year": 1886, "death_year": 1976, "quote": "农村包围城市", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "四川省仪陇县", "birthplace_modern": "四川省南充市仪陇县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "**社会转型**", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "齐世荣", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "毛泽东", "label": "同册共现", "confidence": 0.15}, {"source": "齐世荣", "target": "朱德", "label": "同册共现", "confidence": 0.15}, {"source": "齐世荣", "target": "侯建新", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:56Z", "generated_at": "2026-06-22T11:31:56Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "齐世荣", "title": "", "description": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。他主编的《世界史》（六卷本）等教材影响深远，为几代学子构建了系统的全球历史视野。其学术生涯贯穿了新中国世界史学科从初创到发展的完整历程，以严谨的学风和宏阔的视野著称。", "quote": "此阶段为求学时期，无公开著述。", "shortReview": "此阶段为求学时期，无公开著述。", "dynasty": "现当代", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "江苏省灌云县板浦镇（今属江苏省连云港市海州区）", "avatar": "", "birth": {"date": "1926年", "location": "江苏省灌云县板浦镇（今属江苏省连云港市海州区）", "lat": 34.596, "lng": 119.179, "coordSystem": "WGS84"}, "death": {"date": "2015年", "location": "北京", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "89岁", "highlights": {"honor": "", "status": "中国世界史学科的重要开拓者和建设者，为新中国世界史研究体系的建立与人才培养做出了卓越贡献。", "identities": "历史学家、教育家、世界史学科奠基人之一", "achievements": "构建新中国世界史教学与研究体系；主编多部权威世界史教材；培养大批世界史专业人才；推动世界现代史研究。", "works": ["世界史"], "reviews": ["学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。", "同行评价他“学问博洽，为人谦和，有长者之风”。", "学生感念他“不仅是严师，更是引领我们认识广阔世界的向导”。"]}}, "locations": [{"name": "江苏省灌云县板浦镇", "ancientName": "江苏省灌云县板浦镇", "modernName": "江苏省连云港市海州区板浦镇", "lat": 34.596, "lng": 119.179, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年，接受启蒙教育。", "time": "1926年", "duration": "童年时期（约1926-1937年）", "significance": "人生起点，早年乡土经历塑造了其基本品格。", "works": [], "quoteLines": []}, {"name": "成都（华西坝）", "ancientName": "成都（华西坝）", "modernName": "四川省成都市武侯区华西坝（历史地名", "lat": 30.6424, "lng": 104.0606, "coordSystem": "WGS84", "type": "normal", "event": "1942年考入内迁成都的燕京大学历史系，师从齐思和、翁独健等名家，系统接受历史学专业训练。", "time": "1940年代初期", "duration": "约4年（1942-1946年）", "significance": "奠定了其历史学的专业基础，尤其在世界史领域受到启蒙，确立了学术志向。", "works": [], "quoteLines": ["此阶段为求学时期，无公开著述。"]}, {"name": "北京（清华大学）", "ancientName": "北京（清华大学）", "modernName": "北京市海淀区清华大学", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1946年随校复员，转入清华大学历史系继续学习至毕业。", "time": "1946年 - 1949年", "duration": "约3年", "significance": "在顶尖学府完成学业，接触更广阔的学术圈，为日后工作打下基础。", "works": [], "quoteLines": []}, {"name": "北京（北京师范学院/首都师范大学）", "ancientName": "北京（北京师范学院/首都师范大学）", "modernName": "北京市海淀区首都师范大学（原北京师范学院）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "1954年调入北京师范学院历史系，此后长期在此工作，历任教员、系主任、院长等职。主持编写《世界史》教材，创建世界史学科点，培养了大量师资和研究人才。", "time": "1954年 - 2015年", "duration": "约61年（核心工作地）", "significance": "学术事业的核心舞台与归宿，是其成为世界史学科主要奠基人的实践地。", "works": ["世界史"], "quoteLines": ["以世界史教学与教材编写见长，此阶段以学术组织和教育实践为主。"]}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "death", "event": "因病医治无效逝世。", "time": "2015年12月3日", "duration": "晚年长期居住直至去世", "significance": "学术生涯的终点，其毕生事业与精神遗产留存于此。", "works": [], "quoteLines": []}, {"name": "北京（国家图书馆/学术会议场所）", "ancientName": "北京（国家图书馆/学术会议场所）", "modernName": "北京市海淀区国家图书馆（总馆）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "频繁参与国内外学术会议，担任中国史学会副会长、中国世界近现代史研究会会长等学术职务，利用国家图书馆等资源进行深度研究。", "time": "1980年代 - 2000年代", "duration": "间断性参与", "significance": "作为学术领袖，推动全国世界史研究的交流与发展，提升学科影响力。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**新中国成立后**，国家需要建立自己的**世界史学科体系**。\n- **关键事件/贡献**：**齐世荣**是参与构建新中国世界史教学体系的**代表学者**之一。\n- **代表作品/思想**：主编的**《世界史》教材**是长期广泛使用的权威课本，强调**全球史观**和**历史发展的整体性**。\n- **常见易混点/对比点**：注意区分**中国史**与**世界史**在教材体系中的不同编纂逻辑；齐世荣主要贡献在**世界史**领域。\n\n### 高中阶段\n- **时代背景**：**改革开放后**，学术界思想解放，世界史研究迎来新发展。\n- **关键事件/贡献**：**齐世荣**长期推动**首都师范大学**及相关院校的世界史学科建设，促进了**世界现代史**研究的发展。\n- **代表作品/思想**：其学术思想强调**历史研究的现实关怀**，认为“**历史感**”对于理解当代国际关系至关重要。在**第二次世界大战史**、**国际关系史**等领域有深入研究。\n- **常见易混点/对比点**：注意其学术身份（**教育家、学科奠基人**）与一般政治人物的区别；其贡献主要在**学术与教育领域**，而非政治实践。\n\n---", "examPoints": "### 初中阶段\n- 了解新中国成立后**历史教育体系**的建立背景。\n- 知道**齐世荣**是重要的**历史学家**和**教育家**。\n- 简单了解其主编的**《世界史》** 是重要的历史教材。\n\n### 高中阶段\n- 理解**齐世荣**作为**中国世界史学科奠基人**之一的历史地位。\n- 掌握其主要贡献：**学科建设**、**教材编写**、**人才培养**。\n- 了解其学术观点：强调**历史学的通识性**与**现实关怀**。\n- 知道其代表作品：**《齐世荣文集》**、**《世界史》（六卷本）**。\n- 对比其与同时代其他**史学家**（如吴于廑）在**世界史体系**构建上的异同（需具体学术比较）。\n\n---", "workTexts": {"世界史": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。"}, "workSummaries": {"世界史": {"title": "世界史", "aliases": [], "authors": ["齐世荣"], "related_people": ["侯建新", "齐世荣"], "source_pages": ["侯建新", "齐世荣"], "era": "现当代", "genre": "", "one_liner": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "summary": "主编了具有广泛影响的高校《世界史》教材，参与塑造了中国世界史的基础教学体系。", "quote": "他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。", "quotes": ["他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。", "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。", "他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。"], "quote_policy": "preferred"}, "齐世荣文集": {"title": "齐世荣文集", "aliases": [], "authors": ["齐世荣"], "related_people": ["齐世荣"], "source_pages": ["齐世荣"], "era": "现当代", "genre": "", "one_liner": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立", "summary": "齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 齐世荣\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：齐世荣\n- **时代**：现当代\n- **出生**：1926年10月29日，江苏省灌云县板浦镇（今属江苏省连云港市海州区）\n- **去世**：2015年12月3日，北京\n- **享年**：89岁\n- **主要身份**：历史学家、教育家、世界史学科奠基人之一\n- **历史地位**：中国世界史学科的重要开拓者和建设者，为新中国世界史研究体系的建立与人才培养做出了卓越贡献。\n- **主要成就**：构建新中国世界史教学与研究体系；主编多部权威世界史教材；培养大批世界史专业人才；推动世界现代史研究。\n\n### 生平概述\n齐世荣先生生于动荡的20世纪20年代，青年时期亲历抗日战争与新中国成立。他毕生致力于世界史研究与教育事业，是新中国世界史学科的主要奠基人之一。他长期在北京师范学院（现首都师范大学）工作，参与创建了该校历史系，并长期担任行政与学术领导职务。他主编的《世界史》（六卷本）等教材影响深远，为几代学子构建了系统的全球历史视野。其学术生涯贯穿了新中国世界史学科从初创到发展的完整历程，以严谨的学风和宏阔的视野著称。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动轨迹集中于中国东部，从江苏出生地辗转四川求学，最终在北京长期工作与生活。\n- ⏱️ **时间跨度**：1926年 - 2015年，共计约89年。\n- 📍 **地理范围**：覆盖江苏、四川、北京等地。\n- 🌟 **重要节点数量**：核心地点约6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：江苏省灌云县板浦镇\n- **公元纪年**：1926年\n- **停留时间**：童年时期（约1926-1937年）\n- **位置**：今江苏省连云港市海州区板浦镇\n- **事迹**：在此度过童年，接受启蒙教育。\n- **意义**：人生起点，早年乡土经历塑造了其基本品格。\n\n### 📍 重要地点：成都（华西坝）\n- **公元纪年**：1940年代初期\n- **停留时间**：约4年（1942-1946年）\n- **位置**：今四川省成都市武侯区华西坝（历史地名，抗战时期燕京大学、金陵大学等高校内迁办学地）\n- **事迹**：1942年考入内迁成都的燕京大学历史系，师从齐思和、翁独健等名家，系统接受历史学专业训练。\n- **意义**：奠定了其历史学的专业基础，尤其在世界史领域受到启蒙，确立了学术志向。\n- **名篇名句**：此阶段为求学时期，无公开著述。\n\n### 📍 重要地点：北京（清华大学）\n- **公元纪年**：1946年 - 1949年\n- **停留时间**：约3年\n- **位置**：今北京市海淀区清华大学\n- **事迹**：1946年随校复员，转入清华大学历史系继续学习至毕业。\n- **意义**：在顶尖学府完成学业，接触更广阔的学术圈，为日后工作打下基础。\n\n### 📍 重要地点：北京（北京师范学院/首都师范大学）\n- **公元纪年**：1954年 - 2015年\n- **停留时间**：约61年（核心工作地）\n- **位置**：今北京市海淀区首都师范大学（原北京师范学院）\n- **事迹**：1954年调入北京师范学院历史系，此后长期在此工作，历任教员、系主任、院长等职。主持编写《世界史》教材，创建世界史学科点，培养了大量师资和研究人才。\n- **意义**：学术事业的核心舞台与归宿，是其成为世界史学科主要奠基人的实践地。\n- **名篇名句**：以世界史教学与教材编写见长，此阶段以学术组织和教育实践为主。\n\n### 📍 重要地点：北京（国家图书馆/学术会议场所）\n- **公元纪年**：1980年代 - 2000年代\n- **停留时间**：间断性参与\n- **位置**：今北京市海淀区国家图书馆（总馆）\n- **事迹**：频繁参与国内外学术会议，担任中国史学会副会长、中国世界近现代史研究会会长等学术职务，利用国家图书馆等资源进行深度研究。\n- **意义**：作为学术领袖，推动全国世界史研究的交流与发展，提升学科影响力。\n\n### 🔴 去世地：北京\n- **公元纪年**：2015年12月3日\n- **停留时间**：晚年长期居住直至去世\n- **位置**：今北京市\n- **经过**：因病医治无效逝世。\n- **意义**：学术生涯的终点，其毕生事业与精神遗产留存于此。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1926 | 江苏省灌云县板浦镇 | 江苏省连云港市海州区板浦镇 | （年龄：0岁）出生于江苏省灌云县板浦镇。 |\n| 1942 | 成都（华西坝） | 四川省成都市武侯区华西坝 | （年龄：16岁）考入内迁成都的燕京大学历史系。 |\n| 1946 | 北京（清华大学） | 北京市海淀区清华大学 | （年龄：20岁）随校复员，转入北平清华大学历史系。 |\n| 1949 | 北京（清华大学） | 北京市海淀区清华大学 | （年龄：23岁）毕业于清华大学（毕业后去向说法不一，待考）。 |\n| 1954 | 北京 | 北京市 | （年龄：28岁）调入北京师范学院（今首都师范大学）历史系任教。 |\n| 1980年代 | 北京 | 北京市 | （年龄：50余岁）担任北京师范学院行政与学术领导职务（具体职务及时间待考），主编《世界史》（六卷本）等教材出版。 |\n| 1990年代 | 北京（北京师范学院/首都师范大学） | 北京市海淀区首都师范大学 | （年龄：60余岁）任首都师范大学历史系教授、博士生导师，获多项学术荣誉。 |\n| 2015 | 北京 | 北京市 | （年龄：89岁）12月3日于北京逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n齐世荣先生是新中国世界史学科建设的核心参与者之一。他通过在北京师范学院建立完整的教学与研究体系，为全国师范院校和历史学界培养了大批骨干教师与研究者。他主编的教材统一和提升了国内世界史教学的知识框架与水平，直接影响了数十年的历史教育。\n\n### 对后世的影响\n- **学术体系遗产**：其构建的世界史（尤其是现代史）教学与研究范式，至今仍深刻影响着中国高校的相关学科。\n- **人才培养**：作为导师，培养了几代世界史学者，其中许多人已成为学科带头人。\n- **学风垂范**：倡导宏观视野与扎实史料相结合的研究方法，强调历史学的通识教育与社会功能，为后世学者树立了典范。\n\n### 历史评价\n- 学界誉其为“中国世界史学科的主要奠基人和开拓者之一”。\n- 同行评价他“学问博洽，为人谦和，有长者之风”。\n- 学生感念他“不仅是严师，更是引领我们认识广阔世界的向导”。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**新中国成立后**，国家需要建立自己的**世界史学科体系**。\n- **关键事件/贡献**：**齐世荣**是参与构建新中国世界史教学体系的**代表学者**之一。\n- **代表作品/思想**：主编的**《世界史》教材**是长期广泛使用的权威课本，强调**全球史观**和**历史发展的整体性**。\n- **常见易混点/对比点**：注意区分**中国史**与**世界史**在教材体系中的不同编纂逻辑；齐世荣主要贡献在**世界史**领域。\n\n### 高中阶段\n- **时代背景**：**改革开放后**，学术界思想解放，世界史研究迎来新发展。\n- **关键事件/贡献**：**齐世荣**长期推动**首都师范大学**及相关院校的世界史学科建设，促进了**世界现代史**研究的发展。\n- **代表作品/思想**：其学术思想强调**历史研究的现实关怀**，认为“**历史感**”对于理解当代国际关系至关重要。在**第二次世界大战史**、**国际关系史**等领域有深入研究。\n- **常见易混点/对比点**：注意其学术身份（**教育家、学科奠基人**）与一般政治人物的区别；其贡献主要在**学术与教育领域**，而非政治实践。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 了解新中国成立后**历史教育体系**的建立背景。\n- 知道**齐世荣**是重要的**历史学家**和**教育家**。\n- 简单了解其主编的**《世界史》** 是重要的历史教材。\n\n### 高中阶段\n- 理解**齐世荣**作为**中国世界史学科奠基人**之一的历史地位。\n- 掌握其主要贡献：**学科建设**、**教材编写**、**人才培养**。\n- 了解其学术观点：强调**历史学的通识性**与**现实关怀**。\n- 知道其代表作品：**《齐世荣文集》**、**《世界史》（六卷本）**。\n- 对比其与同时代其他**史学家**（如吴于廑）在**世界史体系**构建上的异同（需具体学术比较）。\n\n---\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 江苏省灌云县板浦镇 | 江苏省连云港市海州区板浦镇 | 34.5960 | 119.1790 |\n| 成都（华西坝） | 四川省成都市武侯区华西坝 | 30.6424 | 104.0606 |\n| 北京（清华大学） | 北京市海淀区清华大学 | 40.0030 | 116.3269 |\n| 北京（北京师范学院/首都师范大学） | 北京市海淀区首都师范大学 | 39.9298 | 116.3030 |\n| 北京（国家图书馆/学术会议场所） | 北京市海淀区国家图书馆 | 39.9492 | 116.3250 |\n| 北京 | 北京市 | 39.9042 | 116.4074 |\n", "relatedGraph": {"center": {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "此阶段为求学时期，无公开著述。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "此阶段为求学时期，无公开著述。", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "问苍茫大地，谁主沉浮？", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "朱德", "name": "朱德", "file": "朱德.html", "dynasty": "近现代", "aliases": [], "birth_year": 1886, "death_year": 1976, "quote": "农村包围城市", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "四川省仪陇县", "birthplace_modern": "四川省南充市仪陇县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "侯建新", "name": "侯建新", "file": "侯建新.html", "dynasty": "当代", "aliases": [], "birth_year": 1951, "death_year": null, "quote": "**社会转型**", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "天津市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "齐世荣", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "齐世荣", "target": "毛泽东", "label": "同册共现", "confidence": 0.15}, {"source": "齐世荣", "target": "朱德", "label": "同册共现", "confidence": 0.15}, {"source": "齐世荣", "target": "侯建新", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:59Z", "generated_at": "2026-06-25T07:13:59Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:56Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:59Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

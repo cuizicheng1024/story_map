@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "皮逻阁", "title": "", "description": "皮逻阁是唐代云南地区蒙舍诏（南诏）的第五代诏主。当时洱海周边分布着六个较大的部落（六诏），其中蒙舍诏位于最南，故称“南诏”。皮逻阁在位期间，凭借强大的军事实力与灵活的外交策略，在唐朝的支持下，逐步征服了其他五诏，于开元二十六年（738年）完成了对六诏的统一。唐朝为表彰其功绩，册封他为“云南王”，赐名“归义”。随后，他将政治中心从巍山迁至西洱河畔的太和城，正式建立了南诏国。他的统一与建国，结束了洱海地区长期的部落纷争，促进了当地经济、文化的发展，并为南诏后续的强盛奠定了坚实基础。", "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "shortReview": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "dynasty": "唐代（南诏国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）", "avatar": "", "birth": {"date": "712年", "location": "蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）", "lat": 25.229966, "lng": 100.305831, "coordSystem": "WGS84"}, "death": {"date": "748年", "location": "太和城（今云南省大理市大理镇太和村）", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84"}, "lifespan": "约36岁", "highlights": {"honor": "", "status": "南诏国的统一者与重要君主，统一六诏，开创了云南历史上的南诏时代。", "identities": "南诏国王、政治家、军事统帅", "achievements": "统一洱海区域六诏；建立南诏国；定都太和城；获唐朝册封为“云南王”。", "works": [], "reviews": ["《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "后世史家多认为，皮逻阁是“南诏国的缔造者”，其统一与建国是云南历史发展的关键转折点。", "他善于利用唐朝的支持与内部矛盾，展现了卓越的政治与军事才能，是一位成功的边疆民族领袖。"]}}, "locations": [{"name": "蒙舍诏（巍山）", "ancientName": "蒙舍诏。", "modernName": "云南省大理白族自治州巍山彝族回族自治县", "lat": 25.229966, "lng": 100.305831, "coordSystem": "WGS84", "type": "birth", "event": "出生于南诏王室，作为继承人在此成长并接受培养。", "time": "约公元712年", "duration": "早年生活于此，直至继承诏主之位。", "significance": "南诏的发源地与根基所在，是其事业的起点。", "works": [], "quoteLines": []}, {"name": "唐朝长安", "ancientName": "唐都长安。", "modernName": "陕西西安", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "接受唐玄宗的册封，获赐“云南王”金印及“归义”之名，确立了与唐朝的宗藩关系（是否亲自前往存疑）。", "time": "约开元二十六年（738年）前后。", "duration": "短暂，为朝觐或遣使（存疑）。", "significance": "获得中央王朝的正式承认，为其统治提供了强大的政治合法性。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "太和城", "ancientName": "太和城。", "modernName": "云南省大理市大理镇太和村", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84", "type": "normal", "event": "迁都于此，以此为中心统治南诏国，巩固统一成果。", "time": "开元二十七年（739年）至天宝七年（748年）。", "duration": "约9年，作为都城直至去世。", "significance": "南诏国的第一个都城，是其政治生涯的顶峰与国家象征。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "洱海周边诸诏", "ancientName": "洱海周边诸诏", "modernName": "活动于今云南省大理白族自治州洱海周边区域（古蒙嶲诏、浪穹诏、邆赕诏、施浪诏、越析诏等部落分布地）。", "lat": 25.681494, "lng": 100.300467, "coordSystem": "WGS84", "type": "normal", "event": "率军征战，逐一兼并其他五诏，完成统一。", "time": "约开元年间（713-741年），尤其集中在730年代。", "duration": "征战与统一期间频繁活动于此区域。", "significance": "统一战争的主要舞台，是其建立南诏国的关键军事与政治过程。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "太和城", "ancientName": "太和城。", "modernName": "云南省大理市大理镇太和村", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84", "type": "death", "event": "在都城病逝，其子阁罗凤继位。", "time": "天宝七年（748年）。", "duration": "晚年居于此。", "significance": "其政治生涯的终点，南诏国在此完成了权力交接。", "works": [], "quoteLines": ["无直接文学作品传世。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**唐朝**时期，实行开明的民族政策，在边疆地区设立**羁縻府州**。\n- **关键事件**：**皮逻阁**在唐朝支持下统一**六诏**。\n- **贡献**：建立**南诏国**，定都**太和城**。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：注意区分“六诏”与“吐蕃”；南诏是**西南**地区的政权，吐蕃是**青藏高原**的政权。\n\n### 高中阶段\n- **时代背景**：唐朝前期国力强盛，积极经营边疆；同时，**吐蕃**崛起，与唐朝在西南地区展开争夺。\n- **关键事件**：唐朝扶持南诏（皮逻阁）以牵制吐蕃；**738年**，皮逻阁统一六诏，受封**云南王**。\n- **贡献**：建立南诏国，初步奠定云南地区的政治格局。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：南诏与唐朝的关系是**宗藩关系**，但后期（阁罗凤时期）曾爆发战争（如天宝战争）；南诏的统一是唐朝**边疆治理策略**的一部分。\n\n---", "examPoints": "### 初中阶段\n- 皮逻阁是**唐朝**时期**南诏**的首领。\n- 他在唐朝支持下统一了**六诏**。\n- 唐玄宗封他为**云南王**。\n- 他建立了**南诏国**，都城在**太和城**。\n- 南诏位于今天的**云南省**。\n\n### 高中阶段\n- 皮逻阁统一六诏的背景是唐朝与**吐蕃**在西南的争夺。\n- 唐朝支持南诏的目的是“**以夷制夷**”，牵制吐蕃。\n- 南诏的统一标志着**云南地区**从部落联盟向**国家政权**的过渡。\n- 皮逻阁受封“云南王”体现了唐朝的**羁縻政策**。\n- （存疑/说法不一）关于皮逻阁是否曾亲自入朝长安，史料记载不一。", "workTexts": {"新唐书·南蛮传": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "新唐书": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "南蛮传": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”"}, "workSummaries": {"新唐书·南蛮传": {"title": "新唐书·南蛮传", "aliases": ["新唐书", "南蛮传"], "authors": [], "related_people": ["皮逻阁"], "source_pages": ["皮逻阁"], "era": "", "genre": "传记", "one_liner": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "summary": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 皮逻阁\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：皮逻阁（蒙归义）\n- **时代**：唐代（南诏国）\n- **出生**：约公元712年，蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）\n- **去世**：公元748年，太和城（今云南省大理市大理镇太和村）\n- **享年**：约36岁\n- **主要身份**：南诏国王、政治家、军事统帅\n- **历史地位**：南诏国的统一者与重要君主，统一六诏，开创了云南历史上的南诏时代。\n- **主要成就**：统一洱海区域六诏；建立南诏国；定都太和城；获唐朝册封为“云南王”。\n\n### 生平概述\n皮逻阁是唐代云南地区蒙舍诏（南诏）的第五代诏主。当时洱海周边分布着六个较大的部落（六诏），其中蒙舍诏位于最南，故称“南诏”。皮逻阁在位期间，凭借强大的军事实力与灵活的外交策略，在唐朝的支持下，逐步征服了其他五诏，于开元二十六年（738年）完成了对六诏的统一。唐朝为表彰其功绩，册封他为“云南王”，赐名“归义”。随后，他将政治中心从巍山迁至西洱河畔的太和城，正式建立了南诏国。他的统一与建国，结束了洱海地区长期的部落纷争，促进了当地经济、文化的发展，并为南诏后续的强盛奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以今云南大理地区为核心，活动范围主要在洱海流域及周边。\n- ⏱️ **时间跨度**：约公元712年—748年，共约36年。\n- 📍 **地理范围**：主要在今云南省大理白族自治州境内。\n- 🌟 **重要节点数量**：核心地点约5个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：蒙舍诏（巍山）\n- **公元纪年**：约公元712年\n- **停留时间**：早年生活于此，直至继承诏主之位。\n- **位置**：蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）。\n- **事迹**：出生于南诏王室，作为继承人在此成长并接受培养。\n- **意义**：南诏的发源地与根基所在，是其事业的起点。\n\n### 📍 重要地点：洱海周边诸诏\n- **公元纪年**：约开元年间（713-741年），尤其集中在730年代。\n- **停留时间**：征战与统一期间频繁活动于此区域。\n- **位置**：活动于今云南省大理白族自治州洱海周边区域（古蒙嶲诏、浪穹诏、邆赕诏、施浪诏、越析诏等部落分布地）。\n- **事迹**：率军征战，逐一兼并其他五诏，完成统一。\n- **意义**：统一战争的主要舞台，是其建立南诏国的关键军事与政治过程。\n- **名篇名句**：无直接文学作品传世。\n\n### 📍 重要地点：唐朝长安\n- **公元纪年**：约开元二十六年（738年）前后。\n- **停留时间**：短暂，为朝觐或遣使（存疑）。\n- **位置**：唐都长安（今陕西西安）。\n- **事迹**：接受唐玄宗的册封，获赐“云南王”金印及“归义”之名，确立了与唐朝的宗藩关系（是否亲自前往存疑）。\n- **意义**：获得中央王朝的正式承认，为其统治提供了强大的政治合法性。\n- **名篇名句**：无直接文学作品传世。\n\n### 📍 重要地点：太和城\n- **公元纪年**：开元二十七年（739年）至天宝七年（748年）。\n- **停留时间**：约9年，作为都城直至去世。\n- **位置**：太和城（今云南省大理市大理镇太和村）。\n- **事迹**：迁都于此，以此为中心统治南诏国，巩固统一成果。\n- **意义**：南诏国的第一个都城，是其政治生涯的顶峰与国家象征。\n- **名篇名句**：无直接文学作品传世。\n\n### 🔴 去世地：太和城\n- **公元纪年**：天宝七年（748年）。\n- **停留时间**：晚年居于此。\n- **位置**：太和城（今云南省大理市大理镇太和村）。\n- **经过**：在都城病逝，其子阁罗凤继位。\n- **意义**：其政治生涯的终点，南诏国在此完成了权力交接。\n- **名篇名句**：无直接文学作品传世。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约712年 | 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | （年龄：0岁）出生于蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）。 |\n| 约开元年间（具体年份存疑） | 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | （年龄：青年）继承蒙舍诏主之位，并开始统一六诏的军事行动。 |\n| 737年 |  |  | （年龄：约25岁）在统一战争中取得决定性进展，控制洱海周边大部地区。 |\n| 738年 |  |  | （年龄：约26岁）完成六诏统一；受唐朝册封为“云南王”，赐名“归义”。 |\n| 739年 | 太和城 | 云南省大理市大理镇太和村 | （年龄：约27岁）迁都至太和城，正式建立南诏国。 |\n| 745年 |  |  | （年龄：约33岁）遣使或可能亲自至长安朝贡（存疑）。 |\n| 748年 | 太和城 | 云南省大理市大理镇太和村 | （年龄：约36岁）于太和城去世，子阁罗凤继位。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n皮逻阁统一六诏，结束了洱海地区长期的部落割据与战乱状态，建立了云南历史上第一个统一的、强大的地方政权——南诏国。他通过与唐朝建立紧密的宗藩关系，获得了先进的生产技术、文化与政治制度，促进了云南地区的社会经济发展与民族融合，使其成为唐王朝西南边疆的重要屏障与力量。\n\n### 对后世的影响\n1.  **奠定南诏国基业**：他建立的南诏国存续近两百年，成为唐代西南地区最强大的政治实体，深刻影响了云南乃至中南半岛的历史进程。\n2.  **塑造云南历史格局**：南诏的建立是云南地方史上的里程碑，标志着该地区从部落分散状态进入统一政权时代，为后来的大理国等政权奠定了历史与地理基础。\n3.  **促进民族融合**：在其统治下，洱海地区的乌蛮、白蛮等族群加速融合，为今天白族等民族的形成与发展产生了重要影响。\n\n### 历史评价\n1.  《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”\n2.  后世史家多认为，皮逻阁是“南诏国的缔造者”，其统一与建国是云南历史发展的关键转折点。\n3.  他善于利用唐朝的支持与内部矛盾，展现了卓越的政治与军事才能，是一位成功的边疆民族领袖。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**唐朝**时期，实行开明的民族政策，在边疆地区设立**羁縻府州**。\n- **关键事件**：**皮逻阁**在唐朝支持下统一**六诏**。\n- **贡献**：建立**南诏国**，定都**太和城**。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：注意区分“六诏”与“吐蕃”；南诏是**西南**地区的政权，吐蕃是**青藏高原**的政权。\n\n### 高中阶段\n- **时代背景**：唐朝前期国力强盛，积极经营边疆；同时，**吐蕃**崛起，与唐朝在西南地区展开争夺。\n- **关键事件**：唐朝扶持南诏（皮逻阁）以牵制吐蕃；**738年**，皮逻阁统一六诏，受封**云南王**。\n- **贡献**：建立南诏国，初步奠定云南地区的政治格局。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：南诏与唐朝的关系是**宗藩关系**，但后期（阁罗凤时期）曾爆发战争（如天宝战争）；南诏的统一是唐朝**边疆治理策略**的一部分。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 皮逻阁是**唐朝**时期**南诏**的首领。\n- 他在唐朝支持下统一了**六诏**。\n- 唐玄宗封他为**云南王**。\n- 他建立了**南诏国**，都城在**太和城**。\n- 南诏位于今天的**云南省**。\n\n### 高中阶段\n- 皮逻阁统一六诏的背景是唐朝与**吐蕃**在西南的争夺。\n- 唐朝支持南诏的目的是“**以夷制夷**”，牵制吐蕃。\n- 南诏的统一标志着**云南地区**从部落联盟向**国家政权**的过渡。\n- 皮逻阁受封“云南王”体现了唐朝的**羁縻政策**。\n- （存疑/说法不一）关于皮逻阁是否曾亲自入朝长安，史料记载不一。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | 25.229966 | 100.305831 |\n| 洱海周边诸诏 | 云南省大理市 | 25.681494 | 100.300467 |\n| 唐朝长安 | 陕西省西安市 | 34.344762 | 108.934990 |\n| 太和城 | 云南省大理市大理镇太和村 | 25.634407 | 100.200750 |\n", "relatedGraph": {"center": {"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "review": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "review": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "朱门酒肉臭，路有冻死骨。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李冶", "name": "李冶", "file": "李冶.html", "dynasty": "唐代（盛唐至中唐）", "aliases": [], "birth_year": 730, "death_year": 784, "quote": "唐代四大女诗人", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "乌程", "birthplace_modern": "浙江省湖州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "review": "", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "大祚荣", "name": "大祚荣", "file": "大祚荣.html", "dynasty": "唐朝（武周至唐玄宗初期）", "aliases": [], "birth_year": 665, "death_year": 719, "quote": "**海东盛国**", "review": "", "foreign_name": "", "main_role_label": "君主", "birthplace": "古称营州", "birthplace_modern": "辽宁省朝阳市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "皮逻阁", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "杜甫", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "李冶", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "王建", "label": "同册共现", "confidence": 0.15}, {"source": "皮逻阁", "target": "大祚荣", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:39Z", "generated_at": "2026-06-22T11:31:39Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "皮逻阁", "title": "", "description": "皮逻阁是唐代云南地区蒙舍诏（南诏）的第五代诏主。当时洱海周边分布着六个较大的部落（六诏），其中蒙舍诏位于最南，故称“南诏”。皮逻阁在位期间，凭借强大的军事实力与灵活的外交策略，在唐朝的支持下，逐步征服了其他五诏，于开元二十六年（738年）完成了对六诏的统一。唐朝为表彰其功绩，册封他为“云南王”，赐名“归义”。随后，他将政治中心从巍山迁至西洱河畔的太和城，正式建立了南诏国。他的统一与建国，结束了洱海地区长期的部落纷争，促进了当地经济、文化的发展，并为南诏后续的强盛奠定了坚实基础。", "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "shortReview": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "dynasty": "唐代（南诏国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）", "avatar": "", "birth": {"date": "712年", "location": "蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）", "lat": 25.229966, "lng": 100.305831, "coordSystem": "WGS84"}, "death": {"date": "748年", "location": "太和城（今云南省大理市大理镇太和村）", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84"}, "lifespan": "约36岁", "highlights": {"honor": "", "status": "南诏国的统一者与重要君主，统一六诏，开创了云南历史上的南诏时代。", "identities": "南诏国王、政治家、军事统帅", "achievements": "统一洱海区域六诏；建立南诏国；定都太和城；获唐朝册封为“云南王”。", "works": [], "reviews": ["《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "后世史家多认为，皮逻阁是“南诏国的缔造者”，其统一与建国是云南历史发展的关键转折点。", "他善于利用唐朝的支持与内部矛盾，展现了卓越的政治与军事才能，是一位成功的边疆民族领袖。"]}}, "locations": [{"name": "蒙舍诏（巍山）", "ancientName": "蒙舍诏。", "modernName": "云南省大理白族自治州巍山彝族回族自治县", "lat": 25.229966, "lng": 100.305831, "coordSystem": "WGS84", "type": "birth", "event": "出生于南诏王室，作为继承人在此成长并接受培养。", "time": "约公元712年", "duration": "早年生活于此，直至继承诏主之位。", "significance": "南诏的发源地与根基所在，是其事业的起点。", "works": [], "quoteLines": []}, {"name": "唐朝长安", "ancientName": "唐都长安。", "modernName": "陕西西安", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "接受唐玄宗的册封，获赐“云南王”金印及“归义”之名，确立了与唐朝的宗藩关系（是否亲自前往存疑）。", "time": "约开元二十六年（738年）前后。", "duration": "短暂，为朝觐或遣使（存疑）。", "significance": "获得中央王朝的正式承认，为其统治提供了强大的政治合法性。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "太和城", "ancientName": "太和城。", "modernName": "云南省大理市大理镇太和村", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84", "type": "normal", "event": "迁都于此，以此为中心统治南诏国，巩固统一成果。", "time": "开元二十七年（739年）至天宝七年（748年）。", "duration": "约9年，作为都城直至去世。", "significance": "南诏国的第一个都城，是其政治生涯的顶峰与国家象征。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "洱海周边诸诏", "ancientName": "洱海周边诸诏", "modernName": "活动于今云南省大理白族自治州洱海周边区域（古蒙嶲诏、浪穹诏、邆赕诏、施浪诏、越析诏等部落分布地）。", "lat": 25.681494, "lng": 100.300467, "coordSystem": "WGS84", "type": "normal", "event": "率军征战，逐一兼并其他五诏，完成统一。", "time": "约开元年间（713-741年），尤其集中在730年代。", "duration": "征战与统一期间频繁活动于此区域。", "significance": "统一战争的主要舞台，是其建立南诏国的关键军事与政治过程。", "works": [], "quoteLines": ["无直接文学作品传世。"]}, {"name": "太和城", "ancientName": "太和城。", "modernName": "云南省大理市大理镇太和村", "lat": 25.634407, "lng": 100.20075, "coordSystem": "WGS84", "type": "death", "event": "在都城病逝，其子阁罗凤继位。", "time": "天宝七年（748年）。", "duration": "晚年居于此。", "significance": "其政治生涯的终点，南诏国在此完成了权力交接。", "works": [], "quoteLines": ["无直接文学作品传世。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**唐朝**时期，实行开明的民族政策，在边疆地区设立**羁縻府州**。\n- **关键事件**：**皮逻阁**在唐朝支持下统一**六诏**。\n- **贡献**：建立**南诏国**，定都**太和城**。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：注意区分“六诏”与“吐蕃”；南诏是**西南**地区的政权，吐蕃是**青藏高原**的政权。\n\n### 高中阶段\n- **时代背景**：唐朝前期国力强盛，积极经营边疆；同时，**吐蕃**崛起，与唐朝在西南地区展开争夺。\n- **关键事件**：唐朝扶持南诏（皮逻阁）以牵制吐蕃；**738年**，皮逻阁统一六诏，受封**云南王**。\n- **贡献**：建立南诏国，初步奠定云南地区的政治格局。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：南诏与唐朝的关系是**宗藩关系**，但后期（阁罗凤时期）曾爆发战争（如天宝战争）；南诏的统一是唐朝**边疆治理策略**的一部分。\n\n---", "examPoints": "### 初中阶段\n- 皮逻阁是**唐朝**时期**南诏**的首领。\n- 他在唐朝支持下统一了**六诏**。\n- 唐玄宗封他为**云南王**。\n- 他建立了**南诏国**，都城在**太和城**。\n- 南诏位于今天的**云南省**。\n\n### 高中阶段\n- 皮逻阁统一六诏的背景是唐朝与**吐蕃**在西南的争夺。\n- 唐朝支持南诏的目的是“**以夷制夷**”，牵制吐蕃。\n- 南诏的统一标志着**云南地区**从部落联盟向**国家政权**的过渡。\n- 皮逻阁受封“云南王”体现了唐朝的**羁縻政策**。\n- （存疑/说法不一）关于皮逻阁是否曾亲自入朝长安，史料记载不一。", "workTexts": {"新唐书·南蛮传": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "新唐书": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”", "南蛮传": "“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”"}, "workSummaries": {"新唐书·南蛮传": {"title": "新唐书·南蛮传", "aliases": ["新唐书", "南蛮传"], "authors": [], "related_people": ["皮逻阁"], "source_pages": ["皮逻阁"], "era": "", "genre": "传记", "one_liner": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "summary": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 皮逻阁\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：皮逻阁（蒙归义）\n- **时代**：唐代（南诏国）\n- **出生**：约公元712年，蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）\n- **去世**：公元748年，太和城（今云南省大理市大理镇太和村）\n- **享年**：约36岁\n- **主要身份**：南诏国王、政治家、军事统帅\n- **历史地位**：南诏国的统一者与重要君主，统一六诏，开创了云南历史上的南诏时代。\n- **主要成就**：统一洱海区域六诏；建立南诏国；定都太和城；获唐朝册封为“云南王”。\n\n### 生平概述\n皮逻阁是唐代云南地区蒙舍诏（南诏）的第五代诏主。当时洱海周边分布着六个较大的部落（六诏），其中蒙舍诏位于最南，故称“南诏”。皮逻阁在位期间，凭借强大的军事实力与灵活的外交策略，在唐朝的支持下，逐步征服了其他五诏，于开元二十六年（738年）完成了对六诏的统一。唐朝为表彰其功绩，册封他为“云南王”，赐名“归义”。随后，他将政治中心从巍山迁至西洱河畔的太和城，正式建立了南诏国。他的统一与建国，结束了洱海地区长期的部落纷争，促进了当地经济、文化的发展，并为南诏后续的强盛奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以今云南大理地区为核心，活动范围主要在洱海流域及周边。\n- ⏱️ **时间跨度**：约公元712年—748年，共约36年。\n- 📍 **地理范围**：主要在今云南省大理白族自治州境内。\n- 🌟 **重要节点数量**：核心地点约5个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：蒙舍诏（巍山）\n- **公元纪年**：约公元712年\n- **停留时间**：早年生活于此，直至继承诏主之位。\n- **位置**：蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）。\n- **事迹**：出生于南诏王室，作为继承人在此成长并接受培养。\n- **意义**：南诏的发源地与根基所在，是其事业的起点。\n\n### 📍 重要地点：洱海周边诸诏\n- **公元纪年**：约开元年间（713-741年），尤其集中在730年代。\n- **停留时间**：征战与统一期间频繁活动于此区域。\n- **位置**：活动于今云南省大理白族自治州洱海周边区域（古蒙嶲诏、浪穹诏、邆赕诏、施浪诏、越析诏等部落分布地）。\n- **事迹**：率军征战，逐一兼并其他五诏，完成统一。\n- **意义**：统一战争的主要舞台，是其建立南诏国的关键军事与政治过程。\n- **名篇名句**：无直接文学作品传世。\n\n### 📍 重要地点：唐朝长安\n- **公元纪年**：约开元二十六年（738年）前后。\n- **停留时间**：短暂，为朝觐或遣使（存疑）。\n- **位置**：唐都长安（今陕西西安）。\n- **事迹**：接受唐玄宗的册封，获赐“云南王”金印及“归义”之名，确立了与唐朝的宗藩关系（是否亲自前往存疑）。\n- **意义**：获得中央王朝的正式承认，为其统治提供了强大的政治合法性。\n- **名篇名句**：无直接文学作品传世。\n\n### 📍 重要地点：太和城\n- **公元纪年**：开元二十七年（739年）至天宝七年（748年）。\n- **停留时间**：约9年，作为都城直至去世。\n- **位置**：太和城（今云南省大理市大理镇太和村）。\n- **事迹**：迁都于此，以此为中心统治南诏国，巩固统一成果。\n- **意义**：南诏国的第一个都城，是其政治生涯的顶峰与国家象征。\n- **名篇名句**：无直接文学作品传世。\n\n### 🔴 去世地：太和城\n- **公元纪年**：天宝七年（748年）。\n- **停留时间**：晚年居于此。\n- **位置**：太和城（今云南省大理市大理镇太和村）。\n- **经过**：在都城病逝，其子阁罗凤继位。\n- **意义**：其政治生涯的终点，南诏国在此完成了权力交接。\n- **名篇名句**：无直接文学作品传世。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约712年 | 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | （年龄：0岁）出生于蒙舍诏（今云南省大理白族自治州巍山彝族回族自治县）。 |\n| 约开元年间（具体年份存疑） | 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | （年龄：青年）继承蒙舍诏主之位，并开始统一六诏的军事行动。 |\n| 737年 |  |  | （年龄：约25岁）在统一战争中取得决定性进展，控制洱海周边大部地区。 |\n| 738年 |  |  | （年龄：约26岁）完成六诏统一；受唐朝册封为“云南王”，赐名“归义”。 |\n| 739年 | 太和城 | 云南省大理市大理镇太和村 | （年龄：约27岁）迁都至太和城，正式建立南诏国。 |\n| 745年 |  |  | （年龄：约33岁）遣使或可能亲自至长安朝贡（存疑）。 |\n| 748年 | 太和城 | 云南省大理市大理镇太和村 | （年龄：约36岁）于太和城去世，子阁罗凤继位。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n皮逻阁统一六诏，结束了洱海地区长期的部落割据与战乱状态，建立了云南历史上第一个统一的、强大的地方政权——南诏国。他通过与唐朝建立紧密的宗藩关系，获得了先进的生产技术、文化与政治制度，促进了云南地区的社会经济发展与民族融合，使其成为唐王朝西南边疆的重要屏障与力量。\n\n### 对后世的影响\n1.  **奠定南诏国基业**：他建立的南诏国存续近两百年，成为唐代西南地区最强大的政治实体，深刻影响了云南乃至中南半岛的历史进程。\n2.  **塑造云南历史格局**：南诏的建立是云南地方史上的里程碑，标志着该地区从部落分散状态进入统一政权时代，为后来的大理国等政权奠定了历史与地理基础。\n3.  **促进民族融合**：在其统治下，洱海地区的乌蛮、白蛮等族群加速融合，为今天白族等民族的形成与发展产生了重要影响。\n\n### 历史评价\n1.  《新唐书·南蛮传》载：“皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。”\n2.  后世史家多认为，皮逻阁是“南诏国的缔造者”，其统一与建国是云南历史发展的关键转折点。\n3.  他善于利用唐朝的支持与内部矛盾，展现了卓越的政治与军事才能，是一位成功的边疆民族领袖。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**唐朝**时期，实行开明的民族政策，在边疆地区设立**羁縻府州**。\n- **关键事件**：**皮逻阁**在唐朝支持下统一**六诏**。\n- **贡献**：建立**南诏国**，定都**太和城**。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：注意区分“六诏”与“吐蕃”；南诏是**西南**地区的政权，吐蕃是**青藏高原**的政权。\n\n### 高中阶段\n- **时代背景**：唐朝前期国力强盛，积极经营边疆；同时，**吐蕃**崛起，与唐朝在西南地区展开争夺。\n- **关键事件**：唐朝扶持南诏（皮逻阁）以牵制吐蕃；**738年**，皮逻阁统一六诏，受封**云南王**。\n- **贡献**：建立南诏国，初步奠定云南地区的政治格局。\n- **代表作品/思想**：无。\n- **常见易混点/对比点**：南诏与唐朝的关系是**宗藩关系**，但后期（阁罗凤时期）曾爆发战争（如天宝战争）；南诏的统一是唐朝**边疆治理策略**的一部分。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 皮逻阁是**唐朝**时期**南诏**的首领。\n- 他在唐朝支持下统一了**六诏**。\n- 唐玄宗封他为**云南王**。\n- 他建立了**南诏国**，都城在**太和城**。\n- 南诏位于今天的**云南省**。\n\n### 高中阶段\n- 皮逻阁统一六诏的背景是唐朝与**吐蕃**在西南的争夺。\n- 唐朝支持南诏的目的是“**以夷制夷**”，牵制吐蕃。\n- 南诏的统一标志着**云南地区**从部落联盟向**国家政权**的过渡。\n- 皮逻阁受封“云南王”体现了唐朝的**羁縻政策**。\n- （存疑/说法不一）关于皮逻阁是否曾亲自入朝长安，史料记载不一。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 蒙舍诏（巍山） | 云南省大理白族自治州巍山彝族回族自治县 | 25.229966 | 100.305831 |\n| 洱海周边诸诏 | 云南省大理市 | 25.681494 | 100.300467 |\n| 唐朝长安 | 陕西省西安市 | 34.344762 | 108.934990 |\n| 太和城 | 云南省大理市大理镇太和村 | 25.634407 | 100.200750 |\n", "relatedGraph": {"center": {"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "review": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "皮逻阁", "name": "皮逻阁", "file": "皮逻阁.html", "dynasty": "唐代（南诏国）", "aliases": [], "birth_year": 712, "death_year": 748, "quote": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "review": "皮逻阁立，当开元末。……由是五诏渐弱，而南诏独强，遂并群蛮，尽有云南之地。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "蒙舍诏", "birthplace_modern": "云南省大理白族自治州巍山彝族回族自治县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "朱门酒肉臭，路有冻死骨。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李冶", "name": "李冶", "file": "李冶.html", "dynasty": "唐代（盛唐至中唐）", "aliases": [], "birth_year": 730, "death_year": 784, "quote": "唐代四大女诗人", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "乌程", "birthplace_modern": "浙江省湖州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "review": "", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "大祚荣", "name": "大祚荣", "file": "大祚荣.html", "dynasty": "唐朝（武周至唐玄宗初期）", "aliases": [], "birth_year": 665, "death_year": 719, "quote": "**海东盛国**", "review": "", "foreign_name": "", "main_role_label": "君主", "birthplace": "古称营州", "birthplace_modern": "辽宁省朝阳市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "皮逻阁", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "杜甫", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "李冶", "label": "同时代人物", "confidence": null}, {"source": "皮逻阁", "target": "王建", "label": "同册共现", "confidence": 0.15}, {"source": "皮逻阁", "target": "大祚荣", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:41Z", "generated_at": "2026-06-25T07:13:41Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:39Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:41Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

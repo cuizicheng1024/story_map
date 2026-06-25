@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "常遇春", "title": "", "description": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功。参与攻克采石、太平、衢州、赣州等地，北伐中原时攻克大都外围要地，后在攻克开平后病逝，追封开平王，位列功臣庙次席。", "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "shortReview": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "dynasty": "元末明初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "开平", "lat": 39.705102, "lng": 118.262594, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "明朝开国功臣、军事将领、开平王", "achievements": "归附朱元璋后献取金陵策；攻克采石矶、太平、衢州、赣州等要地；鄱阳湖之战俘获陈友谅；随徐达克大都", "works": [], "reviews": []}}, "locations": [{"name": "和阳", "ancientName": "和阳", "modernName": "和阳", "lat": 24.141542, "lng": 116.898856, "coordSystem": "WGS84", "type": "normal", "event": "投奔朱元璋，初为先锋", "time": "元至正十五年（1355）", "duration": "", "significance": "和阳与“投奔朱元璋，初为先锋”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "采石矶、太平", "ancientName": "采石矶、太平", "modernName": "采石矶", "lat": 31.784661, "lng": 117.212095, "coordSystem": "WGS84", "type": "normal", "event": "进攻采石矶、太平", "time": "至正十五年（1355）", "duration": "", "significance": "采石矶、太平与“进攻采石矶、太平”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "衢州", "ancientName": "衢州", "modernName": "衢州", "lat": 28.973314, "lng": 118.854512, "coordSystem": "WGS84", "type": "normal", "event": "攻取衢州、浙东", "time": "至正十八年（1358）", "duration": "", "significance": "衢州与“攻取衢州、浙东”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "赣州", "modernName": "赣州", "lat": 25.834323, "lng": 114.928769, "coordSystem": "WGS84", "type": "normal", "event": "攻取赣州", "time": "至正二十一年（1361）", "duration": "", "significance": "赣州与“攻取赣州”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "鄱阳湖", "ancientName": "鄱阳湖", "modernName": "鄱阳湖", "lat": 20.031815, "lng": 110.330191, "coordSystem": "WGS84", "type": "normal", "event": "鄱阳湖大战，俘陈友谅", "time": "至正二十三年（1363）", "duration": "", "significance": "鄱阳湖与“鄱阳湖大战，俘陈友谅”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "山东、河南", "ancientName": "山东、河南", "modernName": "山东", "lat": 36.669875, "lng": 117.014794, "coordSystem": "WGS84", "type": "normal", "event": "随徐达北伐，进军山东、河南", "time": "至正二十七年（1367）", "duration": "", "significance": "山东、河南见证了常遇春的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "大都", "ancientName": "大都", "modernName": "大都", "lat": 23.399744, "lng": 109.657196, "coordSystem": "WGS84", "type": "normal", "event": "随徐达克大都", "time": "洪武元年（1368）", "duration": "", "significance": "大都与“随徐达克大都”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "南京", "lat": 32.061419, "lng": 118.79144, "coordSystem": "WGS84", "type": "normal", "event": "追封开平王，谥忠武，配享太庙，画像功臣庙次席", "time": "洪武二年（1369）", "duration": "", "significance": "南京见证了常遇春的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "开平", "ancientName": "开平", "modernName": "开平", "lat": 39.705102, "lng": 118.262594, "coordSystem": "WGS84", "type": "death", "event": "攻克开平后病逝军中", "time": "洪武二年（1369）", "duration": "", "significance": "开平对应常遇春人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {}, "workSummaries": {"明史": {"title": "明史", "aliases": [], "authors": [], "related_people": ["常遇春", "陈友谅", "王坤", "王忠文", "魏学洢", "于谦"], "source_pages": ["常遇春", "陈友谅", "王坤", "王忠文", "魏学洢", "于谦"], "era": "", "genre": "", "one_liner": "文学形象的丰富：陈友谅作为元末枭雄，在《明史》及后世小说、戏曲中被反复塑造，形象多趋于负面。", "summary": "文学形象的丰富：陈友谅作为元末枭雄，在《明史》及后世小说、戏曲中被反复塑造，形象多趋于负面。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "实录": {"title": "实录", "aliases": [], "authors": [], "related_people": ["常遇春"], "source_pages": ["常遇春"], "era": "", "genre": "", "one_liner": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "summary": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 常遇春\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：常遇春\n- **时代**：元末明初\n- **出生**：\n- **去世**：洪武二年（1369），开平\n- **主要身份**：明朝开国功臣、军事将领、开平王\n- **主要成就**：归附朱元璋后献取金陵策；攻克采石矶、太平、衢州、赣州等要地；鄱阳湖之战俘获陈友谅；随徐达克大都\n\n### 生平概述\n常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功。参与攻克采石、太平、衢州、赣州等地，北伐中原时攻克大都外围要地，后在攻克开平后病逝，追封开平王，位列功臣庙次席。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：和阳\n- **公元纪年**：元至正十五年（1355）\n- **位置**：和阳\n- **事迹**：投奔朱元璋，初为先锋\n\n### 📍 重要地点：采石矶、太平\n- **公元纪年**：至正十五年（1355）\n- **位置**：采石矶、太平（今采石矶）\n- **事迹**：进攻采石矶、太平\n\n### 📍 重要地点：衢州\n- **公元纪年**：至正十八年（1358）\n- **位置**：衢州\n- **事迹**：攻取衢州、浙东\n\n### 📍 重要地点：赣州\n- **公元纪年**：至正二十一年（1361）\n- **位置**：赣州\n- **事迹**：攻取赣州\n\n### 📍 重要地点：鄱阳湖\n- **公元纪年**：至正二十三年（1363）\n- **位置**：鄱阳湖\n- **事迹**：鄱阳湖大战，俘陈友谅\n\n### 📍 重要地点：山东、河南\n- **公元纪年**：至正二十七年（1367）\n- **位置**：山东、河南（今山东）\n- **事迹**：随徐达北伐，进军山东、河南\n\n### 📍 重要地点：大都\n- **公元纪年**：洪武元年（1368）\n- **位置**：大都\n- **事迹**：随徐达克大都\n\n### 🔴 去世地：开平\n- **公元纪年**：洪武二年（1369）\n- **位置**：开平\n- **经过**：攻克开平后病逝军中\n\n### 📍 重要地点：南京\n- **公元纪年**：洪武二年（1369）\n- **位置**：南京\n- **事迹**：追封开平王，谥忠武，配享太庙，画像功臣庙次席\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 元至正十五年（1355） | 和阳 | 和阳 | 投奔朱元璋，初为先锋 |\n| 至正十五年（1355） | 采石矶、太平 | 采石矶 | 进攻采石矶、太平 |\n| 至正十八年（1358） | 衢州 | 衢州 | 攻取衢州、浙东 |\n| 至正二十一年（1361） | 赣州 | 赣州 | 攻取赣州 |\n| 至正二十三年（1363） | 鄱阳湖 | 鄱阳湖 | 鄱阳湖大战，俘陈友谅 |\n| 至正二十七年（1367） | 山东、河南 | 山东 | 随徐达北伐，进军山东、河南 |\n| 洪武元年（1368） | 大都 | 大都 | 随徐达克大都 |\n| 洪武二年（1369） | 开平 | 开平 | 攻克开平后病逝军中 |\n| 洪武二年（1369） | 南京 | 南京 | 追封开平王，谥忠武，配享太庙，画像功臣庙次席 |\n\n## 五、补充说明\n\n- 生年存在多种说法（一说1330年，一说至顺年间），准确年份待考\n- 籍贯有怀远、凤阳、濠州等不同记载，需进一步考证\n- 首次投降朱元璋的年份与具体情境各书记载略有差异\n- 追封王号的具体时间与礼仪细节，《明史》与《实录》记载或有出入\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 和阳 | 和阳 | 24.141542 | 116.898856 | WGS84 |\n| 采石矶 | 采石矶 | 31.784661 | 117.212095 | WGS84 |\n| 衢州 | 衢州 | 28.973314 | 118.854512 | WGS84 |\n| 赣州 | 赣州 | 25.834323 | 114.928769 | WGS84 |\n| 鄱阳湖 | 鄱阳湖 | 20.031815 | 110.330191 | WGS84 |\n| 山东 | 山东 | 36.669875 | 117.014794 | WGS84 |\n| 大都 | 大都 | 23.399744 | 109.657196 | WGS84 |\n| 开平 | 开平 | 39.705102 | 118.262594 | WGS84 |\n| 南京 | 南京 | 32.061419 | 118.791440 | WGS84 |", "relatedGraph": {"center": {"id": "常遇春", "name": "常遇春", "file": "常遇春.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1369, "death_year": 1369, "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "review": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "foreign_name": "", "main_role_label": "军事将领", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "常遇春", "name": "常遇春", "file": "常遇春.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1369, "death_year": 1369, "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "review": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "foreign_name": "", "main_role_label": "军事将领", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "高筑墙、广积粮、缓称王", "review": "", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "开国文臣之首", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈友谅", "name": "陈友谅", "file": "陈友谅.html", "dynasty": "元末", "aliases": [], "birth_year": null, "death_year": 1363, "quote": "\"渔家崛起，僭号称雄，鄱阳一战，顿失乾坤。\"（短评）", "review": "", "foreign_name": "", "main_role_label": "元末农民起义领袖", "birthplace": "沔阳", "birthplace_modern": "湖北仙桃", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "元末明初（存疑）", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "**官逼民反**", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐东杰布", "name": "唐东杰布", "file": "唐东杰布.html", "dynasty": "元末明初", "aliases": [], "birth_year": null, "death_year": null, "quote": "**铁桥活佛**", "review": "", "foreign_name": "", "main_role_label": "桥梁建筑师", "birthplace": "后藏窝托加巴", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "常遇春", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "朱元璋", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "宋濂", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "陈友谅", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "唐东杰布", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:21Z", "generated_at": "2026-06-22T11:31:21Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "常遇春", "title": "", "description": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功。参与攻克采石、太平、衢州、赣州等地，北伐中原时攻克大都外围要地，后在攻克开平后病逝，追封开平王，位列功臣庙次席。", "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "shortReview": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "dynasty": "元末明初", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "开平", "lat": 39.705102, "lng": 118.262594, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "明朝开国功臣、军事将领、开平王", "achievements": "归附朱元璋后献取金陵策；攻克采石矶、太平、衢州、赣州等要地；鄱阳湖之战俘获陈友谅；随徐达克大都", "works": [], "reviews": []}}, "locations": [{"name": "和阳", "ancientName": "和阳", "modernName": "和阳", "lat": 24.141542, "lng": 116.898856, "coordSystem": "WGS84", "type": "normal", "event": "投奔朱元璋，初为先锋", "time": "元至正十五年（1355）", "duration": "", "significance": "和阳与“投奔朱元璋，初为先锋”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "采石矶、太平", "ancientName": "采石矶、太平", "modernName": "采石矶", "lat": 31.784661, "lng": 117.212095, "coordSystem": "WGS84", "type": "normal", "event": "进攻采石矶、太平", "time": "至正十五年（1355）", "duration": "", "significance": "采石矶、太平与“进攻采石矶、太平”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "衢州", "ancientName": "衢州", "modernName": "衢州", "lat": 28.973314, "lng": 118.854512, "coordSystem": "WGS84", "type": "normal", "event": "攻取衢州、浙东", "time": "至正十八年（1358）", "duration": "", "significance": "衢州与“攻取衢州、浙东”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "赣州", "ancientName": "赣州", "modernName": "赣州", "lat": 25.834323, "lng": 114.928769, "coordSystem": "WGS84", "type": "normal", "event": "攻取赣州", "time": "至正二十一年（1361）", "duration": "", "significance": "赣州与“攻取赣州”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "鄱阳湖", "ancientName": "鄱阳湖", "modernName": "鄱阳湖", "lat": 20.031815, "lng": 110.330191, "coordSystem": "WGS84", "type": "normal", "event": "鄱阳湖大战，俘陈友谅", "time": "至正二十三年（1363）", "duration": "", "significance": "鄱阳湖与“鄱阳湖大战，俘陈友谅”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "山东、河南", "ancientName": "山东、河南", "modernName": "山东", "lat": 36.669875, "lng": 117.014794, "coordSystem": "WGS84", "type": "normal", "event": "随徐达北伐，进军山东、河南", "time": "至正二十七年（1367）", "duration": "", "significance": "山东、河南见证了常遇春的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "大都", "ancientName": "大都", "modernName": "大都", "lat": 23.399744, "lng": 109.657196, "coordSystem": "WGS84", "type": "normal", "event": "随徐达克大都", "time": "洪武元年（1368）", "duration": "", "significance": "大都与“随徐达克大都”这一事件紧密相关，是理解常遇春生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "南京", "ancientName": "南京", "modernName": "南京", "lat": 32.061419, "lng": 118.79144, "coordSystem": "WGS84", "type": "normal", "event": "追封开平王，谥忠武，配享太庙，画像功臣庙次席", "time": "洪武二年（1369）", "duration": "", "significance": "南京见证了常遇春的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "开平", "ancientName": "开平", "modernName": "开平", "lat": 39.705102, "lng": 118.262594, "coordSystem": "WGS84", "type": "death", "event": "攻克开平后病逝军中", "time": "洪武二年（1369）", "duration": "", "significance": "开平对应常遇春人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {}, "workSummaries": {"明史": {"title": "明史", "aliases": [], "authors": [], "related_people": ["常遇春", "陈友谅", "王坤", "王忠文", "魏学洢", "于谦"], "source_pages": ["常遇春", "陈友谅", "王坤", "王忠文", "魏学洢", "于谦"], "era": "", "genre": "", "one_liner": "文学形象的丰富：陈友谅作为元末枭雄，在《明史》及后世小说、戏曲中被反复塑造，形象多趋于负面。", "summary": "文学形象的丰富：陈友谅作为元末枭雄，在《明史》及后世小说、戏曲中被反复塑造，形象多趋于负面。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "实录": {"title": "实录", "aliases": [], "authors": [], "related_people": ["常遇春"], "source_pages": ["常遇春"], "era": "", "genre": "", "one_liner": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "summary": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 常遇春\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：常遇春\n- **时代**：元末明初\n- **出生**：\n- **去世**：洪武二年（1369），开平\n- **主要身份**：明朝开国功臣、军事将领、开平王\n- **主要成就**：归附朱元璋后献取金陵策；攻克采石矶、太平、衢州、赣州等要地；鄱阳湖之战俘获陈友谅；随徐达克大都\n\n### 生平概述\n常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功。参与攻克采石、太平、衢州、赣州等地，北伐中原时攻克大都外围要地，后在攻克开平后病逝，追封开平王，位列功臣庙次席。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：和阳\n- **公元纪年**：元至正十五年（1355）\n- **位置**：和阳\n- **事迹**：投奔朱元璋，初为先锋\n\n### 📍 重要地点：采石矶、太平\n- **公元纪年**：至正十五年（1355）\n- **位置**：采石矶、太平（今采石矶）\n- **事迹**：进攻采石矶、太平\n\n### 📍 重要地点：衢州\n- **公元纪年**：至正十八年（1358）\n- **位置**：衢州\n- **事迹**：攻取衢州、浙东\n\n### 📍 重要地点：赣州\n- **公元纪年**：至正二十一年（1361）\n- **位置**：赣州\n- **事迹**：攻取赣州\n\n### 📍 重要地点：鄱阳湖\n- **公元纪年**：至正二十三年（1363）\n- **位置**：鄱阳湖\n- **事迹**：鄱阳湖大战，俘陈友谅\n\n### 📍 重要地点：山东、河南\n- **公元纪年**：至正二十七年（1367）\n- **位置**：山东、河南（今山东）\n- **事迹**：随徐达北伐，进军山东、河南\n\n### 📍 重要地点：大都\n- **公元纪年**：洪武元年（1368）\n- **位置**：大都\n- **事迹**：随徐达克大都\n\n### 🔴 去世地：开平\n- **公元纪年**：洪武二年（1369）\n- **位置**：开平\n- **经过**：攻克开平后病逝军中\n\n### 📍 重要地点：南京\n- **公元纪年**：洪武二年（1369）\n- **位置**：南京\n- **事迹**：追封开平王，谥忠武，配享太庙，画像功臣庙次席\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 元至正十五年（1355） | 和阳 | 和阳 | 投奔朱元璋，初为先锋 |\n| 至正十五年（1355） | 采石矶、太平 | 采石矶 | 进攻采石矶、太平 |\n| 至正十八年（1358） | 衢州 | 衢州 | 攻取衢州、浙东 |\n| 至正二十一年（1361） | 赣州 | 赣州 | 攻取赣州 |\n| 至正二十三年（1363） | 鄱阳湖 | 鄱阳湖 | 鄱阳湖大战，俘陈友谅 |\n| 至正二十七年（1367） | 山东、河南 | 山东 | 随徐达北伐，进军山东、河南 |\n| 洪武元年（1368） | 大都 | 大都 | 随徐达克大都 |\n| 洪武二年（1369） | 开平 | 开平 | 攻克开平后病逝军中 |\n| 洪武二年（1369） | 南京 | 南京 | 追封开平王，谥忠武，配享太庙，画像功臣庙次席 |\n\n## 五、补充说明\n\n- 生年存在多种说法（一说1330年，一说至顺年间），准确年份待考\n- 籍贯有怀远、凤阳、濠州等不同记载，需进一步考证\n- 首次投降朱元璋的年份与具体情境各书记载略有差异\n- 追封王号的具体时间与礼仪细节，《明史》与《实录》记载或有出入\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 和阳 | 和阳 | 24.141542 | 116.898856 | WGS84 |\n| 采石矶 | 采石矶 | 31.784661 | 117.212095 | WGS84 |\n| 衢州 | 衢州 | 28.973314 | 118.854512 | WGS84 |\n| 赣州 | 赣州 | 25.834323 | 114.928769 | WGS84 |\n| 鄱阳湖 | 鄱阳湖 | 20.031815 | 110.330191 | WGS84 |\n| 山东 | 山东 | 36.669875 | 117.014794 | WGS84 |\n| 大都 | 大都 | 23.399744 | 109.657196 | WGS84 |\n| 开平 | 开平 | 39.705102 | 118.262594 | WGS84 |\n| 南京 | 南京 | 32.061419 | 118.791440 | WGS84 |", "relatedGraph": {"center": {"id": "常遇春", "name": "常遇春", "file": "常遇春.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1369, "death_year": 1369, "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "review": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "foreign_name": "", "main_role_label": "军事将领", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "常遇春", "name": "常遇春", "file": "常遇春.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1369, "death_year": 1369, "quote": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "review": "常遇春，明初开国功臣，字伯仁，号燕衡，元末归附朱元璋，勇猛善战，屡建奇功", "foreign_name": "", "main_role_label": "军事将领", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王忠文", "name": "王忠文", "file": "王忠文.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1323, "death_year": 1374, "quote": "祎博学能文，危素、张起岩并荐之，不报。隐青岩山著书，名日盛。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江义乌", "birthplace_modern": "浙江省金华市义乌市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "朱元璋", "name": "朱元璋", "file": "朱元璋.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1328, "death_year": 1398, "quote": "高筑墙、广积粮、缓称王", "review": "", "foreign_name": "", "main_role_label": "明朝开国皇帝", "birthplace": "濠州钟离", "birthplace_modern": "安徽凤阳", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "宋濂", "name": "宋濂", "file": "宋濂.html", "dynasty": "元末明初", "aliases": [], "birth_year": 1310, "death_year": 1381, "quote": "开国文臣之首", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江金华潜溪", "birthplace_modern": "浙江省金华市金东区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈友谅", "name": "陈友谅", "file": "陈友谅.html", "dynasty": "元末", "aliases": [], "birth_year": null, "death_year": 1363, "quote": "\"渔家崛起，僭号称雄，鄱阳一战，顿失乾坤。\"（短评）", "review": "", "foreign_name": "", "main_role_label": "元末农民起义领袖", "birthplace": "沔阳", "birthplace_modern": "湖北仙桃", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "施耐庵", "name": "施耐庵", "file": "施耐庵.html", "dynasty": "元末明初（存疑）", "aliases": [], "birth_year": null, "death_year": 1370, "quote": "**官逼民反**", "review": "", "foreign_name": "", "main_role_label": "小说家", "birthplace": "存疑一说江苏省苏州市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐东杰布", "name": "唐东杰布", "file": "唐东杰布.html", "dynasty": "元末明初", "aliases": [], "birth_year": null, "death_year": null, "quote": "**铁桥活佛**", "review": "", "foreign_name": "", "main_role_label": "桥梁建筑师", "birthplace": "后藏窝托加巴", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "常遇春", "target": "王忠文", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "朱元璋", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "宋濂", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "陈友谅", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "施耐庵", "label": "同时代人物", "confidence": null}, {"source": "常遇春", "target": "唐东杰布", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:23Z", "generated_at": "2026-06-25T07:13:23Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:21Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:23Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

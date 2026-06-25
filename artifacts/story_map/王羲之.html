@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "王羲之", "title": "书圣", "description": "王羲之出身魏晋名门“琅琊王氏”，幼年随家族南渡建康。他历任秘书郎、宁远将军、江州刺史、会稽内史等职，后世称“王右军”。晚年辞官定居会稽，寄情山水，潜心书法。其书法博采众长，备精诸体，自成一家，开创了影响中国书法艺术千余年的“新体”，成为东晋士人精神与艺术成就的杰出代表。", "quote": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "shortReview": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "dynasty": "东晋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（学界主流观点", "avatar": "", "birth": {"date": "303年", "location": "（学界主流观点", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "361年", "location": "金庭（今浙江省绍兴市嵊州市金庭镇）", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84"}, "lifespan": "约58岁（按303年出生、361年去世计）", "highlights": {"honor": "书圣", "status": "被后世尊为“书圣”，其书法艺术树立了后世典范。", "identities": "书法家、文学家、官员", "achievements": "1. 创立楷书、行书、草书新风，一变汉魏质朴书风；2. 代表作《兰亭集序》被誉为“天下第一行书”；3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。", "works": ["兰亭集序"], "reviews": []}}, "locations": [{"name": "琅琊临沂", "ancientName": "琅琊临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3564, "coordSystem": "WGS84", "type": "birth", "event": "出生于琅琊王氏家族。", "time": "约公元303年（学界主流观点，另有321年等异说）", "duration": "幼年时期（约5岁前）", "significance": "名门望族的出身为其后来的文化修养与仕途奠定了基础。", "works": [], "quoteLines": []}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "随家族南渡后生活于此；师从卫夫人学习书法；拜谒周顗，受其赏识，开始知名；“东床快婿”典故发生地（太尉郗鉴在此择婿）。", "time": "约公元308年-320年代", "duration": "青少年至成年初期", "significance": "接受了早期的书法教育与文化熏陶，并在都城士族圈中崭露头角。", "works": [], "quoteLines": ["《姨母帖》：“十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。”"]}, {"name": "武昌", "ancientName": "武昌", "modernName": "湖北省武汉市武昌区", "lat": 30.5543, "lng": 114.3418, "coordSystem": "WGS84", "type": "normal", "event": "任征西将军庾亮参军，后迁长史。", "time": "约公元325年-330年代", "duration": "数年", "significance": "在荆州军政中心任职，积累了政治经验，并与庾亮等名士交游。", "works": [], "quoteLines": []}, {"name": "临川", "ancientName": "临川郡", "modernName": "江西省抚州市临川区", "lat": 27.9486, "lng": 116.3593, "coordSystem": "WGS84", "type": "normal", "event": "出任临川太守。", "time": "约公元330年代中期", "duration": "较短", "significance": "首次担任地方行政长官。", "works": [], "quoteLines": []}, {"name": "江州", "ancientName": "江州", "modernName": "江西省九江市", "lat": 29.7052, "lng": 116.0017, "coordSystem": "WGS84", "type": "normal", "event": "任江州刺史、宁远将军。", "time": "约公元340年-345年", "duration": "约5年", "significance": "成为一方军政长官，政治地位达到一个高峰。", "works": [], "quoteLines": []}, {"name": "会稽郡治（山阴）", "ancientName": "会稽郡治山阴", "modernName": "浙江省绍兴市", "lat": 30.0301, "lng": 120.5803, "coordSystem": "WGS84", "type": "normal", "event": "任会稽内史，右军将军。在此期间，关心民瘼，开仓赈灾；与东土人士尽山水之游；写下大量书帖。公元355年（永和十一年），在父母墓前（地点位于会稽山阴，今绍兴市，具体位置不详）发誓称病去官，即“誓墓不仕”，标志其正式退出官场。", "time": "公元347年-355年", "duration": "约8年", "significance": "其政治生涯后期的主要驻地，也是其艺术创作最丰沛的时期。", "works": [], "quoteLines": ["《快雪时晴帖》：“羲之顿首。快雪时晴，佳想安善。”", "《丧乱帖》：“丧乱之极，先墓再离荼毒，追惟酷甚。”"]}, {"name": "会稽山阴（兰亭）", "ancientName": "会稽山阴兰亭", "modernName": "浙江省绍兴市柯桥区兰亭镇", "lat": 29.9476, "lng": 120.5328, "coordSystem": "WGS84", "type": "normal", "event": "主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "time": "公元353年（永和九年）", "duration": "一日（三月初三）", "significance": "中国文学史与书法史上的标志性事件，其书法艺术在此达到巅峰。此地属会稽郡山阴县，时王羲之正任会稽内史。", "works": ["兰亭集序"], "quoteLines": ["《兰亭集序》：“永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。”", "“仰观宇宙之大，俯察品类之盛。”"]}, {"name": "金庭", "ancientName": "金庭", "modernName": "浙江省绍兴市嵊州市金庭镇", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84", "type": "normal", "event": "晚年隐居于此，修道采药，直至去世。", "time": "公元355年-361年", "duration": "晚年约6年", "significance": "其最终的归隐地与长眠之所。", "works": [], "quoteLines": []}, {"name": "金庭", "ancientName": "金庭", "modernName": "浙江省绍兴市嵊州市金庭镇", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84", "type": "death", "event": "病逝。", "time": "公元361年（升平五年）", "duration": "终老之地", "significance": "归葬于此，墓地及后世所建金庭观成为书法圣地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---", "workTexts": {"姨母帖": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "兰亭集序": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "快雪时晴帖": "羲之顿首。快雪时晴，佳想安善。", "丧乱帖": "丧乱之极，先墓再离荼毒，追惟酷甚。"}, "workSummaries": {"兰亭集序": {"title": "兰亭集序", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "序", "one_liner": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "summary": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "quote": "事件：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "quotes": ["事件：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。"], "quote_policy": "preferred"}, "姨母帖": {"title": "姨母帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "summary": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "quote": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "quotes": ["十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "顷遘姨母哀，哀痛摧剥，情不自胜。", "十一月十三日，羲之顿首、顿首。"], "quote_policy": "preferred"}, "快雪时晴帖": {"title": "快雪时晴帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "羲之顿首。快雪时晴，佳想安善。", "summary": "羲之顿首。快雪时晴，佳想安善。", "quote": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quotes": ["丧乱之极，先墓再离荼毒，追惟酷甚。", "羲之顿首。快雪时晴，佳想安善。", "快雪时晴，佳想安善。"], "quote_policy": "preferred"}, "丧乱帖": {"title": "丧乱帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "丧乱之极，先墓再离荼毒，追惟酷甚。", "summary": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quote": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quotes": ["丧乱之极，先墓再离荼毒，追惟酷甚。", "羲之顿首。快雪时晴，佳想安善。", "快雪时晴，佳想安善。"], "quote_policy": "preferred"}}, "markdown": "# 王羲之\n\n## 人物档案\n\n### 基本信息\n- **姓名**：王羲之\n- **时代**：东晋\n- **出生**：约公元303年（学界主流观点，另有321年等异说），琅琊临沂（今山东省临沂市）\n- **去世**：公元361年，金庭（今浙江省绍兴市嵊州市金庭镇）\n- **享年**：约58岁（按303年出生、361年去世计）\n- **主要身份**：书法家、文学家、官员\n- **历史地位**：被后世尊为“书圣”，其书法艺术树立了后世典范。\n- **主要成就**：1. 创立楷书、行书、草书新风，一变汉魏质朴书风；2. 代表作《兰亭集序》被誉为“天下第一行书”；3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。\n\n### 生平概述\n王羲之出身魏晋名门“琅琊王氏”，幼年随家族南渡建康。他历任秘书郎、宁远将军、江州刺史、会稽内史等职，后世称“王右军”。晚年辞官定居会稽，寄情山水，潜心书法。其书法博采众长，备精诸体，自成一家，开创了影响中国书法艺术千余年的“新体”，成为东晋士人精神与艺术成就的杰出代表。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于江南地区，以都城建康和会稽郡为核心。\n- ⏱️ **时间跨度**：约公元303年至361年，共约58年。\n- 📍 **地理范围**：覆盖今山东、江苏、浙江、江西等省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：琅琊临沂\n- **时间**：约公元303年（学界主流观点，另有321年等异说）\n- **停留时间**：幼年时期（约5岁前）\n- **地点**：琅琊临沂（今山东省临沂市）\n- **事件**：出生于琅琊王氏家族。\n- **意义**：名门望族的出身为其后来的文化修养与仕途奠定了基础。\n\n### 📍 重要地点：建康\n- **时间**：约公元308年-320年代\n- **停留时间**：青少年至成年初期\n- **地点**：建康（今江苏省南京市）\n- **事件**：随家族南渡后生活于此；师从卫夫人学习书法；拜谒周顗，受其赏识，开始知名；“东床快婿”典故发生地（太尉郗鉴在此择婿）。\n- **意义**：接受了早期的书法教育与文化熏陶，并在都城士族圈中崭露头角。\n- **名篇名句**：《姨母帖》：“十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。”\n\n### 📍 重要地点：武昌\n- **时间**：约公元325年-330年代\n- **停留时间**：数年\n- **地点**：武昌（今湖北省武汉市武昌区）\n- **事件**：任征西将军庾亮参军，后迁长史。\n- **意义**：在荆州军政中心任职，积累了政治经验，并与庾亮等名士交游。\n\n### 📍 重要地点：临川\n- **时间**：约公元330年代中期\n- **停留时间**：较短\n- **地点**：临川郡（今江西省抚州市临川区）\n- **事件**：出任临川太守。\n- **意义**：首次担任地方行政长官。\n\n### 📍 重要地点：江州\n- **时间**：约公元340年-345年\n- **停留时间**：约5年\n- **地点**：江州（今江西省九江市）\n- **事件**：任江州刺史、宁远将军。\n- **意义**：成为一方军政长官，政治地位达到一个高峰。\n\n### 📍 重要地点：会稽山阴（兰亭）\n- **时间**：公元353年（永和九年）\n- **停留时间**：一日（三月初三）\n- **地点**：会稽山阴兰亭（今浙江省绍兴市柯桥区兰亭镇）\n- **事件**：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。\n- **意义**：中国文学史与书法史上的标志性事件，其书法艺术在此达到巅峰。此地属会稽郡山阴县，时王羲之正任会稽内史。\n- **名篇名句**：《兰亭集序》：“永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。”；“仰观宇宙之大，俯察品类之盛。”\n\n### 📍 重要地点：会稽郡治（山阴）\n- **时间**：公元347年-355年\n- **停留时间**：约8年\n- **地点**：会稽郡治山阴（今浙江省绍兴市）\n- **事件**：任会稽内史，右军将军。在此期间，关心民瘼，开仓赈灾；与东土人士尽山水之游；写下大量书帖。公元355年（永和十一年），在父母墓前（地点位于会稽山阴，今绍兴市，具体位置不详）发誓称病去官，即“誓墓不仕”，标志其正式退出官场。\n- **意义**：其政治生涯后期的主要驻地，也是其艺术创作最丰沛的时期。\n- **名篇名句**：《快雪时晴帖》：“羲之顿首。快雪时晴，佳想安善。”；《丧乱帖》：“丧乱之极，先墓再离荼毒，追惟酷甚。”\n\n### 📍 重要地点：金庭\n- **时间**：公元355年-361年\n- **停留时间**：晚年约6年\n- **地点**：金庭（今浙江省绍兴市嵊州市金庭镇）\n- **事件**：晚年隐居于此，修道采药，直至去世。\n- **意义**：其最终的归隐地与长眠之所。\n\n### 🔴 去世地：金庭\n- **时间**：公元361年（升平五年）\n- **停留时间**：终老之地\n- **地点**：金庭（今浙江省绍兴市嵊州市金庭镇）\n- **事件**：病逝。\n- **意义**：归葬于此，墓地及后世所建金庭观成为书法圣地。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元303年（学界主流观点） | 琅琊临沂 | 山东省临沂市 | （年龄：0岁）出生于琅琊临沂（今山东临沂）。 |\n| 约公元308年 | 建康 | 江苏省南京市 | （年龄：约5岁）随家族南渡，迁居建康（今江苏南京）。 |\n| 约公元316年 |  |  | （年龄：约13岁）拜谒周顗，受其赏识，开始知名。 |\n| 约公元320年代（具体年份存疑） |  |  | （年龄：约20余岁）娶郗鉴女郗璿，即“东床快婿”典故。 |\n| 约公元325年 |  |  | （年龄：约22岁）任秘书郎，后入庾亮幕府，任参军、长史。 |\n| 约公元330年代中期 | 临川 | 江西省抚州市临川区 | （年龄：约30余岁）出任临川太守。 |\n| 约公元340年 | 江州 | 江西省九江市 | （年龄：约37岁）出任江州刺史。 |\n| 公元347年 |  |  | （年龄：约44岁）任会稽内史、右军将军（“王右军”由来）。 |\n| 公元353年 | 会稽山阴（兰亭） | 浙江省绍兴市柯桥区兰亭镇 | （年龄：约50岁）永和九年，主持兰亭雅集，写下《兰亭集序》。 |\n| 公元355年 | 金庭 | 浙江省绍兴市嵊州市金庭镇 | （年龄：约52岁）誓墓辞官，归隐剡县金庭。 |\n| 公元361年 | 金庭 | 浙江省绍兴市嵊州市金庭镇 | （年龄：约58岁）卒于金庭。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省临沂市 | 35.1047 | 118.3564 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 湖北省武汉市武昌区 | 30.5543 | 114.3418 |\n| 江西省抚州市临川区 | 27.9486 | 116.3593 |\n| 江西省九江市 | 29.7052 | 116.0017 |\n| 浙江省绍兴市柯桥区兰亭镇 | 29.9476 | 120.5328 |\n| 浙江省绍兴市 | 30.0301 | 120.5803 |\n| 浙江省绍兴市嵊州市金庭镇 | 29.5886 | 121.0264 |", "relatedGraph": {"center": {"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "天下第一行书", "review": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "天下第一行书", "review": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "王猛", "name": "王猛", "file": "王猛.html", "dynasty": "东晋十六国时期（前秦）", "aliases": [], "birth_year": 325, "death_year": 375, "quote": "*\"若非汉鼎移，新莽之篡，秦之强暴，必不至于此。\"**（据检索资料辑录的短评）", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "北海郡剧县今山东省潍坊市寿光市一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "古今隐逸诗人之宗", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谢安", "name": "谢安", "file": "谢安.html", "dynasty": "东晋", "aliases": [], "birth_year": 385, "death_year": 385, "quote": "谢安（320年—385年），字安石，陈郡阳夏（今河南太康）人，东晋名士、宰相", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "希帕蒂娅", "name": "希帕蒂娅", "file": "希帕蒂娅.html", "dynasty": "古罗马帝国晚期（埃及行省）", "aliases": [], "birth_year": 355, "death_year": 415, "quote": "希帕蒂娅生活在罗马帝国基督教势力日益扩张、古典希腊罗马文化受到冲击的时代", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "亚历山大", "birthplace_modern": "埃及亚历山大省亚历山大市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵爽", "name": "赵爽", "file": "赵爽.html", "dynasty": "三国时期（吴国）", "aliases": [], "birth_year": null, "death_year": null, "quote": "勾股各自乘，并之为弦实，开方除之，即弦也。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "公元", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵云", "name": "赵云", "file": "赵云.html", "dynasty": "三国（蜀汉）", "aliases": [], "birth_year": 229, "death_year": 229, "quote": "赵云字子龙，常山真定人，蜀汉名将", "review": "", "foreign_name": "", "main_role_label": "武将", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王羲之", "target": "王猛", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "陶渊明", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "谢安", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "希帕蒂娅", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "赵爽", "label": "相关人物", "confidence": null}, {"source": "王羲之", "target": "赵云", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:37Z", "generated_at": "2026-06-22T11:31:37Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "王羲之", "title": "书圣", "description": "王羲之出身魏晋名门“琅琊王氏”，幼年随家族南渡建康。他历任秘书郎、宁远将军、江州刺史、会稽内史等职，后世称“王右军”。晚年辞官定居会稽，寄情山水，潜心书法。其书法博采众长，备精诸体，自成一家，开创了影响中国书法艺术千余年的“新体”，成为东晋士人精神与艺术成就的杰出代表。", "quote": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "shortReview": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "dynasty": "东晋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "（学界主流观点", "avatar": "", "birth": {"date": "303年", "location": "（学界主流观点", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "361年", "location": "金庭（今浙江省绍兴市嵊州市金庭镇）", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84"}, "lifespan": "约58岁（按303年出生、361年去世计）", "highlights": {"honor": "书圣", "status": "被后世尊为“书圣”，其书法艺术树立了后世典范。", "identities": "书法家、文学家、官员", "achievements": "1. 创立楷书、行书、草书新风，一变汉魏质朴书风；2. 代表作《兰亭集序》被誉为“天下第一行书”；3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。", "works": ["兰亭集序"], "reviews": []}}, "locations": [{"name": "琅琊临沂", "ancientName": "琅琊临沂", "modernName": "山东省临沂市", "lat": 35.1047, "lng": 118.3564, "coordSystem": "WGS84", "type": "birth", "event": "出生于琅琊王氏家族。", "time": "约公元303年（学界主流观点，另有321年等异说）", "duration": "幼年时期（约5岁前）", "significance": "名门望族的出身为其后来的文化修养与仕途奠定了基础。", "works": [], "quoteLines": []}, {"name": "建康", "ancientName": "建康", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "随家族南渡后生活于此；师从卫夫人学习书法；拜谒周顗，受其赏识，开始知名；“东床快婿”典故发生地（太尉郗鉴在此择婿）。", "time": "约公元308年-320年代", "duration": "青少年至成年初期", "significance": "接受了早期的书法教育与文化熏陶，并在都城士族圈中崭露头角。", "works": [], "quoteLines": ["《姨母帖》：“十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。”"]}, {"name": "武昌", "ancientName": "武昌", "modernName": "湖北省武汉市武昌区", "lat": 30.5543, "lng": 114.3418, "coordSystem": "WGS84", "type": "normal", "event": "任征西将军庾亮参军，后迁长史。", "time": "约公元325年-330年代", "duration": "数年", "significance": "在荆州军政中心任职，积累了政治经验，并与庾亮等名士交游。", "works": [], "quoteLines": []}, {"name": "临川", "ancientName": "临川郡", "modernName": "江西省抚州市临川区", "lat": 27.9486, "lng": 116.3593, "coordSystem": "WGS84", "type": "normal", "event": "出任临川太守。", "time": "约公元330年代中期", "duration": "较短", "significance": "首次担任地方行政长官。", "works": [], "quoteLines": []}, {"name": "江州", "ancientName": "江州", "modernName": "江西省九江市", "lat": 29.7052, "lng": 116.0017, "coordSystem": "WGS84", "type": "normal", "event": "任江州刺史、宁远将军。", "time": "约公元340年-345年", "duration": "约5年", "significance": "成为一方军政长官，政治地位达到一个高峰。", "works": [], "quoteLines": []}, {"name": "会稽郡治（山阴）", "ancientName": "会稽郡治山阴", "modernName": "浙江省绍兴市", "lat": 30.0301, "lng": 120.5803, "coordSystem": "WGS84", "type": "normal", "event": "任会稽内史，右军将军。在此期间，关心民瘼，开仓赈灾；与东土人士尽山水之游；写下大量书帖。公元355年（永和十一年），在父母墓前（地点位于会稽山阴，今绍兴市，具体位置不详）发誓称病去官，即“誓墓不仕”，标志其正式退出官场。", "time": "公元347年-355年", "duration": "约8年", "significance": "其政治生涯后期的主要驻地，也是其艺术创作最丰沛的时期。", "works": [], "quoteLines": ["《快雪时晴帖》：“羲之顿首。快雪时晴，佳想安善。”", "《丧乱帖》：“丧乱之极，先墓再离荼毒，追惟酷甚。”"]}, {"name": "会稽山阴（兰亭）", "ancientName": "会稽山阴兰亭", "modernName": "浙江省绍兴市柯桥区兰亭镇", "lat": 29.9476, "lng": 120.5328, "coordSystem": "WGS84", "type": "normal", "event": "主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "time": "公元353年（永和九年）", "duration": "一日（三月初三）", "significance": "中国文学史与书法史上的标志性事件，其书法艺术在此达到巅峰。此地属会稽郡山阴县，时王羲之正任会稽内史。", "works": ["兰亭集序"], "quoteLines": ["《兰亭集序》：“永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。”", "“仰观宇宙之大，俯察品类之盛。”"]}, {"name": "金庭", "ancientName": "金庭", "modernName": "浙江省绍兴市嵊州市金庭镇", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84", "type": "normal", "event": "晚年隐居于此，修道采药，直至去世。", "time": "公元355年-361年", "duration": "晚年约6年", "significance": "其最终的归隐地与长眠之所。", "works": [], "quoteLines": []}, {"name": "金庭", "ancientName": "金庭", "modernName": "浙江省绍兴市嵊州市金庭镇", "lat": 29.5886, "lng": 121.0264, "coordSystem": "WGS84", "type": "death", "event": "病逝。", "time": "公元361年（升平五年）", "duration": "终老之地", "significance": "归葬于此，墓地及后世所建金庭观成为书法圣地。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---", "workTexts": {"姨母帖": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "兰亭集序": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "快雪时晴帖": "羲之顿首。快雪时晴，佳想安善。", "丧乱帖": "丧乱之极，先墓再离荼毒，追惟酷甚。"}, "workSummaries": {"兰亭集序": {"title": "兰亭集序", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "序", "one_liner": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "summary": "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "quote": "事件：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "quotes": ["事件：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。", "永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。", "3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。"], "quote_policy": "preferred"}, "姨母帖": {"title": "姨母帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "summary": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "quote": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "quotes": ["十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "顷遘姨母哀，哀痛摧剥，情不自胜。", "十一月十三日，羲之顿首、顿首。"], "quote_policy": "preferred"}, "快雪时晴帖": {"title": "快雪时晴帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "羲之顿首。快雪时晴，佳想安善。", "summary": "羲之顿首。快雪时晴，佳想安善。", "quote": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quotes": ["丧乱之极，先墓再离荼毒，追惟酷甚。", "羲之顿首。快雪时晴，佳想安善。", "快雪时晴，佳想安善。"], "quote_policy": "preferred"}, "丧乱帖": {"title": "丧乱帖", "aliases": [], "authors": ["王羲之"], "related_people": ["王羲之"], "source_pages": ["王羲之"], "era": "东晋", "genre": "", "one_liner": "丧乱之极，先墓再离荼毒，追惟酷甚。", "summary": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quote": "丧乱之极，先墓再离荼毒，追惟酷甚。", "quotes": ["丧乱之极，先墓再离荼毒，追惟酷甚。", "羲之顿首。快雪时晴，佳想安善。", "快雪时晴，佳想安善。"], "quote_policy": "preferred"}}, "markdown": "# 王羲之\n\n## 人物档案\n\n### 基本信息\n- **姓名**：王羲之\n- **时代**：东晋\n- **出生**：约公元303年（学界主流观点，另有321年等异说），琅琊临沂（今山东省临沂市）\n- **去世**：公元361年，金庭（今浙江省绍兴市嵊州市金庭镇）\n- **享年**：约58岁（按303年出生、361年去世计）\n- **主要身份**：书法家、文学家、官员\n- **历史地位**：被后世尊为“书圣”，其书法艺术树立了后世典范。\n- **主要成就**：1. 创立楷书、行书、草书新风，一变汉魏质朴书风；2. 代表作《兰亭集序》被誉为“天下第一行书”；3. 其书法对日本、朝鲜半岛等东亚文化产生深远影响。\n\n### 生平概述\n王羲之出身魏晋名门“琅琊王氏”，幼年随家族南渡建康。他历任秘书郎、宁远将军、江州刺史、会稽内史等职，后世称“王右军”。晚年辞官定居会稽，寄情山水，潜心书法。其书法博采众长，备精诸体，自成一家，开创了影响中国书法艺术千余年的“新体”，成为东晋士人精神与艺术成就的杰出代表。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于江南地区，以都城建康和会稽郡为核心。\n- ⏱️ **时间跨度**：约公元303年至361年，共约58年。\n- 📍 **地理范围**：覆盖今山东、江苏、浙江、江西等省。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：琅琊临沂\n- **时间**：约公元303年（学界主流观点，另有321年等异说）\n- **停留时间**：幼年时期（约5岁前）\n- **地点**：琅琊临沂（今山东省临沂市）\n- **事件**：出生于琅琊王氏家族。\n- **意义**：名门望族的出身为其后来的文化修养与仕途奠定了基础。\n\n### 📍 重要地点：建康\n- **时间**：约公元308年-320年代\n- **停留时间**：青少年至成年初期\n- **地点**：建康（今江苏省南京市）\n- **事件**：随家族南渡后生活于此；师从卫夫人学习书法；拜谒周顗，受其赏识，开始知名；“东床快婿”典故发生地（太尉郗鉴在此择婿）。\n- **意义**：接受了早期的书法教育与文化熏陶，并在都城士族圈中崭露头角。\n- **名篇名句**：《姨母帖》：“十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。”\n\n### 📍 重要地点：武昌\n- **时间**：约公元325年-330年代\n- **停留时间**：数年\n- **地点**：武昌（今湖北省武汉市武昌区）\n- **事件**：任征西将军庾亮参军，后迁长史。\n- **意义**：在荆州军政中心任职，积累了政治经验，并与庾亮等名士交游。\n\n### 📍 重要地点：临川\n- **时间**：约公元330年代中期\n- **停留时间**：较短\n- **地点**：临川郡（今江西省抚州市临川区）\n- **事件**：出任临川太守。\n- **意义**：首次担任地方行政长官。\n\n### 📍 重要地点：江州\n- **时间**：约公元340年-345年\n- **停留时间**：约5年\n- **地点**：江州（今江西省九江市）\n- **事件**：任江州刺史、宁远将军。\n- **意义**：成为一方军政长官，政治地位达到一个高峰。\n\n### 📍 重要地点：会稽山阴（兰亭）\n- **时间**：公元353年（永和九年）\n- **停留时间**：一日（三月初三）\n- **地点**：会稽山阴兰亭（今浙江省绍兴市柯桥区兰亭镇）\n- **事件**：主持“兰亭雅集”，与谢安、孙绰等四十二人曲水流觞，饮酒赋诗，并乘兴写下《兰亭集序》。\n- **意义**：中国文学史与书法史上的标志性事件，其书法艺术在此达到巅峰。此地属会稽郡山阴县，时王羲之正任会稽内史。\n- **名篇名句**：《兰亭集序》：“永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。”；“仰观宇宙之大，俯察品类之盛。”\n\n### 📍 重要地点：会稽郡治（山阴）\n- **时间**：公元347年-355年\n- **停留时间**：约8年\n- **地点**：会稽郡治山阴（今浙江省绍兴市）\n- **事件**：任会稽内史，右军将军。在此期间，关心民瘼，开仓赈灾；与东土人士尽山水之游；写下大量书帖。公元355年（永和十一年），在父母墓前（地点位于会稽山阴，今绍兴市，具体位置不详）发誓称病去官，即“誓墓不仕”，标志其正式退出官场。\n- **意义**：其政治生涯后期的主要驻地，也是其艺术创作最丰沛的时期。\n- **名篇名句**：《快雪时晴帖》：“羲之顿首。快雪时晴，佳想安善。”；《丧乱帖》：“丧乱之极，先墓再离荼毒，追惟酷甚。”\n\n### 📍 重要地点：金庭\n- **时间**：公元355年-361年\n- **停留时间**：晚年约6年\n- **地点**：金庭（今浙江省绍兴市嵊州市金庭镇）\n- **事件**：晚年隐居于此，修道采药，直至去世。\n- **意义**：其最终的归隐地与长眠之所。\n\n### 🔴 去世地：金庭\n- **时间**：公元361年（升平五年）\n- **停留时间**：终老之地\n- **地点**：金庭（今浙江省绍兴市嵊州市金庭镇）\n- **事件**：病逝。\n- **意义**：归葬于此，墓地及后世所建金庭观成为书法圣地。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元303年（学界主流观点） | 琅琊临沂 | 山东省临沂市 | （年龄：0岁）出生于琅琊临沂（今山东临沂）。 |\n| 约公元308年 | 建康 | 江苏省南京市 | （年龄：约5岁）随家族南渡，迁居建康（今江苏南京）。 |\n| 约公元316年 |  |  | （年龄：约13岁）拜谒周顗，受其赏识，开始知名。 |\n| 约公元320年代（具体年份存疑） |  |  | （年龄：约20余岁）娶郗鉴女郗璿，即“东床快婿”典故。 |\n| 约公元325年 |  |  | （年龄：约22岁）任秘书郎，后入庾亮幕府，任参军、长史。 |\n| 约公元330年代中期 | 临川 | 江西省抚州市临川区 | （年龄：约30余岁）出任临川太守。 |\n| 约公元340年 | 江州 | 江西省九江市 | （年龄：约37岁）出任江州刺史。 |\n| 公元347年 |  |  | （年龄：约44岁）任会稽内史、右军将军（“王右军”由来）。 |\n| 公元353年 | 会稽山阴（兰亭） | 浙江省绍兴市柯桥区兰亭镇 | （年龄：约50岁）永和九年，主持兰亭雅集，写下《兰亭集序》。 |\n| 公元355年 | 金庭 | 浙江省绍兴市嵊州市金庭镇 | （年龄：约52岁）誓墓辞官，归隐剡县金庭。 |\n| 公元361年 | 金庭 | 浙江省绍兴市嵊州市金庭镇 | （年龄：约58岁）卒于金庭。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《兰亭集序》**（高中语文教材经典篇目）\n- 核心要点：\n    - **重点**：文章由乐转痛再转悲的情感脉络，体现了作者对生命短暂、世事无常的深沉感慨。\n    - **重点**：**情景交融**的写作手法，将山水雅集之乐与人生哲思完美结合。\n    - **重点**：**骈散结合**的语言风格，句式错落有致，音韵和谐，是魏晋散文的典范。\n    - 文章记录的“**曲水流觞**”活动，成为后世文人雅集的文化符号。\n    - 其书法真迹虽佚，但**摹本**（如传为唐代冯承素所摹的“神龙本”）仍是学习行书的重要范本。\n    - 文中“**固知一死生为虚诞，齐彭殇为妄作**”一句，表达了作者对庄子“齐生死”思想的质疑与超越。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：出身**琅琊王氏**，是“**王与马，共天下**”的门阀政治中的核心家族成员。\n    - 历任**江州刺史**、**会稽内史**等要职，是东晋中期重要的政治人物。\n    - **永和九年**的**兰亭雅集**，是东晋**玄学清谈**风气下文人生活的典型缩影。\n    - **誓墓辞官**事件，反映了东晋士人在政治理想与现实困境间的矛盾与选择。\n- 核心要点：\n    - **重点**：其书法成就代表了**魏晋风度**在艺术领域的最高表现，将汉字的书写提升至**审美自觉**的高度。\n    - **重点**：被尊为“**书圣**”，其创立的**新体**（楷、行、草）为唐代书法盛世奠定了基础。\n    - 其人生轨迹（南渡、仕隐）是理解**东晋士族**生存状态与精神世界的典型案例。\n    - **《兰亭集序》** 的流传与推崇，本身即是一部文化史，涉及**唐太宗**等后世帝王的推崇与书法史的建构。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 山东省临沂市 | 35.1047 | 118.3564 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 湖北省武汉市武昌区 | 30.5543 | 114.3418 |\n| 江西省抚州市临川区 | 27.9486 | 116.3593 |\n| 江西省九江市 | 29.7052 | 116.0017 |\n| 浙江省绍兴市柯桥区兰亭镇 | 29.9476 | 120.5328 |\n| 浙江省绍兴市 | 30.0301 | 120.5803 |\n| 浙江省绍兴市嵊州市金庭镇 | 29.5886 | 121.0264 |", "relatedGraph": {"center": {"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "天下第一行书", "review": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "王羲之", "name": "王羲之", "file": "王羲之.html", "dynasty": "东晋", "aliases": [], "birth_year": 303, "death_year": 361, "quote": "天下第一行书", "review": "十一月十三日，羲之顿首、顿首。顷遘姨母哀，哀痛摧剥，情不自胜。", "foreign_name": "", "main_role_label": "书法家", "birthplace": "学界主流观点", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "石勒", "name": "石勒", "file": "石勒.html", "dynasty": "东晋/十六国时期（后赵）", "aliases": [], "birth_year": 274, "death_year": 333, "quote": "石勒，羯族，原为奴隶，后聚众起义，投附刘渊建立前赵，逐步壮大并独立称王", "review": "", "foreign_name": "", "main_role_label": "后赵开国皇帝", "birthplace": "武乡", "birthplace_modern": "山西榆社一带", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王猛", "name": "王猛", "file": "王猛.html", "dynasty": "东晋十六国时期（前秦）", "aliases": [], "birth_year": 325, "death_year": 375, "quote": "*\"若非汉鼎移，新莽之篡，秦之强暴，必不至于此。\"**（据检索资料辑录的短评）", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "北海郡剧县今山东省潍坊市寿光市一带", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陶渊明", "name": "陶渊明", "file": "陶渊明.html", "dynasty": "东晋末至南朝宋初", "aliases": [], "birth_year": 365, "death_year": 427, "quote": "古今隐逸诗人之宗", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "柴桑", "birthplace_modern": "江西省九江市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "谢安", "name": "谢安", "file": "谢安.html", "dynasty": "东晋", "aliases": [], "birth_year": 385, "death_year": 385, "quote": "谢安（320年—385年），字安石，陈郡阳夏（今河南太康）人，东晋名士、宰相", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "希帕蒂娅", "name": "希帕蒂娅", "file": "希帕蒂娅.html", "dynasty": "古罗马帝国晚期（埃及行省）", "aliases": [], "birth_year": 355, "death_year": 415, "quote": "希帕蒂娅生活在罗马帝国基督教势力日益扩张、古典希腊罗马文化受到冲击的时代", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "亚历山大", "birthplace_modern": "埃及亚历山大省亚历山大市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "赵爽", "name": "赵爽", "file": "赵爽.html", "dynasty": "三国时期（吴国）", "aliases": [], "birth_year": null, "death_year": null, "quote": "勾股各自乘，并之为弦实，开方除之，即弦也。", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "公元", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "相关人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "王羲之", "target": "石勒", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "王猛", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "陶渊明", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "谢安", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "希帕蒂娅", "label": "同时代人物", "confidence": null}, {"source": "王羲之", "target": "赵爽", "label": "相关人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:39Z", "generated_at": "2026-06-25T07:13:39Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:37Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:39Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

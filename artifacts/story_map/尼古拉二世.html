@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "尼古拉二世·亚历山德罗维奇", "title": "", "description": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位。他性格优柔寡断，坚信君权神授，却面临帝国深刻的内外危机。在位期间，俄国经历了1905年革命的冲击，被迫设立国家杜马；对外扩张政策导致日俄战争惨败；最终卷入第一次世界大战，激化了国内矛盾。1917年二月革命爆发，他被迫退位。1918年，他与家人在叶卡捷琳堡被布尔什维克处决，结束了罗曼诺夫王朝三百余年的统治。", "quote": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "shortReview": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）", "avatar": "", "birth": {"date": "1868年", "location": "圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84"}, "death": {"date": "1918年", "location": "叶卡捷琳堡（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）", "lat": 56.8389, "lng": 60.6057, "coordSystem": "WGS84"}, "lifespan": "约50岁", "highlights": {"honor": "", "status": "罗曼诺夫王朝的最后一位沙皇，其统治的终结标志着俄国君主制的覆灭。", "identities": "沙皇、俄罗斯帝国最高统治者", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "皇村", "ancientName": "皇村", "modernName": "俄罗斯圣彼得堡普希金城", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84", "type": "birth", "event": "作为皇储亚历山大三世的长子出生。", "time": "公元1868年5月18日", "duration": "童年及青少年时期常居于此", "significance": "罗曼诺夫王朝皇室传统的夏宫所在地，在此接受严格的宫廷教育。", "works": [], "quoteLines": []}, {"name": "冬宫", "ancientName": "圣彼得堡冬宫", "modernName": "俄罗斯圣彼得堡", "lat": 59.9398, "lng": 30.3146, "coordSystem": "WGS84", "type": "normal", "event": "在此度过大部分宫廷生活，学习治国之道。", "time": "公元1868年-1894年（作为皇储时期）", "duration": "长期居住地之一", "significance": "俄罗斯帝国权力象征之一，其父亚历山大三世在此遇刺未遂后，更倾向于此处理政务。", "works": [], "quoteLines": []}, {"name": "莫斯科克里姆林宫", "ancientName": "莫斯科克里姆林宫", "modernName": "俄罗斯莫斯科", "lat": 55.752, "lng": 37.6175, "coordSystem": "WGS84", "type": "normal", "event": "举行盛大的加冕典礼，期间发生霍登广场惨剧。", "time": "公元1896年5月", "duration": "数日", "significance": "正式成为全俄罗斯的专制君主，但加冕庆典的悲剧被视为不祥之兆。", "works": [], "quoteLines": []}, {"name": "旅顺（日俄战争关键战场）", "ancientName": "旅顺口", "modernName": "中国辽宁省大连市旅顺口区", "lat": 38.8167, "lng": 121.25, "coordSystem": "WGS84", "type": "normal", "event": "日俄战争关键战场，俄军在此惨败。", "time": "公元1904年-1905年（战争期间）", "duration": "未亲临", "significance": "战争失败严重削弱了沙皇政府的威信，激化了国内矛盾。", "works": [], "quoteLines": []}, {"name": "彼得宫城", "ancientName": "彼得宫城", "modernName": "俄罗斯圣彼得堡彼得宫城", "lat": 59.8833, "lng": 29.9, "coordSystem": "WGS84", "type": "normal", "event": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "time": "公元1905年10月", "duration": "数日", "significance": "标志着1905年革命高潮后，沙皇专制被迫做出重大让步。", "works": ["十月诏书"], "quoteLines": []}, {"name": "大本营（莫吉廖夫）", "ancientName": "莫吉廖夫", "modernName": "白俄罗斯莫吉廖夫", "lat": 53.9, "lng": 30.3333, "coordSystem": "WGS84", "type": "normal", "event": "一战期间亲任俄军最高统帅，常驻前线大本营。", "time": "公元1915年9月 - 1917年", "duration": "约一年半", "significance": "将国家命运与战争捆绑，远离首都政治中心，导致后方权力真空与混乱。", "works": [], "quoteLines": []}, {"name": "皇村（亚历山大宫）", "ancientName": "皇村亚历山大宫", "modernName": "俄罗斯圣彼得堡普希金城", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84", "type": "normal", "event": "二月革命后，退位的尼古拉二世与家人被临时政府软禁于此。", "time": "公元1917年3月 - 8月", "duration": "约5个月", "significance": "从帝国统治者变为阶下囚，标志着其政治生命的终结。", "works": [], "quoteLines": []}, {"name": "托博尔斯克", "ancientName": "托博尔斯克", "modernName": "俄罗斯秋明州托博尔斯克", "lat": 58.1953, "lng": 68.2581, "coordSystem": "WGS84", "type": "normal", "event": "被临时政府转移至西伯利亚的这座省城囚禁。", "time": "公元1917年8月 - 1918年4月", "duration": "约8个月", "significance": "远离政治中心的流放地，是十月革命后布尔什维克接管前的过渡囚禁点。", "works": [], "quoteLines": []}, {"name": "伊帕季耶夫宅邸", "ancientName": "叶卡捷琳堡伊帕季耶夫宅邸", "modernName": "俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡", "lat": 56.8389, "lng": 60.6057, "coordSystem": "WGS84", "type": "death", "event": "与妻子、子女及数名仆人一同被当地布尔什维克处决。", "time": "公元1918年7月17日凌晨", "duration": "约78天", "significance": "罗曼诺夫王朝血脉的物理终结，成为俄国革命残酷性的标志性事件之一。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---", "workTexts": {"十月诏书": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。"}, "workSummaries": {"十月诏书": {"title": "十月诏书", "aliases": [], "authors": [], "related_people": ["尼古拉二世"], "source_pages": ["尼古拉二世"], "era": "", "genre": "书信/论说文", "one_liner": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "summary": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 尼古拉二世\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉二世·亚历山德罗维奇\n- **时代**：俄罗斯帝国末代沙皇（1894-1917年在位）\n- **出生**：公元1868年5月18日，圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）\n- **去世**：公元1918年7月17日，叶卡捷琳堡（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）\n- **享年**：约50岁\n- **主要身份**：沙皇、俄罗斯帝国最高统治者\n- **历史地位**：罗曼诺夫王朝的最后一位沙皇，其统治的终结标志着俄国君主制的覆灭。\n- **主要成就**：\n    - 推动西伯利亚大铁路等工业化项目。\n    - 主持1897年俄国首次全国人口普查。\n    - 召开1899年海牙和平会议，倡导国际仲裁。\n    - 其统治后期亦见证了斯托雷平改革的尝试。\n\n### 生平概述\n尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位。他性格优柔寡断，坚信君权神授，却面临帝国深刻的内外危机。在位期间，俄国经历了1905年革命的冲击，被迫设立国家杜马；对外扩张政策导致日俄战争惨败；最终卷入第一次世界大战，激化了国内矛盾。1917年二月革命爆发，他被迫退位。1918年，他与家人在叶卡捷琳堡被布尔什维克处决，结束了罗曼诺夫王朝三百余年的统治。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于俄罗斯帝国欧洲部分的核心区域，从首都圣彼得堡到旧都莫斯科，并延伸至西伯利亚的流放地。\n- ⏱️ **时间跨度**：公元1868年 - 1918年，共约50年。\n- 📍 **地理范围**：以俄罗斯欧洲部分为中心，东至西伯利亚的托博尔斯克和叶卡捷琳堡。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：皇村\n- **时间**：公元1868年5月18日\n- **停留时间**：童年及青少年时期常居于此\n- **地点**：皇村（今俄罗斯圣彼得堡普希金城）\n- **事件**：作为皇储亚历山大三世的长子出生。\n- **意义**：罗曼诺夫王朝皇室传统的夏宫所在地，在此接受严格的宫廷教育。\n\n### 📍 重要地点：冬宫\n- **时间**：公元1868年-1894年（作为皇储时期）\n- **停留时间**：长期居住地之一\n- **地点**：圣彼得堡冬宫（今俄罗斯圣彼得堡）\n- **事件**：在此度过大部分宫廷生活，学习治国之道。\n- **意义**：俄罗斯帝国权力象征之一，其父亚历山大三世在此遇刺未遂后，更倾向于此处理政务。\n\n### 📍 重要地点：莫斯科克里姆林宫\n- **时间**：公元1896年5月\n- **停留时间**：数日\n- **地点**：莫斯科克里姆林宫（今俄罗斯莫斯科）\n- **事件**：举行盛大的加冕典礼，期间发生霍登广场惨剧。\n- **意义**：正式成为全俄罗斯的专制君主，但加冕庆典的悲剧被视为不祥之兆。\n\n### 📍 重要地点：彼得宫城\n- **时间**：公元1905年10月\n- **停留时间**：数日\n- **地点**：彼得宫城（今俄罗斯圣彼得堡彼得宫城）\n- **事件**：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。\n- **意义**：标志着1905年革命高潮后，沙皇专制被迫做出重大让步。\n\n### 📍 相关重要地点：旅顺（日俄战争关键战场）\n- **时间**：公元1904年-1905年（战争期间）\n- **停留时间**：未亲临\n- **地点**：旅顺口（今中国辽宁省大连市旅顺口区）\n- **事件**：日俄战争关键战场，俄军在此惨败。\n- **意义**：战争失败严重削弱了沙皇政府的威信，激化了国内矛盾。\n\n### 📍 重要地点：大本营（莫吉廖夫）\n- **时间**：公元1915年9月 - 1917年\n- **停留时间**：约一年半\n- **地点**：莫吉廖夫（今白俄罗斯莫吉廖夫）\n- **事件**：一战期间亲任俄军最高统帅，常驻前线大本营。\n- **意义**：将国家命运与战争捆绑，远离首都政治中心，导致后方权力真空与混乱。\n\n### 📍 重要地点：皇村（亚历山大宫）\n- **时间**：公元1917年3月 - 8月\n- **停留时间**：约5个月\n- **地点**：皇村亚历山大宫（今俄罗斯圣彼得堡普希金城）\n- **事件**：二月革命后，退位的尼古拉二世与家人被临时政府软禁于此。\n- **意义**：从帝国统治者变为阶下囚，标志着其政治生命的终结。\n\n### 📍 重要地点：托博尔斯克\n- **时间**：公元1917年8月 - 1918年4月\n- **停留时间**：约8个月\n- **地点**：托博尔斯克（今俄罗斯秋明州托博尔斯克）\n- **事件**：被临时政府转移至西伯利亚的这座省城囚禁。\n- **意义**：远离政治中心的流放地，是十月革命后布尔什维克接管前的过渡囚禁点。\n\n### 🔴 去世地：伊帕季耶夫宅邸\n- **时间**：公元1918年7月17日凌晨\n- **停留时间**：约78天\n- **地点**：叶卡捷琳堡伊帕季耶夫宅邸（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）\n- **事件**：与妻子、子女及数名仆人一同被当地布尔什维克处决。\n- **意义**：罗曼诺夫王朝血脉的物理终结，成为俄国革命残酷性的标志性事件之一。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1868 | 皇村 | 俄罗斯圣彼得堡普希金城 | （年龄：0）出生于皇村。 |\n| 1881 |  |  | （年龄：13）祖父亚历山大二世遇刺身亡，父亲继位为亚历山大三世，成为皇储。 |\n| 1894 |  |  | （年龄：26）父亲病逝，继位为沙皇尼古拉二世。 |\n| 1896 |  |  | （年龄：28）在莫斯科举行加冕典礼，发生霍登广场惨剧。 |\n| 1897 |  |  | （年龄：29）主持俄国首次全国人口普查。 |\n| 1904 |  |  | （年龄：36）长子阿列克谢出生（患有血友病）；日俄战争爆发。 |\n| 1905 |  |  | （年龄：37）“血腥星期日”事件引发1905年革命；签署《十月诏书》，成立国家杜马。 |\n| 1914 |  |  | （年龄：46）第一次世界大战爆发，俄国参战。 |\n| 1915 | 大本营（莫吉廖夫） | 白俄罗斯莫吉廖夫 | （年龄：47）亲任俄军最高统帅，常驻莫吉廖夫大本营。 |\n| 1917 | 托博尔斯克 | 俄罗斯秋明州托博尔斯克 | （年龄：49）二月革命爆发，被迫退位；与家人先后被囚于皇村、托博尔斯克。 |\n| 1918 |  |  | （年龄：50）被转移至叶卡捷琳堡；7月17日，全家被处决。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 俄罗斯圣彼得堡普希金城（皇村） | 59.7167 | 30.3833 |\n| 俄罗斯圣彼得堡（冬宫） | 59.9398 | 30.3146 |\n| 俄罗斯莫斯科（克里姆林宫） | 55.7520 | 37.6175 |\n| 俄罗斯圣彼得堡彼得宫城 | 59.8833 | 29.9000 |\n| 中国辽宁省大连市旅顺口区 | 38.8167 | 121.2500 |\n| 白俄罗斯莫吉廖夫 | 53.9000 | 30.3333 |\n| 俄罗斯秋明州托博尔斯克 | 58.1953 | 68.2581 |\n| 俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡 | 56.8389 | 60.6057 |", "relatedGraph": {"center": {"id": "尼古拉二世", "name": "尼古拉二世", "file": "尼古拉二世.html", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "aliases": [], "birth_year": 1868, "death_year": 1918, "quote": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位", "review": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "foreign_name": "", "main_role_label": "政治", "birthplace": "圣彼得堡附近的皇村", "birthplace_modern": "俄罗斯圣彼得堡普希金城", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "尼古拉二世", "name": "尼古拉二世", "file": "尼古拉二世.html", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "aliases": [], "birth_year": 1868, "death_year": 1918, "quote": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位", "review": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "foreign_name": "", "main_role_label": "政治", "birthplace": "圣彼得堡附近的皇村", "birthplace_modern": "俄罗斯圣彼得堡普希金城", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "亚历山大二世", "name": "亚历山大二世", "file": "亚历山大二世.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1818, "death_year": 1881, "quote": "半吊子改革家", "review": "", "foreign_name": "", "main_role_label": "改革家", "birthplace": "莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "高尔基", "name": "高尔基", "file": "高尔基.html", "dynasty": "俄罗斯帝国末期至苏联初期", "aliases": [], "birth_year": 1868, "death_year": 1936, "quote": "无产阶级艺术最杰出的代表", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "诺夫哥罗德省下诺夫哥罗德", "birthplace_modern": "俄罗斯下诺夫哥罗德", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陀思妥耶夫斯基", "name": "陀思妥耶夫斯基", "file": "陀思妥耶夫斯基.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1821, "death_year": 1881, "quote": "被侮辱与被损害者", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "俄罗斯帝国莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "劳合·乔治", "name": "劳合·乔治", "file": "劳合·乔治.html", "dynasty": "19世纪末至20世纪上半叶（维多利亚时代晚期至一战及战间期）", "aliases": [], "birth_year": 1863, "death_year": 1945, "quote": "福利国家之父", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曼彻斯特", "birthplace_modern": "英国英格兰曼彻斯特", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "普希金", "name": "普希金", "file": "普希金.html", "dynasty": "俄罗斯帝国（19世纪上半叶）", "aliases": [], "birth_year": 1799, "death_year": 1837, "quote": "俄国文学之父", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "尼古拉二世", "target": "亚历山大二世", "label": "宗亲", "confidence": null}, {"source": "尼古拉二世", "target": "高尔基", "label": "同时代人物", "confidence": null}, {"source": "尼古拉二世", "target": "陀思妥耶夫斯基", "label": "同时代人物", "confidence": null}, {"source": "尼古拉二世", "target": "居里夫人", "label": "同册共现", "confidence": 0.15}, {"source": "尼古拉二世", "target": "劳合·乔治", "label": "同册共现", "confidence": 0.15}, {"source": "尼古拉二世", "target": "普希金", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:20Z", "generated_at": "2026-06-22T11:31:20Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "尼古拉二世·亚历山德罗维奇", "title": "", "description": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位。他性格优柔寡断，坚信君权神授，却面临帝国深刻的内外危机。在位期间，俄国经历了1905年革命的冲击，被迫设立国家杜马；对外扩张政策导致日俄战争惨败；最终卷入第一次世界大战，激化了国内矛盾。1917年二月革命爆发，他被迫退位。1918年，他与家人在叶卡捷琳堡被布尔什维克处决，结束了罗曼诺夫王朝三百余年的统治。", "quote": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "shortReview": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）", "avatar": "", "birth": {"date": "1868年", "location": "圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84"}, "death": {"date": "1918年", "location": "叶卡捷琳堡（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）", "lat": 56.8389, "lng": 60.6057, "coordSystem": "WGS84"}, "lifespan": "约50岁", "highlights": {"honor": "", "status": "罗曼诺夫王朝的最后一位沙皇，其统治的终结标志着俄国君主制的覆灭。", "identities": "沙皇、俄罗斯帝国最高统治者", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "皇村", "ancientName": "皇村", "modernName": "俄罗斯圣彼得堡普希金城", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84", "type": "birth", "event": "作为皇储亚历山大三世的长子出生。", "time": "公元1868年5月18日", "duration": "童年及青少年时期常居于此", "significance": "罗曼诺夫王朝皇室传统的夏宫所在地，在此接受严格的宫廷教育。", "works": [], "quoteLines": []}, {"name": "冬宫", "ancientName": "圣彼得堡冬宫", "modernName": "俄罗斯圣彼得堡", "lat": 59.9398, "lng": 30.3146, "coordSystem": "WGS84", "type": "normal", "event": "在此度过大部分宫廷生活，学习治国之道。", "time": "公元1868年-1894年（作为皇储时期）", "duration": "长期居住地之一", "significance": "俄罗斯帝国权力象征之一，其父亚历山大三世在此遇刺未遂后，更倾向于此处理政务。", "works": [], "quoteLines": []}, {"name": "莫斯科克里姆林宫", "ancientName": "莫斯科克里姆林宫", "modernName": "俄罗斯莫斯科", "lat": 55.752, "lng": 37.6175, "coordSystem": "WGS84", "type": "normal", "event": "举行盛大的加冕典礼，期间发生霍登广场惨剧。", "time": "公元1896年5月", "duration": "数日", "significance": "正式成为全俄罗斯的专制君主，但加冕庆典的悲剧被视为不祥之兆。", "works": [], "quoteLines": []}, {"name": "旅顺（日俄战争关键战场）", "ancientName": "旅顺口", "modernName": "中国辽宁省大连市旅顺口区", "lat": 38.8167, "lng": 121.25, "coordSystem": "WGS84", "type": "normal", "event": "日俄战争关键战场，俄军在此惨败。", "time": "公元1904年-1905年（战争期间）", "duration": "未亲临", "significance": "战争失败严重削弱了沙皇政府的威信，激化了国内矛盾。", "works": [], "quoteLines": []}, {"name": "彼得宫城", "ancientName": "彼得宫城", "modernName": "俄罗斯圣彼得堡彼得宫城", "lat": 59.8833, "lng": 29.9, "coordSystem": "WGS84", "type": "normal", "event": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "time": "公元1905年10月", "duration": "数日", "significance": "标志着1905年革命高潮后，沙皇专制被迫做出重大让步。", "works": ["十月诏书"], "quoteLines": []}, {"name": "大本营（莫吉廖夫）", "ancientName": "莫吉廖夫", "modernName": "白俄罗斯莫吉廖夫", "lat": 53.9, "lng": 30.3333, "coordSystem": "WGS84", "type": "normal", "event": "一战期间亲任俄军最高统帅，常驻前线大本营。", "time": "公元1915年9月 - 1917年", "duration": "约一年半", "significance": "将国家命运与战争捆绑，远离首都政治中心，导致后方权力真空与混乱。", "works": [], "quoteLines": []}, {"name": "皇村（亚历山大宫）", "ancientName": "皇村亚历山大宫", "modernName": "俄罗斯圣彼得堡普希金城", "lat": 59.7167, "lng": 30.3833, "coordSystem": "WGS84", "type": "normal", "event": "二月革命后，退位的尼古拉二世与家人被临时政府软禁于此。", "time": "公元1917年3月 - 8月", "duration": "约5个月", "significance": "从帝国统治者变为阶下囚，标志着其政治生命的终结。", "works": [], "quoteLines": []}, {"name": "托博尔斯克", "ancientName": "托博尔斯克", "modernName": "俄罗斯秋明州托博尔斯克", "lat": 58.1953, "lng": 68.2581, "coordSystem": "WGS84", "type": "normal", "event": "被临时政府转移至西伯利亚的这座省城囚禁。", "time": "公元1917年8月 - 1918年4月", "duration": "约8个月", "significance": "远离政治中心的流放地，是十月革命后布尔什维克接管前的过渡囚禁点。", "works": [], "quoteLines": []}, {"name": "伊帕季耶夫宅邸", "ancientName": "叶卡捷琳堡伊帕季耶夫宅邸", "modernName": "俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡", "lat": 56.8389, "lng": 60.6057, "coordSystem": "WGS84", "type": "death", "event": "与妻子、子女及数名仆人一同被当地布尔什维克处决。", "time": "公元1918年7月17日凌晨", "duration": "约78天", "significance": "罗曼诺夫王朝血脉的物理终结，成为俄国革命残酷性的标志性事件之一。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---", "workTexts": {"十月诏书": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。"}, "workSummaries": {"十月诏书": {"title": "十月诏书", "aliases": [], "authors": [], "related_people": ["尼古拉二世"], "source_pages": ["尼古拉二世"], "era": "", "genre": "书信/论说文", "one_liner": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "summary": "事件：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 尼古拉二世\n\n## 人物档案\n\n### 基本信息\n- **姓名**：尼古拉二世·亚历山德罗维奇\n- **时代**：俄罗斯帝国末代沙皇（1894-1917年在位）\n- **出生**：公元1868年5月18日，圣彼得堡附近的皇村（今俄罗斯圣彼得堡普希金城）\n- **去世**：公元1918年7月17日，叶卡捷琳堡（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）\n- **享年**：约50岁\n- **主要身份**：沙皇、俄罗斯帝国最高统治者\n- **历史地位**：罗曼诺夫王朝的最后一位沙皇，其统治的终结标志着俄国君主制的覆灭。\n- **主要成就**：\n    - 推动西伯利亚大铁路等工业化项目。\n    - 主持1897年俄国首次全国人口普查。\n    - 召开1899年海牙和平会议，倡导国际仲裁。\n    - 其统治后期亦见证了斯托雷平改革的尝试。\n\n### 生平概述\n尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位。他性格优柔寡断，坚信君权神授，却面临帝国深刻的内外危机。在位期间，俄国经历了1905年革命的冲击，被迫设立国家杜马；对外扩张政策导致日俄战争惨败；最终卷入第一次世界大战，激化了国内矛盾。1917年二月革命爆发，他被迫退位。1918年，他与家人在叶卡捷琳堡被布尔什维克处决，结束了罗曼诺夫王朝三百余年的统治。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于俄罗斯帝国欧洲部分的核心区域，从首都圣彼得堡到旧都莫斯科，并延伸至西伯利亚的流放地。\n- ⏱️ **时间跨度**：公元1868年 - 1918年，共约50年。\n- 📍 **地理范围**：以俄罗斯欧洲部分为中心，东至西伯利亚的托博尔斯克和叶卡捷琳堡。\n- 🌟 **重要节点数量**：核心地点9个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：皇村\n- **时间**：公元1868年5月18日\n- **停留时间**：童年及青少年时期常居于此\n- **地点**：皇村（今俄罗斯圣彼得堡普希金城）\n- **事件**：作为皇储亚历山大三世的长子出生。\n- **意义**：罗曼诺夫王朝皇室传统的夏宫所在地，在此接受严格的宫廷教育。\n\n### 📍 重要地点：冬宫\n- **时间**：公元1868年-1894年（作为皇储时期）\n- **停留时间**：长期居住地之一\n- **地点**：圣彼得堡冬宫（今俄罗斯圣彼得堡）\n- **事件**：在此度过大部分宫廷生活，学习治国之道。\n- **意义**：俄罗斯帝国权力象征之一，其父亚历山大三世在此遇刺未遂后，更倾向于此处理政务。\n\n### 📍 重要地点：莫斯科克里姆林宫\n- **时间**：公元1896年5月\n- **停留时间**：数日\n- **地点**：莫斯科克里姆林宫（今俄罗斯莫斯科）\n- **事件**：举行盛大的加冕典礼，期间发生霍登广场惨剧。\n- **意义**：正式成为全俄罗斯的专制君主，但加冕庆典的悲剧被视为不祥之兆。\n\n### 📍 重要地点：彼得宫城\n- **时间**：公元1905年10月\n- **停留时间**：数日\n- **地点**：彼得宫城（今俄罗斯圣彼得堡彼得宫城）\n- **事件**：在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。\n- **意义**：标志着1905年革命高潮后，沙皇专制被迫做出重大让步。\n\n### 📍 相关重要地点：旅顺（日俄战争关键战场）\n- **时间**：公元1904年-1905年（战争期间）\n- **停留时间**：未亲临\n- **地点**：旅顺口（今中国辽宁省大连市旅顺口区）\n- **事件**：日俄战争关键战场，俄军在此惨败。\n- **意义**：战争失败严重削弱了沙皇政府的威信，激化了国内矛盾。\n\n### 📍 重要地点：大本营（莫吉廖夫）\n- **时间**：公元1915年9月 - 1917年\n- **停留时间**：约一年半\n- **地点**：莫吉廖夫（今白俄罗斯莫吉廖夫）\n- **事件**：一战期间亲任俄军最高统帅，常驻前线大本营。\n- **意义**：将国家命运与战争捆绑，远离首都政治中心，导致后方权力真空与混乱。\n\n### 📍 重要地点：皇村（亚历山大宫）\n- **时间**：公元1917年3月 - 8月\n- **停留时间**：约5个月\n- **地点**：皇村亚历山大宫（今俄罗斯圣彼得堡普希金城）\n- **事件**：二月革命后，退位的尼古拉二世与家人被临时政府软禁于此。\n- **意义**：从帝国统治者变为阶下囚，标志着其政治生命的终结。\n\n### 📍 重要地点：托博尔斯克\n- **时间**：公元1917年8月 - 1918年4月\n- **停留时间**：约8个月\n- **地点**：托博尔斯克（今俄罗斯秋明州托博尔斯克）\n- **事件**：被临时政府转移至西伯利亚的这座省城囚禁。\n- **意义**：远离政治中心的流放地，是十月革命后布尔什维克接管前的过渡囚禁点。\n\n### 🔴 去世地：伊帕季耶夫宅邸\n- **时间**：公元1918年7月17日凌晨\n- **停留时间**：约78天\n- **地点**：叶卡捷琳堡伊帕季耶夫宅邸（今俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡）\n- **事件**：与妻子、子女及数名仆人一同被当地布尔什维克处决。\n- **意义**：罗曼诺夫王朝血脉的物理终结，成为俄国革命残酷性的标志性事件之一。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1868 | 皇村 | 俄罗斯圣彼得堡普希金城 | （年龄：0）出生于皇村。 |\n| 1881 |  |  | （年龄：13）祖父亚历山大二世遇刺身亡，父亲继位为亚历山大三世，成为皇储。 |\n| 1894 |  |  | （年龄：26）父亲病逝，继位为沙皇尼古拉二世。 |\n| 1896 |  |  | （年龄：28）在莫斯科举行加冕典礼，发生霍登广场惨剧。 |\n| 1897 |  |  | （年龄：29）主持俄国首次全国人口普查。 |\n| 1904 |  |  | （年龄：36）长子阿列克谢出生（患有血友病）；日俄战争爆发。 |\n| 1905 |  |  | （年龄：37）“血腥星期日”事件引发1905年革命；签署《十月诏书》，成立国家杜马。 |\n| 1914 |  |  | （年龄：46）第一次世界大战爆发，俄国参战。 |\n| 1915 | 大本营（莫吉廖夫） | 白俄罗斯莫吉廖夫 | （年龄：47）亲任俄军最高统帅，常驻莫吉廖夫大本营。 |\n| 1917 | 托博尔斯克 | 俄罗斯秋明州托博尔斯克 | （年龄：49）二月革命爆发，被迫退位；与家人先后被囚于皇村、托博尔斯克。 |\n| 1918 |  |  | （年龄：50）被转移至叶卡捷琳堡；7月17日，全家被处决。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在人教版语文教材中，尼古拉二世通常不作为文学作品作者出现，而是作为历史背景人物在相关课文（如涉及俄国革命、一战背景的文章）中被提及。\n- 核心要点：\n    - **重点**：作为**俄国十月革命**爆发的深层社会矛盾与历史背景中的关键人物。\n    - 其统治被视为**封建专制**腐朽性与**帝国主义**链条薄弱环节的典型代表。\n    - **重点**：其退位与被处决，是**二月革命**推翻沙皇专制统治的直接结果。\n    - 在文学语境中，常作为旧时代、旧秩序的象征符号出现。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1905年革命与《十月诏书》的颁布，是**俄国1905年革命**的高潮与妥协结果。\n    - **第一次世界大战**期间亲任总司令，使沙皇政权与战争失败紧密绑定。\n    - **重点**：1917年**二月革命**爆发，尼古拉二世退位，罗曼诺夫王朝统治结束。\n    - 1918年全家被处决，是**苏维埃政权**巩固过程中对旧势力象征的彻底清除。\n- 核心要点：\n    - **重点**：其统治时期是**俄国从传统农业社会向现代工业社会转型**的阵痛期，社会矛盾尖锐。\n    - 作为**君主专制**制度的化身，其个人能力与时代要求严重脱节。\n    - **重点**：其命运与**第一次世界大战**及**俄国革命**（二月革命、十月革命）两大20世纪重大历史事件直接关联。\n    - 对其评价存在复杂性，既有**专制君主**的保守与无能，也有作为**历史悲剧人物**的一面（如家庭结局）。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 俄罗斯圣彼得堡普希金城（皇村） | 59.7167 | 30.3833 |\n| 俄罗斯圣彼得堡（冬宫） | 59.9398 | 30.3146 |\n| 俄罗斯莫斯科（克里姆林宫） | 55.7520 | 37.6175 |\n| 俄罗斯圣彼得堡彼得宫城 | 59.8833 | 29.9000 |\n| 中国辽宁省大连市旅顺口区 | 38.8167 | 121.2500 |\n| 白俄罗斯莫吉廖夫 | 53.9000 | 30.3333 |\n| 俄罗斯秋明州托博尔斯克 | 58.1953 | 68.2581 |\n| 俄罗斯斯维尔德洛夫斯克州叶卡捷琳堡 | 56.8389 | 60.6057 |", "relatedGraph": {"center": {"id": "尼古拉二世", "name": "尼古拉二世", "file": "尼古拉二世.html", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "aliases": [], "birth_year": 1868, "death_year": 1918, "quote": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位", "review": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "foreign_name": "", "main_role_label": "政治", "birthplace": "圣彼得堡附近的皇村", "birthplace_modern": "俄罗斯圣彼得堡普希金城", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "尼古拉二世", "name": "尼古拉二世", "file": "尼古拉二世.html", "dynasty": "俄罗斯帝国末代沙皇（1894-1917年在位）", "aliases": [], "birth_year": 1868, "death_year": 1918, "quote": "尼古拉二世是沙皇亚历山大三世之子，1894年继承皇位", "review": "在此签署《十月诏书》，承诺给予公民自由和成立国家杜马。", "foreign_name": "", "main_role_label": "政治", "birthplace": "圣彼得堡附近的皇村", "birthplace_modern": "俄罗斯圣彼得堡普希金城", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "亚历山大二世", "name": "亚历山大二世", "file": "亚历山大二世.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1818, "death_year": 1881, "quote": "半吊子改革家", "review": "", "foreign_name": "", "main_role_label": "改革家", "birthplace": "莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "高尔基", "name": "高尔基", "file": "高尔基.html", "dynasty": "俄罗斯帝国末期至苏联初期", "aliases": [], "birth_year": 1868, "death_year": 1936, "quote": "无产阶级艺术最杰出的代表", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "诺夫哥罗德省下诺夫哥罗德", "birthplace_modern": "俄罗斯下诺夫哥罗德", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陀思妥耶夫斯基", "name": "陀思妥耶夫斯基", "file": "陀思妥耶夫斯基.html", "dynasty": "俄罗斯帝国（19世纪）", "aliases": [], "birth_year": 1821, "death_year": 1881, "quote": "被侮辱与被损害者", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "俄罗斯帝国莫斯科", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "劳合·乔治", "name": "劳合·乔治", "file": "劳合·乔治.html", "dynasty": "19世纪末至20世纪上半叶（维多利亚时代晚期至一战及战间期）", "aliases": [], "birth_year": 1863, "death_year": 1945, "quote": "福利国家之父", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "曼彻斯特", "birthplace_modern": "英国英格兰曼彻斯特", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "普希金", "name": "普希金", "file": "普希金.html", "dynasty": "俄罗斯帝国（19世纪上半叶）", "aliases": [], "birth_year": 1799, "death_year": 1837, "quote": "俄国文学之父", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "尼古拉二世", "target": "亚历山大二世", "label": "宗亲", "confidence": null}, {"source": "尼古拉二世", "target": "高尔基", "label": "同时代人物", "confidence": null}, {"source": "尼古拉二世", "target": "陀思妥耶夫斯基", "label": "同时代人物", "confidence": null}, {"source": "尼古拉二世", "target": "居里夫人", "label": "同册共现", "confidence": 0.15}, {"source": "尼古拉二世", "target": "劳合·乔治", "label": "同册共现", "confidence": 0.15}, {"source": "尼古拉二世", "target": "普希金", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:21Z", "generated_at": "2026-06-25T07:13:21Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:20Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:21Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

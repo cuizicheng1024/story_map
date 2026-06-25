@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "宋应星", "title": "", "description": "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。", "quote": "此书于功名进取毫不相关也。", "shortReview": "此书于功名进取毫不相关也。", "dynasty": "明朝", "courtesyName": "", "artName": "", "aliases": ["宋长庚（一说）"], "birthplace": "古称江西奉新（今江西省宜春市奉新县）", "avatar": "", "birth": {"date": "1587年", "location": "古称江西奉新（今江西省宜春市奉新县）", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84"}, "death": {"date": "1661年", "location": "说法不一", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）", "highlights": {"honor": "", "status": "百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "identities": "科学家、官员、诗人", "achievements": "", "works": ["天工开物"], "reviews": []}}, "locations": [{"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。", "time": "公元1587年", "duration": "青少年时期", "significance": "人生起点，奠定了最初的学识基础。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "coordSystem": "WGS84", "type": "normal", "event": "进入南昌府学或白鹿洞书院一类的学府深造，准备科举。", "time": "约万历年间", "duration": "数年", "significance": "系统学习儒家经典，结交友人，开阔眼界。", "works": [], "quoteLines": []}, {"name": "南昌（乡试）", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "coordSystem": "WGS84", "type": "normal", "event": "与兄长宋应昇同科考中举人，名列第三。", "time": "公元1615年", "duration": "短期", "significance": "科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。", "time": "约1616年、1619年、1623年、1626年、1629年等（多次）", "duration": "每次数月", "significance": "科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。", "works": [], "quoteLines": []}, {"name": "九江", "ancientName": "江西九江", "modernName": "江西省九江市", "lat": 29.705, "lng": 116.001, "coordSystem": "WGS84", "type": "normal", "event": "多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。", "time": "约1616-1630年间（多次往返）", "duration": "短期", "significance": "沿途见闻为其积累了丰富的社会与自然观察素材。", "works": [], "quoteLines": []}, {"name": "分宜", "ancientName": "江西袁州府分宜县", "modernName": "江西省新余市分宜县", "lat": 27.811, "lng": 114.683, "coordSystem": "WGS84", "type": "normal", "event": "出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。", "time": "公元1634年 - 1638年", "duration": "4年", "significance": "**《天工开物》的主要撰写与完成地**。", "works": ["天工开物"], "quoteLines": ["《天工开物·序》：“此书于功名进取毫不相关也。”"]}, {"name": "汀州", "ancientName": "福建汀州府", "modernName": "福建省龙岩市长汀县", "lat": 25.833, "lng": 116.36, "coordSystem": "WGS84", "type": "normal", "event": "升任汀州府推官（掌管刑狱的官员）。", "time": "公元1638年 - 1640年", "duration": "约2年", "significance": "任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。", "works": [], "quoteLines": []}, {"name": "亳州", "ancientName": "南直隶凤阳府亳州", "modernName": "安徽省亳州市", "lat": 33.869, "lng": 115.782, "coordSystem": "WGS84", "type": "normal", "event": "出任亳州知州。此时明朝统治已岌岌可危，任期短暂。", "time": "约公元1641年 - 约公元1643年", "duration": "约2年", "significance": "其仕途的最高点，但不久即因时局动荡而弃官归里。", "works": [], "quoteLines": []}, {"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84", "type": "death", "event": "明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。", "time": "说法不一，约在公元1661年至1666年间（存疑）", "duration": "晚年约20年", "significance": "人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。", "works": [], "quoteLines": []}, {"name": "南京（存疑）", "ancientName": "地点存疑，一说南直隶应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。", "time": "约1630年代或辞官后（存疑）", "duration": "具体时间待考", "significance": "可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。", "works": ["天工开物"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "workTexts": {"天工开物·序": "此书于功名进取毫不相关也。", "天工开物": "此书于功名进取毫不相关也。", "序": "此书于功名进取毫不相关也。", "思怜诗": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。"}, "workSummaries": {"天工开物": {"title": "天工开物", "aliases": [], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "", "one_liner": "此书于功名进取毫不相关也。", "summary": "此书于功名进取毫不相关也。", "quote": "历史地位：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "quotes": ["历史地位：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。", "撰写了中国古代科技集大成之作《天工开物》。"], "quote_policy": "preferred"}, "天工开物·序": {"title": "天工开物·序", "aliases": ["天工开物", "序"], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "序", "one_liner": "此书于功名进取毫不相关也。", "summary": "此书于功名进取毫不相关也。", "quote": "此书于功名进取毫不相关也。", "quotes": ["此书于功名进取毫不相关也。"], "quote_policy": "preferred"}, "思怜诗": {"title": "思怜诗", "aliases": [], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "诗", "one_liner": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "summary": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "quote": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "quotes": ["诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "《天工开物》序言（节选）、《思怜诗》（部分诗作）"], "quote_policy": "preferred"}}, "markdown": "# 宋应星\n\n## 人物档案\n\n### 基本信息\n- **姓名**：宋应星\n- **别名**：宋长庚（一说）\n- **时代**：明朝\n- **出生**：公元1587年，古称江西奉新（今江西省宜春市奉新县）\n- **去世**：说法不一，约在公元1661年至1666年间（存疑），古称江西奉新（今江西省宜春市奉新县）\n- **享年**：说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）\n- **主要身份**：科学家、官员、诗人\n- **历史地位**：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。\n- **主要成就**：\n    - 撰写了中国古代科技集大成之作《天工开物》。\n    - 系统总结了明代农业和手工业的生产技术。\n    - 批判了当时理学空谈心性的学风，提倡“实学”与经世致用。\n    - 在物理学（如声学）等领域亦有观察与记录。\n\n### 生平概述\n宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要集中在江西本省，并延伸至福建、安徽、浙江、北京等地，进行科举、为官与游历考察。\n- ⏱️ **时间跨度**：约1587年 - 约1666年，总跨度约79年。\n- 📍 **地理范围**：主要覆盖今江西省、福建省、安徽省、浙江省及北京市。\n- 🌟 **重要节点数量**：11个核心地点（含存疑地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：奉新\n- **时间**：公元1587年\n- **停留时间**：青少年时期\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。\n- **意义**：人生起点，奠定了最初的学识基础。\n\n### 📍 重要地点：南昌\n- **时间**：约万历年间\n- **停留时间**：数年\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：进入南昌府学或白鹿洞书院一类的学府深造，准备科举。\n- **意义**：系统学习儒家经典，结交友人，开阔眼界。\n\n### 📍 重要地点：南昌（乡试）\n- **时间**：公元1615年\n- **停留时间**：短期\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：与兄长宋应昇同科考中举人，名列第三。\n- **意义**：科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。\n\n### 📍 重要地点：九江\n- **时间**：约1616-1630年间（多次往返）\n- **停留时间**：短期\n- **地点**：古称江西九江（今江西省九江市）\n- **事件**：多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。\n- **意义**：沿途见闻为其积累了丰富的社会与自然观察素材。\n\n### 📍 重要地点：北京\n- **时间**：约1616年、1619年、1623年、1626年、1629年等（多次）\n- **停留时间**：每次数月\n- **地点**：古称北京（今北京市）\n- **事件**：五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。\n- **意义**：科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。\n\n### 📍 重要地点：分宜\n- **时间**：公元1634年 - 1638年\n- **停留时间**：4年\n- **地点**：古称江西袁州府分宜县（今江西省新余市分宜县）\n- **事件**：出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。\n- **意义**：**《天工开物》的主要撰写与完成地**。\n- **名篇名句**：《天工开物·序》：“此书于功名进取毫不相关也。”\n\n### 📍 重要地点：汀州\n- **时间**：公元1638年 - 1640年\n- **停留时间**：约2年\n- **地点**：古称福建汀州府（今福建省龙岩市长汀县）\n- **事件**：升任汀州府推官（掌管刑狱的官员）。\n- **意义**：任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。\n\n### 📍 重要地点：亳州\n- **时间**：约公元1641年 - 约公元1643年\n- **停留时间**：约2年\n- **地点**：古称南直隶凤阳府亳州（今安徽省亳州市）\n- **事件**：出任亳州知州。此时明朝统治已岌岌可危，任期短暂。\n- **意义**：其仕途的最高点，但不久即因时局动荡而弃官归里。\n\n### 📍 重要地点：杭州（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说浙江杭州（今浙江省杭州市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 📍 重要地点：南京（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说南直隶应天府（今江苏省南京市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 🔴 去世地：奉新\n- **时间**：说法不一，约在公元1661年至1666年间（存疑）\n- **停留时间**：晚年约20年\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。\n- **意义**：人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1587 | 奉新 | 江西省宜春市奉新县 | （年龄：1岁）出生于江西奉新 |\n| 1615 |  |  | （年龄：29岁）考中举人 |\n| 1616-1629 |  |  | （年龄：30-43岁）五次赴京会试，均落第 |\n| 1634 | 分宜 | 江西省新余市分宜县 | （年龄：48岁）出任分宜县教谕 |\n| 1637 |  |  | （年龄：51岁）**《天工开物》初刻本刊行** |\n| 1638 | 汀州 | 福建省龙岩市长汀县 | （年龄：52岁）升任汀州府推官 |\n| 约1641 | 亳州 | 安徽省亳州市 | （年龄：约55岁）出任亳州知州（约） |\n| 约1643 | 奉新 | 江西省宜春市奉新县 | （年龄：约57岁）弃官归乡，隐居奉新（约） |\n| 约1661-1666 | 奉新 | 江西省宜春市奉新县 | （年龄：约74-79岁）在奉新去世（说法不一） |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 江西省宜春市奉新县 | 28.6833 | 115.3833 |\n| 江西省南昌市 | 28.6830 | 115.8580 |\n| 江西省九江市 | 29.7050 | 116.0010 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江西省新余市分宜县 | 27.8110 | 114.6830 |\n| 福建省龙岩市长汀县 | 25.8330 | 116.3600 |\n| 安徽省亳州市 | 33.8690 | 115.7820 |", "relatedGraph": {"center": {"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "aliases": [], "birth_year": 1587, "death_year": 1661, "quote": "中国17世纪的工艺百科全书", "review": "此书于功名进取毫不相关也。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "古称江西奉新", "birthplace_modern": "江西省宜春市奉新县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "aliases": [], "birth_year": 1587, "death_year": 1661, "quote": "中国17世纪的工艺百科全书", "review": "此书于功名进取毫不相关也。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "古称江西奉新", "birthplace_modern": "江西省宜春市奉新县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王坤", "name": "王坤", "file": "王坤.html", "dynasty": "明朝（嘉靖、万历年间）", "aliases": [], "birth_year": 1534, "death_year": 1614, "quote": "达则兼济天下，穷则独善其身", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "南直隶太仓州", "birthplace_modern": "江苏省太仓市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "戚继光", "name": "戚继光", "file": "戚继光.html", "dynasty": "明朝", "aliases": [], "birth_year": 1528, "death_year": 1588, "quote": "封侯非我意，但愿海波平。", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "古称济宁州鲁桥", "birthplace_modern": "山东省济宁市微山县鲁桥镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐光启", "name": "徐光启", "file": "徐光启.html", "dynasty": "明朝", "aliases": ["徐子先", "文定公"], "birth_year": 1562, "death_year": 1633, "quote": "**务求实用**", "review": "", "foreign_name": "Paul Hsu (Xu Guangqi)", "main_role_label": "科学家", "birthplace": "松江府上海县", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": null, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "南直隶句容", "birthplace_modern": "江苏省镇江市句容市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑和", "name": "郑和", "file": "郑和.html", "dynasty": "明朝", "aliases": [], "birth_year": 1371, "death_year": 1433, "quote": "观夫海洋，洪涛接天，巨浪如山…而我之云帆高张，昼夜星驰。", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "古称昆阳", "birthplace_modern": "云南省昆明市晋宁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "宋应星", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "王坤", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "戚继光", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "徐光启", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "曹鎏", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "郑和", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:19Z", "generated_at": "2026-06-22T11:31:19Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "宋应星", "title": "", "description": "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。", "quote": "此书于功名进取毫不相关也。", "shortReview": "此书于功名进取毫不相关也。", "dynasty": "明朝", "courtesyName": "", "artName": "", "aliases": ["宋长庚（一说）"], "birthplace": "古称江西奉新（今江西省宜春市奉新县）", "avatar": "", "birth": {"date": "1587年", "location": "古称江西奉新（今江西省宜春市奉新县）", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84"}, "death": {"date": "1661年", "location": "说法不一", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）", "highlights": {"honor": "", "status": "百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "identities": "科学家、官员、诗人", "achievements": "", "works": ["天工开物"], "reviews": []}}, "locations": [{"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。", "time": "公元1587年", "duration": "青少年时期", "significance": "人生起点，奠定了最初的学识基础。", "works": [], "quoteLines": []}, {"name": "南昌", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "coordSystem": "WGS84", "type": "normal", "event": "进入南昌府学或白鹿洞书院一类的学府深造，准备科举。", "time": "约万历年间", "duration": "数年", "significance": "系统学习儒家经典，结交友人，开阔眼界。", "works": [], "quoteLines": []}, {"name": "南昌（乡试）", "ancientName": "江西南昌", "modernName": "江西省南昌市", "lat": 28.683, "lng": 115.858, "coordSystem": "WGS84", "type": "normal", "event": "与兄长宋应昇同科考中举人，名列第三。", "time": "公元1615年", "duration": "短期", "significance": "科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。", "time": "约1616年、1619年、1623年、1626年、1629年等（多次）", "duration": "每次数月", "significance": "科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。", "works": [], "quoteLines": []}, {"name": "九江", "ancientName": "江西九江", "modernName": "江西省九江市", "lat": 29.705, "lng": 116.001, "coordSystem": "WGS84", "type": "normal", "event": "多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。", "time": "约1616-1630年间（多次往返）", "duration": "短期", "significance": "沿途见闻为其积累了丰富的社会与自然观察素材。", "works": [], "quoteLines": []}, {"name": "分宜", "ancientName": "江西袁州府分宜县", "modernName": "江西省新余市分宜县", "lat": 27.811, "lng": 114.683, "coordSystem": "WGS84", "type": "normal", "event": "出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。", "time": "公元1634年 - 1638年", "duration": "4年", "significance": "**《天工开物》的主要撰写与完成地**。", "works": ["天工开物"], "quoteLines": ["《天工开物·序》：“此书于功名进取毫不相关也。”"]}, {"name": "汀州", "ancientName": "福建汀州府", "modernName": "福建省龙岩市长汀县", "lat": 25.833, "lng": 116.36, "coordSystem": "WGS84", "type": "normal", "event": "升任汀州府推官（掌管刑狱的官员）。", "time": "公元1638年 - 1640年", "duration": "约2年", "significance": "任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。", "works": [], "quoteLines": []}, {"name": "亳州", "ancientName": "南直隶凤阳府亳州", "modernName": "安徽省亳州市", "lat": 33.869, "lng": 115.782, "coordSystem": "WGS84", "type": "normal", "event": "出任亳州知州。此时明朝统治已岌岌可危，任期短暂。", "time": "约公元1641年 - 约公元1643年", "duration": "约2年", "significance": "其仕途的最高点，但不久即因时局动荡而弃官归里。", "works": [], "quoteLines": []}, {"name": "奉新", "ancientName": "江西奉新", "modernName": "江西省宜春市奉新县", "lat": 28.6833, "lng": 115.3833, "coordSystem": "WGS84", "type": "death", "event": "明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。", "time": "说法不一，约在公元1661年至1666年间（存疑）", "duration": "晚年约20年", "significance": "人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。", "works": [], "quoteLines": []}, {"name": "南京（存疑）", "ancientName": "地点存疑，一说南直隶应天府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。", "time": "约1630年代或辞官后（存疑）", "duration": "具体时间待考", "significance": "可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。", "works": ["天工开物"], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---", "workTexts": {"天工开物·序": "此书于功名进取毫不相关也。", "天工开物": "此书于功名进取毫不相关也。", "序": "此书于功名进取毫不相关也。", "思怜诗": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。"}, "workSummaries": {"天工开物": {"title": "天工开物", "aliases": [], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "", "one_liner": "此书于功名进取毫不相关也。", "summary": "此书于功名进取毫不相关也。", "quote": "历史地位：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "quotes": ["历史地位：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。", "宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。", "撰写了中国古代科技集大成之作《天工开物》。"], "quote_policy": "preferred"}, "天工开物·序": {"title": "天工开物·序", "aliases": ["天工开物", "序"], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "序", "one_liner": "此书于功名进取毫不相关也。", "summary": "此书于功名进取毫不相关也。", "quote": "此书于功名进取毫不相关也。", "quotes": ["此书于功名进取毫不相关也。"], "quote_policy": "preferred"}, "思怜诗": {"title": "思怜诗", "aliases": [], "authors": ["宋应星"], "related_people": ["宋应星"], "source_pages": ["宋应星"], "era": "明朝", "genre": "诗", "one_liner": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "summary": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "quote": "诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "quotes": ["诗作如《思怜诗》等，反映了其 忧国忧民 的情怀和对社会现实的批判。", "《天工开物》序言（节选）、《思怜诗》（部分诗作）"], "quote_policy": "preferred"}}, "markdown": "# 宋应星\n\n## 人物档案\n\n### 基本信息\n- **姓名**：宋应星\n- **别名**：宋长庚（一说）\n- **时代**：明朝\n- **出生**：公元1587年，古称江西奉新（今江西省宜春市奉新县）\n- **去世**：说法不一，约在公元1661年至1666年间（存疑），古称江西奉新（今江西省宜春市奉新县）\n- **享年**：说法不一，约74至79岁（存疑，据出生年1587年与去世年约1661-1666年推算）\n- **主要身份**：科学家、官员、诗人\n- **历史地位**：百科全书式的科学巨著《天工开物》的作者，被誉为“中国17世纪的工艺百科全书”作者。\n- **主要成就**：\n    - 撰写了中国古代科技集大成之作《天工开物》。\n    - 系统总结了明代农业和手工业的生产技术。\n    - 批判了当时理学空谈心性的学风，提倡“实学”与经世致用。\n    - 在物理学（如声学）等领域亦有观察与记录。\n\n### 生平概述\n宋应星生活在明朝晚期至清初，社会动荡与商品经济繁荣并存。他出身于书香门第，早年致力于科举，曾多次赴京会试未中。科举屡试不第后，他将兴趣转向与国计民生相关的实用技术研究，利用担任地方官的便利，深入考察各地工农业生产。其不朽的科技名著《天工开物》主要在地方官任内完成。他的工作体现了明末实学思潮的兴起，是对传统重道轻器思想的突破。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要集中在江西本省，并延伸至福建、安徽、浙江、北京等地，进行科举、为官与游历考察。\n- ⏱️ **时间跨度**：约1587年 - 约1666年，总跨度约79年。\n- 📍 **地理范围**：主要覆盖今江西省、福建省、安徽省、浙江省及北京市。\n- 🌟 **重要节点数量**：11个核心地点（含存疑地点）。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：奉新\n- **时间**：公元1587年\n- **停留时间**：青少年时期\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：出生于一个衰落的士绅家庭，与兄长宋应昇一同接受启蒙教育。\n- **意义**：人生起点，奠定了最初的学识基础。\n\n### 📍 重要地点：南昌\n- **时间**：约万历年间\n- **停留时间**：数年\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：进入南昌府学或白鹿洞书院一类的学府深造，准备科举。\n- **意义**：系统学习儒家经典，结交友人，开阔眼界。\n\n### 📍 重要地点：南昌（乡试）\n- **时间**：公元1615年\n- **停留时间**：短期\n- **地点**：古称江西南昌（今江西省南昌市）\n- **事件**：与兄长宋应昇同科考中举人，名列第三。\n- **意义**：科举生涯的顶点，获得“奉新二宋”的美誉，但此后会试屡试不第。\n\n### 📍 重要地点：九江\n- **时间**：约1616-1630年间（多次往返）\n- **停留时间**：短期\n- **地点**：古称江西九江（今江西省九江市）\n- **事件**：多次赴京参加会试往返途经之地，有机会考察长江中下游的航运与商贸。\n- **意义**：沿途见闻为其积累了丰富的社会与自然观察素材。\n\n### 📍 重要地点：北京\n- **时间**：约1616年、1619年、1623年、1626年、1629年等（多次）\n- **停留时间**：每次数月\n- **地点**：古称北京（今北京市）\n- **事件**：五次赴京参加会试，均告失败。期间广泛接触社会，目睹官场腐败与民生疾苦。\n- **意义**：科举失意的打击，促使他深刻反思人生道路，逐渐将精力转向实学。\n\n### 📍 重要地点：分宜\n- **时间**：公元1634年 - 1638年\n- **停留时间**：4年\n- **地点**：古称江西袁州府分宜县（今江西省新余市分宜县）\n- **事件**：出任分宜县教谕（县学教官）。这是他一生中最安定、学术成果最丰硕的时期，利用闲暇整理资料，撰写并最终完成了《天工开物》。\n- **意义**：**《天工开物》的主要撰写与完成地**。\n- **名篇名句**：《天工开物·序》：“此书于功名进取毫不相关也。”\n\n### 📍 重要地点：汀州\n- **时间**：公元1638年 - 1640年\n- **停留时间**：约2年\n- **地点**：古称福建汀州府（今福建省龙岩市长汀县）\n- **事件**：升任汀州府推官（掌管刑狱的官员）。\n- **意义**：任职地方，接触司法与社会底层，可能进一步丰富了其社会阅历。\n\n### 📍 重要地点：亳州\n- **时间**：约公元1641年 - 约公元1643年\n- **停留时间**：约2年\n- **地点**：古称南直隶凤阳府亳州（今安徽省亳州市）\n- **事件**：出任亳州知州。此时明朝统治已岌岌可危，任期短暂。\n- **意义**：其仕途的最高点，但不久即因时局动荡而弃官归里。\n\n### 📍 重要地点：杭州（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说浙江杭州（今浙江省杭州市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 📍 重要地点：南京（存疑）\n- **时间**：约1630年代或辞官后（存疑）\n- **停留时间**：具体时间待考\n- **地点**：地点存疑，一说南直隶应天府（今江苏省南京市）\n- **事件**：有说法认为他曾游历江南刻书中心。《天工开物》初刻于崇祯十年（1637年），其刊刻与传播可能与江南地区有关。\n- **意义**：可能与《天工开物》的传播有关，是其学术思想走向社会的关键环节。\n\n### 🔴 去世地：奉新\n- **时间**：说法不一，约在公元1661年至1666年间（存疑）\n- **停留时间**：晚年约20年\n- **地点**：古称江西奉新（今江西省宜春市奉新县）\n- **事件**：明亡后，隐居乡里，拒绝清廷征召，晚年生活贫困，直至去世。\n- **意义**：人生终点，坚守遗民气节，其著作在身后逐渐散发光芒。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1587 | 奉新 | 江西省宜春市奉新县 | （年龄：1岁）出生于江西奉新 |\n| 1615 |  |  | （年龄：29岁）考中举人 |\n| 1616-1629 |  |  | （年龄：30-43岁）五次赴京会试，均落第 |\n| 1634 | 分宜 | 江西省新余市分宜县 | （年龄：48岁）出任分宜县教谕 |\n| 1637 |  |  | （年龄：51岁）**《天工开物》初刻本刊行** |\n| 1638 | 汀州 | 福建省龙岩市长汀县 | （年龄：52岁）升任汀州府推官 |\n| 约1641 | 亳州 | 安徽省亳州市 | （年龄：约55岁）出任亳州知州（约） |\n| 约1643 | 奉新 | 江西省宜春市奉新县 | （年龄：约57岁）弃官归乡，隐居奉新（约） |\n| 约1661-1666 | 奉新 | 江西省宜春市奉新县 | （年龄：约74-79岁）在奉新去世（说法不一） |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《天工开物》序言**（节选）、《思怜诗》（部分诗作）\n- 核心要点：\n    - **重点**：**《天工开物》** 书名体现了“人工巧夺天工”的哲学思想，强调人力与自然结合的创造力。\n    - **重点**：其序言鲜明表达了 **“实学”** 精神，批判读书人只追求功名而轻视实用技术的风气。\n    - 文章语言 **简明扼要**，逻辑清晰，善于用具体数据和流程描述复杂工艺，具有 **科学说明文** 的雏形。\n    - 诗作如《思怜诗》等，反映了其 **忧国忧民** 的情怀和对社会现实的批判。\n    - **重点**：作品整体展现了 **经世致用** 的学术价值观，将科技知识提升到与国计民生相关的高度。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：明朝后期，随着商品经济发展和 **实学思潮** 兴起，出现了一批总结性科技著作，**《天工开物》** 是其中最杰出的代表。\n    - 宋应星的科举经历反映了 **晚明科举制度** 的僵化与人才选拔的局限。\n    - 他担任地方官的经历，使其有机会深入考察 **农业和手工业** 生产一线。\n    - **重点**：**《天工开物》** 在中国长期不受重视，却在近代从日本传回并引起世界关注，成为研究中国古代科技的 **关键文献**。\n- 核心要点：\n    - **重点**：宋应星是 **中国科技史** 上的标志性人物，其工作填补了系统记录古代生产技术的空白。\n    - 他的思想体现了 **明末清初** 社会转型时期，知识分子从空谈转向务实的探索。\n    - **重点**：其成就证明了在传统 **儒家文化** 框架下，同样能产生卓越的 **科学精神** 与 **技术总结**。\n    - 《天工开物》的内容涉及 **农业、纺织、冶金、陶瓷、造纸、兵器** 等诸多领域，是了解明代 **社会经济** 和 **生产力水平** 的百科全书。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 江西省宜春市奉新县 | 28.6833 | 115.3833 |\n| 江西省南昌市 | 28.6830 | 115.8580 |\n| 江西省九江市 | 29.7050 | 116.0010 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江西省新余市分宜县 | 27.8110 | 114.6830 |\n| 福建省龙岩市长汀县 | 25.8330 | 116.3600 |\n| 安徽省亳州市 | 33.8690 | 115.7820 |", "relatedGraph": {"center": {"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "aliases": [], "birth_year": 1587, "death_year": 1661, "quote": "中国17世纪的工艺百科全书", "review": "此书于功名进取毫不相关也。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "古称江西奉新", "birthplace_modern": "江西省宜春市奉新县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "宋应星", "name": "宋应星", "file": "宋应星.html", "dynasty": "明朝", "aliases": [], "birth_year": 1587, "death_year": 1661, "quote": "中国17世纪的工艺百科全书", "review": "此书于功名进取毫不相关也。", "foreign_name": "", "main_role_label": "科学家", "birthplace": "古称江西奉新", "birthplace_modern": "江西省宜春市奉新县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王坤", "name": "王坤", "file": "王坤.html", "dynasty": "明朝（嘉靖、万历年间）", "aliases": [], "birth_year": 1534, "death_year": 1614, "quote": "达则兼济天下，穷则独善其身", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "南直隶太仓州", "birthplace_modern": "江苏省太仓市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "戚继光", "name": "戚继光", "file": "戚继光.html", "dynasty": "明朝", "aliases": [], "birth_year": 1528, "death_year": 1588, "quote": "封侯非我意，但愿海波平。", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "古称济宁州鲁桥", "birthplace_modern": "山东省济宁市微山县鲁桥镇", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "徐光启", "name": "徐光启", "file": "徐光启.html", "dynasty": "明朝", "aliases": ["徐子先", "文定公"], "birth_year": 1562, "death_year": 1633, "quote": "**务求实用**", "review": "", "foreign_name": "Paul Hsu (Xu Guangqi)", "main_role_label": "科学家", "birthplace": "松江府上海县", "birthplace_modern": "上海市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "曹鎏", "name": "曹鎏", "file": "曹鎏.html", "dynasty": "明朝（嘉靖年间）", "aliases": [], "birth_year": null, "death_year": null, "quote": "曹鎏，南直隶句容人，明朝嘉靖年间官员", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "南直隶句容", "birthplace_modern": "江苏省镇江市句容市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郑和", "name": "郑和", "file": "郑和.html", "dynasty": "明朝", "aliases": [], "birth_year": 1371, "death_year": 1433, "quote": "观夫海洋，洪涛接天，巨浪如山…而我之云帆高张，昼夜星驰。", "review": "", "foreign_name": "", "main_role_label": "外交家", "birthplace": "古称昆阳", "birthplace_modern": "云南省昆明市晋宁区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "宋应星", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "王坤", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "戚继光", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "徐光启", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "曹鎏", "label": "同时代人物", "confidence": null}, {"source": "宋应星", "target": "郑和", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:20Z", "generated_at": "2026-06-25T07:13:20Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:19Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:20Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

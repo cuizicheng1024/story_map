@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "谭嗣同", "title": "戊戌六君子", "description": "谭嗣同生于晚清内忧外患之际，早年游历南北，广览世情。甲午战败后，他痛感国势危殆，思想急剧转向维新。1897年应湖南巡抚陈宝箴之邀回湘，与梁启超、唐才常等大力推行新政，使湖南成为全国维新运动最富朝气的省份。1898年被光绪帝征召入京，参与“百日维新”。变法失败后，他拒绝出走，决心以血荐轩辕，于北京菜市口从容就义，其“我自横刀向天笑”的气概成为近代中国变革精神的象征。", "quote": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "shortReview": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "dynasty": "清末", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称浏阳县（今湖南省长沙市浏阳市）", "avatar": "", "birth": {"date": "1865年", "location": "古称浏阳县（今湖南省长沙市浏阳市）", "lat": 28.163, "lng": 113.633, "coordSystem": "WGS84"}, "death": {"date": "1898年", "location": "古称京师（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "33岁", "highlights": {"honor": "戊戌六君子", "status": "中国近代著名政治家、思想家，维新志士，“戊戌六君子”之一，为变法图强甘愿流血牺牲。", "identities": "思想家、政治家、维新派代表人物、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "浏阳", "ancientName": "浏阳县", "modernName": "湖南省长沙市浏阳市", "lat": 28.163, "lng": 113.633, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦之家，幼年在此接受传统教育。", "time": "公元1865年", "duration": "童年及多次往返居住", "significance": "其思想与人格的早期孕育地，也是后来在湖南推行维新事业的重要基地。", "works": [], "quoteLines": []}, {"name": "兰州", "ancientName": "兰州府", "modernName": "甘肃省兰州市", "lat": 36.0611, "lng": 103.8343, "coordSystem": "WGS84", "type": "normal", "event": "随父谭继洵赴甘肃任所，期间苦读经世之学，并曾游历西北边塞。", "time": "约公元1878年 - 1884年", "duration": "约6年", "significance": "西北经历使他较早接触晚清边疆危机与现实政治，成为其后来由士大夫学问转向维新救国的重要思想源头。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。", "time": "公元1895年", "duration": "数月", "significance": "其人生与思想的重要转折点，从此投身于救亡图存的政治运动。", "works": ["马关条约"], "quoteLines": []}, {"name": "南京", "ancientName": "江宁府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "以候补知府身份寓居南京，期间撰写其哲学代表作《仁学》。", "time": "公元1896年 - 1897年", "duration": "约一年", "significance": "完成了其冲决封建网罗、倡导平等自由的思想体系构建。", "works": ["仁学"], "quoteLines": ["《仁学》：“冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。”"]}, {"name": "上海", "ancientName": "上海县", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "结交维新人士，阅读大量西学译著，寻求变法理论支持。", "time": "公元1896年、1898年", "duration": "短期停留", "significance": "接触西方思想与维新舆论的重要窗口。", "works": [], "quoteLines": []}, {"name": "长沙", "ancientName": "长沙府", "modernName": "湖南省长沙市", "lat": 28.228, "lng": 112.9388, "coordSystem": "WGS84", "type": "normal", "event": "应陈宝箴之邀，回湖南协助推行新政。参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "time": "公元1897年 - 1898年初", "duration": "约半年", "significance": "湖南维新运动的核心领导者与实践者，将变法理想付诸地方实践。", "works": ["湘报"], "quoteLines": ["《湘报》后叙：“今日救亡，保国、保种、保教，惟变法维新。”"]}, {"name": "武昌", "ancientName": "武昌府", "modernName": "湖北省武汉市", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "奉诏北上途中，专程拜见时任湖北巡抚的父亲谭继洵，禀明心志。", "time": "公元1898年（北上途中）", "duration": "短暂", "significance": "体现了其忠孝难以两全的抉择与为变法献身的决心。", "works": [], "quoteLines": []}, {"name": "北京（军机处）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "被光绪帝破格授予四品卿衔军机章京，与杨锐、刘光第、林旭共同参与新政，成为变法核心。", "time": "公元1898年（农历四月至八月）", "duration": "约四个月", "significance": "其政治生涯的顶点，直接参与国家最高决策层面的变法设计。", "works": [], "quoteLines": []}, {"name": "北京菜市口", "ancientName": "京师菜市口", "modernName": "北京市西城区菜市口", "lat": 39.892, "lng": 116.374, "coordSystem": "WGS84", "type": "death", "event": "戊戌政变后被捕，与杨锐等五人一同被斩首于菜市口，史称“戊戌六君子”。", "time": "公元1898年9月28日", "duration": "就义之地", "significance": "为中国近代改革流血牺牲的第一人，其就义言行极大地震动了国人，激励了后来的革命者。", "works": [], "quoteLines": ["《狱中题壁》：“我自横刀向天笑，去留肝胆两昆仑。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---", "workTexts": {"仁学": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "狱中题壁": "我自横刀向天笑，去留肝胆两昆仑。", "湘报": "“南学会”", "马关条约": "事件：甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。", "**仁学**": "“冲决网罗”"}, "workSummaries": {"湘报": {"title": "湘报", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "南学会", "summary": "南学会", "quote": "参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "quotes": ["参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "创立维新团体“南学会”，创办《湘报》宣传变法。", "事件：应陈宝箴之邀，回湖南协助推行新政。"], "quote_policy": "preferred"}, "仁学": {"title": "仁学", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "summary": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "quote": "| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。", "quotes": ["| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。", "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "著《仁学》，构建了冲决网罗、倡导平等的哲学体系。"], "quote_policy": "preferred"}, "马关条约": {"title": "马关条约", "aliases": [], "authors": [], "related_people": ["康有为", "李鸿章", "谭嗣同"], "source_pages": ["康有为", "李鸿章", "谭嗣同"], "era": "", "genre": "", "one_liner": "事件：作为清政府全权大臣，与日本首相伊藤博文谈判，签订《马关条约》。", "summary": "事件：作为清政府全权大臣，与日本首相伊藤博文谈判，签订《马关条约》。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "狱中题壁": {"title": "狱中题壁", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "我自横刀向天笑，去留肝胆两昆仑。", "summary": "我自横刀向天笑，去留肝胆两昆仑。", "quote": "我自横刀向天笑，去留肝胆两昆仑。", "quotes": ["我自横刀向天笑，去留肝胆两昆仑。"], "quote_policy": "preferred"}}, "markdown": "# 谭嗣同\n\n## 人物档案\n\n### 基本信息\n- **姓名**：谭嗣同\n- **字/号**：字复生，号壮飞\n- **时代**：清末\n- **出生**：公元1865年，古称浏阳县（今湖南省长沙市浏阳市）\n- **去世**：公元1898年，古称京师（今北京市）\n- **享年**：33岁\n- **主要身份**：思想家、政治家、维新派代表人物、诗人\n- **历史地位**：中国近代著名政治家、思想家，维新志士，“戊戌六君子”之一，为变法图强甘愿流血牺牲。\n- **主要成就**：\n    - 创立维新团体“南学会”，创办《湘报》宣传变法。\n    - 参与领导戊戌变法，是核心推动者之一。\n    - 著《仁学》，构建了冲决网罗、倡导平等的哲学体系。\n    - 其诗作充满爱国激情与献身精神，影响深远。\n\n### 生平概述\n谭嗣同生于晚清内忧外患之际，早年游历南北，广览世情。甲午战败后，他痛感国势危殆，思想急剧转向维新。1897年应湖南巡抚陈宝箴之邀回湘，与梁启超、唐才常等大力推行新政，使湖南成为全国维新运动最富朝气的省份。1898年被光绪帝征召入京，参与“百日维新”。变法失败后，他拒绝出走，决心以血荐轩辕，于北京菜市口从容就义，其“我自横刀向天笑”的气概成为近代中国变革精神的象征。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国南北，核心活动区域在湖南、北京、南京、上海、武汉等地。\n- ⏱️ **时间跨度**：公元1865年 - 1898年，共33年。\n- 📍 **地理范围**：主要覆盖华中、华北、华东地区。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：浏阳\n- **时间**：公元1865年\n- **停留时间**：童年及多次往返居住\n- **地点**：古称浏阳县（今湖南省长沙市浏阳市）\n- **事件**：出生于官宦之家，幼年在此接受传统教育。\n- **意义**：其思想与人格的早期孕育地，也是后来在湖南推行维新事业的重要基地。\n\n### 📍 重要地点：兰州\n- **时间**：约公元1878年 - 1884年\n- **停留时间**：约6年\n- **地点**：古称兰州府（今甘肃省兰州市）\n- **事件**：随父谭继洵赴甘肃任所，期间苦读经世之学，并曾游历西北边塞。\n- **体验**：目睹边疆危机与民生疾苦，激发了其经世济民的志向。\n- **意义**：西北经历使他较早接触晚清边疆危机与现实政治，成为其后来由士大夫学问转向维新救国的重要思想源头。\n\n### 📍 重要地点：新疆\n- **时间**：公元1884年\n- **停留时间**：数月（游历）\n- **地点**：新疆（今新疆维吾尔自治区，具体地点存疑）\n- **事件**：为探求救国之道，孤身一人赴新疆，欲投效边疆，但未果。\n- **意义**：展现了其早年勇于探索、不畏艰险的性格，开阔了视野。\n\n### 📍 重要地点：北京\n- **时间**：公元1895年\n- **停留时间**：数月\n- **地点**：古称京师（今北京市）\n- **事件**：甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。\n- **意义**：其人生与思想的重要转折点，从此投身于救亡图存的政治运动。\n\n### 📍 重要地点：南京\n- **时间**：公元1896年 - 1897年\n- **停留时间**：约一年\n- **地点**：古称江宁府（今江苏省南京市）\n- **事件**：以候补知府身份寓居南京，期间撰写其哲学代表作《仁学》。\n- **意义**：完成了其冲决封建网罗、倡导平等自由的思想体系构建。\n- **名篇名句**：《仁学》：“冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。”\n\n### 📍 重要地点：上海\n- **时间**：公元1896年、1898年\n- **停留时间**：短期停留\n- **地点**：古称上海县（今上海市）\n- **事件**：结交维新人士，阅读大量西学译著，寻求变法理论支持。\n- **意义**：接触西方思想与维新舆论的重要窗口。\n\n### 📍 重要地点：长沙\n- **时间**：公元1897年 - 1898年初\n- **停留时间**：约半年\n- **地点**：古称长沙府（今湖南省长沙市）\n- **事件**：应陈宝箴之邀，回湖南协助推行新政。参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。\n- **意义**：湖南维新运动的核心领导者与实践者，将变法理想付诸地方实践。\n- **名篇名句**：《湘报》后叙：“今日救亡，保国、保种、保教，惟变法维新。”\n\n### 📍 重要地点：武昌\n- **时间**：公元1898年（北上途中）\n- **停留时间**：短暂\n- **地点**：古称武昌府（今湖北省武汉市）\n- **事件**：奉诏北上途中，专程拜见时任湖北巡抚的父亲谭继洵，禀明心志。\n- **意义**：体现了其忠孝难以两全的抉择与为变法献身的决心。\n\n### 📍 重要地点：北京（军机处）\n- **时间**：公元1898年（农历四月至八月）\n- **停留时间**：约四个月\n- **地点**：古称京师（今北京市）\n- **事件**：被光绪帝破格授予四品卿衔军机章京，与杨锐、刘光第、林旭共同参与新政，成为变法核心。\n- **意义**：其政治生涯的顶点，直接参与国家最高决策层面的变法设计。\n\n### 🔴 去世地：北京菜市口\n- **时间**：公元1898年9月28日\n- **停留时间**：就义之地\n- **地点**：古称京师菜市口（今北京市西城区菜市口）\n- **事件**：戊戌政变后被捕，与杨锐等五人一同被斩首于菜市口，史称“戊戌六君子”。\n- **意义**：为中国近代改革流血牺牲的第一人，其就义言行极大地震动了国人，激励了后来的革命者。\n- **名篇名句**：《狱中题壁》：“我自横刀向天笑，去留肝胆两昆仑。”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1865年 | 浏阳 | 湖南省长沙市浏阳市 | （年龄：0岁）生于湖南浏阳。 |\n| 1877年 |  |  | （年龄：12岁）母亲病逝，备尝人情冷暖。 |\n| 1884年 | 新疆 |  | （年龄：19岁）游历新疆，考察边塞。 |\n| 1895年 |  |  | （年龄：30岁）甲午战败，在京深受刺激，思想转向维新。 |\n| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。 |\n| 1897年 |  |  | （年龄：32岁）回湖南，协助陈宝箴推行新政。 |\n| 1898年 |  |  | （年龄：33岁）奉诏入京，参与戊戌变法；变法失败，拒绝出走，被捕就义。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖南省长沙市浏阳市 | 28.1630 | 113.6330 |\n| 甘肃省兰州市 | 36.0611 | 103.8343 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 上海市 | 31.2304 | 121.4737 |\n| 湖南省长沙市 | 28.2280 | 112.9388 |\n| 湖北省武汉市 | 30.5928 | 114.3055 |\n| 北京市西城区菜市口（就义地） | 39.8920 | 116.3740 |\n", "relatedGraph": {"center": {"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "清末", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "我自横刀向天笑", "review": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "清末", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "我自横刀向天笑", "review": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "清末民国", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "詹天佑", "name": "詹天佑", "file": "詹天佑.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1861, "death_year": 1919, "quote": "中国铁路之父", "review": "", "foreign_name": "", "main_role_label": "铁路工程师", "birthplace": "广东广州府南海县", "birthplace_modern": "广东省广州市荔湾区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "谭嗣同", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "陈延年", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "詹天佑", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:45Z", "generated_at": "2026-06-22T11:31:45Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "谭嗣同", "title": "戊戌六君子", "description": "谭嗣同生于晚清内忧外患之际，早年游历南北，广览世情。甲午战败后，他痛感国势危殆，思想急剧转向维新。1897年应湖南巡抚陈宝箴之邀回湘，与梁启超、唐才常等大力推行新政，使湖南成为全国维新运动最富朝气的省份。1898年被光绪帝征召入京，参与“百日维新”。变法失败后，他拒绝出走，决心以血荐轩辕，于北京菜市口从容就义，其“我自横刀向天笑”的气概成为近代中国变革精神的象征。", "quote": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "shortReview": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "dynasty": "清末", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "古称浏阳县（今湖南省长沙市浏阳市）", "avatar": "", "birth": {"date": "1865年", "location": "古称浏阳县（今湖南省长沙市浏阳市）", "lat": 28.163, "lng": 113.633, "coordSystem": "WGS84"}, "death": {"date": "1898年", "location": "古称京师（今北京市）", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84"}, "lifespan": "33岁", "highlights": {"honor": "戊戌六君子", "status": "中国近代著名政治家、思想家，维新志士，“戊戌六君子”之一，为变法图强甘愿流血牺牲。", "identities": "思想家、政治家、维新派代表人物、诗人", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "浏阳", "ancientName": "浏阳县", "modernName": "湖南省长沙市浏阳市", "lat": 28.163, "lng": 113.633, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦之家，幼年在此接受传统教育。", "time": "公元1865年", "duration": "童年及多次往返居住", "significance": "其思想与人格的早期孕育地，也是后来在湖南推行维新事业的重要基地。", "works": [], "quoteLines": []}, {"name": "兰州", "ancientName": "兰州府", "modernName": "甘肃省兰州市", "lat": 36.0611, "lng": 103.8343, "coordSystem": "WGS84", "type": "normal", "event": "随父谭继洵赴甘肃任所，期间苦读经世之学，并曾游历西北边塞。", "time": "约公元1878年 - 1884年", "duration": "约6年", "significance": "西北经历使他较早接触晚清边疆危机与现实政治，成为其后来由士大夫学问转向维新救国的重要思想源头。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。", "time": "公元1895年", "duration": "数月", "significance": "其人生与思想的重要转折点，从此投身于救亡图存的政治运动。", "works": ["马关条约"], "quoteLines": []}, {"name": "南京", "ancientName": "江宁府", "modernName": "江苏省南京市", "lat": 32.0603, "lng": 118.7969, "coordSystem": "WGS84", "type": "normal", "event": "以候补知府身份寓居南京，期间撰写其哲学代表作《仁学》。", "time": "公元1896年 - 1897年", "duration": "约一年", "significance": "完成了其冲决封建网罗、倡导平等自由的思想体系构建。", "works": ["仁学"], "quoteLines": ["《仁学》：“冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。”"]}, {"name": "上海", "ancientName": "上海县", "modernName": "上海市", "lat": 31.2304, "lng": 121.4737, "coordSystem": "WGS84", "type": "normal", "event": "结交维新人士，阅读大量西学译著，寻求变法理论支持。", "time": "公元1896年、1898年", "duration": "短期停留", "significance": "接触西方思想与维新舆论的重要窗口。", "works": [], "quoteLines": []}, {"name": "长沙", "ancientName": "长沙府", "modernName": "湖南省长沙市", "lat": 28.228, "lng": 112.9388, "coordSystem": "WGS84", "type": "normal", "event": "应陈宝箴之邀，回湖南协助推行新政。参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "time": "公元1897年 - 1898年初", "duration": "约半年", "significance": "湖南维新运动的核心领导者与实践者，将变法理想付诸地方实践。", "works": ["湘报"], "quoteLines": ["《湘报》后叙：“今日救亡，保国、保种、保教，惟变法维新。”"]}, {"name": "武昌", "ancientName": "武昌府", "modernName": "湖北省武汉市", "lat": 30.5928, "lng": 114.3055, "coordSystem": "WGS84", "type": "normal", "event": "奉诏北上途中，专程拜见时任湖北巡抚的父亲谭继洵，禀明心志。", "time": "公元1898年（北上途中）", "duration": "短暂", "significance": "体现了其忠孝难以两全的抉择与为变法献身的决心。", "works": [], "quoteLines": []}, {"name": "北京（军机处）", "ancientName": "京师", "modernName": "北京市", "lat": 39.9042, "lng": 116.4074, "coordSystem": "WGS84", "type": "normal", "event": "被光绪帝破格授予四品卿衔军机章京，与杨锐、刘光第、林旭共同参与新政，成为变法核心。", "time": "公元1898年（农历四月至八月）", "duration": "约四个月", "significance": "其政治生涯的顶点，直接参与国家最高决策层面的变法设计。", "works": [], "quoteLines": []}, {"name": "北京菜市口", "ancientName": "京师菜市口", "modernName": "北京市西城区菜市口", "lat": 39.892, "lng": 116.374, "coordSystem": "WGS84", "type": "death", "event": "戊戌政变后被捕，与杨锐等五人一同被斩首于菜市口，史称“戊戌六君子”。", "time": "公元1898年9月28日", "duration": "就义之地", "significance": "为中国近代改革流血牺牲的第一人，其就义言行极大地震动了国人，激励了后来的革命者。", "works": [], "quoteLines": ["《狱中题壁》：“我自横刀向天笑，去留肝胆两昆仑。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---", "workTexts": {"仁学": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "狱中题壁": "我自横刀向天笑，去留肝胆两昆仑。", "湘报": "“南学会”", "马关条约": "事件：甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。", "**仁学**": "“冲决网罗”"}, "workSummaries": {"湘报": {"title": "湘报", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "南学会", "summary": "南学会", "quote": "参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "quotes": ["参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。", "创立维新团体“南学会”，创办《湘报》宣传变法。", "事件：应陈宝箴之邀，回湖南协助推行新政。"], "quote_policy": "preferred"}, "仁学": {"title": "仁学", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "summary": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "quote": "| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。", "quotes": ["| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。", "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "著《仁学》，构建了冲决网罗、倡导平等的哲学体系。"], "quote_policy": "preferred"}, "马关条约": {"title": "马关条约", "aliases": [], "authors": [], "related_people": ["康有为", "李鸿章", "谭嗣同"], "source_pages": ["康有为", "李鸿章", "谭嗣同"], "era": "", "genre": "", "one_liner": "事件：作为清政府全权大臣，与日本首相伊藤博文谈判，签订《马关条约》。", "summary": "事件：作为清政府全权大臣，与日本首相伊藤博文谈判，签订《马关条约》。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "狱中题壁": {"title": "狱中题壁", "aliases": [], "authors": ["谭嗣同"], "related_people": ["谭嗣同"], "source_pages": ["谭嗣同"], "era": "清末", "genre": "", "one_liner": "我自横刀向天笑，去留肝胆两昆仑。", "summary": "我自横刀向天笑，去留肝胆两昆仑。", "quote": "我自横刀向天笑，去留肝胆两昆仑。", "quotes": ["我自横刀向天笑，去留肝胆两昆仑。"], "quote_policy": "preferred"}}, "markdown": "# 谭嗣同\n\n## 人物档案\n\n### 基本信息\n- **姓名**：谭嗣同\n- **字/号**：字复生，号壮飞\n- **时代**：清末\n- **出生**：公元1865年，古称浏阳县（今湖南省长沙市浏阳市）\n- **去世**：公元1898年，古称京师（今北京市）\n- **享年**：33岁\n- **主要身份**：思想家、政治家、维新派代表人物、诗人\n- **历史地位**：中国近代著名政治家、思想家，维新志士，“戊戌六君子”之一，为变法图强甘愿流血牺牲。\n- **主要成就**：\n    - 创立维新团体“南学会”，创办《湘报》宣传变法。\n    - 参与领导戊戌变法，是核心推动者之一。\n    - 著《仁学》，构建了冲决网罗、倡导平等的哲学体系。\n    - 其诗作充满爱国激情与献身精神，影响深远。\n\n### 生平概述\n谭嗣同生于晚清内忧外患之际，早年游历南北，广览世情。甲午战败后，他痛感国势危殆，思想急剧转向维新。1897年应湖南巡抚陈宝箴之邀回湘，与梁启超、唐才常等大力推行新政，使湖南成为全国维新运动最富朝气的省份。1898年被光绪帝征召入京，参与“百日维新”。变法失败后，他拒绝出走，决心以血荐轩辕，于北京菜市口从容就义，其“我自横刀向天笑”的气概成为近代中国变革精神的象征。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国南北，核心活动区域在湖南、北京、南京、上海、武汉等地。\n- ⏱️ **时间跨度**：公元1865年 - 1898年，共33年。\n- 📍 **地理范围**：主要覆盖华中、华北、华东地区。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：浏阳\n- **时间**：公元1865年\n- **停留时间**：童年及多次往返居住\n- **地点**：古称浏阳县（今湖南省长沙市浏阳市）\n- **事件**：出生于官宦之家，幼年在此接受传统教育。\n- **意义**：其思想与人格的早期孕育地，也是后来在湖南推行维新事业的重要基地。\n\n### 📍 重要地点：兰州\n- **时间**：约公元1878年 - 1884年\n- **停留时间**：约6年\n- **地点**：古称兰州府（今甘肃省兰州市）\n- **事件**：随父谭继洵赴甘肃任所，期间苦读经世之学，并曾游历西北边塞。\n- **体验**：目睹边疆危机与民生疾苦，激发了其经世济民的志向。\n- **意义**：西北经历使他较早接触晚清边疆危机与现实政治，成为其后来由士大夫学问转向维新救国的重要思想源头。\n\n### 📍 重要地点：新疆\n- **时间**：公元1884年\n- **停留时间**：数月（游历）\n- **地点**：新疆（今新疆维吾尔自治区，具体地点存疑）\n- **事件**：为探求救国之道，孤身一人赴新疆，欲投效边疆，但未果。\n- **意义**：展现了其早年勇于探索、不畏艰险的性格，开阔了视野。\n\n### 📍 重要地点：北京\n- **时间**：公元1895年\n- **停留时间**：数月\n- **地点**：古称京师（今北京市）\n- **事件**：甲午战争失败，《马关条约》签订，谭嗣同在北京深受刺激，思想彻底转向维新变法。\n- **意义**：其人生与思想的重要转折点，从此投身于救亡图存的政治运动。\n\n### 📍 重要地点：南京\n- **时间**：公元1896年 - 1897年\n- **停留时间**：约一年\n- **地点**：古称江宁府（今江苏省南京市）\n- **事件**：以候补知府身份寓居南京，期间撰写其哲学代表作《仁学》。\n- **意义**：完成了其冲决封建网罗、倡导平等自由的思想体系构建。\n- **名篇名句**：《仁学》：“冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。”\n\n### 📍 重要地点：上海\n- **时间**：公元1896年、1898年\n- **停留时间**：短期停留\n- **地点**：古称上海县（今上海市）\n- **事件**：结交维新人士，阅读大量西学译著，寻求变法理论支持。\n- **意义**：接触西方思想与维新舆论的重要窗口。\n\n### 📍 重要地点：长沙\n- **时间**：公元1897年 - 1898年初\n- **停留时间**：约半年\n- **地点**：古称长沙府（今湖南省长沙市）\n- **事件**：应陈宝箴之邀，回湖南协助推行新政。参与创办时务学堂、南学会，主编《湘报》，宣传变法，培养维新人才。\n- **意义**：湖南维新运动的核心领导者与实践者，将变法理想付诸地方实践。\n- **名篇名句**：《湘报》后叙：“今日救亡，保国、保种、保教，惟变法维新。”\n\n### 📍 重要地点：武昌\n- **时间**：公元1898年（北上途中）\n- **停留时间**：短暂\n- **地点**：古称武昌府（今湖北省武汉市）\n- **事件**：奉诏北上途中，专程拜见时任湖北巡抚的父亲谭继洵，禀明心志。\n- **意义**：体现了其忠孝难以两全的抉择与为变法献身的决心。\n\n### 📍 重要地点：北京（军机处）\n- **时间**：公元1898年（农历四月至八月）\n- **停留时间**：约四个月\n- **地点**：古称京师（今北京市）\n- **事件**：被光绪帝破格授予四品卿衔军机章京，与杨锐、刘光第、林旭共同参与新政，成为变法核心。\n- **意义**：其政治生涯的顶点，直接参与国家最高决策层面的变法设计。\n\n### 🔴 去世地：北京菜市口\n- **时间**：公元1898年9月28日\n- **停留时间**：就义之地\n- **地点**：古称京师菜市口（今北京市西城区菜市口）\n- **事件**：戊戌政变后被捕，与杨锐等五人一同被斩首于菜市口，史称“戊戌六君子”。\n- **意义**：为中国近代改革流血牺牲的第一人，其就义言行极大地震动了国人，激励了后来的革命者。\n- **名篇名句**：《狱中题壁》：“我自横刀向天笑，去留肝胆两昆仑。”\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1865年 | 浏阳 | 湖南省长沙市浏阳市 | （年龄：0岁）生于湖南浏阳。 |\n| 1877年 |  |  | （年龄：12岁）母亲病逝，备尝人情冷暖。 |\n| 1884年 | 新疆 |  | （年龄：19岁）游历新疆，考察边塞。 |\n| 1895年 |  |  | （年龄：30岁）甲午战败，在京深受刺激，思想转向维新。 |\n| 1896年 | 南京 | 江苏省南京市 | （年龄：31岁）寓居南京，著《仁学》。 |\n| 1897年 |  |  | （年龄：32岁）回湖南，协助陈宝箴推行新政。 |\n| 1898年 |  |  | （年龄：33岁）奉诏入京，参与戊戌变法；变法失败，拒绝出走，被捕就义。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《狱中题壁》**\n- 核心要点：\n    - **重点**：诗歌核心意象“**横刀**”、“**向天笑**”，塑造了诗人顶天立地、视死如归的英雄形象。\n    - **重点**：名句“**我自横刀向天笑**”集中体现了为理想献身的**大无畏革命精神**与**浪漫主义豪情**。\n    - “**去留肝胆两昆仑**”运用比喻，将出走与留下的同志比作巍峨的昆仑山，歌颂了维新志士的**肝胆相照**与**崇高人格**。\n    - 诗歌语言慷慨激昂，情感悲壮炽烈，是近代**爱国主义诗篇**的典范之作。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为“**戊戌六君子**”之一，在**戊戌政变**后英勇就义，成为变法牺牲的标志性人物。\n    - 在湖南参与领导**湖南新政**，创办**时务学堂**、**南学会**，使湖南成为维新运动最活跃的省份。\n    - 被光绪帝任命为**军机章京**，参与新政决策，是变法核心成员。\n- 核心要点：\n    - **重点**：其思想核心《**仁学**》激烈批判封建纲常伦理，倡导“**冲决网罗**”，具有早期启蒙色彩。\n    - **重点**：他的牺牲超越了改良范畴，其“**不有行者，无以图将来；不有死者，无以酬圣主**”的言行，激励了后来的**革命党人**。\n    - 代表了从改良到革命过渡时期，一部分先进知识分子在救亡道路上的**激进探索**与**悲壮实践**。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 湖南省长沙市浏阳市 | 28.1630 | 113.6330 |\n| 甘肃省兰州市 | 36.0611 | 103.8343 |\n| 北京市 | 39.9042 | 116.4074 |\n| 江苏省南京市 | 32.0603 | 118.7969 |\n| 上海市 | 31.2304 | 121.4737 |\n| 湖南省长沙市 | 28.2280 | 112.9388 |\n| 湖北省武汉市 | 30.5928 | 114.3055 |\n| 北京市西城区菜市口（就义地） | 39.8920 | 116.3740 |\n", "relatedGraph": {"center": {"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "清末", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "我自横刀向天笑", "review": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "谭嗣同", "name": "谭嗣同", "file": "谭嗣同.html", "dynasty": "清末", "aliases": [], "birth_year": 1865, "death_year": 1898, "quote": "我自横刀向天笑", "review": "冲决网罗，即是冲决利禄之网罗、伦常之网罗、君主之网罗。", "foreign_name": "", "main_role_label": "思想家", "birthplace": "古称浏阳县", "birthplace_modern": "湖南省长沙市浏阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "清末民国", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "詹天佑", "name": "詹天佑", "file": "詹天佑.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1861, "death_year": 1919, "quote": "中国铁路之父", "review": "", "foreign_name": "", "main_role_label": "铁路工程师", "birthplace": "广东广州府南海县", "birthplace_modern": "广东省广州市荔湾区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "谭嗣同", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "陈延年", "label": "同时代人物", "confidence": null}, {"source": "谭嗣同", "target": "詹天佑", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:48Z", "generated_at": "2026-06-25T07:13:48Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:45Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:48Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

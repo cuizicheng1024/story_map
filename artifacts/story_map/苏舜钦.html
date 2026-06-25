@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "苏舜钦", "title": "苏梅", "description": "苏舜钦生于北宋真宗时期，成长于社会矛盾渐显的时代。他少有大志，于景祐元年（1034年）中进士，历任蒙城、长垣等地县令及大理评事等职。他积极支持范仲淹的“庆历新政”，成为改革派的重要成员。新政失败后，他因遭政敌诬陷“监守自盗”而被削职为民。此后，他退居苏州，购地筑“沧浪亭”，寄情山水，潜心诗文创作，直至病逝。他的诗歌豪迈奔放，直面现实，是北宋中期现实主义诗风的代表。", "quote": "形骸既适则神不烦，观听无邪则道以明", "shortReview": "形骸既适则神不烦，观听无邪则道以明", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "开封（今河南开封）", "avatar": "", "birth": {"date": "1008年", "location": "开封（今河南开封）", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84"}, "death": {"date": "1048年", "location": "卒于苏州（今江苏苏州）", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84"}, "lifespan": "41岁", "highlights": {"honor": "苏梅", "status": "北宋诗文革新运动的重要倡导者，与梅尧臣并称“苏梅”，对扫除西昆体浮靡诗风有开创之功。", "identities": "诗人、散文家、政治改革家", "achievements": "推动北宋诗文革新运动；创作大量揭露社会黑暗、反映民生疾苦的诗歌；散文成就突出，名篇《沧浪亭记》传世。", "works": ["沧浪亭记"], "reviews": ["*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "*《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "*后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。", "**欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "**《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "**后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。"]}}, "locations": [{"name": "开封", "ancientName": "东京开封府", "modernName": "河南开封", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦世家，祖父苏易简为宋太宗时参知政事。在此接受早期教育，以父荫补太庙斋郎。", "time": "1008年", "duration": "青少年时期", "significance": "其成长地与仕途起点，北宋的政治文化中心，对其早期思想形成有重要影响。", "works": [], "quoteLines": []}, {"name": "蒙城", "ancientName": "亳州蒙城县", "modernName": "安徽蒙城", "lat": 33.267491, "lng": 116.559233, "coordSystem": "WGS84", "type": "normal", "event": "中进士后初任蒙城县令，开始地方官生涯。", "time": "1034年（景祐元年）", "duration": "任县令期间", "significance": "实践其政治抱负的起点，积累了基层治理经验。", "works": [], "quoteLines": []}, {"name": "长垣", "ancientName": "开封府长垣县", "modernName": "河南长垣", "lat": 35.202229, "lng": 114.663282, "coordSystem": "WGS84", "type": "normal", "event": "继蒙城之后，调任长垣县令。", "time": "约1038年前后", "duration": "任县令期间", "significance": "进一步展现其吏治才能，关注民生。", "works": [], "quoteLines": []}, {"name": "山阳（楚州）", "ancientName": "楚州山阳县", "modernName": "江苏淮安市淮安区", "lat": 33.532405, "lng": 119.162281, "coordSystem": "WGS84", "type": "normal", "event": "因父苏耆去世，扶柩南下，曾途经此地（此行程为基于丁忧返乡路线的合理推断，存疑）。", "time": "约1040年", "duration": "短暂居留", "significance": "人生中一次重要的家庭变故与旅途节点。", "works": [], "quoteLines": []}, {"name": "汴京（开封）", "ancientName": "东京开封府", "modernName": "河南开封", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "在朝任大理评事、集贤校理等职；与欧阳修、梅尧臣等诗文唱和，成为诗文革新运动核心；因支持范仲淹改革，屡次上书言事；1044年因“进奏院事件”被诬陷，在此被捕下狱。", "time": "1042-1044年", "duration": "多次往返，累计数年", "significance": "其政治生涯的高峰与转折点，是其文学活动与政治斗争的核心舞台。", "works": [], "quoteLines": []}, {"name": "湖州", "ancientName": "湖州", "modernName": "浙江湖州", "lat": 30.896222, "lng": 120.08201, "coordSystem": "WGS84", "type": "normal", "event": "被削职为民后，离京南下，曾途经或短暂游历湖州。", "time": "1045年", "duration": "短暂羁旅", "significance": "贬谪旅途中的重要一站，江南山水开始慰藉其心灵。", "works": [], "quoteLines": []}, {"name": "苏州", "ancientName": "平江府苏州", "modernName": "江苏苏州", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84", "type": "normal", "event": "在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；在此度过人生最后三年，创作了大量诗文。", "time": "1045年—1048年", "duration": "约3年", "significance": "其人生最后的归宿与文学创作的巅峰之地，“沧浪亭”成为其精神象征。", "works": ["沧浪亭记"], "quoteLines": ["《沧浪亭记》：“形骸既适则神不烦，观听无邪则道以明”", "《淮中晚泊犊头》：“晚泊孤舟古祠下，满川风雨看潮生”。"]}, {"name": "苏州", "ancientName": "平江府苏州", "modernName": "江苏苏州", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84", "type": "death", "event": "在苏州度过三年贬谪生涯后，朝廷复其官职，任湖州长史。然未及赴任，便因病在苏州去世。", "time": "1048年", "duration": "定居直至去世", "significance": "其生命与文学旅程的终点，沧浪亭成为后世纪念他的重要场所。", "works": [], "quoteLines": ["《过苏州》：“绿杨白鹭俱自得，近水远山皆有情”。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑", "workTexts": {"沧浪亭记": "形骸既适则神不烦，观听无邪则道以明", "淮中晚泊犊头": "晚泊孤舟古祠下，满川风雨看潮生", "过苏州": "绿杨白鹭俱自得，近水远山皆有情", "六一诗话": "“子美笔力豪隽，以超迈横绝为奇。”", "宋史": "“舜钦慷慨有大志，状貌怪伟。”\n“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "**淮中晚泊犊头**": "代表诗作《淮中晚泊犊头》的意境与情感。", "**沧浪亭记**": "散文《沧浪亭记》的思想内涵与艺术特色。"}, "workSummaries": {"沧浪亭记": {"title": "沧浪亭记", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "散文", "one_liner": "形骸既适则神不烦，观听无邪则道以明", "summary": "形骸既适则神不烦，观听无邪则道以明", "quote": "事迹：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；", "quotes": ["事迹：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；", "创作大量揭露社会黑暗、反映民生疾苦的诗歌；", "在此度过人生最后三年，创作了大量诗文。"], "quote_policy": "preferred"}, "淮中晚泊犊头": {"title": "淮中晚泊犊头", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "", "one_liner": "晚泊孤舟古祠下，满川风雨看潮生", "summary": "晚泊孤舟古祠下，满川风雨看潮生", "quote": "春阴垂野草青青，时有幽花一树明。", "quotes": ["春阴垂野草青青，时有幽花一树明。", "晚泊孤舟古祠下，满川风雨看潮生。", "教材可能选录其写景抒情诗，如《淮中晚泊犊头》。"], "quote_policy": "preferred"}, "过苏州": {"title": "过苏州", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "", "one_liner": "绿杨白鹭俱自得，近水远山皆有情", "summary": "绿杨白鹭俱自得，近水远山皆有情", "quote": "绿杨白鹭俱自得，近水远山皆有情”。", "quotes": ["绿杨白鹭俱自得，近水远山皆有情”。", "绿杨白鹭俱自得，近水远山皆有情"], "quote_policy": "preferred"}, "六一诗话": {"title": "六一诗话", "aliases": [], "authors": [], "related_people": ["贾岛", "苏舜钦"], "source_pages": ["贾岛", "苏舜钦"], "era": "", "genre": "", "one_liner": "独行潭底影，数息树边身。” “二句三年得，一吟双泪流。", "summary": "独行潭底影，数息树边身。” “二句三年得，一吟双泪流。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "宋史": {"title": "宋史", "aliases": [], "authors": [], "related_people": ["苏舜钦", "苏辙", "文天祥"], "source_pages": ["苏舜钦", "苏辙", "文天祥"], "era": "", "genre": "", "one_liner": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "summary": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 苏舜钦\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：苏舜钦（字子美，号沧浪翁）\n- **时代**：北宋\n- **出生**：公元1008年，生于开封（今河南开封），祖籍梓州铜山（今四川中江）\n- **去世**：公元1048年，卒于苏州（今江苏苏州）\n- **享年**：41岁\n- **主要身份**：诗人、散文家、政治改革家\n- **历史地位**：北宋诗文革新运动的重要倡导者，与梅尧臣并称“苏梅”，对扫除西昆体浮靡诗风有开创之功。\n- **主要成就**：推动北宋诗文革新运动；创作大量揭露社会黑暗、反映民生疾苦的诗歌；散文成就突出，名篇《沧浪亭记》传世。\n\n### 生平概述\n苏舜钦生于北宋真宗时期，成长于社会矛盾渐显的时代。他少有大志，于景祐元年（1034年）中进士，历任蒙城、长垣等地县令及大理评事等职。他积极支持范仲淹的“庆历新政”，成为改革派的重要成员。新政失败后，他因遭政敌诬陷“监守自盗”而被削职为民。此后，他退居苏州，购地筑“沧浪亭”，寄情山水，潜心诗文创作，直至病逝。他的诗歌豪迈奔放，直面现实，是北宋中期现实主义诗风的代表。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以开封为中心，辗转于今河南、江苏、浙江等地任职、贬谪与隐居。\n- ⏱️ **时间跨度**：公元1008年—1048年，共41年。\n- 📍 **地理范围**：主要覆盖今河南省中东部、江苏省南部及浙江省北部。\n- 🌟 **重要节点数量**：核心地点约7个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：开封\n- **公元纪年**：1008年\n- **停留时间**：青少年时期\n- **位置**：东京开封府（今河南开封）\n- **事迹**：出生于官宦世家，祖父苏易简为宋太宗时参知政事。在此接受早期教育，以父荫补太庙斋郎。\n- **意义**：其成长地与仕途起点，北宋的政治文化中心，对其早期思想形成有重要影响。\n\n### 📍 重要地点：蒙城\n- **公元纪年**：1034年（景祐元年）\n- **停留时间**：任县令期间\n- **位置**：亳州蒙城县（今安徽蒙城）\n- **事迹**：中进士后初任蒙城县令，开始地方官生涯。\n- **意义**：实践其政治抱负的起点，积累了基层治理经验。\n\n### 📍 重要地点：长垣\n- **公元纪年**：约1038年前后\n- **停留时间**：任县令期间\n- **位置**：开封府长垣县（今河南长垣）\n- **事迹**：继蒙城之后，调任长垣县令。\n- **意义**：进一步展现其吏治才能，关注民生。\n\n### 📍 重要地点：山阳（楚州）\n- **公元纪年**：约1040年\n- **停留时间**：短暂居留\n- **位置**：楚州山阳县（今江苏淮安市淮安区）\n- **事迹**：因父苏耆去世，扶柩南下，曾途经此地（此行程为基于丁忧返乡路线的合理推断，存疑）。\n- **意义**：人生中一次重要的家庭变故与旅途节点。\n\n### 📍 重要地点：汴京（开封）\n- **公元纪年**：1042-1044年\n- **停留时间**：多次往返，累计数年\n- **位置**：东京开封府（今河南开封）\n- **事迹**：在朝任大理评事、集贤校理等职；与欧阳修、梅尧臣等诗文唱和，成为诗文革新运动核心；因支持范仲淹改革，屡次上书言事；1044年因“进奏院事件”被诬陷，在此被捕下狱。\n- **意义**：其政治生涯的高峰与转折点，是其文学活动与政治斗争的核心舞台。\n\n### 📍 重要地点：湖州\n- **公元纪年**：1045年\n- **停留时间**：短暂羁旅\n- **位置**：湖州（今浙江湖州）\n- **事迹**：被削职为民后，离京南下，曾途经或短暂游历湖州。\n- **意义**：贬谪旅途中的重要一站，江南山水开始慰藉其心灵。\n\n### 📍 重要地点：苏州\n- **公元纪年**：1045年—1048年\n- **停留时间**：约3年\n- **位置**：平江府苏州（今江苏苏州）\n- **事迹**：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；在此度过人生最后三年，创作了大量诗文。\n- **意义**：其人生最后的归宿与文学创作的巅峰之地，“沧浪亭”成为其精神象征。\n- **名篇名句**：《沧浪亭记》：“形骸既适则神不烦，观听无邪则道以明”；《淮中晚泊犊头》：“晚泊孤舟古祠下，满川风雨看潮生”。\n\n### 🔴 去世地：苏州\n- **公元纪年**：1048年\n- **停留时间**：定居直至去世\n- **位置**：平江府苏州（今江苏苏州）\n- **经过**：在苏州度过三年贬谪生涯后，朝廷复其官职，任湖州长史。然未及赴任，便因病在苏州去世。\n- **意义**：其生命与文学旅程的终点，沧浪亭成为后世纪念他的重要场所。\n- **名篇名句**：《过苏州》：“绿杨白鹭俱自得，近水远山皆有情”。\n\n---\n\n## 四、地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 开封（汴京） | 河南省开封市 | 34.798963 | 114.308423 |\n| 蒙城 | 安徽省亳州市蒙城县 | 33.267491 | 116.559233 |\n| 长垣 | 河南省新乡市长垣市 | 35.202229 | 114.663282 |\n| 山阳（楚州）（存疑） | 江苏省淮安市淮安区 | 33.532405 | 119.162281 |\n| 湖州 | 浙江省湖州市 | 30.896222 | 120.082010 |\n| 苏州 | 江苏省苏州市 | 31.311123 | 120.621288 |\n## 五、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1008年 | 开封 | 河南开封 | （年龄：1岁）生于开封。 |\n| 青少年时期 | 汴京（开封） | 河南开封 | 以父荫补太庙斋郎，在汴京读书。 |\n| 1034年 | 蒙城 | 安徽蒙城 | （年龄：27岁）考中进士，授蒙城县令。 |\n| 约1038年 | 长垣 | 河南长垣 | （年龄：约31岁）调任长垣县令。 |\n| 约1040年 |  |  | （年龄：约33岁）父亲苏耆去世，丁忧。 |\n| 1042年 |  |  | （年龄：34岁）服除回京，任大理评事。 |\n| 1043年 |  |  | （年龄：35岁）范仲淹推行“庆历新政”，苏舜钦大力支持，上书言事。 |\n| 1044年 |  |  | （年龄：36岁）因“进奏院祠神”事被政敌诬陷，以“监守自盗”罪削籍为民。 |\n| 1045年 | 苏州 | 江苏苏州 | （年龄：38岁）离京南下，旅居苏州，修筑沧浪亭。 |\n| 1045-1048年 | 苏州 | 江苏苏州 | （年龄：38-41岁）隐居苏州沧浪亭，潜心诗文创作。 |\n| 1048年 | 苏州 | 江苏苏州 | （年龄：41岁）复官为湖州长史，未赴任，病逝于苏州。 |\n\n---\n\n## 六、历史影响\n\n### 对当时的影响\n苏舜钦是北宋诗文革新运动的中坚力量。他的诗歌创作实践，有力地抨击了当时流行的西昆体浮艳诗风，主张诗歌应反映现实、干预社会。他在政治上积极参与“庆历新政”，其遭遇深刻反映了北宋中期改革派与保守派的激烈斗争，是“庆历新政”失败的一个标志性事件。\n\n### 对后世的影响\n1.  **文学革新**：其诗歌题材广泛，风格豪健奔放，与梅尧臣共同开创了宋诗的新局面，为后来的王安石、苏轼等人奠定了基础。\n2.  **散文典范**：《沧浪亭记》等散文情景交融，哲理深刻，成为宋代散文的名篇。\n3.  **精神象征**：“沧浪亭”及其相关诗文，成为后世文人表达逆境中坚守人格、寄情山水的文化符号。\n\n### 历史评价\n1.  **欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）\n2.  **《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”\n3.  **后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。\n\n---\n\n## 七、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：生活在**北宋中期**，社会矛盾逐渐显露。\n- **关键事件**：因支持**范仲淹**改革而被贬，是**庆历新政**失败的亲历者。\n- **代表作品**：教材可能选录其写景抒情诗，如**《淮中晚泊犊头》**。\n- **关键词**：**诗文革新运动**、**苏梅**（与梅尧臣并称）。\n- **常见易混点**：注意区分**苏舜钦**与**苏轼**，两人虽同姓且均为宋代文学家，但时代、成就和风格不同。\n\n### 高中阶段\n- **时代背景**：北宋**积贫积弱**、**内忧外患**局面下的士大夫改革浪潮。\n- **关键贡献**：作为**诗文革新运动**的早期核心成员，反对**西昆体**的形式主义诗风。\n- **代表思想**：文学主张**“文以载道”**，强调诗歌的**社会功能**和**现实关怀**。\n- **代表作品**：散文**《沧浪亭记》**体现了其贬谪后的心境与哲学思考；诗歌风格**豪放雄健**。\n- **对比点**：与**梅尧臣**并称“苏梅”，但苏诗更显**奔放**，梅诗更显**古淡**；其政治遭遇与**欧阳修**、**范仲淹**紧密相连。\n\n---\n\n## 八、初高中阶段考点\n\n### 初中阶段\n- 北宋文学家，与梅尧臣并称“**苏梅**”。\n- 支持**范仲淹**领导的**庆历新政**。\n- 代表诗作《**淮中晚泊犊头**》的意境与情感。\n- **沧浪亭**的建造者（联系其人生转折）。\n\n### 高中阶段\n- **北宋诗文革新运动**的先驱之一，反对**西昆体**。\n- 其政治生涯是**庆历新政**始末的一个缩影（**进奏院事件**）。\n- 散文《**沧浪亭记**》的思想内涵与艺术特色。\n- 诗歌风格：**豪犷雄放**，题材多涉及时政、民生。\n- 文学史地位：承**柳开**、**穆修**之后，启**欧阳修**、**王安石**、**苏轼**之先。\n- **存疑/说法不一**：关于其被诬陷的具体细节，史料记载略有出入，但“监守自盗”罪名系政敌构陷是共识。\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑\n\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "形骸既适则神不烦，观听无邪则道以明", "review": "形骸既适则神不烦，观听无邪则道以明", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "形骸既适则神不烦，观听无邪则道以明", "review": "形骸既适则神不烦，观听无邪则道以明", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "春风疑不到天涯，二月山城未见花。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "先天下之忧而忧，后天下之乐而乐", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "**点铁成金**", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "以为文者气之所形，然文不可以学而能，气可以养而致。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "朱门酒肉臭，路有冻死骨。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "**源头活水**", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "苏舜钦", "target": "欧阳修", "label": "好友", "confidence": null}, {"source": "苏舜钦", "target": "范仲淹", "label": "好友", "confidence": null}, {"source": "苏舜钦", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "苏舜钦", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "苏舜钦", "target": "杜甫", "label": "同册共现", "confidence": 0.15}, {"source": "苏舜钦", "target": "朱熹", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:42Z", "generated_at": "2026-06-22T11:31:42Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "苏舜钦", "title": "苏梅", "description": "苏舜钦生于北宋真宗时期，成长于社会矛盾渐显的时代。他少有大志，于景祐元年（1034年）中进士，历任蒙城、长垣等地县令及大理评事等职。他积极支持范仲淹的“庆历新政”，成为改革派的重要成员。新政失败后，他因遭政敌诬陷“监守自盗”而被削职为民。此后，他退居苏州，购地筑“沧浪亭”，寄情山水，潜心诗文创作，直至病逝。他的诗歌豪迈奔放，直面现实，是北宋中期现实主义诗风的代表。", "quote": "形骸既适则神不烦，观听无邪则道以明", "shortReview": "形骸既适则神不烦，观听无邪则道以明", "dynasty": "北宋", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "开封（今河南开封）", "avatar": "", "birth": {"date": "1008年", "location": "开封（今河南开封）", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84"}, "death": {"date": "1048年", "location": "卒于苏州（今江苏苏州）", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84"}, "lifespan": "41岁", "highlights": {"honor": "苏梅", "status": "北宋诗文革新运动的重要倡导者，与梅尧臣并称“苏梅”，对扫除西昆体浮靡诗风有开创之功。", "identities": "诗人、散文家、政治改革家", "achievements": "推动北宋诗文革新运动；创作大量揭露社会黑暗、反映民生疾苦的诗歌；散文成就突出，名篇《沧浪亭记》传世。", "works": ["沧浪亭记"], "reviews": ["*欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "*《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "*后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。", "**欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）", "**《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "**后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。"]}}, "locations": [{"name": "开封", "ancientName": "东京开封府", "modernName": "河南开封", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦世家，祖父苏易简为宋太宗时参知政事。在此接受早期教育，以父荫补太庙斋郎。", "time": "1008年", "duration": "青少年时期", "significance": "其成长地与仕途起点，北宋的政治文化中心，对其早期思想形成有重要影响。", "works": [], "quoteLines": []}, {"name": "蒙城", "ancientName": "亳州蒙城县", "modernName": "安徽蒙城", "lat": 33.267491, "lng": 116.559233, "coordSystem": "WGS84", "type": "normal", "event": "中进士后初任蒙城县令，开始地方官生涯。", "time": "1034年（景祐元年）", "duration": "任县令期间", "significance": "实践其政治抱负的起点，积累了基层治理经验。", "works": [], "quoteLines": []}, {"name": "长垣", "ancientName": "开封府长垣县", "modernName": "河南长垣", "lat": 35.202229, "lng": 114.663282, "coordSystem": "WGS84", "type": "normal", "event": "继蒙城之后，调任长垣县令。", "time": "约1038年前后", "duration": "任县令期间", "significance": "进一步展现其吏治才能，关注民生。", "works": [], "quoteLines": []}, {"name": "山阳（楚州）", "ancientName": "楚州山阳县", "modernName": "江苏淮安市淮安区", "lat": 33.532405, "lng": 119.162281, "coordSystem": "WGS84", "type": "normal", "event": "因父苏耆去世，扶柩南下，曾途经此地（此行程为基于丁忧返乡路线的合理推断，存疑）。", "time": "约1040年", "duration": "短暂居留", "significance": "人生中一次重要的家庭变故与旅途节点。", "works": [], "quoteLines": []}, {"name": "汴京（开封）", "ancientName": "东京开封府", "modernName": "河南开封", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "在朝任大理评事、集贤校理等职；与欧阳修、梅尧臣等诗文唱和，成为诗文革新运动核心；因支持范仲淹改革，屡次上书言事；1044年因“进奏院事件”被诬陷，在此被捕下狱。", "time": "1042-1044年", "duration": "多次往返，累计数年", "significance": "其政治生涯的高峰与转折点，是其文学活动与政治斗争的核心舞台。", "works": [], "quoteLines": []}, {"name": "湖州", "ancientName": "湖州", "modernName": "浙江湖州", "lat": 30.896222, "lng": 120.08201, "coordSystem": "WGS84", "type": "normal", "event": "被削职为民后，离京南下，曾途经或短暂游历湖州。", "time": "1045年", "duration": "短暂羁旅", "significance": "贬谪旅途中的重要一站，江南山水开始慰藉其心灵。", "works": [], "quoteLines": []}, {"name": "苏州", "ancientName": "平江府苏州", "modernName": "江苏苏州", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84", "type": "normal", "event": "在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；在此度过人生最后三年，创作了大量诗文。", "time": "1045年—1048年", "duration": "约3年", "significance": "其人生最后的归宿与文学创作的巅峰之地，“沧浪亭”成为其精神象征。", "works": ["沧浪亭记"], "quoteLines": ["《沧浪亭记》：“形骸既适则神不烦，观听无邪则道以明”", "《淮中晚泊犊头》：“晚泊孤舟古祠下，满川风雨看潮生”。"]}, {"name": "苏州", "ancientName": "平江府苏州", "modernName": "江苏苏州", "lat": 31.311123, "lng": 120.621288, "coordSystem": "WGS84", "type": "death", "event": "在苏州度过三年贬谪生涯后，朝廷复其官职，任湖州长史。然未及赴任，便因病在苏州去世。", "time": "1048年", "duration": "定居直至去世", "significance": "其生命与文学旅程的终点，沧浪亭成为后世纪念他的重要场所。", "works": [], "quoteLines": ["《过苏州》：“绿杨白鹭俱自得，近水远山皆有情”。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑", "workTexts": {"沧浪亭记": "形骸既适则神不烦，观听无邪则道以明", "淮中晚泊犊头": "晚泊孤舟古祠下，满川风雨看潮生", "过苏州": "绿杨白鹭俱自得，近水远山皆有情", "六一诗话": "“子美笔力豪隽，以超迈横绝为奇。”", "宋史": "“舜钦慷慨有大志，状貌怪伟。”\n“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”", "**淮中晚泊犊头**": "代表诗作《淮中晚泊犊头》的意境与情感。", "**沧浪亭记**": "散文《沧浪亭记》的思想内涵与艺术特色。"}, "workSummaries": {"沧浪亭记": {"title": "沧浪亭记", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "散文", "one_liner": "形骸既适则神不烦，观听无邪则道以明", "summary": "形骸既适则神不烦，观听无邪则道以明", "quote": "事迹：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；", "quotes": ["事迹：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；", "创作大量揭露社会黑暗、反映民生疾苦的诗歌；", "在此度过人生最后三年，创作了大量诗文。"], "quote_policy": "preferred"}, "淮中晚泊犊头": {"title": "淮中晚泊犊头", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "", "one_liner": "晚泊孤舟古祠下，满川风雨看潮生", "summary": "晚泊孤舟古祠下，满川风雨看潮生", "quote": "春阴垂野草青青，时有幽花一树明。", "quotes": ["春阴垂野草青青，时有幽花一树明。", "晚泊孤舟古祠下，满川风雨看潮生。", "教材可能选录其写景抒情诗，如《淮中晚泊犊头》。"], "quote_policy": "preferred"}, "过苏州": {"title": "过苏州", "aliases": [], "authors": ["苏舜钦"], "related_people": ["苏舜钦"], "source_pages": ["苏舜钦"], "era": "北宋", "genre": "", "one_liner": "绿杨白鹭俱自得，近水远山皆有情", "summary": "绿杨白鹭俱自得，近水远山皆有情", "quote": "绿杨白鹭俱自得，近水远山皆有情”。", "quotes": ["绿杨白鹭俱自得，近水远山皆有情”。", "绿杨白鹭俱自得，近水远山皆有情"], "quote_policy": "preferred"}, "六一诗话": {"title": "六一诗话", "aliases": [], "authors": [], "related_people": ["贾岛", "苏舜钦"], "source_pages": ["贾岛", "苏舜钦"], "era": "", "genre": "", "one_liner": "独行潭底影，数息树边身。” “二句三年得，一吟双泪流。", "summary": "独行潭底影，数息树边身。” “二句三年得，一吟双泪流。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "宋史": {"title": "宋史", "aliases": [], "authors": [], "related_people": ["苏舜钦", "苏辙", "文天祥"], "source_pages": ["苏舜钦", "苏辙", "文天祥"], "era": "", "genre": "", "one_liner": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "summary": "舜钦慷慨有大志，状貌怪伟。” “当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 苏舜钦\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：苏舜钦（字子美，号沧浪翁）\n- **时代**：北宋\n- **出生**：公元1008年，生于开封（今河南开封），祖籍梓州铜山（今四川中江）\n- **去世**：公元1048年，卒于苏州（今江苏苏州）\n- **享年**：41岁\n- **主要身份**：诗人、散文家、政治改革家\n- **历史地位**：北宋诗文革新运动的重要倡导者，与梅尧臣并称“苏梅”，对扫除西昆体浮靡诗风有开创之功。\n- **主要成就**：推动北宋诗文革新运动；创作大量揭露社会黑暗、反映民生疾苦的诗歌；散文成就突出，名篇《沧浪亭记》传世。\n\n### 生平概述\n苏舜钦生于北宋真宗时期，成长于社会矛盾渐显的时代。他少有大志，于景祐元年（1034年）中进士，历任蒙城、长垣等地县令及大理评事等职。他积极支持范仲淹的“庆历新政”，成为改革派的重要成员。新政失败后，他因遭政敌诬陷“监守自盗”而被削职为民。此后，他退居苏州，购地筑“沧浪亭”，寄情山水，潜心诗文创作，直至病逝。他的诗歌豪迈奔放，直面现实，是北宋中期现实主义诗风的代表。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：以开封为中心，辗转于今河南、江苏、浙江等地任职、贬谪与隐居。\n- ⏱️ **时间跨度**：公元1008年—1048年，共41年。\n- 📍 **地理范围**：主要覆盖今河南省中东部、江苏省南部及浙江省北部。\n- 🌟 **重要节点数量**：核心地点约7个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：开封\n- **公元纪年**：1008年\n- **停留时间**：青少年时期\n- **位置**：东京开封府（今河南开封）\n- **事迹**：出生于官宦世家，祖父苏易简为宋太宗时参知政事。在此接受早期教育，以父荫补太庙斋郎。\n- **意义**：其成长地与仕途起点，北宋的政治文化中心，对其早期思想形成有重要影响。\n\n### 📍 重要地点：蒙城\n- **公元纪年**：1034年（景祐元年）\n- **停留时间**：任县令期间\n- **位置**：亳州蒙城县（今安徽蒙城）\n- **事迹**：中进士后初任蒙城县令，开始地方官生涯。\n- **意义**：实践其政治抱负的起点，积累了基层治理经验。\n\n### 📍 重要地点：长垣\n- **公元纪年**：约1038年前后\n- **停留时间**：任县令期间\n- **位置**：开封府长垣县（今河南长垣）\n- **事迹**：继蒙城之后，调任长垣县令。\n- **意义**：进一步展现其吏治才能，关注民生。\n\n### 📍 重要地点：山阳（楚州）\n- **公元纪年**：约1040年\n- **停留时间**：短暂居留\n- **位置**：楚州山阳县（今江苏淮安市淮安区）\n- **事迹**：因父苏耆去世，扶柩南下，曾途经此地（此行程为基于丁忧返乡路线的合理推断，存疑）。\n- **意义**：人生中一次重要的家庭变故与旅途节点。\n\n### 📍 重要地点：汴京（开封）\n- **公元纪年**：1042-1044年\n- **停留时间**：多次往返，累计数年\n- **位置**：东京开封府（今河南开封）\n- **事迹**：在朝任大理评事、集贤校理等职；与欧阳修、梅尧臣等诗文唱和，成为诗文革新运动核心；因支持范仲淹改革，屡次上书言事；1044年因“进奏院事件”被诬陷，在此被捕下狱。\n- **意义**：其政治生涯的高峰与转折点，是其文学活动与政治斗争的核心舞台。\n\n### 📍 重要地点：湖州\n- **公元纪年**：1045年\n- **停留时间**：短暂羁旅\n- **位置**：湖州（今浙江湖州）\n- **事迹**：被削职为民后，离京南下，曾途经或短暂游历湖州。\n- **意义**：贬谪旅途中的重要一站，江南山水开始慰藉其心灵。\n\n### 📍 重要地点：苏州\n- **公元纪年**：1045年—1048年\n- **停留时间**：约3年\n- **位置**：平江府苏州（今江苏苏州）\n- **事迹**：在此购得五代孙承祐池馆废地，修筑“沧浪亭”，并写下著名散文《沧浪亭记》；在此度过人生最后三年，创作了大量诗文。\n- **意义**：其人生最后的归宿与文学创作的巅峰之地，“沧浪亭”成为其精神象征。\n- **名篇名句**：《沧浪亭记》：“形骸既适则神不烦，观听无邪则道以明”；《淮中晚泊犊头》：“晚泊孤舟古祠下，满川风雨看潮生”。\n\n### 🔴 去世地：苏州\n- **公元纪年**：1048年\n- **停留时间**：定居直至去世\n- **位置**：平江府苏州（今江苏苏州）\n- **经过**：在苏州度过三年贬谪生涯后，朝廷复其官职，任湖州长史。然未及赴任，便因病在苏州去世。\n- **意义**：其生命与文学旅程的终点，沧浪亭成为后世纪念他的重要场所。\n- **名篇名句**：《过苏州》：“绿杨白鹭俱自得，近水远山皆有情”。\n\n---\n\n## 四、地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 开封（汴京） | 河南省开封市 | 34.798963 | 114.308423 |\n| 蒙城 | 安徽省亳州市蒙城县 | 33.267491 | 116.559233 |\n| 长垣 | 河南省新乡市长垣市 | 35.202229 | 114.663282 |\n| 山阳（楚州）（存疑） | 江苏省淮安市淮安区 | 33.532405 | 119.162281 |\n| 湖州 | 浙江省湖州市 | 30.896222 | 120.082010 |\n| 苏州 | 江苏省苏州市 | 31.311123 | 120.621288 |\n## 五、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1008年 | 开封 | 河南开封 | （年龄：1岁）生于开封。 |\n| 青少年时期 | 汴京（开封） | 河南开封 | 以父荫补太庙斋郎，在汴京读书。 |\n| 1034年 | 蒙城 | 安徽蒙城 | （年龄：27岁）考中进士，授蒙城县令。 |\n| 约1038年 | 长垣 | 河南长垣 | （年龄：约31岁）调任长垣县令。 |\n| 约1040年 |  |  | （年龄：约33岁）父亲苏耆去世，丁忧。 |\n| 1042年 |  |  | （年龄：34岁）服除回京，任大理评事。 |\n| 1043年 |  |  | （年龄：35岁）范仲淹推行“庆历新政”，苏舜钦大力支持，上书言事。 |\n| 1044年 |  |  | （年龄：36岁）因“进奏院祠神”事被政敌诬陷，以“监守自盗”罪削籍为民。 |\n| 1045年 | 苏州 | 江苏苏州 | （年龄：38岁）离京南下，旅居苏州，修筑沧浪亭。 |\n| 1045-1048年 | 苏州 | 江苏苏州 | （年龄：38-41岁）隐居苏州沧浪亭，潜心诗文创作。 |\n| 1048年 | 苏州 | 江苏苏州 | （年龄：41岁）复官为湖州长史，未赴任，病逝于苏州。 |\n\n---\n\n## 六、历史影响\n\n### 对当时的影响\n苏舜钦是北宋诗文革新运动的中坚力量。他的诗歌创作实践，有力地抨击了当时流行的西昆体浮艳诗风，主张诗歌应反映现实、干预社会。他在政治上积极参与“庆历新政”，其遭遇深刻反映了北宋中期改革派与保守派的激烈斗争，是“庆历新政”失败的一个标志性事件。\n\n### 对后世的影响\n1.  **文学革新**：其诗歌题材广泛，风格豪健奔放，与梅尧臣共同开创了宋诗的新局面，为后来的王安石、苏轼等人奠定了基础。\n2.  **散文典范**：《沧浪亭记》等散文情景交融，哲理深刻，成为宋代散文的名篇。\n3.  **精神象征**：“沧浪亭”及其相关诗文，成为后世文人表达逆境中坚守人格、寄情山水的文化符号。\n\n### 历史评价\n1.  **欧阳修**：“子美笔力豪隽，以超迈横绝为奇。”（《六一诗话》）\n2.  **《宋史》**：“舜钦慷慨有大志，状貌怪伟。”“当天圣中，学者为文多病偶对，独舜钦与河南穆修好为古文歌诗，一时豪俊多从之游。”\n3.  **后世定位**：被视为北宋中期承前启后的关键文学家，其人生悲剧与文学成就共同构成了一个立体的历史形象。\n\n---\n\n## 七、人教版教材知识点\n\n### 初中阶段\n- **时代背景**：生活在**北宋中期**，社会矛盾逐渐显露。\n- **关键事件**：因支持**范仲淹**改革而被贬，是**庆历新政**失败的亲历者。\n- **代表作品**：教材可能选录其写景抒情诗，如**《淮中晚泊犊头》**。\n- **关键词**：**诗文革新运动**、**苏梅**（与梅尧臣并称）。\n- **常见易混点**：注意区分**苏舜钦**与**苏轼**，两人虽同姓且均为宋代文学家，但时代、成就和风格不同。\n\n### 高中阶段\n- **时代背景**：北宋**积贫积弱**、**内忧外患**局面下的士大夫改革浪潮。\n- **关键贡献**：作为**诗文革新运动**的早期核心成员，反对**西昆体**的形式主义诗风。\n- **代表思想**：文学主张**“文以载道”**，强调诗歌的**社会功能**和**现实关怀**。\n- **代表作品**：散文**《沧浪亭记》**体现了其贬谪后的心境与哲学思考；诗歌风格**豪放雄健**。\n- **对比点**：与**梅尧臣**并称“苏梅”，但苏诗更显**奔放**，梅诗更显**古淡**；其政治遭遇与**欧阳修**、**范仲淹**紧密相连。\n\n---\n\n## 八、初高中阶段考点\n\n### 初中阶段\n- 北宋文学家，与梅尧臣并称“**苏梅**”。\n- 支持**范仲淹**领导的**庆历新政**。\n- 代表诗作《**淮中晚泊犊头**》的意境与情感。\n- **沧浪亭**的建造者（联系其人生转折）。\n\n### 高中阶段\n- **北宋诗文革新运动**的先驱之一，反对**西昆体**。\n- 其政治生涯是**庆历新政**始末的一个缩影（**进奏院事件**）。\n- 散文《**沧浪亭记**》的思想内涵与艺术特色。\n- 诗歌风格：**豪犷雄放**，题材多涉及时政、民生。\n- 文学史地位：承**柳开**、**穆修**之后，启**欧阳修**、**王安石**、**苏轼**之先。\n- **存疑/说法不一**：关于其被诬陷的具体细节，史料记载略有出入，但“监守自盗”罪名系政敌构陷是共识。\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：存疑\n- 核心要点：存疑\n\n### 历史（史实/人物定位）\n- 关键史实：存疑\n- 核心要点：存疑\n\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |", "relatedGraph": {"center": {"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "形骸既适则神不烦，观听无邪则道以明", "review": "形骸既适则神不烦，观听无邪则道以明", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "苏舜钦", "name": "苏舜钦", "file": "苏舜钦.html", "dynasty": "北宋", "aliases": [], "birth_year": 1008, "death_year": 1048, "quote": "形骸既适则神不烦，观听无邪则道以明", "review": "形骸既适则神不烦，观听无邪则道以明", "foreign_name": "", "main_role_label": "诗人", "birthplace": "开封", "birthplace_modern": "河南开封", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "欧阳修", "name": "欧阳修", "file": "欧阳修.html", "dynasty": "北宋", "aliases": ["欧阳永叔", "六一居士"], "birth_year": 1007, "death_year": 1072, "quote": "春风疑不到天涯，二月山城未见花。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "有绵州", "birthplace_modern": "四川省绵阳市", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "范仲淹", "name": "范仲淹", "file": "范仲淹.html", "dynasty": "北宋", "aliases": [], "birth_year": 989, "death_year": 1052, "quote": "先天下之忧而忧，后天下之乐而乐", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "今河北省石家庄市正定县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "好友", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黄庭坚", "name": "黄庭坚", "file": "黄庭坚.html", "dynasty": "北宋", "aliases": [], "birth_year": 1045, "death_year": 1105, "quote": "**点铁成金**", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "洪州分宁", "birthplace_modern": "江西省九江市修水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏辙", "name": "苏辙", "file": "苏辙.html", "dynasty": "北宋", "aliases": [], "birth_year": 1039, "death_year": 1112, "quote": "以为文者气之所形，然文不可以学而能，气可以养而致。", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "眉州眉山", "birthplace_modern": "四川省眉山市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杜甫", "name": "杜甫", "file": "杜甫.html", "dynasty": "唐代", "aliases": [], "birth_year": 712, "death_year": 770, "quote": "朱门酒肉臭，路有冻死骨。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "巩县", "birthplace_modern": "河南省郑州市巩义市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "朱熹", "name": "朱熹", "file": "朱熹.html", "dynasty": "南宋", "aliases": [], "birth_year": 1130, "death_year": 1200, "quote": "**源头活水**", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "学界普遍采用此说", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "苏舜钦", "target": "欧阳修", "label": "好友", "confidence": null}, {"source": "苏舜钦", "target": "范仲淹", "label": "好友", "confidence": null}, {"source": "苏舜钦", "target": "黄庭坚", "label": "同时代人物", "confidence": null}, {"source": "苏舜钦", "target": "苏辙", "label": "同时代人物", "confidence": null}, {"source": "苏舜钦", "target": "杜甫", "label": "同册共现", "confidence": 0.15}, {"source": "苏舜钦", "target": "朱熹", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:45Z", "generated_at": "2026-06-25T07:13:45Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:42Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:45Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -340,9 +340,10 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     assert 'id="pixelGenPanel" class="pixel-progress-shell is-collapsed"' in html
-    assert 'role="button"' in html
-    assert 'aria-label="打开橙子Agent工作台"' in html
-    assert 'tabindex="0"' in html
+    assert 'role="status"' in html
+    assert 'aria-live="polite"' in html
+    assert 'aria-label="系统状态：待命中"' in html
+    assert 'title="系统状态：只读展示，不能手动暂停或恢复"' in html
     assert 'id="pixelGenToggle"' in html
     assert 'id="pixelGenStatusBadge"' in html
     assert 'id="pixelGenCompactText"' in html
@@ -358,7 +359,7 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert ">空闲中</div>" in html
     assert 'aria-expanded="false"' in html
     assert 'id="pixelGenBody" class="pixel-progress-body is-star-office-only" style="display:none"' in html
-    assert "新标签打开工作台" in html
+    assert "查看 Orange Office 详情（状态只读）" in html
     assert "流程阶段" in html
     assert "执行模块" in html
     assert "const PIXEL_STAGE_FLOW = [" in html
@@ -423,9 +424,9 @@ def test_render_index_html_hides_hu_huanyong_midpoint_dot():
     assert '$pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);' in html
     assert '$pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);' in html
     assert 'const shouldOpenStarOfficeFromPanelEvent = (target) => {' in html
-    assert '$pixelGenPanel.addEventListener("click", (event) => {' in html
-    assert '$pixelGenPanel.addEventListener("keydown", (event) => {' in html
-    assert 'if (event.key !== "Enter" && event.key !== " ") return;' in html
+    assert '$pixelGenToggle.addEventListener("click", () => {' in html
+    assert '$pixelGenPanel.setAttribute("aria-label", `系统状态：${resolvePixelCompactText(String(pixelGenState.status || "idle"), String(pixelGenState.stageKey || ""))}`);' in html
+    assert '$pixelGenPanel.setAttribute("title", "系统状态：只读展示，不能手动暂停或恢复");' in html
     assert 'const escapePixelLogHtml = (value) => {' in html
     assert 'const safeLabelText = escapePixelLogHtml(labelText);' in html
     assert 'escapePixelLogHtml(detail)' in html

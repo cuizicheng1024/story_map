@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "颜回，字子渊，亦称颜渊", "title": "先师", "description": "颜回生活在春秋末期社会剧烈变革的时代，是孔子最心爱的弟子。他出身贫寒，却聪慧过人，自拜孔子为师后，便一生追随，即使在最困顿的“在陈绝粮”时期也未曾离开。他一生未曾出仕，专注于对“仁”与“道”的追求与实践，以“一箪食，一瓢饮，在陋巷”而不改其乐的精神著称。不幸早逝，令孔子悲痛欲绝，哀叹“天丧予”。颜回以其纯粹的德行和好学精神，成为儒家理想人格的化身，对后世儒学发展产生了深远影响。", "quote": "贤哉，回也！", "shortReview": "贤哉，回也！", "dynasty": "春秋末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "鲁国（今山东曲阜）", "avatar": "", "birth": {"date": "公元前521年", "location": "鲁国（今山东曲阜）", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84"}, "death": {"date": "公元前481年", "location": "鲁国（今山东曲阜）", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84"}, "lifespan": "约40岁（存疑，有31岁、41岁等说法）", "highlights": {"honor": "先师", "status": "孔子最得意的弟子，儒家“复圣”，后世尊为“先师”，是安贫乐道、德行高尚的典范。", "identities": "思想家、儒家学者、孔门弟子", "achievements": "以德行著称，位列“孔门十哲”之首；其“不迁怒，不贰过”的修养境界成为后世儒家修身楷模。", "works": [], "reviews": ["**孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）", "**后世评价**：孟子将他与禹、稷并称（《孟子·离娄下》）；后世儒者常以“颜子”代指道德学问臻于至境的圣贤。"]}}, "locations": [{"name": "鲁国（今山东曲阜）", "ancientName": "鲁国", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "birth", "event": "出生于鲁国，少年时期即拜入孔子门下，成为早期弟子之一。（注：一说出生于陬邑，今曲阜尼山附近，具体位置存疑）", "time": "约公元前521年", "duration": "童年及青少年时期", "significance": "其人生起点，也是其接受孔子思想启蒙之地。", "works": [], "quoteLines": []}, {"name": "鲁国都城曲阜（孔子门下）", "ancientName": "鲁国都城曲阜", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "normal", "event": "在孔子门下潜心学习，以“不迁怒，不贰过”、“闻一知十”受到孔子极高赞誉。孔子称赞：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”", "time": "约公元前509年 - 约公元前497年，及周游列国返回后", "duration": "长期居住、学习的核心地点", "significance": "其思想形成与德行修炼的主要场所，奠定了其儒家思想继承人的地位。", "works": [], "quoteLines": ["《论语·雍也》：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”", "《论语·为政》：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”"]}, {"name": "周游列国途中（卫、陈、蔡等地）", "ancientName": "主要经过卫国、匡地、蒲地、陈国、蔡国。", "modernName": "河南北部", "lat": 33.733155, "lng": 114.847221, "coordSystem": "WGS84", "type": "normal", "event": "全程追随孔子，历经艰辛。在陈蔡之间绝粮时，仍坚定支持孔子。孔子多次与他论道，视其为精神上的同道。", "time": "约公元前497年 - 约公元前484年", "duration": "约14年，随孔子辗转各国", "significance": "这段经历磨砺了其意志，深化了对孔子学说的理解，也见证了其对师道的绝对忠诚。", "works": [], "quoteLines": ["《论语·卫灵公》：“君子谋道不谋食……君子忧道不忧贫。”（颜回与孔子对话的精神体现）"]}, {"name": "鲁国都城曲阜", "ancientName": "鲁国都城曲阜", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "death", "event": "颜回英年早逝，其死因史料记载不详。他的去世对孔子造成了巨大打击，孔子恸哭：“噫！天丧予！天丧予！”", "time": "约公元前481年", "duration": "晚年直至去世", "significance": "生命的终点，也是其精神遗产被孔子及后世弟子传承的起点。", "works": [], "quoteLines": ["《论语·先进》：“颜渊死，子曰：‘噫！天丧予！天丧予！’”", "《论语·先进》：“颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**春秋晚期**，社会动荡，**孔子**创立**儒家学派**。\n- **关键身份**：**孔子**最得意的弟子，**“孔门七十二贤”** 之首。\n- **核心品德**：**安贫乐道**的典范，住在“**陋巷**”，“**一箪食，一瓢饮**”而不改其乐。\n- **学习态度**：**好学**的代表，被孔子称赞“**不迁怒，不贰过**”。\n- **师生关系**：与孔子关系最为密切，是孔子精神上的知己。\n- **常见易混点**：与子路（勇猛）、子贡（善辩）等弟子的性格和特长进行对比。\n\n### 高中阶段\n- **思想内涵**：其“乐”体现了儒家**“内圣”** 修养的最高境界，即**“孔颜乐处”**。\n- **历史地位**：在**儒学传承**中的特殊地位，被视为**道统**承前启后的关键人物之一。\n- **哲学命题**：其“不违仁”的状态，是理解儒家**“仁”** 的实践性与持续性的重要案例。\n- **文献出处**：主要事迹见于**《论语》** 的《先进》《雍也》等篇。\n- **后世影响**：历代**追封**（如**复圣**）及其在**孔庙祭祀**体系中的崇高位置。\n- **对比点**：与**曾子**（重孝与内省）、**孟子**（发展仁政思想）在儒学发展脉络中的不同角色。\n\n---", "examPoints": "### 初中阶段考点\n1.  **身份**：孔子最得意的弟子，**“孔门十哲”** 之一（德行科）。\n2.  **品格象征**：**“安贫乐道”** 的代名词，掌握“**一箪食，一瓢饮，在陋巷**”的典故。\n3.  **孔子评价**：记住“**贤哉，回也！**”这句核心赞语。\n4.  **学习精神**：了解其“**好学**”、“**不迁怒，不贰过**”的特点。\n5.  **与孔子关系**：理解孔子视其为精神传承者的特殊情感（“**天丧予**”）。\n\n### 高中阶段考点\n1.  **哲学概念**：**“孔颜乐处”** 的内涵及其在宋明理学中的阐释。\n2.  **思想史地位**：在**先秦儒学**传承谱系中的位置（孔子 -> 颜回/曾子 -> 子思 -> 孟子）。\n3.  **文献分析**：能结合**《论语》** 原文，分析颜回的修养方法与境界。\n4.  **历史评价**：理解后世（尤其是**宋明理学家**）推崇颜回的原因。\n5.  **对比辨析**：与**子路**、**子贡**、**曾子**等孔门弟子在性格、思想侧重上的异异。\n\n---", "workTexts": {"论语·雍也": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "论语": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "雍也": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "论语·为政": "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "为政": "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "论语·卫灵公": "君子谋道不谋食……君子忧道不忧贫。", "卫灵公": "君子谋道不谋食……君子忧道不忧贫。", "论语·先进": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "先进": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "孟子·离娄下": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "孟子": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "离娄下": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "孟子·离娄": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "离娄": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）"}, "workSummaries": {"论语·雍也": {"title": "论语·雍也", "aliases": ["论语", "雍也"], "authors": ["颜回"], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "春秋末期", "genre": "", "one_liner": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "summary": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "quote": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "quotes": ["贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。"], "quote_policy": "preferred"}, "论语·为政": {"title": "论语·为政", "aliases": ["论语", "为政"], "authors": ["孔子", "颜回"], "related_people": ["孔子", "颜回"], "source_pages": ["孔子", "颜回"], "era": "春秋时期", "genre": "", "one_liner": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "summary": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quote": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quotes": ["吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。"], "quote_policy": "preferred"}, "论语·卫灵公": {"title": "论语·卫灵公", "aliases": ["论语", "卫灵公"], "authors": ["孔子", "颜回"], "related_people": ["孔子", "颜回"], "source_pages": ["孔子", "颜回"], "era": "春秋时期", "genre": "", "one_liner": "君子固穷，小人穷斯滥矣。", "summary": "君子固穷，小人穷斯滥矣。", "quote": "君子谋道不谋食……君子忧道不忧贫。", "quotes": ["君子谋道不谋食……君子忧道不忧贫。", "君子固穷，小人穷斯滥矣。"], "quote_policy": "preferred"}, "论语·先进": {"title": "论语·先进", "aliases": ["论语", "先进"], "authors": ["颜回"], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "春秋末期", "genre": "", "one_liner": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "summary": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "quote": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "quotes": ["颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "颜渊死，子曰：‘噫！天丧予！天丧予！’", "颜渊死，子曰：‘噫！"], "quote_policy": "preferred"}, "论语": {"title": "论语", "aliases": [], "authors": [], "related_people": ["曾子", "孔子", "萧统", "颜回"], "source_pages": ["曾子", "孔子", "萧统", "颜回"], "era": "", "genre": "", "one_liner": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "summary": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "孟子·离娄下": {"title": "孟子·离娄下", "aliases": ["孟子", "离娄下", "孟子·离娄", "离娄"], "authors": [], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "", "genre": "", "one_liner": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "summary": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 颜回\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：颜回，字子渊，亦称颜渊\n- **时代**：春秋末期\n- **出生**：约公元前521年（存疑，另有公元前511年等说法），鲁国（今山东曲阜）\n- **去世**：约公元前481年（存疑），鲁国（今山东曲阜）\n- **享年**：约40岁（存疑，有31岁、41岁等说法）\n- **主要身份**：思想家、儒家学者、孔门弟子\n- **历史地位**：孔子最得意的弟子，儒家“复圣”，后世尊为“先师”，是安贫乐道、德行高尚的典范。\n- **主要成就**：以德行著称，位列“孔门十哲”之首；其“不迁怒，不贰过”的修养境界成为后世儒家修身楷模。\n\n### 生平概述\n颜回生活在春秋末期社会剧烈变革的时代，是孔子最心爱的弟子。他出身贫寒，却聪慧过人，自拜孔子为师后，便一生追随，即使在最困顿的“在陈绝粮”时期也未曾离开。他一生未曾出仕，专注于对“仁”与“道”的追求与实践，以“一箪食，一瓢饮，在陋巷”而不改其乐的精神著称。不幸早逝，令孔子悲痛欲绝，哀叹“天丧予”。颜回以其纯粹的德行和好学精神，成为儒家理想人格的化身，对后世儒学发展产生了深远影响。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于鲁国都城曲阜，并曾随孔子周游列国。\n- ⏱️ **时间跨度**：约公元前521年 - 约公元前481年，总跨度约40年。\n- 📍 **地理范围**：以鲁国（今山东曲阜）为中心，足迹可能涉及卫国（今河南北部）、陈国（今河南淮阳）、蔡国（主要在今河南上蔡、新蔡及安徽寿县）等国。\n- 🌟 **重要节点数量**：核心地点约4个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：鲁国（今山东曲阜）\n- **公元纪年**：约公元前521年\n- **停留时间**：童年及青少年时期\n- **位置**：鲁国（今山东曲阜）\n- **事迹**：出生于鲁国，少年时期即拜入孔子门下，成为早期弟子之一。（注：一说出生于陬邑，今曲阜尼山附近，具体位置存疑）\n- **意义**：其人生起点，也是其接受孔子思想启蒙之地。\n\n### 📍 重要地点：鲁国都城曲阜（孔子门下）\n- **公元纪年**：约公元前509年 - 约公元前497年，及周游列国返回后\n- **停留时间**：长期居住、学习的核心地点\n- **位置**：鲁国都城曲阜（今山东曲阜）\n- **事迹**：在孔子门下潜心学习，以“不迁怒，不贰过”、“闻一知十”受到孔子极高赞誉。孔子称赞：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”\n- **意义**：其思想形成与德行修炼的主要场所，奠定了其儒家思想继承人的地位。\n- **名篇名句**：《论语·雍也》：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”；《论语·为政》：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”\n\n### 📍 重要地点：周游列国途中（卫、陈、蔡等地）\n- **公元纪年**：约公元前497年 - 约公元前484年\n- **停留时间**：约14年，随孔子辗转各国\n- **位置**：主要经过卫国（今河南北部）、匡地（今河南长垣县）、蒲地（今河南长垣县）、陈国（今河南淮阳）、蔡国（主要在今河南上蔡、新蔡及安徽寿县）。\n- **事迹**：全程追随孔子，历经艰辛。在陈蔡之间绝粮时，仍坚定支持孔子。孔子多次与他论道，视其为精神上的同道。\n- **意义**：这段经历磨砺了其意志，深化了对孔子学说的理解，也见证了其对师道的绝对忠诚。\n- **名篇名句**：《论语·卫灵公》：“君子谋道不谋食……君子忧道不忧贫。”（颜回与孔子对话的精神体现）\n\n### 🔴 去世地：鲁国都城曲阜\n- **公元纪年**：约公元前481年\n- **停留时间**：晚年直至去世\n- **位置**：鲁国都城曲阜（今山东曲阜）\n- **经过**：颜回英年早逝，其死因史料记载不详。他的去世对孔子造成了巨大打击，孔子恸哭：“噫！天丧予！天丧予！”\n- **意义**：生命的终点，也是其精神遗产被孔子及后世弟子传承的起点。\n- **名篇名句**：《论语·先进》：“颜渊死，子曰：‘噫！天丧予！天丧予！’”；《论语·先进》：“颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元前521年 | 鲁国（今山东曲阜） | 山东曲阜 | （年龄（约）：0岁）出生于鲁国。 |\n| 公元前509年 | 鲁国都城曲阜（孔子门下） | 山东曲阜 | （年龄（约）：12岁）拜入孔子门下，成为早期弟子。（约，具体年份不详） |\n| 公元前497年 |  |  | （年龄（约）：24岁）随孔子开始周游列国。 |\n| 公元前489年 |  |  | （年龄（约）：32岁）在陈蔡之间绝粮，仍追随孔子。 |\n| 公元前484年 | 鲁国（今山东曲阜） | 山东曲阜 | （年龄（约）：37岁）随孔子返回鲁国，继续从学。 |\n| 公元前481年 | 鲁国都城曲阜 | 山东曲阜 | （年龄（约）：40岁）在鲁国去世，孔子悲痛欲绝。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n颜回是孔子学说最忠实的践行者和精神上的继承人。他的存在，坚定了孔子传道的信念，也为其他弟子树立了德行修养的最高标杆。他的早逝，被孔子视为自己学说传承的重大损失。\n\n### 对后世的影响\n- **道德楷模**：成为儒家文化中“安贫乐道”、“修身成仁”的最高人格典范，影响了中国士人两千多年的精神追求。\n- **学术地位**：自汉代起被历代朝廷追封，唐太宗尊为“先师”，宋真宗加封为“兖国公”，元文宗加封为“兖国复圣公”，明世宗尊为“复圣”，在孔庙中享有极高配享地位。\n- **文化符号**：“颜回乐处”成为后世文人探讨儒家“孔颜乐处”精神境界的核心命题。\n\n### 历史评价\n- **孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）\n- **后世评价**：孟子将他与禹、稷并称（《孟子·离娄下》）；后世儒者常以“颜子”代指道德学问臻于至境的圣贤。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**春秋晚期**，社会动荡，**孔子**创立**儒家学派**。\n- **关键身份**：**孔子**最得意的弟子，**“孔门七十二贤”** 之首。\n- **核心品德**：**安贫乐道**的典范，住在“**陋巷**”，“**一箪食，一瓢饮**”而不改其乐。\n- **学习态度**：**好学**的代表，被孔子称赞“**不迁怒，不贰过**”。\n- **师生关系**：与孔子关系最为密切，是孔子精神上的知己。\n- **常见易混点**：与子路（勇猛）、子贡（善辩）等弟子的性格和特长进行对比。\n\n### 高中阶段\n- **思想内涵**：其“乐”体现了儒家**“内圣”** 修养的最高境界，即**“孔颜乐处”**。\n- **历史地位**：在**儒学传承**中的特殊地位，被视为**道统**承前启后的关键人物之一。\n- **哲学命题**：其“不违仁”的状态，是理解儒家**“仁”** 的实践性与持续性的重要案例。\n- **文献出处**：主要事迹见于**《论语》** 的《先进》《雍也》等篇。\n- **后世影响**：历代**追封**（如**复圣**）及其在**孔庙祭祀**体系中的崇高位置。\n- **对比点**：与**曾子**（重孝与内省）、**孟子**（发展仁政思想）在儒学发展脉络中的不同角色。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **身份**：孔子最得意的弟子，**“孔门十哲”** 之一（德行科）。\n2.  **品格象征**：**“安贫乐道”** 的代名词，掌握“**一箪食，一瓢饮，在陋巷**”的典故。\n3.  **孔子评价**：记住“**贤哉，回也！**”这句核心赞语。\n4.  **学习精神**：了解其“**好学**”、“**不迁怒，不贰过**”的特点。\n5.  **与孔子关系**：理解孔子视其为精神传承者的特殊情感（“**天丧予**”）。\n\n### 高中阶段考点\n1.  **哲学概念**：**“孔颜乐处”** 的内涵及其在宋明理学中的阐释。\n2.  **思想史地位**：在**先秦儒学**传承谱系中的位置（孔子 -> 颜回/曾子 -> 子思 -> 孟子）。\n3.  **文献分析**：能结合**《论语》** 原文，分析颜回的修养方法与境界。\n4.  **历史评价**：理解后世（尤其是**宋明理学家**）推崇颜回的原因。\n5.  **对比辨析**：与**子路**、**子贡**、**曾子**等孔门弟子在性格、思想侧重上的异异。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 鲁国（今山东曲阜） | 山东省曲阜市 | 35.582114 | 116.980547 |\n| 鲁国都城曲阜（孔子门下） | 山东省曲阜市 | 35.582114 | 116.980547 |\n| 周游列国途中（卫、陈、蔡等地） | 河南省周口市淮阳区 | 33.733155 | 114.847221 |\n| 鲁国都城曲阜 | 山东省曲阜市 | 35.582114 | 116.980547 |\n", "relatedGraph": {"center": {"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "不迁怒，不贰过", "review": "贤哉，回也！", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "不迁怒，不贰过", "review": "贤哉，回也！", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "吾十有五而志于学", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曾子", "name": "曾子", "file": "曾子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -505, "death_year": -435, "quote": "吾日三省吾身", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国南武城今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "治大国，若烹小鲜。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "伍子胥", "name": "伍子胥", "file": "伍子胥.html", "dynasty": "春秋末期（吴国）", "aliases": [], "birth_year": -559, "death_year": -484, "quote": "伍子胥名员，字子胥，楚国人", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "楚国故地", "birthplace_modern": "湖北监利一带", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "问苍茫大地，谁主沉浮？", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "颜回", "target": "孔子", "label": "君臣", "confidence": null}, {"source": "颜回", "target": "曾子", "label": "师生", "confidence": null}, {"source": "颜回", "target": "孟子", "label": "并称", "confidence": null}, {"source": "颜回", "target": "老子", "label": "同时代人物", "confidence": null}, {"source": "颜回", "target": "伍子胥", "label": "同时代人物", "confidence": null}, {"source": "颜回", "target": "毛泽东", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:53Z", "generated_at": "2026-06-22T11:31:53Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "颜回，字子渊，亦称颜渊", "title": "先师", "description": "颜回生活在春秋末期社会剧烈变革的时代，是孔子最心爱的弟子。他出身贫寒，却聪慧过人，自拜孔子为师后，便一生追随，即使在最困顿的“在陈绝粮”时期也未曾离开。他一生未曾出仕，专注于对“仁”与“道”的追求与实践，以“一箪食，一瓢饮，在陋巷”而不改其乐的精神著称。不幸早逝，令孔子悲痛欲绝，哀叹“天丧予”。颜回以其纯粹的德行和好学精神，成为儒家理想人格的化身，对后世儒学发展产生了深远影响。", "quote": "贤哉，回也！", "shortReview": "贤哉，回也！", "dynasty": "春秋末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "鲁国（今山东曲阜）", "avatar": "", "birth": {"date": "公元前521年", "location": "鲁国（今山东曲阜）", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84"}, "death": {"date": "公元前481年", "location": "鲁国（今山东曲阜）", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84"}, "lifespan": "约40岁（存疑，有31岁、41岁等说法）", "highlights": {"honor": "先师", "status": "孔子最得意的弟子，儒家“复圣”，后世尊为“先师”，是安贫乐道、德行高尚的典范。", "identities": "思想家、儒家学者、孔门弟子", "achievements": "以德行著称，位列“孔门十哲”之首；其“不迁怒，不贰过”的修养境界成为后世儒家修身楷模。", "works": [], "reviews": ["**孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）", "**后世评价**：孟子将他与禹、稷并称（《孟子·离娄下》）；后世儒者常以“颜子”代指道德学问臻于至境的圣贤。"]}}, "locations": [{"name": "鲁国（今山东曲阜）", "ancientName": "鲁国", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "birth", "event": "出生于鲁国，少年时期即拜入孔子门下，成为早期弟子之一。（注：一说出生于陬邑，今曲阜尼山附近，具体位置存疑）", "time": "约公元前521年", "duration": "童年及青少年时期", "significance": "其人生起点，也是其接受孔子思想启蒙之地。", "works": [], "quoteLines": []}, {"name": "鲁国都城曲阜（孔子门下）", "ancientName": "鲁国都城曲阜", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "normal", "event": "在孔子门下潜心学习，以“不迁怒，不贰过”、“闻一知十”受到孔子极高赞誉。孔子称赞：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”", "time": "约公元前509年 - 约公元前497年，及周游列国返回后", "duration": "长期居住、学习的核心地点", "significance": "其思想形成与德行修炼的主要场所，奠定了其儒家思想继承人的地位。", "works": [], "quoteLines": ["《论语·雍也》：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”", "《论语·为政》：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”"]}, {"name": "周游列国途中（卫、陈、蔡等地）", "ancientName": "主要经过卫国、匡地、蒲地、陈国、蔡国。", "modernName": "河南北部", "lat": 33.733155, "lng": 114.847221, "coordSystem": "WGS84", "type": "normal", "event": "全程追随孔子，历经艰辛。在陈蔡之间绝粮时，仍坚定支持孔子。孔子多次与他论道，视其为精神上的同道。", "time": "约公元前497年 - 约公元前484年", "duration": "约14年，随孔子辗转各国", "significance": "这段经历磨砺了其意志，深化了对孔子学说的理解，也见证了其对师道的绝对忠诚。", "works": [], "quoteLines": ["《论语·卫灵公》：“君子谋道不谋食……君子忧道不忧贫。”（颜回与孔子对话的精神体现）"]}, {"name": "鲁国都城曲阜", "ancientName": "鲁国都城曲阜", "modernName": "山东曲阜", "lat": 35.582114, "lng": 116.980547, "coordSystem": "WGS84", "type": "death", "event": "颜回英年早逝，其死因史料记载不详。他的去世对孔子造成了巨大打击，孔子恸哭：“噫！天丧予！天丧予！”", "time": "约公元前481年", "duration": "晚年直至去世", "significance": "生命的终点，也是其精神遗产被孔子及后世弟子传承的起点。", "works": [], "quoteLines": ["《论语·先进》：“颜渊死，子曰：‘噫！天丧予！天丧予！’”", "《论语·先进》：“颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**春秋晚期**，社会动荡，**孔子**创立**儒家学派**。\n- **关键身份**：**孔子**最得意的弟子，**“孔门七十二贤”** 之首。\n- **核心品德**：**安贫乐道**的典范，住在“**陋巷**”，“**一箪食，一瓢饮**”而不改其乐。\n- **学习态度**：**好学**的代表，被孔子称赞“**不迁怒，不贰过**”。\n- **师生关系**：与孔子关系最为密切，是孔子精神上的知己。\n- **常见易混点**：与子路（勇猛）、子贡（善辩）等弟子的性格和特长进行对比。\n\n### 高中阶段\n- **思想内涵**：其“乐”体现了儒家**“内圣”** 修养的最高境界，即**“孔颜乐处”**。\n- **历史地位**：在**儒学传承**中的特殊地位，被视为**道统**承前启后的关键人物之一。\n- **哲学命题**：其“不违仁”的状态，是理解儒家**“仁”** 的实践性与持续性的重要案例。\n- **文献出处**：主要事迹见于**《论语》** 的《先进》《雍也》等篇。\n- **后世影响**：历代**追封**（如**复圣**）及其在**孔庙祭祀**体系中的崇高位置。\n- **对比点**：与**曾子**（重孝与内省）、**孟子**（发展仁政思想）在儒学发展脉络中的不同角色。\n\n---", "examPoints": "### 初中阶段考点\n1.  **身份**：孔子最得意的弟子，**“孔门十哲”** 之一（德行科）。\n2.  **品格象征**：**“安贫乐道”** 的代名词，掌握“**一箪食，一瓢饮，在陋巷**”的典故。\n3.  **孔子评价**：记住“**贤哉，回也！**”这句核心赞语。\n4.  **学习精神**：了解其“**好学**”、“**不迁怒，不贰过**”的特点。\n5.  **与孔子关系**：理解孔子视其为精神传承者的特殊情感（“**天丧予**”）。\n\n### 高中阶段考点\n1.  **哲学概念**：**“孔颜乐处”** 的内涵及其在宋明理学中的阐释。\n2.  **思想史地位**：在**先秦儒学**传承谱系中的位置（孔子 -> 颜回/曾子 -> 子思 -> 孟子）。\n3.  **文献分析**：能结合**《论语》** 原文，分析颜回的修养方法与境界。\n4.  **历史评价**：理解后世（尤其是**宋明理学家**）推崇颜回的原因。\n5.  **对比辨析**：与**子路**、**子贡**、**曾子**等孔门弟子在性格、思想侧重上的异异。\n\n---", "workTexts": {"论语·雍也": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "论语": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "雍也": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "论语·为政": "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "为政": "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "论语·卫灵公": "君子谋道不谋食……君子忧道不忧贫。", "卫灵公": "君子谋道不谋食……君子忧道不忧贫。", "论语·先进": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "先进": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "孟子·离娄下": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "孟子": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "离娄下": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "孟子·离娄": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "离娄": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）"}, "workSummaries": {"论语·雍也": {"title": "论语·雍也", "aliases": ["论语", "雍也"], "authors": ["颜回"], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "春秋末期", "genre": "", "one_liner": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "summary": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "quote": "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "quotes": ["贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。", "一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。"], "quote_policy": "preferred"}, "论语·为政": {"title": "论语·为政", "aliases": ["论语", "为政"], "authors": ["孔子", "颜回"], "related_people": ["孔子", "颜回"], "source_pages": ["孔子", "颜回"], "era": "春秋时期", "genre": "", "one_liner": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "summary": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quote": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quotes": ["吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。", "吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。"], "quote_policy": "preferred"}, "论语·卫灵公": {"title": "论语·卫灵公", "aliases": ["论语", "卫灵公"], "authors": ["孔子", "颜回"], "related_people": ["孔子", "颜回"], "source_pages": ["孔子", "颜回"], "era": "春秋时期", "genre": "", "one_liner": "君子固穷，小人穷斯滥矣。", "summary": "君子固穷，小人穷斯滥矣。", "quote": "君子谋道不谋食……君子忧道不忧贫。", "quotes": ["君子谋道不谋食……君子忧道不忧贫。", "君子固穷，小人穷斯滥矣。"], "quote_policy": "preferred"}, "论语·先进": {"title": "论语·先进", "aliases": ["论语", "先进"], "authors": ["颜回"], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "春秋末期", "genre": "", "one_liner": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "summary": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "quote": "颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "quotes": ["颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’", "颜渊死，子曰：‘噫！天丧予！天丧予！’", "颜渊死，子曰：‘噫！"], "quote_policy": "preferred"}, "论语": {"title": "论语", "aliases": [], "authors": [], "related_people": ["曾子", "孔子", "萧统", "颜回"], "source_pages": ["曾子", "孔子", "萧统", "颜回"], "era": "", "genre": "", "one_liner": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "summary": "吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "孟子·离娄下": {"title": "孟子·离娄下", "aliases": ["孟子", "离娄下", "孟子·离娄", "离娄"], "authors": [], "related_people": ["颜回"], "source_pages": ["颜回"], "era": "", "genre": "", "one_liner": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "summary": "后世评价：孟子将他与禹、稷并称（《孟子·离娄下》）", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 颜回\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：颜回，字子渊，亦称颜渊\n- **时代**：春秋末期\n- **出生**：约公元前521年（存疑，另有公元前511年等说法），鲁国（今山东曲阜）\n- **去世**：约公元前481年（存疑），鲁国（今山东曲阜）\n- **享年**：约40岁（存疑，有31岁、41岁等说法）\n- **主要身份**：思想家、儒家学者、孔门弟子\n- **历史地位**：孔子最得意的弟子，儒家“复圣”，后世尊为“先师”，是安贫乐道、德行高尚的典范。\n- **主要成就**：以德行著称，位列“孔门十哲”之首；其“不迁怒，不贰过”的修养境界成为后世儒家修身楷模。\n\n### 生平概述\n颜回生活在春秋末期社会剧烈变革的时代，是孔子最心爱的弟子。他出身贫寒，却聪慧过人，自拜孔子为师后，便一生追随，即使在最困顿的“在陈绝粮”时期也未曾离开。他一生未曾出仕，专注于对“仁”与“道”的追求与实践，以“一箪食，一瓢饮，在陋巷”而不改其乐的精神著称。不幸早逝，令孔子悲痛欲绝，哀叹“天丧予”。颜回以其纯粹的德行和好学精神，成为儒家理想人格的化身，对后世儒学发展产生了深远影响。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于鲁国都城曲阜，并曾随孔子周游列国。\n- ⏱️ **时间跨度**：约公元前521年 - 约公元前481年，总跨度约40年。\n- 📍 **地理范围**：以鲁国（今山东曲阜）为中心，足迹可能涉及卫国（今河南北部）、陈国（今河南淮阳）、蔡国（主要在今河南上蔡、新蔡及安徽寿县）等国。\n- 🌟 **重要节点数量**：核心地点约4个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：鲁国（今山东曲阜）\n- **公元纪年**：约公元前521年\n- **停留时间**：童年及青少年时期\n- **位置**：鲁国（今山东曲阜）\n- **事迹**：出生于鲁国，少年时期即拜入孔子门下，成为早期弟子之一。（注：一说出生于陬邑，今曲阜尼山附近，具体位置存疑）\n- **意义**：其人生起点，也是其接受孔子思想启蒙之地。\n\n### 📍 重要地点：鲁国都城曲阜（孔子门下）\n- **公元纪年**：约公元前509年 - 约公元前497年，及周游列国返回后\n- **停留时间**：长期居住、学习的核心地点\n- **位置**：鲁国都城曲阜（今山东曲阜）\n- **事迹**：在孔子门下潜心学习，以“不迁怒，不贰过”、“闻一知十”受到孔子极高赞誉。孔子称赞：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”\n- **意义**：其思想形成与德行修炼的主要场所，奠定了其儒家思想继承人的地位。\n- **名篇名句**：《论语·雍也》：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。”；《论语·为政》：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”\n\n### 📍 重要地点：周游列国途中（卫、陈、蔡等地）\n- **公元纪年**：约公元前497年 - 约公元前484年\n- **停留时间**：约14年，随孔子辗转各国\n- **位置**：主要经过卫国（今河南北部）、匡地（今河南长垣县）、蒲地（今河南长垣县）、陈国（今河南淮阳）、蔡国（主要在今河南上蔡、新蔡及安徽寿县）。\n- **事迹**：全程追随孔子，历经艰辛。在陈蔡之间绝粮时，仍坚定支持孔子。孔子多次与他论道，视其为精神上的同道。\n- **意义**：这段经历磨砺了其意志，深化了对孔子学说的理解，也见证了其对师道的绝对忠诚。\n- **名篇名句**：《论语·卫灵公》：“君子谋道不谋食……君子忧道不忧贫。”（颜回与孔子对话的精神体现）\n\n### 🔴 去世地：鲁国都城曲阜\n- **公元纪年**：约公元前481年\n- **停留时间**：晚年直至去世\n- **位置**：鲁国都城曲阜（今山东曲阜）\n- **经过**：颜回英年早逝，其死因史料记载不详。他的去世对孔子造成了巨大打击，孔子恸哭：“噫！天丧予！天丧予！”\n- **意义**：生命的终点，也是其精神遗产被孔子及后世弟子传承的起点。\n- **名篇名句**：《论语·先进》：“颜渊死，子曰：‘噫！天丧予！天丧予！’”；《论语·先进》：“颜渊死，子哭之恸。从者曰：‘子恸矣！’曰：‘有恸乎？非夫人之为恸而谁为？’”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元前521年 | 鲁国（今山东曲阜） | 山东曲阜 | （年龄（约）：0岁）出生于鲁国。 |\n| 公元前509年 | 鲁国都城曲阜（孔子门下） | 山东曲阜 | （年龄（约）：12岁）拜入孔子门下，成为早期弟子。（约，具体年份不详） |\n| 公元前497年 |  |  | （年龄（约）：24岁）随孔子开始周游列国。 |\n| 公元前489年 |  |  | （年龄（约）：32岁）在陈蔡之间绝粮，仍追随孔子。 |\n| 公元前484年 | 鲁国（今山东曲阜） | 山东曲阜 | （年龄（约）：37岁）随孔子返回鲁国，继续从学。 |\n| 公元前481年 | 鲁国都城曲阜 | 山东曲阜 | （年龄（约）：40岁）在鲁国去世，孔子悲痛欲绝。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n颜回是孔子学说最忠实的践行者和精神上的继承人。他的存在，坚定了孔子传道的信念，也为其他弟子树立了德行修养的最高标杆。他的早逝，被孔子视为自己学说传承的重大损失。\n\n### 对后世的影响\n- **道德楷模**：成为儒家文化中“安贫乐道”、“修身成仁”的最高人格典范，影响了中国士人两千多年的精神追求。\n- **学术地位**：自汉代起被历代朝廷追封，唐太宗尊为“先师”，宋真宗加封为“兖国公”，元文宗加封为“兖国复圣公”，明世宗尊为“复圣”，在孔庙中享有极高配享地位。\n- **文化符号**：“颜回乐处”成为后世文人探讨儒家“孔颜乐处”精神境界的核心命题。\n\n### 历史评价\n- **孔子评价**：“贤哉，回也！”“回也，其心三月不违仁。”“用之则行，舍之则藏，唯我与尔有是夫！”（《论语》）\n- **后世评价**：孟子将他与禹、稷并称（《孟子·离娄下》）；后世儒者常以“颜子”代指道德学问臻于至境的圣贤。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**春秋晚期**，社会动荡，**孔子**创立**儒家学派**。\n- **关键身份**：**孔子**最得意的弟子，**“孔门七十二贤”** 之首。\n- **核心品德**：**安贫乐道**的典范，住在“**陋巷**”，“**一箪食，一瓢饮**”而不改其乐。\n- **学习态度**：**好学**的代表，被孔子称赞“**不迁怒，不贰过**”。\n- **师生关系**：与孔子关系最为密切，是孔子精神上的知己。\n- **常见易混点**：与子路（勇猛）、子贡（善辩）等弟子的性格和特长进行对比。\n\n### 高中阶段\n- **思想内涵**：其“乐”体现了儒家**“内圣”** 修养的最高境界，即**“孔颜乐处”**。\n- **历史地位**：在**儒学传承**中的特殊地位，被视为**道统**承前启后的关键人物之一。\n- **哲学命题**：其“不违仁”的状态，是理解儒家**“仁”** 的实践性与持续性的重要案例。\n- **文献出处**：主要事迹见于**《论语》** 的《先进》《雍也》等篇。\n- **后世影响**：历代**追封**（如**复圣**）及其在**孔庙祭祀**体系中的崇高位置。\n- **对比点**：与**曾子**（重孝与内省）、**孟子**（发展仁政思想）在儒学发展脉络中的不同角色。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **身份**：孔子最得意的弟子，**“孔门十哲”** 之一（德行科）。\n2.  **品格象征**：**“安贫乐道”** 的代名词，掌握“**一箪食，一瓢饮，在陋巷**”的典故。\n3.  **孔子评价**：记住“**贤哉，回也！**”这句核心赞语。\n4.  **学习精神**：了解其“**好学**”、“**不迁怒，不贰过**”的特点。\n5.  **与孔子关系**：理解孔子视其为精神传承者的特殊情感（“**天丧予**”）。\n\n### 高中阶段考点\n1.  **哲学概念**：**“孔颜乐处”** 的内涵及其在宋明理学中的阐释。\n2.  **思想史地位**：在**先秦儒学**传承谱系中的位置（孔子 -> 颜回/曾子 -> 子思 -> 孟子）。\n3.  **文献分析**：能结合**《论语》** 原文，分析颜回的修养方法与境界。\n4.  **历史评价**：理解后世（尤其是**宋明理学家**）推崇颜回的原因。\n5.  **对比辨析**：与**子路**、**子贡**、**曾子**等孔门弟子在性格、思想侧重上的异异。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 鲁国（今山东曲阜） | 山东省曲阜市 | 35.582114 | 116.980547 |\n| 鲁国都城曲阜（孔子门下） | 山东省曲阜市 | 35.582114 | 116.980547 |\n| 周游列国途中（卫、陈、蔡等地） | 河南省周口市淮阳区 | 33.733155 | 114.847221 |\n| 鲁国都城曲阜 | 山东省曲阜市 | 35.582114 | 116.980547 |\n", "relatedGraph": {"center": {"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "不迁怒，不贰过", "review": "贤哉，回也！", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "颜回", "name": "颜回", "file": "颜回.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -521, "death_year": -481, "quote": "不迁怒，不贰过", "review": "贤哉，回也！", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国", "birthplace_modern": "山东曲阜", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "孔子", "name": "孔子", "file": "孔子.html", "dynasty": "春秋时期", "aliases": [], "birth_year": -551, "death_year": -479, "quote": "吾十有五而志于学", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国陬邑", "birthplace_modern": "山东省曲阜市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "曾子", "name": "曾子", "file": "曾子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -505, "death_year": -435, "quote": "吾日三省吾身", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "鲁国南武城今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "老子", "name": "老子", "file": "老子.html", "dynasty": "春秋末期", "aliases": [], "birth_year": -571, "death_year": -471, "quote": "治大国，若烹小鲜。", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "楚国苦县今地存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "伍子胥", "name": "伍子胥", "file": "伍子胥.html", "dynasty": "春秋末期（吴国）", "aliases": [], "birth_year": -559, "death_year": -484, "quote": "伍子胥名员，字子胥，楚国人", "review": "", "foreign_name": "", "main_role_label": "军事家", "birthplace": "楚国故地", "birthplace_modern": "湖北监利一带", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "毛泽东", "name": "毛泽东", "file": "毛泽东.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1893, "death_year": 1976, "quote": "问苍茫大地，谁主沉浮？", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "湖南省湘潭县韶山冲", "birthplace_modern": "湖南省湘潭市韶山市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "颜回", "target": "孔子", "label": "君臣", "confidence": null}, {"source": "颜回", "target": "曾子", "label": "师生", "confidence": null}, {"source": "颜回", "target": "孟子", "label": "并称", "confidence": null}, {"source": "颜回", "target": "老子", "label": "同时代人物", "confidence": null}, {"source": "颜回", "target": "伍子胥", "label": "同时代人物", "confidence": null}, {"source": "颜回", "target": "毛泽东", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:56Z", "generated_at": "2026-06-25T07:13:56Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:53Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:56Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

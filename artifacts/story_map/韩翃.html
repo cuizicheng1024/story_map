@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "韩翃", "title": "大历十才子", "description": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱。他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。安史之乱后，他在淄青、汴宋等藩镇幕府中辗转。其诗名早著，为“大历十才子”之一。唐德宗建中年间，因欣赏其《寒食》诗，亲自点名任命他为驾部郎中、知制诰，成为一时美谈。其诗风清丽，多写送别、唱和与宫廷生活，是大历诗风的代表人物之一。", "quote": "春城无处不飞花，寒食东风御柳斜。", "shortReview": "春城无处不飞花，寒食东风御柳斜。", "dynasty": "唐代（盛唐至中唐过渡期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "南阳（今河南省南阳市）", "avatar": "", "birth": {"date": "", "location": "南阳（今河南省南阳市）", "lat": 33.018182, "lng": 112.579017, "coordSystem": "WGS84"}, "death": {"date": "", "location": "去世地推测为长安（今陕西省西安市）", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84"}, "lifespan": "不详", "highlights": {"honor": "大历十才子", "status": "唐代“大历十才子”之一，以一首《寒食》诗名传千古。", "identities": "诗人、官员", "achievements": "诗歌创作成就突出，尤其擅长写送别酬赠题材；因“春城无处不飞花”一诗受皇帝赏识，成为文坛佳话。", "works": ["寒食"], "reviews": ["*唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "*元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "*清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”", "**唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "**元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "**清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”"]}}, "locations": [{"name": "南阳（存疑）", "ancientName": "南阳郡；另有说法为长安。", "modernName": "河南省南阳市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "birth", "event": "在此成长、学习，为日后科举打下基础。", "time": "约开元年间（具体年份不详）", "duration": "青少年时期", "significance": "其郡望“南阳韩氏”的由来，是其家族与文化根基所在。", "works": [], "quoteLines": []}, {"name": "长安（科举与成名）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "进士及第；与“大历十才子”交游；创作《寒食》诗并因此受德宗赏识，被特授官职。", "time": "754年（天宝十三年）及此后断续停留", "duration": "及第后至安史之乱前，以及晚年任职时期", "significance": "实现科举理想、奠定诗坛地位并获得最高统治者认可的核心城市。", "works": ["寒食"], "quoteLines": ["《寒食》：春城无处不飞花，寒食东风御柳斜。"]}, {"name": "淄青幕府（侯希逸幕）", "ancientName": "淄青镇，治所在青州", "modernName": "山东省青州市", "lat": 36.684815, "lng": 118.473848, "coordSystem": "WGS84", "type": "normal", "event": "在平卢淄青节度使侯希逸幕府中任掌书记。", "time": "约760年代（上元、宝应年间）", "duration": "数年", "significance": "安史之乱后其仕途的第一个落脚点，积累了幕府任职经验。", "works": [], "quoteLines": ["《寄柳氏》：章台柳，章台柳，颜色青青今在否？纵使长条似旧垂，也应攀折他人手。"]}, {"name": "汴宋幕府（李灵曜、李忠臣幕）", "ancientName": "汴宋镇，治所在汴州", "modernName": "河南省开封市", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "先后在汴宋节度使李灵曜、李忠臣幕府中任职。", "time": "约770年代（大历年间）", "duration": "数年", "significance": "继续其幕僚生涯，诗歌创作题材多与送别、幕府生活相关。", "works": [], "quoteLines": ["《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。"]}, {"name": "洛阳（游历/停留，具体事迹存疑）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.620728, "lng": 112.447644, "coordSystem": "WGS84", "type": "normal", "event": "具体事迹史载不详，但作为唐代两京之一，其活动轨迹可能涉及此地。", "time": "不详，可能在及第前后或两京间往返时", "duration": "不详", "significance": "唐代重要的政治文化中心，是文人交游的常见地点。", "works": [], "quoteLines": []}, {"name": "长安（任职中枢）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "因《寒食》诗被唐德宗钦点，授驾部郎中、知制诰，后迁中书舍人。", "time": "约780年代初（建中年间）", "duration": "晚年", "significance": "人生际遇的顶峰，从幕府僚属升迁为朝廷近臣，名动一时。", "works": ["寒食"], "quoteLines": ["《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。"]}, {"name": "长安（推测）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "death", "event": "在中书舍人任上或之后不久去世，具体经过史载不详。", "time": "约贞元年间（具体年份不详）", "duration": "晚年直至去世", "significance": "其文学生涯与仕途的终点，最终归葬于京城附近。", "works": [], "quoteLines": ["《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐代**，**安史之乱**后的**中唐**时期。\n- **文学常识**：**“大历十才子”** 之一。\n- **代表作品**：**《寒食》**（又名《寒食日即事》）是必学篇目。\n- **核心诗句**：**“春城无处不飞花”** 是千古名句。\n- **人物故事**：因诗受**唐德宗**赏识而得官，是“以诗取士”的典型例子。\n- **文化常识**：了解**寒食节**的习俗（禁火、吃冷食）。\n- **易混点**：注意区分**寒食节**与**清明节**的关联与区别。\n\n### 高中阶段\n- **诗歌流派**：理解**大历诗风**的特点（崇尚清雅、工于造句、多写日常生活与个人情怀）。\n- **诗歌鉴赏**：深入分析《寒食》中“飞花”、“御柳”、“轻烟”等意象的**含蓄讽刺**或**太平颂扬**之意（存在不同解读）。\n- **代表作品拓展**：了解其**送别诗**（如《送孙泼赴云中》）和**酬赠诗**（如《酬程延秋夜即事见赠》）。\n- **文学典故**：知晓**“章台柳”** 故事的来源（韩翃《寄柳氏》与许尧佐《柳氏传》）。\n- **对比阅读**：可与同时代诗人**钱起**、**司空曙**等“十才子”诗人的作品风格进行对比。\n- **历史背景深化**：认识**藩镇幕府**制度对中唐文人仕途与创作的影响（韩翃曾长期在幕府任职）。\n\n---", "examPoints": "### 初中阶段考点\n1.  **韩翃**是**唐代**诗人，属于 **“大历十才子”** 。\n2.  其最著名的诗作是 **《寒食》** ，其中名句是 **“春城无处不飞花”** 。\n3.  诗中描绘了**寒食节**（禁火）的宫廷景象。\n4.  他因诗才受到**唐德宗**的赏识。\n5.  （存疑）其出生地有**南阳**和**长安**等不同说法。\n\n### 高中阶段考点\n1.  **大历诗风**的代表诗人之一，诗风**清丽工巧**。\n2.  《寒食》诗的主旨存在争议：一说是描绘**太平景象**，一说是暗含对**特权阶层**的讽刺（“汉宫”实指“唐宫”，“轻烟散入五侯家”）。\n3.  其人生经历反映了中唐文人**由科举入仕**与**投身藩镇幕府**的两条常见路径。\n4.  **“章台柳”** 的典故出自其诗作及相关传奇，后世常用以比喻**分离**或**失落的爱情**。\n5.  （说法不一）关于其生卒年，史籍无明确记载，只能根据其交游和事迹进行大致推断。", "workTexts": {"寒食": "“大历十才子”", "寄柳氏": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "送孙泼赴云中": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "送孙泼赴云": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "同题仙游观": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "酬程延秋夜即事见赠": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "柳氏传": "“（翃）有诗名，性颇落托。”", "唐才子传": "“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "载酒园诗话又编": "“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”", "载酒园诗话又": "“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”"}, "workSummaries": {"寒食": {"title": "寒食", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "大历十才子", "summary": "大历十才子", "quote": "他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。", "quotes": ["他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。", "历史地位：唐代“大历十才子”之一，以一首《寒食》诗名传千古。", "韩翃生活在唐朝由盛转衰的时期，历经安史之乱。"], "quote_policy": "preferred"}, "寄柳氏": {"title": "寄柳氏", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "summary": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "quote": "2. 文化符号：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。", "quotes": ["2. 文化符号：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。", "章台柳，章台柳，颜色青青今在否？", "纵使长条似旧垂，也应攀折他人手。"], "quote_policy": "preferred"}, "送孙泼赴云中": {"title": "送孙泼赴云中", "aliases": ["送孙泼赴云"], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "summary": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "quote": "黄骢少年舞双戟，目视旁人皆辟易。", "quotes": ["黄骢少年舞双戟，目视旁人皆辟易。"], "quote_policy": "preferred"}, "同题仙游观": {"title": "同题仙游观", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "summary": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "quote": "山色遥连秦树晚，砧声近报汉宫秋。", "quotes": ["山色遥连秦树晚，砧声近报汉宫秋。"], "quote_policy": "preferred"}, "酬程延秋夜即事见赠": {"title": "酬程延秋夜即事见赠", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "summary": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "quote": "星河秋一雁，砧杵夜千家。", "quotes": ["星河秋一雁，砧杵夜千家。"], "quote_policy": "preferred"}, "柳氏传": {"title": "柳氏传", "aliases": [], "authors": [], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "", "genre": "传记", "one_liner": "（翃）有诗名，性颇落托。", "summary": "（翃）有诗名，性颇落托。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "唐才子传": {"title": "唐才子传", "aliases": [], "authors": [], "related_people": ["韩翃", "王勃"], "source_pages": ["韩翃", "王勃"], "era": "", "genre": "传记", "one_liner": "翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。", "summary": "翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "载酒园诗话又编": {"title": "载酒园诗话又编", "aliases": ["载酒园诗话又"], "authors": [], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "", "genre": "", "one_liner": "韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。", "summary": "韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "寒食日即事": {"title": "寒食日即事", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱", "summary": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱", "quote": "《寒食》（又名《寒食日即事》）是必学篇目。", "quotes": ["《寒食》（又名《寒食日即事》）是必学篇目。"], "quote_policy": "preferred"}}, "markdown": "# 韩翃\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：韩翃（字君平）\n- **时代**：唐代（盛唐至中唐过渡期）\n- **出生**：生年不详，约唐玄宗开元年间；出生地存疑，一说南阳（今河南省南阳市），一说长安（今陕西省西安市）\n- **去世**：卒年不详，约唐德宗贞元年间；去世地推测为长安（今陕西省西安市）\n- **享年**：不详\n- **主要身份**：诗人、官员\n- **历史地位**：唐代“大历十才子”之一，以一首《寒食》诗名传千古。\n- **主要成就**：诗歌创作成就突出，尤其擅长写送别酬赠题材；因“春城无处不飞花”一诗受皇帝赏识，成为文坛佳话。\n\n### 生平概述\n韩翃生活在唐朝由盛转衰的时期，历经安史之乱。他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。安史之乱后，他在淄青、汴宋等藩镇幕府中辗转。其诗名早著，为“大历十才子”之一。唐德宗建中年间，因欣赏其《寒食》诗，亲自点名任命他为驾部郎中、知制诰，成为一时美谈。其诗风清丽，多写送别、唱和与宫廷生活，是大历诗风的代表人物之一。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于长安、洛阳两京地区，并曾游历、任职于今山东、河南等地的藩镇幕府。\n- ⏱️ **时间跨度**：约从天宝年间（8世纪中叶）至贞元年间（8世纪末），活跃期约30年。\n- 📍 **地理范围**：大致覆盖今陕西、河南、山东等地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：南阳（存疑）\n- **公元纪年**：约开元年间（具体年份不详）\n- **停留时间**：青少年时期\n- **位置**：古称南阳郡（今河南省南阳市）；另有说法为长安（今陕西省西安市）。\n- **事迹**：在此成长、学习，为日后科举打下基础。\n- **意义**：其郡望“南阳韩氏”的由来，是其家族与文化根基所在。\n\n### 📍 重要地点：长安（科举与成名）\n- **公元纪年**：754年（天宝十三年）及此后断续停留\n- **停留时间**：及第后至安史之乱前，以及晚年任职时期\n- **位置**：古称长安（今陕西省西安市）\n- **事迹**：进士及第；与“大历十才子”交游；创作《寒食》诗并因此受德宗赏识，被特授官职。\n- **意义**：实现科举理想、奠定诗坛地位并获得最高统治者认可的核心城市。\n- **名篇名句**：《寒食》：春城无处不飞花，寒食东风御柳斜。\n\n### 📍 重要地点：淄青幕府（侯希逸幕）\n- **公元纪年**：约760年代（上元、宝应年间）\n- **停留时间**：数年\n- **位置**：古称淄青镇，治所在青州（今山东省青州市）\n- **事迹**：在平卢淄青节度使侯希逸幕府中任掌书记。\n- **意义**：安史之乱后其仕途的第一个落脚点，积累了幕府任职经验。\n- **名篇名句**：《寄柳氏》：章台柳，章台柳，颜色青青今在否？纵使长条似旧垂，也应攀折他人手。\n\n### 📍 重要地点：汴宋幕府（李灵曜、李忠臣幕）\n- **公元纪年**：约770年代（大历年间）\n- **停留时间**：数年\n- **位置**：古称汴宋镇，治所在汴州（今河南省开封市）\n- **事迹**：先后在汴宋节度使李灵曜、李忠臣幕府中任职。\n- **意义**：继续其幕僚生涯，诗歌创作题材多与送别、幕府生活相关。\n- **名篇名句**：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。\n\n### 📍 重要地点：洛阳（游历/停留，具体事迹存疑）\n- **公元纪年**：不详，可能在及第前后或两京间往返时\n- **停留时间**：不详\n- **位置**：古称洛阳（今河南省洛阳市）\n- **事迹**：具体事迹史载不详，但作为唐代两京之一，其活动轨迹可能涉及此地。\n- **意义**：唐代重要的政治文化中心，是文人交游的常见地点。\n\n### 📍 重要地点：长安（任职中枢）\n- **公元纪年**：约780年代初（建中年间）\n- **停留时间**：晚年\n- **位置**：古称长安（今陕西省西安市）\n- **事迹**：因《寒食》诗被唐德宗钦点，授驾部郎中、知制诰，后迁中书舍人。\n- **意义**：人生际遇的顶峰，从幕府僚属升迁为朝廷近臣，名动一时。\n- **名篇名句**：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。\n\n### 🔴 去世地：长安（推测）\n- **公元纪年**：约贞元年间（具体年份不详）\n- **停留时间**：晚年直至去世\n- **位置**：古称长安（今陕西省西安市）\n- **经过**：在中书舍人任上或之后不久去世，具体经过史载不详。\n- **意义**：其文学生涯与仕途的终点，最终归葬于京城附近。\n- **名篇名句**：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约754年前 | 长安（科举与成名） | 陕西省西安市 | （年龄（约）：青年）可能于长安等地游学。 |\n| 754年（天宝十三年） |  |  | （年龄（约）：约30岁）**进士及第**。 |\n| 约755-763年 |  |  | （年龄（约）：壮年）**安史之乱**爆发，仕途中断，流离失所。 |\n| 约760年代 | 淄青幕府（侯希逸幕） | 山东省青州市 | （年龄（约）：中年）入**淄青节度使侯希逸幕府**为掌书记。 |\n| 约770年代 | 汴宋幕府（李灵曜、李忠臣幕） | 河南省开封市 | （年龄（约）：中晚年）辗转于**汴宋节度使幕府**（李灵曜、李忠臣）任职。 |\n| 约780年代初（建中年间） |  |  | （年龄（约）：晚年）因《寒食》诗受**唐德宗赏识**，召为**驾部郎中、知制诰**。 |\n| 约780年代中后期 |  |  | （年龄（约）：晚年）迁升为**中书舍人**，此后去世（具体时间不详）。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n韩翃是“大历十才子”中的代表人物之一，其诗名在当时广为流传。他因一首诗而获得皇帝破格提拔的传奇经历，成为中唐文坛津津乐道的佳话，反映了当时最高统治者对文学的推崇以及诗歌在社会生活中的影响力。\n\n### 对后世的影响\n1.  **诗歌典范**：其《寒食》诗成为寒食、清明题材的千古名篇，“春城无处不飞花”一句脍炙人口，被后世反复引用和化用。\n2.  **文化符号**：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。\n3.  **诗风传承**：作为大历诗风的代表，其清丽、工巧的诗风对中晚唐诗歌有一定影响。\n\n### 历史评价\n1.  **唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”\n2.  **元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”\n3.  **清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐代**，**安史之乱**后的**中唐**时期。\n- **文学常识**：**“大历十才子”** 之一。\n- **代表作品**：**《寒食》**（又名《寒食日即事》）是必学篇目。\n- **核心诗句**：**“春城无处不飞花”** 是千古名句。\n- **人物故事**：因诗受**唐德宗**赏识而得官，是“以诗取士”的典型例子。\n- **文化常识**：了解**寒食节**的习俗（禁火、吃冷食）。\n- **易混点**：注意区分**寒食节**与**清明节**的关联与区别。\n\n### 高中阶段\n- **诗歌流派**：理解**大历诗风**的特点（崇尚清雅、工于造句、多写日常生活与个人情怀）。\n- **诗歌鉴赏**：深入分析《寒食》中“飞花”、“御柳”、“轻烟”等意象的**含蓄讽刺**或**太平颂扬**之意（存在不同解读）。\n- **代表作品拓展**：了解其**送别诗**（如《送孙泼赴云中》）和**酬赠诗**（如《酬程延秋夜即事见赠》）。\n- **文学典故**：知晓**“章台柳”** 故事的来源（韩翃《寄柳氏》与许尧佐《柳氏传》）。\n- **对比阅读**：可与同时代诗人**钱起**、**司空曙**等“十才子”诗人的作品风格进行对比。\n- **历史背景深化**：认识**藩镇幕府**制度对中唐文人仕途与创作的影响（韩翃曾长期在幕府任职）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **韩翃**是**唐代**诗人，属于 **“大历十才子”** 。\n2.  其最著名的诗作是 **《寒食》** ，其中名句是 **“春城无处不飞花”** 。\n3.  诗中描绘了**寒食节**（禁火）的宫廷景象。\n4.  他因诗才受到**唐德宗**的赏识。\n5.  （存疑）其出生地有**南阳**和**长安**等不同说法。\n\n### 高中阶段考点\n1.  **大历诗风**的代表诗人之一，诗风**清丽工巧**。\n2.  《寒食》诗的主旨存在争议：一说是描绘**太平景象**，一说是暗含对**特权阶层**的讽刺（“汉宫”实指“唐宫”，“轻烟散入五侯家”）。\n3.  其人生经历反映了中唐文人**由科举入仕**与**投身藩镇幕府**的两条常见路径。\n4.  **“章台柳”** 的典故出自其诗作及相关传奇，后世常用以比喻**分离**或**失落的爱情**。\n5.  （说法不一）关于其生卒年，史籍无明确记载，只能根据其交游和事迹进行大致推断。\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 长安 | 陕西省西安市 | 34.344762 | 108.934990 |\n| 淄青幕府（青州） | 山东省青州市 | 36.684815 | 118.473848 |\n| 汴宋幕府（汴州） | 河南省开封市 | 34.798963 | 114.308423 |\n| 南阳 | 河南省南阳市 | 33.018182 | 112.579017 |\n| 洛阳 | 河南省洛阳市 | 34.620728 | 112.447644 |\n", "relatedGraph": {"center": {"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": 762, "death_year": null, "quote": "春城无处不飞花", "review": "春城无处不飞花，寒食东风御柳斜。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": 762, "death_year": null, "quote": "春城无处不飞花", "review": "春城无处不飞花，寒食东风御柳斜。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "萧统", "name": "萧统", "file": "萧统.html", "dynasty": "南朝梁", "aliases": [], "birth_year": 501, "death_year": 531, "quote": "东宫文学集团", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "襄阳", "birthplace_modern": "湖北襄阳", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "review": "", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "**师者，所以传道受业解惑也**", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "白居易", "name": "白居易", "file": "白居易.html", "dynasty": "唐代", "aliases": [], "birth_year": 772, "death_year": 846, "quote": "文章合为时而著，歌诗合为事而作", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "郑州新郑", "birthplace_modern": "河南省郑州市新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王玠", "name": "王玠", "file": "王玠.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": null, "quote": "至宝欣怀日，良兹岂可俦。神光非易鉴，夜色信难投。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "韩翃", "target": "萧统", "label": "同册共现", "confidence": 0.15}, {"source": "韩翃", "target": "王建", "label": "同册共现", "confidence": 0.15}, {"source": "韩翃", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "白居易", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "王玠", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:53Z", "generated_at": "2026-06-22T11:31:53Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "韩翃", "title": "大历十才子", "description": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱。他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。安史之乱后，他在淄青、汴宋等藩镇幕府中辗转。其诗名早著，为“大历十才子”之一。唐德宗建中年间，因欣赏其《寒食》诗，亲自点名任命他为驾部郎中、知制诰，成为一时美谈。其诗风清丽，多写送别、唱和与宫廷生活，是大历诗风的代表人物之一。", "quote": "春城无处不飞花，寒食东风御柳斜。", "shortReview": "春城无处不飞花，寒食东风御柳斜。", "dynasty": "唐代（盛唐至中唐过渡期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "南阳（今河南省南阳市）", "avatar": "", "birth": {"date": "", "location": "南阳（今河南省南阳市）", "lat": 33.018182, "lng": 112.579017, "coordSystem": "WGS84"}, "death": {"date": "", "location": "去世地推测为长安（今陕西省西安市）", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84"}, "lifespan": "不详", "highlights": {"honor": "大历十才子", "status": "唐代“大历十才子”之一，以一首《寒食》诗名传千古。", "identities": "诗人、官员", "achievements": "诗歌创作成就突出，尤其擅长写送别酬赠题材；因“春城无处不飞花”一诗受皇帝赏识，成为文坛佳话。", "works": ["寒食"], "reviews": ["*唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "*元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "*清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”", "**唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”", "**元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "**清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”"]}}, "locations": [{"name": "南阳（存疑）", "ancientName": "南阳郡；另有说法为长安。", "modernName": "河南省南阳市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "birth", "event": "在此成长、学习，为日后科举打下基础。", "time": "约开元年间（具体年份不详）", "duration": "青少年时期", "significance": "其郡望“南阳韩氏”的由来，是其家族与文化根基所在。", "works": [], "quoteLines": []}, {"name": "长安（科举与成名）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "进士及第；与“大历十才子”交游；创作《寒食》诗并因此受德宗赏识，被特授官职。", "time": "754年（天宝十三年）及此后断续停留", "duration": "及第后至安史之乱前，以及晚年任职时期", "significance": "实现科举理想、奠定诗坛地位并获得最高统治者认可的核心城市。", "works": ["寒食"], "quoteLines": ["《寒食》：春城无处不飞花，寒食东风御柳斜。"]}, {"name": "淄青幕府（侯希逸幕）", "ancientName": "淄青镇，治所在青州", "modernName": "山东省青州市", "lat": 36.684815, "lng": 118.473848, "coordSystem": "WGS84", "type": "normal", "event": "在平卢淄青节度使侯希逸幕府中任掌书记。", "time": "约760年代（上元、宝应年间）", "duration": "数年", "significance": "安史之乱后其仕途的第一个落脚点，积累了幕府任职经验。", "works": [], "quoteLines": ["《寄柳氏》：章台柳，章台柳，颜色青青今在否？纵使长条似旧垂，也应攀折他人手。"]}, {"name": "汴宋幕府（李灵曜、李忠臣幕）", "ancientName": "汴宋镇，治所在汴州", "modernName": "河南省开封市", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "先后在汴宋节度使李灵曜、李忠臣幕府中任职。", "time": "约770年代（大历年间）", "duration": "数年", "significance": "继续其幕僚生涯，诗歌创作题材多与送别、幕府生活相关。", "works": [], "quoteLines": ["《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。"]}, {"name": "洛阳（游历/停留，具体事迹存疑）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.620728, "lng": 112.447644, "coordSystem": "WGS84", "type": "normal", "event": "具体事迹史载不详，但作为唐代两京之一，其活动轨迹可能涉及此地。", "time": "不详，可能在及第前后或两京间往返时", "duration": "不详", "significance": "唐代重要的政治文化中心，是文人交游的常见地点。", "works": [], "quoteLines": []}, {"name": "长安（任职中枢）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "normal", "event": "因《寒食》诗被唐德宗钦点，授驾部郎中、知制诰，后迁中书舍人。", "time": "约780年代初（建中年间）", "duration": "晚年", "significance": "人生际遇的顶峰，从幕府僚属升迁为朝廷近臣，名动一时。", "works": ["寒食"], "quoteLines": ["《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。"]}, {"name": "长安（推测）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.344762, "lng": 108.93499, "coordSystem": "WGS84", "type": "death", "event": "在中书舍人任上或之后不久去世，具体经过史载不详。", "time": "约贞元年间（具体年份不详）", "duration": "晚年直至去世", "significance": "其文学生涯与仕途的终点，最终归葬于京城附近。", "works": [], "quoteLines": ["《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐代**，**安史之乱**后的**中唐**时期。\n- **文学常识**：**“大历十才子”** 之一。\n- **代表作品**：**《寒食》**（又名《寒食日即事》）是必学篇目。\n- **核心诗句**：**“春城无处不飞花”** 是千古名句。\n- **人物故事**：因诗受**唐德宗**赏识而得官，是“以诗取士”的典型例子。\n- **文化常识**：了解**寒食节**的习俗（禁火、吃冷食）。\n- **易混点**：注意区分**寒食节**与**清明节**的关联与区别。\n\n### 高中阶段\n- **诗歌流派**：理解**大历诗风**的特点（崇尚清雅、工于造句、多写日常生活与个人情怀）。\n- **诗歌鉴赏**：深入分析《寒食》中“飞花”、“御柳”、“轻烟”等意象的**含蓄讽刺**或**太平颂扬**之意（存在不同解读）。\n- **代表作品拓展**：了解其**送别诗**（如《送孙泼赴云中》）和**酬赠诗**（如《酬程延秋夜即事见赠》）。\n- **文学典故**：知晓**“章台柳”** 故事的来源（韩翃《寄柳氏》与许尧佐《柳氏传》）。\n- **对比阅读**：可与同时代诗人**钱起**、**司空曙**等“十才子”诗人的作品风格进行对比。\n- **历史背景深化**：认识**藩镇幕府**制度对中唐文人仕途与创作的影响（韩翃曾长期在幕府任职）。\n\n---", "examPoints": "### 初中阶段考点\n1.  **韩翃**是**唐代**诗人，属于 **“大历十才子”** 。\n2.  其最著名的诗作是 **《寒食》** ，其中名句是 **“春城无处不飞花”** 。\n3.  诗中描绘了**寒食节**（禁火）的宫廷景象。\n4.  他因诗才受到**唐德宗**的赏识。\n5.  （存疑）其出生地有**南阳**和**长安**等不同说法。\n\n### 高中阶段考点\n1.  **大历诗风**的代表诗人之一，诗风**清丽工巧**。\n2.  《寒食》诗的主旨存在争议：一说是描绘**太平景象**，一说是暗含对**特权阶层**的讽刺（“汉宫”实指“唐宫”，“轻烟散入五侯家”）。\n3.  其人生经历反映了中唐文人**由科举入仕**与**投身藩镇幕府**的两条常见路径。\n4.  **“章台柳”** 的典故出自其诗作及相关传奇，后世常用以比喻**分离**或**失落的爱情**。\n5.  （说法不一）关于其生卒年，史籍无明确记载，只能根据其交游和事迹进行大致推断。", "workTexts": {"寒食": "“大历十才子”", "寄柳氏": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "送孙泼赴云中": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "送孙泼赴云": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "同题仙游观": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "酬程延秋夜即事见赠": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "柳氏传": "“（翃）有诗名，性颇落托。”", "唐才子传": "“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”", "载酒园诗话又编": "“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”", "载酒园诗话又": "“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”"}, "workSummaries": {"寒食": {"title": "寒食", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "大历十才子", "summary": "大历十才子", "quote": "他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。", "quotes": ["他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。", "历史地位：唐代“大历十才子”之一，以一首《寒食》诗名传千古。", "韩翃生活在唐朝由盛转衰的时期，历经安史之乱。"], "quote_policy": "preferred"}, "寄柳氏": {"title": "寄柳氏", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "summary": "名篇名句：《寄柳氏》：章台柳，章台柳，颜色青青今在否？", "quote": "2. 文化符号：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。", "quotes": ["2. 文化符号：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。", "章台柳，章台柳，颜色青青今在否？", "纵使长条似旧垂，也应攀折他人手。"], "quote_policy": "preferred"}, "送孙泼赴云中": {"title": "送孙泼赴云中", "aliases": ["送孙泼赴云"], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "summary": "名篇名句：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。", "quote": "黄骢少年舞双戟，目视旁人皆辟易。", "quotes": ["黄骢少年舞双戟，目视旁人皆辟易。"], "quote_policy": "preferred"}, "同题仙游观": {"title": "同题仙游观", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "summary": "名篇名句：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。", "quote": "山色遥连秦树晚，砧声近报汉宫秋。", "quotes": ["山色遥连秦树晚，砧声近报汉宫秋。"], "quote_policy": "preferred"}, "酬程延秋夜即事见赠": {"title": "酬程延秋夜即事见赠", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "summary": "名篇名句：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。", "quote": "星河秋一雁，砧杵夜千家。", "quotes": ["星河秋一雁，砧杵夜千家。"], "quote_policy": "preferred"}, "柳氏传": {"title": "柳氏传", "aliases": [], "authors": [], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "", "genre": "传记", "one_liner": "（翃）有诗名，性颇落托。", "summary": "（翃）有诗名，性颇落托。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "唐才子传": {"title": "唐才子传", "aliases": [], "authors": [], "related_people": ["韩翃", "王勃"], "source_pages": ["韩翃", "王勃"], "era": "", "genre": "传记", "one_liner": "翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。", "summary": "翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "载酒园诗话又编": {"title": "载酒园诗话又编", "aliases": ["载酒园诗话又"], "authors": [], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "", "genre": "", "one_liner": "韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。", "summary": "韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "寒食日即事": {"title": "寒食日即事", "aliases": [], "authors": ["韩翃"], "related_people": ["韩翃"], "source_pages": ["韩翃"], "era": "唐代（盛唐至中唐过渡期）", "genre": "", "one_liner": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱", "summary": "韩翃生活在唐朝由盛转衰的时期，历经安史之乱", "quote": "《寒食》（又名《寒食日即事》）是必学篇目。", "quotes": ["《寒食》（又名《寒食日即事》）是必学篇目。"], "quote_policy": "preferred"}}, "markdown": "# 韩翃\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：韩翃（字君平）\n- **时代**：唐代（盛唐至中唐过渡期）\n- **出生**：生年不详，约唐玄宗开元年间；出生地存疑，一说南阳（今河南省南阳市），一说长安（今陕西省西安市）\n- **去世**：卒年不详，约唐德宗贞元年间；去世地推测为长安（今陕西省西安市）\n- **享年**：不详\n- **主要身份**：诗人、官员\n- **历史地位**：唐代“大历十才子”之一，以一首《寒食》诗名传千古。\n- **主要成就**：诗歌创作成就突出，尤其擅长写送别酬赠题材；因“春城无处不飞花”一诗受皇帝赏识，成为文坛佳话。\n\n### 生平概述\n韩翃生活在唐朝由盛转衰的时期，历经安史之乱。他于天宝十三年（754年，一说天宝十三载）进士及第，但仕途初期并不得意，曾长期在节度使幕府中担任幕僚。安史之乱后，他在淄青、汴宋等藩镇幕府中辗转。其诗名早著，为“大历十才子”之一。唐德宗建中年间，因欣赏其《寒食》诗，亲自点名任命他为驾部郎中、知制诰，成为一时美谈。其诗风清丽，多写送别、唱和与宫廷生活，是大历诗风的代表人物之一。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于长安、洛阳两京地区，并曾游历、任职于今山东、河南等地的藩镇幕府。\n- ⏱️ **时间跨度**：约从天宝年间（8世纪中叶）至贞元年间（8世纪末），活跃期约30年。\n- 📍 **地理范围**：大致覆盖今陕西、河南、山东等地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：南阳（存疑）\n- **公元纪年**：约开元年间（具体年份不详）\n- **停留时间**：青少年时期\n- **位置**：古称南阳郡（今河南省南阳市）；另有说法为长安（今陕西省西安市）。\n- **事迹**：在此成长、学习，为日后科举打下基础。\n- **意义**：其郡望“南阳韩氏”的由来，是其家族与文化根基所在。\n\n### 📍 重要地点：长安（科举与成名）\n- **公元纪年**：754年（天宝十三年）及此后断续停留\n- **停留时间**：及第后至安史之乱前，以及晚年任职时期\n- **位置**：古称长安（今陕西省西安市）\n- **事迹**：进士及第；与“大历十才子”交游；创作《寒食》诗并因此受德宗赏识，被特授官职。\n- **意义**：实现科举理想、奠定诗坛地位并获得最高统治者认可的核心城市。\n- **名篇名句**：《寒食》：春城无处不飞花，寒食东风御柳斜。\n\n### 📍 重要地点：淄青幕府（侯希逸幕）\n- **公元纪年**：约760年代（上元、宝应年间）\n- **停留时间**：数年\n- **位置**：古称淄青镇，治所在青州（今山东省青州市）\n- **事迹**：在平卢淄青节度使侯希逸幕府中任掌书记。\n- **意义**：安史之乱后其仕途的第一个落脚点，积累了幕府任职经验。\n- **名篇名句**：《寄柳氏》：章台柳，章台柳，颜色青青今在否？纵使长条似旧垂，也应攀折他人手。\n\n### 📍 重要地点：汴宋幕府（李灵曜、李忠臣幕）\n- **公元纪年**：约770年代（大历年间）\n- **停留时间**：数年\n- **位置**：古称汴宋镇，治所在汴州（今河南省开封市）\n- **事迹**：先后在汴宋节度使李灵曜、李忠臣幕府中任职。\n- **意义**：继续其幕僚生涯，诗歌创作题材多与送别、幕府生活相关。\n- **名篇名句**：《送孙泼赴云中》：黄骢少年舞双戟，目视旁人皆辟易。\n\n### 📍 重要地点：洛阳（游历/停留，具体事迹存疑）\n- **公元纪年**：不详，可能在及第前后或两京间往返时\n- **停留时间**：不详\n- **位置**：古称洛阳（今河南省洛阳市）\n- **事迹**：具体事迹史载不详，但作为唐代两京之一，其活动轨迹可能涉及此地。\n- **意义**：唐代重要的政治文化中心，是文人交游的常见地点。\n\n### 📍 重要地点：长安（任职中枢）\n- **公元纪年**：约780年代初（建中年间）\n- **停留时间**：晚年\n- **位置**：古称长安（今陕西省西安市）\n- **事迹**：因《寒食》诗被唐德宗钦点，授驾部郎中、知制诰，后迁中书舍人。\n- **意义**：人生际遇的顶峰，从幕府僚属升迁为朝廷近臣，名动一时。\n- **名篇名句**：《同题仙游观》：山色遥连秦树晚，砧声近报汉宫秋。\n\n### 🔴 去世地：长安（推测）\n- **公元纪年**：约贞元年间（具体年份不详）\n- **停留时间**：晚年直至去世\n- **位置**：古称长安（今陕西省西安市）\n- **经过**：在中书舍人任上或之后不久去世，具体经过史载不详。\n- **意义**：其文学生涯与仕途的终点，最终归葬于京城附近。\n- **名篇名句**：《酬程延秋夜即事见赠》：星河秋一雁，砧杵夜千家。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约754年前 | 长安（科举与成名） | 陕西省西安市 | （年龄（约）：青年）可能于长安等地游学。 |\n| 754年（天宝十三年） |  |  | （年龄（约）：约30岁）**进士及第**。 |\n| 约755-763年 |  |  | （年龄（约）：壮年）**安史之乱**爆发，仕途中断，流离失所。 |\n| 约760年代 | 淄青幕府（侯希逸幕） | 山东省青州市 | （年龄（约）：中年）入**淄青节度使侯希逸幕府**为掌书记。 |\n| 约770年代 | 汴宋幕府（李灵曜、李忠臣幕） | 河南省开封市 | （年龄（约）：中晚年）辗转于**汴宋节度使幕府**（李灵曜、李忠臣）任职。 |\n| 约780年代初（建中年间） |  |  | （年龄（约）：晚年）因《寒食》诗受**唐德宗赏识**，召为**驾部郎中、知制诰**。 |\n| 约780年代中后期 |  |  | （年龄（约）：晚年）迁升为**中书舍人**，此后去世（具体时间不详）。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n韩翃是“大历十才子”中的代表人物之一，其诗名在当时广为流传。他因一首诗而获得皇帝破格提拔的传奇经历，成为中唐文坛津津乐道的佳话，反映了当时最高统治者对文学的推崇以及诗歌在社会生活中的影响力。\n\n### 对后世的影响\n1.  **诗歌典范**：其《寒食》诗成为寒食、清明题材的千古名篇，“春城无处不飞花”一句脍炙人口，被后世反复引用和化用。\n2.  **文化符号**：“章台柳”的故事（见《寄柳氏》及许尧佐传奇《柳氏传》）演变为著名的文学典故，常被用来形容离别与相思。\n3.  **诗风传承**：作为大历诗风的代表，其清丽、工巧的诗风对中晚唐诗歌有一定影响。\n\n### 历史评价\n1.  **唐·许尧佐《柳氏传》**：“（翃）有诗名，性颇落托。”\n2.  **元·辛文房《唐才子传》**：“翃工诗，兴致繁富，如芙蓉出水，一篇一咏，朝士珍之。”\n3.  **清·贺裳《载酒园诗话又编》**：“韩君平‘鸣磬夕阳斜’，妙于‘长乐钟声’之句（指钱起诗）。”\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**唐代**，**安史之乱**后的**中唐**时期。\n- **文学常识**：**“大历十才子”** 之一。\n- **代表作品**：**《寒食》**（又名《寒食日即事》）是必学篇目。\n- **核心诗句**：**“春城无处不飞花”** 是千古名句。\n- **人物故事**：因诗受**唐德宗**赏识而得官，是“以诗取士”的典型例子。\n- **文化常识**：了解**寒食节**的习俗（禁火、吃冷食）。\n- **易混点**：注意区分**寒食节**与**清明节**的关联与区别。\n\n### 高中阶段\n- **诗歌流派**：理解**大历诗风**的特点（崇尚清雅、工于造句、多写日常生活与个人情怀）。\n- **诗歌鉴赏**：深入分析《寒食》中“飞花”、“御柳”、“轻烟”等意象的**含蓄讽刺**或**太平颂扬**之意（存在不同解读）。\n- **代表作品拓展**：了解其**送别诗**（如《送孙泼赴云中》）和**酬赠诗**（如《酬程延秋夜即事见赠》）。\n- **文学典故**：知晓**“章台柳”** 故事的来源（韩翃《寄柳氏》与许尧佐《柳氏传》）。\n- **对比阅读**：可与同时代诗人**钱起**、**司空曙**等“十才子”诗人的作品风格进行对比。\n- **历史背景深化**：认识**藩镇幕府**制度对中唐文人仕途与创作的影响（韩翃曾长期在幕府任职）。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **韩翃**是**唐代**诗人，属于 **“大历十才子”** 。\n2.  其最著名的诗作是 **《寒食》** ，其中名句是 **“春城无处不飞花”** 。\n3.  诗中描绘了**寒食节**（禁火）的宫廷景象。\n4.  他因诗才受到**唐德宗**的赏识。\n5.  （存疑）其出生地有**南阳**和**长安**等不同说法。\n\n### 高中阶段考点\n1.  **大历诗风**的代表诗人之一，诗风**清丽工巧**。\n2.  《寒食》诗的主旨存在争议：一说是描绘**太平景象**，一说是暗含对**特权阶层**的讽刺（“汉宫”实指“唐宫”，“轻烟散入五侯家”）。\n3.  其人生经历反映了中唐文人**由科举入仕**与**投身藩镇幕府**的两条常见路径。\n4.  **“章台柳”** 的典故出自其诗作及相关传奇，后世常用以比喻**分离**或**失落的爱情**。\n5.  （说法不一）关于其生卒年，史籍无明确记载，只能根据其交游和事迹进行大致推断。\n\n## 地点坐标\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 长安 | 陕西省西安市 | 34.344762 | 108.934990 |\n| 淄青幕府（青州） | 山东省青州市 | 36.684815 | 118.473848 |\n| 汴宋幕府（汴州） | 河南省开封市 | 34.798963 | 114.308423 |\n| 南阳 | 河南省南阳市 | 33.018182 | 112.579017 |\n| 洛阳 | 河南省洛阳市 | 34.620728 | 112.447644 |\n", "relatedGraph": {"center": {"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": 762, "death_year": null, "quote": "春城无处不飞花", "review": "春城无处不飞花，寒食东风御柳斜。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "韩翃", "name": "韩翃", "file": "韩翃.html", "dynasty": "唐代（盛唐至中唐过渡期）", "aliases": [], "birth_year": 762, "death_year": null, "quote": "春城无处不飞花", "review": "春城无处不飞花，寒食东风御柳斜。", "foreign_name": "", "main_role_label": "诗人", "birthplace": "南阳", "birthplace_modern": "河南省南阳市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "萧统", "name": "萧统", "file": "萧统.html", "dynasty": "南朝梁", "aliases": [], "birth_year": 501, "death_year": 531, "quote": "东宫文学集团", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "襄阳", "birthplace_modern": "湖北襄阳", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "王建", "name": "王建", "file": "王建.html", "dynasty": "五代十国（前蜀）", "aliases": [], "birth_year": 847, "death_year": 918, "quote": "建以屠沽为业，……及遇危乱，能主霸图，乘时建号，亦人杰也。", "review": "", "foreign_name": "", "main_role_label": "前蜀开国皇帝", "birthplace": "许州舞阳", "birthplace_modern": "河南漯河市舞阳县西北", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "韩愈", "name": "韩愈", "file": "韩愈.html", "dynasty": "唐代", "aliases": [], "birth_year": 768, "death_year": 824, "quote": "**师者，所以传道受业解惑也**", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "河阳", "birthplace_modern": "河南省焦作市孟州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "白居易", "name": "白居易", "file": "白居易.html", "dynasty": "唐代", "aliases": [], "birth_year": 772, "death_year": 846, "quote": "文章合为时而著，歌诗合为事而作", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "郑州新郑", "birthplace_modern": "河南省郑州市新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "王玠", "name": "王玠", "file": "王玠.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": null, "quote": "至宝欣怀日，良兹岂可俦。神光非易鉴，夜色信难投。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "韩翃", "target": "萧统", "label": "同册共现", "confidence": 0.15}, {"source": "韩翃", "target": "王建", "label": "同册共现", "confidence": 0.15}, {"source": "韩翃", "target": "韩愈", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "白居易", "label": "同时代人物", "confidence": null}, {"source": "韩翃", "target": "王玠", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:56Z", "generated_at": "2026-06-25T07:13:56Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:53Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:56Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

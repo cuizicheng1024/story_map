@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "约翰·卡尔·弗里德里希·高斯", "title": "数学王子", "description": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历。他于哥廷根大学取得博士学位后，长期担任哥廷根天文台台长及大学教授。高斯一生勤勉严谨，在纯粹数学与应用数学的多个领域都取得了划时代的成就，其工作深刻影响了后世数学、物理学及工程学的发展，是连接18世纪古典数学与19世纪现代数学的关键人物。", "quote": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "shortReview": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "dynasty": "近代（18-19世纪）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）", "avatar": "", "birth": {"date": "1777年", "location": "不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1855年", "location": "汉诺威王国哥廷根（今德国下萨克森州哥廷根）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "77周岁", "highlights": {"honor": "数学王子", "status": "被誉为“数学王子”，与阿基米德、牛顿并列为历史上最伟大的三位数学家。", "identities": "数学家、物理学家、天文学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "不伦瑞克", "ancientName": "不伦瑞克公国不伦瑞克", "modernName": "德国下萨克森州不伦瑞克", "lat": 52.2689, "lng": 10.5268, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个贫苦工匠家庭；幼年即展现数学天赋，传说十岁时快速计算出1到100的整数和；得到不伦瑞克公爵卡尔·威廉·斐迪南的赏识与资助。", "time": "1777年", "duration": "约17年", "significance": "天才的起点，公爵的资助为其打开了通往学术殿堂的大门。", "works": [], "quoteLines": []}, {"name": "黑尔姆施泰特", "ancientName": "黑尔姆施泰特", "modernName": "德国下萨克森州黑尔姆施泰特", "lat": 52.2281, "lng": 11.0103, "coordSystem": "WGS84", "type": "normal", "event": "进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；1796年发现并证明了**正十七边形**的尺规作图法，解决了自欧几里得以来的几何难题；开始撰写**《算术研究》**。", "time": "1795年 - 1798年", "duration": "约3年", "significance": "学术生涯的正式开端，数论与几何研究取得突破性进展。", "works": ["算术研究"], "quoteLines": []}, {"name": "不伦瑞克", "ancientName": "不伦瑞克公国不伦瑞克", "modernName": "德国下萨克森州不伦瑞克", "lat": 52.2689, "lng": 10.5268, "coordSystem": "WGS84", "type": "normal", "event": "完成并出版**《算术研究》**（1801年）；运用**最小二乘法**计算出谷神星轨道，轰动天文学界；进行大地测量研究。", "time": "1798年 - 1807年", "duration": "约9年", "significance": "学术声誉达到顶峰，奠定了其在欧洲科学界的核心地位。", "works": ["算术研究"], "quoteLines": []}, {"name": "哥廷根（天文台与大学）", "ancientName": "汉诺威王国哥廷根", "modernName": "德国下萨克森州哥廷根", "lat": 51.5328, "lng": 9.9356, "coordSystem": "WGS84", "type": "normal", "event": "被任命为哥廷根天文台台长及大学教授，直至去世；在此进行了大量天文观测、物理实验（如与韦伯合作研究**地磁学**和**电磁电报**）和数学研究；教授数学、天文学等课程，培养了黎曼、戴德金等一大批杰出学生；发表了关于**曲面论**的开创性研究（**高斯曲率**）。", "time": "1807年 - 1855年", "duration": "约48年", "significance": "一生主要的工作与生活地，是其科学产出的核心基地，也是哥廷根数学学派的奠基地。", "works": [], "quoteLines": []}, {"name": "哥廷根", "ancientName": "汉诺威王国哥廷根", "modernName": "德国下萨克森州哥廷根", "lat": 51.5328, "lng": 9.9356, "coordSystem": "WGS84", "type": "death", "event": "在睡梦中平静离世。", "time": "1855年2月23日", "duration": "生命最后48年", "significance": "一代科学巨匠生命的终点，其墓地位于哥廷根。", "works": [], "quoteLines": []}, {"name": "哥本哈根", "ancientName": "哥本哈根", "modernName": "丹麦哥本哈根", "lat": 55.6761, "lng": 12.5683, "coordSystem": "WGS84", "type": "normal", "event": "进行学术交流与访问。", "time": "约1820年代", "duration": "短期访问", "significance": "国际学术交流的体现。", "works": [], "quoteLines": []}, {"name": "阿尔托纳（观测）", "ancientName": "阿尔托纳", "modernName": "德国汉堡市阿尔托纳区", "lat": 53.55, "lng": 9.9333, "coordSystem": "WGS84", "type": "normal", "event": "为进行大地测量和天文观测而在此地工作。", "time": "1820年代", "duration": "短期", "significance": "科学实践的组成部分。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---", "workTexts": {"算术研究": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "天体运动论": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "关于与距离平方成反比的引力和斥力的普遍定理": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。"}, "workSummaries": {"算术研究": {"title": "算术研究", "aliases": [], "authors": ["高斯"], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "近代（18-19世纪）", "genre": "", "one_liner": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "summary": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "quote": "1796年发现并证明了正十七边形的尺规作图法，解决了自欧几里得以来的几何难题；", "quotes": ["1796年发现并证明了正十七边形的尺规作图法，解决了自欧几里得以来的几何难题；", "事件：进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；", "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。"], "quote_policy": "preferred"}, "天体运动论": {"title": "天体运动论", "aliases": [], "authors": ["高斯"], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "近代（18-19世纪）", "genre": "论说文", "one_liner": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "summary": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "quote": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "quotes": ["| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。"], "quote_policy": "preferred"}, "关于与距离平方成反比的引力和斥力的普遍定理": {"title": "关于与距离平方成反比的引力和斥力的普遍定理", "aliases": [], "authors": [], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "", "genre": "", "one_liner": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。", "summary": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 高斯\n\n## 人物档案\n\n### 基本信息\n- **姓名**：约翰·卡尔·弗里德里希·高斯\n- **时代**：近代（18-19世纪）\n- **出生**：1777年4月30日，不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **去世**：1855年2月23日，汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **享年**：77周岁\n- **主要身份**：数学家、物理学家、天文学家\n- **历史地位**：被誉为“数学王子”，与阿基米德、牛顿并列为历史上最伟大的三位数学家。\n- **主要成就**：\n    1. 证明了**代数基本定理**。\n    2. 发表了数论巨著**《算术研究》**，奠定了近代数论基础。\n    3. 发展了**最小二乘法**，并独立发现了**高斯分布**（正态分布）。\n    4. 在**天文学**、**大地测量学**、**电磁学**等领域做出开创性贡献。\n\n### 生平概述\n高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历。他于哥廷根大学取得博士学位后，长期担任哥廷根天文台台长及大学教授。高斯一生勤勉严谨，在纯粹数学与应用数学的多个领域都取得了划时代的成就，其工作深刻影响了后世数学、物理学及工程学的发展，是连接18世纪古典数学与19世纪现代数学的关键人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于德意志地区，以哥廷根为中心，足迹遍及不伦瑞克、黑尔姆施泰特、哥本哈根等地。\n- ⏱️ **时间跨度**：1777年 - 1855年，共77年。\n- 📍 **地理范围**：主要覆盖今德国北部（下萨克森州）及丹麦哥本哈根。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：不伦瑞克\n- **时间**：1777年\n- **停留时间**：约17年\n- **地点**：不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **事件**：出生于一个贫苦工匠家庭；幼年即展现数学天赋，传说十岁时快速计算出1到100的整数和；得到不伦瑞克公爵卡尔·威廉·斐迪南的赏识与资助。\n- **意义**：天才的起点，公爵的资助为其打开了通往学术殿堂的大门。\n\n### 📍 重要地点：黑尔姆施泰特\n- **时间**：1795年 - 1798年\n- **停留时间**：约3年\n- **地点**：黑尔姆施泰特（今德国下萨克森州黑尔姆施泰特）\n- **事件**：进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；1796年发现并证明了**正十七边形**的尺规作图法，解决了自欧几里得以来的几何难题；开始撰写**《算术研究》**。\n- **意义**：学术生涯的正式开端，数论与几何研究取得突破性进展。\n\n### 📍 重要地点：不伦瑞克\n- **时间**：1798年 - 1807年\n- **停留时间**：约9年\n- **地点**：不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **事件**：完成并出版**《算术研究》**（1801年）；运用**最小二乘法**计算出谷神星轨道，轰动天文学界；进行大地测量研究。\n- **意义**：学术声誉达到顶峰，奠定了其在欧洲科学界的核心地位。\n\n### 📍 重要地点：哥廷根（天文台与大学）\n- **时间**：1807年 - 1855年\n- **停留时间**：约48年\n- **地点**：汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **事件**：被任命为哥廷根天文台台长及大学教授，直至去世；在此进行了大量天文观测、物理实验（如与韦伯合作研究**地磁学**和**电磁电报**）和数学研究；教授数学、天文学等课程，培养了黎曼、戴德金等一大批杰出学生；发表了关于**曲面论**的开创性研究（**高斯曲率**）。\n- **意义**：一生主要的工作与生活地，是其科学产出的核心基地，也是哥廷根数学学派的奠基地。\n\n### 📍 重要地点：哥本哈根\n- **时间**：约1820年代\n- **停留时间**：短期访问\n- **地点**：丹麦哥本哈根\n- **事件**：进行学术交流与访问。\n- **意义**：国际学术交流的体现。\n\n### 📍 重要地点：阿尔托纳（观测）\n- **时间**：1820年代\n- **停留时间**：短期\n- **地点**：阿尔托纳（今德国汉堡市阿尔托纳区）\n- **事件**：为进行大地测量和天文观测而在此地工作。\n- **意义**：科学实践的组成部分。\n\n### 🔴 去世地：哥廷根\n- **时间**：1855年2月23日\n- **停留时间**：生命最后48年\n- **地点**：汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **事件**：在睡梦中平静离世。\n- **意义**：一代科学巨匠生命的终点，其墓地位于哥廷根。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1777 | 不伦瑞克 | 德国下萨克森州不伦瑞克 | （年龄：0）出生于不伦瑞克。 |\n| 1786 |  |  | （年龄：9）独立发现等差数列求和公式。 |\n| 1792 |  |  | （年龄：15）获公爵资助，进入卡罗琳学院学习。 |\n| 1795 | 黑尔姆施泰特 | 德国下萨克森州黑尔姆施泰特 | （年龄：18）进入黑尔姆施泰特大学。 |\n| 1796 |  |  | （年龄：19）解决正十七边形尺规作图问题；在日记中记录**二次互反律**的首个证明。 |\n| 1799 | 黑尔姆施泰特 | 德国下萨克森州黑尔姆施泰特 | （年龄：22）在黑尔姆施泰特大学获博士学位，论文主题为**代数基本定理**的证明。 |\n| 1801 |  |  | （年龄：24）出版**《算术研究》**；成功预测谷神星轨道。 |\n| 1807 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：30）受聘为哥廷根天文台台长及大学教授。 |\n| 1809 |  |  | （年龄：32）出版天文学著作《天体运动论》。 |\n| 1818 |  |  | （年龄：41）开始主持汉诺威大地测量工作。 |\n| 1828 |  |  | （年龄：51）与物理学家威廉·韦伯合作，研究地磁学。 |\n| 1833 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：56）与韦伯合作建立哥廷根地磁观测站及早期有线电报系统。 |\n| 1839 |  |  | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定**势论**基础。 |\n| 1855 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：77）在哥廷根逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 德国不伦瑞克 | 52.2689 | 10.5268 |\n| 德国黑尔姆施泰特 | 52.2281 | 11.0103 |\n| 德国哥廷根 | 51.5328 | 9.9356 |\n| 德国汉堡市阿尔托纳区 | 53.5500 | 9.9333 |\n| 丹麦哥本哈根 | 55.6761 | 12.5683 |", "relatedGraph": {"center": {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "两点之间直线最短。", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "近代（18世纪末至19世纪初）", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "马背上的世界精神", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪伯伦", "name": "纪伯伦", "file": "纪伯伦.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": [], "birth_year": 1883, "death_year": 1931, "quote": "爱除自身外无施与，除自身外无接受。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "贝什里", "birthplace_modern": "黎巴嫩北部省贝什里", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "高斯", "target": "欧几里得", "label": "师生", "confidence": null}, {"source": "高斯", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "纪伯伦", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "杨虎城", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "李公朴", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "居里夫人", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:55Z", "generated_at": "2026-06-22T11:31:55Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "约翰·卡尔·弗里德里希·高斯", "title": "数学王子", "description": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历。他于哥廷根大学取得博士学位后，长期担任哥廷根天文台台长及大学教授。高斯一生勤勉严谨，在纯粹数学与应用数学的多个领域都取得了划时代的成就，其工作深刻影响了后世数学、物理学及工程学的发展，是连接18世纪古典数学与19世纪现代数学的关键人物。", "quote": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "shortReview": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "dynasty": "近代（18-19世纪）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）", "avatar": "", "birth": {"date": "1777年", "location": "不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1855年", "location": "汉诺威王国哥廷根（今德国下萨克森州哥廷根）", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "77周岁", "highlights": {"honor": "数学王子", "status": "被誉为“数学王子”，与阿基米德、牛顿并列为历史上最伟大的三位数学家。", "identities": "数学家、物理学家、天文学家", "achievements": "", "works": [], "reviews": []}}, "locations": [{"name": "不伦瑞克", "ancientName": "不伦瑞克公国不伦瑞克", "modernName": "德国下萨克森州不伦瑞克", "lat": 52.2689, "lng": 10.5268, "coordSystem": "WGS84", "type": "birth", "event": "出生于一个贫苦工匠家庭；幼年即展现数学天赋，传说十岁时快速计算出1到100的整数和；得到不伦瑞克公爵卡尔·威廉·斐迪南的赏识与资助。", "time": "1777年", "duration": "约17年", "significance": "天才的起点，公爵的资助为其打开了通往学术殿堂的大门。", "works": [], "quoteLines": []}, {"name": "黑尔姆施泰特", "ancientName": "黑尔姆施泰特", "modernName": "德国下萨克森州黑尔姆施泰特", "lat": 52.2281, "lng": 11.0103, "coordSystem": "WGS84", "type": "normal", "event": "进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；1796年发现并证明了**正十七边形**的尺规作图法，解决了自欧几里得以来的几何难题；开始撰写**《算术研究》**。", "time": "1795年 - 1798年", "duration": "约3年", "significance": "学术生涯的正式开端，数论与几何研究取得突破性进展。", "works": ["算术研究"], "quoteLines": []}, {"name": "不伦瑞克", "ancientName": "不伦瑞克公国不伦瑞克", "modernName": "德国下萨克森州不伦瑞克", "lat": 52.2689, "lng": 10.5268, "coordSystem": "WGS84", "type": "normal", "event": "完成并出版**《算术研究》**（1801年）；运用**最小二乘法**计算出谷神星轨道，轰动天文学界；进行大地测量研究。", "time": "1798年 - 1807年", "duration": "约9年", "significance": "学术声誉达到顶峰，奠定了其在欧洲科学界的核心地位。", "works": ["算术研究"], "quoteLines": []}, {"name": "哥廷根（天文台与大学）", "ancientName": "汉诺威王国哥廷根", "modernName": "德国下萨克森州哥廷根", "lat": 51.5328, "lng": 9.9356, "coordSystem": "WGS84", "type": "normal", "event": "被任命为哥廷根天文台台长及大学教授，直至去世；在此进行了大量天文观测、物理实验（如与韦伯合作研究**地磁学**和**电磁电报**）和数学研究；教授数学、天文学等课程，培养了黎曼、戴德金等一大批杰出学生；发表了关于**曲面论**的开创性研究（**高斯曲率**）。", "time": "1807年 - 1855年", "duration": "约48年", "significance": "一生主要的工作与生活地，是其科学产出的核心基地，也是哥廷根数学学派的奠基地。", "works": [], "quoteLines": []}, {"name": "哥廷根", "ancientName": "汉诺威王国哥廷根", "modernName": "德国下萨克森州哥廷根", "lat": 51.5328, "lng": 9.9356, "coordSystem": "WGS84", "type": "death", "event": "在睡梦中平静离世。", "time": "1855年2月23日", "duration": "生命最后48年", "significance": "一代科学巨匠生命的终点，其墓地位于哥廷根。", "works": [], "quoteLines": []}, {"name": "哥本哈根", "ancientName": "哥本哈根", "modernName": "丹麦哥本哈根", "lat": 55.6761, "lng": 12.5683, "coordSystem": "WGS84", "type": "normal", "event": "进行学术交流与访问。", "time": "约1820年代", "duration": "短期访问", "significance": "国际学术交流的体现。", "works": [], "quoteLines": []}, {"name": "阿尔托纳（观测）", "ancientName": "阿尔托纳", "modernName": "德国汉堡市阿尔托纳区", "lat": 53.55, "lng": 9.9333, "coordSystem": "WGS84", "type": "normal", "event": "为进行大地测量和天文观测而在此地工作。", "time": "1820年代", "duration": "短期", "significance": "科学实践的组成部分。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---", "workTexts": {"算术研究": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "天体运动论": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "关于与距离平方成反比的引力和斥力的普遍定理": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。"}, "workSummaries": {"算术研究": {"title": "算术研究", "aliases": [], "authors": ["高斯"], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "近代（18-19世纪）", "genre": "", "one_liner": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "summary": "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。", "quote": "1796年发现并证明了正十七边形的尺规作图法，解决了自欧几里得以来的几何难题；", "quotes": ["1796年发现并证明了正十七边形的尺规作图法，解决了自欧几里得以来的几何难题；", "事件：进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；", "2. 发表了数论巨著《算术研究》，奠定了近代数论基础。"], "quote_policy": "preferred"}, "天体运动论": {"title": "天体运动论", "aliases": [], "authors": ["高斯"], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "近代（18-19世纪）", "genre": "论说文", "one_liner": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "summary": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "quote": "| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。", "quotes": ["| 1809 | | | （年龄：32）出版天文学著作《天体运动论》。"], "quote_policy": "preferred"}, "关于与距离平方成反比的引力和斥力的普遍定理": {"title": "关于与距离平方成反比的引力和斥力的普遍定理", "aliases": [], "authors": [], "related_people": ["高斯"], "source_pages": ["高斯"], "era": "", "genre": "", "one_liner": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。", "summary": "| 1839 | | | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定势论基础。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 高斯\n\n## 人物档案\n\n### 基本信息\n- **姓名**：约翰·卡尔·弗里德里希·高斯\n- **时代**：近代（18-19世纪）\n- **出生**：1777年4月30日，不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **去世**：1855年2月23日，汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **享年**：77周岁\n- **主要身份**：数学家、物理学家、天文学家\n- **历史地位**：被誉为“数学王子”，与阿基米德、牛顿并列为历史上最伟大的三位数学家。\n- **主要成就**：\n    1. 证明了**代数基本定理**。\n    2. 发表了数论巨著**《算术研究》**，奠定了近代数论基础。\n    3. 发展了**最小二乘法**，并独立发现了**高斯分布**（正态分布）。\n    4. 在**天文学**、**大地测量学**、**电磁学**等领域做出开创性贡献。\n\n### 生平概述\n高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历。他于哥廷根大学取得博士学位后，长期担任哥廷根天文台台长及大学教授。高斯一生勤勉严谨，在纯粹数学与应用数学的多个领域都取得了划时代的成就，其工作深刻影响了后世数学、物理学及工程学的发展，是连接18世纪古典数学与19世纪现代数学的关键人物。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动于德意志地区，以哥廷根为中心，足迹遍及不伦瑞克、黑尔姆施泰特、哥本哈根等地。\n- ⏱️ **时间跨度**：1777年 - 1855年，共77年。\n- 📍 **地理范围**：主要覆盖今德国北部（下萨克森州）及丹麦哥本哈根。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：不伦瑞克\n- **时间**：1777年\n- **停留时间**：约17年\n- **地点**：不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **事件**：出生于一个贫苦工匠家庭；幼年即展现数学天赋，传说十岁时快速计算出1到100的整数和；得到不伦瑞克公爵卡尔·威廉·斐迪南的赏识与资助。\n- **意义**：天才的起点，公爵的资助为其打开了通往学术殿堂的大门。\n\n### 📍 重要地点：黑尔姆施泰特\n- **时间**：1795年 - 1798年\n- **停留时间**：约3年\n- **地点**：黑尔姆施泰特（今德国下萨克森州黑尔姆施泰特）\n- **事件**：进入黑尔姆施泰特大学学习，师从数学家约翰·弗里德里希·普法夫；1796年发现并证明了**正十七边形**的尺规作图法，解决了自欧几里得以来的几何难题；开始撰写**《算术研究》**。\n- **意义**：学术生涯的正式开端，数论与几何研究取得突破性进展。\n\n### 📍 重要地点：不伦瑞克\n- **时间**：1798年 - 1807年\n- **停留时间**：约9年\n- **地点**：不伦瑞克公国不伦瑞克（今德国下萨克森州不伦瑞克）\n- **事件**：完成并出版**《算术研究》**（1801年）；运用**最小二乘法**计算出谷神星轨道，轰动天文学界；进行大地测量研究。\n- **意义**：学术声誉达到顶峰，奠定了其在欧洲科学界的核心地位。\n\n### 📍 重要地点：哥廷根（天文台与大学）\n- **时间**：1807年 - 1855年\n- **停留时间**：约48年\n- **地点**：汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **事件**：被任命为哥廷根天文台台长及大学教授，直至去世；在此进行了大量天文观测、物理实验（如与韦伯合作研究**地磁学**和**电磁电报**）和数学研究；教授数学、天文学等课程，培养了黎曼、戴德金等一大批杰出学生；发表了关于**曲面论**的开创性研究（**高斯曲率**）。\n- **意义**：一生主要的工作与生活地，是其科学产出的核心基地，也是哥廷根数学学派的奠基地。\n\n### 📍 重要地点：哥本哈根\n- **时间**：约1820年代\n- **停留时间**：短期访问\n- **地点**：丹麦哥本哈根\n- **事件**：进行学术交流与访问。\n- **意义**：国际学术交流的体现。\n\n### 📍 重要地点：阿尔托纳（观测）\n- **时间**：1820年代\n- **停留时间**：短期\n- **地点**：阿尔托纳（今德国汉堡市阿尔托纳区）\n- **事件**：为进行大地测量和天文观测而在此地工作。\n- **意义**：科学实践的组成部分。\n\n### 🔴 去世地：哥廷根\n- **时间**：1855年2月23日\n- **停留时间**：生命最后48年\n- **地点**：汉诺威王国哥廷根（今德国下萨克森州哥廷根）\n- **事件**：在睡梦中平静离世。\n- **意义**：一代科学巨匠生命的终点，其墓地位于哥廷根。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1777 | 不伦瑞克 | 德国下萨克森州不伦瑞克 | （年龄：0）出生于不伦瑞克。 |\n| 1786 |  |  | （年龄：9）独立发现等差数列求和公式。 |\n| 1792 |  |  | （年龄：15）获公爵资助，进入卡罗琳学院学习。 |\n| 1795 | 黑尔姆施泰特 | 德国下萨克森州黑尔姆施泰特 | （年龄：18）进入黑尔姆施泰特大学。 |\n| 1796 |  |  | （年龄：19）解决正十七边形尺规作图问题；在日记中记录**二次互反律**的首个证明。 |\n| 1799 | 黑尔姆施泰特 | 德国下萨克森州黑尔姆施泰特 | （年龄：22）在黑尔姆施泰特大学获博士学位，论文主题为**代数基本定理**的证明。 |\n| 1801 |  |  | （年龄：24）出版**《算术研究》**；成功预测谷神星轨道。 |\n| 1807 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：30）受聘为哥廷根天文台台长及大学教授。 |\n| 1809 |  |  | （年龄：32）出版天文学著作《天体运动论》。 |\n| 1818 |  |  | （年龄：41）开始主持汉诺威大地测量工作。 |\n| 1828 |  |  | （年龄：51）与物理学家威廉·韦伯合作，研究地磁学。 |\n| 1833 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：56）与韦伯合作建立哥廷根地磁观测站及早期有线电报系统。 |\n| 1839 |  |  | （年龄：62）发表《关于与距离平方成反比的引力和斥力的普遍定理》，奠定**势论**基础。 |\n| 1855 | 哥廷根 | 德国下萨克森州哥廷根 | （年龄：77）在哥廷根逝世。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n（注：高斯主要成就在自然科学领域，语文教材中通常无其专门课文。其生平与精神常作为科学精神的典范在相关学科中提及。）\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：高斯在19世纪初完成了**《算术研究》**，系统总结并发展了**数论**，标志着近代数论的开端。\n    - 1801年，他运用**最小二乘法**和轨道计算，成功预测了**谷神星**的重新出现位置，轰动科学界，展示了数学的巨大威力。\n    - **重点**：高斯与物理学家**韦伯**合作，在哥廷根建立了世界上第一个**有线电报**系统，并深入研究**地磁学**，绘制了全球地磁图。\n    - 他在**非欧几何**（虽未公开发表）、**复变函数论**、**统计学**（高斯分布）等领域均有奠基性贡献。\n- 核心要点：\n    - **重点**：高斯是**科学史上最后一位“通才”**，在数学、物理学、天文学、大地测量学等多个领域都做出了顶尖贡献。\n    - 他的工作风格以**严谨**和**完美主义**著称，许多成果直到晚年或去世后才发表，座右铭是“少而精”。\n    - **重点**：高斯的成就代表了**德意志科学在19世纪的崛起**，他所在的**哥廷根大学**后来成为世界数学的中心。\n    - **重点**：他将**纯粹数学**与**应用数学**紧密结合，其研究既有深刻的理论价值（如**代数基本定理**），也有巨大的实际效用（如**大地测量**、**电报**）。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 德国不伦瑞克 | 52.2689 | 10.5268 |\n| 德国黑尔姆施泰特 | 52.2281 | 11.0103 |\n| 德国哥廷根 | 51.5328 | 9.9356 |\n| 德国汉堡市阿尔托纳区 | 53.5500 | 9.9333 |\n| 丹麦哥本哈根 | 55.6761 | 12.5683 |", "relatedGraph": {"center": {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "发表了数论巨著《算术研究》，奠定了近代数论基础。", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "两点之间直线最短。", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "近代（18世纪末至19世纪初）", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "马背上的世界精神", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "纪伯伦", "name": "纪伯伦", "file": "纪伯伦.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": [], "birth_year": 1883, "death_year": 1931, "quote": "爱除自身外无施与，除自身外无接受。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "贝什里", "birthplace_modern": "黎巴嫩北部省贝什里", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "高斯", "target": "欧几里得", "label": "师生", "confidence": null}, {"source": "高斯", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "纪伯伦", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "杨虎城", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "李公朴", "label": "同时代人物", "confidence": null}, {"source": "高斯", "target": "居里夫人", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:58Z", "generated_at": "2026-06-25T07:13:58Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:55Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:58Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>橙子科技公司</title>
+    <title>Orange Office</title>
     <style>
         @font-face {
             font-family: 'ArkPixel';
@@ -13,7 +13,9 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #1a1a2e;
+            background:
+                radial-gradient(circle at top, rgba(63, 94, 167, 0.24), transparent 34%),
+                linear-gradient(180deg, #1b2338 0%, #161c31 42%, #111827 100%);
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -43,6 +45,86 @@
             justify-content: flex-start;
             margin-top: 20px;
         }
+        #office-summary-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+            width: 1280px;
+            margin-top: 16px;
+        }
+        .office-summary-card {
+            position: relative;
+            min-height: 148px;
+            padding: 14px 16px;
+            border: 4px solid #0e1119;
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), rgba(11, 17, 32, 0.94));
+            color: #dbeafe;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .office-summary-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255,255,255,0.03) 0px,
+                rgba(255,255,255,0.03) 1px,
+                transparent 1px,
+                transparent 12px
+            );
+            opacity: .38;
+        }
+        .office-summary-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .office-summary-kicker {
+            color: #93c5fd;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .office-summary-title {
+            color: #ffd700;
+            font-size: 15px;
+            line-height: 1.35;
+        }
+        .office-summary-body {
+            color: #dbeafe;
+            font-size: 12px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+        .office-summary-meta {
+            color: #94a3b8;
+            font-size: 11px;
+            line-height: 1.5;
+            margin-top: auto;
+        }
+        .office-summary-statusline {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .office-summary-dot {
+            width: 10px;
+            height: 10px;
+            margin-top: 6px;
+            border-radius: 999px;
+            flex: 0 0 auto;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.10);
+            background: #94a3b8;
+        }
+        .office-summary-dot.state-idle { background: #22c55e; }
+        .office-summary-dot.state-researching { background: #60a5fa; }
+        .office-summary-dot.state-writing { background: #f59e0b; }
+        .office-summary-dot.state-executing { background: #f97316; }
+        .office-summary-dot.state-syncing { background: #a78bfa; }
+        .office-summary-dot.state-error { background: #ef4444; }
         #game-container {
             position: relative;
             border: 0;
@@ -915,7 +997,8 @@
             text-align: right;
             flex-shrink: 0;
             position: relative;
-            left: -40px; /* move date left by 40px */
+            width: 100%;
+            padding-right: 20px;
             top: -10px;
         }
         #memo-content {
@@ -926,9 +1009,9 @@
             word-wrap: break-word;
             overflow-y: auto;
             flex-grow: 1;
-            padding-right: 4px;
+            width: 100%;
+            padding: 0 24px 0 84px;
             position: relative;
-            left: 100px; /* move content right by 100px */
             top: -10px;
         }
         #memo-content::-webkit-scrollbar {
@@ -998,6 +1081,12 @@
                 flex-direction: column;
                 gap: 10px;
                 flex: 0 0 auto;
+            }
+            #office-summary-row {
+                width: 100vw;
+                max-width: 100vw;
+                grid-template-columns: 1fr;
+                padding: 0 10px 16px;
             }
 
             body.drawer-open #main-stage {
@@ -1237,6 +1326,31 @@
             </div>
             </div>
         </div>
+        <div id="office-summary-row" aria-live="polite">
+            <section class="office-summary-card">
+                <div id="officeSummaryStatusKicker" class="office-summary-kicker">System Status</div>
+                <div class="office-summary-statusline">
+                    <div id="officeSummaryDot" class="office-summary-dot state-idle" aria-hidden="true"></div>
+                    <div>
+                        <div id="officeSummaryStatusTitle" class="office-summary-title">待命</div>
+                        <div id="officeSummaryStatusBody" class="office-summary-body">正在同步办公室状态…</div>
+                    </div>
+                </div>
+                <div id="officeSummaryStatusMeta" class="office-summary-meta">状态同步中</div>
+            </section>
+            <section class="office-summary-card">
+                <div id="officeSummaryGuideKicker" class="office-summary-kicker">How To Read</div>
+                <div id="officeSummaryGuideTitle" class="office-summary-title">状态条只读</div>
+                <div id="officeSummaryGuideBody" class="office-summary-body">这里只展示系统运行状态，不能在此手动暂停或恢复生成。查看详情请使用顶部详情入口。</div>
+                <div id="officeSummaryGuideMeta" class="office-summary-meta">Orange Office 负责展示状态，不负责执行控制。</div>
+            </section>
+            <section class="office-summary-card">
+                <div id="officeSummarySnapshotKicker" class="office-summary-kicker">Office Snapshot</div>
+                <div id="officeSummarySnapshotTitle" class="office-summary-title">正在整理办公室快照…</div>
+                <div id="officeSummarySnapshotBody" class="office-summary-body">等待访客和便签数据返回。</div>
+                <div id="officeSummarySnapshotMeta" class="office-summary-meta">更新中</div>
+            </section>
+        </div>
     </div>
     
     <div id="asset-highlight"></div>
@@ -1367,8 +1481,237 @@
         const I18N = STAR_OFFICE_COPY.i18n || {};
         const ASSET_DISPLAY_NAME_MAP = STAR_OFFICE_COPY.assetDisplayNames || {};
         const ASSET_HELP_TEXT_MAP = STAR_OFFICE_COPY.assetHelpTexts || {};
+        const OFFICE_DYNAMIC_I18N = {
+            zh: {
+                memoEmpty: '暂无昨日日记',
+                memoLoadFailed: '加载失败',
+                statusEllipsis: '...',
+                statusUpdateError: '状态更新异常，正在恢复...',
+                statusRetrying: '连接失败，正在重试...',
+                authApproved: '已授权',
+                authPending: '待授权',
+                authRejected: '已拒绝',
+                authOffline: '离线',
+                stateIdle: '待命',
+                stateWriting: '工作',
+                stateResearching: '调研',
+                stateExecuting: '执行',
+                stateSyncing: '同步',
+                stateError: '报警',
+                touchPanOn: '视野拖动已开启（可左右拖动画布）',
+                touchPanOff: '视野拖动已关闭（点击左上角“移动视野”可开启）',
+                title: '橙子科技公司',
+                guestIdle1: '我在休息区待命',
+                guestIdle2: '先放松一下，等下一步任务',
+                guestIdle3: '我在休息充电中',
+                guestWriting1: '我在工作区处理任务',
+                guestWriting2: '正在整理文档与执行中',
+                guestWriting3: '工作区专注推进中',
+                guestResearching1: '我在调研模式，搜集信息',
+                guestResearching2: '正在查资料和验证线索',
+                guestResearching3: '研究中，稍后同步结论',
+                guestExecuting1: '执行中，正在跑流程',
+                guestExecuting2: '我在工作区推进任务',
+                guestExecuting3: '正在把计划落地执行',
+                guestSyncing1: '同步中，马上更新状态',
+                guestSyncing2: '正在同步进度到系统',
+                guestSyncing3: '数据同步中请稍候',
+                guestError1: '我在 bug 区排查问题',
+                guestError2: '检测到异常，正在修复',
+                guestError3: '报警中，先定位再处理',
+            },
+            en: {
+                memoEmpty: 'No notes from yesterday',
+                memoLoadFailed: 'Failed to load notes',
+                statusEllipsis: '...',
+                statusUpdateError: 'Status update failed, recovering...',
+                statusRetrying: 'Connection lost, retrying...',
+                authApproved: 'Approved',
+                authPending: 'Pending',
+                authRejected: 'Rejected',
+                authOffline: 'Offline',
+                stateIdle: 'Idle',
+                stateWriting: 'Working',
+                stateResearching: 'Research',
+                stateExecuting: 'Executing',
+                stateSyncing: 'Syncing',
+                stateError: 'Alert',
+                touchPanOn: 'Pan mode enabled. Drag horizontally to move the canvas.',
+                touchPanOff: 'Pan mode disabled. Tap "Pan View" in the top-left to enable it.',
+                title: 'Orange Office',
+                guestIdle1: 'I am on standby in the lounge',
+                guestIdle2: 'Taking a short break before the next task',
+                guestIdle3: 'Recharging in the lounge',
+                guestWriting1: 'Handling tasks in the work area',
+                guestWriting2: 'Sorting docs and executing tasks',
+                guestWriting3: 'Focused and moving things forward',
+                guestResearching1: 'Collecting clues in research mode',
+                guestResearching2: 'Checking references and validating leads',
+                guestResearching3: 'Research in progress, summary coming soon',
+                guestExecuting1: 'Running the workflow now',
+                guestExecuting2: 'Pushing tasks forward in the work area',
+                guestExecuting3: 'Turning the plan into action',
+                guestSyncing1: 'Syncing updates right away',
+                guestSyncing2: 'Uploading progress to the system',
+                guestSyncing3: 'Sync in progress, please wait',
+                guestError1: 'Investigating issues in the bug zone',
+                guestError2: 'An exception was found and is being fixed',
+                guestError3: 'Alert mode: isolate first, then repair',
+            },
+            ja: {
+                memoEmpty: '昨日のメモはありません',
+                memoLoadFailed: 'メモの読み込みに失敗しました',
+                statusEllipsis: '...',
+                statusUpdateError: '状態更新に失敗しました。復旧中です...',
+                statusRetrying: '接続に失敗しました。再試行中です...',
+                authApproved: '承認済み',
+                authPending: '承認待ち',
+                authRejected: '拒否済み',
+                authOffline: 'オフライン',
+                stateIdle: '待機',
+                stateWriting: '作業',
+                stateResearching: '調査',
+                stateExecuting: '実行',
+                stateSyncing: '同期',
+                stateError: '警報',
+                touchPanOn: '視点移動が有効です。左右にドラッグしてキャンバスを動かせます。',
+                touchPanOff: '視点移動は無効です。左上の「視点移動」を押すと有効になります。',
+                title: 'オレンジオフィス',
+                guestIdle1: '休憩スペースで待機しています',
+                guestIdle2: '次のタスクまで少し休憩しています',
+                guestIdle3: '休憩しながら充電中です',
+                guestWriting1: '作業エリアでタスクを処理しています',
+                guestWriting2: '文書整理と実行を進めています',
+                guestWriting3: '集中して前へ進めています',
+                guestResearching1: '調査モードで手がかりを集めています',
+                guestResearching2: '資料を確認し、手掛かりを検証しています',
+                guestResearching3: '調査中です。後ほどまとめます',
+                guestExecuting1: 'フローを実行中です',
+                guestExecuting2: '作業エリアでタスクを進めています',
+                guestExecuting3: '計画を実行に移しています',
+                guestSyncing1: '更新をすぐ同期しています',
+                guestSyncing2: '進捗をシステムへ同期しています',
+                guestSyncing3: '同期中です。しばらくお待ちください',
+                guestError1: 'バグエリアで問題を調査しています',
+                guestError2: '異常を検知し、修復しています',
+                guestError3: '警報モードです。まず切り分け、その後修復します',
+            }
+        };
 
         function t(key) { return (I18N[uiLang] && I18N[uiLang][key]) || key; }
+        function td(key) { return (OFFICE_DYNAMIC_I18N[uiLang] && OFFICE_DYNAMIC_I18N[uiLang][key]) || (OFFICE_DYNAMIC_I18N.zh && OFFICE_DYNAMIC_I18N.zh[key]) || key; }
+        function summaryTextByUi(zh, en, ja) {
+            return uiLang === 'zh' ? zh : (uiLang === 'ja' ? ja : en);
+        }
+        function officeTitleForUi(serverTitle) {
+            const raw = String(serverTitle || '').trim();
+            return uiLang === 'zh' ? (raw || t('officeTitle')) : t('officeTitle');
+        }
+        function setDocumentTitle() {
+            try { document.title = td('title'); } catch (_) {}
+        }
+        function buildLocalizedApiUrl(path) {
+            const sep = String(path || '').includes('?') ? '&' : '?';
+            return String(path || '') + sep + 'lang=' + encodeURIComponent(uiLang);
+        }
+        function authStatusLabel(status) {
+            const map = {
+                approved: td('authApproved'),
+                pending: td('authPending'),
+                rejected: td('authRejected'),
+                offline: td('authOffline'),
+            };
+            return map[String(status || '').trim()] || String(status || '');
+        }
+        function stateDisplayName(state) {
+            const map = {
+                idle: td('stateIdle'),
+                writing: td('stateWriting'),
+                researching: td('stateResearching'),
+                executing: td('stateExecuting'),
+                syncing: td('stateSyncing'),
+                error: td('stateError'),
+            };
+            return map[String(state || '').trim()] || String(state || '');
+        }
+        function guestThoughtsForState(state) {
+            const groups = {
+                idle: [td('guestIdle1'), td('guestIdle2'), td('guestIdle3')],
+                writing: [td('guestWriting1'), td('guestWriting2'), td('guestWriting3')],
+                researching: [td('guestResearching1'), td('guestResearching2'), td('guestResearching3')],
+                executing: [td('guestExecuting1'), td('guestExecuting2'), td('guestExecuting3')],
+                syncing: [td('guestSyncing1'), td('guestSyncing2'), td('guestSyncing3')],
+                error: [td('guestError1'), td('guestError2'), td('guestError3')],
+            };
+            return groups[String(state || '').trim()] || groups.idle;
+        }
+        function updateOfficeSummaryCards() {
+            const statusPayload = lastOfficeStatusPayload || {};
+            const memoPayload = lastOfficeMemoPayload || {};
+            const guests = Array.isArray(window.__lastGuestAgentsPayload) ? window.__lastGuestAgentsPayload : (Array.isArray(guestAgents) ? guestAgents : []);
+            const state = normalizeState(statusPayload.state || 'idle');
+            const statusTitle = document.getElementById('officeSummaryStatusTitle');
+            const statusBody = document.getElementById('officeSummaryStatusBody');
+            const statusMeta = document.getElementById('officeSummaryStatusMeta');
+            const statusKicker = document.getElementById('officeSummaryStatusKicker');
+            const statusDot = document.getElementById('officeSummaryDot');
+            const guideKicker = document.getElementById('officeSummaryGuideKicker');
+            const guideTitle = document.getElementById('officeSummaryGuideTitle');
+            const guideBody = document.getElementById('officeSummaryGuideBody');
+            const guideMeta = document.getElementById('officeSummaryGuideMeta');
+            const snapshotKicker = document.getElementById('officeSummarySnapshotKicker');
+            const snapshotTitle = document.getElementById('officeSummarySnapshotTitle');
+            const snapshotBody = document.getElementById('officeSummarySnapshotBody');
+            const snapshotMeta = document.getElementById('officeSummarySnapshotMeta');
+            if (statusKicker) statusKicker.textContent = summaryTextByUi('系统状态', 'System Status', 'System Status');
+            if (guideKicker) guideKicker.textContent = summaryTextByUi('阅读说明', 'How To Read', 'How To Read');
+            if (snapshotKicker) snapshotKicker.textContent = summaryTextByUi('办公室快照', 'Office Snapshot', 'Office Snapshot');
+            if (statusTitle) statusTitle.textContent = stateDisplayName(state) || td('stateIdle');
+            if (statusBody) statusBody.textContent = String(statusPayload.detail || summaryTextByUi('正在同步办公室状态…', 'Syncing office status...', 'オフィス状態を同期しています…'));
+            if (statusMeta) {
+                const officeName = officeTitleForUi(statusPayload.officeName);
+                const updatedAt = String(statusPayload.updated_at || '').trim();
+                statusMeta.textContent = updatedAt
+                    ? summaryTextByUi(`来源：${officeName} · 更新于 ${updatedAt}`, `Source: ${officeName} · Updated ${updatedAt}`, `提供元: ${officeName} · 更新 ${updatedAt}`)
+                    : summaryTextByUi(`来源：${officeName}`, `Source: ${officeName}`, `提供元: ${officeName}`);
+            }
+            if (statusDot) statusDot.className = `office-summary-dot state-${state}`;
+            if (guideTitle) guideTitle.textContent = summaryTextByUi('状态条只读', 'Status Is Read-Only', 'Status Is Read-Only');
+            if (guideBody) guideBody.textContent = summaryTextByUi(
+                '这里只展示系统运行状态，不能在此手动暂停或恢复生成。查看详情请使用顶部详情入口。',
+                'This bar only reflects system status. You cannot pause or resume generation here. Use the top detail entry to inspect the office.',
+                'このバーはシステム状態の表示専用です。ここで生成の一時停止や再開はできません。詳細は上部の入口から確認してください。'
+            );
+            if (guideMeta) guideMeta.textContent = summaryTextByUi(
+                'Orange Office 负责展示状态，不负责执行控制。',
+                'Orange Office is a status view, not an execution control panel.',
+                'Orange Office は状態表示用であり、実行操作パネルではありません。'
+            );
+            const memoText = String(memoPayload.memo || '').trim();
+            const guestCount = guests.length;
+            if (snapshotTitle) {
+                snapshotTitle.textContent = summaryTextByUi(
+                    guestCount ? `当前有 ${guestCount} 位访客在场` : '当前暂无访客在场',
+                    guestCount ? `${guestCount} visitors are currently in the office` : 'No visitors are currently in the office',
+                    guestCount ? `現在 ${guestCount} 人の訪客がいます` : '現在訪客はいません'
+                );
+            }
+            if (snapshotBody) {
+                const guestPreview = guests.slice(0, 3).map(item => String(item && item.name || '').trim()).filter(Boolean);
+                const guestLine = guestPreview.length
+                    ? summaryTextByUi(`访客：${guestPreview.join('、')}`, `Visitors: ${guestPreview.join(', ')}`, `訪客: ${guestPreview.join('、')}`)
+                    : summaryTextByUi('访客列表为空，当前更适合查看便签和历史状态。', 'The visitor list is empty, so notes and recent state are the best signal right now.', '訪客一覧は空のため、現在はメモと直近状態が主な手掛かりです。');
+                const memoLine = memoText || summaryTextByUi('昨日便签暂未返回。', 'Yesterday notes have not returned yet.', '昨日メモはまだ返ってきていません。');
+                snapshotBody.textContent = `${guestLine}\n${memoLine}`;
+            }
+            if (snapshotMeta) {
+                snapshotMeta.textContent = summaryTextByUi(
+                    guestCount ? '访客和便签均为实时快照。' : '便签为实时快照，访客列表当前为空。',
+                    guestCount ? 'Visitors and notes are both real-time snapshots.' : 'Notes are live, and the visitor list is currently empty.',
+                    guestCount ? '訪客とメモはいずれもリアルタイムのスナップショットです。' : 'メモはリアルタイムで、訪客一覧は現在空です。'
+                );
+            }
+        }
         function renderBootLoadingText(percent) {
             const loadingEl = document.getElementById('loading-text');
             if (!loadingEl) return;
@@ -1385,15 +1728,17 @@
         }
 
         function applyLanguage() {
+            document.documentElement.lang = uiLang === 'zh' ? 'zh-CN' : (uiLang === 'ja' ? 'ja' : 'en');
             STAR_OFFICE_LANGUAGE_UI.applyIdTextBindings?.(t);
             STAR_OFFICE_LANGUAGE_UI.applyIdPlaceholderBindings?.(t);
             STAR_OFFICE_LANGUAGE_UI.applySelectorTextBindings?.(t);
             STAR_OFFICE_LANGUAGE_UI.applyLangButtonState?.(uiLang);
 
-            const plaqueTitle = (typeof window.officeNameFromServer !== 'undefined' && window.officeNameFromServer) || t('officeTitle');
+            const plaqueTitle = officeTitleForUi(window.officeNameFromServer);
             if (window.officePlaqueText && window.officePlaqueText.setText) {
                 window.officePlaqueText.setText(plaqueTitle);
             }
+            setDocumentTitle();
 
             const coordsBtn = document.getElementById('coords-toggle');
             if (coordsBtn) coordsBtn.textContent = showCoords ? t('hideCoords') : t('showCoords');
@@ -1421,6 +1766,10 @@
                 const inScene = !!mapAssetPathToSprite(selectedAssetInfo.path);
                 renderSelectedAssetGuidance(selectedAssetInfo.path, inScene);
             }
+            renderGuestAgentList(window.__lastGuestAgentsPayload || guestAgents || []);
+            updateOfficeSummaryCards();
+            loadMemo();
+            fetchStatus();
 
             // 语言切换时，当前正在显示的 loading 文案也实时切换
             const overlay = document.getElementById('room-loading-overlay');
@@ -1516,18 +1865,22 @@
             const memoContent = document.getElementById('memo-content');
             
             try {
-                const response = await fetch('/yesterday-memo?t=' + Date.now(), { cache: 'no-store' });
+                const response = await fetch(buildLocalizedApiUrl('/yesterday-memo?t=' + Date.now()), { cache: 'no-store' });
                 const data = await response.json();
+                lastOfficeMemoPayload = data;
                 
                 if (data.success && data.memo) {
                     memoDate.textContent = data.date || '';
                     memoContent.innerHTML = data.memo.replace(/\n/g, '<br>');
                 } else {
-                    memoContent.innerHTML = '<div id="memo-placeholder">暂无昨日日记</div>';
+                    memoContent.innerHTML = `<div id="memo-placeholder">${td('memoEmpty')}</div>`;
                 }
+                updateOfficeSummaryCards();
             } catch (e) {
                 console.error('加载 memo 失败:', e);
-                memoContent.innerHTML = '<div id="memo-placeholder">加载失败</div>';
+                lastOfficeMemoPayload = null;
+                memoContent.innerHTML = `<div id="memo-placeholder">${td('memoLoadFailed')}</div>`;
+                updateOfficeSummaryCards();
             }
         }
 
@@ -1677,6 +2030,8 @@
         let coordsOverlay, coordsDisplay, coordsToggle;
         let showCoords = false;
         let guestAgents = [];
+        let lastOfficeStatusPayload = null;
+        let lastOfficeMemoPayload = null;
         let guestSprites = {}; // agentId -> {sprite, nameText}
         let guestBubbles = {}; // agentId -> bubble container
         const GUEST_AVATARS = ['guest_role_1','guest_role_2','guest_role_3','guest_role_4','guest_role_5','guest_role_6'];
@@ -2942,7 +3297,8 @@ function toggleBrokerPanel() {
 
             const visitors = getMergedVisitors();
             if (visitors.length === 0) {
-                list.innerHTML = '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:20px 0;">暂无访客</div>';
+                list.innerHTML = `<div style="color:#9ca3af;font-size:12px;text-align:center;padding:20px 0;">${uiLang === 'zh' ? '暂无访客' : (uiLang === 'ja' ? '訪問者はいません' : 'No visitors')}</div>`;
+                updateOfficeSummaryCards();
                 return;
             }
 
@@ -2950,23 +3306,8 @@ function toggleBrokerPanel() {
                 const name = agent.name || '未命名访客';
                 const authStatus = agent.authStatus || 'pending';
                 const state = agent.state || 'idle';
-                const statusMap = {
-                    approved: '已授权',
-                    pending: '待授权',
-                    rejected: '已拒绝',
-                    offline: '离线'
-                };
-                const stateMap = {
-                    idle: '待命',
-                    writing: '工作',
-                    researching: '调研',
-                    executing: '执行',
-                    syncing: '同步',
-                    error: '报警'
-                };
-
-                const statusText = statusMap[authStatus] || authStatus;
-                const stateText = stateMap[state] || state;
+                const statusText = authStatusLabel(authStatus);
+                const stateText = stateDisplayName(state);
                 const subtitle = `${statusText} · ${stateText}`;
 
                 const pendingActions = `<button onclick="alert('交换 skill 功能开发中')">交换skill</button><button class="leave-btn" onclick="leaveGuestAgent('${agent.agentId}','${name}')">离开房间</button>`;
@@ -2983,6 +3324,7 @@ function toggleBrokerPanel() {
                   </div>
                 `;
             }).join('');
+            updateOfficeSummaryCards();
         }
 
         function getAreaRect(area) {
@@ -3203,16 +3545,8 @@ function toggleBrokerPanel() {
                 ? (window.__demoVisitors.find(v => v.agentId === id) || window.__demoVisitors.find(v => v.name === (g.nameText && g.nameText.text)))
                 : null;
 
-            const statusThoughtsMap = {
-                idle: ['我在休息区待命', '先放松一下，等下一步任务', '我在休息充电中'],
-                writing: ['我在工作区处理任务', '正在整理文档与执行中', '工作区专注推进中'],
-                researching: ['我在调研模式，搜集信息', '正在查资料和验证线索', '研究中，稍后同步结论'],
-                executing: ['执行中，正在跑流程', '我在工作区推进任务', '正在把计划落地执行'],
-                syncing: ['同步中，马上更新状态', '正在同步进度到系统', '数据同步中请稍候'],
-                error: ['我在 bug 区排查问题', '检测到异常，正在修复', '报警中，先定位再处理']
-            };
             const agentState = (guestAgents.find(a => a.agentId === id) || {}).state || 'idle';
-            const thoughts = statusThoughtsMap[agentState] || statusThoughtsMap.idle;
+            const thoughts = guestThoughtsForState(agentState);
             const text = (demoVisitor && demoVisitor.bubbleText) ? demoVisitor.bubbleText : thoughts[Math.floor(Math.random() * thoughts.length)];
 
             if (guestBubbles[id]) {
@@ -3377,6 +3711,7 @@ function toggleBrokerPanel() {
                 .then(data => {
                     // 无论后端返回是否为数组，demo=1 都应保证本地 demo 访客可见
                     guestAgents = filterVisibleGuestAgents(Array.isArray(data) ? data : []);
+                    window.__lastGuestAgentsPayload = guestAgents;
 
                     // 新访客检测：触发 Star 欢迎气泡（只欢迎真实访客，不欢迎 demo）
                     try {
@@ -3951,8 +4286,9 @@ function toggleBrokerPanel() {
                 }
                 game.input.setDefaultCursor(on ? 'grab' : 'default');
                 if (isTouchDevice && statusText) {
-                    const info = on ? '视野拖动已开启（可左右拖动画布）' : '视野拖动已关闭（点击左上角“移动视野”可开启）';
-                    statusText.textContent = `状态：[${(STATES[currentState] && STATES[currentState].name) || '待命'}] ${info}`;
+                    const info = on ? td('touchPanOn') : td('touchPanOff');
+                    const statusLead = uiLang === 'zh' ? '状态' : (uiLang === 'ja' ? '状態' : 'Status');
+                    statusText.textContent = `${statusLead}:[${stateDisplayName(currentState) || td('stateIdle')}] ${info}`;
                 }
             }
 
@@ -4252,21 +4588,22 @@ function toggleBrokerPanel() {
         }
 
         function fetchStatus() {
-            return fetch('/status', { cache: 'no-store' })
+            return fetch(buildLocalizedApiUrl('/status'), { cache: 'no-store' })
                 .then(response => response.json())
                 .then(data => {
+                    lastOfficeStatusPayload = data;
                     try {
                         if (data.officeName) {
                             window.officeNameFromServer = data.officeName;
                             if (window.officePlaqueText && window.officePlaqueText.setText) {
-                                window.officePlaqueText.setText(data.officeName);
+                                window.officePlaqueText.setText(officeTitleForUi(data.officeName));
                             }
                         }
                         const nextState = normalizeState(data.state);
                         const stateInfo = STATES[nextState] || STATES.idle;
                         // If we're mid-transition, don't restart the path every poll
                         const changed = (pendingDesiredState === null) && (nextState !== currentState);
-                        const nextLine = '[' + stateInfo.name + '] ' + (data.detail || '...');
+                        const nextLine = '[' + stateDisplayName(nextState) + '] ' + (data.detail || td('statusEllipsis'));
                         // 不论 changed 与否，都按服务端最新状态强制一次视觉同步，避免动画卡旧状态
                         pendingDesiredState = null;
                         if (currentState !== nextState) {
@@ -4285,17 +4622,21 @@ function toggleBrokerPanel() {
                                 typewriterIndex = 0;
                             }
                         }
+                        updateOfficeSummaryCards();
                     } catch (err) {
                         console.error('fetchStatus apply error', err);
-                        typewriterTarget = '状态更新异常，正在恢复...';
+                        typewriterTarget = td('statusUpdateError');
                         typewriterText = '';
                         typewriterIndex = 0;
+                        updateOfficeSummaryCards();
                     }
                 })
                 .catch(error => {
-                    typewriterTarget = '连接失败，正在重试...';
+                    lastOfficeStatusPayload = null;
+                    typewriterTarget = td('statusRetrying');
                     typewriterText = '';
                     typewriterIndex = 0;
+                    updateOfficeSummaryCards();
                 });
         }
 

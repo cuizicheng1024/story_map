@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "吴道子", "title": "画圣", "description": "吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。", "quote": "潞州上党", "shortReview": "潞州上党", "dynasty": "唐代（盛唐）", "courtesyName": "", "artName": "", "aliases": ["吴道玄（一说本名道玄", "字道子", "但史料记载不一", "存疑）"], "birthplace": "古称阳翟（今河南省许昌市禹州市）", "avatar": "", "birth": {"date": "680年", "location": "古称阳翟（今河南省许昌市禹州市）", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84"}, "death": {"date": "759年", "location": "卒于洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "约79岁（基于存疑生卒年推算）", "highlights": {"honor": "画圣", "status": "被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。", "identities": "画家、画师", "achievements": "1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。", "works": [], "reviews": []}}, "locations": [{"name": "阳翟", "ancientName": "阳翟", "modernName": "河南省许昌市禹州市", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，家境贫寒，但自幼喜爱绘画。", "time": "约公元680年（存疑）", "duration": "少年时期", "significance": "艺术生涯的起点，早年生活为其提供了观察社会百态的素材。", "works": [], "quoteLines": []}, {"name": "洛阳（学艺与初露锋芒）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。", "time": "青年时期", "duration": "数年", "significance": "艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。", "works": [], "quoteLines": []}, {"name": "潞州上党（创作《金桥图》）", "ancientName": "创作《金桥图》地点存疑，可能为潞州上党、洛阳或长安。", "modernName": "山西省长治市", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。", "time": "开元十三年（725年）后", "duration": "短暂", "significance": "参与重大政治题材创作，显示其在宫廷画师中的核心地位。", "works": ["金桥图"], "quoteLines": []}, {"name": "泰山（存疑）", "ancientName": "泰山", "modernName": "山东省泰安市境内", "lat": 36.2001, "lng": 117.0873, "coordSystem": "WGS84", "type": "normal", "event": "可能随唐玄宗东封泰山，沿途观察山川形势。", "time": "开元十三年（725年）前后", "duration": "短暂（随驾）", "significance": "为其山水画创作积累了素材，但具体活动记载不详。", "works": [], "quoteLines": []}, {"name": "长安兴善寺", "ancientName": "长安兴善寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。", "time": "开元年间", "duration": "短暂", "significance": "进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。", "works": [], "quoteLines": []}, {"name": "洛阳天宫寺", "ancientName": "洛阳天宫寺", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。", "time": "开元年间某日", "duration": "短暂（一日）", "significance": "展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。", "works": [], "quoteLines": []}, {"name": "洛阳老君庙", "ancientName": "洛阳老君庙", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”", "time": "天宝年间", "duration": "短暂", "significance": "其道教题材壁画获得极高评价，成为后世典范。", "works": ["五圣千官图"], "quoteLines": []}, {"name": "长安（入侍宫廷）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。", "time": "开元年间（约713-741年）", "duration": "长期", "significance": "艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。", "works": [], "quoteLines": []}, {"name": "长安景云寺", "ancientName": "长安景云寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，观者如堵。", "time": "天宝年间（742-756年）", "duration": "短暂", "significance": "持续在宗教壁画领域进行创作，影响广泛。", "works": [], "quoteLines": []}, {"name": "存疑", "ancientName": "地点存疑，一说卒于洛阳，确切地点待考）", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。", "time": "约乾元年间（758-760年）", "duration": "晚年", "significance": "标志着唐代绘画一个辉煌时代的结束。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "workTexts": {"金桥图": "### 📍 重要地点：潞州上党（创作《金桥图》）", "五圣千官图": "“画手看前辈，吴生远擅场。”", "书吴道子画后": "“画至于吴道子”\n“画圣”", "送子天王图": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。"}, "workSummaries": {"金桥图": {"title": "金桥图", "aliases": [], "authors": ["吴道子"], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "唐代（盛唐）", "genre": "", "one_liner": "### 📍 重要地点：潞州上党（创作《金桥图》）", "summary": "### 📍 重要地点：潞州上党（创作《金桥图》）", "quote": "| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。", "quotes": ["| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。", "地点：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。", "事件：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。"], "quote_policy": "preferred"}, "五圣千官图": {"title": "五圣千官图", "aliases": [], "authors": [], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "", "genre": "", "one_liner": "画手看前辈，吴生远擅场。", "summary": "画手看前辈，吴生远擅场。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "书吴道子画后": {"title": "书吴道子画后", "aliases": [], "authors": [], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "", "genre": "", "one_liner": "画至于吴道子” “画圣", "summary": "画至于吴道子” “画圣", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "送子天王图": {"title": "送子天王图", "aliases": [], "authors": ["吴道子"], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "唐代（盛唐）", "genre": "", "one_liner": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "summary": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 吴道子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：吴道子\n- **别名**：吴道玄（一说本名道玄，字道子，但史料记载不一，存疑）\n- **时代**：唐代（盛唐）\n- **出生**：约公元680年（存疑），古称阳翟（今河南省许昌市禹州市）\n- **去世**：约公元759年（存疑），地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **享年**：约79岁（基于存疑生卒年推算）\n- **主要身份**：画家、画师\n- **历史地位**：被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。\n- **主要成就**：1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。\n\n### 生平概述\n吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于唐代两京（洛阳、长安）及周边地区，足迹可能东至泰山。\n- ⏱️ **时间跨度**：约公元680年 - 约公元759年（生卒年存疑，总年数约79岁）。\n- 📍 **地理范围**：以今河南省中西部、陕西省关中平原为核心。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：阳翟\n- **时间**：约公元680年（存疑）\n- **停留时间**：少年时期\n- **地点**：古称阳翟（今河南省许昌市禹州市）\n- **事件**：出生于此，家境贫寒，但自幼喜爱绘画。\n- **意义**：艺术生涯的起点，早年生活为其提供了观察社会百态的素材。\n\n### 📍 重要地点：洛阳（学艺与初露锋芒）\n- **时间**：青年时期\n- **停留时间**：数年\n- **地点**：古称洛阳（今河南省洛阳市）\n- **事件**：可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。\n- **意义**：艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。\n\n### 📍 重要地点：长安（入侍宫廷）\n- **时间**：开元年间（约713-741年）\n- **停留时间**：长期\n- **地点**：古称长安（今陕西省西安市）\n- **事件**：被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。\n- **意义**：艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。\n\n### 📍 重要地点：洛阳天宫寺\n- **时间**：开元年间某日\n- **停留时间**：短暂（一日）\n- **地点**：古称洛阳天宫寺（今河南省洛阳市）\n- **事件**：观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。\n- **意义**：展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。\n\n### 📍 重要地点：长安兴善寺\n- **时间**：开元年间\n- **停留时间**：短暂\n- **地点**：古称长安兴善寺（今陕西省西安市）\n- **事件**：绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。\n- **意义**：进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。\n\n### 📍 重要地点：潞州上党（创作《金桥图》）\n- **时间**：开元十三年（725年）后\n- **停留时间**：短暂\n- **地点**：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。\n- **事件**：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。\n- **意义**：参与重大政治题材创作，显示其在宫廷画师中的核心地位。\n\n### 📍 重要地点：长安景云寺\n- **时间**：天宝年间（742-756年）\n- **停留时间**：短暂\n- **地点**：古称长安景云寺（今陕西省西安市）\n- **事件**：绘制壁画，观者如堵。\n- **意义**：持续在宗教壁画领域进行创作，影响广泛。\n\n### 📍 重要地点：洛阳老君庙\n- **时间**：天宝年间\n- **停留时间**：短暂\n- **地点**：古称洛阳老君庙（今河南省洛阳市）\n- **事件**：绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”\n- **意义**：其道教题材壁画获得极高评价，成为后世典范。\n\n### 📍 重要地点：泰山（存疑）\n- **时间**：开元十三年（725年）前后\n- **停留时间**：短暂（随驾）\n- **地点**：古称泰山（今山东省泰安市境内）\n- **事件**：可能随唐玄宗东封泰山，沿途观察山川形势。\n- **意义**：为其山水画创作积累了素材，但具体活动记载不详。\n\n### 🔴 去世地：存疑\n- **时间**：约乾元年间（758-760年）\n- **停留时间**：晚年\n- **地点**：地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **事件**：安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。\n- **意义**：标志着唐代绘画一个辉煌时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约680年（存疑） | 阳翟 | 河南省许昌市禹州市 | （年龄：0岁）出生于阳翟（今河南禹州）。 |\n| 约700-710年 | 洛阳（学艺与初露锋芒） | 河南省洛阳市 | （年龄：约20-30岁）在洛阳等地学习书画，初露锋芒。 |\n| 开元初年 | 长安（入侍宫廷） | 陕西省西安市 | （年龄：约30余岁）被唐玄宗召入长安，成为宫廷画家。 |\n| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。 |\n| 开元、天宝年间 | 洛阳（学艺与初露锋芒） | 河南省洛阳市 | （年龄：壮年至老年）在长安、洛阳创作大量寺观壁画，声名达到顶峰。 |\n| 天宝十五载（756年） |  |  | （年龄：约76岁）安史之乱爆发，可能随玄宗入蜀，此后记载不详。 |\n| 约759年（存疑） | 地点存疑（一说卒于长安 | 陕西省西安市 | （年龄：约79岁）去世（地点存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省许昌市禹州市 | 34.1417 | 113.4881 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 山东省泰安市 | 36.2001 | 117.0873 |\n| 山西省长治市 | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "画至于吴道子，而古今之变，天下之能事毕矣", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "画至于吴道子，而古今之变，天下之能事毕矣", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "无人信高洁，谁为表予心？", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阎立本", "name": "阎立本", "file": "阎立本.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": 673, "quote": "传呼画师阎立本", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": null, "death_year": null, "quote": "**敞肩拱**", "review": "", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "吴道子", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "阎立本", "label": "同朝共现", "confidence": 0.25}, {"source": "吴道子", "target": "李春", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:15Z", "generated_at": "2026-06-22T11:31:15Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "吴道子", "title": "画圣", "description": "吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。", "quote": "潞州上党", "shortReview": "潞州上党", "dynasty": "唐代（盛唐）", "courtesyName": "", "artName": "", "aliases": ["吴道玄（一说本名道玄", "字道子", "但史料记载不一", "存疑）"], "birthplace": "古称阳翟（今河南省许昌市禹州市）", "avatar": "", "birth": {"date": "680年", "location": "古称阳翟（今河南省许昌市禹州市）", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84"}, "death": {"date": "759年", "location": "卒于洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "约79岁（基于存疑生卒年推算）", "highlights": {"honor": "画圣", "status": "被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。", "identities": "画家、画师", "achievements": "1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。", "works": [], "reviews": []}}, "locations": [{"name": "阳翟", "ancientName": "阳翟", "modernName": "河南省许昌市禹州市", "lat": 34.1417, "lng": 113.4881, "coordSystem": "WGS84", "type": "birth", "event": "出生于此，家境贫寒，但自幼喜爱绘画。", "time": "约公元680年（存疑）", "duration": "少年时期", "significance": "艺术生涯的起点，早年生活为其提供了观察社会百态的素材。", "works": [], "quoteLines": []}, {"name": "洛阳（学艺与初露锋芒）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。", "time": "青年时期", "duration": "数年", "significance": "艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。", "works": [], "quoteLines": []}, {"name": "潞州上党（创作《金桥图》）", "ancientName": "创作《金桥图》地点存疑，可能为潞州上党、洛阳或长安。", "modernName": "山西省长治市", "lat": 36.1911, "lng": 113.1136, "coordSystem": "WGS84", "type": "normal", "event": "唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。", "time": "开元十三年（725年）后", "duration": "短暂", "significance": "参与重大政治题材创作，显示其在宫廷画师中的核心地位。", "works": ["金桥图"], "quoteLines": []}, {"name": "泰山（存疑）", "ancientName": "泰山", "modernName": "山东省泰安市境内", "lat": 36.2001, "lng": 117.0873, "coordSystem": "WGS84", "type": "normal", "event": "可能随唐玄宗东封泰山，沿途观察山川形势。", "time": "开元十三年（725年）前后", "duration": "短暂（随驾）", "significance": "为其山水画创作积累了素材，但具体活动记载不详。", "works": [], "quoteLines": []}, {"name": "长安兴善寺", "ancientName": "长安兴善寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。", "time": "开元年间", "duration": "短暂", "significance": "进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。", "works": [], "quoteLines": []}, {"name": "洛阳天宫寺", "ancientName": "洛阳天宫寺", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。", "time": "开元年间某日", "duration": "短暂（一日）", "significance": "展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。", "works": [], "quoteLines": []}, {"name": "洛阳老君庙", "ancientName": "洛阳老君庙", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”", "time": "天宝年间", "duration": "短暂", "significance": "其道教题材壁画获得极高评价，成为后世典范。", "works": ["五圣千官图"], "quoteLines": []}, {"name": "长安（入侍宫廷）", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。", "time": "开元年间（约713-741年）", "duration": "长期", "significance": "艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。", "works": [], "quoteLines": []}, {"name": "长安景云寺", "ancientName": "长安景云寺", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "normal", "event": "绘制壁画，观者如堵。", "time": "天宝年间（742-756年）", "duration": "短暂", "significance": "持续在宗教壁画领域进行创作，影响广泛。", "works": [], "quoteLines": []}, {"name": "存疑", "ancientName": "地点存疑，一说卒于洛阳，确切地点待考）", "modernName": "陕西省西安市", "lat": 34.3416, "lng": 108.9398, "coordSystem": "WGS84", "type": "death", "event": "安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。", "time": "约乾元年间（758-760年）", "duration": "晚年", "significance": "标志着唐代绘画一个辉煌时代的结束。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---", "workTexts": {"金桥图": "### 📍 重要地点：潞州上党（创作《金桥图》）", "五圣千官图": "“画手看前辈，吴生远擅场。”", "书吴道子画后": "“画至于吴道子”\n“画圣”", "送子天王图": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。"}, "workSummaries": {"金桥图": {"title": "金桥图", "aliases": [], "authors": ["吴道子"], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "唐代（盛唐）", "genre": "", "one_liner": "### 📍 重要地点：潞州上党（创作《金桥图》）", "summary": "### 📍 重要地点：潞州上党（创作《金桥图》）", "quote": "| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。", "quotes": ["| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。", "地点：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。", "事件：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。"], "quote_policy": "preferred"}, "五圣千官图": {"title": "五圣千官图", "aliases": [], "authors": [], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "", "genre": "", "one_liner": "画手看前辈，吴生远擅场。", "summary": "画手看前辈，吴生远擅场。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "书吴道子画后": {"title": "书吴道子画后", "aliases": [], "authors": [], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "", "genre": "", "one_liner": "画至于吴道子” “画圣", "summary": "画至于吴道子” “画圣", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "送子天王图": {"title": "送子天王图", "aliases": [], "authors": ["吴道子"], "related_people": ["吴道子"], "source_pages": ["吴道子"], "era": "唐代（盛唐）", "genre": "", "one_liner": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "summary": "其艺术活动中心在长安和洛阳，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 吴道子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：吴道子\n- **别名**：吴道玄（一说本名道玄，字道子，但史料记载不一，存疑）\n- **时代**：唐代（盛唐）\n- **出生**：约公元680年（存疑），古称阳翟（今河南省许昌市禹州市）\n- **去世**：约公元759年（存疑），地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **享年**：约79岁（基于存疑生卒年推算）\n- **主要身份**：画家、画师\n- **历史地位**：被后世尊为“画圣”，其绘画风格被誉为“吴家样”，对后世人物画与宗教画影响深远。\n- **主要成就**：1. 开创“吴带当风”的人物画风格；2. 发展“疏体”画法，笔简意全；3. 在宗教壁画领域成就卓著，被誉为“吴装”；4. 其艺术被后世（如苏轼）评为“画至于吴道子，而古今之变，天下之能事毕矣”。\n\n### 生平概述\n吴道子生活于盛唐时期，早年孤贫，但年少时即显露绘画天赋。他曾任县尉，后被唐玄宗召入宫廷，授以“内教博士”等职，成为专属御用画家。他一生创作了大量的寺观壁画与卷轴画，其人物画造型生动，线条富有运动感与节奏感，尤其所绘天衣飞扬、满壁风动，有“吴带当风”之美誉。他的艺术活动主要集中在东都洛阳与西京长安，代表了唐代绘画艺术的最高成就之一。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于唐代两京（洛阳、长安）及周边地区，足迹可能东至泰山。\n- ⏱️ **时间跨度**：约公元680年 - 约公元759年（生卒年存疑，总年数约79岁）。\n- 📍 **地理范围**：以今河南省中西部、陕西省关中平原为核心。\n- 🌟 **重要节点数量**：核心地点数量10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：阳翟\n- **时间**：约公元680年（存疑）\n- **停留时间**：少年时期\n- **地点**：古称阳翟（今河南省许昌市禹州市）\n- **事件**：出生于此，家境贫寒，但自幼喜爱绘画。\n- **意义**：艺术生涯的起点，早年生活为其提供了观察社会百态的素材。\n\n### 📍 重要地点：洛阳（学艺与初露锋芒）\n- **时间**：青年时期\n- **停留时间**：数年\n- **地点**：古称洛阳（今河南省洛阳市）\n- **事件**：可能曾向张旭等学习书法，未成；转而专攻绘画，技艺精进。曾在洛阳天宫寺作画，名动一时。\n- **意义**：艺术风格形成的关键时期，从书法中汲取营养融入绘画线条，并开始在两京画坛崭露头角。\n\n### 📍 重要地点：长安（入侍宫廷）\n- **时间**：开元年间（约713-741年）\n- **停留时间**：长期\n- **地点**：古称长安（今陕西省西安市）\n- **事件**：被唐玄宗召入禁中，授以内教博士，一说名“道玄”（存疑），成为宫廷画家。奉诏绘制大量壁画与历史画。\n- **意义**：艺术生涯的巅峰期，在皇家支持下进行创作，确立了其画坛领袖地位。\n\n### 📍 重要地点：洛阳天宫寺\n- **时间**：开元年间某日\n- **停留时间**：短暂（一日）\n- **地点**：古称洛阳天宫寺（今河南省洛阳市）\n- **事件**：观看裴旻将军舞剑后，挥毫图壁，“俄顷而就，有若神助”。苏轼曾以“当其下手风雨快，笔所未到气已吞”形容其创作状态。\n- **意义**：展现了其创作激情与高超技艺，是“吴带当风”风格的生动体现。\n\n### 📍 重要地点：长安兴善寺\n- **时间**：开元年间\n- **停留时间**：短暂\n- **地点**：古称长安兴善寺（今陕西省西安市）\n- **事件**：绘制壁画，传说其画佛像圆光，“不用尺度”，“立笔挥扫，势若风旋”。\n- **意义**：进一步巩固其“画圣”之名，展示了其娴熟的技巧与自信。\n\n### 📍 重要地点：潞州上党（创作《金桥图》）\n- **时间**：开元十三年（725年）后\n- **停留时间**：短暂\n- **地点**：创作《金桥图》地点存疑，可能为潞州上党（今山西省长治市）、洛阳（今河南省洛阳市）或长安（今陕西省西安市）。\n- **事件**：唐玄宗封禅泰山后返回，吴道子与韦无忝、陈闳合绘《金桥图》，吴负责绘制山水、桥梁、车舆等。\n- **意义**：参与重大政治题材创作，显示其在宫廷画师中的核心地位。\n\n### 📍 重要地点：长安景云寺\n- **时间**：天宝年间（742-756年）\n- **停留时间**：短暂\n- **地点**：古称长安景云寺（今陕西省西安市）\n- **事件**：绘制壁画，观者如堵。\n- **意义**：持续在宗教壁画领域进行创作，影响广泛。\n\n### 📍 重要地点：洛阳老君庙\n- **时间**：天宝年间\n- **停留时间**：短暂\n- **地点**：古称洛阳老君庙（今河南省洛阳市）\n- **事件**：绘制《五圣千官图》壁画，杜甫有诗赞曰：“画手看前辈，吴生远擅场。”\n- **意义**：其道教题材壁画获得极高评价，成为后世典范。\n\n### 📍 重要地点：泰山（存疑）\n- **时间**：开元十三年（725年）前后\n- **停留时间**：短暂（随驾）\n- **地点**：古称泰山（今山东省泰安市境内）\n- **事件**：可能随唐玄宗东封泰山，沿途观察山川形势。\n- **意义**：为其山水画创作积累了素材，但具体活动记载不详。\n\n### 🔴 去世地：存疑\n- **时间**：约乾元年间（758-760年）\n- **停留时间**：晚年\n- **地点**：地点存疑（一说卒于长安（今陕西省西安市），一说卒于洛阳（今河南省洛阳市），确切地点待考）\n- **事件**：安史之乱后，其事迹记载模糊，晚年境况与确切卒年、地点均存疑。\n- **意义**：标志着唐代绘画一个辉煌时代的结束。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约680年（存疑） | 阳翟 | 河南省许昌市禹州市 | （年龄：0岁）出生于阳翟（今河南禹州）。 |\n| 约700-710年 | 洛阳（学艺与初露锋芒） | 河南省洛阳市 | （年龄：约20-30岁）在洛阳等地学习书画，初露锋芒。 |\n| 开元初年 | 长安（入侍宫廷） | 陕西省西安市 | （年龄：约30余岁）被唐玄宗召入长安，成为宫廷画家。 |\n| 开元十三年（725年）后 | 潞州上党（创作《金桥图》） | 陕西省西安市 | （年龄：约45岁后）参与创作《金桥图》（地点存疑，可能为潞州上党、洛阳或长安）。 |\n| 开元、天宝年间 | 洛阳（学艺与初露锋芒） | 河南省洛阳市 | （年龄：壮年至老年）在长安、洛阳创作大量寺观壁画，声名达到顶峰。 |\n| 天宝十五载（756年） |  |  | （年龄：约76岁）安史之乱爆发，可能随玄宗入蜀，此后记载不详。 |\n| 约759年（存疑） | 地点存疑（一说卒于长安 | 陕西省西安市 | （年龄：约79岁）去世（地点存疑）。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：在语文教材中，吴道子常作为**盛唐艺术**的代表人物被提及，其画作本身不直接作为课文，但其艺术成就常出现在相关历史、文化介绍或古诗文注释中。\n- 核心要点：\n    - **重点**：**“吴带当风”** 是其人物画风格的典型概括，指所绘人物衣带宛若迎风飘曳，极具动感。\n    - **重点**：画风被称为“**疏体**”，用笔简练、概括，与顾恺之、陆探微细密的“密体”风格形成对比。\n    - **重点**：苏轼在《书吴道子画后》中对其评价极高，称“**画至于吴道子**”，确立了其“画圣”的历史地位。\n    - 其艺术体现了盛唐**雄浑、豪迈、自信**的时代精神。\n    - 在宗教画（**佛教、道教壁画**）领域成就卓越，塑造的神仙形象成为后世范本。\n    - 线条运用被形容为“**吴装**”、“**吴家样**”，影响深远。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：活跃于**唐玄宗**开元、天宝年间，是**盛唐文化**繁荣的标志性人物之一。\n    - **重点**：曾任**内教博士**、**宁王友**等职，是服务于宫廷的**专业画家**。\n    - 其艺术活动中心在**长安**和**洛阳**，创作了大量壁画，但真迹无存，现有摹本如《送子天王图》（传）。\n- 核心要点：\n    - **重点**：吴道子的艺术成就，是**唐代绘画**，特别是**人物画和宗教壁画**达到巅峰的象征。\n    - 他的出现标志着中国人物画技法的一次重大变革，从“**迹简意淡**”的古风转向更为成熟、生动的风格。\n    - **重点**：其“**吴家样**”与周昉的“**周家样**”并立，成为后世道释画科的重要典范。\n    - 他的故事（如观裴旻舞剑助益画思）反映了唐代**不同艺术门类之间相互影响、滋养**的文化氛围。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| :--- | :--- | :--- |\n| 河南省许昌市禹州市 | 34.1417 | 113.4881 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 陕西省西安市 | 34.3416 | 108.9398 |\n| 山东省泰安市 | 36.2001 | 117.0873 |\n| 山西省长治市 | 36.1911 | 113.1136 |", "relatedGraph": {"center": {"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "画至于吴道子，而古今之变，天下之能事毕矣", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "吴道子", "name": "吴道子", "file": "吴道子.html", "dynasty": "唐代（盛唐）", "aliases": [], "birth_year": 680, "death_year": 759, "quote": "画至于吴道子，而古今之变，天下之能事毕矣", "review": "潞州上党", "foreign_name": "", "main_role_label": "画家", "birthplace": "古称阳翟", "birthplace_modern": "河南省许昌市禹州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "骆宾王", "name": "骆宾王", "file": "骆宾王.html", "dynasty": "唐代", "aliases": [], "birth_year": 619, "death_year": 684, "quote": "无人信高洁，谁为表予心？", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "婺州义乌", "birthplace_modern": "浙江义乌", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈子昂", "name": "陈子昂", "file": "陈子昂.html", "dynasty": "唐代（武则天时期）", "aliases": [], "birth_year": 659, "death_year": 700, "quote": "射洪县令段简贪暴，闻其富，欲害子昂，家人纳钱二十万缗，简薄其赂，捕送狱中。子昂之见捕，自筮，卦成，惊曰：‘天命不佑，吾殆死乎！’果死狱中", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "梓州射洪", "birthplace_modern": "四川省遂宁市射洪市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陆羽", "name": "陆羽", "file": "陆羽.html", "dynasty": "唐代", "aliases": [], "birth_year": 733, "death_year": 804, "quote": "缁素忘年之交", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "复州竟陵", "birthplace_modern": "湖北天门", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鉴真", "name": "鉴真", "file": "鉴真.html", "dynasty": "唐代", "aliases": [], "birth_year": 688, "death_year": 763, "quote": "鉴真，俗姓淳于，唐代扬州人", "review": "", "foreign_name": "", "main_role_label": "医学家", "birthplace": "古称扬州", "birthplace_modern": "江苏省扬州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阎立本", "name": "阎立本", "file": "阎立本.html", "dynasty": "唐代", "aliases": [], "birth_year": null, "death_year": 673, "quote": "传呼画师阎立本", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李春", "name": "李春", "file": "李春.html", "dynasty": "隋代", "aliases": [], "birth_year": null, "death_year": null, "quote": "**敞肩拱**", "review": "", "foreign_name": "", "main_role_label": "工程师", "birthplace": "可能为今河北省中南部", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "吴道子", "target": "骆宾王", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陈子昂", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "陆羽", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "鉴真", "label": "同时代人物", "confidence": null}, {"source": "吴道子", "target": "阎立本", "label": "同朝共现", "confidence": 0.25}, {"source": "吴道子", "target": "李春", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:16Z", "generated_at": "2026-06-25T07:13:16Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:15Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:16Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

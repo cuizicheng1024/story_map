@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "李治", "title": "", "description": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "shortReview": "上以慰先帝之灵，下以释苍生之愤。", "dynasty": "唐朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "628年", "location": "长安（今陕西省西安市）", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84"}, "death": {"date": "683年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "56岁（虚岁）", "highlights": {"honor": "", "status": "唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。", "identities": "皇帝", "achievements": "承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "birth", "event": "作为唐太宗李世民与长孙皇后的幼子出生于太极宫。", "time": "公元628年", "duration": "少年时期", "significance": "皇子身份，为其后被立为太子并继承大统提供了血统基础。", "works": [], "quoteLines": []}, {"name": "并州（晋王封地）", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。", "time": "公元631年 - 643年（名义封地期间）", "duration": "李治受封后并未就藩，一直居于长安。", "significance": "晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。", "works": [], "quoteLines": []}, {"name": "长安太极宫（登基为帝）", "ancientName": "长安太极宫", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "normal", "event": "贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。", "time": "公元649年", "duration": "即位初期常居于此", "significance": "正式成为唐朝第三位皇帝，开启“永徽之治”。", "works": [], "quoteLines": []}, {"name": "洛阳宫（二圣临朝）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。", "time": "公元657年起频繁往来", "duration": "断续居住，后期常驻", "significance": "政治中心东移，武则天权力巩固的关键地点。", "works": [], "quoteLines": []}, {"name": "九成宫（避暑理政）", "ancientName": "九成宫", "modernName": "陕西省宝鸡市麟游县", "lat": 34.681, "lng": 107.795, "coordSystem": "WGS84", "type": "normal", "event": "高宗多次赴九成宫避暑，并在此处理政务，接见使臣。", "time": "多次前往，如公元659年、665年", "duration": "每次数月", "significance": "唐代重要的皇家避暑行宫与政治活动场所。", "works": [], "quoteLines": []}, {"name": "嵩山（祭祀中岳）", "ancientName": "嵩山", "modernName": "河南省登封市", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。", "time": "公元666年", "duration": "祭祀期间", "significance": "彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。", "works": [], "quoteLines": []}, {"name": "奉天宫（病重）", "ancientName": "奉天宫（位于嵩山南麓，", "modernName": "河南省登封市）", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。", "time": "公元682年 - 683年", "duration": "约一年", "significance": "高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。", "works": [], "quoteLines": []}, {"name": "翠微宫（病笃）", "ancientName": "翠微宫", "modernName": "陕西省西安市长安区", "lat": 34.01, "lng": 108.85, "coordSystem": "WGS84", "type": "normal", "event": "弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。", "time": "公元683年末", "duration": "临终前", "significance": "高宗去世前的最后停留地之一。", "works": [], "quoteLines": []}, {"name": "洛阳贞观殿", "ancientName": "洛阳贞观殿", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。", "time": "公元683年12月27日", "duration": "临终", "significance": "一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "workTexts": {"平高句丽诏": "上以慰先帝之灵，下以释苍生之愤。", "新唐书·高句丽传": "“灭高句丽”", "新唐书": "“灭高句丽”", "高句丽传": "“灭高句丽”"}, "workSummaries": {"平高句丽诏": {"title": "平高句丽诏", "aliases": [], "authors": ["唐高宗"], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "唐朝", "genre": "", "one_liner": "上以慰先帝之灵，下以释苍生之愤。", "summary": "上以慰先帝之灵，下以释苍生之愤。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "quotes": ["上以慰先帝之灵，下以释苍生之愤。"], "quote_policy": "preferred"}, "旧唐书": {"title": "旧唐书", "aliases": [], "authors": ["上官婉儿", "阎立本"], "related_people": ["阿倍仲麻吕", "大祚荣", "高适", "郭子仪", "李世民", "李渊", "骆宾王", "上官婉儿", "松赞干布", "唐高宗", "唐太宗", "武则天", "阎立本", "颜真卿", "虞世南"], "source_pages": ["阿倍仲麻吕", "大祚荣", "高适", "郭子仪", "李世民", "李渊", "骆宾王", "上官婉儿", "松赞干布", "唐高宗", "唐太宗", "武则天", "阎立本", "颜真卿", "虞世南"], "era": "唐代（初唐）", "genre": "书信/论说文", "one_liner": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "summary": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "quote": "1. 《旧唐书》评价：“（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "quotes": ["1. 《旧唐书》评价：“（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "教材可能引用《旧唐书》等史料，引导学生辩证看待其政治才能与历史功过。"], "quote_policy": "preferred"}, "新唐书": {"title": "新唐书", "aliases": [], "authors": ["阎立本"], "related_people": ["阿倍仲麻吕", "陈子昂", "大祚荣", "高适", "骨力裴罗", "黄巢", "李世民", "骆宾王", "欧阳修", "唐高宗", "唐太宗", "王仙芝", "阎立本"], "source_pages": ["阿倍仲麻吕", "陈子昂", "大祚荣", "高适", "骨力裴罗", "黄巢", "李世民", "骆宾王", "欧阳修", "唐高宗", "唐太宗", "王仙芝", "阎立本"], "era": "唐代", "genre": "书信/论说文", "one_liner": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "summary": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "quote": "此事被《旧唐书》、《新唐书》记载，成为画史名典。", "quotes": ["此事被《旧唐书》、《新唐书》记载，成为画史名典。"], "quote_policy": "preferred"}, "资治通鉴": {"title": "资治通鉴", "aliases": [], "authors": ["顾颉刚", "郭子仪", "司马光", "朱温"], "related_people": ["法正", "顾颉刚", "郭子仪", "霍光", "司马光", "太平公主", "唐高宗", "唐太宗", "王仙芝", "荀彧", "朱温"], "source_pages": ["法正", "顾颉刚", "郭子仪", "霍光", "司马光", "太平公主", "唐高宗", "唐太宗", "王仙芝", "荀彧", "朱温"], "era": "清末至中华人民共和国", "genre": "", "one_liner": "| 1958 | | | （年龄：65）主持标点《资治通鉴》工作完成。", "summary": "| 1958 | | | （年龄：65）主持标点《资治通鉴》工作完成。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "新唐书·高句丽传": {"title": "新唐书·高句丽传", "aliases": ["新唐书", "高句丽传"], "authors": [], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "", "genre": "传记", "one_liner": "灭高句丽", "summary": "灭高句丽", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "永徽律疏": {"title": "永徽律疏", "aliases": [], "authors": [], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "", "genre": "", "one_liner": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "summary": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "唐律疏议": {"title": "唐律疏议", "aliases": [], "authors": [], "related_people": ["唐高宗", "唐太宗"], "source_pages": ["唐高宗", "唐太宗"], "era": "", "genre": "", "one_liner": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "summary": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 唐高宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李治\n- **时代**：唐朝\n- **出生**：公元628年，长安（今陕西省西安市）\n- **去世**：公元683年，洛阳（今河南省洛阳市）\n- **享年**：56岁（虚岁）\n- **主要身份**：皇帝\n- **历史地位**：唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。\n- **主要成就**：承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。\n\n### 生平概述\n唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以两京（长安、洛阳）为核心，足迹涉及并州（太原）、辽东战场及关中行宫。\n- ⏱️ **时间跨度**：公元628年 - 公元683年，共56年。\n- 📍 **地理范围**：唐朝核心统治区域，主要在今陕西、河南、山西及朝鲜半岛。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：长安\n- **时间**：公元628年\n- **停留时间**：少年时期\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐太宗李世民与长孙皇后的幼子出生于太极宫。\n- **意义**：皇子身份，为其后被立为太子并继承大统提供了血统基础。\n\n### 📍 重要地点：并州（晋王封地）\n- **时间**：公元631年 - 643年（名义封地期间）\n- **停留时间**：李治受封后并未就藩，一直居于长安。\n- **地点**：并州（今山西省太原市）\n- **事件**：贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。\n- **意义**：晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。\n\n### 📍 重要地点：长安太极宫（登基为帝）\n- **时间**：公元649年\n- **停留时间**：即位初期常居于此\n- **地点**：长安太极宫（今陕西省西安市）\n- **事件**：贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。\n- **意义**：正式成为唐朝第三位皇帝，开启“永徽之治”。\n\n### 📍 重要地点：洛阳宫（二圣临朝）\n- **时间**：公元657年起频繁往来\n- **停留时间**：断续居住，后期常驻\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。\n- **意义**：政治中心东移，武则天权力巩固的关键地点。\n\n### 📍 重要地点：辽东（征高句丽）\n- **时间**：公元668年（战役决胜年）\n- **停留时间**：高宗未亲征，此为其决策指挥的战役。\n- **地点**：辽东地区及朝鲜半岛北部（今中国辽宁省东部及朝鲜民主主义人民共和国平壤市）\n- **事件**：总章元年（668年），唐军在李勣率领下攻破平壤，灭亡高句丽。此战是其在位期间完成的最重要军事成就之一。\n- **意义**：完成了隋唐两代帝王未竟之业，唐朝版图扩张至朝鲜半岛。\n- **名篇名句**：《平高句丽诏》：“上以慰先帝之灵，下以释苍生之愤。”\n\n### 📍 重要地点：九成宫（避暑理政）\n- **时间**：多次前往，如公元659年、665年\n- **停留时间**：每次数月\n- **地点**：九成宫（今陕西省宝鸡市麟游县）\n- **事件**：高宗多次赴九成宫避暑，并在此处理政务，接见使臣。\n- **意义**：唐代重要的皇家避暑行宫与政治活动场所。\n\n### 📍 重要地点：嵩山（祭祀中岳）\n- **时间**：公元666年\n- **停留时间**：祭祀期间\n- **地点**：嵩山（今河南省登封市）\n- **事件**：乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。\n- **意义**：彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。\n\n### 📍 重要地点：奉天宫（病重）\n- **时间**：公元682年 - 683年\n- **停留时间**：约一年\n- **地点**：奉天宫（位于嵩山南麓，今河南省登封市）\n- **事件**：永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。\n- **意义**：高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。\n\n### 📍 重要地点：翠微宫（病笃）\n- **时间**：公元683年末\n- **停留时间**：临终前\n- **地点**：翠微宫（今陕西省西安市长安区）\n- **事件**：弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。\n- **意义**：高宗去世前的最后停留地之一。\n\n### 🔴 去世地：洛阳贞观殿\n- **时间**：公元683年12月27日\n- **停留时间**：临终\n- **地点**：洛阳贞观殿（今河南省洛阳市）\n- **事件**：弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。\n- **意义**：一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 628年 | 长安 | 陕西省西安市 | （年龄：0岁）生于长安。 |\n| 631年 |  |  | （年龄：3岁）封晋王。 |\n| 643年 |  |  | （年龄：15岁）被立为皇太子。 |\n| 649年 |  |  | （年龄：21岁）即皇帝位，是为唐高宗。 |\n| 651年 |  |  | （年龄：23岁）永徽二年，召武则天再度入宫（具体时间存疑）。 |\n| 655年 |  |  | （年龄：27岁）永徽六年，立武则天为皇后。 |\n| 657年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：29岁）显庆二年，以洛阳为东都。 |\n| 660年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：32岁）显庆五年，高宗风疾发作，委政于武后，“二圣临朝”开始。 |\n| 668年 |  |  | （年龄：40岁）总章元年，唐灭高句丽。 |\n| 683年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：56岁）驾崩于洛阳，遗诏令武则天参与决事。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省西安市（长安） | 34.2637 | 108.9425 |\n| 河南省洛阳市（洛阳） | 34.6201 | 112.4540 |\n| 山西省太原市（并州） | 37.8706 | 112.5489 |\n| 陕西省麟游县（九成宫） | 34.6810 | 107.7950 |\n| 河南省登封市（嵩山） | 34.4560 | 113.0500 |\n| 河南省登封市（奉天宫） | 34.4600 | 113.0600 |\n| 陕西省西安市长安区（翠微宫） | 34.0100 | 108.8500 |", "relatedGraph": {"center": {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "上以慰先帝之灵，下以释苍生之愤。", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "上以慰先帝之灵，下以释苍生之愤。", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "武则天", "name": "武则天", "file": "武则天.html", "dynasty": "唐朝（唐太宗、高宗时期）、武周", "aliases": [], "birth_year": 624, "death_year": 705, "quote": "利州（今四川省广元市）", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "慨然抚长剑，济世岂邀名。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐朝", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "秦川雄帝宅，函谷壮皇居。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "文成公主", "name": "文成公主", "file": "文成公主.html", "dynasty": "唐朝（吐蕃崛起时期）", "aliases": [], "birth_year": null, "death_year": 680, "quote": "**和亲**", "review": "", "foreign_name": "", "main_role_label": "吐蕃赞普王妃", "birthplace": "公元", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐玄宗", "name": "唐玄宗", "file": "唐玄宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 685, "death_year": 762, "quote": "**重色思倾国**", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "东都洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "姓李氏，陇西成纪人也。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "唐高宗", "target": "武则天", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "文成公主", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "唐玄宗", "label": "同朝共现", "confidence": 0.25}, {"source": "唐高宗", "target": "李渊", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:16Z", "generated_at": "2026-06-22T11:31:16Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "李治", "title": "", "description": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "shortReview": "上以慰先帝之灵，下以释苍生之愤。", "dynasty": "唐朝", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "长安（今陕西省西安市）", "avatar": "", "birth": {"date": "628年", "location": "长安（今陕西省西安市）", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84"}, "death": {"date": "683年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "56岁（虚岁）", "highlights": {"honor": "", "status": "唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。", "identities": "皇帝", "achievements": "承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。", "works": [], "reviews": []}}, "locations": [{"name": "长安", "ancientName": "长安", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "birth", "event": "作为唐太宗李世民与长孙皇后的幼子出生于太极宫。", "time": "公元628年", "duration": "少年时期", "significance": "皇子身份，为其后被立为太子并继承大统提供了血统基础。", "works": [], "quoteLines": []}, {"name": "并州（晋王封地）", "ancientName": "并州", "modernName": "山西省太原市", "lat": 37.8706, "lng": 112.5489, "coordSystem": "WGS84", "type": "normal", "event": "贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。", "time": "公元631年 - 643年（名义封地期间）", "duration": "李治受封后并未就藩，一直居于长安。", "significance": "晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。", "works": [], "quoteLines": []}, {"name": "长安太极宫（登基为帝）", "ancientName": "长安太极宫", "modernName": "陕西省西安市", "lat": 34.2637, "lng": 108.9425, "coordSystem": "WGS84", "type": "normal", "event": "贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。", "time": "公元649年", "duration": "即位初期常居于此", "significance": "正式成为唐朝第三位皇帝，开启“永徽之治”。", "works": [], "quoteLines": []}, {"name": "洛阳宫（二圣临朝）", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。", "time": "公元657年起频繁往来", "duration": "断续居住，后期常驻", "significance": "政治中心东移，武则天权力巩固的关键地点。", "works": [], "quoteLines": []}, {"name": "九成宫（避暑理政）", "ancientName": "九成宫", "modernName": "陕西省宝鸡市麟游县", "lat": 34.681, "lng": 107.795, "coordSystem": "WGS84", "type": "normal", "event": "高宗多次赴九成宫避暑，并在此处理政务，接见使臣。", "time": "多次前往，如公元659年、665年", "duration": "每次数月", "significance": "唐代重要的皇家避暑行宫与政治活动场所。", "works": [], "quoteLines": []}, {"name": "嵩山（祭祀中岳）", "ancientName": "嵩山", "modernName": "河南省登封市", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。", "time": "公元666年", "duration": "祭祀期间", "significance": "彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。", "works": [], "quoteLines": []}, {"name": "奉天宫（病重）", "ancientName": "奉天宫（位于嵩山南麓，", "modernName": "河南省登封市）", "lat": 34.46, "lng": 113.06, "coordSystem": "WGS84", "type": "normal", "event": "永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。", "time": "公元682年 - 683年", "duration": "约一年", "significance": "高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。", "works": [], "quoteLines": []}, {"name": "翠微宫（病笃）", "ancientName": "翠微宫", "modernName": "陕西省西安市长安区", "lat": 34.01, "lng": 108.85, "coordSystem": "WGS84", "type": "normal", "event": "弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。", "time": "公元683年末", "duration": "临终前", "significance": "高宗去世前的最后停留地之一。", "works": [], "quoteLines": []}, {"name": "洛阳贞观殿", "ancientName": "洛阳贞观殿", "modernName": "河南省洛阳市", "lat": 34.6201, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。", "time": "公元683年12月27日", "duration": "临终", "significance": "一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---", "workTexts": {"平高句丽诏": "上以慰先帝之灵，下以释苍生之愤。", "新唐书·高句丽传": "“灭高句丽”", "新唐书": "“灭高句丽”", "高句丽传": "“灭高句丽”"}, "workSummaries": {"平高句丽诏": {"title": "平高句丽诏", "aliases": [], "authors": ["唐高宗"], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "唐朝", "genre": "", "one_liner": "上以慰先帝之灵，下以释苍生之愤。", "summary": "上以慰先帝之灵，下以释苍生之愤。", "quote": "上以慰先帝之灵，下以释苍生之愤。", "quotes": ["上以慰先帝之灵，下以释苍生之愤。"], "quote_policy": "preferred"}, "旧唐书": {"title": "旧唐书", "aliases": [], "authors": ["上官婉儿", "阎立本"], "related_people": ["阿倍仲麻吕", "大祚荣", "高适", "郭子仪", "李世民", "李渊", "骆宾王", "上官婉儿", "松赞干布", "唐高宗", "唐太宗", "武则天", "阎立本", "颜真卿", "虞世南"], "source_pages": ["阿倍仲麻吕", "大祚荣", "高适", "郭子仪", "李世民", "李渊", "骆宾王", "上官婉儿", "松赞干布", "唐高宗", "唐太宗", "武则天", "阎立本", "颜真卿", "虞世南"], "era": "唐代（初唐）", "genre": "书信/论说文", "one_liner": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "summary": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "quote": "1. 《旧唐书》评价：“（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "quotes": ["1. 《旧唐书》评价：“（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "（婉儿）自通天以来，内掌诏命，掞丽可观……然其评品人才，文章取舍，颇为当时所称。", "教材可能引用《旧唐书》等史料，引导学生辩证看待其政治才能与历史功过。"], "quote_policy": "preferred"}, "新唐书": {"title": "新唐书", "aliases": [], "authors": ["阎立本"], "related_people": ["阿倍仲麻吕", "陈子昂", "大祚荣", "高适", "骨力裴罗", "黄巢", "李世民", "骆宾王", "欧阳修", "唐高宗", "唐太宗", "王仙芝", "阎立本"], "source_pages": ["阿倍仲麻吕", "陈子昂", "大祚荣", "高适", "骨力裴罗", "黄巢", "李世民", "骆宾王", "欧阳修", "唐高宗", "唐太宗", "王仙芝", "阎立本"], "era": "唐代", "genre": "书信/论说文", "one_liner": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "summary": "高适早年家境贫寒，游历于梁、宋（今河南开封、商丘）地区，过着“混迹渔樵”的生活，直至近五十岁才因人推荐中有道科，授封丘县尉", "quote": "此事被《旧唐书》、《新唐书》记载，成为画史名典。", "quotes": ["此事被《旧唐书》、《新唐书》记载，成为画史名典。"], "quote_policy": "preferred"}, "资治通鉴": {"title": "资治通鉴", "aliases": [], "authors": ["顾颉刚", "郭子仪", "司马光", "朱温"], "related_people": ["法正", "顾颉刚", "郭子仪", "霍光", "司马光", "太平公主", "唐高宗", "唐太宗", "王仙芝", "荀彧", "朱温"], "source_pages": ["法正", "顾颉刚", "郭子仪", "霍光", "司马光", "太平公主", "唐高宗", "唐太宗", "王仙芝", "荀彧", "朱温"], "era": "清末至中华人民共和国", "genre": "", "one_liner": "| 1958 | | | （年龄：65）主持标点《资治通鉴》工作完成。", "summary": "| 1958 | | | （年龄：65）主持标点《资治通鉴》工作完成。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "新唐书·高句丽传": {"title": "新唐书·高句丽传", "aliases": ["新唐书", "高句丽传"], "authors": [], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "", "genre": "传记", "one_liner": "灭高句丽", "summary": "灭高句丽", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "永徽律疏": {"title": "永徽律疏", "aliases": [], "authors": [], "related_people": ["唐高宗"], "source_pages": ["唐高宗"], "era": "", "genre": "", "one_liner": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "summary": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "唐律疏议": {"title": "唐律疏议", "aliases": [], "authors": [], "related_people": ["唐高宗", "唐太宗"], "source_pages": ["唐高宗", "唐太宗"], "era": "", "genre": "", "one_liner": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "summary": "唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 唐高宗\n\n## 人物档案\n\n### 基本信息\n- **姓名**：李治\n- **时代**：唐朝\n- **出生**：公元628年，长安（今陕西省西安市）\n- **去世**：公元683年，洛阳（今河南省洛阳市）\n- **享年**：56岁（虚岁）\n- **主要身份**：皇帝\n- **历史地位**：唐朝第三位皇帝，承前启后，在位期间版图达到最大，亦为武周代唐埋下伏笔。\n- **主要成就**：承袭“贞观之治”，开创“永徽之政”；灭亡西突厥、百济、高句丽；在位时唐朝疆域最广。\n\n### 生平概述\n唐高宗李治是唐太宗第九子，初封晋王，后因太子李承乾被废、魏王李泰被黜，于贞观十七年（643年）被立为太子。公元649年即位，初期由长孙无忌、褚遂良等辅政，政治清明，史称“永徽之治”。他性格仁弱但不乏决断，执意立武则天为皇后，打破了关陇贵族的政治格局。中年后因患风疾（可能为高血压或心脑血管疾病），常头晕目眩，遂委政于武则天，形成“二圣临朝”局面，为武周革命奠定了基础。对外，他继续开疆拓土，一般认为唐朝版图东至朝鲜半岛，西达咸海一带，北包贝加尔湖，南抵越南中部，达到极盛。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：以两京（长安、洛阳）为核心，足迹涉及并州（太原）、辽东战场及关中行宫。\n- ⏱️ **时间跨度**：公元628年 - 公元683年，共56年。\n- 📍 **地理范围**：唐朝核心统治区域，主要在今陕西、河南、山西及朝鲜半岛。\n- 🌟 **重要节点数量**：10个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：长安\n- **时间**：公元628年\n- **停留时间**：少年时期\n- **地点**：长安（今陕西省西安市）\n- **事件**：作为唐太宗李世民与长孙皇后的幼子出生于太极宫。\n- **意义**：皇子身份，为其后被立为太子并继承大统提供了血统基础。\n\n### 📍 重要地点：并州（晋王封地）\n- **时间**：公元631年 - 643年（名义封地期间）\n- **停留时间**：李治受封后并未就藩，一直居于长安。\n- **地点**：并州（今山西省太原市）\n- **事件**：贞观五年（631年），年仅四岁的李治被封为晋王，并授并州都督。因年幼未就藩，但并州作为其王号来源地与“龙兴之地”具有特殊意义。\n- **意义**：晋王封号是其政治生涯的起点。并州是李唐王朝的发祥地，此封号具有象征意义。\n\n### 📍 重要地点：长安太极宫（登基为帝）\n- **时间**：公元649年\n- **停留时间**：即位初期常居于此\n- **地点**：长安太极宫（今陕西省西安市）\n- **事件**：贞观二十三年（649年），唐太宗驾崩，李治于太极宫柩前即位。\n- **意义**：正式成为唐朝第三位皇帝，开启“永徽之治”。\n\n### 📍 重要地点：洛阳宫（二圣临朝）\n- **时间**：公元657年起频繁往来\n- **停留时间**：断续居住，后期常驻\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：显庆二年（657年）以洛阳为东都。高宗因风疾常居洛阳，武则天在此深度参与朝政，形成“二圣临朝”格局。\n- **意义**：政治中心东移，武则天权力巩固的关键地点。\n\n### 📍 重要地点：辽东（征高句丽）\n- **时间**：公元668年（战役决胜年）\n- **停留时间**：高宗未亲征，此为其决策指挥的战役。\n- **地点**：辽东地区及朝鲜半岛北部（今中国辽宁省东部及朝鲜民主主义人民共和国平壤市）\n- **事件**：总章元年（668年），唐军在李勣率领下攻破平壤，灭亡高句丽。此战是其在位期间完成的最重要军事成就之一。\n- **意义**：完成了隋唐两代帝王未竟之业，唐朝版图扩张至朝鲜半岛。\n- **名篇名句**：《平高句丽诏》：“上以慰先帝之灵，下以释苍生之愤。”\n\n### 📍 重要地点：九成宫（避暑理政）\n- **时间**：多次前往，如公元659年、665年\n- **停留时间**：每次数月\n- **地点**：九成宫（今陕西省宝鸡市麟游县）\n- **事件**：高宗多次赴九成宫避暑，并在此处理政务，接见使臣。\n- **意义**：唐代重要的皇家避暑行宫与政治活动场所。\n\n### 📍 重要地点：嵩山（祭祀中岳）\n- **时间**：公元666年\n- **停留时间**：祭祀期间\n- **地点**：嵩山（今河南省登封市）\n- **事件**：乾封元年（666年），高宗在泰山封禅后，又亲赴嵩山祭祀，封其神为“天中王”。\n- **意义**：彰显皇权神授，粉饰太平，是其文治武功的顶峰展示。\n\n### 📍 重要地点：奉天宫（病重）\n- **时间**：公元682年 - 683年\n- **停留时间**：约一年\n- **地点**：奉天宫（位于嵩山南麓，今河南省登封市）\n- **事件**：永淳元年（682年）建奉天宫。弘道元年（683年），高宗在此病重，欲登则天门（位于洛阳）宣赦，因病重未能成行，乃召百姓入殿前宣诏。\n- **意义**：高宗生命最后阶段的主要居所，见证了其健康状况的急剧恶化。\n\n### 📍 重要地点：翠微宫（病笃）\n- **时间**：公元683年末\n- **停留时间**：临终前\n- **地点**：翠微宫（今陕西省西安市长安区）\n- **事件**：弘道元年（683年）十二月，自奉天宫病重返回东都途中，暂驻翠微宫，病情加剧。\n- **意义**：高宗去世前的最后停留地之一。\n\n### 🔴 去世地：洛阳贞观殿\n- **时间**：公元683年12月27日\n- **停留时间**：临终\n- **地点**：洛阳贞观殿（今河南省洛阳市）\n- **事件**：弘道元年十二月丁巳日（683年12月27日），高宗驾崩于贞观殿。遗诏太子李显柩前即位，军国大事有不决者，兼取天后（武则天）进止。\n- **意义**：一个时代的结束。其遗诏为武则天继续掌权提供了合法性，直接导致了后来的武周革命。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 628年 | 长安 | 陕西省西安市 | （年龄：0岁）生于长安。 |\n| 631年 |  |  | （年龄：3岁）封晋王。 |\n| 643年 |  |  | （年龄：15岁）被立为皇太子。 |\n| 649年 |  |  | （年龄：21岁）即皇帝位，是为唐高宗。 |\n| 651年 |  |  | （年龄：23岁）永徽二年，召武则天再度入宫（具体时间存疑）。 |\n| 655年 |  |  | （年龄：27岁）永徽六年，立武则天为皇后。 |\n| 657年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：29岁）显庆二年，以洛阳为东都。 |\n| 660年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：32岁）显庆五年，高宗风疾发作，委政于武后，“二圣临朝”开始。 |\n| 668年 |  |  | （年龄：40岁）总章元年，唐灭高句丽。 |\n| 683年 | 洛阳宫（二圣临朝） | 河南省洛阳市 | （年龄：56岁）驾崩于洛阳，遗诏令武则天参与决事。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：唐高宗本人无著名文学作品传世，其相关史料主要见于《旧唐书》、《新唐书》及《资治通鉴》。\n- 核心要点：\n    - **重点**：其历史形象常与 **“永徽之治”** 相联系，被视为贞观之治的延续。\n    - **重点**：在叙述 **武则天** 的崛起时，高宗是关键的推动者和授权者，其 **“废王立武”** 事件是重要的政治转折点。\n    - 其朝政决策常作为分析 **“二圣临朝”** 这一特殊政治格局的背景。\n    - 在涉及唐代对外关系的课文（如《新唐书·高句丽传》）中，其在位期间 **“灭高句丽”** 是重要史实。\n    - 其健康状况与权力让渡，是理解 **武周代唐** 历史进程的重要因素。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**“永徽之政”**：即位初期，勤于政事，百姓阜安，有贞观遗风。\n    - **重点**：**“废王皇后，立武则天”**（655年）：打破关陇贵族集团对后宫的控制，是皇权与旧贵族斗争的关键胜利。\n    - 完成对 **西突厥**（657年）、**百济**（660年）、**高句丽**（668年）的征服，使唐朝疆域达到极盛。\n    - 修订 **《永徽律疏》**（即《唐律疏议》），是中国现存最完整、最古老的一部法典。\n- 核心要点：\n    - **重点**：历史定位为 **承上启下** 的守成之君，既延续了“贞观之治”的繁荣，也为“开元盛世”奠定了基础，同时埋下了 **武周革命** 的种子。\n    - **重点**：其健康状况（**风疾**）与 **武则天参政** 的因果关系，是理解高宗朝后期政治生态的核心。\n    - **重点**：在位期间唐朝 **版图最大**，但频繁的战争也消耗了国力。\n    - 其与 **长孙无忌、褚遂良** 等元老重臣的斗争，反映了皇权强化的趋势。\n    - 晚年政治依赖武则天，导致 **皇权旁落**，为后世史家所诟病。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 陕西省西安市（长安） | 34.2637 | 108.9425 |\n| 河南省洛阳市（洛阳） | 34.6201 | 112.4540 |\n| 山西省太原市（并州） | 37.8706 | 112.5489 |\n| 陕西省麟游县（九成宫） | 34.6810 | 107.7950 |\n| 河南省登封市（嵩山） | 34.4560 | 113.0500 |\n| 河南省登封市（奉天宫） | 34.4600 | 113.0600 |\n| 陕西省西安市长安区（翠微宫） | 34.0100 | 108.8500 |", "relatedGraph": {"center": {"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "上以慰先帝之灵，下以释苍生之愤。", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "唐高宗", "name": "唐高宗", "file": "唐高宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 628, "death_year": 683, "quote": "上以慰先帝之灵，下以释苍生之愤。", "review": "上以慰先帝之灵，下以释苍生之愤。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "武则天", "name": "武则天", "file": "武则天.html", "dynasty": "唐朝（唐太宗、高宗时期）、武周", "aliases": [], "birth_year": 624, "death_year": 705, "quote": "利州（今四川省广元市）", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "待考。", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "唐太宗", "name": "唐太宗", "file": "唐太宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "慨然抚长剑，济世岂邀名。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李世民", "name": "李世民", "file": "李世民.html", "dynasty": "唐朝", "aliases": [], "birth_year": 598, "death_year": 649, "quote": "秦川雄帝宅，函谷壮皇居。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "武功别馆", "birthplace_modern": "陕西省咸阳市武功县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "文成公主", "name": "文成公主", "file": "文成公主.html", "dynasty": "唐朝（吐蕃崛起时期）", "aliases": [], "birth_year": null, "death_year": 680, "quote": "**和亲**", "review": "", "foreign_name": "", "main_role_label": "吐蕃赞普王妃", "birthplace": "公元", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "唐玄宗", "name": "唐玄宗", "file": "唐玄宗.html", "dynasty": "唐朝", "aliases": [], "birth_year": 685, "death_year": 762, "quote": "**重色思倾国**", "review": "", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "东都洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同朝共现", "sourceType": "same_book", "confidence": 0.25, "isCenter": false}, {"id": "李渊", "name": "李渊", "file": "李渊.html", "dynasty": "隋末唐初", "aliases": [], "birth_year": 566, "death_year": 635, "quote": "姓李氏，陇西成纪人也。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西西安", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "唐高宗", "target": "武则天", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "唐太宗", "label": "君臣", "confidence": null}, {"source": "唐高宗", "target": "李世民", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "文成公主", "label": "同时代人物", "confidence": null}, {"source": "唐高宗", "target": "唐玄宗", "label": "同朝共现", "confidence": 0.25}, {"source": "唐高宗", "target": "李渊", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:17Z", "generated_at": "2026-06-25T07:13:17Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:16Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:17Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

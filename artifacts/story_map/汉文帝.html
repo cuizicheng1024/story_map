@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "刘恒", "title": "", "description": "汉文帝刘恒是汉高祖刘邦第四子，母为薄姬。早年受封代王，居于边地，远离政治中心。公元前180年，吕后去世后，在周勃、陈平等大臣诛灭诸吕势力后，刘恒因仁孝宽厚被迎立为帝。在位期间，他奉行黄老“无为而治”思想，推行一系列休养生息政策，大幅减轻田租、徭役，废除严苛刑律，厉行节俭，使社会经济得到显著恢复与发展，百姓生活安定，国力渐强，与其子汉景帝的统治时期并称“文景之治”，为后来汉武帝的强盛奠定了物质与制度基础。", "quote": "汉兴，至孝文四十有余载，德至盛也。", "shortReview": "汉兴，至孝文四十有余载，德至盛也。", "dynasty": "西汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "代国中都（今山西省平遥县）", "avatar": "", "birth": {"date": "公元前203年", "location": "代国中都（今山西省平遥县）", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84"}, "death": {"date": "公元前157年", "location": "长安未央宫（今陕西省西安市）", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84"}, "lifespan": "47岁", "highlights": {"honor": "", "status": "西汉第三位皇帝，开创“文景之治”，为汉朝盛世奠定坚实基础。", "identities": "皇帝、政治家", "achievements": "推行“与民休息”国策，轻徭薄赋；废除连坐法与部分肉刑；节俭治国，稳定边疆。", "works": [], "reviews": ["**司马迁《史记》**：“汉兴，至孝文四十有余载，德至盛也。”", "**班固《汉书》**：“专务以德化民，是以海内殷富，兴于礼义。”", "**后世史家**：普遍认为汉文帝是“仁君”、“明君”的代表，其统治时期是西汉由初定走向强盛的关键转折点。"]}}, "locations": [{"name": "代国中都", "ancientName": "代国中都", "modernName": "山西省平遥县", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84", "type": "birth", "event": "刘恒在此出生，其母薄姬在刘邦后宫中不受宠，故母子得以远离宫廷纷争。", "time": "公元前203年", "duration": "幼年时期", "significance": "出生地，早年相对平静的成长环境塑造了其宽厚、谨慎的性格。", "works": [], "quoteLines": []}, {"name": "代国（晋阳）", "ancientName": "代国都城晋阳", "modernName": "山西省太原市", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84", "type": "normal", "event": "受封为代王，治理边地。在吕后专权时期，因地处偏远且为人低调，得以保全。", "time": "约公元前196年 - 公元前180年", "duration": "约16年（8岁受封至24岁即位）", "significance": "长期的地方统治经验，使其了解民间疾苦，形成了务实、宽仁的执政风格。", "works": [], "quoteLines": ["存疑（汉文帝传世文学作品极少）"]}, {"name": "长安（未央宫）", "ancientName": "汉都长安", "modernName": "陕西省西安市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "normal", "event": "即皇帝位；推行“与民休息”政策；废除肉刑；与匈奴和亲；处理诸侯王问题（如淮南王刘长事件）。", "time": "公元前180年 - 公元前157年", "duration": "23年（在位期间主要居所）", "significance": "帝国政治中心，其所有重大国策均在此制定与颁布，开创了“文景之治”的盛世局面。", "works": [], "quoteLines": ["《议佐百姓诏》：“夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。”"]}, {"name": "霸陵", "ancientName": "霸陵", "modernName": "陕西省西安市灞桥区", "lat": 34.2946, "lng": 108.9416, "coordSystem": "WGS84", "type": "normal", "event": "汉文帝亲自选定陵址，主张“因山为藏，不复起坟”，开创了西汉“依山为陵”的先河，力求节俭。", "time": "在位期间多次前往，最终安葬于此", "duration": "生前作为陵寝规划地，身后长眠之所", "significance": "体现了其节俭爱民的执政理念，是其政治人格的最终物化象征。", "works": [], "quoteLines": ["《遗诏》：“当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。”"]}, {"name": "细柳营（存疑/说法不一）", "ancientName": "细柳", "modernName": "陕西省咸阳市西南", "lat": 34.273, "lng": 109.064, "coordSystem": "WGS84", "type": "normal", "event": "为防备匈奴，汉文帝亲往慰劳驻军。至周亚夫驻守的细柳营，见其军纪严明，大为赞赏。", "time": "公元前158年", "duration": "短暂巡视", "significance": "展现了汉文帝识人善任、胸怀宽广的明君气度，周亚夫因此得到重用。", "works": [], "quoteLines": ["司马迁《史记·绛侯周勃世家》：“嗟乎，此真将军矣！”"]}, {"name": "长安未央宫", "ancientName": "汉都长安未央宫", "modernName": "陕西省西安市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "death", "event": "汉文帝在未央宫去世，临终前颁布遗诏，要求丧事从简，不得扰民。", "time": "公元前157年", "duration": "生命最后时刻", "significance": "其一生勤政爱民的终点，遗诏内容成为后世帝王节俭治丧的典范。", "works": [], "quoteLines": ["《遗诏》：“朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：西汉初年，经济凋敝，社会需要休养生息。\n- **关键事件**：继承汉初**“与民休息”**政策，开创**“文景之治”**。\n- **核心政策**：**轻徭薄赋**（多次减免田租）、**减轻刑罚**（废除连坐、部分肉刑）。\n- **个人品质**：**节俭**（穿绨衣、罢露台）、**宽仁**（纳谏、善待功臣）。\n- **代表事件**：**缇萦救父**（推动废除肉刑）。\n- **易混点**：文景之治是**汉文帝**与**汉景帝**父子两代共同开创的，非一人之功。\n\n### 高中阶段\n- **思想根源**：统治思想以**黄老之学**（无为而治）为主导。\n- **政治举措**：削弱诸侯王势力（如处理**淮南王刘长**事件），加强中央集权；改革**刑制**，废除肉刑。\n- **经济政策**：**重农抑商**，多次下诏劝课农桑；开放**山林川泽**，促进工商业发展。\n- **民族关系**：对匈奴采取**和亲**与**防御**相结合的政策。\n- **历史地位**：其统治是西汉从**“无为”到“有为”**的过渡阶段，为汉武帝的“大有为”奠定基础。\n- **对比点**：与秦始皇的**严刑峻法、繁徭重役**形成鲜明对比；与汉武帝的**积极进取、开疆拓土**形成政策延续与转变的对比。\n\n---", "examPoints": "### 初中阶段考点\n- **“文景之治”**出现的原因、表现及历史意义。\n- 汉文帝**轻徭薄赋**、**减轻刑罚**的具体措施。\n- 汉文帝**节俭**的典型事例（如罢建露台）。\n- **缇萦救父**与废除肉刑的关系。\n- 汉文帝与汉景帝统治政策的共同点。\n\n### 高中阶段考点\n- **黄老思想**在汉初政治中的体现及其作用。\n- 汉文帝时期**中央集权**与**地方诸侯国**矛盾的处理方式。\n- **废除肉刑**在中国法制史上的地位与评价。\n- 从“文景之治”到“汉武盛世”的**政策演变**及其内在逻辑。\n- 对汉文帝**“仁君”**形象的历史评价（结合史料分析）。", "workTexts": {"议佐百姓诏": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "遗诏": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "史记·绛侯周勃世家": "嗟乎，此真将军矣！", "史记": "嗟乎，此真将军矣！", "绛侯周勃世家": "嗟乎，此真将军矣！", "汉书": "“专务以德化民，是以海内殷富，兴于礼义。”"}, "workSummaries": {"议佐百姓诏": {"title": "议佐百姓诏", "aliases": [], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "summary": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "quotes": ["夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。"], "quote_policy": "preferred"}, "遗诏": {"title": "遗诏", "aliases": [], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "summary": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "quote": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "quotes": ["朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。"], "quote_policy": "preferred"}, "史记·绛侯周勃世家": {"title": "史记·绛侯周勃世家", "aliases": ["史记", "绛侯周勃世家"], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "嗟乎，此真将军矣！", "summary": "嗟乎，此真将军矣！", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}, "汉书": {"title": "汉书", "aliases": [], "authors": ["班固", "班昭"], "related_people": ["班固", "班昭", "汉文帝", "霍光", "苏武", "王昭君"], "source_pages": ["班固", "班昭", "汉文帝", "霍光", "苏武", "王昭君"], "era": "东汉", "genre": "书信/论说文", "one_liner": "1. 继承父志，主持并基本完成纪传体断代史《汉书》的编撰（部分表、志由其妹班昭等后续补写）。", "summary": "1. 继承父志，主持并基本完成纪传体断代史《汉书》的编撰（部分表、志由其妹班昭等后续补写）。", "quote": "历史地位：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "quotes": ["历史地位：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "历史地位：东汉最重要的史学家之一，与司马迁并称“班马”，其编撰的《汉书》是中国第一部纪传体断代史。", "洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。"], "quote_policy": "preferred"}}, "markdown": "# 汉文帝\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：刘恒\n- **时代**：西汉\n- **出生**：公元前203年，代国中都（今山西省平遥县）\n- **去世**：公元前157年，长安未央宫（今陕西省西安市）\n- **享年**：47岁\n- **主要身份**：皇帝、政治家\n- **历史地位**：西汉第三位皇帝，开创“文景之治”，为汉朝盛世奠定坚实基础。\n- **主要成就**：推行“与民休息”国策，轻徭薄赋；废除连坐法与部分肉刑；节俭治国，稳定边疆。\n\n### 生平概述\n汉文帝刘恒是汉高祖刘邦第四子，母为薄姬。早年受封代王，居于边地，远离政治中心。公元前180年，吕后去世后，在周勃、陈平等大臣诛灭诸吕势力后，刘恒因仁孝宽厚被迎立为帝。在位期间，他奉行黄老“无为而治”思想，推行一系列休养生息政策，大幅减轻田租、徭役，废除严苛刑律，厉行节俭，使社会经济得到显著恢复与发展，百姓生活安定，国力渐强，与其子汉景帝的统治时期并称“文景之治”，为后来汉武帝的强盛奠定了物质与制度基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从封地代国（今山西）至都城长安（今陕西），并巡幸霸陵等地。\n- ⏱️ **时间跨度**：公元前203年至公元前157年，总跨度46年。\n- 📍 **地理范围**：主要活动于今山西、陕西、河南地区。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：代国中都\n- **公元纪年**：公元前203年\n- **停留时间**：幼年时期\n- **位置**：代国中都（今山西省平遥县）\n- **事迹**：刘恒在此出生，其母薄姬在刘邦后宫中不受宠，故母子得以远离宫廷纷争。\n- **意义**：出生地，早年相对平静的成长环境塑造了其宽厚、谨慎的性格。\n\n### 📍 重要地点：代国（晋阳）\n- **公元纪年**：约公元前196年 - 公元前180年\n- **停留时间**：约16年（8岁受封至24岁即位）\n- **位置**：代国都城晋阳（今山西省太原市）\n- **事迹**：受封为代王，治理边地。在吕后专权时期，因地处偏远且为人低调，得以保全。\n- **意义**：长期的地方统治经验，使其了解民间疾苦，形成了务实、宽仁的执政风格。\n- **名篇名句**：存疑（汉文帝传世文学作品极少）\n\n### 📍 重要地点：长安（未央宫）\n- **公元纪年**：公元前180年 - 公元前157年\n- **停留时间**：23年（在位期间主要居所）\n- **位置**：汉都长安（今陕西省西安市）\n- **事迹**：即皇帝位；推行“与民休息”政策；废除肉刑；与匈奴和亲；处理诸侯王问题（如淮南王刘长事件）。\n- **意义**：帝国政治中心，其所有重大国策均在此制定与颁布，开创了“文景之治”的盛世局面。\n- **名篇名句**：《议佐百姓诏》：“夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。”\n\n### 📍 重要地点：霸陵\n- **公元纪年**：在位期间多次前往，最终安葬于此\n- **停留时间**：生前作为陵寝规划地，身后长眠之所\n- **位置**：霸陵（今陕西省西安市灞桥区）\n- **事迹**：汉文帝亲自选定陵址，主张“因山为藏，不复起坟”，开创了西汉“依山为陵”的先河，力求节俭。\n- **意义**：体现了其节俭爱民的执政理念，是其政治人格的最终物化象征。\n- **名篇名句**：《遗诏》：“当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。”\n\n### 📍 重要地点：细柳营（存疑/说法不一）\n- **公元纪年**：公元前158年\n- **停留时间**：短暂巡视\n- **位置**：细柳（今陕西省咸阳市西南）\n- **事迹**：为防备匈奴，汉文帝亲往慰劳驻军。至周亚夫驻守的细柳营，见其军纪严明，大为赞赏。\n- **意义**：展现了汉文帝识人善任、胸怀宽广的明君气度，周亚夫因此得到重用。\n- **名篇名句**：司马迁《史记·绛侯周勃世家》：“嗟乎，此真将军矣！”\n\n### 🔴 去世地：长安未央宫\n- **公元纪年**：公元前157年\n- **停留时间**：生命最后时刻\n- **位置**：汉都长安未央宫（今陕西省西安市）\n- **经过**：汉文帝在未央宫去世，临终前颁布遗诏，要求丧事从简，不得扰民。\n- **意义**：其一生勤政爱民的终点，遗诏内容成为后世帝王节俭治丧的典范。\n- **名篇名句**：《遗诏》：“朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元前203年 | 代国中都 | 山西省平遥县 | （年龄：0岁）出生于代国中都。 |\n| 公元前196年 |  |  | （年龄：7岁）被封为代王，前往封国。 |\n| 公元前180年 | 长安（未央宫） | 陕西省西安市 | （年龄：23岁）吕后去世，诸吕被诛，刘恒被迎立为帝，即位于长安。 |\n| 公元前178年 |  |  | （年龄：25岁）下诏“劝农桑，减租赋”，田租减半。 |\n| 公元前177年 |  |  | （年龄：26岁）济北王刘兴居叛乱，被平定。 |\n| 公元前174年 |  |  | （年龄：29岁）淮南王刘长谋反事败，迁徙蜀地，途中绝食而死。 |\n| 公元前167年 |  |  | （年龄：36岁）下诏废除肉刑（黥、劓、刖），改革刑制。 |\n| 公元前162年 |  |  | （年龄：41岁）与匈奴和亲，重启和亲政策以稳定边疆。 |\n| 公元前158年 | 细柳 | 陕西省咸阳市西南 | （年龄：45岁）匈奴大举入侵，遣军驻防，巡视细柳营。 |\n| 公元前157年 | 霸陵 | 陕西省西安市灞桥区 | （年龄：47岁）崩于未央宫，遗诏薄葬，葬于霸陵。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n汉文帝在位期间，通过一系列轻徭薄赋、宽刑简政、与民休息的政策，迅速扭转了汉初经济凋敝、社会动荡的局面。他废除严苛法律，缓和了社会矛盾；节俭宫廷开支，减轻了百姓负担；妥善处理边疆与诸侯问题，维护了国家统一与稳定，为“文景之治”的繁荣景象奠定了直接基础。\n\n### 对后世的影响\n- **开创治世典范**：“文景之治”成为中国古代第一个有明确记载的盛世，成为后世衡量治世的重要标准。\n- **树立仁君楷模**：其宽仁、节俭、纳谏的执政风格，被后世儒家推崇为理想君主的典范。\n- **推动法律文明**：废除肉刑是中国古代法律史上具有人道主义色彩的重大进步。\n- **奠定经济基础**：其休养生息政策积累的财富，为汉武帝时期的大规模军事行动和文化建树提供了物质保障。\n\n### 历史评价\n- **司马迁《史记》**：“汉兴，至孝文四十有余载，德至盛也。”\n- **班固《汉书》**：“专务以德化民，是以海内殷富，兴于礼义。”\n- **后世史家**：普遍认为汉文帝是“仁君”、“明君”的代表，其统治时期是西汉由初定走向强盛的关键转折点。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：西汉初年，经济凋敝，社会需要休养生息。\n- **关键事件**：继承汉初**“与民休息”**政策，开创**“文景之治”**。\n- **核心政策**：**轻徭薄赋**（多次减免田租）、**减轻刑罚**（废除连坐、部分肉刑）。\n- **个人品质**：**节俭**（穿绨衣、罢露台）、**宽仁**（纳谏、善待功臣）。\n- **代表事件**：**缇萦救父**（推动废除肉刑）。\n- **易混点**：文景之治是**汉文帝**与**汉景帝**父子两代共同开创的，非一人之功。\n\n### 高中阶段\n- **思想根源**：统治思想以**黄老之学**（无为而治）为主导。\n- **政治举措**：削弱诸侯王势力（如处理**淮南王刘长**事件），加强中央集权；改革**刑制**，废除肉刑。\n- **经济政策**：**重农抑商**，多次下诏劝课农桑；开放**山林川泽**，促进工商业发展。\n- **民族关系**：对匈奴采取**和亲**与**防御**相结合的政策。\n- **历史地位**：其统治是西汉从**“无为”到“有为”**的过渡阶段，为汉武帝的“大有为”奠定基础。\n- **对比点**：与秦始皇的**严刑峻法、繁徭重役**形成鲜明对比；与汉武帝的**积极进取、开疆拓土**形成政策延续与转变的对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- **“文景之治”**出现的原因、表现及历史意义。\n- 汉文帝**轻徭薄赋**、**减轻刑罚**的具体措施。\n- 汉文帝**节俭**的典型事例（如罢建露台）。\n- **缇萦救父**与废除肉刑的关系。\n- 汉文帝与汉景帝统治政策的共同点。\n\n### 高中阶段考点\n- **黄老思想**在汉初政治中的体现及其作用。\n- 汉文帝时期**中央集权**与**地方诸侯国**矛盾的处理方式。\n- **废除肉刑**在中国法制史上的地位与评价。\n- 从“文景之治”到“汉武盛世”的**政策演变**及其内在逻辑。\n- 对汉文帝**“仁君”**形象的历史评价（结合史料分析）。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 代国中都 | 山西省晋中市平遥县 | 37.1890 | 112.1760 |\n| 代国（晋阳） | 山西省太原市 | 37.8706 | 112.5489 |\n| 长安（未央宫） | 陕西省西安市 | 34.3448 | 108.9350 |\n| 霸陵 | 陕西省西安市未央区 | 34.2946 | 108.9416 |\n| 细柳营（存疑/说法不一） | 陕西省西安市灞桥区 | 34.2730 | 109.0640 |\n| 长安未央宫 | 陕西省咸阳市 | 34.3292 | 108.7087 |\n", "relatedGraph": {"center": {"id": "汉文帝", "name": "汉文帝", "file": "汉文帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -203, "death_year": -157, "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "review": "汉兴，至孝文四十有余载，德至盛也。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "代国中都", "birthplace_modern": "山西省平遥县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汉文帝", "name": "汉文帝", "file": "汉文帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -203, "death_year": -157, "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "review": "汉兴，至孝文四十有余载，德至盛也。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "代国中都", "birthplace_modern": "山西省平遥县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "汉武帝", "name": "汉武帝", "file": "汉武帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -156, "death_year": -87, "quote": "罢黜百家，独尊儒术", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "贾谊", "name": "贾谊", "file": "贾谊.html", "dynasty": "西汉", "aliases": [], "birth_year": -200, "death_year": -168, "quote": "众建诸侯而少其力", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董仲舒", "name": "董仲舒", "file": "董仲舒.html", "dynasty": "西汉", "aliases": [], "birth_year": -179, "death_year": -104, "quote": "罢黜百家，独尊儒术", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "广川", "birthplace_modern": "河北省衡水市景县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汉惠帝", "name": "汉惠帝", "file": "汉惠帝.html", "dynasty": "西汉初期", "aliases": [], "birth_year": -211, "death_year": -188, "quote": "惠帝仁弱而年早崩，政由女主，厥有可称。", "review": "", "foreign_name": "", "main_role_label": "西汉第二位皇帝", "birthplace": "丰邑", "birthplace_modern": "江苏省徐州市丰县一带", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "卓文君", "name": "卓文君", "file": "卓文君.html", "dynasty": "西汉", "aliases": [], "birth_year": -179, "death_year": -150, "quote": "愿得一心人，白头不相离。——后世流传名句，可视为卓文君精神的最佳注脚", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "蜀郡临邛", "birthplace_modern": "四川邛崃", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "冒顿单于", "name": "冒顿单于", "file": "冒顿单于.html", "dynasty": "西汉初期（匈奴）", "aliases": [], "birth_year": -174, "death_year": -174, "quote": "冒顿单于，匈奴族，姓挛鞮氏", "review": "", "foreign_name": "", "main_role_label": "军事统帅", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汉文帝", "target": "汉武帝", "label": "并称", "confidence": null}, {"source": "汉文帝", "target": "贾谊", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "董仲舒", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "汉惠帝", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "卓文君", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "冒顿单于", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:34Z", "generated_at": "2026-06-22T11:31:34Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "刘恒", "title": "", "description": "汉文帝刘恒是汉高祖刘邦第四子，母为薄姬。早年受封代王，居于边地，远离政治中心。公元前180年，吕后去世后，在周勃、陈平等大臣诛灭诸吕势力后，刘恒因仁孝宽厚被迎立为帝。在位期间，他奉行黄老“无为而治”思想，推行一系列休养生息政策，大幅减轻田租、徭役，废除严苛刑律，厉行节俭，使社会经济得到显著恢复与发展，百姓生活安定，国力渐强，与其子汉景帝的统治时期并称“文景之治”，为后来汉武帝的强盛奠定了物质与制度基础。", "quote": "汉兴，至孝文四十有余载，德至盛也。", "shortReview": "汉兴，至孝文四十有余载，德至盛也。", "dynasty": "西汉", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "代国中都（今山西省平遥县）", "avatar": "", "birth": {"date": "公元前203年", "location": "代国中都（今山西省平遥县）", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84"}, "death": {"date": "公元前157年", "location": "长安未央宫（今陕西省西安市）", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84"}, "lifespan": "47岁", "highlights": {"honor": "", "status": "西汉第三位皇帝，开创“文景之治”，为汉朝盛世奠定坚实基础。", "identities": "皇帝、政治家", "achievements": "推行“与民休息”国策，轻徭薄赋；废除连坐法与部分肉刑；节俭治国，稳定边疆。", "works": [], "reviews": ["**司马迁《史记》**：“汉兴，至孝文四十有余载，德至盛也。”", "**班固《汉书》**：“专务以德化民，是以海内殷富，兴于礼义。”", "**后世史家**：普遍认为汉文帝是“仁君”、“明君”的代表，其统治时期是西汉由初定走向强盛的关键转折点。"]}}, "locations": [{"name": "代国中都", "ancientName": "代国中都", "modernName": "山西省平遥县", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84", "type": "birth", "event": "刘恒在此出生，其母薄姬在刘邦后宫中不受宠，故母子得以远离宫廷纷争。", "time": "公元前203年", "duration": "幼年时期", "significance": "出生地，早年相对平静的成长环境塑造了其宽厚、谨慎的性格。", "works": [], "quoteLines": []}, {"name": "代国（晋阳）", "ancientName": "代国都城晋阳", "modernName": "山西省太原市", "lat": 37.189, "lng": 112.176, "coordSystem": "WGS84", "type": "normal", "event": "受封为代王，治理边地。在吕后专权时期，因地处偏远且为人低调，得以保全。", "time": "约公元前196年 - 公元前180年", "duration": "约16年（8岁受封至24岁即位）", "significance": "长期的地方统治经验，使其了解民间疾苦，形成了务实、宽仁的执政风格。", "works": [], "quoteLines": ["存疑（汉文帝传世文学作品极少）"]}, {"name": "长安（未央宫）", "ancientName": "汉都长安", "modernName": "陕西省西安市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "normal", "event": "即皇帝位；推行“与民休息”政策；废除肉刑；与匈奴和亲；处理诸侯王问题（如淮南王刘长事件）。", "time": "公元前180年 - 公元前157年", "duration": "23年（在位期间主要居所）", "significance": "帝国政治中心，其所有重大国策均在此制定与颁布，开创了“文景之治”的盛世局面。", "works": [], "quoteLines": ["《议佐百姓诏》：“夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。”"]}, {"name": "霸陵", "ancientName": "霸陵", "modernName": "陕西省西安市灞桥区", "lat": 34.2946, "lng": 108.9416, "coordSystem": "WGS84", "type": "normal", "event": "汉文帝亲自选定陵址，主张“因山为藏，不复起坟”，开创了西汉“依山为陵”的先河，力求节俭。", "time": "在位期间多次前往，最终安葬于此", "duration": "生前作为陵寝规划地，身后长眠之所", "significance": "体现了其节俭爱民的执政理念，是其政治人格的最终物化象征。", "works": [], "quoteLines": ["《遗诏》：“当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。”"]}, {"name": "细柳营（存疑/说法不一）", "ancientName": "细柳", "modernName": "陕西省咸阳市西南", "lat": 34.273, "lng": 109.064, "coordSystem": "WGS84", "type": "normal", "event": "为防备匈奴，汉文帝亲往慰劳驻军。至周亚夫驻守的细柳营，见其军纪严明，大为赞赏。", "time": "公元前158年", "duration": "短暂巡视", "significance": "展现了汉文帝识人善任、胸怀宽广的明君气度，周亚夫因此得到重用。", "works": [], "quoteLines": ["司马迁《史记·绛侯周勃世家》：“嗟乎，此真将军矣！”"]}, {"name": "长安未央宫", "ancientName": "汉都长安未央宫", "modernName": "陕西省西安市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "death", "event": "汉文帝在未央宫去世，临终前颁布遗诏，要求丧事从简，不得扰民。", "time": "公元前157年", "duration": "生命最后时刻", "significance": "其一生勤政爱民的终点，遗诏内容成为后世帝王节俭治丧的典范。", "works": [], "quoteLines": ["《遗诏》：“朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：西汉初年，经济凋敝，社会需要休养生息。\n- **关键事件**：继承汉初**“与民休息”**政策，开创**“文景之治”**。\n- **核心政策**：**轻徭薄赋**（多次减免田租）、**减轻刑罚**（废除连坐、部分肉刑）。\n- **个人品质**：**节俭**（穿绨衣、罢露台）、**宽仁**（纳谏、善待功臣）。\n- **代表事件**：**缇萦救父**（推动废除肉刑）。\n- **易混点**：文景之治是**汉文帝**与**汉景帝**父子两代共同开创的，非一人之功。\n\n### 高中阶段\n- **思想根源**：统治思想以**黄老之学**（无为而治）为主导。\n- **政治举措**：削弱诸侯王势力（如处理**淮南王刘长**事件），加强中央集权；改革**刑制**，废除肉刑。\n- **经济政策**：**重农抑商**，多次下诏劝课农桑；开放**山林川泽**，促进工商业发展。\n- **民族关系**：对匈奴采取**和亲**与**防御**相结合的政策。\n- **历史地位**：其统治是西汉从**“无为”到“有为”**的过渡阶段，为汉武帝的“大有为”奠定基础。\n- **对比点**：与秦始皇的**严刑峻法、繁徭重役**形成鲜明对比；与汉武帝的**积极进取、开疆拓土**形成政策延续与转变的对比。\n\n---", "examPoints": "### 初中阶段考点\n- **“文景之治”**出现的原因、表现及历史意义。\n- 汉文帝**轻徭薄赋**、**减轻刑罚**的具体措施。\n- 汉文帝**节俭**的典型事例（如罢建露台）。\n- **缇萦救父**与废除肉刑的关系。\n- 汉文帝与汉景帝统治政策的共同点。\n\n### 高中阶段考点\n- **黄老思想**在汉初政治中的体现及其作用。\n- 汉文帝时期**中央集权**与**地方诸侯国**矛盾的处理方式。\n- **废除肉刑**在中国法制史上的地位与评价。\n- 从“文景之治”到“汉武盛世”的**政策演变**及其内在逻辑。\n- 对汉文帝**“仁君”**形象的历史评价（结合史料分析）。", "workTexts": {"议佐百姓诏": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "遗诏": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "史记·绛侯周勃世家": "嗟乎，此真将军矣！", "史记": "嗟乎，此真将军矣！", "绛侯周勃世家": "嗟乎，此真将军矣！", "汉书": "“专务以德化民，是以海内殷富，兴于礼义。”"}, "workSummaries": {"议佐百姓诏": {"title": "议佐百姓诏", "aliases": [], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "summary": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "quotes": ["夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。"], "quote_policy": "preferred"}, "遗诏": {"title": "遗诏", "aliases": [], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "summary": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "quote": "朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "quotes": ["朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。", "当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。"], "quote_policy": "preferred"}, "史记·绛侯周勃世家": {"title": "史记·绛侯周勃世家", "aliases": ["史记", "绛侯周勃世家"], "authors": ["汉文帝"], "related_people": ["汉文帝"], "source_pages": ["汉文帝"], "era": "西汉", "genre": "", "one_liner": "嗟乎，此真将军矣！", "summary": "嗟乎，此真将军矣！", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}, "汉书": {"title": "汉书", "aliases": [], "authors": ["班固", "班昭"], "related_people": ["班固", "班昭", "汉文帝", "霍光", "苏武", "王昭君"], "source_pages": ["班固", "班昭", "汉文帝", "霍光", "苏武", "王昭君"], "era": "东汉", "genre": "书信/论说文", "one_liner": "1. 继承父志，主持并基本完成纪传体断代史《汉书》的编撰（部分表、志由其妹班昭等后续补写）。", "summary": "1. 继承父志，主持并基本完成纪传体断代史《汉书》的编撰（部分表、志由其妹班昭等后续补写）。", "quote": "历史地位：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "quotes": ["历史地位：东汉著名史学家班彪之女、班固之妹，续成《汉书》，是中国古代第一位有确切记载的女历史学家与宫廷女师。", "历史地位：东汉最重要的史学家之一，与司马迁并称“班马”，其编撰的《汉书》是中国第一部纪传体断代史。", "洛阳是班昭完成续写《汉书》、宫廷教学、参与政治及晚年活动的核心舞台，是其一生主要成就的取得地。"], "quote_policy": "preferred"}}, "markdown": "# 汉文帝\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：刘恒\n- **时代**：西汉\n- **出生**：公元前203年，代国中都（今山西省平遥县）\n- **去世**：公元前157年，长安未央宫（今陕西省西安市）\n- **享年**：47岁\n- **主要身份**：皇帝、政治家\n- **历史地位**：西汉第三位皇帝，开创“文景之治”，为汉朝盛世奠定坚实基础。\n- **主要成就**：推行“与民休息”国策，轻徭薄赋；废除连坐法与部分肉刑；节俭治国，稳定边疆。\n\n### 生平概述\n汉文帝刘恒是汉高祖刘邦第四子，母为薄姬。早年受封代王，居于边地，远离政治中心。公元前180年，吕后去世后，在周勃、陈平等大臣诛灭诸吕势力后，刘恒因仁孝宽厚被迎立为帝。在位期间，他奉行黄老“无为而治”思想，推行一系列休养生息政策，大幅减轻田租、徭役，废除严苛刑律，厉行节俭，使社会经济得到显著恢复与发展，百姓生活安定，国力渐强，与其子汉景帝的统治时期并称“文景之治”，为后来汉武帝的强盛奠定了物质与制度基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从封地代国（今山西）至都城长安（今陕西），并巡幸霸陵等地。\n- ⏱️ **时间跨度**：公元前203年至公元前157年，总跨度46年。\n- 📍 **地理范围**：主要活动于今山西、陕西、河南地区。\n- 🌟 **重要节点数量**：核心地点6个。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：代国中都\n- **公元纪年**：公元前203年\n- **停留时间**：幼年时期\n- **位置**：代国中都（今山西省平遥县）\n- **事迹**：刘恒在此出生，其母薄姬在刘邦后宫中不受宠，故母子得以远离宫廷纷争。\n- **意义**：出生地，早年相对平静的成长环境塑造了其宽厚、谨慎的性格。\n\n### 📍 重要地点：代国（晋阳）\n- **公元纪年**：约公元前196年 - 公元前180年\n- **停留时间**：约16年（8岁受封至24岁即位）\n- **位置**：代国都城晋阳（今山西省太原市）\n- **事迹**：受封为代王，治理边地。在吕后专权时期，因地处偏远且为人低调，得以保全。\n- **意义**：长期的地方统治经验，使其了解民间疾苦，形成了务实、宽仁的执政风格。\n- **名篇名句**：存疑（汉文帝传世文学作品极少）\n\n### 📍 重要地点：长安（未央宫）\n- **公元纪年**：公元前180年 - 公元前157年\n- **停留时间**：23年（在位期间主要居所）\n- **位置**：汉都长安（今陕西省西安市）\n- **事迹**：即皇帝位；推行“与民休息”政策；废除肉刑；与匈奴和亲；处理诸侯王问题（如淮南王刘长事件）。\n- **意义**：帝国政治中心，其所有重大国策均在此制定与颁布，开创了“文景之治”的盛世局面。\n- **名篇名句**：《议佐百姓诏》：“夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。”\n\n### 📍 重要地点：霸陵\n- **公元纪年**：在位期间多次前往，最终安葬于此\n- **停留时间**：生前作为陵寝规划地，身后长眠之所\n- **位置**：霸陵（今陕西省西安市灞桥区）\n- **事迹**：汉文帝亲自选定陵址，主张“因山为藏，不复起坟”，开创了西汉“依山为陵”的先河，力求节俭。\n- **意义**：体现了其节俭爱民的执政理念，是其政治人格的最终物化象征。\n- **名篇名句**：《遗诏》：“当今之时，世咸嘉生而恶死，厚葬以破业，重服以伤生，吾甚不取。”\n\n### 📍 重要地点：细柳营（存疑/说法不一）\n- **公元纪年**：公元前158年\n- **停留时间**：短暂巡视\n- **位置**：细柳（今陕西省咸阳市西南）\n- **事迹**：为防备匈奴，汉文帝亲往慰劳驻军。至周亚夫驻守的细柳营，见其军纪严明，大为赞赏。\n- **意义**：展现了汉文帝识人善任、胸怀宽广的明君气度，周亚夫因此得到重用。\n- **名篇名句**：司马迁《史记·绛侯周勃世家》：“嗟乎，此真将军矣！”\n\n### 🔴 去世地：长安未央宫\n- **公元纪年**：公元前157年\n- **停留时间**：生命最后时刻\n- **位置**：汉都长安未央宫（今陕西省西安市）\n- **经过**：汉文帝在未央宫去世，临终前颁布遗诏，要求丧事从简，不得扰民。\n- **意义**：其一生勤政爱民的终点，遗诏内容成为后世帝王节俭治丧的典范。\n- **名篇名句**：《遗诏》：“朕既不德，无以佐百姓；今崩，又使重服久临，以离寒暑之数，哀人父子，伤长老之志……其令天下吏民，令到出临三日，皆释服。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元前203年 | 代国中都 | 山西省平遥县 | （年龄：0岁）出生于代国中都。 |\n| 公元前196年 |  |  | （年龄：7岁）被封为代王，前往封国。 |\n| 公元前180年 | 长安（未央宫） | 陕西省西安市 | （年龄：23岁）吕后去世，诸吕被诛，刘恒被迎立为帝，即位于长安。 |\n| 公元前178年 |  |  | （年龄：25岁）下诏“劝农桑，减租赋”，田租减半。 |\n| 公元前177年 |  |  | （年龄：26岁）济北王刘兴居叛乱，被平定。 |\n| 公元前174年 |  |  | （年龄：29岁）淮南王刘长谋反事败，迁徙蜀地，途中绝食而死。 |\n| 公元前167年 |  |  | （年龄：36岁）下诏废除肉刑（黥、劓、刖），改革刑制。 |\n| 公元前162年 |  |  | （年龄：41岁）与匈奴和亲，重启和亲政策以稳定边疆。 |\n| 公元前158年 | 细柳 | 陕西省咸阳市西南 | （年龄：45岁）匈奴大举入侵，遣军驻防，巡视细柳营。 |\n| 公元前157年 | 霸陵 | 陕西省西安市灞桥区 | （年龄：47岁）崩于未央宫，遗诏薄葬，葬于霸陵。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n汉文帝在位期间，通过一系列轻徭薄赋、宽刑简政、与民休息的政策，迅速扭转了汉初经济凋敝、社会动荡的局面。他废除严苛法律，缓和了社会矛盾；节俭宫廷开支，减轻了百姓负担；妥善处理边疆与诸侯问题，维护了国家统一与稳定，为“文景之治”的繁荣景象奠定了直接基础。\n\n### 对后世的影响\n- **开创治世典范**：“文景之治”成为中国古代第一个有明确记载的盛世，成为后世衡量治世的重要标准。\n- **树立仁君楷模**：其宽仁、节俭、纳谏的执政风格，被后世儒家推崇为理想君主的典范。\n- **推动法律文明**：废除肉刑是中国古代法律史上具有人道主义色彩的重大进步。\n- **奠定经济基础**：其休养生息政策积累的财富，为汉武帝时期的大规模军事行动和文化建树提供了物质保障。\n\n### 历史评价\n- **司马迁《史记》**：“汉兴，至孝文四十有余载，德至盛也。”\n- **班固《汉书》**：“专务以德化民，是以海内殷富，兴于礼义。”\n- **后世史家**：普遍认为汉文帝是“仁君”、“明君”的代表，其统治时期是西汉由初定走向强盛的关键转折点。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：西汉初年，经济凋敝，社会需要休养生息。\n- **关键事件**：继承汉初**“与民休息”**政策，开创**“文景之治”**。\n- **核心政策**：**轻徭薄赋**（多次减免田租）、**减轻刑罚**（废除连坐、部分肉刑）。\n- **个人品质**：**节俭**（穿绨衣、罢露台）、**宽仁**（纳谏、善待功臣）。\n- **代表事件**：**缇萦救父**（推动废除肉刑）。\n- **易混点**：文景之治是**汉文帝**与**汉景帝**父子两代共同开创的，非一人之功。\n\n### 高中阶段\n- **思想根源**：统治思想以**黄老之学**（无为而治）为主导。\n- **政治举措**：削弱诸侯王势力（如处理**淮南王刘长**事件），加强中央集权；改革**刑制**，废除肉刑。\n- **经济政策**：**重农抑商**，多次下诏劝课农桑；开放**山林川泽**，促进工商业发展。\n- **民族关系**：对匈奴采取**和亲**与**防御**相结合的政策。\n- **历史地位**：其统治是西汉从**“无为”到“有为”**的过渡阶段，为汉武帝的“大有为”奠定基础。\n- **对比点**：与秦始皇的**严刑峻法、繁徭重役**形成鲜明对比；与汉武帝的**积极进取、开疆拓土**形成政策延续与转变的对比。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- **“文景之治”**出现的原因、表现及历史意义。\n- 汉文帝**轻徭薄赋**、**减轻刑罚**的具体措施。\n- 汉文帝**节俭**的典型事例（如罢建露台）。\n- **缇萦救父**与废除肉刑的关系。\n- 汉文帝与汉景帝统治政策的共同点。\n\n### 高中阶段考点\n- **黄老思想**在汉初政治中的体现及其作用。\n- 汉文帝时期**中央集权**与**地方诸侯国**矛盾的处理方式。\n- **废除肉刑**在中国法制史上的地位与评价。\n- 从“文景之治”到“汉武盛世”的**政策演变**及其内在逻辑。\n- 对汉文帝**“仁君”**形象的历史评价（结合史料分析）。\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 代国中都 | 山西省晋中市平遥县 | 37.1890 | 112.1760 |\n| 代国（晋阳） | 山西省太原市 | 37.8706 | 112.5489 |\n| 长安（未央宫） | 陕西省西安市 | 34.3448 | 108.9350 |\n| 霸陵 | 陕西省西安市未央区 | 34.2946 | 108.9416 |\n| 细柳营（存疑/说法不一） | 陕西省西安市灞桥区 | 34.2730 | 109.0640 |\n| 长安未央宫 | 陕西省咸阳市 | 34.3292 | 108.7087 |\n", "relatedGraph": {"center": {"id": "汉文帝", "name": "汉文帝", "file": "汉文帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -203, "death_year": -157, "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "review": "汉兴，至孝文四十有余载，德至盛也。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "代国中都", "birthplace_modern": "山西省平遥县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "汉文帝", "name": "汉文帝", "file": "汉文帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -203, "death_year": -157, "quote": "夫农，天下之本也，其开籍田，朕亲率耕，以给宗庙粢盛。", "review": "汉兴，至孝文四十有余载，德至盛也。", "foreign_name": "", "main_role_label": "皇帝", "birthplace": "代国中都", "birthplace_modern": "山西省平遥县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "汉武帝", "name": "汉武帝", "file": "汉武帝.html", "dynasty": "西汉", "aliases": [], "birth_year": -156, "death_year": -87, "quote": "罢黜百家，独尊儒术", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "长安", "birthplace_modern": "陕西省西安市", "domain_tags": [], "has_story": true, "relationLabel": "并称", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "贾谊", "name": "贾谊", "file": "贾谊.html", "dynasty": "西汉", "aliases": [], "birth_year": -200, "death_year": -168, "quote": "众建诸侯而少其力", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "董仲舒", "name": "董仲舒", "file": "董仲舒.html", "dynasty": "西汉", "aliases": [], "birth_year": -179, "death_year": -104, "quote": "罢黜百家，独尊儒术", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "广川", "birthplace_modern": "河北省衡水市景县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "汉惠帝", "name": "汉惠帝", "file": "汉惠帝.html", "dynasty": "西汉初期", "aliases": [], "birth_year": -211, "death_year": -188, "quote": "惠帝仁弱而年早崩，政由女主，厥有可称。", "review": "", "foreign_name": "", "main_role_label": "西汉第二位皇帝", "birthplace": "丰邑", "birthplace_modern": "江苏省徐州市丰县一带", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "卓文君", "name": "卓文君", "file": "卓文君.html", "dynasty": "西汉", "aliases": [], "birth_year": -179, "death_year": -150, "quote": "愿得一心人，白头不相离。——后世流传名句，可视为卓文君精神的最佳注脚", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "蜀郡临邛", "birthplace_modern": "四川邛崃", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "冒顿单于", "name": "冒顿单于", "file": "冒顿单于.html", "dynasty": "西汉初期（匈奴）", "aliases": [], "birth_year": -174, "death_year": -174, "quote": "冒顿单于，匈奴族，姓挛鞮氏", "review": "", "foreign_name": "", "main_role_label": "军事统帅", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "汉文帝", "target": "汉武帝", "label": "并称", "confidence": null}, {"source": "汉文帝", "target": "贾谊", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "董仲舒", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "汉惠帝", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "卓文君", "label": "同时代人物", "confidence": null}, {"source": "汉文帝", "target": "冒顿单于", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:36Z", "generated_at": "2026-06-25T07:13:36Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:34Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:36Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

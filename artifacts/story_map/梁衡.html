@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "梁衡", "title": "", "description": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）。他长期在新闻出版领域工作，历任《光明日报》记者、国家新闻出版署副署长、《人民日报》副总编辑等职。其散文创作聚焦于重大历史人物与事件，如瞿秋白、辛弃疾、周恩来等，文风大气磅礴，思辨深刻，融历史、文学与政治于一体，形成了独特的‘政治散文’风格，是当代散文界的重要代表人物。", "quote": "春日黄花满山，径幽而香远", "shortReview": "春日黄花满山，径幽而香远", "dynasty": "当代（中华人民共和国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "山西霍州（今山西省临汾市霍州市）", "avatar": "", "birth": {"date": "1946年", "location": "山西霍州（今山西省临汾市霍州市）", "lat": 36.57, "lng": 111.72, "coordSystem": "WGS84"}, "death": {"date": "2024年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "健在（截至2024年7月）", "highlights": {"honor": "", "status": "中国当代具有重要影响力的政治散文和人物传记作家。", "identities": "新闻理论家、散文家、学者", "achievements": "", "works": ["光明日报", "人民日报"], "reviews": []}}, "locations": [{"name": "霍州", "ancientName": "山西霍州", "modernName": "山西省临汾市霍州市", "lat": 36.57, "lng": 111.72, "coordSystem": "WGS84", "type": "birth", "event": "出生于普通家庭，度过童年。", "time": "1946年", "duration": "童年时期", "significance": "人生起点，故乡风物成为其早期文化积淀的一部分。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国人民大学。", "time": "1965年 - 1968年", "duration": "约3年", "significance": "接受了系统的高等教育，奠定了知识基础与世界观。", "works": [], "quoteLines": []}, {"name": "临河区", "ancientName": "内蒙古临河区", "modernName": "内蒙古自治区巴彦淖尔市临河区", "lat": 40.75, "lng": 107.42, "coordSystem": "WGS84", "type": "normal", "event": "大学毕业后在此劳动锻炼、工作。", "time": "1968年 - 1971年", "duration": "约3年", "significance": "深入基层，体验生活，积累了丰富的人生阅历。", "works": [], "quoteLines": []}, {"name": "太原", "ancientName": "山西太原", "modernName": "山西省太原市", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "调入《山西日报》任记者，开始新闻职业生涯。", "time": "1971年 - 1974年", "duration": "约3年", "significance": "正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "works": ["山西日报", "晋祠"], "quoteLines": ["《晋祠》：春日黄花满山，径幽而香远", "秋来草木郁郁，天高而水清。"]}, {"name": "北京（光明日报社）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "调入《光明日报》任记者，后任记者部主任。", "time": "1974年 - 1982年", "duration": "约8年", "significance": "在国家级媒体平台工作，视野更加开阔，创作进入新阶段。", "works": ["光明日报"], "quoteLines": ["《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……"]}, {"name": "北京（国家新闻出版署）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "历任国家新闻出版署副署长等职。", "time": "1982年 - 1996年", "duration": "约14年", "significance": "从事业务管理工作，参与国家新闻出版政策制定与行业管理。", "works": [], "quoteLines": []}, {"name": "北京（人民日报社）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "任《人民日报》副总编辑。", "time": "1996年 - 2000年", "duration": "约4年", "significance": "在中国最高党报担任领导职务，新闻职业生涯达到顶峰。", "works": ["人民日报"], "quoteLines": []}, {"name": "北京（文学创作期）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "卸任行政职务后，专注于散文创作、学术研究与讲学。", "time": "2000年后", "duration": "长期", "significance": "创作了大量脍炙人口的散文名篇，理论研究也更为深入，奠定了其在当代散文史上的地位。", "works": [], "quoteLines": ["《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。把吴钩看了，栏杆拍遍，无人会，登临意。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---", "workTexts": {"山西日报": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "晋祠": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "光明日报": "事件：调入《光明日报》任记者，后任记者部主任。", "觅渡，觅渡，渡何处": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "人民日报": "事件：任《人民日报》副总编辑。", "把栏杆拍遍": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。"}, "workSummaries": {"觅渡，觅渡，渡何处": {"title": "觅渡，觅渡，渡何处", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "summary": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "quote": "重点：《觅渡，觅渡，渡何处》 是政治抒情散文的代表，通过剖析瞿秋白的内心世界，探讨了理想主义者在历史洪流中的选择与悲剧。", "quotes": ["重点：《觅渡，觅渡，渡何处》 是政治抒情散文的代表，通过剖析瞿秋白的内心世界，探讨了理想主义者在历史洪流中的选择与悲剧。", "他是一座下临深谷的高峰……"], "quote_policy": "preferred"}, "把栏杆拍遍": {"title": "把栏杆拍遍", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。", "summary": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。", "quote": "重点：《把栏杆拍遍》 运用知人论世的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个失意英雄的立体形象。", "quotes": ["重点：《把栏杆拍遍》 运用知人论世的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个失意英雄的立体形象。", "把吴钩看了，栏杆拍遍，无人会，登临意。", "落日楼头，断鸿声里，江南游子。"], "quote_policy": "preferred"}, "光明日报": {"title": "光明日报", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "事件：调入《光明日报》任记者，后任记者部主任。", "summary": "事件：调入《光明日报》任记者，后任记者部主任。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "人民日报": {"title": "人民日报", "aliases": [], "authors": ["梁衡", "袁鹰"], "related_people": ["梁衡", "莫耶", "魏巍", "袁鹰"], "source_pages": ["梁衡", "莫耶", "魏巍", "袁鹰"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "事件：任《人民日报》副总编辑。", "summary": "事件：任《人民日报》副总编辑。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "山西日报": {"title": "山西日报", "aliases": [], "authors": [], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "", "genre": "", "one_liner": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "summary": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "晋祠": {"title": "晋祠", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "summary": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "quote": "重点：《晋祠》 是典范的说明性散文，以清晰的空间顺序和生动的语言描绘了晋祠的自然与人文之美。", "quotes": ["重点：《晋祠》 是典范的说明性散文，以清晰的空间顺序和生动的语言描绘了晋祠的自然与人文之美。", "春日黄花满山，径幽而香远；", "秋来草木郁郁，天高而水清。"], "quote_policy": "preferred"}, "青山不老": {"title": "青山不老", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）", "summary": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）", "quote": "", "quotes": [], "quote_policy": "preferred"}}, "markdown": "# 梁衡\n\n## 人物档案\n\n### 基本信息\n- **姓名**：梁衡\n- **时代**：当代（中华人民共和国）\n- **出生**：1946年，山西霍州（今山西省临汾市霍州市）\n- **去世**：健在（截至2024年7月）\n- **享年**：健在（截至2024年7月）\n- **主要身份**：新闻理论家、散文家、学者\n- **历史地位**：中国当代具有重要影响力的政治散文和人物传记作家。\n- **主要成就**：\n    - 提出‘散文形神论’等理论观点，对当代散文理论发展有重要影响。\n    - 创作《觅渡，觅渡，渡何处》《把栏杆拍遍》等影响深远的散文名篇。\n    - 长期从事新闻出版管理工作，推动中国新闻出版事业发展。\n    - 提出对‘杨朔模式’的反思，推动了散文创作的多元化发展。\n\n### 生平概述\n梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）。他长期在新闻出版领域工作，历任《光明日报》记者、国家新闻出版署副署长、《人民日报》副总编辑等职。其散文创作聚焦于重大历史人物与事件，如瞿秋白、辛弃疾、周恩来等，文风大气磅礴，思辨深刻，融历史、文学与政治于一体，形成了独特的‘政治散文’风格，是当代散文界的重要代表人物。\n\n---\n\n## 地图概览\n- 🗺️ **行程概览**：足迹主要分布于中国北方与中部，从山西故乡出发，求学于北京，工作于内蒙古、北京等地。\n- ⏱️ **时间跨度**：1946年 - 至今（信息截至2024年7月，梁衡先生健在）。\n- 📍 **地理范围**：主要覆盖山西省、内蒙古自治区、北京市。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：霍州\n- **时间**：1946年\n- **停留时间**：童年时期\n- **地点**：山西霍州（今山西省临汾市霍州市）\n- **事件**：出生于普通家庭，度过童年。\n- **意义**：人生起点，故乡风物成为其早期文化积淀的一部分。\n\n### 📍 重要地点：北京\n- **时间**：1965年 - 1968年\n- **停留时间**：约3年\n- **地点**：北京（今北京市）\n- **事件**：就读于中国人民大学。\n- **意义**：接受了系统的高等教育，奠定了知识基础与世界观。\n\n### 📍 重要地点：临河区\n- **时间**：1968年 - 1971年\n- **停留时间**：约3年\n- **地点**：内蒙古临河区（今内蒙古自治区巴彦淖尔市临河区）\n- **事件**：大学毕业后在此劳动锻炼、工作。\n- **意义**：深入基层，体验生活，积累了丰富的人生阅历。\n\n### 📍 重要地点：太原\n- **时间**：1971年 - 1974年\n- **停留时间**：约3年\n- **地点**：山西太原（今山西省太原市）\n- **事件**：调入《山西日报》任记者，开始新闻职业生涯。\n- **意义**：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。\n- **名篇名句**：《晋祠》：春日黄花满山，径幽而香远；秋来草木郁郁，天高而水清。\n\n### 📍 重要地点：北京（光明日报社）\n- **时间**：1974年 - 1982年\n- **停留时间**：约8年\n- **地点**：北京（今北京市）\n- **事件**：调入《光明日报》任记者，后任记者部主任。\n- **意义**：在国家级媒体平台工作，视野更加开阔，创作进入新阶段。\n- **名篇名句**：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……\n\n### 📍 重要地点：北京（国家新闻出版署）\n- **时间**：1982年 - 1996年\n- **停留时间**：约14年\n- **地点**：北京（今北京市）\n- **事件**：历任国家新闻出版署副署长等职。\n- **意义**：从事业务管理工作，参与国家新闻出版政策制定与行业管理。\n\n### 📍 重要地点：北京（人民日报社）\n- **时间**：1996年 - 2000年\n- **停留时间**：约4年\n- **地点**：北京（今北京市）\n- **事件**：任《人民日报》副总编辑。\n- **意义**：在中国最高党报担任领导职务，新闻职业生涯达到顶峰。\n\n### 📍 重要地点：北京（文学创作期）\n- **时间**：2000年后\n- **停留时间**：长期\n- **地点**：北京（今北京市）\n- **事件**：卸任行政职务后，专注于散文创作、学术研究与讲学。\n- **意义**：创作了大量脍炙人口的散文名篇，理论研究也更为深入，奠定了其在当代散文史上的地位。\n- **名篇名句**：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。把吴钩看了，栏杆拍遍，无人会，登临意。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1946 | 霍州 | 山西省临汾市霍州市 | （年龄：0）出生于山西霍州。 |\n| 1965 | 北京 | 北京市 | （年龄：19）进入中国人民大学（北京）学习。 |\n| 1968 | 临河区 | 内蒙古自治区巴彦淖尔市临河区 | （年龄：22）大学毕业，赴内蒙古临河区劳动锻炼。 |\n| 1971 |  |  | （年龄：25）调入《山西日报》任记者。 |\n| 1974 | 北京（光明日报社） | 北京市 | （年龄：28）调入《光明日报》任记者，赴北京工作。 |\n| 1982 | 北京（国家新闻出版署） | 北京市 | （年龄：36）调入国家新闻出版署工作。 |\n| 1996 |  |  | （年龄：50）任《人民日报》副总编辑。 |\n| 2000年后 |  |  | （年龄：54+）卸任行政职务，专注于文学创作与研究。 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 山西省临汾市霍州市 | 36.57 | 111.72 |\n| 山西省太原市 | 37.87 | 112.55 |\n| 内蒙古自治区巴彦淖尔市临河区 | 40.75 | 107.42 |\n| 北京市 | 39.90 | 116.40 |", "relatedGraph": {"center": {"id": "梁衡", "name": "梁衡", "file": "梁衡.html", "dynasty": "当代（中华人民共和国）", "aliases": [], "birth_year": 1946, "death_year": 2024, "quote": "**大散文**", "review": "春日黄花满山，径幽而香远", "foreign_name": "", "main_role_label": "新闻理论家", "birthplace": "山西霍州", "birthplace_modern": "山西省临汾市霍州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "梁衡", "name": "梁衡", "file": "梁衡.html", "dynasty": "当代（中华人民共和国）", "aliases": [], "birth_year": 1946, "death_year": 2024, "quote": "**大散文**", "review": "春日黄花满山，径幽而香远", "foreign_name": "", "main_role_label": "新闻理论家", "birthplace": "山西霍州", "birthplace_modern": "山西省临汾市霍州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏金伞", "name": "苏金伞", "file": "苏金伞.html", "dynasty": "现当代", "aliases": [], "birth_year": 1906, "death_year": 1997, "quote": "中原诗坛的一面旗帜", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "河南省睢县周营村", "birthplace_modern": "河南省商丘市睢县周营村", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "梁衡", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "钱学森", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "苏金伞", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:32Z", "generated_at": "2026-06-22T11:31:32Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "梁衡", "title": "", "description": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）。他长期在新闻出版领域工作，历任《光明日报》记者、国家新闻出版署副署长、《人民日报》副总编辑等职。其散文创作聚焦于重大历史人物与事件，如瞿秋白、辛弃疾、周恩来等，文风大气磅礴，思辨深刻，融历史、文学与政治于一体，形成了独特的‘政治散文’风格，是当代散文界的重要代表人物。", "quote": "春日黄花满山，径幽而香远", "shortReview": "春日黄花满山，径幽而香远", "dynasty": "当代（中华人民共和国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "山西霍州（今山西省临汾市霍州市）", "avatar": "", "birth": {"date": "1946年", "location": "山西霍州（今山西省临汾市霍州市）", "lat": 36.57, "lng": 111.72, "coordSystem": "WGS84"}, "death": {"date": "2024年", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "健在（截至2024年7月）", "highlights": {"honor": "", "status": "中国当代具有重要影响力的政治散文和人物传记作家。", "identities": "新闻理论家、散文家、学者", "achievements": "", "works": ["光明日报", "人民日报"], "reviews": []}}, "locations": [{"name": "霍州", "ancientName": "山西霍州", "modernName": "山西省临汾市霍州市", "lat": 36.57, "lng": 111.72, "coordSystem": "WGS84", "type": "birth", "event": "出生于普通家庭，度过童年。", "time": "1946年", "duration": "童年时期", "significance": "人生起点，故乡风物成为其早期文化积淀的一部分。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "就读于中国人民大学。", "time": "1965年 - 1968年", "duration": "约3年", "significance": "接受了系统的高等教育，奠定了知识基础与世界观。", "works": [], "quoteLines": []}, {"name": "临河区", "ancientName": "内蒙古临河区", "modernName": "内蒙古自治区巴彦淖尔市临河区", "lat": 40.75, "lng": 107.42, "coordSystem": "WGS84", "type": "normal", "event": "大学毕业后在此劳动锻炼、工作。", "time": "1968年 - 1971年", "duration": "约3年", "significance": "深入基层，体验生活，积累了丰富的人生阅历。", "works": [], "quoteLines": []}, {"name": "太原", "ancientName": "山西太原", "modernName": "山西省太原市", "lat": 37.87, "lng": 112.55, "coordSystem": "WGS84", "type": "normal", "event": "调入《山西日报》任记者，开始新闻职业生涯。", "time": "1971年 - 1974年", "duration": "约3年", "significance": "正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "works": ["山西日报", "晋祠"], "quoteLines": ["《晋祠》：春日黄花满山，径幽而香远", "秋来草木郁郁，天高而水清。"]}, {"name": "北京（光明日报社）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "调入《光明日报》任记者，后任记者部主任。", "time": "1974年 - 1982年", "duration": "约8年", "significance": "在国家级媒体平台工作，视野更加开阔，创作进入新阶段。", "works": ["光明日报"], "quoteLines": ["《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……"]}, {"name": "北京（国家新闻出版署）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "历任国家新闻出版署副署长等职。", "time": "1982年 - 1996年", "duration": "约14年", "significance": "从事业务管理工作，参与国家新闻出版政策制定与行业管理。", "works": [], "quoteLines": []}, {"name": "北京（人民日报社）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "任《人民日报》副总编辑。", "time": "1996年 - 2000年", "duration": "约4年", "significance": "在中国最高党报担任领导职务，新闻职业生涯达到顶峰。", "works": ["人民日报"], "quoteLines": []}, {"name": "北京（文学创作期）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "卸任行政职务后，专注于散文创作、学术研究与讲学。", "time": "2000年后", "duration": "长期", "significance": "创作了大量脍炙人口的散文名篇，理论研究也更为深入，奠定了其在当代散文史上的地位。", "works": [], "quoteLines": ["《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。把吴钩看了，栏杆拍遍，无人会，登临意。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---", "workTexts": {"山西日报": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "晋祠": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "光明日报": "事件：调入《光明日报》任记者，后任记者部主任。", "觅渡，觅渡，渡何处": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "人民日报": "事件：任《人民日报》副总编辑。", "把栏杆拍遍": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。"}, "workSummaries": {"觅渡，觅渡，渡何处": {"title": "觅渡，觅渡，渡何处", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "summary": "名篇名句：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……", "quote": "重点：《觅渡，觅渡，渡何处》 是政治抒情散文的代表，通过剖析瞿秋白的内心世界，探讨了理想主义者在历史洪流中的选择与悲剧。", "quotes": ["重点：《觅渡，觅渡，渡何处》 是政治抒情散文的代表，通过剖析瞿秋白的内心世界，探讨了理想主义者在历史洪流中的选择与悲剧。", "他是一座下临深谷的高峰……"], "quote_policy": "preferred"}, "把栏杆拍遍": {"title": "把栏杆拍遍", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。", "summary": "名篇名句：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。", "quote": "重点：《把栏杆拍遍》 运用知人论世的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个失意英雄的立体形象。", "quotes": ["重点：《把栏杆拍遍》 运用知人论世的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个失意英雄的立体形象。", "把吴钩看了，栏杆拍遍，无人会，登临意。", "落日楼头，断鸿声里，江南游子。"], "quote_policy": "preferred"}, "光明日报": {"title": "光明日报", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "事件：调入《光明日报》任记者，后任记者部主任。", "summary": "事件：调入《光明日报》任记者，后任记者部主任。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "人民日报": {"title": "人民日报", "aliases": [], "authors": ["梁衡", "袁鹰"], "related_people": ["梁衡", "莫耶", "魏巍", "袁鹰"], "source_pages": ["梁衡", "莫耶", "魏巍", "袁鹰"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "事件：任《人民日报》副总编辑。", "summary": "事件：任《人民日报》副总编辑。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "山西日报": {"title": "山西日报", "aliases": [], "authors": [], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "", "genre": "", "one_liner": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "summary": "事件：调入《山西日报》任记者，开始新闻职业生涯。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "晋祠": {"title": "晋祠", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "summary": "意义：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。", "quote": "重点：《晋祠》 是典范的说明性散文，以清晰的空间顺序和生动的语言描绘了晋祠的自然与人文之美。", "quotes": ["重点：《晋祠》 是典范的说明性散文，以清晰的空间顺序和生动的语言描绘了晋祠的自然与人文之美。", "春日黄花满山，径幽而香远；", "秋来草木郁郁，天高而水清。"], "quote_policy": "preferred"}, "青山不老": {"title": "青山不老", "aliases": [], "authors": ["梁衡"], "related_people": ["梁衡"], "source_pages": ["梁衡"], "era": "当代（中华人民共和国）", "genre": "", "one_liner": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）", "summary": "梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）", "quote": "", "quotes": [], "quote_policy": "preferred"}}, "markdown": "# 梁衡\n\n## 人物档案\n\n### 基本信息\n- **姓名**：梁衡\n- **时代**：当代（中华人民共和国）\n- **出生**：1946年，山西霍州（今山西省临汾市霍州市）\n- **去世**：健在（截至2024年7月）\n- **享年**：健在（截至2024年7月）\n- **主要身份**：新闻理论家、散文家、学者\n- **历史地位**：中国当代具有重要影响力的政治散文和人物传记作家。\n- **主要成就**：\n    - 提出‘散文形神论’等理论观点，对当代散文理论发展有重要影响。\n    - 创作《觅渡，觅渡，渡何处》《把栏杆拍遍》等影响深远的散文名篇。\n    - 长期从事新闻出版管理工作，推动中国新闻出版事业发展。\n    - 提出对‘杨朔模式’的反思，推动了散文创作的多元化发展。\n\n### 生平概述\n梁衡，1946年生于山西霍州，1968年毕业于中国人民大学（校址在北京）。他长期在新闻出版领域工作，历任《光明日报》记者、国家新闻出版署副署长、《人民日报》副总编辑等职。其散文创作聚焦于重大历史人物与事件，如瞿秋白、辛弃疾、周恩来等，文风大气磅礴，思辨深刻，融历史、文学与政治于一体，形成了独特的‘政治散文’风格，是当代散文界的重要代表人物。\n\n---\n\n## 地图概览\n- 🗺️ **行程概览**：足迹主要分布于中国北方与中部，从山西故乡出发，求学于北京，工作于内蒙古、北京等地。\n- ⏱️ **时间跨度**：1946年 - 至今（信息截至2024年7月，梁衡先生健在）。\n- 📍 **地理范围**：主要覆盖山西省、内蒙古自治区、北京市。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：霍州\n- **时间**：1946年\n- **停留时间**：童年时期\n- **地点**：山西霍州（今山西省临汾市霍州市）\n- **事件**：出生于普通家庭，度过童年。\n- **意义**：人生起点，故乡风物成为其早期文化积淀的一部分。\n\n### 📍 重要地点：北京\n- **时间**：1965年 - 1968年\n- **停留时间**：约3年\n- **地点**：北京（今北京市）\n- **事件**：就读于中国人民大学。\n- **意义**：接受了系统的高等教育，奠定了知识基础与世界观。\n\n### 📍 重要地点：临河区\n- **时间**：1968年 - 1971年\n- **停留时间**：约3年\n- **地点**：内蒙古临河区（今内蒙古自治区巴彦淖尔市临河区）\n- **事件**：大学毕业后在此劳动锻炼、工作。\n- **意义**：深入基层，体验生活，积累了丰富的人生阅历。\n\n### 📍 重要地点：太原\n- **时间**：1971年 - 1974年\n- **停留时间**：约3年\n- **地点**：山西太原（今山西省太原市）\n- **事件**：调入《山西日报》任记者，开始新闻职业生涯。\n- **意义**：正式踏入新闻与文学创作领域，早期代表作《晋祠》即创作于此时期。\n- **名篇名句**：《晋祠》：春日黄花满山，径幽而香远；秋来草木郁郁，天高而水清。\n\n### 📍 重要地点：北京（光明日报社）\n- **时间**：1974年 - 1982年\n- **停留时间**：约8年\n- **地点**：北京（今北京市）\n- **事件**：调入《光明日报》任记者，后任记者部主任。\n- **意义**：在国家级媒体平台工作，视野更加开阔，创作进入新阶段。\n- **名篇名句**：《觅渡，觅渡，渡何处》：他是一座下临深谷的高峰……\n\n### 📍 重要地点：北京（国家新闻出版署）\n- **时间**：1982年 - 1996年\n- **停留时间**：约14年\n- **地点**：北京（今北京市）\n- **事件**：历任国家新闻出版署副署长等职。\n- **意义**：从事业务管理工作，参与国家新闻出版政策制定与行业管理。\n\n### 📍 重要地点：北京（人民日报社）\n- **时间**：1996年 - 2000年\n- **停留时间**：约4年\n- **地点**：北京（今北京市）\n- **事件**：任《人民日报》副总编辑。\n- **意义**：在中国最高党报担任领导职务，新闻职业生涯达到顶峰。\n\n### 📍 重要地点：北京（文学创作期）\n- **时间**：2000年后\n- **停留时间**：长期\n- **地点**：北京（今北京市）\n- **事件**：卸任行政职务后，专注于散文创作、学术研究与讲学。\n- **意义**：创作了大量脍炙人口的散文名篇，理论研究也更为深入，奠定了其在当代散文史上的地位。\n- **名篇名句**：《把栏杆拍遍》：落日楼头，断鸿声里，江南游子。把吴钩看了，栏杆拍遍，无人会，登临意。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1946 | 霍州 | 山西省临汾市霍州市 | （年龄：0）出生于山西霍州。 |\n| 1965 | 北京 | 北京市 | （年龄：19）进入中国人民大学（北京）学习。 |\n| 1968 | 临河区 | 内蒙古自治区巴彦淖尔市临河区 | （年龄：22）大学毕业，赴内蒙古临河区劳动锻炼。 |\n| 1971 |  |  | （年龄：25）调入《山西日报》任记者。 |\n| 1974 | 北京（光明日报社） | 北京市 | （年龄：28）调入《光明日报》任记者，赴北京工作。 |\n| 1982 | 北京（国家新闻出版署） | 北京市 | （年龄：36）调入国家新闻出版署工作。 |\n| 1996 |  |  | （年龄：50）任《人民日报》副总编辑。 |\n| 2000年后 |  |  | （年龄：54+）卸任行政职务，专注于文学创作与研究。 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- 课文/词作：**《晋祠》**、**《觅渡，觅渡，渡何处》**、**《把栏杆拍遍》**、**《青山不老》**。\n- 核心要点：\n    - **重点**：**《晋祠》** 是典范的**说明性散文**，以清晰的**空间顺序**和生动的语言描绘了晋祠的自然与人文之美。\n    - **重点**：**《觅渡，觅渡，渡何处》** 是**政治抒情散文**的代表，通过剖析瞿秋白的内心世界，探讨了**理想主义者**在历史洪流中的**选择与悲剧**。\n    - **重点**：**《把栏杆拍遍》** 运用**知人论世**的笔法，将辛弃疾的词作与其人生境遇紧密结合，塑造了一个**失意英雄**的立体形象。\n    - 梁衡散文善于从**历史人物**身上挖掘**时代精神**与**人格力量**，具有强烈的**思辨色彩**。\n    - 其语言风格**大气磅礴**，兼具**形象描绘**与**理性论述**，形成了独特的“**大散文**”格局。\n    - 常用**对比**、**引用**、**想象**等手法，增强文章的**感染力**与**深度**。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：作为**新中国培养**的第一代知识分子，其人生轨迹与**新中国建设**和**改革开放**进程高度重合。\n    - 长期在**《光明日报》**、**国家新闻出版署**、**《人民日报》** 等关键文化机构担任领导职务，是**改革开放后中国新闻出版事业**的亲历者与管理者。\n    - **重点**：其散文创作聚焦于**中国近现代史**上的关键人物（如**瞿秋白**、**辛弃疾**、**周恩来**、**诸葛亮**等），以文学方式参与**历史叙事**与**精神建构**。\n- 核心要点：\n    - **重点**：梁衡的“**政治散文**”是**当代中国文学**的一个重要现象，它成功地将**政治议题**、**历史反思**与**文学审美**相结合。\n    - 其作品反映了**改革开放后**知识分子对**历史**、**责任**与**人格**的持续思考，具有鲜明的**时代印记**。\n    - **重点**：他对“**杨朔模式**”的反思，是**新时期散文**突破既有范式、寻求**多元化发展**的重要理论声音。\n    - **重点**：其人物散文写作，强调“**大事、大情、大理**”，追求在**历史真实**基础上进行**艺术升华**，形成了独特的**人物传记散文**风格。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 山西省临汾市霍州市 | 36.57 | 111.72 |\n| 山西省太原市 | 37.87 | 112.55 |\n| 内蒙古自治区巴彦淖尔市临河区 | 40.75 | 107.42 |\n| 北京市 | 39.90 | 116.40 |", "relatedGraph": {"center": {"id": "梁衡", "name": "梁衡", "file": "梁衡.html", "dynasty": "当代（中华人民共和国）", "aliases": [], "birth_year": 1946, "death_year": 2024, "quote": "**大散文**", "review": "春日黄花满山，径幽而香远", "foreign_name": "", "main_role_label": "新闻理论家", "birthplace": "山西霍州", "birthplace_modern": "山西省临汾市霍州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "梁衡", "name": "梁衡", "file": "梁衡.html", "dynasty": "当代（中华人民共和国）", "aliases": [], "birth_year": 1946, "death_year": 2024, "quote": "**大散文**", "review": "春日黄花满山，径幽而香远", "foreign_name": "", "main_role_label": "新闻理论家", "birthplace": "山西霍州", "birthplace_modern": "山西省临汾市霍州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄大年", "name": "黄大年", "file": "黄大年.html", "dynasty": "当代（20世纪末至21世纪初）", "aliases": [], "birth_year": 1958, "death_year": 2017, "quote": "深部探测关键仪器装备", "review": "", "foreign_name": "", "main_role_label": "地球物理学家", "birthplace": "广西壮族自治区南宁市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "魏巍", "name": "魏巍", "file": "魏巍.html", "dynasty": "现当代", "aliases": [], "birth_year": 1920, "death_year": 2008, "quote": "这是很平常的呀！", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "待考", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻立鹏", "name": "闻立鹏", "file": "闻立鹏.html", "dynasty": "现当代", "aliases": [], "birth_year": 1931, "death_year": 2022, "quote": "有深沉的哲理感", "review": "", "foreign_name": "", "main_role_label": "油画家", "birthplace": "湖北浠水", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "钱学森", "name": "钱学森", "file": "钱学森.html", "dynasty": "现当代（中华人民共和国）", "aliases": [], "birth_year": 1911, "death_year": 2009, "quote": "中国航天之父", "review": "", "foreign_name": "", "main_role_label": "科学家", "birthplace": "浙江杭州", "birthplace_modern": "浙江省杭州市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "苏金伞", "name": "苏金伞", "file": "苏金伞.html", "dynasty": "现当代", "aliases": [], "birth_year": 1906, "death_year": 1997, "quote": "中原诗坛的一面旗帜", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "河南省睢县周营村", "birthplace_modern": "河南省商丘市睢县周营村", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "梁衡", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "黄大年", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "魏巍", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "闻立鹏", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "钱学森", "label": "同时代人物", "confidence": null}, {"source": "梁衡", "target": "苏金伞", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:34Z", "generated_at": "2026-06-25T07:13:34Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:32Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:34Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

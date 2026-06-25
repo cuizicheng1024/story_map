@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "韩非", "title": "", "description": "韩非出身韩国贵族，与李斯同为荀子门下。他目睹韩国积弱，多次上书韩王主张变法图强，未被采纳。于是发愤著书，写下《孤愤》《五蠹》《说难》等名篇。其书传至秦国，秦王嬴政大为赞赏，为得韩非而急攻韩国。韩非出使秦国，却因李斯、姚贾陷害，被迫服毒自尽。他的学说虽未在韩国实施，却被秦始皇全面采纳，成为秦帝国的统治思想。", "quote": "儒以文乱法，侠以武犯禁", "shortReview": "儒以文乱法，侠以武犯禁", "dynasty": "战国末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "新郑（今河南省新郑市）", "avatar": "", "birth": {"date": "公元前280年", "location": "新郑（今河南省新郑市）", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84"}, "death": {"date": "公元前233年", "location": "云阳（今陕西省淳化县西北）", "lat": 34.7986, "lng": 108.5811, "coordSystem": "WGS84"}, "lifespan": "约47岁", "highlights": {"honor": "", "status": "法家思想的集大成者，其学说为秦朝统一和中央集权制度奠定了理论基础。", "identities": "思想家、哲学家、散文家、法家代表人物", "achievements": "构建了以“法、术、势”为核心的完整法家理论体系；著有《韩非子》五十五篇；其思想深刻影响了中国两千多年的政治制度。代表作包括《孤愤》《五蠹》《说难》等。", "works": ["孤愤", "五蠹", "说难", "韩非子"], "reviews": []}}, "locations": [{"name": "新郑", "ancientName": "新郑", "modernName": "河南省新郑市", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84", "type": "birth", "event": "出生于韩国王室宗族，成长于宫廷，目睹韩国衰败。", "time": "约公元前280年", "duration": "青年时期", "significance": "其贵族身份使其能深刻洞察政治弊端，为日后提出系统的改革理论提供了现实基础。", "works": [], "quoteLines": []}, {"name": "兰陵（求学地）", "ancientName": "兰陵", "modernName": "山东省兰陵县", "lat": 34.8573, "lng": 118.069, "coordSystem": "WGS84", "type": "normal", "event": "与李斯一同拜儒家大师荀子为师，但思想更倾向于“刑名法术”之学。", "time": "青年时期（具体年份存疑）", "duration": "数年", "significance": "师从荀子，融合了儒家思想中的某些成分（如对“礼”的起源的论述），但最终走向了与儒家截然不同的法家道路，完成了思想体系的奠基。", "works": [], "quoteLines": []}, {"name": "新郑（著述地）", "ancientName": "新郑", "modernName": "河南省新郑市", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84", "type": "normal", "event": "屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。", "time": "约公元前250年后至前234年", "duration": "约16-17年", "significance": "这是其思想成熟和著作完成的关键时期。其文章锋芒毕露，逻辑严密，系统阐述了法、术、势相结合的统治术。", "works": ["孤愤", "五蠹", "说难", "内外储"], "quoteLines": ["儒以文乱法，侠以武犯禁 ---《五蠹》", "《说难》：“凡说之难：非吾知之有以说之之难也...”"]}, {"name": "咸阳（出使与囚禁）", "ancientName": "咸阳", "modernName": "陕西省咸阳市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "normal", "event": "秦王嬴政慕其名，发兵攻韩以求韩非。韩非奉命出使秦国，上书《存韩》劝秦先伐赵。后遭李斯、姚贾嫉妒谗害，被下狱。", "time": "公元前234年-前233年", "duration": "约1年", "significance": "其人身抵达权力中心，但政治生涯迅速终结。其“存韩”之策与秦王统一天下的战略相悖，成为其悲剧的导火索。", "works": ["存韩"], "quoteLines": ["《存韩》：“韩事秦三十余年，出则为扞蔽，入则为席荐...”"]}, {"name": "云阳", "ancientName": "云阳", "modernName": "陕西省淳化县西北", "lat": 34.7986, "lng": 108.5811, "coordSystem": "WGS84", "type": "death", "event": "在狱中被李斯送去的毒药逼迫自杀。", "time": "公元前233年", "duration": "临终", "significance": "法家理论的集大成者死于同门法家实践者的政治倾轧，极具讽刺意味。但其学说被秦始皇全面采纳，塑造了中国第一个大一统帝国的统治骨架。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---", "workTexts": {"说难": "凡说之难：非吾知之有以说之之难也...", "存韩": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "韩非子": "著有《韩非子》五十五篇", "五蠹": "“不期修古，不法常可”", "智子疑邻": "“说难”"}, "workSummaries": {"韩非子": {"title": "韩非子", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "著有《韩非子》五十五篇", "summary": "著有《韩非子》五十五篇", "quote": "| 约公元前250年后至前234年 | | | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。", "quotes": ["| 约公元前250年后至前234年 | | | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。", "其思想深刻影响了中国两千多年的政治制度。", "著有《韩非子》五十五篇；"], "quote_policy": "preferred"}, "孤愤": {"title": "孤愤", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "韩非出身韩国贵族，与李斯同为荀子门下。", "著有《韩非子》五十五篇；"], "quote_policy": "preferred"}, "五蠹": {"title": "五蠹", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "不期修古，不法常可", "summary": "不期修古，不法常可", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "凡说之难：非吾知之有以说之之难也...", "韩非出身韩国贵族，与李斯同为荀子门下。"], "quote_policy": "preferred"}, "说难": {"title": "说难", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "凡说之难：非吾知之有以说之之难也...", "summary": "凡说之难：非吾知之有以说之之难也...", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "凡说之难：非吾知之有以说之之难也...", "韩非出身韩国贵族，与李斯同为荀子门下。"], "quote_policy": "preferred"}, "内外储": {"title": "内外储", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "事件：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。", "quotes": ["事件：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。"], "quote_policy": "preferred"}, "存韩": {"title": "存韩", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "summary": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "quote": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "quotes": ["韩事秦三十余年，出则为扞蔽，入则为席荐...", "韩非奉命出使秦国，上书《存韩》劝秦先伐赵。", "事件：秦王嬴政慕其名，发兵攻韩以求韩非。"], "quote_policy": "preferred"}, "智子疑邻": {"title": "智子疑邻", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "说难", "summary": "说难", "quote": "重点：《智子疑邻》 寓言深刻揭示了认知偏见（亲疏关系影响判断）与“说难”（游说之难）的主题。", "quotes": ["重点：《智子疑邻》 寓言深刻揭示了认知偏见（亲疏关系影响判断）与“说难”（游说之难）的主题。", "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "说难"], "quote_policy": "preferred"}, "扁鹊见蔡桓公": {"title": "扁鹊见蔡桓公", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "重点：《扁鹊见蔡桓公》 以疾病隐喻，阐述了“慎易以避难”的防微杜渐哲学思想和道家“为之于未有”的智慧。", "quotes": ["重点：《扁鹊见蔡桓公》 以疾病隐喻，阐述了“慎易以避难”的防微杜渐哲学思想和道家“为之于未有”的智慧。", "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "（注：该故事原型见于《史记》，韩非子借以阐述法家思想）"], "quote_policy": "preferred"}, "喻老": {"title": "喻老", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "quotes": ["《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）"], "quote_policy": "preferred"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}}, "markdown": "# 韩非子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：韩非\n- **时代**：战国末期\n- **出生**：约公元前280年，新郑（今河南省新郑市）\n- **去世**：公元前233年，云阳（今陕西省淳化县西北）\n- **享年**：约47岁\n- **主要身份**：思想家、哲学家、散文家、法家代表人物\n- **历史地位**：法家思想的集大成者，其学说为秦朝统一和中央集权制度奠定了理论基础。\n- **主要成就**：构建了以“法、术、势”为核心的完整法家理论体系；著有《韩非子》五十五篇；其思想深刻影响了中国两千多年的政治制度。代表作包括《孤愤》《五蠹》《说难》等。\n\n### 生平概述\n韩非出身韩国贵族，与李斯同为荀子门下。他目睹韩国积弱，多次上书韩王主张变法图强，未被采纳。于是发愤著书，写下《孤愤》《五蠹》《说难》等名篇。其书传至秦国，秦王嬴政大为赞赏，为得韩非而急攻韩国。韩非出使秦国，却因李斯、姚贾陷害，被迫服毒自尽。他的学说虽未在韩国实施，却被秦始皇全面采纳，成为秦帝国的统治思想。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于战国后期的韩国与秦国核心区域。\n- ⏱️ **时间跨度**：约公元前280年至公元前233年，共约47年。\n- 📍 **地理范围**：以今河南省中部（韩）和陕西省中部（秦）为主。\n- 🌟 **重要节点数量**：5个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：新郑\n- **时间**：约公元前280年\n- **停留时间**：青年时期\n- **地点**：新郑（今河南省新郑市）\n- **事件**：出生于韩国王室宗族，成长于宫廷，目睹韩国衰败。\n- **意义**：其贵族身份使其能深刻洞察政治弊端，为日后提出系统的改革理论提供了现实基础。\n\n### 📍 重要地点：兰陵（求学地）\n- **时间**：青年时期（具体年份存疑）\n- **停留时间**：数年\n- **地点**：兰陵（今山东省兰陵县）\n- **事件**：与李斯一同拜儒家大师荀子为师，但思想更倾向于“刑名法术”之学。\n- **意义**：师从荀子，融合了儒家思想中的某些成分（如对“礼”的起源的论述），但最终走向了与儒家截然不同的法家道路，完成了思想体系的奠基。\n\n### 📍 重要地点：新郑（著述地）\n- **时间**：约公元前250年后至前234年\n- **停留时间**：约16-17年\n- **地点**：新郑（今河南省新郑市）\n- **事件**：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。\n- **意义**：这是其思想成熟和著作完成的关键时期。其文章锋芒毕露，逻辑严密，系统阐述了法、术、势相结合的统治术。\n- **名篇名句**：儒以文乱法，侠以武犯禁 ---《五蠹》；《说难》：“凡说之难：非吾知之有以说之之难也...”\n\n### 📍 重要地点：咸阳（出使与囚禁）\n- **时间**：公元前234年-前233年\n- **停留时间**：约1年\n- **地点**：咸阳（今陕西省咸阳市）\n- **事件**：秦王嬴政慕其名，发兵攻韩以求韩非。韩非奉命出使秦国，上书《存韩》劝秦先伐赵。后遭李斯、姚贾嫉妒谗害，被下狱。\n- **意义**：其人身抵达权力中心，但政治生涯迅速终结。其“存韩”之策与秦王统一天下的战略相悖，成为其悲剧的导火索。\n- **名篇名句**：《存韩》：“韩事秦三十余年，出则为扞蔽，入则为席荐...”\n\n### 🔴 去世地：云阳\n- **时间**：公元前233年\n- **停留时间**：临终\n- **地点**：云阳（今陕西省淳化县西北）\n- **事件**：在狱中被李斯送去的毒药逼迫自杀。\n- **意义**：法家理论的集大成者死于同门法家实践者的政治倾轧，极具讽刺意味。但其学说被秦始皇全面采纳，塑造了中国第一个大一统帝国的统治骨架。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前280年 | 新郑 | 河南省新郑市 | （年龄：0岁）出生于韩国新郑（王室旁支）。 |\n| 青年时期 | 兰陵（求学地） | 山东省兰陵县 | 与李斯赴楚国兰陵，师从荀子。 |\n| 约公元前250年 |  |  | （年龄：约30余岁）学成归国，多次上书韩王建议变法，未被采纳（具体年份存疑）。 |\n| 约公元前250年后至前234年 |  |  | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。 |\n| 公元前234年 |  |  | （年龄：约46岁）秦王嬴政见其书，攻韩索人。韩非出使秦国。 |\n| 公元前233年 | 云阳 | 陕西省淳化县西北 | （年龄：约47岁）在秦国遭李斯、姚贾陷害，被囚于云阳，被迫服毒自杀。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省新郑市 | 34.3956 | 113.7416 |\n| 山东省兰陵县 | 34.8573 | 118.0690 |\n| 陕西省咸阳市 | 34.3292 | 108.7087 |\n| 陕西省淳化县 | 34.7986 | 108.5811 |\n", "relatedGraph": {"center": {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "儒以文乱法，侠以武犯禁", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "儒以文乱法，侠以武犯禁", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "韩非子", "target": "秦始皇", "label": "君臣", "confidence": null}, {"source": "韩非子", "target": "荀子", "label": "师生", "confidence": null}, {"source": "韩非子", "target": "李斯", "label": "师生", "confidence": null}, {"source": "韩非子", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "韩非子", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "韩非子", "target": "楚怀王", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:53Z", "generated_at": "2026-06-22T11:31:53Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "韩非", "title": "", "description": "韩非出身韩国贵族，与李斯同为荀子门下。他目睹韩国积弱，多次上书韩王主张变法图强，未被采纳。于是发愤著书，写下《孤愤》《五蠹》《说难》等名篇。其书传至秦国，秦王嬴政大为赞赏，为得韩非而急攻韩国。韩非出使秦国，却因李斯、姚贾陷害，被迫服毒自尽。他的学说虽未在韩国实施，却被秦始皇全面采纳，成为秦帝国的统治思想。", "quote": "儒以文乱法，侠以武犯禁", "shortReview": "儒以文乱法，侠以武犯禁", "dynasty": "战国末期", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "新郑（今河南省新郑市）", "avatar": "", "birth": {"date": "公元前280年", "location": "新郑（今河南省新郑市）", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84"}, "death": {"date": "公元前233年", "location": "云阳（今陕西省淳化县西北）", "lat": 34.7986, "lng": 108.5811, "coordSystem": "WGS84"}, "lifespan": "约47岁", "highlights": {"honor": "", "status": "法家思想的集大成者，其学说为秦朝统一和中央集权制度奠定了理论基础。", "identities": "思想家、哲学家、散文家、法家代表人物", "achievements": "构建了以“法、术、势”为核心的完整法家理论体系；著有《韩非子》五十五篇；其思想深刻影响了中国两千多年的政治制度。代表作包括《孤愤》《五蠹》《说难》等。", "works": ["孤愤", "五蠹", "说难", "韩非子"], "reviews": []}}, "locations": [{"name": "新郑", "ancientName": "新郑", "modernName": "河南省新郑市", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84", "type": "birth", "event": "出生于韩国王室宗族，成长于宫廷，目睹韩国衰败。", "time": "约公元前280年", "duration": "青年时期", "significance": "其贵族身份使其能深刻洞察政治弊端，为日后提出系统的改革理论提供了现实基础。", "works": [], "quoteLines": []}, {"name": "兰陵（求学地）", "ancientName": "兰陵", "modernName": "山东省兰陵县", "lat": 34.8573, "lng": 118.069, "coordSystem": "WGS84", "type": "normal", "event": "与李斯一同拜儒家大师荀子为师，但思想更倾向于“刑名法术”之学。", "time": "青年时期（具体年份存疑）", "duration": "数年", "significance": "师从荀子，融合了儒家思想中的某些成分（如对“礼”的起源的论述），但最终走向了与儒家截然不同的法家道路，完成了思想体系的奠基。", "works": [], "quoteLines": []}, {"name": "新郑（著述地）", "ancientName": "新郑", "modernName": "河南省新郑市", "lat": 34.3956, "lng": 113.7416, "coordSystem": "WGS84", "type": "normal", "event": "屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。", "time": "约公元前250年后至前234年", "duration": "约16-17年", "significance": "这是其思想成熟和著作完成的关键时期。其文章锋芒毕露，逻辑严密，系统阐述了法、术、势相结合的统治术。", "works": ["孤愤", "五蠹", "说难", "内外储"], "quoteLines": ["儒以文乱法，侠以武犯禁 ---《五蠹》", "《说难》：“凡说之难：非吾知之有以说之之难也...”"]}, {"name": "咸阳（出使与囚禁）", "ancientName": "咸阳", "modernName": "陕西省咸阳市", "lat": 34.3292, "lng": 108.7087, "coordSystem": "WGS84", "type": "normal", "event": "秦王嬴政慕其名，发兵攻韩以求韩非。韩非奉命出使秦国，上书《存韩》劝秦先伐赵。后遭李斯、姚贾嫉妒谗害，被下狱。", "time": "公元前234年-前233年", "duration": "约1年", "significance": "其人身抵达权力中心，但政治生涯迅速终结。其“存韩”之策与秦王统一天下的战略相悖，成为其悲剧的导火索。", "works": ["存韩"], "quoteLines": ["《存韩》：“韩事秦三十余年，出则为扞蔽，入则为席荐...”"]}, {"name": "云阳", "ancientName": "云阳", "modernName": "陕西省淳化县西北", "lat": 34.7986, "lng": 108.5811, "coordSystem": "WGS84", "type": "death", "event": "在狱中被李斯送去的毒药逼迫自杀。", "time": "公元前233年", "duration": "临终", "significance": "法家理论的集大成者死于同门法家实践者的政治倾轧，极具讽刺意味。但其学说被秦始皇全面采纳，塑造了中国第一个大一统帝国的统治骨架。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---", "workTexts": {"说难": "凡说之难：非吾知之有以说之之难也...", "存韩": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "韩非子": "著有《韩非子》五十五篇", "五蠹": "“不期修古，不法常可”", "智子疑邻": "“说难”"}, "workSummaries": {"韩非子": {"title": "韩非子", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "著有《韩非子》五十五篇", "summary": "著有《韩非子》五十五篇", "quote": "| 约公元前250年后至前234年 | | | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。", "quotes": ["| 约公元前250年后至前234年 | | | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。", "其思想深刻影响了中国两千多年的政治制度。", "著有《韩非子》五十五篇；"], "quote_policy": "preferred"}, "孤愤": {"title": "孤愤", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "韩非出身韩国贵族，与李斯同为荀子门下。", "著有《韩非子》五十五篇；"], "quote_policy": "preferred"}, "五蠹": {"title": "五蠹", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "不期修古，不法常可", "summary": "不期修古，不法常可", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "凡说之难：非吾知之有以说之之难也...", "韩非出身韩国贵族，与李斯同为荀子门下。"], "quote_policy": "preferred"}, "说难": {"title": "说难", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "凡说之难：非吾知之有以说之之难也...", "summary": "凡说之难：非吾知之有以说之之难也...", "quote": "其思想深刻影响了中国两千多年的政治制度。", "quotes": ["其思想深刻影响了中国两千多年的政治制度。", "凡说之难：非吾知之有以说之之难也...", "韩非出身韩国贵族，与李斯同为荀子门下。"], "quote_policy": "preferred"}, "内外储": {"title": "内外储", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "事件：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。", "quotes": ["事件：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。"], "quote_policy": "preferred"}, "存韩": {"title": "存韩", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "summary": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "quote": "韩事秦三十余年，出则为扞蔽，入则为席荐...", "quotes": ["韩事秦三十余年，出则为扞蔽，入则为席荐...", "韩非奉命出使秦国，上书《存韩》劝秦先伐赵。", "事件：秦王嬴政慕其名，发兵攻韩以求韩非。"], "quote_policy": "preferred"}, "智子疑邻": {"title": "智子疑邻", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "说难", "summary": "说难", "quote": "重点：《智子疑邻》 寓言深刻揭示了认知偏见（亲疏关系影响判断）与“说难”（游说之难）的主题。", "quotes": ["重点：《智子疑邻》 寓言深刻揭示了认知偏见（亲疏关系影响判断）与“说难”（游说之难）的主题。", "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "说难"], "quote_policy": "preferred"}, "扁鹊见蔡桓公": {"title": "扁鹊见蔡桓公", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "重点：《扁鹊见蔡桓公》 以疾病隐喻，阐述了“慎易以避难”的防微杜渐哲学思想和道家“为之于未有”的智慧。", "quotes": ["重点：《扁鹊见蔡桓公》 以疾病隐喻，阐述了“慎易以避难”的防微杜渐哲学思想和道家“为之于未有”的智慧。", "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "（注：该故事原型见于《史记》，韩非子借以阐述法家思想）"], "quote_policy": "preferred"}, "喻老": {"title": "喻老", "aliases": [], "authors": ["韩非子"], "related_people": ["韩非子"], "source_pages": ["韩非子"], "era": "战国末期", "genre": "", "one_liner": "韩非出身韩国贵族，与李斯同为荀子门下", "summary": "韩非出身韩国贵族，与李斯同为荀子门下", "quote": "《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）", "quotes": ["《五蠹》（节选）、《智子疑邻》（出自《说难》）、《扁鹊见蔡桓公》（出自《喻老》）"], "quote_policy": "preferred"}, "史记": {"title": "史记", "aliases": [], "authors": ["刘邦", "司马迁", "重耳"], "related_people": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "source_pages": ["班固", "楚庄王", "顾颉刚", "韩非子", "汉文帝", "汉武帝", "霍光", "狐偃", "贾谊", "老子", "李斯", "刘邦", "齐桓公", "秦始皇", "司马迁", "宋襄公", "孙膑", "伍子胥", "项羽", "荀子", "重耳", "卓文君"], "era": "秦末汉初", "genre": "散文", "one_liner": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "summary": "班固的散文辞藻典雅，组织严密，与《史记》的疏荡雄奇风格形成对比，代表了汉代史传文学的另一种典范。", "quote": "3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "quotes": ["3. 文化符号：其故事广泛见于《左传》、《史记》等典籍，成为文学、艺术创作的重要题材。", "《史记》对刘邦的记载，兼具开国帝王的雄才大略与平民出身的狡黠无赖，人物形象立体丰满。", "父老苦秦苛法久矣…与父老约，法三章耳：杀人者死，伤人及盗抵罪。"], "quote_policy": "preferred"}}, "markdown": "# 韩非子\n\n## 人物档案\n\n### 基本信息\n- **姓名**：韩非\n- **时代**：战国末期\n- **出生**：约公元前280年，新郑（今河南省新郑市）\n- **去世**：公元前233年，云阳（今陕西省淳化县西北）\n- **享年**：约47岁\n- **主要身份**：思想家、哲学家、散文家、法家代表人物\n- **历史地位**：法家思想的集大成者，其学说为秦朝统一和中央集权制度奠定了理论基础。\n- **主要成就**：构建了以“法、术、势”为核心的完整法家理论体系；著有《韩非子》五十五篇；其思想深刻影响了中国两千多年的政治制度。代表作包括《孤愤》《五蠹》《说难》等。\n\n### 生平概述\n韩非出身韩国贵族，与李斯同为荀子门下。他目睹韩国积弱，多次上书韩王主张变法图强，未被采纳。于是发愤著书，写下《孤愤》《五蠹》《说难》等名篇。其书传至秦国，秦王嬴政大为赞赏，为得韩非而急攻韩国。韩非出使秦国，却因李斯、姚贾陷害，被迫服毒自尽。他的学说虽未在韩国实施，却被秦始皇全面采纳，成为秦帝国的统治思想。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：主要活动于战国后期的韩国与秦国核心区域。\n- ⏱️ **时间跨度**：约公元前280年至公元前233年，共约47年。\n- 📍 **地理范围**：以今河南省中部（韩）和陕西省中部（秦）为主。\n- 🌟 **重要节点数量**：5个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：新郑\n- **时间**：约公元前280年\n- **停留时间**：青年时期\n- **地点**：新郑（今河南省新郑市）\n- **事件**：出生于韩国王室宗族，成长于宫廷，目睹韩国衰败。\n- **意义**：其贵族身份使其能深刻洞察政治弊端，为日后提出系统的改革理论提供了现实基础。\n\n### 📍 重要地点：兰陵（求学地）\n- **时间**：青年时期（具体年份存疑）\n- **停留时间**：数年\n- **地点**：兰陵（今山东省兰陵县）\n- **事件**：与李斯一同拜儒家大师荀子为师，但思想更倾向于“刑名法术”之学。\n- **意义**：师从荀子，融合了儒家思想中的某些成分（如对“礼”的起源的论述），但最终走向了与儒家截然不同的法家道路，完成了思想体系的奠基。\n\n### 📍 重要地点：新郑（著述地）\n- **时间**：约公元前250年后至前234年\n- **停留时间**：约16-17年\n- **地点**：新郑（今河南省新郑市）\n- **事件**：屡次向韩王进言变法未果，愤而退居著书，写下《孤愤》《五蠹》《说难》《内外储》等十余万言。\n- **意义**：这是其思想成熟和著作完成的关键时期。其文章锋芒毕露，逻辑严密，系统阐述了法、术、势相结合的统治术。\n- **名篇名句**：儒以文乱法，侠以武犯禁 ---《五蠹》；《说难》：“凡说之难：非吾知之有以说之之难也...”\n\n### 📍 重要地点：咸阳（出使与囚禁）\n- **时间**：公元前234年-前233年\n- **停留时间**：约1年\n- **地点**：咸阳（今陕西省咸阳市）\n- **事件**：秦王嬴政慕其名，发兵攻韩以求韩非。韩非奉命出使秦国，上书《存韩》劝秦先伐赵。后遭李斯、姚贾嫉妒谗害，被下狱。\n- **意义**：其人身抵达权力中心，但政治生涯迅速终结。其“存韩”之策与秦王统一天下的战略相悖，成为其悲剧的导火索。\n- **名篇名句**：《存韩》：“韩事秦三十余年，出则为扞蔽，入则为席荐...”\n\n### 🔴 去世地：云阳\n- **时间**：公元前233年\n- **停留时间**：临终\n- **地点**：云阳（今陕西省淳化县西北）\n- **事件**：在狱中被李斯送去的毒药逼迫自杀。\n- **意义**：法家理论的集大成者死于同门法家实践者的政治倾轧，极具讽刺意味。但其学说被秦始皇全面采纳，塑造了中国第一个大一统帝国的统治骨架。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前280年 | 新郑 | 河南省新郑市 | （年龄：0岁）出生于韩国新郑（王室旁支）。 |\n| 青年时期 | 兰陵（求学地） | 山东省兰陵县 | 与李斯赴楚国兰陵，师从荀子。 |\n| 约公元前250年 |  |  | （年龄：约30余岁）学成归国，多次上书韩王建议变法，未被采纳（具体年份存疑）。 |\n| 约公元前250年后至前234年 |  |  | （年龄：约30-46岁）退居著书，完成《韩非子》主体篇章。 |\n| 公元前234年 |  |  | （年龄：约46岁）秦王嬴政见其书，攻韩索人。韩非出使秦国。 |\n| 公元前233年 | 云阳 | 陕西省淳化县西北 | （年龄：约47岁）在秦国遭李斯、姚贾陷害，被囚于云阳，被迫服毒自杀。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《五蠹》**（节选）、**《智子疑邻》**（出自《说难》）、**《扁鹊见蔡桓公》**（出自《喻老》）\n- 核心要点：\n    - **重点**：**《五蠹》** 中“不期修古，不法常可”的**历史进化观**，反对复古，主张**变法革新**。\n    - **重点**：**《智子疑邻》** 寓言深刻揭示了**认知偏见**（亲疏关系影响判断）与**“说难”**（游说之难）的主题。\n    - **重点**：**《扁鹊见蔡桓公》** 以疾病隐喻，阐述了“慎易以避难”的**防微杜渐**哲学思想和**道家**“为之于未有”的智慧。（注：该故事原型见于《史记》，韩非子借以阐述法家思想）\n    - 其文风**峻峭犀利**，逻辑严密，善于运用**寓言故事**和**历史典故**说理，极具说服力。\n    - 核心思想是构建以**“法”**（明确律令）、**“术”**（驾驭臣下）、**“势”**（君主权威）为核心的统治体系。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：**战国末期**法家思想的集大成者，其学说为**秦始皇**建立**中央集权**的君主专制制度提供了直接的理论蓝图。\n    - 出身韩国贵族，与**李斯**同学于荀子，但李斯自认才能不及韩非。\n    - 其著作传入秦国，秦王嬴政发出“嗟乎，寡人得见此人与之游，死不恨矣”的感叹。\n- 核心要点：\n    - **重点**：其思想核心是**君主专制**理论，强调君主必须独揽**“刑德”二柄**，用**“法”**治民，用**“术”**驭臣，凭借**“势”**位巩固权力。\n    - **重点**：提出了**“世异则事异”** 的进步历史观，为变法提供了哲学依据，反对儒家“法先王”的复古主张。\n    - **重点**：在人性论上持**“自为”**（自私自利）论，认为人与人之间本质是**利害关系**，因此必须用严刑峻法进行约束和驱使。\n    - 其个人悲剧（死于秦国）与学说成功（用于秦国）的对比，是思想史上的著名案例。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 河南省新郑市 | 34.3956 | 113.7416 |\n| 山东省兰陵县 | 34.8573 | 118.0690 |\n| 陕西省咸阳市 | 34.3292 | 108.7087 |\n| 陕西省淳化县 | 34.7986 | 108.5811 |\n", "relatedGraph": {"center": {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "儒以文乱法，侠以武犯禁", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "儒以文乱法，侠以武犯禁", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "秦始皇", "name": "秦始皇", "file": "秦始皇.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -259, "death_year": -210, "quote": "书同文、车同轨、行同伦", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "赵国邯郸", "birthplace_modern": "河北省邯郸市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "李斯", "name": "李斯", "file": "李斯.html", "dynasty": "战国末期至秦朝", "aliases": [], "birth_year": -284, "death_year": -208, "quote": "书同文、车同轨", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "据《史记》等推算", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "韩非子", "target": "秦始皇", "label": "君臣", "confidence": null}, {"source": "韩非子", "target": "荀子", "label": "师生", "confidence": null}, {"source": "韩非子", "target": "李斯", "label": "师生", "confidence": null}, {"source": "韩非子", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "韩非子", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "韩非子", "target": "楚怀王", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:56Z", "generated_at": "2026-06-25T07:13:56Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:53Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:56Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

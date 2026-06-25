@@ -386,6 +386,99 @@ class _GenerateDailyQuotaStore:
 _GENERATE_DAILY_QUOTA_STORES: dict[str, _GenerateDailyQuotaStore] = {}
 _GENERATE_IDEMPOTENCY_STORES: dict[str, "_GenerateIdempotencyStore"] = {}
 _STAR_OFFICE_NAME = "橙子科技公司"
+_STAR_OFFICE_NAME_MAP = {
+    "zh": "橙子科技公司",
+    "en": "Orange Tech Studio",
+    "ja": "オレンジテック株式会社",
+}
+_STAR_OFFICE_COPY_MAP = {
+    "status_serve_recovering": {
+        "zh": "服务恢复中，正在等待站点与运行态恢复。",
+        "en": "Service is recovering and waiting for the site/runtime to come back online.",
+        "ja": "サービスを復旧中です。サイトとランタイムの回復を待っています。",
+    },
+    "status_generate_paused": {
+        "zh": "实时生成人物已暂停，正在等待依赖恢复。",
+        "en": "Real-time profile generation is paused while dependencies recover.",
+        "ja": "リアルタイム人物生成は一時停止中です。依存サービスの復旧を待っています。",
+    },
+    "status_running": {
+        "zh": "正在处理 {label} 的故事地图生成",
+        "en": "Generating the story map for {label}.",
+        "ja": "{label} のストーリーマップを生成中です。",
+    },
+    "status_queued": {
+        "zh": "{label} 正在排队，等待 Agent 开始执行",
+        "en": "{label} is queued and waiting for the agent to start.",
+        "ja": "{label} はキュー待機中で、Agent の開始を待っています。",
+    },
+    "status_recent_success_active": {
+        "zh": "最近已完成 {label} 的生成，系统当前待命，可继续处理新人物。",
+        "en": "Recently finished generating {label}; the office is idle and ready for the next figure.",
+        "ja": "{label} の生成が最近完了しました。現在は待機中で、次の人物を処理できます。",
+    },
+    "status_recent_failure": {
+        "zh": "最近一次 {label} 任务未完全成功，系统已恢复待命，可直接重试或继续新任务。",
+        "en": "The latest task for {label} did not fully succeed. The office is idle again, and you can retry or start a new task.",
+        "ja": "{label} の直近タスクは完全には成功しませんでしたが、現在は待機状態に戻っており、再試行や新規タスクを開始できます。",
+    },
+    "status_recent_failure_with_detail": {
+        "zh": "{summary} 上次异常：{detail}",
+        "en": "{summary} Last error: {detail}",
+        "ja": "{summary} 前回のエラー: {detail}",
+    },
+    "status_idle": {
+        "zh": "待命中，随时可以继续处理新的历史人物任务。",
+        "en": "On standby and ready for the next historical figure task.",
+        "ja": "待機中です。次の歴史人物タスクをいつでも処理できます。",
+    },
+    "memo_running": {
+        "zh": "当前任务：{label}，正在生成故事地图与人物页。",
+        "en": "Current task: {label}. Generating the story map and profile page.",
+        "ja": "現在のタスク: {label}。ストーリーマップと人物ページを生成中です。",
+    },
+    "memo_queued": {
+        "zh": "当前任务：{label}，正在排队等待 Agent 开始执行。",
+        "en": "Current task: {label}. Waiting in queue for the agent to start.",
+        "ja": "現在のタスク: {label}。Agent の開始待ちでキューに入っています。",
+    },
+    "memo_success": {
+        "zh": "最近完成：{label}，人物页与首页数据已同步。",
+        "en": "Recently completed: {label}. The profile page and homepage data are synced.",
+        "ja": "最近完了: {label}。人物ページとホームページのデータは同期済みです。",
+    },
+    "memo_failure": {
+        "zh": "最近一次任务未完全成功：{label}，系统已恢复待命，可直接重试。",
+        "en": "The latest task for {label} did not fully succeed, but the office is back on standby and ready to retry.",
+        "ja": "{label} の直近タスクは完全には成功しませんでしたが、現在は待機状態に戻っており、すぐ再試行できます。",
+    },
+    "memo_idle": {
+        "zh": "当前办公室待命中，暂无新的生成任务，静态人物页仍可正常浏览。",
+        "en": "The office is on standby with no new generation task. Existing static profile pages remain available.",
+        "ja": "オフィスは待機中で、新しい生成タスクはありません。既存の静的人物ページは引き続き閲覧できます。",
+    },
+    "memo_paused_suffix": {
+        "zh": " 目前实时生成暂停，系统正在等待依赖恢复。",
+        "en": " Real-time generation is currently paused while dependencies recover.",
+        "ja": " 現在リアルタイム生成は一時停止中で、依存サービスの復旧を待っています。",
+    },
+}
+
+
+def _star_office_lang(lang: str | None) -> str:
+    normalized = str(lang or "").strip().lower()
+    if normalized in {"en", "ja", "zh"}:
+        return normalized
+    return "zh"
+
+
+def _star_office_copy(key: str, *, lang: str, **kwargs: object) -> str:
+    table = _STAR_OFFICE_COPY_MAP.get(key) or {}
+    template = str(table.get(lang) or table.get("zh") or key)
+    try:
+        return template.format(**kwargs)
+    except Exception:
+        return template
 
 
 def _generate_daily_quota_store() -> _GenerateDailyQuotaStore:
@@ -468,7 +561,8 @@ def _pick_latest_task(*tasks: dict) -> dict:
     return picked
 
 
-def _star_office_status_payload(*, task_service: object, readiness: dict) -> dict:
+def _star_office_status_payload(*, task_service: object, readiness: dict, lang: str = "zh") -> dict:
+    lang = _star_office_lang(lang)
     context = _star_office_task_context(task_service)
     task = dict(context.get("active") or {})
     status = str(task.get("status") or "").strip()
@@ -476,18 +570,18 @@ def _star_office_status_payload(*, task_service: object, readiness: dict) -> dic
     if not readiness.get("serve_ready"):
         return {
             "state": "idle",
-            "detail": "服务恢复中，正在等待站点与运行态恢复。",
+            "detail": _star_office_copy("status_serve_recovering", lang=lang),
             "progress": 0,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     if not readiness.get("generate_ready"):
         return {
             "state": "idle",
-            "detail": "实时生成人物已暂停，正在等待依赖恢复。",
+            "detail": _star_office_copy("status_generate_paused", lang=lang),
             "progress": 0,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     latest_success = dict(context.get("latest_success") or {})
     latest_failure = dict(context.get("latest_failure") or {})
@@ -495,48 +589,48 @@ def _star_office_status_payload(*, task_service: object, readiness: dict) -> dic
     if status == "running":
         return {
             "state": "executing",
-            "detail": f"正在处理 {label} 的故事地图生成",
+            "detail": _star_office_copy("status_running", lang=lang, label=label),
             "progress": 62,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     if status == "queued":
         return {
             "state": "researching",
-            "detail": f"{label} 正在排队，等待 Agent 开始执行",
+            "detail": _star_office_copy("status_queued", lang=lang, label=label),
             "progress": 18,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     if latest_terminal and str(latest_terminal.get("status") or "").strip() == "completed":
         success_label = _task_person_label(latest_terminal)
         success_state = "syncing" if _is_recent_task(latest_terminal, window_seconds=900) else "idle"
         return {
             "state": success_state,
-            "detail": f"最近已完成 {success_label} 的生成，系统当前待命，可继续处理新人物。",
+            "detail": _star_office_copy("status_recent_success_active", lang=lang, label=success_label),
             "progress": 100 if success_state == "syncing" else 0,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     if latest_terminal:
         failed_label = _task_person_label(latest_terminal)
         detail = str(latest_terminal.get("error") or "").strip()
-        summary = f"最近一次 {failed_label} 任务未完全成功，系统已恢复待命，可直接重试或继续新任务。"
+        summary = _star_office_copy("status_recent_failure", lang=lang, label=failed_label)
         if detail:
-            summary = f"{summary} 上次异常：{detail}"
+            summary = _star_office_copy("status_recent_failure_with_detail", lang=lang, summary=summary, detail=detail)
         return {
             "state": "idle",
             "detail": summary,
             "progress": 0,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "officeName": _STAR_OFFICE_NAME,
+            "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
         }
     return {
         "state": "idle",
-        "detail": "待命中，随时可以继续处理新的历史人物任务。",
+        "detail": _star_office_copy("status_idle", lang=lang),
         "progress": 0,
         "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "officeName": _STAR_OFFICE_NAME,
+        "officeName": _STAR_OFFICE_NAME_MAP.get(lang, _STAR_OFFICE_NAME),
     }
 
 
@@ -607,7 +701,8 @@ def _star_office_agents_payload(*, task_service: object, readiness: dict) -> lis
     return agents[:3]
 
 
-def _star_office_memo_payload(*, task_service: object, readiness: dict) -> dict:
+def _star_office_memo_payload(*, task_service: object, readiness: dict, lang: str = "zh") -> dict:
+    lang = _star_office_lang(lang)
     context = _star_office_task_context(task_service)
     active = dict(context.get("active") or {})
     latest_success = dict(context.get("latest_success") or {})
@@ -615,17 +710,17 @@ def _star_office_memo_payload(*, task_service: object, readiness: dict) -> dict:
     latest_terminal = _pick_latest_task(latest_success, latest_failure)
     active_status = str(active.get("status") or "").strip()
     if active_status == "running":
-        memo = f"当前任务：{_task_person_label(active)}，正在生成故事地图与人物页。"
+        memo = _star_office_copy("memo_running", lang=lang, label=_task_person_label(active))
     elif active_status == "queued":
-        memo = f"当前任务：{_task_person_label(active)}，正在排队等待 Agent 开始执行。"
+        memo = _star_office_copy("memo_queued", lang=lang, label=_task_person_label(active))
     elif latest_terminal and str(latest_terminal.get("status") or "").strip() == "completed":
-        memo = f"最近完成：{_task_person_label(latest_terminal)}，人物页与首页数据已同步。"
+        memo = _star_office_copy("memo_success", lang=lang, label=_task_person_label(latest_terminal))
     elif latest_terminal:
-        memo = f"最近一次任务未完全成功：{_task_person_label(latest_terminal)}，系统已恢复待命，可直接重试。"
+        memo = _star_office_copy("memo_failure", lang=lang, label=_task_person_label(latest_terminal))
     else:
-        memo = "当前办公室待命中，暂无新的生成任务，静态人物页仍可正常浏览。"
+        memo = _star_office_copy("memo_idle", lang=lang)
     if not readiness.get("generate_ready"):
-        memo += " 目前实时生成暂停，系统正在等待依赖恢复。"
+        memo += _star_office_copy("memo_paused_suffix", lang=lang)
     return {"success": True, "date": str(date.today()), "memo": memo}
 
 
@@ -759,7 +854,8 @@ def create_app(
     async def star_office_status(request: FastAPIRequest) -> JSONResponse:
         _enforce_origin(request, resolve_cors_origin)
         readiness = _build_readiness_payload(static_service=static_service, proxy_service=proxy_service, task_service=task_service)
-        return JSONResponse(status_code=200, content=_star_office_status_payload(task_service=task_service, readiness=readiness))
+        lang = _star_office_lang(request.query_params.get("lang"))
+        return JSONResponse(status_code=200, content=_star_office_status_payload(task_service=task_service, readiness=readiness, lang=lang))
 
     @app.get("/agents", include_in_schema=False)
     async def star_office_agents(request: FastAPIRequest) -> JSONResponse:
@@ -774,7 +870,8 @@ def create_app(
     async def star_office_memo(request: FastAPIRequest) -> JSONResponse:
         _enforce_origin(request, resolve_cors_origin)
         readiness = _build_readiness_payload(static_service=static_service, proxy_service=proxy_service, task_service=task_service)
-        return JSONResponse(status_code=200, content=_star_office_memo_payload(task_service=task_service, readiness=readiness))
+        lang = _star_office_lang(request.query_params.get("lang"))
+        return JSONResponse(status_code=200, content=_star_office_memo_payload(task_service=task_service, readiness=readiness, lang=lang))
 
     @app.get("/health/runtime")
     async def health_runtime(request: FastAPIRequest) -> JSONResponse:

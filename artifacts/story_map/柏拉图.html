@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "柏拉图", "title": "", "description": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quote": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "shortReview": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）", "avatar": "", "birth": {"date": "公元前428/427年", "location": "雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前348年", "location": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "哲学家、雅典学院创办者、苏格拉底的学生、亚里士多德的老师、对话录作者", "achievements": "创立雅典学院（Academy），被后世视为西方第一所高等学府；提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；在《理想国》中系统阐述正义、哲学王与理想国家的构想；提出灵魂三分说（理性、意志、欲望）", "works": ["理想国", "会饮篇", "斐多篇"], "reviews": []}}, "locations": [{"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "birth", "event": "出生于雅典（古希腊阿提卡地区），出身贵族家庭", "time": "约公元前428年", "duration": "", "significance": "雅典是柏拉图人生起点的重要地点，也为理解其出身背景与后世纪念提供线索。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "normal", "event": "师从苏格拉底，学习哲学", "time": "约公元前407年", "duration": "", "significance": "雅典与“师从苏格拉底，学习哲学”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "麦加拉、埃及、叙拉古等地", "ancientName": "麦加拉、埃及、叙拉古等地", "modernName": "麦加拉", "lat": 34.711405, "lng": 102.769508, "coordSystem": "WGS84", "type": "normal", "event": "苏格拉底被处死后，离开雅典游历", "time": "公元前399年", "duration": "", "significance": "麦加拉、埃及、叙拉古等地与“苏格拉底被处死后，离开雅典游历”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "normal", "event": "返回雅典，创办学院（Academy）", "time": "约公元前387年", "duration": "", "significance": "雅典与“返回雅典，创办学院（Academy）”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "叙拉古", "ancientName": "叙拉古", "modernName": "叙拉古", "lat": 29.620692, "lng": 91.051602, "coordSystem": "WGS84", "type": "normal", "event": "受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果", "time": "公元前367年", "duration": "", "significance": "叙拉古与“受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "death", "event": "在雅典去世，享年约80岁", "time": "约公元前348年", "duration": "", "significance": "雅典对应柏拉图人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"理想国": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "第七封信": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议"}, "workSummaries": {"理想国": {"title": "理想国", "aliases": [], "authors": ["柏拉图"], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "summary": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "quote": "提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；", "quotes": ["提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；", "在《理想国》中系统阐述正义、哲学王与理想国家的构想；", "提出灵魂三分说（理性、意志、欲望）"], "quote_policy": "preferred"}, "会饮篇": {"title": "会饮篇", "aliases": ["会饮"], "authors": ["柏拉图"], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "summary": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "quote": "创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quotes": ["创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。"], "quote_policy": "preferred"}, "斐多篇": {"title": "斐多篇", "aliases": ["斐多"], "authors": ["柏拉图"], "related_people": ["柏拉图", "苏格拉底"], "source_pages": ["柏拉图", "苏格拉底"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "summary": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "quote": "创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quotes": ["创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。"], "quote_policy": "preferred"}, "第七封信": {"title": "第七封信", "aliases": [], "authors": [], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "", "genre": "", "one_liner": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议", "summary": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 柏拉图\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：柏拉图\n- **时代**：古希腊古典时期（公元前428年—前348年左右）\n- **出生**：约公元前428/427年，雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）\n- **去世**：公元前348年，雅典\n- **主要身份**：哲学家、雅典学院创办者、苏格拉底的学生、亚里士多德的老师、对话录作者\n- **主要成就**：创立雅典学院（Academy），被后世视为西方第一所高等学府；提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；在《理想国》中系统阐述正义、哲学王与理想国家的构想；提出灵魂三分说（理性、意志、欲望）\n\n### 生平概述\n古希腊哲学家，苏格拉底的学生，亚里士多德的老师。创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：雅典\n- **公元纪年**：约公元前428年\n- **位置**：雅典\n- **事迹**：出生于雅典（古希腊阿提卡地区），出身贵族家庭\n\n### 📍 重要地点：雅典\n- **公元纪年**：约公元前407年\n- **位置**：雅典\n- **事迹**：师从苏格拉底，学习哲学\n\n### 📍 重要地点：麦加拉、埃及、叙拉古等地\n- **公元纪年**：公元前399年\n- **位置**：麦加拉、埃及、叙拉古等地（今麦加拉）\n- **事迹**：苏格拉底被处死后，离开雅典游历\n\n### 📍 重要地点：雅典\n- **公元纪年**：约公元前387年\n- **位置**：雅典\n- **事迹**：返回雅典，创办学院（Academy）\n\n### 📍 重要地点：叙拉古\n- **公元纪年**：公元前367年\n- **位置**：叙拉古\n- **事迹**：受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果\n\n### 🔴 去世地：雅典\n- **公元纪年**：约公元前348年\n- **位置**：雅典\n- **经过**：在雅典去世，享年约80岁\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前428年 | 雅典 | 雅典 | 出生于雅典（古希腊阿提卡地区），出身贵族家庭 |\n| 约公元前407年 | 雅典 | 雅典 | 师从苏格拉底，学习哲学 |\n| 公元前399年 | 麦加拉、埃及、叙拉古等地 | 麦加拉 | 苏格拉底被处死后，离开雅典游历 |\n| 约公元前387年 | 雅典 | 雅典 | 返回雅典，创办学院（Academy） |\n| 公元前367年 | 叙拉古 | 叙拉古 | 受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果 |\n| 约公元前348年 | 雅典 | 雅典 | 在雅典去世，享年约80岁 |\n\n## 五、补充说明\n\n- 确切的生卒年份存在多种说法（公元前428/427—前348/347年），以上为常见估计\n- 对话录的成文年代与对话内容所设定的年代不一致，部分作品是否出自柏拉图本人仍存学术讨论\n- 关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议\n- 雅典学院的具体地点、组织形式与现代意义的大学不同，细节不详\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 雅典 | 雅典 | 30.650551 | 103.979382 | WGS84 |\n| 麦加拉 | 麦加拉 | 34.711405 | 102.769508 | WGS84 |\n| 叙拉古 | 叙拉古 | 29.620692 | 91.051602 | WGS84 |\n", "relatedGraph": {"center": {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "review": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "review": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "亚里士多德", "name": "亚里士多德", "file": "亚里士多德.html", "dynasty": "古希腊（古典时代晚期）", "aliases": [], "birth_year": -384, "death_year": -322, "quote": "百科全书式的学者", "review": "", "foreign_name": "Aristotle（希腊语：Ἀριστοτέλης）", "main_role_label": "哲学家", "birthplace": "马其顿王国斯塔基拉城", "birthplace_modern": "希腊哈尔基季基州", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "苏格拉底式对话", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "毕达哥拉斯", "name": "毕达哥拉斯", "file": "毕达哥拉斯.html", "dynasty": "古希腊时期（公元前6世纪）", "aliases": [], "birth_year": -570, "death_year": -495, "quote": "毕达哥拉斯定理", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称萨摩斯岛", "birthplace_modern": "希腊萨摩斯州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "两点之间直线最短。", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "泰勒斯", "name": "泰勒斯", "file": "泰勒斯.html", "dynasty": "古希腊（古风时期）", "aliases": [], "birth_year": -624, "death_year": -546, "quote": "西方哲学之父", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称米利都", "birthplace_modern": "土耳其艾登省米利都遗址", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "柏拉图", "target": "亚里士多德", "label": "君臣", "confidence": null}, {"source": "柏拉图", "target": "苏格拉底", "label": "师生", "confidence": null}, {"source": "柏拉图", "target": "毕达哥拉斯", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "泰勒斯", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "庄子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:31Z", "generated_at": "2026-06-22T11:31:31Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "柏拉图", "title": "", "description": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quote": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "shortReview": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）", "avatar": "", "birth": {"date": "公元前428/427年", "location": "雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "公元前348年", "location": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "哲学家、雅典学院创办者、苏格拉底的学生、亚里士多德的老师、对话录作者", "achievements": "创立雅典学院（Academy），被后世视为西方第一所高等学府；提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；在《理想国》中系统阐述正义、哲学王与理想国家的构想；提出灵魂三分说（理性、意志、欲望）", "works": ["理想国", "会饮篇", "斐多篇"], "reviews": []}}, "locations": [{"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "birth", "event": "出生于雅典（古希腊阿提卡地区），出身贵族家庭", "time": "约公元前428年", "duration": "", "significance": "雅典是柏拉图人生起点的重要地点，也为理解其出身背景与后世纪念提供线索。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "normal", "event": "师从苏格拉底，学习哲学", "time": "约公元前407年", "duration": "", "significance": "雅典与“师从苏格拉底，学习哲学”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "麦加拉、埃及、叙拉古等地", "ancientName": "麦加拉、埃及、叙拉古等地", "modernName": "麦加拉", "lat": 34.711405, "lng": 102.769508, "coordSystem": "WGS84", "type": "normal", "event": "苏格拉底被处死后，离开雅典游历", "time": "公元前399年", "duration": "", "significance": "麦加拉、埃及、叙拉古等地与“苏格拉底被处死后，离开雅典游历”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "normal", "event": "返回雅典，创办学院（Academy）", "time": "约公元前387年", "duration": "", "significance": "雅典与“返回雅典，创办学院（Academy）”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "叙拉古", "ancientName": "叙拉古", "modernName": "叙拉古", "lat": 29.620692, "lng": 91.051602, "coordSystem": "WGS84", "type": "normal", "event": "受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果", "time": "公元前367年", "duration": "", "significance": "叙拉古与“受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果”这一事件紧密相关，是理解柏拉图生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "雅典", "ancientName": "雅典", "modernName": "雅典", "lat": 30.650551, "lng": 103.979382, "coordSystem": "WGS84", "type": "death", "event": "在雅典去世，享年约80岁", "time": "约公元前348年", "duration": "", "significance": "雅典对应柏拉图人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"理想国": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "第七封信": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议"}, "workSummaries": {"理想国": {"title": "理想国", "aliases": [], "authors": ["柏拉图"], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "summary": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "quote": "提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；", "quotes": ["提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；", "在《理想国》中系统阐述正义、哲学王与理想国家的构想；", "提出灵魂三分说（理性、意志、欲望）"], "quote_policy": "preferred"}, "会饮篇": {"title": "会饮篇", "aliases": ["会饮"], "authors": ["柏拉图"], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "summary": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "quote": "创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quotes": ["创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。"], "quote_policy": "preferred"}, "斐多篇": {"title": "斐多篇", "aliases": ["斐多"], "authors": ["柏拉图"], "related_people": ["柏拉图", "苏格拉底"], "source_pages": ["柏拉图", "苏格拉底"], "era": "古希腊古典时期（公元前428年—前348年左右）", "genre": "", "one_liner": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "summary": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "quote": "创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "quotes": ["创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。", "古希腊哲学家，苏格拉底的学生，亚里士多德的老师。"], "quote_policy": "preferred"}, "第七封信": {"title": "第七封信", "aliases": [], "authors": [], "related_people": ["柏拉图"], "source_pages": ["柏拉图"], "era": "", "genre": "", "one_liner": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议", "summary": "关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 柏拉图\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：柏拉图\n- **时代**：古希腊古典时期（公元前428年—前348年左右）\n- **出生**：约公元前428/427年，雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）\n- **去世**：公元前348年，雅典\n- **主要身份**：哲学家、雅典学院创办者、苏格拉底的学生、亚里士多德的老师、对话录作者\n- **主要成就**：创立雅典学院（Academy），被后世视为西方第一所高等学府；提出理念论（Theory of Forms），认为可感世界背后存在永恒不变的理念世界；在《理想国》中系统阐述正义、哲学王与理想国家的构想；提出灵魂三分说（理性、意志、欲望）\n\n### 生平概述\n古希腊哲学家，苏格拉底的学生，亚里士多德的老师。创立雅典学院（Academy），奠定西方唯心主义哲学传统，著有《理想国》《会饮篇》《斐多篇》等对话录，提出理念论、灵魂三分说与哲学王思想。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 🟢 出生地：雅典\n- **公元纪年**：约公元前428年\n- **位置**：雅典\n- **事迹**：出生于雅典（古希腊阿提卡地区），出身贵族家庭\n\n### 📍 重要地点：雅典\n- **公元纪年**：约公元前407年\n- **位置**：雅典\n- **事迹**：师从苏格拉底，学习哲学\n\n### 📍 重要地点：麦加拉、埃及、叙拉古等地\n- **公元纪年**：公元前399年\n- **位置**：麦加拉、埃及、叙拉古等地（今麦加拉）\n- **事迹**：苏格拉底被处死后，离开雅典游历\n\n### 📍 重要地点：雅典\n- **公元纪年**：约公元前387年\n- **位置**：雅典\n- **事迹**：返回雅典，创办学院（Academy）\n\n### 📍 重要地点：叙拉古\n- **公元纪年**：公元前367年\n- **位置**：叙拉古\n- **事迹**：受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果\n\n### 🔴 去世地：雅典\n- **公元纪年**：约公元前348年\n- **位置**：雅典\n- **经过**：在雅典去世，享年约80岁\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约公元前428年 | 雅典 | 雅典 | 出生于雅典（古希腊阿提卡地区），出身贵族家庭 |\n| 约公元前407年 | 雅典 | 雅典 | 师从苏格拉底，学习哲学 |\n| 公元前399年 | 麦加拉、埃及、叙拉古等地 | 麦加拉 | 苏格拉底被处死后，离开雅典游历 |\n| 约公元前387年 | 雅典 | 雅典 | 返回雅典，创办学院（Academy） |\n| 公元前367年 | 叙拉古 | 叙拉古 | 受叙拉古僭主狄奥尼修二世邀请前往西西里，试图实现哲学王理想，未果 |\n| 约公元前348年 | 雅典 | 雅典 | 在雅典去世，享年约80岁 |\n\n## 五、补充说明\n\n- 确切的生卒年份存在多种说法（公元前428/427—前348/347年），以上为常见估计\n- 对话录的成文年代与对话内容所设定的年代不一致，部分作品是否出自柏拉图本人仍存学术讨论\n- 关于他三次前往叙拉古的具体经过细节，主要来自《第七封信》，该文献真伪学界有争议\n- 雅典学院的具体地点、组织形式与现代意义的大学不同，细节不详\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 雅典 | 雅典 | 30.650551 | 103.979382 | WGS84 |\n| 麦加拉 | 麦加拉 | 34.711405 | 102.769508 | WGS84 |\n| 叙拉古 | 叙拉古 | 29.620692 | 91.051602 | WGS84 |\n", "relatedGraph": {"center": {"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "review": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "柏拉图", "name": "柏拉图", "file": "柏拉图.html", "dynasty": "古希腊古典时期（公元前428年—前348年左右）", "aliases": [], "birth_year": -428, "death_year": -348, "quote": "古希腊哲学家，苏格拉底的学生，亚里士多德的老师", "review": "在《理想国》中系统阐述正义、哲学王与理想国家的构想", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "亚里士多德", "name": "亚里士多德", "file": "亚里士多德.html", "dynasty": "古希腊（古典时代晚期）", "aliases": [], "birth_year": -384, "death_year": -322, "quote": "百科全书式的学者", "review": "", "foreign_name": "Aristotle（希腊语：Ἀριστοτέλης）", "main_role_label": "哲学家", "birthplace": "马其顿王国斯塔基拉城", "birthplace_modern": "希腊哈尔基季基州", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "苏格拉底", "name": "苏格拉底", "file": "苏格拉底.html", "dynasty": "古希腊（古典时代）", "aliases": [], "birth_year": -469, "death_year": -399, "quote": "苏格拉底式对话", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "雅典", "birthplace_modern": "希腊雅典", "domain_tags": [], "has_story": true, "relationLabel": "师生", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "毕达哥拉斯", "name": "毕达哥拉斯", "file": "毕达哥拉斯.html", "dynasty": "古希腊时期（公元前6世纪）", "aliases": [], "birth_year": -570, "death_year": -495, "quote": "毕达哥拉斯定理", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称萨摩斯岛", "birthplace_modern": "希腊萨摩斯州", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "欧几里得", "name": "欧几里得", "file": "欧几里得.html", "dynasty": "古希腊时期（托勒密王国）", "aliases": ["亚历山大的欧几里得"], "birth_year": -325, "death_year": -265, "quote": "两点之间直线最短。", "review": "", "foreign_name": "Euclid", "main_role_label": "数学家", "birthplace": "有雅典或亚历山大城等", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "泰勒斯", "name": "泰勒斯", "file": "泰勒斯.html", "dynasty": "古希腊（古风时期）", "aliases": [], "birth_year": -624, "death_year": -546, "quote": "西方哲学之父", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "古称米利都", "birthplace_modern": "土耳其艾登省米利都遗址", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "柏拉图", "target": "亚里士多德", "label": "君臣", "confidence": null}, {"source": "柏拉图", "target": "苏格拉底", "label": "师生", "confidence": null}, {"source": "柏拉图", "target": "毕达哥拉斯", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "欧几里得", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "泰勒斯", "label": "同时代人物", "confidence": null}, {"source": "柏拉图", "target": "庄子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:33Z", "generated_at": "2026-06-25T07:13:33Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:31Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:33Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

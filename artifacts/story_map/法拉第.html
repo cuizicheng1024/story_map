@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "迈克尔·法拉第", "title": "", "description": "法拉第出生于伦敦一个贫寒的铁匠家庭，仅受过基础教育。他早年在书店当学徒，通过刻苦自学掌握了科学知识。1813年，他有幸成为化学家汉弗莱·戴维的助手，进入英国皇家研究所，开启了辉煌的科研生涯。他凭借精巧的实验，发现了电磁感应，揭示了电与磁的相互转化关系，并提出了“力线”（场）的概念，为麦克斯韦方程组奠定了基础。他的工作直接推动了发电机、电动机的发明，开启了电气时代。法拉第一生淡泊名利，致力于科学研究和科普讲座，是科学史上自学成才的典范。", "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "shortReview": "另一面，当电路断开时……磁力指针发生了偏转。", "dynasty": "19世纪（英国工业革命时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "avatar": "", "birth": {"date": "1791年", "location": "英国伦敦纽因顿巴茨（Newington Butts", "lat": 51.4985, "lng": -0.0995, "coordSystem": "WGS84"}, "death": {"date": "1867年", "location": "英国伦敦汉普顿宫（Hampton Court", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "", "status": "电磁学领域的奠基人之一，常被誉为‘电磁学之父’或‘电学之父’（后者称号有时也用于指代他人，存在不同说法）。", "identities": "物理学家、化学家", "achievements": "发现电磁感应现象、发明早期电动机和发电机原型（电磁旋转器）、提出场论思想、发现苯、确立电解定律。", "works": [], "reviews": ["詹姆斯·克拉克·麦克斯韦：“法拉第是迄今为止最伟大的实验哲学家。”", "阿尔伯特·爱因斯坦：认为法拉第的“场”概念是物理学自牛顿以来最伟大的革命性思想。", "约翰·廷德尔（法拉第的学生和传记作者）：“从铁匠的儿子到科学圣殿的圣人，他的一生是人类精神力量的辉煌证明。”"]}}, "locations": [{"name": "伦敦纽因顿巴茨（Newington Butts）", "ancientName": "纽因顿巴茨", "modernName": "英国伦敦南华克区", "lat": 51.4985, "lng": -0.0995, "coordSystem": "WGS84", "type": "birth", "event": "在此出生。", "time": "1791年", "duration": "幼年（约2岁前）", "significance": "生命的起点，贫寒的出身塑造了他坚韧、谦逊和勤奋的品格。", "works": [], "quoteLines": []}, {"name": "里波书店（Riebau's Bookshop）", "ancientName": "伦敦布兰福德街（Blandford Street，", "modernName": "伦敦市中心）", "lat": 51.5175, "lng": -0.1505, "coordSystem": "WGS84", "type": "normal", "event": "作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "time": "1805年 - 1812年", "duration": "7年（学徒期）", "significance": "自学成才的摇篮，奠定了其科学基础，并激发了对科学的终生热情。", "works": ["大英百科全书"], "quoteLines": []}, {"name": "英国皇家研究所（Royal Institution）", "ancientName": "伦敦阿尔伯马尔街（Albemarle Street，", "modernName": "伦敦西区）", "lat": 51.5095, "lng": -0.1415, "coordSystem": "WGS84", "type": "normal", "event": "1813年作为戴维的实验助手入职；1825年接任实验室主任；1833年成为首位“富勒化学教授”。在此完成了绝大多数划时代的发现，包括电磁感应（1831年）、抗磁性研究等，并主持了著名的“圣诞讲座”。", "time": "1813年 - 1867年（除欧洲考察期外，终生在此工作）", "duration": "50余年", "significance": "其科学生涯的核心舞台和精神家园，所有重大成就均诞生于此。", "works": [], "quoteLines": ["常引“另一面，当电路断开时……磁力指针发生了偏转。”（描述电磁感应实验）"]}, {"name": "伦敦皇家学会（Royal Society）", "ancientName": "伦敦卡尔顿府台阶（Carlton House Terrace，", "modernName": "伦敦西区）", "lat": 51.5055, "lng": -0.1275, "coordSystem": "WGS84", "type": "normal", "event": "1824年当选皇家学会会士；1825年入选理事会；曾两次（1825年和1827年）被提名但拒绝担任皇家学会会长。", "time": "1824年当选会士，此后频繁活动", "duration": "断续参与40余年", "significance": "获得英国最高科学学术机构认可的标志，是其学术地位的体现。", "works": [], "quoteLines": []}, {"name": "伦敦汉普顿宫（Hampton Court）", "ancientName": "汉普顿宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84", "type": "normal", "event": "退休后，由维多利亚女王授予此处皇家住所，安度晚年。", "time": "1858年 - 1867年", "duration": "晚年9年", "significance": "荣誉与安宁的归宿，体现了国家对其贡献的崇高敬意。", "works": [], "quoteLines": []}, {"name": "伦敦汉普顿宫（Hampton Court）", "ancientName": "汉普顿宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84", "type": "death", "event": "在书房中平静离世，葬于伦敦海格特公墓（今英国伦敦海格特区）。", "time": "1867年8月25日", "duration": "去世当日", "significance": "生命旅程的终点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**第一次工业革命**时期，科学与技术开始紧密结合。\n- **关键事件/贡献**：**自学成才**的典范；发现**电磁感应**现象（1831年）；发明了**发电机**和**电动机**的雏形。\n- **代表作品/思想**：**《电学实验研究》**（作为科学成果的载体）。\n- **常见易混点/对比点**：与**爱迪生**（发明家，应用电）对比，法拉第是**发现原理**的科学家；与**伏打**（发明电池，提供稳定电流）对比，法拉第实现了**磁生电**。\n\n### 高中阶段\n- **时代背景**：经典物理学体系建立与完善时期。\n- **关键事件/贡献**：**法拉第电磁感应定律**（核心考点）；**场论思想**的提出（**力线**概念）；**法拉第电解定律**。\n- **代表作品/思想**：**场**的概念，是**麦克斯韦方程组**的物理思想基础。\n- **常见易混点/对比点**：**法拉第**（实验发现，提出力线）与**麦克斯韦**（理论总结，建立方程组）的关系；**电动机原理**（通电线圈在磁场中受力转动）与**发电机原理**（电磁感应）的区分。\n\n---", "examPoints": "### 初中阶段考点\n1.  **人物定位**：英国物理学家、化学家，**电磁感应**现象的发现者。\n2.  **核心发现**：**闭合电路的一部分导体在磁场中做切割磁感线运动时，导体中会产生电流**（即**电磁感应**，产生的电流叫**感应电流**）。\n3.  **重要应用**：根据电磁感应原理制成了**发电机**，实现了**机械能**向**电能**的转化。\n4.  **生平亮点**：**自学成才**，从装订工学徒成长为伟大科学家。\n5.  **对比记忆**：**奥斯特**发现**电流的磁效应**（电生磁），**法拉第**发现**电磁感应**（磁生电），二者揭示了电与磁的相互联系。\n\n### 高中阶段考点\n1.  **定律表述**：**法拉第电磁感应定律**——电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比（公式：E = nΔΦ/Δt）。\n2.  **定律应用**：用于计算感应电动势的大小，是**交变电流**、**变压器**、**电磁驱动**与**电磁阻尼**等问题的理论基础。\n3.  **核心思想**：**场**（电场、磁场）的物质性思想，以及用**力线**（电场线、磁感线）形象描述场的方法。\n4.  **其他贡献**：**法拉第电解定律**（电解时析出物质的质量与通过的电量成正比）；发现**磁致旋光效应**（法拉第效应）。\n5.  **历史地位**：其工作为**麦克斯韦**建立完整的电磁场理论奠定了坚实的实验和思想基础，是**经典电磁学**的奠基人之一。\n6.  **易错点**：**磁通量Φ**、**磁通量变化量ΔΦ**、**磁通量变化率ΔΦ/Δt**三者的区别与联系；**感应电动势**与**感应电流**产生的条件不同（前者只需磁通量变化，后者还需闭合电路）。\n7.  **说法不一/存疑**：关于其是否独立设计了第一台**电动机**原型（1821年电磁旋转器），学界普遍认可，但其装置与现代电动机结构差异较大。\n\n---", "workTexts": {"大英百科全书": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "电学实验研究": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。"}, "workSummaries": {"大英百科全书": {"title": "大英百科全书", "aliases": [], "authors": [], "related_people": ["法拉第"], "source_pages": ["法拉第"], "era": "", "genre": "书信/论说文", "one_liner": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "summary": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "电学实验研究": {"title": "电学实验研究", "aliases": [], "authors": ["法拉第"], "related_people": ["法拉第"], "source_pages": ["法拉第"], "era": "19世纪（英国工业革命时期）", "genre": "", "one_liner": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。", "summary": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 迈克尔·法拉第\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：迈克尔·法拉第（Michael Faraday）\n- **时代**：19世纪（英国工业革命时期）\n- **出生**：1791年9月22日，英国伦敦纽因顿巴茨（Newington Butts，今伦敦南华克区）\n- **去世**：1867年8月25日，英国伦敦汉普顿宫（Hampton Court，今伦敦泰晤士河畔里士满区）\n- **享年**：76岁\n- **主要身份**：物理学家、化学家\n- **历史地位**：电磁学领域的奠基人之一，常被誉为‘电磁学之父’或‘电学之父’（后者称号有时也用于指代他人，存在不同说法）。\n- **主要成就**：发现电磁感应现象、发明早期电动机和发电机原型（电磁旋转器）、提出场论思想、发现苯、确立电解定律。\n\n### 生平概述\n法拉第出生于伦敦一个贫寒的铁匠家庭，仅受过基础教育。他早年在书店当学徒，通过刻苦自学掌握了科学知识。1813年，他有幸成为化学家汉弗莱·戴维的助手，进入英国皇家研究所，开启了辉煌的科研生涯。他凭借精巧的实验，发现了电磁感应，揭示了电与磁的相互转化关系，并提出了“力线”（场）的概念，为麦克斯韦方程组奠定了基础。他的工作直接推动了发电机、电动机的发明，开启了电气时代。法拉第一生淡泊名利，致力于科学研究和科普讲座，是科学史上自学成才的典范。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动范围集中于英国伦敦及周边地区，曾随戴维进行欧洲大陆科学考察。\n- ⏱️ **时间跨度**：1791年 - 1867年，共计76年。\n- 📍 **地理范围**：以英国伦敦为核心，足迹曾至法国、意大利、瑞士、德国等欧洲国家。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：伦敦纽因顿巴茨（Newington Butts）\n- **公元纪年**：1791年\n- **停留时间**：幼年（约2岁前）\n- **位置**：古称纽因顿巴茨（今英国伦敦南华克区）\n- **事迹**：在此出生。\n- **意义**：生命的起点，贫寒的出身塑造了他坚韧、谦逊和勤奋的品格。\n\n### 📍 重要地点：里波书店（Riebau's Bookshop）\n- **公元纪年**：1805年 - 1812年\n- **停留时间**：7年（学徒期）\n- **位置**：伦敦布兰福德街（Blandford Street，今伦敦市中心）\n- **事迹**：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。\n- **意义**：自学成才的摇篮，奠定了其科学基础，并激发了对科学的终生热情。\n\n### 📍 重要地点：英国皇家研究所（Royal Institution）\n- **公元纪年**：1813年 - 1867年（除欧洲考察期外，终生在此工作）\n- **停留时间**：50余年\n- **位置**：伦敦阿尔伯马尔街（Albemarle Street，今伦敦西区）\n- **事迹**：1813年作为戴维的实验助手入职；1825年接任实验室主任；1833年成为首位“富勒化学教授”。在此完成了绝大多数划时代的发现，包括电磁感应（1831年）、抗磁性研究等，并主持了著名的“圣诞讲座”。\n- **意义**：其科学生涯的核心舞台和精神家园，所有重大成就均诞生于此。\n- **名篇名句**：常引“另一面，当电路断开时……磁力指针发生了偏转。”（描述电磁感应实验）\n\n### 📍 重要地点：伦敦皇家学会（Royal Society）\n- **公元纪年**：1824年当选会士，此后频繁活动\n- **停留时间**：断续参与40余年\n- **位置**：伦敦卡尔顿府台阶（Carlton House Terrace，今伦敦西区）\n- **事迹**：1824年当选皇家学会会士；1825年入选理事会；曾两次（1825年和1827年）被提名但拒绝担任皇家学会会长。\n- **意义**：获得英国最高科学学术机构认可的标志，是其学术地位的体现。\n\n### 📍 重要地点：伦敦汉普顿宫（Hampton Court）\n- **公元纪年**：1858年 - 1867年\n- **停留时间**：晚年9年\n- **位置**：古称汉普顿宫（今英国伦敦泰晤士河畔里士满区）\n- **事迹**：退休后，由维多利亚女王授予此处皇家住所，安度晚年。\n- **意义**：荣誉与安宁的归宿，体现了国家对其贡献的崇高敬意。\n\n### 🔴 去世地：伦敦汉普顿宫（Hampton Court）\n- **公元纪年**：1867年8月25日\n- **停留时间**：去世当日\n- **位置**：古称汉普顿宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：在书房中平静离世，葬于伦敦海格特公墓（今英国伦敦海格特区）。\n- **意义**：生命旅程的终点。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1791 | 伦敦纽因顿巴茨（Newington Butts） | 英国伦敦南华克区 | （年龄：0）出生于伦敦纽因顿巴茨。 |\n| 1805 | 里波书店（Riebau's Bookshop） | 伦敦布兰福德街 | （年龄：14）成为里波书店的学徒，开始自学科学。 |\n| 1812 |  |  | （年龄：21）学徒期结束，旁听汉弗莱·戴维的讲座，并将笔记整理后寄给戴维求职。 |\n| 1813 |  |  | （年龄：22）被戴维聘为皇家研究所实验室助手，随戴维夫妇赴欧洲科学考察。 |\n| 1821 |  |  | （年龄：30）发现电磁旋转现象（电动机原理），与萨拉·巴纳德结婚。 |\n| 1823 |  |  | （年龄：32）发现加压液化氯气的方法，开启气体液化研究。 |\n| 1824 |  |  | （年龄：33）当选英国皇家学会会士。 |\n| 1825 |  |  | （年龄：34）接替戴维担任皇家研究所实验室主任；发现苯。 |\n| 1831 |  |  | （年龄：40）发现电磁感应现象，奠定电气时代基础。 |\n| 1833 |  |  | （年龄：42）发现电解定律（法拉第电解定律）。 |\n| 1836 |  |  | （年龄：45）拒绝维多利亚女王授予的爵士爵位。 |\n| 1845 |  |  | （年龄：54）发现抗磁性（法拉第效应）和磁致旋光效应，提出“场”和“力线”概念。 |\n| 1848 |  |  | （年龄：57）拒绝皇家学会会长职位。 |\n| 1858 |  |  | （年龄：67）退休，获赠汉普顿宫住所。 |\n| 1867 |  |  | （年龄：76）在汉普顿宫逝世，葬于伦敦海格特公墓。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n法拉第的发现直接催生了发电机和电动机的原型，为第二次工业革命提供了核心理论和技术基础。他的电解研究推动了电化学工业的发展。作为杰出的科普演讲者，他极大地激发了公众对科学的兴趣，提升了科学家的社会形象。\n\n### 对后世的影响\n- **奠定了电磁学的实验基础**：其电磁感应定律是电气化文明的基石。\n- **开创了“场”的物理学思想**：突破了牛顿力学的超距作用观念，为爱因斯坦的相对论和现代场论铺平了道路。\n- **树立了科学精神的典范**：其自学成才、严谨实验、淡泊名利的品格成为后世科学家的楷模。\n\n### 历史评价\n- 詹姆斯·克拉克·麦克斯韦：“法拉第是迄今为止最伟大的实验哲学家。”\n- 阿尔伯特·爱因斯坦：认为法拉第的“场”概念是物理学自牛顿以来最伟大的革命性思想。\n- 约翰·廷德尔（法拉第的学生和传记作者）：“从铁匠的儿子到科学圣殿的圣人，他的一生是人类精神力量的辉煌证明。”\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**第一次工业革命**时期，科学与技术开始紧密结合。\n- **关键事件/贡献**：**自学成才**的典范；发现**电磁感应**现象（1831年）；发明了**发电机**和**电动机**的雏形。\n- **代表作品/思想**：**《电学实验研究》**（作为科学成果的载体）。\n- **常见易混点/对比点**：与**爱迪生**（发明家，应用电）对比，法拉第是**发现原理**的科学家；与**伏打**（发明电池，提供稳定电流）对比，法拉第实现了**磁生电**。\n\n### 高中阶段\n- **时代背景**：经典物理学体系建立与完善时期。\n- **关键事件/贡献**：**法拉第电磁感应定律**（核心考点）；**场论思想**的提出（**力线**概念）；**法拉第电解定律**。\n- **代表作品/思想**：**场**的概念，是**麦克斯韦方程组**的物理思想基础。\n- **常见易混点/对比点**：**法拉第**（实验发现，提出力线）与**麦克斯韦**（理论总结，建立方程组）的关系；**电动机原理**（通电线圈在磁场中受力转动）与**发电机原理**（电磁感应）的区分。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **人物定位**：英国物理学家、化学家，**电磁感应**现象的发现者。\n2.  **核心发现**：**闭合电路的一部分导体在磁场中做切割磁感线运动时，导体中会产生电流**（即**电磁感应**，产生的电流叫**感应电流**）。\n3.  **重要应用**：根据电磁感应原理制成了**发电机**，实现了**机械能**向**电能**的转化。\n4.  **生平亮点**：**自学成才**，从装订工学徒成长为伟大科学家。\n5.  **对比记忆**：**奥斯特**发现**电流的磁效应**（电生磁），**法拉第**发现**电磁感应**（磁生电），二者揭示了电与磁的相互联系。\n\n### 高中阶段考点\n1.  **定律表述**：**法拉第电磁感应定律**——电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比（公式：E = nΔΦ/Δt）。\n2.  **定律应用**：用于计算感应电动势的大小，是**交变电流**、**变压器**、**电磁驱动**与**电磁阻尼**等问题的理论基础。\n3.  **核心思想**：**场**（电场、磁场）的物质性思想，以及用**力线**（电场线、磁感线）形象描述场的方法。\n4.  **其他贡献**：**法拉第电解定律**（电解时析出物质的质量与通过的电量成正比）；发现**磁致旋光效应**（法拉第效应）。\n5.  **历史地位**：其工作为**麦克斯韦**建立完整的电磁场理论奠定了坚实的实验和思想基础，是**经典电磁学**的奠基人之一。\n6.  **易错点**：**磁通量Φ**、**磁通量变化量ΔΦ**、**磁通量变化率ΔΦ/Δt**三者的区别与联系；**感应电动势**与**感应电流**产生的条件不同（前者只需磁通量变化，后者还需闭合电路）。\n7.  **说法不一/存疑**：关于其是否独立设计了第一台**电动机**原型（1821年电磁旋转器），学界普遍认可，但其装置与现代电动机结构差异较大。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：伦敦纽因顿巴茨（Newington Butts） | London Borough of Southwark, London, UK | 51.4985 | -0.0995 |\n| 重要地点：里波书店（Riebau's Bookshop） | Blandford Street, London, UK | 51.5175 | -0.1505 |\n| 重要地点：英国皇家研究所（Royal Institution） | Royal Institution, Albemarle Street, London, UK | 51.5095 | -0.1415 |\n| 重要地点：伦敦皇家学会（Royal Society） | Royal Society, Carlton House Terrace, London, UK | 51.5055 | -0.1275 |\n| 重要地点：伦敦汉普顿宫（Hampton Court） | Hampton Court Palace, London, UK | 51.4035 | -0.3375 |\n| 去世地：伦敦汉普顿宫（Hampton Court） | Highgate Cemetery, London, UK | 51.5675 | -0.1475 |\n| :--- | :--- | :--- | :--- |\n| 伦敦纽因顿巴茨 | London Borough of Southwark, London, UK | 51.4985 | -0.0995 |\n| 里波书店旧址 | Blandford Street, London, UK | 51.5175 | -0.1505 |\n| 英国皇家研究所 | Royal Institution, Albemarle Street, London, UK | 51.5095 | -0.1415 |\n| 伦敦皇家学会 | Royal Society, Carlton House Terrace, London, UK | 51.5055 | -0.1275 |\n| 汉普顿宫 | Hampton Court Palace, London, UK | 51.4035 | -0.3375 |\n| 海格特公墓 | Highgate Cemetery, London, UK | 51.5675 | -0.1475 |\n", "relatedGraph": {"center": {"id": "迈克尔·法拉第", "name": "迈克尔·法拉第", "file": "迈克尔·法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "review": "另一面，当电路断开时……磁力指针发生了偏转。", "foreign_name": "", "main_role_label": "", "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "迈克尔·法拉第", "name": "迈克尔·法拉第", "file": "迈克尔·法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "review": "另一面，当电路断开时……磁力指针发生了偏转。", "foreign_name": "", "main_role_label": "", "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "麦克斯韦", "name": "麦克斯韦", "file": "麦克斯韦.html", "dynasty": "19世纪（维多利亚时代）", "aliases": [], "birth_year": 1831, "death_year": 1879, "quote": "麦克斯韦分布律", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "苏格兰爱丁堡", "birthplace_modern": "英国苏格兰爱丁堡", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "法拉第", "name": "法拉第", "file": "法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": 1791, "death_year": 1867, "quote": "富勒化学教授", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英国伦敦纽因顿巴茨Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马克思", "name": "马克思", "file": "马克思.html", "dynasty": "19世纪", "aliases": [], "birth_year": 1818, "death_year": 1883, "quote": "青年黑格尔派", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "特里尔", "birthplace_modern": "德国莱茵兰-普法尔茨州特里尔市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雨果", "name": "雨果", "file": "雨果.html", "dynasty": "19世纪法国（波旁复辟、七月王朝、第二共和国、第二帝国、第三共和国初期）", "aliases": [], "birth_year": 1802, "death_year": 1885, "quote": "《欧那尼》之战", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "古称贝桑松", "birthplace_modern": "法国勃艮第-弗朗什-孔泰大区杜省贝桑松", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿道夫·门采尔", "name": "阿道夫·门采尔", "file": "阿道夫·门采尔.html", "dynasty": "19世纪（德国统一前后，德意志邦联及德意志帝国时期）", "aliases": [], "birth_year": 1815, "death_year": 1905, "quote": "德国的伦勃朗", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "普鲁士布雷斯劳", "birthplace_modern": "波兰弗罗茨瓦夫", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿达·洛夫莱斯", "name": "阿达·洛夫莱斯", "file": "阿达·洛夫莱斯.html", "dynasty": "19世纪英国（维多利亚时代）", "aliases": [], "birth_year": 1815, "death_year": 1852, "quote": "诗人般的疯狂", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "伦敦", "birthplace_modern": "英国伦敦", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "迈克尔·法拉第", "target": "麦克斯韦", "label": "君臣", "confidence": null}, {"source": "迈克尔·法拉第", "target": "法拉第", "label": "宗亲", "confidence": null}, {"source": "迈克尔·法拉第", "target": "马克思", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "雨果", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "阿道夫·门采尔", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "阿达·洛夫莱斯", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:34Z", "generated_at": "2026-06-22T11:31:34Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "迈克尔·法拉第", "title": "", "description": "法拉第出生于伦敦一个贫寒的铁匠家庭，仅受过基础教育。他早年在书店当学徒，通过刻苦自学掌握了科学知识。1813年，他有幸成为化学家汉弗莱·戴维的助手，进入英国皇家研究所，开启了辉煌的科研生涯。他凭借精巧的实验，发现了电磁感应，揭示了电与磁的相互转化关系，并提出了“力线”（场）的概念，为麦克斯韦方程组奠定了基础。他的工作直接推动了发电机、电动机的发明，开启了电气时代。法拉第一生淡泊名利，致力于科学研究和科普讲座，是科学史上自学成才的典范。", "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "shortReview": "另一面，当电路断开时……磁力指针发生了偏转。", "dynasty": "19世纪（英国工业革命时期）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "avatar": "", "birth": {"date": "1791年", "location": "英国伦敦纽因顿巴茨（Newington Butts", "lat": 51.4985, "lng": -0.0995, "coordSystem": "WGS84"}, "death": {"date": "1867年", "location": "英国伦敦汉普顿宫（Hampton Court", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84"}, "lifespan": "76岁", "highlights": {"honor": "", "status": "电磁学领域的奠基人之一，常被誉为‘电磁学之父’或‘电学之父’（后者称号有时也用于指代他人，存在不同说法）。", "identities": "物理学家、化学家", "achievements": "发现电磁感应现象、发明早期电动机和发电机原型（电磁旋转器）、提出场论思想、发现苯、确立电解定律。", "works": [], "reviews": ["詹姆斯·克拉克·麦克斯韦：“法拉第是迄今为止最伟大的实验哲学家。”", "阿尔伯特·爱因斯坦：认为法拉第的“场”概念是物理学自牛顿以来最伟大的革命性思想。", "约翰·廷德尔（法拉第的学生和传记作者）：“从铁匠的儿子到科学圣殿的圣人，他的一生是人类精神力量的辉煌证明。”"]}}, "locations": [{"name": "伦敦纽因顿巴茨（Newington Butts）", "ancientName": "纽因顿巴茨", "modernName": "英国伦敦南华克区", "lat": 51.4985, "lng": -0.0995, "coordSystem": "WGS84", "type": "birth", "event": "在此出生。", "time": "1791年", "duration": "幼年（约2岁前）", "significance": "生命的起点，贫寒的出身塑造了他坚韧、谦逊和勤奋的品格。", "works": [], "quoteLines": []}, {"name": "里波书店（Riebau's Bookshop）", "ancientName": "伦敦布兰福德街（Blandford Street，", "modernName": "伦敦市中心）", "lat": 51.5175, "lng": -0.1505, "coordSystem": "WGS84", "type": "normal", "event": "作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "time": "1805年 - 1812年", "duration": "7年（学徒期）", "significance": "自学成才的摇篮，奠定了其科学基础，并激发了对科学的终生热情。", "works": ["大英百科全书"], "quoteLines": []}, {"name": "英国皇家研究所（Royal Institution）", "ancientName": "伦敦阿尔伯马尔街（Albemarle Street，", "modernName": "伦敦西区）", "lat": 51.5095, "lng": -0.1415, "coordSystem": "WGS84", "type": "normal", "event": "1813年作为戴维的实验助手入职；1825年接任实验室主任；1833年成为首位“富勒化学教授”。在此完成了绝大多数划时代的发现，包括电磁感应（1831年）、抗磁性研究等，并主持了著名的“圣诞讲座”。", "time": "1813年 - 1867年（除欧洲考察期外，终生在此工作）", "duration": "50余年", "significance": "其科学生涯的核心舞台和精神家园，所有重大成就均诞生于此。", "works": [], "quoteLines": ["常引“另一面，当电路断开时……磁力指针发生了偏转。”（描述电磁感应实验）"]}, {"name": "伦敦皇家学会（Royal Society）", "ancientName": "伦敦卡尔顿府台阶（Carlton House Terrace，", "modernName": "伦敦西区）", "lat": 51.5055, "lng": -0.1275, "coordSystem": "WGS84", "type": "normal", "event": "1824年当选皇家学会会士；1825年入选理事会；曾两次（1825年和1827年）被提名但拒绝担任皇家学会会长。", "time": "1824年当选会士，此后频繁活动", "duration": "断续参与40余年", "significance": "获得英国最高科学学术机构认可的标志，是其学术地位的体现。", "works": [], "quoteLines": []}, {"name": "伦敦汉普顿宫（Hampton Court）", "ancientName": "汉普顿宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84", "type": "normal", "event": "退休后，由维多利亚女王授予此处皇家住所，安度晚年。", "time": "1858年 - 1867年", "duration": "晚年9年", "significance": "荣誉与安宁的归宿，体现了国家对其贡献的崇高敬意。", "works": [], "quoteLines": []}, {"name": "伦敦汉普顿宫（Hampton Court）", "ancientName": "汉普顿宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.4035, "lng": -0.3375, "coordSystem": "WGS84", "type": "death", "event": "在书房中平静离世，葬于伦敦海格特公墓（今英国伦敦海格特区）。", "time": "1867年8月25日", "duration": "去世当日", "significance": "生命旅程的终点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**第一次工业革命**时期，科学与技术开始紧密结合。\n- **关键事件/贡献**：**自学成才**的典范；发现**电磁感应**现象（1831年）；发明了**发电机**和**电动机**的雏形。\n- **代表作品/思想**：**《电学实验研究》**（作为科学成果的载体）。\n- **常见易混点/对比点**：与**爱迪生**（发明家，应用电）对比，法拉第是**发现原理**的科学家；与**伏打**（发明电池，提供稳定电流）对比，法拉第实现了**磁生电**。\n\n### 高中阶段\n- **时代背景**：经典物理学体系建立与完善时期。\n- **关键事件/贡献**：**法拉第电磁感应定律**（核心考点）；**场论思想**的提出（**力线**概念）；**法拉第电解定律**。\n- **代表作品/思想**：**场**的概念，是**麦克斯韦方程组**的物理思想基础。\n- **常见易混点/对比点**：**法拉第**（实验发现，提出力线）与**麦克斯韦**（理论总结，建立方程组）的关系；**电动机原理**（通电线圈在磁场中受力转动）与**发电机原理**（电磁感应）的区分。\n\n---", "examPoints": "### 初中阶段考点\n1.  **人物定位**：英国物理学家、化学家，**电磁感应**现象的发现者。\n2.  **核心发现**：**闭合电路的一部分导体在磁场中做切割磁感线运动时，导体中会产生电流**（即**电磁感应**，产生的电流叫**感应电流**）。\n3.  **重要应用**：根据电磁感应原理制成了**发电机**，实现了**机械能**向**电能**的转化。\n4.  **生平亮点**：**自学成才**，从装订工学徒成长为伟大科学家。\n5.  **对比记忆**：**奥斯特**发现**电流的磁效应**（电生磁），**法拉第**发现**电磁感应**（磁生电），二者揭示了电与磁的相互联系。\n\n### 高中阶段考点\n1.  **定律表述**：**法拉第电磁感应定律**——电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比（公式：E = nΔΦ/Δt）。\n2.  **定律应用**：用于计算感应电动势的大小，是**交变电流**、**变压器**、**电磁驱动**与**电磁阻尼**等问题的理论基础。\n3.  **核心思想**：**场**（电场、磁场）的物质性思想，以及用**力线**（电场线、磁感线）形象描述场的方法。\n4.  **其他贡献**：**法拉第电解定律**（电解时析出物质的质量与通过的电量成正比）；发现**磁致旋光效应**（法拉第效应）。\n5.  **历史地位**：其工作为**麦克斯韦**建立完整的电磁场理论奠定了坚实的实验和思想基础，是**经典电磁学**的奠基人之一。\n6.  **易错点**：**磁通量Φ**、**磁通量变化量ΔΦ**、**磁通量变化率ΔΦ/Δt**三者的区别与联系；**感应电动势**与**感应电流**产生的条件不同（前者只需磁通量变化，后者还需闭合电路）。\n7.  **说法不一/存疑**：关于其是否独立设计了第一台**电动机**原型（1821年电磁旋转器），学界普遍认可，但其装置与现代电动机结构差异较大。\n\n---", "workTexts": {"大英百科全书": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "电学实验研究": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。"}, "workSummaries": {"大英百科全书": {"title": "大英百科全书", "aliases": [], "authors": [], "related_people": ["法拉第"], "source_pages": ["法拉第"], "era": "", "genre": "书信/论说文", "one_liner": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "summary": "事迹：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "电学实验研究": {"title": "电学实验研究", "aliases": [], "authors": ["法拉第"], "related_people": ["法拉第"], "source_pages": ["法拉第"], "era": "19世纪（英国工业革命时期）", "genre": "", "one_liner": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。", "summary": "代表作品/思想：《电学实验研究》（作为科学成果的载体）。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 迈克尔·法拉第\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：迈克尔·法拉第（Michael Faraday）\n- **时代**：19世纪（英国工业革命时期）\n- **出生**：1791年9月22日，英国伦敦纽因顿巴茨（Newington Butts，今伦敦南华克区）\n- **去世**：1867年8月25日，英国伦敦汉普顿宫（Hampton Court，今伦敦泰晤士河畔里士满区）\n- **享年**：76岁\n- **主要身份**：物理学家、化学家\n- **历史地位**：电磁学领域的奠基人之一，常被誉为‘电磁学之父’或‘电学之父’（后者称号有时也用于指代他人，存在不同说法）。\n- **主要成就**：发现电磁感应现象、发明早期电动机和发电机原型（电磁旋转器）、提出场论思想、发现苯、确立电解定律。\n\n### 生平概述\n法拉第出生于伦敦一个贫寒的铁匠家庭，仅受过基础教育。他早年在书店当学徒，通过刻苦自学掌握了科学知识。1813年，他有幸成为化学家汉弗莱·戴维的助手，进入英国皇家研究所，开启了辉煌的科研生涯。他凭借精巧的实验，发现了电磁感应，揭示了电与磁的相互转化关系，并提出了“力线”（场）的概念，为麦克斯韦方程组奠定了基础。他的工作直接推动了发电机、电动机的发明，开启了电气时代。法拉第一生淡泊名利，致力于科学研究和科普讲座，是科学史上自学成才的典范。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：主要活动范围集中于英国伦敦及周边地区，曾随戴维进行欧洲大陆科学考察。\n- ⏱️ **时间跨度**：1791年 - 1867年，共计76年。\n- 📍 **地理范围**：以英国伦敦为核心，足迹曾至法国、意大利、瑞士、德国等欧洲国家。\n- 🌟 **重要节点数量**：6个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：伦敦纽因顿巴茨（Newington Butts）\n- **公元纪年**：1791年\n- **停留时间**：幼年（约2岁前）\n- **位置**：古称纽因顿巴茨（今英国伦敦南华克区）\n- **事迹**：在此出生。\n- **意义**：生命的起点，贫寒的出身塑造了他坚韧、谦逊和勤奋的品格。\n\n### 📍 重要地点：里波书店（Riebau's Bookshop）\n- **公元纪年**：1805年 - 1812年\n- **停留时间**：7年（学徒期）\n- **位置**：伦敦布兰福德街（Blandford Street，今伦敦市中心）\n- **事迹**：作为装订学徒，利用工作之便阅读了大量科学书籍，尤其是《大英百科全书》中关于电的条目，并开始进行简单的化学和电学实验。\n- **意义**：自学成才的摇篮，奠定了其科学基础，并激发了对科学的终生热情。\n\n### 📍 重要地点：英国皇家研究所（Royal Institution）\n- **公元纪年**：1813年 - 1867年（除欧洲考察期外，终生在此工作）\n- **停留时间**：50余年\n- **位置**：伦敦阿尔伯马尔街（Albemarle Street，今伦敦西区）\n- **事迹**：1813年作为戴维的实验助手入职；1825年接任实验室主任；1833年成为首位“富勒化学教授”。在此完成了绝大多数划时代的发现，包括电磁感应（1831年）、抗磁性研究等，并主持了著名的“圣诞讲座”。\n- **意义**：其科学生涯的核心舞台和精神家园，所有重大成就均诞生于此。\n- **名篇名句**：常引“另一面，当电路断开时……磁力指针发生了偏转。”（描述电磁感应实验）\n\n### 📍 重要地点：伦敦皇家学会（Royal Society）\n- **公元纪年**：1824年当选会士，此后频繁活动\n- **停留时间**：断续参与40余年\n- **位置**：伦敦卡尔顿府台阶（Carlton House Terrace，今伦敦西区）\n- **事迹**：1824年当选皇家学会会士；1825年入选理事会；曾两次（1825年和1827年）被提名但拒绝担任皇家学会会长。\n- **意义**：获得英国最高科学学术机构认可的标志，是其学术地位的体现。\n\n### 📍 重要地点：伦敦汉普顿宫（Hampton Court）\n- **公元纪年**：1858年 - 1867年\n- **停留时间**：晚年9年\n- **位置**：古称汉普顿宫（今英国伦敦泰晤士河畔里士满区）\n- **事迹**：退休后，由维多利亚女王授予此处皇家住所，安度晚年。\n- **意义**：荣誉与安宁的归宿，体现了国家对其贡献的崇高敬意。\n\n### 🔴 去世地：伦敦汉普顿宫（Hampton Court）\n- **公元纪年**：1867年8月25日\n- **停留时间**：去世当日\n- **位置**：古称汉普顿宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：在书房中平静离世，葬于伦敦海格特公墓（今英国伦敦海格特区）。\n- **意义**：生命旅程的终点。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1791 | 伦敦纽因顿巴茨（Newington Butts） | 英国伦敦南华克区 | （年龄：0）出生于伦敦纽因顿巴茨。 |\n| 1805 | 里波书店（Riebau's Bookshop） | 伦敦布兰福德街 | （年龄：14）成为里波书店的学徒，开始自学科学。 |\n| 1812 |  |  | （年龄：21）学徒期结束，旁听汉弗莱·戴维的讲座，并将笔记整理后寄给戴维求职。 |\n| 1813 |  |  | （年龄：22）被戴维聘为皇家研究所实验室助手，随戴维夫妇赴欧洲科学考察。 |\n| 1821 |  |  | （年龄：30）发现电磁旋转现象（电动机原理），与萨拉·巴纳德结婚。 |\n| 1823 |  |  | （年龄：32）发现加压液化氯气的方法，开启气体液化研究。 |\n| 1824 |  |  | （年龄：33）当选英国皇家学会会士。 |\n| 1825 |  |  | （年龄：34）接替戴维担任皇家研究所实验室主任；发现苯。 |\n| 1831 |  |  | （年龄：40）发现电磁感应现象，奠定电气时代基础。 |\n| 1833 |  |  | （年龄：42）发现电解定律（法拉第电解定律）。 |\n| 1836 |  |  | （年龄：45）拒绝维多利亚女王授予的爵士爵位。 |\n| 1845 |  |  | （年龄：54）发现抗磁性（法拉第效应）和磁致旋光效应，提出“场”和“力线”概念。 |\n| 1848 |  |  | （年龄：57）拒绝皇家学会会长职位。 |\n| 1858 |  |  | （年龄：67）退休，获赠汉普顿宫住所。 |\n| 1867 |  |  | （年龄：76）在汉普顿宫逝世，葬于伦敦海格特公墓。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n法拉第的发现直接催生了发电机和电动机的原型，为第二次工业革命提供了核心理论和技术基础。他的电解研究推动了电化学工业的发展。作为杰出的科普演讲者，他极大地激发了公众对科学的兴趣，提升了科学家的社会形象。\n\n### 对后世的影响\n- **奠定了电磁学的实验基础**：其电磁感应定律是电气化文明的基石。\n- **开创了“场”的物理学思想**：突破了牛顿力学的超距作用观念，为爱因斯坦的相对论和现代场论铺平了道路。\n- **树立了科学精神的典范**：其自学成才、严谨实验、淡泊名利的品格成为后世科学家的楷模。\n\n### 历史评价\n- 詹姆斯·克拉克·麦克斯韦：“法拉第是迄今为止最伟大的实验哲学家。”\n- 阿尔伯特·爱因斯坦：认为法拉第的“场”概念是物理学自牛顿以来最伟大的革命性思想。\n- 约翰·廷德尔（法拉第的学生和传记作者）：“从铁匠的儿子到科学圣殿的圣人，他的一生是人类精神力量的辉煌证明。”\n\n---\n\n## 人教版教材知识点\n从初高中教材视角，梳理人物在教材叙述中常见的核心史实节点/作品与关键词。\n\n### 初中阶段\n- **时代背景**：**第一次工业革命**时期，科学与技术开始紧密结合。\n- **关键事件/贡献**：**自学成才**的典范；发现**电磁感应**现象（1831年）；发明了**发电机**和**电动机**的雏形。\n- **代表作品/思想**：**《电学实验研究》**（作为科学成果的载体）。\n- **常见易混点/对比点**：与**爱迪生**（发明家，应用电）对比，法拉第是**发现原理**的科学家；与**伏打**（发明电池，提供稳定电流）对比，法拉第实现了**磁生电**。\n\n### 高中阶段\n- **时代背景**：经典物理学体系建立与完善时期。\n- **关键事件/贡献**：**法拉第电磁感应定律**（核心考点）；**场论思想**的提出（**力线**概念）；**法拉第电解定律**。\n- **代表作品/思想**：**场**的概念，是**麦克斯韦方程组**的物理思想基础。\n- **常见易混点/对比点**：**法拉第**（实验发现，提出力线）与**麦克斯韦**（理论总结，建立方程组）的关系；**电动机原理**（通电线圈在磁场中受力转动）与**发电机原理**（电磁感应）的区分。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n1.  **人物定位**：英国物理学家、化学家，**电磁感应**现象的发现者。\n2.  **核心发现**：**闭合电路的一部分导体在磁场中做切割磁感线运动时，导体中会产生电流**（即**电磁感应**，产生的电流叫**感应电流**）。\n3.  **重要应用**：根据电磁感应原理制成了**发电机**，实现了**机械能**向**电能**的转化。\n4.  **生平亮点**：**自学成才**，从装订工学徒成长为伟大科学家。\n5.  **对比记忆**：**奥斯特**发现**电流的磁效应**（电生磁），**法拉第**发现**电磁感应**（磁生电），二者揭示了电与磁的相互联系。\n\n### 高中阶段考点\n1.  **定律表述**：**法拉第电磁感应定律**——电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比（公式：E = nΔΦ/Δt）。\n2.  **定律应用**：用于计算感应电动势的大小，是**交变电流**、**变压器**、**电磁驱动**与**电磁阻尼**等问题的理论基础。\n3.  **核心思想**：**场**（电场、磁场）的物质性思想，以及用**力线**（电场线、磁感线）形象描述场的方法。\n4.  **其他贡献**：**法拉第电解定律**（电解时析出物质的质量与通过的电量成正比）；发现**磁致旋光效应**（法拉第效应）。\n5.  **历史地位**：其工作为**麦克斯韦**建立完整的电磁场理论奠定了坚实的实验和思想基础，是**经典电磁学**的奠基人之一。\n6.  **易错点**：**磁通量Φ**、**磁通量变化量ΔΦ**、**磁通量变化率ΔΦ/Δt**三者的区别与联系；**感应电动势**与**感应电流**产生的条件不同（前者只需磁通量变化，后者还需闭合电路）。\n7.  **说法不一/存疑**：关于其是否独立设计了第一台**电动机**原型（1821年电磁旋转器），学界普遍认可，但其装置与现代电动机结构差异较大。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 出生地：伦敦纽因顿巴茨（Newington Butts） | London Borough of Southwark, London, UK | 51.4985 | -0.0995 |\n| 重要地点：里波书店（Riebau's Bookshop） | Blandford Street, London, UK | 51.5175 | -0.1505 |\n| 重要地点：英国皇家研究所（Royal Institution） | Royal Institution, Albemarle Street, London, UK | 51.5095 | -0.1415 |\n| 重要地点：伦敦皇家学会（Royal Society） | Royal Society, Carlton House Terrace, London, UK | 51.5055 | -0.1275 |\n| 重要地点：伦敦汉普顿宫（Hampton Court） | Hampton Court Palace, London, UK | 51.4035 | -0.3375 |\n| 去世地：伦敦汉普顿宫（Hampton Court） | Highgate Cemetery, London, UK | 51.5675 | -0.1475 |\n| :--- | :--- | :--- | :--- |\n| 伦敦纽因顿巴茨 | London Borough of Southwark, London, UK | 51.4985 | -0.0995 |\n| 里波书店旧址 | Blandford Street, London, UK | 51.5175 | -0.1505 |\n| 英国皇家研究所 | Royal Institution, Albemarle Street, London, UK | 51.5095 | -0.1415 |\n| 伦敦皇家学会 | Royal Society, Carlton House Terrace, London, UK | 51.5055 | -0.1275 |\n| 汉普顿宫 | Hampton Court Palace, London, UK | 51.4035 | -0.3375 |\n| 海格特公墓 | Highgate Cemetery, London, UK | 51.5675 | -0.1475 |\n", "relatedGraph": {"center": {"id": "迈克尔·法拉第", "name": "迈克尔·法拉第", "file": "迈克尔·法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "review": "另一面，当电路断开时……磁力指针发生了偏转。", "foreign_name": "", "main_role_label": "", "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "迈克尔·法拉第", "name": "迈克尔·法拉第", "file": "迈克尔·法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": null, "death_year": null, "quote": "另一面，当电路断开时……磁力指针发生了偏转。", "review": "另一面，当电路断开时……磁力指针发生了偏转。", "foreign_name": "", "main_role_label": "", "birthplace": "英国伦敦纽因顿巴茨（Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "麦克斯韦", "name": "麦克斯韦", "file": "麦克斯韦.html", "dynasty": "19世纪（维多利亚时代）", "aliases": [], "birth_year": 1831, "death_year": 1879, "quote": "麦克斯韦分布律", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "苏格兰爱丁堡", "birthplace_modern": "英国苏格兰爱丁堡", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "法拉第", "name": "法拉第", "file": "法拉第.html", "dynasty": "19世纪（英国工业革命时期）", "aliases": [], "birth_year": 1791, "death_year": 1867, "quote": "富勒化学教授", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "英国伦敦纽因顿巴茨Newington Butts", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "宗亲", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马克思", "name": "马克思", "file": "马克思.html", "dynasty": "19世纪", "aliases": [], "birth_year": 1818, "death_year": 1883, "quote": "青年黑格尔派", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "特里尔", "birthplace_modern": "德国莱茵兰-普法尔茨州特里尔市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "雨果", "name": "雨果", "file": "雨果.html", "dynasty": "19世纪法国（波旁复辟、七月王朝、第二共和国、第二帝国、第三共和国初期）", "aliases": [], "birth_year": 1802, "death_year": 1885, "quote": "《欧那尼》之战", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "古称贝桑松", "birthplace_modern": "法国勃艮第-弗朗什-孔泰大区杜省贝桑松", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿道夫·门采尔", "name": "阿道夫·门采尔", "file": "阿道夫·门采尔.html", "dynasty": "19世纪（德国统一前后，德意志邦联及德意志帝国时期）", "aliases": [], "birth_year": 1815, "death_year": 1905, "quote": "德国的伦勃朗", "review": "", "foreign_name": "", "main_role_label": "画家", "birthplace": "普鲁士布雷斯劳", "birthplace_modern": "波兰弗罗茨瓦夫", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿达·洛夫莱斯", "name": "阿达·洛夫莱斯", "file": "阿达·洛夫莱斯.html", "dynasty": "19世纪英国（维多利亚时代）", "aliases": [], "birth_year": 1815, "death_year": 1852, "quote": "诗人般的疯狂", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "伦敦", "birthplace_modern": "英国伦敦", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "迈克尔·法拉第", "target": "麦克斯韦", "label": "君臣", "confidence": null}, {"source": "迈克尔·法拉第", "target": "法拉第", "label": "宗亲", "confidence": null}, {"source": "迈克尔·法拉第", "target": "马克思", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "雨果", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "阿道夫·门采尔", "label": "同时代人物", "confidence": null}, {"source": "迈克尔·法拉第", "target": "阿达·洛夫莱斯", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:37Z", "generated_at": "2026-06-25T07:13:37Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:35Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:37Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

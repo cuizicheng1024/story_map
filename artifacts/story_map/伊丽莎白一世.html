@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "伊丽莎白·都铎", "title": "", "description": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。", "quote": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "shortReview": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "dynasty": "都铎王朝（Tudor dynasty）", "courtesyName": "", "artName": "", "aliases": ["童贞女王（The", "Virgin", "Queen）", "格洛丽安娜（Gloriana）"], "birthplace": "英格兰格林威治宫（今英国伦敦格林威治区）", "avatar": "", "birth": {"date": "1533年", "location": "英格兰格林威治宫（今英国伦敦格林威治区）", "lat": 51.482576, "lng": -0.007658, "coordSystem": "WGS84"}, "death": {"date": "1603年", "location": "英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84"}, "lifespan": "69岁（周岁）", "highlights": {"honor": "", "status": "都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。", "identities": "英格兰女王、爱尔兰女王", "achievements": "击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。", "works": [], "reviews": ["**弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”", "**温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”", "**现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。"]}}, "locations": [{"name": "格林威治宫", "ancientName": "格林威治宫", "modernName": "英国伦敦格林威治区", "lat": 51.482576, "lng": -0.007658, "coordSystem": "WGS84", "type": "birth", "event": "在此出生，作为亨利八世与安妮·博林的女儿。", "time": "1533年", "duration": "出生地，幼年早期生活于此。", "significance": "其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。", "works": [], "quoteLines": []}, {"name": "伦敦塔", "ancientName": "伦敦塔", "modernName": "英国伦敦泰晤士河北岸", "lat": 51.508112, "lng": -0.075949, "coordSystem": "WGS84", "type": "normal", "event": "因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。", "time": "1554年", "duration": "约两个月", "significance": "人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。", "works": [], "quoteLines": ["无直接作品，但此经历塑造了她日后谨慎多疑的性格。"]}, {"name": "伦敦（宫廷）", "ancientName": "白厅宫、里士满宫等", "modernName": "英国伦敦及周边", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84", "type": "normal", "event": "在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。", "time": "1558年-1603年", "duration": "统治期间主要居所与办公地", "significance": "国家政治与文化中心，其“黄金时代”的核心舞台。", "works": [], "quoteLines": []}, {"name": "哈特菲尔德宫", "ancientName": "哈特菲尔德宫", "modernName": "英国赫特福德郡哈特菲尔德", "lat": 51.763935, "lng": -0.216806, "coordSystem": "WGS84", "type": "normal", "event": "在此地得知玛丽一世去世，自己成为英格兰女王的消息。", "time": "1558年11月17日", "duration": "得知继位消息的地点", "significance": "政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。", "works": [], "quoteLines": []}, {"name": "伦敦（威斯敏斯特教堂）", "ancientName": "威斯敏斯特教堂", "modernName": "英国伦敦市中心威斯敏斯特市", "lat": 51.508112, "lng": -0.075949, "coordSystem": "WGS84", "type": "normal", "event": "举行加冕典礼，正式成为英格兰女王。", "time": "1559年1月15日", "duration": "加冕日", "significance": "象征其统治的合法开始，向国内外宣示新王权的确立。", "works": [], "quoteLines": []}, {"name": "蒂尔伯里", "ancientName": "蒂尔伯里", "modernName": "英国埃塞克斯郡蒂尔伯里", "lat": 51.462245, "lng": 0.358028, "coordSystem": "WGS84", "type": "normal", "event": "在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。", "time": "1588年8月", "duration": "数日", "significance": "展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。", "works": [], "quoteLines": ["《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”"]}, {"name": "里士满宫", "ancientName": "里士满宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84", "type": "death", "event": "晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。", "time": "1603年3月24日", "duration": "晚年主要居所，直至去世", "significance": "生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。", "works": [], "quoteLines": ["无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---", "examPoints": "### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。", "workTexts": {"蒂尔伯里演说": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "王位继承法": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。"}, "workSummaries": {"蒂尔伯里演说": {"title": "蒂尔伯里演说", "aliases": [], "authors": ["伊丽莎白一世"], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "都铎王朝（Tudor dynasty）", "genre": "说理文", "one_liner": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "summary": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "quote": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "quotes": ["我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！"], "quote_policy": "preferred"}, "王位继承法": {"title": "王位继承法", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。", "summary": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "至尊法案": {"title": "至尊法案", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "summary": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "统一法案": {"title": "统一法案", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "summary": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 伊丽莎白一世\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊丽莎白·都铎（Elizabeth Tudor），伊丽莎白一世（Elizabeth I）\n- **别名**：童贞女王（The Virgin Queen），格洛丽安娜（Gloriana）\n- **外文名**：Elizabeth I of England\n- **时代**：都铎王朝（Tudor dynasty）\n- **出生**：1533年9月7日，英格兰格林威治宫（今英国伦敦格林威治区）\n- **去世**：1603年3月24日，英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **享年**：69岁（周岁）\n- **主要身份**：英格兰女王、爱尔兰女王\n- **领域标签**：英国君主，都铎王朝，16世纪欧洲政治家\n- **历史地位**：都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。\n- **主要成就**：击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。\n\n### 生平概述\n伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动范围集中在英格兰本土，尤其是伦敦及周边王室宫殿。\n- ⏱️ **时间跨度**：1533年至1603年，共70年。\n- 📍 **地理范围**：英格兰、威尔士及爱尔兰（作为女王统治地）。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：格林威治宫\n- **公元纪年**：1533年\n- **停留时间**：出生地，幼年早期生活于此。\n- **位置**：格林威治宫（今英国伦敦格林威治区）\n- **事迹**：在此出生，作为亨利八世与安妮·博林的女儿。\n- **意义**：其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。\n\n### 📍 重要地点：伦敦塔\n- **公元纪年**：1554年\n- **停留时间**：约两个月\n- **位置**：伦敦塔（今英国伦敦泰晤士河北岸）\n- **事迹**：因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。\n- **意义**：人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。\n- **名篇名句**：无直接作品，但此经历塑造了她日后谨慎多疑的性格。\n\n### 📍 重要地点：哈特菲尔德宫\n- **公元纪年**：1558年11月17日\n- **停留时间**：得知继位消息的地点\n- **位置**：哈特菲尔德宫（今英国赫特福德郡哈特菲尔德）\n- **事迹**：在此地得知玛丽一世去世，自己成为英格兰女王的消息。\n- **意义**：政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。\n\n### 📍 重要地点：伦敦（威斯敏斯特教堂）\n- **公元纪年**：1559年1月15日\n- **停留时间**：加冕日\n- **位置**：威斯敏斯特教堂（今英国伦敦市中心威斯敏斯特市）\n- **事迹**：举行加冕典礼，正式成为英格兰女王。\n- **意义**：象征其统治的合法开始，向国内外宣示新王权的确立。\n\n### 📍 重要地点：蒂尔伯里\n- **公元纪年**：1588年8月\n- **停留时间**：数日\n- **位置**：蒂尔伯里（今英国埃塞克斯郡蒂尔伯里）\n- **事迹**：在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。\n- **意义**：展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。\n- **名篇名句**：《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”\n\n### 📍 重要地点：伦敦（宫廷）\n- **公元纪年**：1558年-1603年\n- **停留时间**：统治期间主要居所与办公地\n- **位置**：白厅宫（原址）、里士满宫等（今英国伦敦及周边）\n- **事迹**：在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。\n- **意义**：国家政治与文化中心，其“黄金时代”的核心舞台。\n\n### 🔴 去世地：里士满宫\n- **公元纪年**：1603年3月24日\n- **停留时间**：晚年主要居所，直至去世\n- **位置**：里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。\n- **意义**：生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。\n- **名篇名句**：无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1533 | 格林威治宫 | 英国伦敦格林威治区 | （年龄：0）出生于格林威治宫。 |\n| 1536 |  |  | （年龄：3）母亲安妮·博林被处死，伊丽莎白被宣布为私生女。 |\n| 1544 |  |  | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。 |\n| 1553 |  |  | （年龄：20）玛丽一世即位，伊丽莎白因宗教问题受猜忌。 |\n| 1554 | 伦敦塔 | 英国伦敦泰晤士河北岸 | （年龄：21）因涉嫌参与怀亚特叛乱被囚于伦敦塔，后获释软禁。 |\n| 1558 |  |  | （年龄：25）玛丽一世去世，伊丽莎白继位为英格兰女王。 |\n| 1559 |  |  | （年龄：26）颁布《至尊法案》与《统一法案》，确立英国国教。 |\n| 1568 |  |  | （年龄：35）苏格兰女王玛丽·斯图亚特逃入英格兰，成为长期政治隐患。 |\n| 1587 |  |  | （年龄：54）批准处决苏格兰女王玛丽·斯图亚特。 |\n| 1588 |  |  | （年龄：55）英国舰队击败西班牙无敌舰队，国威大振。 |\n| 1601 |  |  | （年龄：68）埃塞克斯伯爵叛乱被平定。 |\n| 1603 | 里士满宫 | 英国伦敦泰晤士河畔里士满区 | （年龄：69）在里士满宫去世，都铎王朝终结。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊丽莎白一世的统治为英格兰带来了长期的政治稳定与宗教和解，结束了其父兄姐统治时期的动荡。她成功抵御了天主教西班牙的军事威胁，提升了国家地位与民族自信。其重商主义政策与对海外探险的支持，为英国的殖民扩张和商业帝国奠定了基础，开启了国家的强盛之路。\n\n### 对后世的影响\n- **宗教格局**：其确立的英国国教（安立甘宗）成为英国长期的主流宗教，影响了国家的文化与政治认同。\n- **海权奠基**：击败西班牙无敌舰队标志着英国海上力量的崛起，为其后成为“日不落帝国”铺平了道路。\n- **文化繁荣**：“伊丽莎白时代”是英国文艺复兴的顶峰，莎士比亚、斯宾塞等文学巨匠的作品成为世界文化遗产。\n- **政治遗产**：其“嫁予英格兰”的形象与统治艺术，成为后世君主（尤其是女性君主）的典范。\n\n### 历史评价\n1.  **弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”\n2.  **温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”\n3.  **现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 格林威治宫 | 英国伦敦格林威治区旧格林威治宫遗址 | 51.482576 | -0.007658 |\n| 伦敦塔 | 英国伦敦塔 | 51.508112 | -0.075949 |\n| 哈特菲尔德宫 | 英国赫特福德郡哈特菲尔德宫 | 51.763935 | -0.216806 |\n| 伦敦（威斯敏斯特教堂） | 英国伦敦威斯敏斯特教堂 | 51.499292 | -0.127310 |\n| 蒂尔伯里 | 英国埃塞克斯郡蒂尔伯里 | 51.462245 | 0.358028 |\n| 伦敦（宫廷） | 英国伦敦白厅宫旧址一带 | 51.506140 | -0.124610 |\n| 里士满宫 | 英国伦敦泰晤士河畔里士满区里士满宫旧址 | 51.461349 | -0.303153 |\n", "relatedGraph": {"center": {"id": "伊丽莎白一世", "name": "伊丽莎白一世", "file": "伊丽莎白一世.html", "dynasty": "都铎王朝（Tudor dynasty）", "aliases": ["格洛丽安娜Gloriana"], "birth_year": 1533, "death_year": 1603, "quote": "伊丽莎白时代", "review": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "foreign_name": "Elizabeth I of England", "main_role_label": "英国君主", "birthplace": "英格兰格林威治宫", "birthplace_modern": "英国伦敦格林威治区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "伊丽莎白一世", "name": "伊丽莎白一世", "file": "伊丽莎白一世.html", "dynasty": "都铎王朝（Tudor dynasty）", "aliases": ["格洛丽安娜Gloriana"], "birth_year": 1533, "death_year": 1603, "quote": "伊丽莎白时代", "review": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "foreign_name": "Elizabeth I of England", "main_role_label": "英国君主", "birthplace": "英格兰格林威治宫", "birthplace_modern": "英国伦敦格林威治区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "培根", "name": "培根", "file": "培根.html", "dynasty": "英国都铎王朝晚期至斯图亚特王朝早期（文艺复兴末期）", "aliases": ["圣奥尔本子爵", "维鲁拉姆男爵"], "birth_year": 1561, "death_year": 1626, "quote": "知识就是力量", "review": "", "foreign_name": "Francis Bacon", "main_role_label": "哲学家", "birthplace": "伦敦", "birthplace_modern": "英国伦敦", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "章西女王", "name": "章西女王", "file": "章西女王.html", "dynasty": "印度殖民时期（19世纪）", "aliases": [], "birth_year": 1835, "death_year": 1858, "quote": "印度的圣女贞德", "review": "", "foreign_name": "", "main_role_label": "印度民族大起义领袖", "birthplace": "出生地：瓦拉纳西", "birthplace_modern": "贝拿勒斯", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "彼得·米哈伊洛夫", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "aliases": [], "birth_year": 1483, "death_year": 1546, "quote": "当钱币投入钱柜中叮当作响时，增加的只是贪婪和私欲。", "review": "", "foreign_name": "", "main_role_label": "宗教改革家", "birthplace": "艾斯莱本", "birthplace_modern": "德国萨克森-安哈尔特州艾斯莱本", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "业余数学家之王", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "伊丽莎白一世", "target": "培根", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "章西女王", "label": "同册共现", "confidence": 0.15}, {"source": "伊丽莎白一世", "target": "彼得一世", "label": "同册共现", "confidence": 0.15}, {"source": "伊丽莎白一世", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "费马", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:09Z", "generated_at": "2026-06-22T11:31:09Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "伊丽莎白·都铎", "title": "", "description": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。", "quote": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "shortReview": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "dynasty": "都铎王朝（Tudor dynasty）", "courtesyName": "", "artName": "", "aliases": ["童贞女王（The", "Virgin", "Queen）", "格洛丽安娜（Gloriana）"], "birthplace": "英格兰格林威治宫（今英国伦敦格林威治区）", "avatar": "", "birth": {"date": "1533年", "location": "英格兰格林威治宫（今英国伦敦格林威治区）", "lat": 51.482576, "lng": -0.007658, "coordSystem": "WGS84"}, "death": {"date": "1603年", "location": "英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84"}, "lifespan": "69岁（周岁）", "highlights": {"honor": "", "status": "都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。", "identities": "英格兰女王、爱尔兰女王", "achievements": "击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。", "works": [], "reviews": ["**弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”", "**温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”", "**现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。"]}}, "locations": [{"name": "格林威治宫", "ancientName": "格林威治宫", "modernName": "英国伦敦格林威治区", "lat": 51.482576, "lng": -0.007658, "coordSystem": "WGS84", "type": "birth", "event": "在此出生，作为亨利八世与安妮·博林的女儿。", "time": "1533年", "duration": "出生地，幼年早期生活于此。", "significance": "其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。", "works": [], "quoteLines": []}, {"name": "伦敦塔", "ancientName": "伦敦塔", "modernName": "英国伦敦泰晤士河北岸", "lat": 51.508112, "lng": -0.075949, "coordSystem": "WGS84", "type": "normal", "event": "因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。", "time": "1554年", "duration": "约两个月", "significance": "人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。", "works": [], "quoteLines": ["无直接作品，但此经历塑造了她日后谨慎多疑的性格。"]}, {"name": "伦敦（宫廷）", "ancientName": "白厅宫、里士满宫等", "modernName": "英国伦敦及周边", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84", "type": "normal", "event": "在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。", "time": "1558年-1603年", "duration": "统治期间主要居所与办公地", "significance": "国家政治与文化中心，其“黄金时代”的核心舞台。", "works": [], "quoteLines": []}, {"name": "哈特菲尔德宫", "ancientName": "哈特菲尔德宫", "modernName": "英国赫特福德郡哈特菲尔德", "lat": 51.763935, "lng": -0.216806, "coordSystem": "WGS84", "type": "normal", "event": "在此地得知玛丽一世去世，自己成为英格兰女王的消息。", "time": "1558年11月17日", "duration": "得知继位消息的地点", "significance": "政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。", "works": [], "quoteLines": []}, {"name": "伦敦（威斯敏斯特教堂）", "ancientName": "威斯敏斯特教堂", "modernName": "英国伦敦市中心威斯敏斯特市", "lat": 51.508112, "lng": -0.075949, "coordSystem": "WGS84", "type": "normal", "event": "举行加冕典礼，正式成为英格兰女王。", "time": "1559年1月15日", "duration": "加冕日", "significance": "象征其统治的合法开始，向国内外宣示新王权的确立。", "works": [], "quoteLines": []}, {"name": "蒂尔伯里", "ancientName": "蒂尔伯里", "modernName": "英国埃塞克斯郡蒂尔伯里", "lat": 51.462245, "lng": 0.358028, "coordSystem": "WGS84", "type": "normal", "event": "在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。", "time": "1588年8月", "duration": "数日", "significance": "展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。", "works": [], "quoteLines": ["《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”"]}, {"name": "里士满宫", "ancientName": "里士满宫", "modernName": "英国伦敦泰晤士河畔里士满区", "lat": 51.461349, "lng": -0.303153, "coordSystem": "WGS84", "type": "death", "event": "晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。", "time": "1603年3月24日", "duration": "晚年主要居所，直至去世", "significance": "生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。", "works": [], "quoteLines": ["无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---", "examPoints": "### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。", "workTexts": {"蒂尔伯里演说": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "王位继承法": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。"}, "workSummaries": {"蒂尔伯里演说": {"title": "蒂尔伯里演说", "aliases": [], "authors": ["伊丽莎白一世"], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "都铎王朝（Tudor dynasty）", "genre": "说理文", "one_liner": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "summary": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "quote": "我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！", "quotes": ["我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！"], "quote_policy": "preferred"}, "王位继承法": {"title": "王位继承法", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。", "summary": "| 1544 | | | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "至尊法案": {"title": "至尊法案", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "summary": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "统一法案": {"title": "统一法案", "aliases": [], "authors": [], "related_people": ["伊丽莎白一世"], "source_pages": ["伊丽莎白一世"], "era": "", "genre": "", "one_liner": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "summary": "伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 伊丽莎白一世\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：伊丽莎白·都铎（Elizabeth Tudor），伊丽莎白一世（Elizabeth I）\n- **别名**：童贞女王（The Virgin Queen），格洛丽安娜（Gloriana）\n- **外文名**：Elizabeth I of England\n- **时代**：都铎王朝（Tudor dynasty）\n- **出生**：1533年9月7日，英格兰格林威治宫（今英国伦敦格林威治区）\n- **去世**：1603年3月24日，英格兰里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **享年**：69岁（周岁）\n- **主要身份**：英格兰女王、爱尔兰女王\n- **领域标签**：英国君主，都铎王朝，16世纪欧洲政治家\n- **历史地位**：都铎王朝的最后一位君主，开创了英国历史上的“黄金时代”。\n- **主要成就**：击败西班牙无敌舰队、确立英国国教、支持文艺复兴与海外探险、实现国内宗教和解与政治稳定。\n\n### 生平概述\n伊丽莎白一世是亨利八世与安妮·博林之女，幼年历经坎坷，曾被囚于伦敦塔。1558年，她继承异母姐姐玛丽一世的王位，成为英格兰女王。在位45年间，她以高超的政治手腕平衡国内新旧教势力，结束了宗教纷争；对外，她于1588年击败西班牙无敌舰队，奠定了英国的海上强国地位。她终身未嫁，被称为“童贞女王”，其统治时期文学艺术繁荣，莎士比亚等巨匠辈出，史称“伊丽莎白时代”，为英国近代崛起奠定了坚实基础。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：一生主要活动范围集中在英格兰本土，尤其是伦敦及周边王室宫殿。\n- ⏱️ **时间跨度**：1533年至1603年，共70年。\n- 📍 **地理范围**：英格兰、威尔士及爱尔兰（作为女王统治地）。\n- 🌟 **重要节点数量**：约10个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：格林威治宫\n- **公元纪年**：1533年\n- **停留时间**：出生地，幼年早期生活于此。\n- **位置**：格林威治宫（今英国伦敦格林威治区）\n- **事迹**：在此出生，作为亨利八世与安妮·博林的女儿。\n- **意义**：其王室身份的起点，但母亲很快失势被处死，使其童年蒙上阴影。\n\n### 📍 重要地点：伦敦塔\n- **公元纪年**：1554年\n- **停留时间**：约两个月\n- **位置**：伦敦塔（今英国伦敦泰晤士河北岸）\n- **事迹**：因被怀疑参与怀亚特叛乱，被异母姐姐玛丽一世女王囚禁于此。\n- **意义**：人生中最危险的时刻之一，深刻体验了宫廷斗争的残酷，磨练了其政治警觉性。\n- **名篇名句**：无直接作品，但此经历塑造了她日后谨慎多疑的性格。\n\n### 📍 重要地点：哈特菲尔德宫\n- **公元纪年**：1558年11月17日\n- **停留时间**：得知继位消息的地点\n- **位置**：哈特菲尔德宫（今英国赫特福德郡哈特菲尔德）\n- **事迹**：在此地得知玛丽一世去世，自己成为英格兰女王的消息。\n- **意义**：政治生涯的转折点，从囚徒变为女王，开启了长达45年的统治。\n\n### 📍 重要地点：伦敦（威斯敏斯特教堂）\n- **公元纪年**：1559年1月15日\n- **停留时间**：加冕日\n- **位置**：威斯敏斯特教堂（今英国伦敦市中心威斯敏斯特市）\n- **事迹**：举行加冕典礼，正式成为英格兰女王。\n- **意义**：象征其统治的合法开始，向国内外宣示新王权的确立。\n\n### 📍 重要地点：蒂尔伯里\n- **公元纪年**：1588年8月\n- **停留时间**：数日\n- **位置**：蒂尔伯里（今英国埃塞克斯郡蒂尔伯里）\n- **事迹**：在西班牙无敌舰队入侵之际，亲临军队集结地发表著名战前演说，鼓舞士气。\n- **意义**：展现了其作为国家领袖的勇气与担当，极大振奋了军心，是其个人魅力与领导力的巅峰体现。\n- **名篇名句**：《蒂尔伯里演说》：“我知道我有着女人孱弱无力的身体，但我有着英格兰国王的心胸与气魄！”\n\n### 📍 重要地点：伦敦（宫廷）\n- **公元纪年**：1558年-1603年\n- **停留时间**：统治期间主要居所与办公地\n- **位置**：白厅宫（原址）、里士满宫等（今英国伦敦及周边）\n- **事迹**：在此处理政务，接见大臣与外国使节，主持宫廷文化活动，与议会周旋。\n- **意义**：国家政治与文化中心，其“黄金时代”的核心舞台。\n\n### 🔴 去世地：里士满宫\n- **公元纪年**：1603年3月24日\n- **停留时间**：晚年主要居所，直至去世\n- **位置**：里士满宫（今英国伦敦泰晤士河畔里士满区）\n- **经过**：晚年健康恶化，精神萎靡，最终在此地安详去世，临终前暗示苏格兰国王詹姆斯六世为其继承人。\n- **意义**：生命的终点，标志着都铎王朝的终结和斯图亚特王朝的开始。\n- **名篇名句**：无直接作品，但其临终安排避免了王位继承战争，体现了最后的政治智慧。\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1533 | 格林威治宫 | 英国伦敦格林威治区 | （年龄：0）出生于格林威治宫。 |\n| 1536 |  |  | （年龄：3）母亲安妮·博林被处死，伊丽莎白被宣布为私生女。 |\n| 1544 |  |  | （年龄：11）在亨利八世的《王位继承法》中恢复公主地位。 |\n| 1553 |  |  | （年龄：20）玛丽一世即位，伊丽莎白因宗教问题受猜忌。 |\n| 1554 | 伦敦塔 | 英国伦敦泰晤士河北岸 | （年龄：21）因涉嫌参与怀亚特叛乱被囚于伦敦塔，后获释软禁。 |\n| 1558 |  |  | （年龄：25）玛丽一世去世，伊丽莎白继位为英格兰女王。 |\n| 1559 |  |  | （年龄：26）颁布《至尊法案》与《统一法案》，确立英国国教。 |\n| 1568 |  |  | （年龄：35）苏格兰女王玛丽·斯图亚特逃入英格兰，成为长期政治隐患。 |\n| 1587 |  |  | （年龄：54）批准处决苏格兰女王玛丽·斯图亚特。 |\n| 1588 |  |  | （年龄：55）英国舰队击败西班牙无敌舰队，国威大振。 |\n| 1601 |  |  | （年龄：68）埃塞克斯伯爵叛乱被平定。 |\n| 1603 | 里士满宫 | 英国伦敦泰晤士河畔里士满区 | （年龄：69）在里士满宫去世，都铎王朝终结。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n伊丽莎白一世的统治为英格兰带来了长期的政治稳定与宗教和解，结束了其父兄姐统治时期的动荡。她成功抵御了天主教西班牙的军事威胁，提升了国家地位与民族自信。其重商主义政策与对海外探险的支持，为英国的殖民扩张和商业帝国奠定了基础，开启了国家的强盛之路。\n\n### 对后世的影响\n- **宗教格局**：其确立的英国国教（安立甘宗）成为英国长期的主流宗教，影响了国家的文化与政治认同。\n- **海权奠基**：击败西班牙无敌舰队标志着英国海上力量的崛起，为其后成为“日不落帝国”铺平了道路。\n- **文化繁荣**：“伊丽莎白时代”是英国文艺复兴的顶峰，莎士比亚、斯宾塞等文学巨匠的作品成为世界文化遗产。\n- **政治遗产**：其“嫁予英格兰”的形象与统治艺术，成为后世君主（尤其是女性君主）的典范。\n\n### 历史评价\n1.  **弗朗西斯·培根**：“这位女王的统治时期，是世界上前所未见的最光辉灿烂的时代之一。”\n2.  **温斯顿·丘吉尔**：“在伊丽莎白身上，都铎王朝的精明、果断和活力达到了顶峰。”\n3.  **现代史家共识**：她是一位杰出的政治家，善于利用婚姻谈判作为外交筹码，并以高超的平衡术驾驭着充满野心的贵族与议会，其统治是英国从一个中等王国向世界强国转型的关键时期。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**都铎王朝**统治时期，英国资本主义萌芽发展，**宗教改革**影响深远。\n- **关键事件**：**1588年击败西班牙无敌舰队**，是英国崛起为海上强国的标志性事件。\n- **统治政策**：推行**宗教和解**，确立**英国国教**（圣公会）为国家教会，相对宽容地对待清教徒。\n- **历史地位**：其统治时期被称为“**伊丽莎白时代**”或英国的“**黄金时代**”。\n- **代表形象**：“**童贞女王**”，终身未婚，将个人婚姻作为外交筹码。\n- **易混点**：与血腥玛丽（玛丽一世）的宗教政策对比：玛丽一世恢复天主教，迫害新教徒；伊丽莎白一世确立新教为国教，但相对温和。\n\n### 高中阶段\n- **政治智慧**：善于运用“**王室恩赐**”和**个人魅力**驾驭议会与贵族，维持**君主专制**的稳定。\n- **经济政策**：支持**重商主义**，鼓励**海外贸易与探险**（如德雷克环球航行），为殖民扩张奠基。\n- **文化贡献**：赞助文学艺术，**莎士比亚**、**马洛**等剧作家活跃于其宫廷与伦敦剧场，英国文艺复兴达到顶峰。\n- **外交策略**：巧妙利用**英西矛盾**、**英法矛盾**，支持尼德兰革命牵制西班牙，避免过早与大国全面开战。\n- **历史局限**：统治后期，**宠臣政治**（如埃塞克斯伯爵）问题显现，**圈地运动**加剧社会矛盾，**清教徒**势力壮大带来新的宗教压力。\n- **继承问题**：终身未嫁导致**都铎王朝绝嗣**，最终由苏格兰的**詹姆斯六世**（詹姆斯一世）继位，促成英苏共主联邦。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段考点\n- 伊丽莎白一世是**都铎王朝**的最后一位君主。\n- 她在位期间，英国于**1588年**击败了**西班牙无敌舰队**。\n- 她确立了**英国国教**（圣公会）的统治地位，实行相对宽容的宗教政策。\n- 她的统治时期被称为英国的“**黄金时代**”。\n- 她终身未婚，被称为“**童贞女王**”。\n- （存疑）其个人性格与政治手腕的具体细节在初中教材中通常简化。\n\n### 高中阶段考点\n- **宗教和解**的具体内容与意义：通过《至尊法案》和《统一法案》确立国教，但保留部分天主教仪式以安抚保守派。\n- **击败西班牙无敌舰队**的背景（英西矛盾、尼德兰问题）、过程与历史意义（英国海上霸权开端）。\n- **伊丽莎白时代的文化繁荣**：重点掌握莎士比亚及其代表作，理解文学与时代精神的关系。\n- **伊丽莎白一世的统治艺术**：如何平衡新旧教势力、驾驭议会、利用婚姻外交。\n- **都铎王朝的终结与斯图亚特王朝的开始**：理解伊丽莎白无嗣对英国历史进程的影响。\n- （说法不一）关于她与罗伯特·达德利等宠臣的关系，以及晚年政治是否僵化，史学界有不同评价。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 格林威治宫 | 英国伦敦格林威治区旧格林威治宫遗址 | 51.482576 | -0.007658 |\n| 伦敦塔 | 英国伦敦塔 | 51.508112 | -0.075949 |\n| 哈特菲尔德宫 | 英国赫特福德郡哈特菲尔德宫 | 51.763935 | -0.216806 |\n| 伦敦（威斯敏斯特教堂） | 英国伦敦威斯敏斯特教堂 | 51.499292 | -0.127310 |\n| 蒂尔伯里 | 英国埃塞克斯郡蒂尔伯里 | 51.462245 | 0.358028 |\n| 伦敦（宫廷） | 英国伦敦白厅宫旧址一带 | 51.506140 | -0.124610 |\n| 里士满宫 | 英国伦敦泰晤士河畔里士满区里士满宫旧址 | 51.461349 | -0.303153 |\n", "relatedGraph": {"center": {"id": "伊丽莎白一世", "name": "伊丽莎白一世", "file": "伊丽莎白一世.html", "dynasty": "都铎王朝（Tudor dynasty）", "aliases": ["格洛丽安娜Gloriana"], "birth_year": 1533, "death_year": 1603, "quote": "伊丽莎白时代", "review": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "foreign_name": "Elizabeth I of England", "main_role_label": "英国君主", "birthplace": "英格兰格林威治宫", "birthplace_modern": "英国伦敦格林威治区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "伊丽莎白一世", "name": "伊丽莎白一世", "file": "伊丽莎白一世.html", "dynasty": "都铎王朝（Tudor dynasty）", "aliases": ["格洛丽安娜Gloriana"], "birth_year": 1533, "death_year": 1603, "quote": "伊丽莎白时代", "review": "无直接作品，但此经历塑造了她日后谨慎多疑的性格。", "foreign_name": "Elizabeth I of England", "main_role_label": "英国君主", "birthplace": "英格兰格林威治宫", "birthplace_modern": "英国伦敦格林威治区", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "培根", "name": "培根", "file": "培根.html", "dynasty": "英国都铎王朝晚期至斯图亚特王朝早期（文艺复兴末期）", "aliases": ["圣奥尔本子爵", "维鲁拉姆男爵"], "birth_year": 1561, "death_year": 1626, "quote": "知识就是力量", "review": "", "foreign_name": "Francis Bacon", "main_role_label": "哲学家", "birthplace": "伦敦", "birthplace_modern": "英国伦敦", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "章西女王", "name": "章西女王", "file": "章西女王.html", "dynasty": "印度殖民时期（19世纪）", "aliases": [], "birth_year": 1835, "death_year": 1858, "quote": "印度的圣女贞德", "review": "", "foreign_name": "", "main_role_label": "印度民族大起义领袖", "birthplace": "出生地：瓦拉纳西", "birthplace_modern": "贝拿勒斯", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "彼得一世", "name": "彼得一世", "file": "彼得一世.html", "dynasty": "17世纪下半叶至18世纪上半叶（俄罗斯沙皇国/俄罗斯帝国时期）", "aliases": [], "birth_year": 1672, "death_year": 1725, "quote": "彼得·米哈伊洛夫", "review": "", "foreign_name": "", "main_role_label": "俄罗斯帝国皇帝", "birthplace": "莫斯科公国莫斯科", "birthplace_modern": "俄罗斯莫斯科", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "魏学洢", "name": "魏学洢", "file": "魏学洢.html", "dynasty": "明朝末年", "aliases": [], "birth_year": 1596, "death_year": 1625, "quote": "**因势象形，各具情态**", "review": "", "foreign_name": "", "main_role_label": "散文家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "马丁·路德", "name": "马丁·路德", "file": "马丁·路德.html", "dynasty": "16世纪欧洲（德意志地区，神圣罗马帝国时期）", "aliases": [], "birth_year": 1483, "death_year": 1546, "quote": "当钱币投入钱柜中叮当作响时，增加的只是贪婪和私欲。", "review": "", "foreign_name": "", "main_role_label": "宗教改革家", "birthplace": "艾斯莱本", "birthplace_modern": "德国萨克森-安哈尔特州艾斯莱本", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "费马", "name": "费马", "file": "费马.html", "dynasty": "17世纪（法国波旁王朝时期）", "aliases": [], "birth_year": 1601, "death_year": 1665, "quote": "业余数学家之王", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "博蒙-德洛马涅", "birthplace_modern": "法国上加龙省博蒙-德洛马涅", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "伊丽莎白一世", "target": "培根", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "章西女王", "label": "同册共现", "confidence": 0.15}, {"source": "伊丽莎白一世", "target": "彼得一世", "label": "同册共现", "confidence": 0.15}, {"source": "伊丽莎白一世", "target": "魏学洢", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "马丁·路德", "label": "同时代人物", "confidence": null}, {"source": "伊丽莎白一世", "target": "费马", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:10Z", "generated_at": "2026-06-25T07:13:10Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:09Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:10Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

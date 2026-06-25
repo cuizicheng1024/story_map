@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "芈月", "title": "", "description": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响。", "quote": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "shortReview": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "dynasty": "战国（秦国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "秦国", "avatar": "", "birth": {"date": "前325年", "location": "秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84"}, "death": {"date": "前307年", "location": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "秦惠文王妾室、秦昭襄王之母、宣太后、秦国实际执政者", "achievements": "以太后身份临朝称制，执掌秦国政事；任用以魏冉、白起等人为代表的楚系外戚与能臣；稳定秦国内政，延续商鞅变法以来的国策；在秦昭襄王早期主政，为秦国东出争霸奠定基础", "works": [], "reviews": []}}, "locations": [{"name": "楚国—秦国", "ancientName": "楚国—秦国", "modernName": "楚国—秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "出身楚国芈氏，嫁入秦国为惠文王妾", "time": "约前338年前后", "duration": "", "significance": "楚国—秦国与“出身楚国芈氏，嫁入秦国为惠文王妾”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "秦国", "ancientName": "秦国", "modernName": "秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "birth", "event": "子嬴稷（即秦昭襄王）出生", "time": "前325年", "duration": "", "significance": "秦国是芈月人生起点的重要地点，也为理解其出身背景与后世纪念提供线索。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "death", "event": "秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政", "time": "前307年", "duration": "", "significance": "咸阳对应芈月人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "临朝称制，主政秦国近四十年，期间多次攻伐列国", "time": "前306年—前265年", "duration": "", "significance": "咸阳与“临朝称制，主政秦国近四十年，期间多次攻伐列国”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "秦国西部", "ancientName": "秦国西部", "modernName": "秦国西部", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "诱杀义渠王，灭义渠国，设置陇西、北地、上郡", "time": "约前272年", "duration": "", "significance": "秦国西部与“诱杀义渠王，灭义渠国，设置陇西、北地、上郡”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "death", "event": "秦昭襄王亲政，宣太后归政，次年去世", "time": "前265年", "duration": "", "significance": "咸阳对应芈月人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"诅楚文": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实"}, "workSummaries": {"史记·穰侯列传": {"title": "史记·穰侯列传", "aliases": ["史记", "穰侯列传"], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "传记", "one_liner": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "summary": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "索引": {"title": "索引", "aliases": [], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "", "one_liner": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "summary": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "诅楚文": {"title": "诅楚文", "aliases": [], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "", "one_liner": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "summary": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 芈月\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：芈月\n- **时代**：战国（秦国）\n- **出生**：前325年，秦国\n- **去世**：前307年，咸阳\n- **主要身份**：秦惠文王妾室、秦昭襄王之母、宣太后、秦国实际执政者\n- **主要成就**：以太后身份临朝称制，执掌秦国政事；任用以魏冉、白起等人为代表的楚系外戚与能臣；稳定秦国内政，延续商鞅变法以来的国策；在秦昭襄王早期主政，为秦国东出争霸奠定基础\n\n### 生平概述\n芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：楚国—秦国\n- **公元纪年**：约前338年前后\n- **位置**：楚国—秦国\n- **事迹**：出身楚国芈氏，嫁入秦国为惠文王妾\n\n### 🟢 出生地：秦国\n- **公元纪年**：前325年\n- **位置**：秦国\n- **事迹**：子嬴稷（即秦昭襄王）出生\n\n### 🔴 去世地：咸阳\n- **公元纪年**：前307年\n- **位置**：咸阳\n- **经过**：秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前306年—前265年\n- **位置**：咸阳\n- **事迹**：临朝称制，主政秦国近四十年，期间多次攻伐列国\n\n### 📍 重要地点：秦国西部\n- **公元纪年**：约前272年\n- **位置**：秦国西部\n- **事迹**：诱杀义渠王，灭义渠国，设置陇西、北地、上郡\n\n### 🔴 去世地：咸阳\n- **公元纪年**：前265年\n- **位置**：咸阳\n- **经过**：秦昭襄王亲政，宣太后归政，次年去世\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前338年前后 | 楚国—秦国 | 楚国—秦国 | 出身楚国芈氏，嫁入秦国为惠文王妾 |\n| 前325年 | 秦国 | 秦国 | 子嬴稷（即秦昭襄王）出生 |\n| 前307年 | 咸阳 | 咸阳 | 秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政 |\n| 前306年—前265年 | 咸阳 | 咸阳 | 临朝称制，主政秦国近四十年，期间多次攻伐列国 |\n| 约前272年 | 秦国西部 | 秦国西部 | 诱杀义渠王，灭义渠国，设置陇西、北地、上郡 |\n| 前265年 | 咸阳 | 咸阳 | 秦昭襄王亲政，宣太后归政，次年去世 |\n\n## 五、补充说明\n\n- 芈月之名仅见于《史记·穰侯列传》索隐引《索引》之'芈八子'，正史未记载其名'月'，'芈月'之名多见于后世小说与影视剧，不可作为正史依据\n- '以色诱灭义渠'之说见于后世笔记，正史仅载'乃诈而杀义渠戎王于甘泉'，细节存疑\n- 出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实\n- 部分影视剧情节（如与黄歇春申君之恋）属艺术虚构，史无确证\n- 宣太后与魏冉、白起等人关系及具体政绩细节，部分依赖后世史家诠释\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 楚国—秦国 | 楚国—秦国 | 39.913704 | 116.362106 | WGS84 |\n| 秦国 | 秦国 | 39.913704 | 116.362106 | WGS84 |\n| 咸阳 | 咸阳 | 34.331338 | 108.704164 | WGS84 |\n| 秦国西部 | 秦国西部 | 39.913704 | 116.362106 | WGS84 |", "relatedGraph": {"center": {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孙膑", "name": "孙膑", "file": "孙膑.html", "dynasty": "战国", "aliases": [], "birth_year": null, "death_year": null, "quote": "{", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "芈月", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "庄子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "孟子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "楚怀王", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "孙膑", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:41Z", "generated_at": "2026-06-22T11:31:41Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "芈月", "title": "", "description": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响。", "quote": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "shortReview": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "dynasty": "战国（秦国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "秦国", "avatar": "", "birth": {"date": "前325年", "location": "秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84"}, "death": {"date": "前307年", "location": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "秦惠文王妾室、秦昭襄王之母、宣太后、秦国实际执政者", "achievements": "以太后身份临朝称制，执掌秦国政事；任用以魏冉、白起等人为代表的楚系外戚与能臣；稳定秦国内政，延续商鞅变法以来的国策；在秦昭襄王早期主政，为秦国东出争霸奠定基础", "works": [], "reviews": []}}, "locations": [{"name": "楚国—秦国", "ancientName": "楚国—秦国", "modernName": "楚国—秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "出身楚国芈氏，嫁入秦国为惠文王妾", "time": "约前338年前后", "duration": "", "significance": "楚国—秦国与“出身楚国芈氏，嫁入秦国为惠文王妾”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "秦国", "ancientName": "秦国", "modernName": "秦国", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "birth", "event": "子嬴稷（即秦昭襄王）出生", "time": "前325年", "duration": "", "significance": "秦国是芈月人生起点的重要地点，也为理解其出身背景与后世纪念提供线索。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "death", "event": "秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政", "time": "前307年", "duration": "", "significance": "咸阳对应芈月人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "临朝称制，主政秦国近四十年，期间多次攻伐列国", "time": "前306年—前265年", "duration": "", "significance": "咸阳与“临朝称制，主政秦国近四十年，期间多次攻伐列国”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "秦国西部", "ancientName": "秦国西部", "modernName": "秦国西部", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "诱杀义渠王，灭义渠国，设置陇西、北地、上郡", "time": "约前272年", "duration": "", "significance": "秦国西部与“诱杀义渠王，灭义渠国，设置陇西、北地、上郡”这一事件紧密相关，是理解芈月生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "death", "event": "秦昭襄王亲政，宣太后归政，次年去世", "time": "前265年", "duration": "", "significance": "咸阳对应芈月人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"诅楚文": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实"}, "workSummaries": {"史记·穰侯列传": {"title": "史记·穰侯列传", "aliases": ["史记", "穰侯列传"], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "传记", "one_liner": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "summary": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "索引": {"title": "索引", "aliases": [], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "", "one_liner": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "summary": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "诅楚文": {"title": "诅楚文", "aliases": [], "authors": [], "related_people": ["芈月"], "source_pages": ["芈月"], "era": "", "genre": "", "one_liner": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "summary": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 芈月\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：芈月\n- **时代**：战国（秦国）\n- **出生**：前325年，秦国\n- **去世**：前307年，咸阳\n- **主要身份**：秦惠文王妾室、秦昭襄王之母、宣太后、秦国实际执政者\n- **主要成就**：以太后身份临朝称制，执掌秦国政事；任用以魏冉、白起等人为代表的楚系外戚与能臣；稳定秦国内政，延续商鞅变法以来的国策；在秦昭襄王早期主政，为秦国东出争霸奠定基础\n\n### 生平概述\n芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影响。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：楚国—秦国\n- **公元纪年**：约前338年前后\n- **位置**：楚国—秦国\n- **事迹**：出身楚国芈氏，嫁入秦国为惠文王妾\n\n### 🟢 出生地：秦国\n- **公元纪年**：前325年\n- **位置**：秦国\n- **事迹**：子嬴稷（即秦昭襄王）出生\n\n### 🔴 去世地：咸阳\n- **公元纪年**：前307年\n- **位置**：咸阳\n- **经过**：秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前306年—前265年\n- **位置**：咸阳\n- **事迹**：临朝称制，主政秦国近四十年，期间多次攻伐列国\n\n### 📍 重要地点：秦国西部\n- **公元纪年**：约前272年\n- **位置**：秦国西部\n- **事迹**：诱杀义渠王，灭义渠国，设置陇西、北地、上郡\n\n### 🔴 去世地：咸阳\n- **公元纪年**：前265年\n- **位置**：咸阳\n- **经过**：秦昭襄王亲政，宣太后归政，次年去世\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 约前338年前后 | 楚国—秦国 | 楚国—秦国 | 出身楚国芈氏，嫁入秦国为惠文王妾 |\n| 前325年 | 秦国 | 秦国 | 子嬴稷（即秦昭襄王）出生 |\n| 前307年 | 咸阳 | 咸阳 | 秦惠文王卒，其子秦昭襄王即位，芈月以太后身份主政 |\n| 前306年—前265年 | 咸阳 | 咸阳 | 临朝称制，主政秦国近四十年，期间多次攻伐列国 |\n| 约前272年 | 秦国西部 | 秦国西部 | 诱杀义渠王，灭义渠国，设置陇西、北地、上郡 |\n| 前265年 | 咸阳 | 咸阳 | 秦昭襄王亲政，宣太后归政，次年去世 |\n\n## 五、补充说明\n\n- 芈月之名仅见于《史记·穰侯列传》索隐引《索引》之'芈八子'，正史未记载其名'月'，'芈月'之名多见于后世小说与影视剧，不可作为正史依据\n- '以色诱灭义渠'之说见于后世笔记，正史仅载'乃诈而杀义渠戎王于甘泉'，细节存疑\n- 出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实\n- 部分影视剧情节（如与黄歇春申君之恋）属艺术虚构，史无确证\n- 宣太后与魏冉、白起等人关系及具体政绩细节，部分依赖后世史家诠释\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 楚国—秦国 | 楚国—秦国 | 39.913704 | 116.362106 | WGS84 |\n| 秦国 | 秦国 | 39.913704 | 116.362106 | WGS84 |\n| 咸阳 | 咸阳 | 34.331338 | 108.704164 | WGS84 |\n| 秦国西部 | 秦国西部 | 39.913704 | 116.362106 | WGS84 |", "relatedGraph": {"center": {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "出生年份、卒年与确切生平事迹多据推测与出土文献（如《诅楚文》背景研究）推断，非确切史实", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "庄子", "name": "庄子", "file": "庄子.html", "dynasty": "战国中期", "aliases": [], "birth_year": -369, "death_year": -286, "quote": "万物与我为一", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "存疑", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孟子", "name": "孟子", "file": "孟子.html", "dynasty": "战国时期", "aliases": [], "birth_year": -372, "death_year": -289, "quote": "民为贵，社稷次之，君为轻", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "邹国", "birthplace_modern": "山东省济宁邹城市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孙膑", "name": "孙膑", "file": "孙膑.html", "dynasty": "战国", "aliases": [], "birth_year": null, "death_year": null, "quote": "{", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "芈月", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "庄子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "孟子", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "楚怀王", "label": "同时代人物", "confidence": null}, {"source": "芈月", "target": "孙膑", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:44Z", "generated_at": "2026-06-25T07:13:44Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:41Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:44Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

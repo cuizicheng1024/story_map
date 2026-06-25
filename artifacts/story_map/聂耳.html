@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "聂耳", "title": "", "description": "聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。", "quote": "聂耳同志是伟大的人民音乐家。", "shortReview": "聂耳同志是伟大的人民音乐家。", "dynasty": "中华民国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "云南省昆明市", "avatar": "", "birth": {"date": "1912年", "location": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84"}, "death": {"date": "1935年", "location": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84"}, "lifespan": "23岁", "highlights": {"honor": "", "status": "中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "identities": "作曲家、音乐活动家", "achievements": "创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。", "works": ["风云儿女", "义勇军进行曲", "毕业歌", "卖报歌"], "reviews": ["毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”", "夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”"]}}, "locations": [{"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "birth", "event": "度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。", "time": "1912年—1930年", "duration": "18年", "significance": "奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。", "time": "1930年—1935年4月", "duration": "约5年", "significance": "艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。", "works": ["义勇军进行曲", "毕业歌", "卖报歌", "铁蹄下的歌女"], "quoteLines": ["《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家", "《义勇军进行曲》：起来！不愿做奴隶的人们！"]}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "与“左翼音乐家联盟”成员联系，探讨革命音乐发展。", "time": "1932年8月", "duration": "短暂访问", "significance": "加强了与北方左翼文艺界的联系。", "works": [], "quoteLines": []}, {"name": "日本东京", "ancientName": "东京", "modernName": "日本东京都", "lat": 35.68, "lng": 139.69, "coordSystem": "WGS84", "type": "normal", "event": "考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。", "time": "1935年4月—6月", "duration": "约3个月", "significance": "为赴苏深造做准备，是其生命最后阶段的重要一站。", "works": ["义勇军进行曲"], "quoteLines": []}, {"name": "藤泽市", "ancientName": "藤泽市鹄沼", "modernName": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "normal", "event": "应日本友人邀请，在此避暑并进行休整与创作。", "time": "1935年7月", "duration": "约半个月", "significance": "人生旅途的终点。", "works": [], "quoteLines": []}, {"name": "藤泽市鹄沼海滨", "ancientName": "鹄沼海滨", "modernName": "日本神奈川县藤泽市鹄沼海岸", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "death", "event": "在海滨游泳时不幸溺水身亡，年仅23岁。", "time": "1935年7月17日", "duration": "当日", "significance": "巨星陨落之地，其逝世是中国音乐界的重大损失。", "works": [], "quoteLines": ["《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---", "examPoints": "### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。", "workTexts": {"毕业歌": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "卖报歌": "《卖报歌》：啦啦啦！", "义勇军进行曲": "《义勇军进行曲》：起来！", "中国歌舞短论": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "义勇军作曲": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。"}, "workSummaries": {"义勇军进行曲": {"title": "义勇军进行曲", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "曲", "one_liner": "《义勇军进行曲》：起来！", "summary": "《义勇军进行曲》：起来！", "quote": "历史地位：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "quotes": ["历史地位：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "历史地位：中国现代戏剧的奠基人之一，中华人民共和国国歌《义勇军进行曲》的词作者。", "团结能与时代共痛痒之有为青年作艺术上之革命运动"], "quote_policy": "preferred"}, "毕业歌": {"title": "毕业歌", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "歌曲", "one_liner": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "summary": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "quote": "同学们，大家起来，担负起天下的兴亡！", "quotes": ["同学们，大家起来，担负起天下的兴亡！", "为中国左翼电影和戏剧创作音乐；", "事迹：加入“明月歌剧社”；"], "quote_policy": "preferred"}, "卖报歌": {"title": "卖报歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "《卖报歌》：啦啦啦！", "summary": "《卖报歌》：啦啦啦！", "quote": "为中国左翼电影和戏剧创作音乐；", "quotes": ["为中国左翼电影和戏剧创作音乐；", "事迹：加入“明月歌剧社”；", "推动了抗日救亡歌咏运动。"], "quote_policy": "preferred"}, "风云儿女": {"title": "风云儿女", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "归国后，他积极投身戏剧事业，创办南国社，以“团结能与时代共痛痒之有为青年作艺术上之革命运动”为宗旨，推动话剧本土化与大众化。", "quotes": ["归国后，他积极投身戏剧事业，创办南国社，以“团结能与时代共痛痒之有为青年作艺术上之革命运动”为宗旨，推动话剧本土化与大众化。", "1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。", "1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。"], "quote_policy": "preferred"}, "铁蹄下的歌女": {"title": "铁蹄下的歌女", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "结识田汉、夏衍等左翼文艺工作者，加入中国共产党；", "quotes": ["结识田汉、夏衍等左翼文艺工作者，加入中国共产党；", "在联华影业公司、百代唱片公司工作；", "事迹：加入“明月歌剧社”；"], "quote_policy": "preferred"}, "中国歌舞短论": {"title": "中国歌舞短论", "aliases": [], "authors": [], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "", "genre": "论说文", "one_liner": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "summary": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "开矿歌": {"title": "开矿歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1933 | | | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。", "quotes": ["| 1933 | | | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。"], "quote_policy": "preferred"}, "大路歌": {"title": "大路歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "quotes": ["| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "创作《毕业歌》《大路歌》《开路先锋》等大量作品；", "组织“百代国乐队”。"], "quote_policy": "preferred"}, "开路先锋": {"title": "开路先锋", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "quotes": ["| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "创作《毕业歌》《大路歌》《开路先锋》等大量作品；", "组织“百代国乐队”。"], "quote_policy": "preferred"}, "码头工人歌": {"title": "码头工人歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "作品具有鲜明的阶级性和战斗性，开创了中国无产阶级革命音乐的道路。", "quotes": ["作品具有鲜明的阶级性和战斗性，开创了中国无产阶级革命音乐的道路。"], "quote_policy": "preferred"}, "义勇军作曲": {"title": "义勇军作曲", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "曲", "one_liner": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "summary": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "quote": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "quotes": ["《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。"], "quote_policy": "preferred"}}, "markdown": "# 聂耳\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：聂耳（原名聂守信，字子义，一作紫艺）\n- **时代**：中华民国\n- **出生**：1912年2月15日，云南省昆明市\n- **去世**：1935年7月17日，日本神奈川县藤泽市\n- **享年**：23岁\n- **主要身份**：作曲家、音乐活动家\n- **历史地位**：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。\n- **主要成就**：创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。\n\n### 生平概述\n聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖中国云南、上海、北平及日本东京、藤泽等地。\n- ⏱️ **时间跨度**：1912年—1935年，共23年。\n- 📍 **地理范围**：中国西南地区、华东地区、华北地区及日本关东地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：昆明\n- **公元纪年**：1912年—1930年\n- **停留时间**：18年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。\n- **意义**：奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。\n\n### 📍 重要地点：上海\n- **公元纪年**：1930年—1935年4月\n- **停留时间**：约5年\n- **位置**：上海（今上海市）\n- **事迹**：加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。\n- **意义**：艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。\n- **名篇名句**：《毕业歌》：同学们，大家起来，担负起天下的兴亡！；《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家；《义勇军进行曲》：起来！不愿做奴隶的人们！\n\n### 📍 重要地点：北平\n- **公元纪年**：1932年8月\n- **停留时间**：短暂访问\n- **位置**：北平（今北京市）\n- **事迹**：与“左翼音乐家联盟”成员联系，探讨革命音乐发展。\n- **意义**：加强了与北方左翼文艺界的联系。\n\n### 📍 重要地点：日本东京\n- **公元纪年**：1935年4月—6月\n- **停留时间**：约3个月\n- **位置**：东京（今日本东京都）\n- **事迹**：考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。\n- **意义**：为赴苏深造做准备，是其生命最后阶段的重要一站。\n\n### 📍 重要地点：藤泽市\n- **公元纪年**：1935年7月\n- **停留时间**：约半个月\n- **位置**：藤泽市鹄沼（今日本神奈川县藤泽市）\n- **事迹**：应日本友人邀请，在此避暑并进行休整与创作。\n- **意义**：人生旅途的终点。\n\n### 🔴 去世地：藤泽市鹄沼海滨\n- **公元纪年**：1935年7月17日\n- **停留时间**：当日\n- **位置**：鹄沼海滨（今日本神奈川县藤泽市鹄沼海岸）\n- **经过**：在海滨游泳时不幸溺水身亡，年仅23岁。\n- **意义**：巨星陨落之地，其逝世是中国音乐界的重大损失。\n- **名篇名句**：《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1912 | 昆明 | 云南省昆明市 | （年龄：0岁）出生于云南昆明。 |\n| 1918 | 昆明 | 云南省昆明市 | （年龄：6岁）入昆明师范附属小学读书。 |\n| 1922 |  |  | （年龄：10岁）入私立求实小学高小，开始受到音乐熏陶。 |\n| 1925 |  |  | （年龄：13岁）考入云南省立第一联合中学。 |\n| 1927 |  |  | （年龄：15岁）考入云南省立第一师范学校，开始学习小提琴、钢琴。 |\n| 1928 |  |  | （年龄：16岁）秘密加入中国共产主义青年团。 |\n| 1930 | 昆明 | 云南省昆明市 | （年龄：18岁）因被叛徒出卖遭通缉，离开昆明赴上海。 |\n| 1931 |  |  | （年龄：19岁）考入黎锦晖主办的“明月歌剧社”，任小提琴师。 |\n| 1932 |  |  | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社；结识田汉，加入中国共产党；进入联华影业公司。 |\n| 1933 |  |  | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。 |\n| 1934 |  |  | （年龄：22岁）进入百代唱片公司，任音乐部副主任；创作《毕业歌》《大路歌》《开路先锋》等大量作品；组织“百代国乐队”。 |\n| 1935 | 藤泽市 | 日本神奈川县藤泽市 | （年龄：23岁）为《风云儿女》谱曲，创作《义勇军进行曲》；4月取道日本赴苏联学习；7月17日在日本藤泽市鹄沼海滨溺水逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n聂耳的音乐创作紧扣“九一八”事变后抗日救亡的时代主题，以其强烈的感染力和号召力，极大地鼓舞了全国人民的抗战斗志。他与田汉等人推动的左翼音乐运动，开创了中国无产阶级革命音乐的道路，其作品通过电影、唱片和群众歌咏活动广泛传播，成为动员群众、宣传抗日的有力武器。\n\n### 对后世的影响\n- **国歌象征**：其谱曲的《义勇军进行曲》成为中华人民共和国国歌，成为中华民族不屈不挠、团结奋进精神的最高音乐象征。\n- **艺术典范**：其作品将艺术性与革命性、民族风格与时代精神完美结合，为后世革命音乐和主旋律创作树立了典范。\n- **精神遗产**：作为“人民音乐家”，其短暂而光辉的一生，成为爱国、奋斗、奉献精神的永恒楷模。\n\n### 历史评价\n- 毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）\n- 周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”\n- 夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”\n- 2009年，聂耳被评为“100位为新中国成立作出突出贡献的英雄模范人物”之一。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 昆明 | 云南省昆明市 | 25.04 | 102.68 |\n| 上海 | 上海市 | 31.23 | 121.47 |\n| 北平 | 北京市 | 39.90 | 116.40 |\n| 东京 | 日本东京都 | 35.68 | 139.69 |\n| 藤泽市 | 日本神奈川县藤泽市 | 35.34 | 139.49 |", "relatedGraph": {"center": {"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "左翼音乐家联盟", "review": "聂耳同志是伟大的人民音乐家。", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "左翼音乐家联盟", "review": "聂耳同志是伟大的人民音乐家。", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "田汉", "name": "田汉", "file": "田汉.html", "dynasty": "近现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1898, "death_year": 1968, "quote": "团结能与时代共痛痒之有为青年作艺术上之革命运动", "review": "", "foreign_name": "", "main_role_label": "剧作家", "birthplace": "湖南长沙县", "birthplace_modern": "湖南省长沙市长沙县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "曾联松", "name": "曾联松", "file": "曾联松.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1917, "death_year": 1999, "quote": "上海现代经济通讯社", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "浙江瑞安", "birthplace_modern": "浙江省温州市瑞安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "聂耳", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "闻一多", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "田汉", "label": "同册共现", "confidence": 0.15}, {"source": "聂耳", "target": "曾联松", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:41Z", "generated_at": "2026-06-22T11:31:41Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "聂耳", "title": "", "description": "聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。", "quote": "聂耳同志是伟大的人民音乐家。", "shortReview": "聂耳同志是伟大的人民音乐家。", "dynasty": "中华民国", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "云南省昆明市", "avatar": "", "birth": {"date": "1912年", "location": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84"}, "death": {"date": "1935年", "location": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84"}, "lifespan": "23岁", "highlights": {"honor": "", "status": "中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "identities": "作曲家、音乐活动家", "achievements": "创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。", "works": ["风云儿女", "义勇军进行曲", "毕业歌", "卖报歌"], "reviews": ["毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）", "周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”", "夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”"]}}, "locations": [{"name": "昆明", "ancientName": "昆明", "modernName": "云南省昆明市", "lat": 25.04, "lng": 102.68, "coordSystem": "WGS84", "type": "birth", "event": "度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。", "time": "1912年—1930年", "duration": "18年", "significance": "奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。", "time": "1930年—1935年4月", "duration": "约5年", "significance": "艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。", "works": ["义勇军进行曲", "毕业歌", "卖报歌", "铁蹄下的歌女"], "quoteLines": ["《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家", "《义勇军进行曲》：起来！不愿做奴隶的人们！"]}, {"name": "北平", "ancientName": "北平", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "与“左翼音乐家联盟”成员联系，探讨革命音乐发展。", "time": "1932年8月", "duration": "短暂访问", "significance": "加强了与北方左翼文艺界的联系。", "works": [], "quoteLines": []}, {"name": "日本东京", "ancientName": "东京", "modernName": "日本东京都", "lat": 35.68, "lng": 139.69, "coordSystem": "WGS84", "type": "normal", "event": "考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。", "time": "1935年4月—6月", "duration": "约3个月", "significance": "为赴苏深造做准备，是其生命最后阶段的重要一站。", "works": ["义勇军进行曲"], "quoteLines": []}, {"name": "藤泽市", "ancientName": "藤泽市鹄沼", "modernName": "日本神奈川县藤泽市", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "normal", "event": "应日本友人邀请，在此避暑并进行休整与创作。", "time": "1935年7月", "duration": "约半个月", "significance": "人生旅途的终点。", "works": [], "quoteLines": []}, {"name": "藤泽市鹄沼海滨", "ancientName": "鹄沼海滨", "modernName": "日本神奈川县藤泽市鹄沼海岸", "lat": 35.34, "lng": 139.49, "coordSystem": "WGS84", "type": "death", "event": "在海滨游泳时不幸溺水身亡，年仅23岁。", "time": "1935年7月17日", "duration": "当日", "significance": "巨星陨落之地，其逝世是中国音乐界的重大损失。", "works": [], "quoteLines": ["《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---", "examPoints": "### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。", "workTexts": {"毕业歌": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "卖报歌": "《卖报歌》：啦啦啦！", "义勇军进行曲": "《义勇军进行曲》：起来！", "中国歌舞短论": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "义勇军作曲": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。"}, "workSummaries": {"义勇军进行曲": {"title": "义勇军进行曲", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "曲", "one_liner": "《义勇军进行曲》：起来！", "summary": "《义勇军进行曲》：起来！", "quote": "历史地位：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "quotes": ["历史地位：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。", "历史地位：中国现代戏剧的奠基人之一，中华人民共和国国歌《义勇军进行曲》的词作者。", "团结能与时代共痛痒之有为青年作艺术上之革命运动"], "quote_policy": "preferred"}, "毕业歌": {"title": "毕业歌", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "歌曲", "one_liner": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "summary": "名篇名句：《毕业歌》：同学们，大家起来，担负起天下的兴亡！", "quote": "同学们，大家起来，担负起天下的兴亡！", "quotes": ["同学们，大家起来，担负起天下的兴亡！", "为中国左翼电影和戏剧创作音乐；", "事迹：加入“明月歌剧社”；"], "quote_policy": "preferred"}, "卖报歌": {"title": "卖报歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "《卖报歌》：啦啦啦！", "summary": "《卖报歌》：啦啦啦！", "quote": "为中国左翼电影和戏剧创作音乐；", "quotes": ["为中国左翼电影和戏剧创作音乐；", "事迹：加入“明月歌剧社”；", "推动了抗日救亡歌咏运动。"], "quote_policy": "preferred"}, "风云儿女": {"title": "风云儿女", "aliases": [], "authors": ["聂耳", "田汉"], "related_people": ["聂耳", "田汉"], "source_pages": ["聂耳", "田汉"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "归国后，他积极投身戏剧事业，创办南国社，以“团结能与时代共痛痒之有为青年作艺术上之革命运动”为宗旨，推动话剧本土化与大众化。", "quotes": ["归国后，他积极投身戏剧事业，创办南国社，以“团结能与时代共痛痒之有为青年作艺术上之革命运动”为宗旨，推动话剧本土化与大众化。", "1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。", "1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。"], "quote_policy": "preferred"}, "铁蹄下的歌女": {"title": "铁蹄下的歌女", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "结识田汉、夏衍等左翼文艺工作者，加入中国共产党；", "quotes": ["结识田汉、夏衍等左翼文艺工作者，加入中国共产党；", "在联华影业公司、百代唱片公司工作；", "事迹：加入“明月歌剧社”；"], "quote_policy": "preferred"}, "中国歌舞短论": {"title": "中国歌舞短论", "aliases": [], "authors": [], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "", "genre": "论说文", "one_liner": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "summary": "| 1932 | | | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "开矿歌": {"title": "开矿歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1933 | | | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。", "quotes": ["| 1933 | | | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。"], "quote_policy": "preferred"}, "大路歌": {"title": "大路歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "quotes": ["| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "创作《毕业歌》《大路歌》《开路先锋》等大量作品；", "组织“百代国乐队”。"], "quote_policy": "preferred"}, "开路先锋": {"title": "开路先锋", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "quotes": ["| 1934 | | | （年龄：22岁）进入百代唱片公司，任音乐部副主任；", "创作《毕业歌》《大路歌》《开路先锋》等大量作品；", "组织“百代国乐队”。"], "quote_policy": "preferred"}, "码头工人歌": {"title": "码头工人歌", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "歌曲", "one_liner": "聂耳生于云南昆明，自幼喜爱音乐", "summary": "聂耳生于云南昆明，自幼喜爱音乐", "quote": "作品具有鲜明的阶级性和战斗性，开创了中国无产阶级革命音乐的道路。", "quotes": ["作品具有鲜明的阶级性和战斗性，开创了中国无产阶级革命音乐的道路。"], "quote_policy": "preferred"}, "义勇军作曲": {"title": "义勇军作曲", "aliases": [], "authors": ["聂耳"], "related_people": ["聂耳"], "source_pages": ["聂耳"], "era": "中华民国", "genre": "曲", "one_liner": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "summary": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "quote": "《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。", "quotes": ["《义勇军作曲》创作于抗日战争时期，极大地鼓舞了人民的斗志。"], "quote_policy": "preferred"}}, "markdown": "# 聂耳\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：聂耳（原名聂守信，字子义，一作紫艺）\n- **时代**：中华民国\n- **出生**：1912年2月15日，云南省昆明市\n- **去世**：1935年7月17日，日本神奈川县藤泽市\n- **享年**：23岁\n- **主要身份**：作曲家、音乐活动家\n- **历史地位**：中华人民共和国国歌《义勇军进行曲》的作曲者，中国无产阶级音乐的先驱和奠基人。\n- **主要成就**：创作《义勇军进行曲》《毕业歌》《卖报歌》等大量革命歌曲；为中国左翼电影和戏剧创作音乐；推动了抗日救亡歌咏运动。\n\n### 生平概述\n聂耳生于云南昆明，自幼喜爱音乐。1930年赴上海，次年加入明月歌剧社，后因艺术理念不合退出。1932年进入联华影业公司，投身左翼文艺运动，与田汉等人结识。在民族危亡的关头，他以音乐为武器，创作了大量反映时代呼声、鼓舞人民斗志的歌曲。1935年，为电影《风云儿女》主题歌《义勇军进行曲》谱曲，此曲后成为中华人民共和国国歌。同年，聂耳取道日本赴苏联学习，不幸于藤泽市鹄沼海滨游泳时溺水身亡，英年早逝。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖中国云南、上海、北平及日本东京、藤泽等地。\n- ⏱️ **时间跨度**：1912年—1935年，共23年。\n- 📍 **地理范围**：中国西南地区、华东地区、华北地区及日本关东地区。\n- 🌟 **重要节点数量**：6个\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：昆明\n- **公元纪年**：1912年—1930年\n- **停留时间**：18年\n- **位置**：昆明（今云南省昆明市）\n- **事迹**：度过童年与少年时代；在云南省立第一师范学校学习期间开始接触音乐，学习小提琴、钢琴等乐器，参与学生文艺活动。\n- **意义**：奠定了其音乐兴趣与基础，接受了早期进步思想启蒙。\n\n### 📍 重要地点：上海\n- **公元纪年**：1930年—1935年4月\n- **停留时间**：约5年\n- **位置**：上海（今上海市）\n- **事迹**：加入“明月歌剧社”；结识田汉、夏衍等左翼文艺工作者，加入中国共产党；在联华影业公司、百代唱片公司工作；创作了《义勇军进行曲》《毕业歌》《卖报歌》《铁蹄下的歌女》等绝大部分代表作；组织发动工人歌咏运动。\n- **意义**：艺术创作与革命生涯的核心舞台，从一名音乐爱好者成长为无产阶级音乐家。\n- **名篇名句**：《毕业歌》：同学们，大家起来，担负起天下的兴亡！；《卖报歌》：啦啦啦！啦啦啦！我是卖报的小行家；《义勇军进行曲》：起来！不愿做奴隶的人们！\n\n### 📍 重要地点：北平\n- **公元纪年**：1932年8月\n- **停留时间**：短暂访问\n- **位置**：北平（今北京市）\n- **事迹**：与“左翼音乐家联盟”成员联系，探讨革命音乐发展。\n- **意义**：加强了与北方左翼文艺界的联系。\n\n### 📍 重要地点：日本东京\n- **公元纪年**：1935年4月—6月\n- **停留时间**：约3个月\n- **位置**：东京（今日本东京都）\n- **事迹**：考察日本音乐状况，学习日语，准备赴苏联留学；与日本左翼文化人士交流；完成《义勇军进行曲》的定稿与配器。\n- **意义**：为赴苏深造做准备，是其生命最后阶段的重要一站。\n\n### 📍 重要地点：藤泽市\n- **公元纪年**：1935年7月\n- **停留时间**：约半个月\n- **位置**：藤泽市鹄沼（今日本神奈川县藤泽市）\n- **事迹**：应日本友人邀请，在此避暑并进行休整与创作。\n- **意义**：人生旅途的终点。\n\n### 🔴 去世地：藤泽市鹄沼海滨\n- **公元纪年**：1935年7月17日\n- **停留时间**：当日\n- **位置**：鹄沼海滨（今日本神奈川县藤泽市鹄沼海岸）\n- **经过**：在海滨游泳时不幸溺水身亡，年仅23岁。\n- **意义**：巨星陨落之地，其逝世是中国音乐界的重大损失。\n- **名篇名句**：《义勇军进行曲》：我们万众一心，冒着敌人的炮火，前进！\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1912 | 昆明 | 云南省昆明市 | （年龄：0岁）出生于云南昆明。 |\n| 1918 | 昆明 | 云南省昆明市 | （年龄：6岁）入昆明师范附属小学读书。 |\n| 1922 |  |  | （年龄：10岁）入私立求实小学高小，开始受到音乐熏陶。 |\n| 1925 |  |  | （年龄：13岁）考入云南省立第一联合中学。 |\n| 1927 |  |  | （年龄：15岁）考入云南省立第一师范学校，开始学习小提琴、钢琴。 |\n| 1928 |  |  | （年龄：16岁）秘密加入中国共产主义青年团。 |\n| 1930 | 昆明 | 云南省昆明市 | （年龄：18岁）因被叛徒出卖遭通缉，离开昆明赴上海。 |\n| 1931 |  |  | （年龄：19岁）考入黎锦晖主办的“明月歌剧社”，任小提琴师。 |\n| 1932 |  |  | （年龄：20岁）发表《中国歌舞短论》批评黎锦晖，退出歌剧社；结识田汉，加入中国共产党；进入联华影业公司。 |\n| 1933 |  |  | （年龄：21岁）开始为左翼电影、戏剧作曲，创作《开矿歌》《卖报歌》等。 |\n| 1934 |  |  | （年龄：22岁）进入百代唱片公司，任音乐部副主任；创作《毕业歌》《大路歌》《开路先锋》等大量作品；组织“百代国乐队”。 |\n| 1935 | 藤泽市 | 日本神奈川县藤泽市 | （年龄：23岁）为《风云儿女》谱曲，创作《义勇军进行曲》；4月取道日本赴苏联学习；7月17日在日本藤泽市鹄沼海滨溺水逝世。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n聂耳的音乐创作紧扣“九一八”事变后抗日救亡的时代主题，以其强烈的感染力和号召力，极大地鼓舞了全国人民的抗战斗志。他与田汉等人推动的左翼音乐运动，开创了中国无产阶级革命音乐的道路，其作品通过电影、唱片和群众歌咏活动广泛传播，成为动员群众、宣传抗日的有力武器。\n\n### 对后世的影响\n- **国歌象征**：其谱曲的《义勇军进行曲》成为中华人民共和国国歌，成为中华民族不屈不挠、团结奋进精神的最高音乐象征。\n- **艺术典范**：其作品将艺术性与革命性、民族风格与时代精神完美结合，为后世革命音乐和主旋律创作树立了典范。\n- **精神遗产**：作为“人民音乐家”，其短暂而光辉的一生，成为爱国、奋斗、奉献精神的永恒楷模。\n\n### 历史评价\n- 毛泽东：聂耳同志是伟大的人民音乐家。（此评价出处存疑，常见于纪念文章，但未见权威文献直接记载。）\n- 周恩来：“聂耳的歌是代表那个时代中华民族的呼声。”\n- 夏衍：“他是天才，但更重要的是他永远不知疲倦的劳动精神。”\n- 2009年，聂耳被评为“100位为新中国成立作出突出贡献的英雄模范人物”之一。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，民族危机加深，**抗日救亡**运动兴起。\n- **关键事件**：聂耳是**《义勇军进行曲》**的作曲者，此曲诞生于**抗日战争**时期。\n- **代表作品**：**《义勇军进行曲》**（后成为**中华人民共和国国歌**）、**《毕业歌》**、**《卖报歌》**。\n- **核心贡献**：用音乐作品**鼓舞人民斗志**，宣传**抗日救亡**。\n- **常见易混点**：《义勇军进行曲》的词作者是**田汉**，曲作者是**聂耳**。\n\n### 高中阶段\n- **时代背景**：**左翼文化运动**兴起，文艺成为革命斗争的一条战线。\n- **关键事件**：聂耳加入**中国共产党**，是**左翼音乐家联盟**的重要成员。\n- **代表作品与思想**：作品具有鲜明的**阶级性**和**战斗性**，开创了**中国无产阶级革命音乐**的道路。代表作如**《铁蹄下的歌女》**、**《码头工人歌》**。\n- **艺术特色**：作品旋律激昂，节奏铿锵，善于吸收**民间音乐**元素，具有强烈的**时代感**和**群众性**。\n- **历史地位**：被誉为**“人民音乐家”**，其创作标志着中国近代音乐史的一个新阶段。\n- **对比点**：与同时代的**黄自**（学院派代表）在音乐创作理念和道路上的不同。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 聂耳是《义勇军进行曲》的**作曲者**。\n- 《义勇军作曲》创作于**抗日战争**时期，极大地鼓舞了人民的斗志。\n- 聂耳的代表作还有《**毕业歌**》、《**卖报歌**》等。\n- 《义勇军进行曲》的词作者是**田汉**。\n- 聂耳被誉为“**人民音乐家**”。\n\n### 高中阶段\n- 聂耳是**左翼文化运动**在音乐领域的杰出代表。\n- 他的音乐创作与**中国共产党领导的革命事业**紧密相连。\n- 其作品《义勇军进行曲》集中体现了**中华民族在危难时刻团结抗争的精神**。\n- 其音乐创作被认为具有革命现实主义与革命浪漫主义相结合的特点。（此为一种概括性评价）\n- 需理解聂耳、冼星海等音乐家在**抗战文艺**中的作用与贡献。\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 昆明 | 云南省昆明市 | 25.04 | 102.68 |\n| 上海 | 上海市 | 31.23 | 121.47 |\n| 北平 | 北京市 | 39.90 | 116.40 |\n| 东京 | 日本东京都 | 35.68 | 139.69 |\n| 藤泽市 | 日本神奈川县藤泽市 | 35.34 | 139.49 |", "relatedGraph": {"center": {"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "左翼音乐家联盟", "review": "聂耳同志是伟大的人民音乐家。", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "聂耳", "name": "聂耳", "file": "聂耳.html", "dynasty": "中华民国", "aliases": [], "birth_year": 1912, "death_year": 1935, "quote": "左翼音乐家联盟", "review": "聂耳同志是伟大的人民音乐家。", "foreign_name": "", "main_role_label": "艺术", "birthplace": "云南省昆明市", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "阿沛·阿旺晋美", "name": "阿沛·阿旺晋美", "file": "阿沛·阿旺晋美.html", "dynasty": "中华民国、中华人民共和国", "aliases": [], "birth_year": 1910, "death_year": 2009, "quote": "中国共产党的亲密朋友、伟大的爱国主义者", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "西藏墨竹工卡宗", "birthplace_modern": "西藏自治区拉萨市墨竹工卡县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "田汉", "name": "田汉", "file": "田汉.html", "dynasty": "近现代（清末至中华人民共和国）", "aliases": [], "birth_year": 1898, "death_year": 1968, "quote": "团结能与时代共痛痒之有为青年作艺术上之革命运动", "review": "", "foreign_name": "", "main_role_label": "剧作家", "birthplace": "湖南长沙县", "birthplace_modern": "湖南省长沙市长沙县", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "曾联松", "name": "曾联松", "file": "曾联松.html", "dynasty": "中国近现代", "aliases": [], "birth_year": 1917, "death_year": 1999, "quote": "上海现代经济通讯社", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "浙江瑞安", "birthplace_modern": "浙江省温州市瑞安市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}], "links": [{"source": "聂耳", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "阿沛·阿旺晋美", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "闻一多", "label": "同时代人物", "confidence": null}, {"source": "聂耳", "target": "田汉", "label": "同册共现", "confidence": 0.15}, {"source": "聂耳", "target": "曾联松", "label": "同册共现", "confidence": 0.15}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:43Z", "generated_at": "2026-06-25T07:13:43Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:41Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:43Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

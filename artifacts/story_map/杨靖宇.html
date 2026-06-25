@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "马尚德，字骥生，曾用名张贯一、杨靖宇", "title": "", "description": "杨靖宇生于清末，早年投身革命，1927年加入中国共产党。大革命失败后，他在河南领导农民运动。1929年奉命赴东北，先后担任东北反日总会会长、中共哈尔滨市委书记、东北抗日联军第一军军长兼政委等职。在日伪军残酷“讨伐”和严密封锁下，他领导抗联部队在长白山区浴血奋战，建立了稳固的抗日游击根据地。1939年秋冬，抗联处境极端恶化，他率部与敌周旋，直至孤身奋战，于1940年2月壮烈牺牲。其一生是为民族独立和人民解放不懈奋斗的一生。", "quote": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "shortReview": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "dynasty": "抗日战争时期（中华民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "河南省确山县李湾村（今河南省驻马店市确山县）", "avatar": "", "birth": {"date": "1905年", "location": "河南省确山县李湾村（今河南省驻马店市确山县）", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84"}, "death": {"date": "1940年", "location": "吉林省濛江县三道崴子（今吉林省白山市靖宇县三道崴子）", "lat": 42.383, "lng": 126.813, "coordSystem": "WGS84"}, "lifespan": "35岁（虚岁）", "highlights": {"honor": "", "status": "中国共产党优秀党员，无产阶级革命家、军事家，东北抗日联军的杰出代表，著名抗日民族英雄。", "identities": "抗日名将、东北抗日联军主要创建者和领导人", "achievements": "领导东北抗日武装斗争，沉重打击日本侵略者；创建并指挥东北抗日联军第一军，在极端艰苦的环境下坚持抗战；以身殉国，展现了崇高的民族气节。", "works": [], "reviews": ["**毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）", "**周恩来**：“头颅可断腹可剖，烈忾难消志不磨。碧血青蒿两千古，于今赤旗满山河。”（题词）", "**后世评价**：中国共产党优秀党员，伟大的抗日民族英雄。他的一生是革命的一生，战斗的一生，光辉的一生。"]}}, "locations": [{"name": "河南省确山县李湾村", "ancientName": "确山县", "modernName": "河南省驻马店市确山县", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年，接受启蒙教育，目睹旧社会的黑暗与农民的苦难。", "time": "1905年—1923年", "duration": "童年及少年时期", "significance": "革命思想的萌芽之地，培养了朴素的阶级感情和反抗精神。", "works": [], "quoteLines": []}, {"name": "河南省开封市", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "考入河南省立开封纺染工业学校，开始接触马克思主义，参与学生运动。", "time": "1923年—1926年", "duration": "求学约3年", "significance": "思想发生根本转变，走上革命道路的关键一站。", "works": [], "quoteLines": []}, {"name": "河南省确山县", "ancientName": "确山县", "modernName": "河南省驻马店市确山县", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84", "type": "normal", "event": "领导确山农民起义，建立确山县临时治安委员会；组织刘店秋收起义，成立确山县农民革命军。", "time": "1927年—1928年", "duration": "约1年", "significance": "首次领导武装斗争，展现了卓越的组织和军事才能。", "works": [], "quoteLines": []}, {"name": "奉天（沈阳）", "ancientName": "奉天", "modernName": "辽宁省沈阳市", "lat": 41.675224, "lng": 123.458631, "coordSystem": "WGS84", "type": "normal", "event": "任中共抚顺特别支部书记，领导工人运动。曾被捕入狱，遭受酷刑但坚贞不屈。", "time": "1929年", "duration": "数月", "significance": "在东北开展城市工人运动的起点，经受了严峻考验。", "works": [], "quoteLines": []}, {"name": "哈尔滨", "ancientName": "滨江", "modernName": "黑龙江省哈尔滨市", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84", "type": "normal", "event": "任中共哈尔滨市委书记、东北反日总会会长，领导抗日救亡运动，组织工人、学生支援义勇军。", "time": "1931年—1932年", "duration": "约1年", "significance": "成为东北地区抗日运动的重要领导者之一。", "works": [], "quoteLines": []}, {"name": "磐石、濛江等长白山区", "ancientName": "磐石县、濛江县", "modernName": "吉林省磐石市及白山市靖宇县一带", "lat": 42.386659, "lng": 126.807639, "coordSystem": "WGS84", "type": "normal", "event": "改编并领导南满游击队，创建东北人民革命军第一军（后改编为东北抗日联军第一军），任军长兼政委。指挥了多次著名战斗，如奇袭老岭隧道工程、袭击敌军据点等。在极端艰苦的“冰天雪地、弹尽粮绝”条件下坚持游击战争。", "time": "1933年—1939年", "duration": "约7年", "significance": "其军事生涯的核心舞台，东北抗日武装斗争的主要根据地。", "works": [], "quoteLines": ["（无文学作品，其豪言壮语广为流传）“头颅不惜抛掉，鲜血可以喷洒，而中华民族的独立自由是不能动摇的。”"]}, {"name": "吉林省濛江县（今靖宇县）", "ancientName": "濛江县", "modernName": "吉林省白山市靖宇县", "lat": 42.386659, "lng": 126.807639, "coordSystem": "WGS84", "type": "normal", "event": "在部队严重减员、叛徒出卖、被敌重兵围困的绝境下，率部与敌周旋。", "time": "1940年初", "duration": "最后约2个月", "significance": "生命最后阶段的战斗地，见证了其钢铁般的意志。", "works": [], "quoteLines": []}, {"name": "吉林省濛江县三道崴子", "ancientName": "濛江县三道崴子", "modernName": "吉林省白山市靖宇县三道崴子", "lat": 42.383, "lng": 126.813, "coordSystem": "WGS84", "type": "death", "event": "在断粮五天、孤身一人的情况下，被日伪“讨伐队”包围。他倚靠大树，双手持枪，战斗到最后一息，壮烈殉国。敌人剖开他的腹部，发现胃里只有草根、树皮和棉絮，无一粒粮食。", "time": "1940年2月23日", "duration": "生命的最后时刻", "significance": "英勇殉国之地，成为中华民族不屈精神的永恒象征。", "works": [], "quoteLines": ["（事迹本身即为不朽篇章）“胃里只有草根、树皮和棉絮。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**东北抗日联军**在极其艰苦的条件下坚持抗战；**杨靖宇**是其主要领导人之一。\n- **代表精神**：体现了**英勇顽强、不怕牺牲**的抗战精神。\n- **常见易混点/对比点**：与**八路军、新四军**（主要在关内敌后战场）活动区域和隶属关系不同；是**敌后战场**的重要组成部分。\n\n### 高中阶段\n- **时代背景**：**全民族抗战**时期，中国共产党领导的**敌后战场**成为抗日主战场之一。\n- **关键贡献**：领导**东北抗日联军**，在日伪统治核心区开展游击战争，战略上配合了正面战场。\n- **思想与精神**：体现了中国共产党人**坚定的理想信念**和**顽强的斗争意志**；是**抗战精神**的杰出体现。\n- **历史意义**：其斗争是**中国共产党领导的抗日武装斗争**的重要篇章，彰显了**中华民族的凝聚力和反抗外来侵略的决心**。\n- **对比点**：与**国民党正面战场**的作战方式、区域形成互补；其面临的**极端困难环境**（孤悬敌后、严寒、断粮）在抗战中尤为突出。\n\n---", "examPoints": "### 初中阶段\n- 杨靖宇是**东北抗日联军**的主要领导人。\n- 他在**长白山区**领导抗日游击战争。\n- 最终在**吉林濛江**壮烈牺牲，体现了**崇高的民族气节**。\n- 其事迹是**中国人民抗日战争**中**敌后抗战**的典型例证。\n- （存疑/说法不一）关于其早期在河南领导农民起义的具体细节，教材通常简略提及。\n\n### 高中阶段\n- 杨靖宇领导的**东北抗日联军**，是**中国共产党**领导下的一支重要抗日武装。\n- 其活动区域在**东北**，属于**敌后战场**，战略上**牵制了大量日伪军**。\n- 牺牲时的惨烈状况（胃中无粮）是诠释**抗战艰苦性**和**英雄气节**的经典史实。\n- 其历史地位：**著名的抗日民族英雄**，**中国共产党优秀党员的杰出代表**。\n- （存疑/说法不一）关于抗联后期与苏联的关系、部队具体编制变化等细节，学术研究有不同表述。\n\n---", "workTexts": {"毛泽东选集": "“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”"}, "workSummaries": {"毛泽东选集": {"title": "毛泽东选集", "aliases": [], "authors": [], "related_people": ["杨靖宇"], "source_pages": ["杨靖宇"], "era": "", "genre": "", "one_liner": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "summary": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 杨靖宇\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：马尚德，字骥生，曾用名张贯一、杨靖宇\n- **时代**：抗日战争时期（中华民国）\n- **出生**：1905年2月13日，河南省确山县李湾村（今河南省驻马店市确山县）\n- **去世**：1940年2月23日，吉林省濛江县三道崴子（今吉林省白山市靖宇县三道崴子）\n- **享年**：35岁（虚岁）\n- **主要身份**：抗日名将、东北抗日联军主要创建者和领导人\n- **历史地位**：中国共产党优秀党员，无产阶级革命家、军事家，东北抗日联军的杰出代表，著名抗日民族英雄。\n- **主要成就**：领导东北抗日武装斗争，沉重打击日本侵略者；创建并指挥东北抗日联军第一军，在极端艰苦的环境下坚持抗战；以身殉国，展现了崇高的民族气节。\n\n### 生平概述\n杨靖宇生于清末，早年投身革命，1927年加入中国共产党。大革命失败后，他在河南领导农民运动。1929年奉命赴东北，先后担任东北反日总会会长、中共哈尔滨市委书记、东北抗日联军第一军军长兼政委等职。在日伪军残酷“讨伐”和严密封锁下，他领导抗联部队在长白山区浴血奋战，建立了稳固的抗日游击根据地。1939年秋冬，抗联处境极端恶化，他率部与敌周旋，直至孤身奋战，于1940年2月壮烈牺牲。其一生是为民族独立和人民解放不懈奋斗的一生。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从河南确山到东北辽宁、吉林、黑龙江，主要活动于长白山区抗日游击区。\n- ⏱️ **时间跨度**：1927年（投身革命）至1940年（牺牲），约13年。\n- 📍 **地理范围**：主要覆盖今河南、辽宁、吉林、黑龙江等省。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：河南省确山县李湾村\n- **公元纪年**：1905年—1923年\n- **停留时间**：童年及少年时期\n- **位置**：古称确山县（今河南省驻马店市确山县）\n- **事迹**：在此度过童年，接受启蒙教育，目睹旧社会的黑暗与农民的苦难。\n- **意义**：革命思想的萌芽之地，培养了朴素的阶级感情和反抗精神。\n\n### 📍 重要地点：河南省开封市\n- **公元纪年**：1923年—1926年\n- **停留时间**：求学约3年\n- **位置**：古称开封府（今河南省开封市）\n- **事迹**：考入河南省立开封纺染工业学校，开始接触马克思主义，参与学生运动。\n- **意义**：思想发生根本转变，走上革命道路的关键一站。\n\n### 📍 重要地点：河南省确山县\n- **公元纪年**：1927年—1928年\n- **停留时间**：约1年\n- **位置**：古称确山县（今河南省驻马店市确山县）\n- **事迹**：领导确山农民起义，建立确山县临时治安委员会；组织刘店秋收起义，成立确山县农民革命军。\n- **意义**：首次领导武装斗争，展现了卓越的组织和军事才能。\n\n### 📍 重要地点：奉天（沈阳）\n- **公元纪年**：1929年\n- **停留时间**：数月\n- **位置**：古称奉天（今辽宁省沈阳市）\n- **事迹**：任中共抚顺特别支部书记，领导工人运动。曾被捕入狱，遭受酷刑但坚贞不屈。\n- **意义**：在东北开展城市工人运动的起点，经受了严峻考验。\n\n### 📍 重要地点：哈尔滨\n- **公元纪年**：1931年—1932年\n- **停留时间**：约1年\n- **位置**：古称滨江（今黑龙江省哈尔滨市）\n- **事迹**：任中共哈尔滨市委书记、东北反日总会会长，领导抗日救亡运动，组织工人、学生支援义勇军。\n- **意义**：成为东北地区抗日运动的重要领导者之一。\n\n### 📍 重要地点：磐石、濛江等长白山区\n- **公元纪年**：1933年—1939年\n- **停留时间**：约7年\n- **位置**：古称磐石县、濛江县（今吉林省磐石市及白山市靖宇县一带）\n- **事迹**：改编并领导南满游击队，创建东北人民革命军第一军（后改编为东北抗日联军第一军），任军长兼政委。指挥了多次著名战斗，如奇袭老岭隧道工程、袭击敌军据点等。在极端艰苦的“冰天雪地、弹尽粮绝”条件下坚持游击战争。\n- **意义**：其军事生涯的核心舞台，东北抗日武装斗争的主要根据地。\n- **名篇名句**：（无文学作品，其豪言壮语广为流传）“头颅不惜抛掉，鲜血可以喷洒，而中华民族的独立自由是不能动摇的。”\n\n### 📍 重要地点：吉林省濛江县（今靖宇县）\n- **公元纪年**：1940年初\n- **停留时间**：最后约2个月\n- **位置**：古称濛江县（今吉林省白山市靖宇县）\n- **事迹**：在部队严重减员、叛徒出卖、被敌重兵围困的绝境下，率部与敌周旋。\n- **意义**：生命最后阶段的战斗地，见证了其钢铁般的意志。\n\n### 🔴 去世地：吉林省濛江县三道崴子\n- **公元纪年**：1940年2月23日\n- **停留时间**：生命的最后时刻\n- **位置**：古称濛江县三道崴子（今吉林省白山市靖宇县三道崴子）\n- **经过**：在断粮五天、孤身一人的情况下，被日伪“讨伐队”包围。他倚靠大树，双手持枪，战斗到最后一息，壮烈殉国。敌人剖开他的腹部，发现胃里只有草根、树皮和棉絮，无一粒粮食。\n- **意义**：英勇殉国之地，成为中华民族不屈精神的永恒象征。\n- **名篇名句**：（事迹本身即为不朽篇章）“胃里只有草根、树皮和棉絮。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1905 | 河南省确山县李湾村 | 河南省驻马店市确山县 | （年龄：0）出生于河南省确山县李湾村。 |\n| 1923 |  |  | （年龄：18）考入河南省立开封纺染工业学校，开始接触进步思想。 |\n| 1926 |  |  | （年龄：21-22）加入中国共产主义青年团。 |\n| 1927 |  |  | （年龄：22）加入中国共产党；领导确山农民起义，建立革命武装。 |\n| 1928 |  |  | （年龄：23）在开封、洛阳等地从事地下工作，三次被捕。 |\n| 1929 |  |  | （年龄：24）奉命赴东北，任中共抚顺特别支部书记，领导工人运动。 |\n| 1931 | 哈尔滨 | 黑龙江省哈尔滨市 | （年龄：26）“九一八”事变后，积极参与抗日救亡，任中共哈尔滨市委书记。 |\n| 1932 |  |  | （年龄：27）任中共满洲省委军委代理书记，开始全面领导军事工作。 |\n| 1933 |  |  | （年龄：28）任中国工农红军第三十二军南满游击队政委，创建磐石抗日根据地。 |\n| 1934 |  |  | （年龄：29）当选中华苏维埃共和国中央执行委员；任东北人民革命军第一军军长兼政委。 |\n| 1936 |  |  | （年龄：31）任东北抗日联军第一军军长兼政委，后任第一路军总司令兼政委。 |\n| 1937 |  |  | （年龄：32）“七七事变”后，率部在东南满地区主动出击，配合全国抗战。 |\n| 1938 |  |  | （年龄：33）组织部队西征，试图与关内联系，受挫后转入长白山密林坚持斗争。 |\n| 1939 |  |  | （年龄：34）面临日伪军大规模“讨伐”，处境日益艰难，部队损失严重。 |\n| 1940 |  |  | （年龄：35）2月23日，在吉林濛江三道崴子壮烈牺牲。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n杨靖宇领导的东北抗日联军，在敌后战场独立奋战，牵制了数十万日伪军，有力地支援了全国的抗日战争。他的英勇事迹通过共产国际的报道传遍世界，极大地鼓舞了全国人民的抗战士气，彰显了中华民族决不屈服的抵抗精神。\n\n### 对后世的影响\n- **民族精神的象征**：杨靖宇成为中国人民不畏强暴、英勇抗争的杰出代表，是爱国主义和革命英雄主义教育的永恒典范。\n- **革命传统教育的典范**：其坚定的理想信念、艰苦卓绝的斗争精神和对党无限忠诚的品质，是中国共产党革命传统教育的重要内容。\n- **军事斗争艺术的案例**：其在极端劣势条件下开展游击战争的战略战术，为后世军事研究提供了宝贵案例。\n\n### 历史评价\n1.  **毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）\n2.  **周恩来**：“头颅可断腹可剖，烈忾难消志不磨。碧血青蒿两千古，于今赤旗满山河。”（题词）\n3.  **后世评价**：中国共产党优秀党员，伟大的抗日民族英雄。他的一生是革命的一生，战斗的一生，光辉的一生。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**东北抗日联军**在极其艰苦的条件下坚持抗战；**杨靖宇**是其主要领导人之一。\n- **代表精神**：体现了**英勇顽强、不怕牺牲**的抗战精神。\n- **常见易混点/对比点**：与**八路军、新四军**（主要在关内敌后战场）活动区域和隶属关系不同；是**敌后战场**的重要组成部分。\n\n### 高中阶段\n- **时代背景**：**全民族抗战**时期，中国共产党领导的**敌后战场**成为抗日主战场之一。\n- **关键贡献**：领导**东北抗日联军**，在日伪统治核心区开展游击战争，战略上配合了正面战场。\n- **思想与精神**：体现了中国共产党人**坚定的理想信念**和**顽强的斗争意志**；是**抗战精神**的杰出体现。\n- **历史意义**：其斗争是**中国共产党领导的抗日武装斗争**的重要篇章，彰显了**中华民族的凝聚力和反抗外来侵略的决心**。\n- **对比点**：与**国民党正面战场**的作战方式、区域形成互补；其面临的**极端困难环境**（孤悬敌后、严寒、断粮）在抗战中尤为突出。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 杨靖宇是**东北抗日联军**的主要领导人。\n- 他在**长白山区**领导抗日游击战争。\n- 最终在**吉林濛江**壮烈牺牲，体现了**崇高的民族气节**。\n- 其事迹是**中国人民抗日战争**中**敌后抗战**的典型例证。\n- （存疑/说法不一）关于其早期在河南领导农民起义的具体细节，教材通常简略提及。\n\n### 高中阶段\n- 杨靖宇领导的**东北抗日联军**，是**中国共产党**领导下的一支重要抗日武装。\n- 其活动区域在**东北**，属于**敌后战场**，战略上**牵制了大量日伪军**。\n- 牺牲时的惨烈状况（胃中无粮）是诠释**抗战艰苦性**和**英雄气节**的经典史实。\n- 其历史地位：**著名的抗日民族英雄**，**中国共产党优秀党员的杰出代表**。\n- （存疑/说法不一）关于抗联后期与苏联的关系、部队具体编制变化等细节，学术研究有不同表述。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 河南省确山县李湾村 | 河南省驻马店市确山县 | 32.823292 | 114.010967 |\n| 河南省开封市 | 河南省开封市 | 34.798963 | 114.308423 |\n| 河南省确山县 | 河南省驻马店市确山县 | 32.823292 | 114.010967 |\n| 奉天（沈阳） | 辽宁省沈阳市 | 41.675224 | 123.458631 |\n| 哈尔滨 | 黑龙江省哈尔滨市 | 45.800999 | 126.529010 |\n| 磐石、濛江等长白山区 | 吉林省磐石市 | 43.070278 | 126.148056 |\n| 吉林省濛江县（今靖宇县） | 吉林省白山市靖宇县 | 42.386659 | 126.807639 |\n| 吉林省濛江县三道崴子 | 吉林省白山市靖宇县三道崴子 | 42.383000 | 126.813000 |\n", "relatedGraph": {"center": {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨靖宇", "target": "陈延年", "label": "同册共现", "confidence": 0.15}, {"source": "杨靖宇", "target": "赵一曼", "label": "同册共现", "confidence": 0.15}, {"source": "杨靖宇", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄仁宇", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:30Z", "generated_at": "2026-06-22T11:31:30Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "马尚德，字骥生，曾用名张贯一、杨靖宇", "title": "", "description": "杨靖宇生于清末，早年投身革命，1927年加入中国共产党。大革命失败后，他在河南领导农民运动。1929年奉命赴东北，先后担任东北反日总会会长、中共哈尔滨市委书记、东北抗日联军第一军军长兼政委等职。在日伪军残酷“讨伐”和严密封锁下，他领导抗联部队在长白山区浴血奋战，建立了稳固的抗日游击根据地。1939年秋冬，抗联处境极端恶化，他率部与敌周旋，直至孤身奋战，于1940年2月壮烈牺牲。其一生是为民族独立和人民解放不懈奋斗的一生。", "quote": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "shortReview": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "dynasty": "抗日战争时期（中华民国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "河南省确山县李湾村（今河南省驻马店市确山县）", "avatar": "", "birth": {"date": "1905年", "location": "河南省确山县李湾村（今河南省驻马店市确山县）", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84"}, "death": {"date": "1940年", "location": "吉林省濛江县三道崴子（今吉林省白山市靖宇县三道崴子）", "lat": 42.383, "lng": 126.813, "coordSystem": "WGS84"}, "lifespan": "35岁（虚岁）", "highlights": {"honor": "", "status": "中国共产党优秀党员，无产阶级革命家、军事家，东北抗日联军的杰出代表，著名抗日民族英雄。", "identities": "抗日名将、东北抗日联军主要创建者和领导人", "achievements": "领导东北抗日武装斗争，沉重打击日本侵略者；创建并指挥东北抗日联军第一军，在极端艰苦的环境下坚持抗战；以身殉国，展现了崇高的民族气节。", "works": [], "reviews": ["**毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）", "**周恩来**：“头颅可断腹可剖，烈忾难消志不磨。碧血青蒿两千古，于今赤旗满山河。”（题词）", "**后世评价**：中国共产党优秀党员，伟大的抗日民族英雄。他的一生是革命的一生，战斗的一生，光辉的一生。"]}}, "locations": [{"name": "河南省确山县李湾村", "ancientName": "确山县", "modernName": "河南省驻马店市确山县", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84", "type": "birth", "event": "在此度过童年，接受启蒙教育，目睹旧社会的黑暗与农民的苦难。", "time": "1905年—1923年", "duration": "童年及少年时期", "significance": "革命思想的萌芽之地，培养了朴素的阶级感情和反抗精神。", "works": [], "quoteLines": []}, {"name": "河南省开封市", "ancientName": "开封府", "modernName": "河南省开封市", "lat": 34.798963, "lng": 114.308423, "coordSystem": "WGS84", "type": "normal", "event": "考入河南省立开封纺染工业学校，开始接触马克思主义，参与学生运动。", "time": "1923年—1926年", "duration": "求学约3年", "significance": "思想发生根本转变，走上革命道路的关键一站。", "works": [], "quoteLines": []}, {"name": "河南省确山县", "ancientName": "确山县", "modernName": "河南省驻马店市确山县", "lat": 32.823292, "lng": 114.010967, "coordSystem": "WGS84", "type": "normal", "event": "领导确山农民起义，建立确山县临时治安委员会；组织刘店秋收起义，成立确山县农民革命军。", "time": "1927年—1928年", "duration": "约1年", "significance": "首次领导武装斗争，展现了卓越的组织和军事才能。", "works": [], "quoteLines": []}, {"name": "奉天（沈阳）", "ancientName": "奉天", "modernName": "辽宁省沈阳市", "lat": 41.675224, "lng": 123.458631, "coordSystem": "WGS84", "type": "normal", "event": "任中共抚顺特别支部书记，领导工人运动。曾被捕入狱，遭受酷刑但坚贞不屈。", "time": "1929年", "duration": "数月", "significance": "在东北开展城市工人运动的起点，经受了严峻考验。", "works": [], "quoteLines": []}, {"name": "哈尔滨", "ancientName": "滨江", "modernName": "黑龙江省哈尔滨市", "lat": 45.800999, "lng": 126.52901, "coordSystem": "WGS84", "type": "normal", "event": "任中共哈尔滨市委书记、东北反日总会会长，领导抗日救亡运动，组织工人、学生支援义勇军。", "time": "1931年—1932年", "duration": "约1年", "significance": "成为东北地区抗日运动的重要领导者之一。", "works": [], "quoteLines": []}, {"name": "磐石、濛江等长白山区", "ancientName": "磐石县、濛江县", "modernName": "吉林省磐石市及白山市靖宇县一带", "lat": 42.386659, "lng": 126.807639, "coordSystem": "WGS84", "type": "normal", "event": "改编并领导南满游击队，创建东北人民革命军第一军（后改编为东北抗日联军第一军），任军长兼政委。指挥了多次著名战斗，如奇袭老岭隧道工程、袭击敌军据点等。在极端艰苦的“冰天雪地、弹尽粮绝”条件下坚持游击战争。", "time": "1933年—1939年", "duration": "约7年", "significance": "其军事生涯的核心舞台，东北抗日武装斗争的主要根据地。", "works": [], "quoteLines": ["（无文学作品，其豪言壮语广为流传）“头颅不惜抛掉，鲜血可以喷洒，而中华民族的独立自由是不能动摇的。”"]}, {"name": "吉林省濛江县（今靖宇县）", "ancientName": "濛江县", "modernName": "吉林省白山市靖宇县", "lat": 42.386659, "lng": 126.807639, "coordSystem": "WGS84", "type": "normal", "event": "在部队严重减员、叛徒出卖、被敌重兵围困的绝境下，率部与敌周旋。", "time": "1940年初", "duration": "最后约2个月", "significance": "生命最后阶段的战斗地，见证了其钢铁般的意志。", "works": [], "quoteLines": []}, {"name": "吉林省濛江县三道崴子", "ancientName": "濛江县三道崴子", "modernName": "吉林省白山市靖宇县三道崴子", "lat": 42.383, "lng": 126.813, "coordSystem": "WGS84", "type": "death", "event": "在断粮五天、孤身一人的情况下，被日伪“讨伐队”包围。他倚靠大树，双手持枪，战斗到最后一息，壮烈殉国。敌人剖开他的腹部，发现胃里只有草根、树皮和棉絮，无一粒粮食。", "time": "1940年2月23日", "duration": "生命的最后时刻", "significance": "英勇殉国之地，成为中华民族不屈精神的永恒象征。", "works": [], "quoteLines": ["（事迹本身即为不朽篇章）“胃里只有草根、树皮和棉絮。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**东北抗日联军**在极其艰苦的条件下坚持抗战；**杨靖宇**是其主要领导人之一。\n- **代表精神**：体现了**英勇顽强、不怕牺牲**的抗战精神。\n- **常见易混点/对比点**：与**八路军、新四军**（主要在关内敌后战场）活动区域和隶属关系不同；是**敌后战场**的重要组成部分。\n\n### 高中阶段\n- **时代背景**：**全民族抗战**时期，中国共产党领导的**敌后战场**成为抗日主战场之一。\n- **关键贡献**：领导**东北抗日联军**，在日伪统治核心区开展游击战争，战略上配合了正面战场。\n- **思想与精神**：体现了中国共产党人**坚定的理想信念**和**顽强的斗争意志**；是**抗战精神**的杰出体现。\n- **历史意义**：其斗争是**中国共产党领导的抗日武装斗争**的重要篇章，彰显了**中华民族的凝聚力和反抗外来侵略的决心**。\n- **对比点**：与**国民党正面战场**的作战方式、区域形成互补；其面临的**极端困难环境**（孤悬敌后、严寒、断粮）在抗战中尤为突出。\n\n---", "examPoints": "### 初中阶段\n- 杨靖宇是**东北抗日联军**的主要领导人。\n- 他在**长白山区**领导抗日游击战争。\n- 最终在**吉林濛江**壮烈牺牲，体现了**崇高的民族气节**。\n- 其事迹是**中国人民抗日战争**中**敌后抗战**的典型例证。\n- （存疑/说法不一）关于其早期在河南领导农民起义的具体细节，教材通常简略提及。\n\n### 高中阶段\n- 杨靖宇领导的**东北抗日联军**，是**中国共产党**领导下的一支重要抗日武装。\n- 其活动区域在**东北**，属于**敌后战场**，战略上**牵制了大量日伪军**。\n- 牺牲时的惨烈状况（胃中无粮）是诠释**抗战艰苦性**和**英雄气节**的经典史实。\n- 其历史地位：**著名的抗日民族英雄**，**中国共产党优秀党员的杰出代表**。\n- （存疑/说法不一）关于抗联后期与苏联的关系、部队具体编制变化等细节，学术研究有不同表述。\n\n---", "workTexts": {"毛泽东选集": "“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”"}, "workSummaries": {"毛泽东选集": {"title": "毛泽东选集", "aliases": [], "authors": [], "related_people": ["杨靖宇"], "source_pages": ["杨靖宇"], "era": "", "genre": "", "one_liner": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "summary": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "quote": "", "quotes": [], "quote_policy": "summary_only"}}, "markdown": "# 杨靖宇\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：马尚德，字骥生，曾用名张贯一、杨靖宇\n- **时代**：抗日战争时期（中华民国）\n- **出生**：1905年2月13日，河南省确山县李湾村（今河南省驻马店市确山县）\n- **去世**：1940年2月23日，吉林省濛江县三道崴子（今吉林省白山市靖宇县三道崴子）\n- **享年**：35岁（虚岁）\n- **主要身份**：抗日名将、东北抗日联军主要创建者和领导人\n- **历史地位**：中国共产党优秀党员，无产阶级革命家、军事家，东北抗日联军的杰出代表，著名抗日民族英雄。\n- **主要成就**：领导东北抗日武装斗争，沉重打击日本侵略者；创建并指挥东北抗日联军第一军，在极端艰苦的环境下坚持抗战；以身殉国，展现了崇高的民族气节。\n\n### 生平概述\n杨靖宇生于清末，早年投身革命，1927年加入中国共产党。大革命失败后，他在河南领导农民运动。1929年奉命赴东北，先后担任东北反日总会会长、中共哈尔滨市委书记、东北抗日联军第一军军长兼政委等职。在日伪军残酷“讨伐”和严密封锁下，他领导抗联部队在长白山区浴血奋战，建立了稳固的抗日游击根据地。1939年秋冬，抗联处境极端恶化，他率部与敌周旋，直至孤身奋战，于1940年2月壮烈牺牲。其一生是为民族独立和人民解放不懈奋斗的一生。\n\n---\n\n## 二、人生足迹地图说明\n- 🗺️ **行程概览**：从河南确山到东北辽宁、吉林、黑龙江，主要活动于长白山区抗日游击区。\n- ⏱️ **时间跨度**：1927年（投身革命）至1940年（牺牲），约13年。\n- 📍 **地理范围**：主要覆盖今河南、辽宁、吉林、黑龙江等省。\n- 🌟 **重要节点数量**：8个核心地点。\n\n---\n\n## 三、人生历程与重要地点（按时间顺序）\n### 🟢 出生地：河南省确山县李湾村\n- **公元纪年**：1905年—1923年\n- **停留时间**：童年及少年时期\n- **位置**：古称确山县（今河南省驻马店市确山县）\n- **事迹**：在此度过童年，接受启蒙教育，目睹旧社会的黑暗与农民的苦难。\n- **意义**：革命思想的萌芽之地，培养了朴素的阶级感情和反抗精神。\n\n### 📍 重要地点：河南省开封市\n- **公元纪年**：1923年—1926年\n- **停留时间**：求学约3年\n- **位置**：古称开封府（今河南省开封市）\n- **事迹**：考入河南省立开封纺染工业学校，开始接触马克思主义，参与学生运动。\n- **意义**：思想发生根本转变，走上革命道路的关键一站。\n\n### 📍 重要地点：河南省确山县\n- **公元纪年**：1927年—1928年\n- **停留时间**：约1年\n- **位置**：古称确山县（今河南省驻马店市确山县）\n- **事迹**：领导确山农民起义，建立确山县临时治安委员会；组织刘店秋收起义，成立确山县农民革命军。\n- **意义**：首次领导武装斗争，展现了卓越的组织和军事才能。\n\n### 📍 重要地点：奉天（沈阳）\n- **公元纪年**：1929年\n- **停留时间**：数月\n- **位置**：古称奉天（今辽宁省沈阳市）\n- **事迹**：任中共抚顺特别支部书记，领导工人运动。曾被捕入狱，遭受酷刑但坚贞不屈。\n- **意义**：在东北开展城市工人运动的起点，经受了严峻考验。\n\n### 📍 重要地点：哈尔滨\n- **公元纪年**：1931年—1932年\n- **停留时间**：约1年\n- **位置**：古称滨江（今黑龙江省哈尔滨市）\n- **事迹**：任中共哈尔滨市委书记、东北反日总会会长，领导抗日救亡运动，组织工人、学生支援义勇军。\n- **意义**：成为东北地区抗日运动的重要领导者之一。\n\n### 📍 重要地点：磐石、濛江等长白山区\n- **公元纪年**：1933年—1939年\n- **停留时间**：约7年\n- **位置**：古称磐石县、濛江县（今吉林省磐石市及白山市靖宇县一带）\n- **事迹**：改编并领导南满游击队，创建东北人民革命军第一军（后改编为东北抗日联军第一军），任军长兼政委。指挥了多次著名战斗，如奇袭老岭隧道工程、袭击敌军据点等。在极端艰苦的“冰天雪地、弹尽粮绝”条件下坚持游击战争。\n- **意义**：其军事生涯的核心舞台，东北抗日武装斗争的主要根据地。\n- **名篇名句**：（无文学作品，其豪言壮语广为流传）“头颅不惜抛掉，鲜血可以喷洒，而中华民族的独立自由是不能动摇的。”\n\n### 📍 重要地点：吉林省濛江县（今靖宇县）\n- **公元纪年**：1940年初\n- **停留时间**：最后约2个月\n- **位置**：古称濛江县（今吉林省白山市靖宇县）\n- **事迹**：在部队严重减员、叛徒出卖、被敌重兵围困的绝境下，率部与敌周旋。\n- **意义**：生命最后阶段的战斗地，见证了其钢铁般的意志。\n\n### 🔴 去世地：吉林省濛江县三道崴子\n- **公元纪年**：1940年2月23日\n- **停留时间**：生命的最后时刻\n- **位置**：古称濛江县三道崴子（今吉林省白山市靖宇县三道崴子）\n- **经过**：在断粮五天、孤身一人的情况下，被日伪“讨伐队”包围。他倚靠大树，双手持枪，战斗到最后一息，壮烈殉国。敌人剖开他的腹部，发现胃里只有草根、树皮和棉絮，无一粒粮食。\n- **意义**：英勇殉国之地，成为中华民族不屈精神的永恒象征。\n- **名篇名句**：（事迹本身即为不朽篇章）“胃里只有草根、树皮和棉絮。”\n\n---\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1905 | 河南省确山县李湾村 | 河南省驻马店市确山县 | （年龄：0）出生于河南省确山县李湾村。 |\n| 1923 |  |  | （年龄：18）考入河南省立开封纺染工业学校，开始接触进步思想。 |\n| 1926 |  |  | （年龄：21-22）加入中国共产主义青年团。 |\n| 1927 |  |  | （年龄：22）加入中国共产党；领导确山农民起义，建立革命武装。 |\n| 1928 |  |  | （年龄：23）在开封、洛阳等地从事地下工作，三次被捕。 |\n| 1929 |  |  | （年龄：24）奉命赴东北，任中共抚顺特别支部书记，领导工人运动。 |\n| 1931 | 哈尔滨 | 黑龙江省哈尔滨市 | （年龄：26）“九一八”事变后，积极参与抗日救亡，任中共哈尔滨市委书记。 |\n| 1932 |  |  | （年龄：27）任中共满洲省委军委代理书记，开始全面领导军事工作。 |\n| 1933 |  |  | （年龄：28）任中国工农红军第三十二军南满游击队政委，创建磐石抗日根据地。 |\n| 1934 |  |  | （年龄：29）当选中华苏维埃共和国中央执行委员；任东北人民革命军第一军军长兼政委。 |\n| 1936 |  |  | （年龄：31）任东北抗日联军第一军军长兼政委，后任第一路军总司令兼政委。 |\n| 1937 |  |  | （年龄：32）“七七事变”后，率部在东南满地区主动出击，配合全国抗战。 |\n| 1938 |  |  | （年龄：33）组织部队西征，试图与关内联系，受挫后转入长白山密林坚持斗争。 |\n| 1939 |  |  | （年龄：34）面临日伪军大规模“讨伐”，处境日益艰难，部队损失严重。 |\n| 1940 |  |  | （年龄：35）2月23日，在吉林濛江三道崴子壮烈牺牲。 |\n\n---\n\n## 五、历史影响\n\n### 对当时的影响\n杨靖宇领导的东北抗日联军，在敌后战场独立奋战，牵制了数十万日伪军，有力地支援了全国的抗日战争。他的英勇事迹通过共产国际的报道传遍世界，极大地鼓舞了全国人民的抗战士气，彰显了中华民族决不屈服的抵抗精神。\n\n### 对后世的影响\n- **民族精神的象征**：杨靖宇成为中国人民不畏强暴、英勇抗争的杰出代表，是爱国主义和革命英雄主义教育的永恒典范。\n- **革命传统教育的典范**：其坚定的理想信念、艰苦卓绝的斗争精神和对党无限忠诚的品质，是中国共产党革命传统教育的重要内容。\n- **军事斗争艺术的案例**：其在极端劣势条件下开展游击战争的战略战术，为后世军事研究提供了宝贵案例。\n\n### 历史评价\n1.  **毛泽东**：“有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。”（《毛泽东选集》）\n2.  **周恩来**：“头颅可断腹可剖，烈忾难消志不磨。碧血青蒿两千古，于今赤旗满山河。”（题词）\n3.  **后世评价**：中国共产党优秀党员，伟大的抗日民族英雄。他的一生是革命的一生，战斗的一生，光辉的一生。\n\n---\n\n## 人教版教材知识点\n\n### 初中阶段\n- **时代背景**：**九一八事变**后，日本侵占中国东北，中华民族面临严重危机。\n- **关键事件**：**东北抗日联军**在极其艰苦的条件下坚持抗战；**杨靖宇**是其主要领导人之一。\n- **代表精神**：体现了**英勇顽强、不怕牺牲**的抗战精神。\n- **常见易混点/对比点**：与**八路军、新四军**（主要在关内敌后战场）活动区域和隶属关系不同；是**敌后战场**的重要组成部分。\n\n### 高中阶段\n- **时代背景**：**全民族抗战**时期，中国共产党领导的**敌后战场**成为抗日主战场之一。\n- **关键贡献**：领导**东北抗日联军**，在日伪统治核心区开展游击战争，战略上配合了正面战场。\n- **思想与精神**：体现了中国共产党人**坚定的理想信念**和**顽强的斗争意志**；是**抗战精神**的杰出体现。\n- **历史意义**：其斗争是**中国共产党领导的抗日武装斗争**的重要篇章，彰显了**中华民族的凝聚力和反抗外来侵略的决心**。\n- **对比点**：与**国民党正面战场**的作战方式、区域形成互补；其面临的**极端困难环境**（孤悬敌后、严寒、断粮）在抗战中尤为突出。\n\n---\n\n## 初高中阶段考点\n\n### 初中阶段\n- 杨靖宇是**东北抗日联军**的主要领导人。\n- 他在**长白山区**领导抗日游击战争。\n- 最终在**吉林濛江**壮烈牺牲，体现了**崇高的民族气节**。\n- 其事迹是**中国人民抗日战争**中**敌后抗战**的典型例证。\n- （存疑/说法不一）关于其早期在河南领导农民起义的具体细节，教材通常简略提及。\n\n### 高中阶段\n- 杨靖宇领导的**东北抗日联军**，是**中国共产党**领导下的一支重要抗日武装。\n- 其活动区域在**东北**，属于**敌后战场**，战略上**牵制了大量日伪军**。\n- 牺牲时的惨烈状况（胃中无粮）是诠释**抗战艰苦性**和**英雄气节**的经典史实。\n- 其历史地位：**著名的抗日民族英雄**，**中国共产党优秀党员的杰出代表**。\n- （存疑/说法不一）关于抗联后期与苏联的关系、部队具体编制变化等细节，学术研究有不同表述。\n\n---\n\n## 地点坐标\n\n| 现称 | 现代搜索地名 | 纬度 | 经度 |\n| --- | --- | --- | --- |\n| 河南省确山县李湾村 | 河南省驻马店市确山县 | 32.823292 | 114.010967 |\n| 河南省开封市 | 河南省开封市 | 34.798963 | 114.308423 |\n| 河南省确山县 | 河南省驻马店市确山县 | 32.823292 | 114.010967 |\n| 奉天（沈阳） | 辽宁省沈阳市 | 41.675224 | 123.458631 |\n| 哈尔滨 | 黑龙江省哈尔滨市 | 45.800999 | 126.529010 |\n| 磐石、濛江等长白山区 | 吉林省磐石市 | 43.070278 | 126.148056 |\n| 吉林省濛江县（今靖宇县） | 吉林省白山市靖宇县 | 42.386659 | 126.807639 |\n| 吉林省濛江县三道崴子 | 吉林省白山市靖宇县三道崴子 | 42.383000 | 126.813000 |\n", "relatedGraph": {"center": {"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "杨靖宇", "name": "杨靖宇", "file": "杨靖宇.html", "dynasty": "抗日战争时期（中华民国）", "aliases": [], "birth_year": 1905, "death_year": 1940, "quote": "冰天雪地、弹尽粮绝", "review": "有名的义勇军领袖杨靖宇……坚决抗日，艰苦奋斗的战绩，是人所共知的。", "foreign_name": "", "main_role_label": "抗日名将", "birthplace": "河南省确山县李湾村", "birthplace_modern": "河南省驻马店市确山县", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "赵一曼", "name": "赵一曼", "file": "赵一曼.html", "dynasty": "中国近现代（中华民国时期）", "aliases": [], "birth_year": 1905, "death_year": 1936, "quote": "未惜头颅新故国，甘将热血沃中华。白山黑水除敌寇，笑看旌旗红似花。", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "四川省宜宾县白花镇", "birthplace_modern": "四川省宜宾市翠屏区白花镇", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "杨靖宇", "target": "陈延年", "label": "同册共现", "confidence": 0.15}, {"source": "杨靖宇", "target": "赵一曼", "label": "同册共现", "confidence": 0.15}, {"source": "杨靖宇", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "杨靖宇", "target": "黄仁宇", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:32Z", "generated_at": "2026-06-25T07:13:32Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:30Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:32Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "楚怀王", "title": "", "description": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最终被秦扣留，客死秦国，楚国由盛转衰。", "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "shortReview": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "dynasty": "战国（楚国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "楚国国君、战国时期诸侯", "achievements": "任用屈原等推行变法，楚国一度出现复兴气象；在位期间灭越国、设郡于江东，扩展楚国疆域；公元前318年发起楚、魏、赵、韩、燕五国合纵攻秦", "works": [], "reviews": []}}, "locations": [{"name": "郢（楚国都城）", "ancientName": "郢", "modernName": "郢", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "即位为楚君", "time": "前328年", "duration": "", "significance": "郢（楚国都城）与“即位为楚君”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "陉山", "ancientName": "陉山", "modernName": "陉山", "lat": 34.260079, "lng": 113.674279, "coordSystem": "WGS84", "type": "normal", "event": "大破魏军于陉山", "time": "前317年", "duration": "", "significance": "陉山与“大破魏军于陉山”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "江东", "ancientName": "江东", "modernName": "江东", "lat": 29.4194, "lng": 86.76926, "coordSystem": "WGS84", "type": "normal", "event": "灭越国，设江东郡", "time": "前316年", "duration": "", "significance": "江东与“灭越国，设江东郡”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "郢", "ancientName": "郢", "modernName": "郢", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "受张仪欺骗与齐绝交", "time": "前313年", "duration": "", "significance": "郢与“受张仪欺骗与齐绝交”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "丹阳", "ancientName": "丹阳", "modernName": "丹阳", "lat": 32.012232, "lng": 119.601142, "coordSystem": "WGS84", "type": "normal", "event": "秦、齐共攻楚，楚大败于丹阳", "time": "前312年", "duration": "", "significance": "丹阳见证了楚怀王的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "蓝田", "ancientName": "蓝田", "modernName": "蓝田", "lat": 22.306718, "lng": 114.232922, "coordSystem": "WGS84", "type": "normal", "event": "秦又败楚于蓝田", "time": "前311年", "duration": "", "significance": "蓝田与“秦又败楚于蓝田”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "入秦会盟被扣留", "time": "前299年", "duration": "", "significance": "咸阳与“入秦会盟被扣留”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "客死于秦", "time": "前297年", "duration": "", "significance": "咸阳与“客死于秦”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {}, "workSummaries": {}, "markdown": "# 楚怀王\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：楚怀王\n- **时代**：战国（楚国）\n- **出生**：\n- **去世**：\n- **主要身份**：楚国国君、战国时期诸侯\n- **主要成就**：任用屈原等推行变法，楚国一度出现复兴气象；在位期间灭越国、设郡于江东，扩展楚国疆域；公元前318年发起楚、魏、赵、韩、燕五国合纵攻秦\n\n### 生平概述\n楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最终被秦扣留，客死秦国，楚国由盛转衰。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：郢（楚国都城）\n- **公元纪年**：前328年\n- **位置**：郢（楚国都城）（今郢）\n- **事迹**：即位为楚君\n\n### 📍 重要地点：陉山\n- **公元纪年**：前317年\n- **位置**：陉山\n- **事迹**：大破魏军于陉山\n\n### 📍 重要地点：江东\n- **公元纪年**：前316年\n- **位置**：江东\n- **事迹**：灭越国，设江东郡\n\n### 📍 重要地点：郢\n- **公元纪年**：前313年\n- **位置**：郢\n- **事迹**：受张仪欺骗与齐绝交\n\n### 📍 重要地点：丹阳\n- **公元纪年**：前312年\n- **位置**：丹阳\n- **事迹**：秦、齐共攻楚，楚大败于丹阳\n\n### 📍 重要地点：蓝田\n- **公元纪年**：前311年\n- **位置**：蓝田\n- **事迹**：秦又败楚于蓝田\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前299年\n- **位置**：咸阳\n- **事迹**：入秦会盟被扣留\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前297年\n- **位置**：咸阳\n- **事迹**：客死于秦\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前328年 | 郢（楚国都城） | 郢 | 即位为楚君 |\n| 前317年 | 陉山 | 陉山 | 大破魏军于陉山 |\n| 前316年 | 江东 | 江东 | 灭越国，设江东郡 |\n| 前313年 | 郢 | 郢 | 受张仪欺骗与齐绝交 |\n| 前312年 | 丹阳 | 丹阳 | 秦、齐共攻楚，楚大败于丹阳 |\n| 前311年 | 蓝田 | 蓝田 | 秦又败楚于蓝田 |\n| 前299年 | 咸阳 | 咸阳 | 入秦会盟被扣留 |\n| 前297年 | 咸阳 | 咸阳 | 客死于秦 |\n\n## 五、补充说明\n\n- 具体生年不详，史料多以即位与重大事件年份记录\n- 怀王名'槐'，部分文献写作'相槐'，存在异写\n- 怀王被扣后是否曾有脱秦企图，史书记载不一\n- 屈原被疏的确切时间及其与怀王关系细节，部分内容出于后世纪传\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 郢 | 郢 | 39.913704 | 116.362106 | WGS84 |\n| 陉山 | 陉山 | 34.260079 | 113.674279 | WGS84 |\n| 江东 | 江东 | 29.419400 | 86.769260 | WGS84 |\n| 丹阳 | 丹阳 | 32.012232 | 119.601142 | WGS84 |\n| 蓝田 | 蓝田 | 22.306718 | 114.232922 | WGS84 |\n| 咸阳 | 咸阳 | 34.331338 | 108.704164 | WGS84 |", "relatedGraph": {"center": {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孙膑", "name": "孙膑", "file": "孙膑.html", "dynasty": "战国", "aliases": [], "birth_year": null, "death_year": null, "quote": "{", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "列子", "name": "列子", "file": "列子.html", "dynasty": "战国前期（约公元前4世纪）", "aliases": [], "birth_year": null, "death_year": null, "quote": "子列子穷，容貌有饥色。客有言之郑子阳者曰：‘列御寇，盖有道之士也，居君之国而穷，君无乃为不好士乎？’", "review": "", "foreign_name": "", "main_role_label": "道家思想家", "birthplace": "但无确切史料依据", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "楚怀王", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "孙膑", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "列子", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "韩非子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:32Z", "generated_at": "2026-06-22T11:31:32Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "楚怀王", "title": "", "description": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最终被秦扣留，客死秦国，楚国由盛转衰。", "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "shortReview": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "dynasty": "战国（楚国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "楚国国君、战国时期诸侯", "achievements": "任用屈原等推行变法，楚国一度出现复兴气象；在位期间灭越国、设郡于江东，扩展楚国疆域；公元前318年发起楚、魏、赵、韩、燕五国合纵攻秦", "works": [], "reviews": []}}, "locations": [{"name": "郢（楚国都城）", "ancientName": "郢", "modernName": "郢", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "即位为楚君", "time": "前328年", "duration": "", "significance": "郢（楚国都城）与“即位为楚君”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "陉山", "ancientName": "陉山", "modernName": "陉山", "lat": 34.260079, "lng": 113.674279, "coordSystem": "WGS84", "type": "normal", "event": "大破魏军于陉山", "time": "前317年", "duration": "", "significance": "陉山与“大破魏军于陉山”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "江东", "ancientName": "江东", "modernName": "江东", "lat": 29.4194, "lng": 86.76926, "coordSystem": "WGS84", "type": "normal", "event": "灭越国，设江东郡", "time": "前316年", "duration": "", "significance": "江东与“灭越国，设江东郡”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "郢", "ancientName": "郢", "modernName": "郢", "lat": 39.913704, "lng": 116.362106, "coordSystem": "WGS84", "type": "normal", "event": "受张仪欺骗与齐绝交", "time": "前313年", "duration": "", "significance": "郢与“受张仪欺骗与齐绝交”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "丹阳", "ancientName": "丹阳", "modernName": "丹阳", "lat": 32.012232, "lng": 119.601142, "coordSystem": "WGS84", "type": "normal", "event": "秦、齐共攻楚，楚大败于丹阳", "time": "前312年", "duration": "", "significance": "丹阳见证了楚怀王的重要功业节点，也是其历史声望形成的关键场域。", "works": [], "quoteLines": []}, {"name": "蓝田", "ancientName": "蓝田", "modernName": "蓝田", "lat": 22.306718, "lng": 114.232922, "coordSystem": "WGS84", "type": "normal", "event": "秦又败楚于蓝田", "time": "前311年", "duration": "", "significance": "蓝田与“秦又败楚于蓝田”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "入秦会盟被扣留", "time": "前299年", "duration": "", "significance": "咸阳与“入秦会盟被扣留”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "咸阳", "ancientName": "咸阳", "modernName": "咸阳", "lat": 34.331338, "lng": 108.704164, "coordSystem": "WGS84", "type": "normal", "event": "客死于秦", "time": "前297年", "duration": "", "significance": "咸阳与“客死于秦”这一事件紧密相关，是理解楚怀王生平轨迹的重要地点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {}, "workSummaries": {}, "markdown": "# 楚怀王\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：楚怀王\n- **时代**：战国（楚国）\n- **出生**：\n- **去世**：\n- **主要身份**：楚国国君、战国时期诸侯\n- **主要成就**：任用屈原等推行变法，楚国一度出现复兴气象；在位期间灭越国、设郡于江东，扩展楚国疆域；公元前318年发起楚、魏、赵、韩、燕五国合纵攻秦\n\n### 生平概述\n楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最终被秦扣留，客死秦国，楚国由盛转衰。\n\n## 三、人生历程与重要地点（按时间顺序）\n\n### 📍 重要地点：郢（楚国都城）\n- **公元纪年**：前328年\n- **位置**：郢（楚国都城）（今郢）\n- **事迹**：即位为楚君\n\n### 📍 重要地点：陉山\n- **公元纪年**：前317年\n- **位置**：陉山\n- **事迹**：大破魏军于陉山\n\n### 📍 重要地点：江东\n- **公元纪年**：前316年\n- **位置**：江东\n- **事迹**：灭越国，设江东郡\n\n### 📍 重要地点：郢\n- **公元纪年**：前313年\n- **位置**：郢\n- **事迹**：受张仪欺骗与齐绝交\n\n### 📍 重要地点：丹阳\n- **公元纪年**：前312年\n- **位置**：丹阳\n- **事迹**：秦、齐共攻楚，楚大败于丹阳\n\n### 📍 重要地点：蓝田\n- **公元纪年**：前311年\n- **位置**：蓝田\n- **事迹**：秦又败楚于蓝田\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前299年\n- **位置**：咸阳\n- **事迹**：入秦会盟被扣留\n\n### 📍 重要地点：咸阳\n- **公元纪年**：前297年\n- **位置**：咸阳\n- **事迹**：客死于秦\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 前328年 | 郢（楚国都城） | 郢 | 即位为楚君 |\n| 前317年 | 陉山 | 陉山 | 大破魏军于陉山 |\n| 前316年 | 江东 | 江东 | 灭越国，设江东郡 |\n| 前313年 | 郢 | 郢 | 受张仪欺骗与齐绝交 |\n| 前312年 | 丹阳 | 丹阳 | 秦、齐共攻楚，楚大败于丹阳 |\n| 前311年 | 蓝田 | 蓝田 | 秦又败楚于蓝田 |\n| 前299年 | 咸阳 | 咸阳 | 入秦会盟被扣留 |\n| 前297年 | 咸阳 | 咸阳 | 客死于秦 |\n\n## 五、补充说明\n\n- 具体生年不详，史料多以即位与重大事件年份记录\n- 怀王名'槐'，部分文献写作'相槐'，存在异写\n- 怀王被扣后是否曾有脱秦企图，史书记载不一\n- 屈原被疏的确切时间及其与怀王关系细节，部分内容出于后世纪传\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 郢 | 郢 | 39.913704 | 116.362106 | WGS84 |\n| 陉山 | 陉山 | 34.260079 | 113.674279 | WGS84 |\n| 江东 | 江东 | 29.419400 | 86.769260 | WGS84 |\n| 丹阳 | 丹阳 | 32.012232 | 119.601142 | WGS84 |\n| 蓝田 | 蓝田 | 22.306718 | 114.232922 | WGS84 |\n| 咸阳 | 咸阳 | 34.331338 | 108.704164 | WGS84 |", "relatedGraph": {"center": {"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "楚怀王", "name": "楚怀王", "file": "楚怀王.html", "dynasty": "战国（楚国）", "aliases": [], "birth_year": -318, "death_year": -328, "quote": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "review": "楚怀王芈槐，战国中期楚国君主，在位前期任用屈原等贤臣进行改革，国势一度强盛；后听信谗言疏远屈原，屡受秦相张仪欺骗，两次被秦击败，国土沦丧，最…", "foreign_name": "", "main_role_label": "政治", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "荀子", "name": "荀子", "file": "荀子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -313, "death_year": -238, "quote": "天行有常，制天命而用之", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "赵国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "芈月", "name": "芈月", "file": "芈月.html", "dynasty": "战国（秦国）", "aliases": [], "birth_year": -325, "death_year": -307, "quote": "芈月，战国时期楚国人，秦惠文王之妾，秦昭襄王之母，称宣太后，是中国历史上第一位称制的太后，掌秦国政事近四十年，对秦国的崛起与统一大业有深远影…", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "秦国", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "屈原", "name": "屈原", "file": "屈原.html", "dynasty": "战国时期（楚国）", "aliases": [], "birth_year": -340, "death_year": -278, "quote": "惟草木之零落兮，恐美人之迟暮。", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "楚国丹阳秭归今湖北省宜昌市秭归县", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "孙膑", "name": "孙膑", "file": "孙膑.html", "dynasty": "战国", "aliases": [], "birth_year": null, "death_year": null, "quote": "{", "review": "", "foreign_name": "", "main_role_label": "军事", "birthplace": "- **去世**：", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "列子", "name": "列子", "file": "列子.html", "dynasty": "战国前期（约公元前4世纪）", "aliases": [], "birth_year": null, "death_year": null, "quote": "子列子穷，容貌有饥色。客有言之郑子阳者曰：‘列御寇，盖有道之士也，居君之国而穷，君无乃为不好士乎？’", "review": "", "foreign_name": "", "main_role_label": "道家思想家", "birthplace": "但无确切史料依据", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "韩非子", "name": "韩非子", "file": "韩非子.html", "dynasty": "战国末期", "aliases": [], "birth_year": -280, "death_year": -233, "quote": "凡说之难：非吾知之有以说之之难也...", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "新郑", "birthplace_modern": "河南省新郑市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "楚怀王", "target": "荀子", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "芈月", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "屈原", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "孙膑", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "列子", "label": "同时代人物", "confidence": null}, {"source": "楚怀王", "target": "韩非子", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:35Z", "generated_at": "2026-06-25T07:13:35Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:32Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:35Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

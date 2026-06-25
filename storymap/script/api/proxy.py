@@ -55,13 +55,13 @@ class ProxyService:
         current.shutdown(wait=False, cancel_futures=True)
 
     def _timeout_seconds(self) -> int:
-        return max(1, int(os.getenv(self._timeout_env_name, "60") or "60"))
+        return max(1, int(os.getenv(self._timeout_env_name, "75") or "75"))
 
     def _stream_idle_timeout_seconds(self) -> int:
-        return max(1, int(os.getenv(f"{self._timeout_env_name}_STREAM_IDLE", "20") or "20"))
+        return max(1, int(os.getenv(f"{self._timeout_env_name}_STREAM_IDLE", "35") or "35"))
 
     def _stream_total_timeout_seconds(self) -> int:
-        fallback = max(self._timeout_seconds(), self._stream_idle_timeout_seconds())
+        fallback = max(self._timeout_seconds(), self._stream_idle_timeout_seconds(), 90)
         return max(1, int(os.getenv(f"{self._timeout_env_name}_STREAM_TOTAL", str(fallback)) or str(fallback)))
 
     def _breaker_failure_threshold(self) -> int:

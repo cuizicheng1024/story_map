@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "蔡元培", "title": "学界泰斗，人世楷模", "description": "蔡元培生于清末，早年通过科举成为翰林院编修。甲午战败后，他转向新学，投身反清革命，参与创立光复会与同盟会。民国成立后，他出任首任教育总长，进行教育改革。1917年，他出任北京大学校长，以“兼容并包”为宗旨，将北大改造为新文化运动的中心。此后，他历任大学院院长、中央研究院院长等职，致力于科学与教育事业。晚年，他为抗日救国奔走，病逝于香港。他的一生贯穿了中国从帝制向现代国家转型的关键时期，其教育思想与实践深刻影响了中国现代文明进程。", "quote": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "shortReview": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "dynasty": "清末至民国", "courtesyName": "", "artName": "", "aliases": ["蔡鹤卿", "蔡孑民"], "birthplace": "绍兴府山阴县（今浙江省绍兴市）", "avatar": "", "birth": {"date": "1868年", "location": "绍兴府山阴县（今浙江省绍兴市）", "lat": 30.0, "lng": 120.58, "coordSystem": "WGS84"}, "death": {"date": "1940年", "location": "香港（今香港特别行政区）", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84"}, "lifespan": "72岁", "highlights": {"honor": "学界泰斗，人世楷模", "status": "中国现代教育制度的主要奠基人，被毛泽东誉为“学界泰斗，人世楷模”。", "identities": "教育家、革命家、政治家、思想家", "achievements": "1. 参与创立资产阶级革命团体光复会（重要的资产阶级革命团体之一）并加入同盟会；2. 出任中华民国首任教育总长，奠定现代教育体系基础；3. 主持改革北京大学，确立“思想自由，兼容并包”的办学原则；4. 推动建立中国大学院与中央研究院，完善国家科研与教育行政体系。", "works": [], "reviews": []}}, "locations": [{"name": "绍兴府山阴县", "ancientName": "绍兴府山阴县", "modernName": "浙江省绍兴市", "lat": 30.0, "lng": 120.58, "coordSystem": "WGS84", "type": "birth", "event": "出生于商人家庭，接受传统私塾教育，17岁考中秀才。", "time": "公元1868年", "duration": "约20年", "significance": "奠定了深厚的国学基础，形成了早期世界观。", "works": [], "quoteLines": []}, {"name": "北京（翰林院）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "经殿试成为翰林院编修，跻身士大夫阶层。甲午战争后，开始接触西学，同情维新变法。", "time": "公元1892年-1898年", "duration": "约6年", "significance": "达到传统科举功名的顶峰，但国难促使其思想发生根本转变，从传统士大夫转向维新与革命者。", "works": [], "quoteLines": []}, {"name": "上海（南洋公学、爱国学社）", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "任南洋公学特班总教习；创办中国教育会与爱国学社，宣传革命；创立《警钟日报》；参与创立光复会并任会长，后加入同盟会。", "time": "公元1901年-1906年", "duration": "约5年", "significance": "从教育转向直接的革命组织与宣传工作，成为重要的革命党人。", "works": ["警钟日报"], "quoteLines": []}, {"name": "德国莱比锡", "ancientName": "莱比锡", "modernName": "德国莱比锡", "lat": 51.34, "lng": 12.38, "coordSystem": "WGS84", "type": "normal", "event": "入莱比锡大学学习哲学、文学、心理学、美学等课程。", "time": "公元1907年-1911年", "duration": "约4年", "significance": "系统接触西方现代学术与教育理念，为其日后融合中西的教育思想打下基础。", "works": [], "quoteLines": []}, {"name": "南京（临时政府）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "coordSystem": "WGS84", "type": "normal", "event": "出任中华民国临时政府首任教育总长，颁布《普通教育暂行办法》，主张废除忠君尊孔的教育宗旨，倡导军国民教育、实利主义、公民道德、世界观、美感“五育并举”。", "time": "公元1912年", "duration": "数月", "significance": "首次将现代教育理念转化为国家政策，奠定了民国教育的基本框架。", "works": ["普通教育暂行办法"], "quoteLines": []}, {"name": "法国（华法教育会）", "ancientName": "巴黎等地", "modernName": "法国", "lat": 48.86, "lng": 2.35, "coordSystem": "WGS84", "type": "normal", "event": "旅居法国，学习法语，与李石曾等组织留法勤工俭学活动，发起成立华法教育会。", "time": "公元1913年-1916年", "duration": "约3年", "significance": "推动了影响深远的留法勤工俭学运动，为一批后来的中国革命与建设人才提供了出国深造的机会。", "works": [], "quoteLines": []}, {"name": "北京（北京大学）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "出任北京大学校长。进行大刀阔斧的改革：贯彻“思想自由，兼容并包”方针，延揽陈独秀、胡适、李大钊等各派学者；改革学制与管理体制；倡导“砥砺德行”，发起进德会；支持新文化运动。", "time": "公元1917年-1923年（实际主持校务）", "duration": "约6年", "significance": "将北大改造为新文化运动的中心和学术圣地，其办学模式成为现代中国大学的典范，影响极其深远。", "works": [], "quoteLines": ["《就任北京大学校长之演说》：“诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。”"]}, {"name": "上海（中央研究院）", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "出任国立中央研究院首任院长，致力于建立国家科学研究体系，领导全国的科学研究事业。", "time": "公元1928年-1937年", "duration": "约9年", "significance": "为中国现代科学研究的制度化、组织化做出了开创性贡献。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后迁居香港，继续领导中央研究院工作，组织抗日救亡活动，担任国际反侵略运动大会中国分会名誉主席。", "time": "公元1937年-1940年", "duration": "约3年", "significance": "在生命最后阶段，仍为抗战与学术事业鞠躬尽瘁。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84", "type": "death", "event": "病逝于香港养和医院。", "time": "公元1940年3月5日", "duration": "定居于此直至去世", "significance": "一代教育巨星陨落，全国哀悼。其葬礼上，国民政府发布褒奖令，中共中央唁电称其“为革命奋斗四十余年，为发展中国教育文化事业勋劳卓著”。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---", "workTexts": {"就任北京大学校长之演说": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "普通教育暂行办法": "“五育并举”"}, "workSummaries": {"警钟日报": {"title": "警钟日报", "aliases": [], "authors": [], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "", "genre": "", "one_liner": "蔡元培生于清末，早年通过科举成为翰林院编修", "summary": "蔡元培生于清末，早年通过科举成为翰林院编修", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "普通教育暂行办法": {"title": "普通教育暂行办法", "aliases": [], "authors": [], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "", "genre": "", "one_liner": "五育并举", "summary": "五育并举", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "就任北京大学校长之演说": {"title": "就任北京大学校长之演说", "aliases": [], "authors": ["蔡元培"], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "清末至民国", "genre": "说理文", "one_liner": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "summary": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "quote": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "quotes": ["诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。"], "quote_policy": "preferred"}}, "markdown": "# 蔡元培\n\n## 人物档案\n\n### 基本信息\n- **姓名**：蔡元培\n- **别名**：蔡鹤卿、蔡孑民\n- **时代**：清末至民国\n- **出生**：公元1868年1月11日，绍兴府山阴县（今浙江省绍兴市）\n- **去世**：公元1940年3月5日，香港（今香港特别行政区）\n- **享年**：72岁\n- **主要身份**：教育家、革命家、政治家、思想家\n- **历史地位**：中国现代教育制度的主要奠基人，被毛泽东誉为“学界泰斗，人世楷模”。\n- **主要成就**：1. 参与创立资产阶级革命团体光复会（重要的资产阶级革命团体之一）并加入同盟会；2. 出任中华民国首任教育总长，奠定现代教育体系基础；3. 主持改革北京大学，确立“思想自由，兼容并包”的办学原则；4. 推动建立中国大学院与中央研究院，完善国家科研与教育行政体系。\n\n### 生平概述\n蔡元培生于清末，早年通过科举成为翰林院编修。甲午战败后，他转向新学，投身反清革命，参与创立光复会与同盟会。民国成立后，他出任首任教育总长，进行教育改革。1917年，他出任北京大学校长，以“兼容并包”为宗旨，将北大改造为新文化运动的中心。此后，他历任大学院院长、中央研究院院长等职，致力于科学与教育事业。晚年，他为抗日救国奔走，病逝于香港。他的一生贯穿了中国从帝制向现代国家转型的关键时期，其教育思想与实践深刻影响了中国现代文明进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国浙江、北京、上海、香港等地，并曾留学德国、法国。\n- ⏱️ **时间跨度**：公元1868年至1940年，共约72年。\n- 📍 **地理范围**：主要活动于中国华东、华北、华南地区，以及西欧。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：绍兴府山阴县\n- **时间**：公元1868年\n- **停留时间**：约20年\n- **地点**：绍兴府山阴县（今浙江省绍兴市）\n- **事件**：出生于商人家庭，接受传统私塾教育，17岁考中秀才。\n- **意义**：奠定了深厚的国学基础，形成了早期世界观。\n\n### 📍 重要地点：北京（翰林院）\n- **时间**：公元1892年-1898年\n- **停留时间**：约6年\n- **地点**：北京（今北京市）\n- **事件**：经殿试成为翰林院编修，跻身士大夫阶层。甲午战争后，开始接触西学，同情维新变法。\n- **意义**：达到传统科举功名的顶峰，但国难促使其思想发生根本转变，从传统士大夫转向维新与革命者。\n\n### 📍 重要地点：上海（南洋公学、爱国学社）\n- **时间**：公元1901年-1906年\n- **停留时间**：约5年\n- **地点**：上海（今上海市）\n- **事件**：任南洋公学特班总教习；创办中国教育会与爱国学社，宣传革命；创立《警钟日报》；参与创立光复会并任会长，后加入同盟会。\n- **意义**：从教育转向直接的革命组织与宣传工作，成为重要的革命党人。\n\n### 📍 重要地点：德国莱比锡\n- **时间**：公元1907年-1911年\n- **停留时间**：约4年\n- **地点**：莱比锡（今德国莱比锡）\n- **事件**：入莱比锡大学学习哲学、文学、心理学、美学等课程。\n- **意义**：系统接触西方现代学术与教育理念，为其日后融合中西的教育思想打下基础。\n\n### 📍 重要地点：南京（临时政府）\n- **时间**：公元1912年\n- **停留时间**：数月\n- **地点**：南京（今江苏省南京市）\n- **事件**：出任中华民国临时政府首任教育总长，颁布《普通教育暂行办法》，主张废除忠君尊孔的教育宗旨，倡导军国民教育、实利主义、公民道德、世界观、美感“五育并举”。\n- **意义**：首次将现代教育理念转化为国家政策，奠定了民国教育的基本框架。\n\n### 📍 重要地点：法国（华法教育会）\n- **时间**：公元1913年-1916年\n- **停留时间**：约3年\n- **地点**：巴黎等地（今法国）\n- **事件**：旅居法国，学习法语，与李石曾等组织留法勤工俭学活动，发起成立华法教育会。\n- **意义**：推动了影响深远的留法勤工俭学运动，为一批后来的中国革命与建设人才提供了出国深造的机会。\n\n### 📍 重要地点：北京（北京大学）\n- **时间**：公元1917年-1923年（实际主持校务）\n- **停留时间**：约6年\n- **地点**：北京（今北京市）\n- **事件**：出任北京大学校长。进行大刀阔斧的改革：贯彻“思想自由，兼容并包”方针，延揽陈独秀、胡适、李大钊等各派学者；改革学制与管理体制；倡导“砥砺德行”，发起进德会；支持新文化运动。\n- **意义**：将北大改造为新文化运动的中心和学术圣地，其办学模式成为现代中国大学的典范，影响极其深远。\n- **名篇名句**：《就任北京大学校长之演说》：“诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。”\n\n### 📍 重要地点：上海（中央研究院）\n- **时间**：公元1928年-1937年\n- **停留时间**：约9年\n- **地点**：上海（今上海市）\n- **事件**：出任国立中央研究院首任院长，致力于建立国家科学研究体系，领导全国的科学研究事业。\n- **意义**：为中国现代科学研究的制度化、组织化做出了开创性贡献。\n\n### 📍 重要地点：香港\n- **时间**：公元1937年-1940年\n- **停留时间**：约3年\n- **地点**：香港（今香港特别行政区）\n- **事件**：抗战爆发后迁居香港，继续领导中央研究院工作，组织抗日救亡活动，担任国际反侵略运动大会中国分会名誉主席。\n- **意义**：在生命最后阶段，仍为抗战与学术事业鞠躬尽瘁。\n\n### 📍 去世地：香港\n- **时间**：公元1940年3月5日\n- **停留时间**：定居于此直至去世\n- **地点**：香港（今香港特别行政区）\n- **事件**：病逝于香港养和医院。\n- **意义**：一代教育巨星陨落，全国哀悼。其葬礼上，国民政府发布褒奖令，中共中央唁电称其“为革命奋斗四十余年，为发展中国教育文化事业勋劳卓著”。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1868 | 绍兴府山阴县 | 浙江省绍兴市 | （年龄：0）出生于浙江绍兴。 |\n| 1885 |  |  | （年龄：17）考中秀才。 |\n| 1890 |  |  | （年龄：22）中举人。 |\n| 1892 | 北京（翰林院） | 北京市 | （年龄：24）中进士，授翰林院编修。 |\n| 1898 |  |  | （年龄：30）戊戌变法失败后，离京南下，投身教育。 |\n| 1902 | 上海（南洋公学、爱国学社） | 上海市 | （年龄：34）在上海创立中国教育会、爱国学社。 |\n| 1904 | 上海（南洋公学、爱国学社） | 上海市 | （年龄：36）在上海创立光复会，任会长。 |\n| 1905 |  |  | （年龄：37）加入中国同盟会。 |\n| 1907 | 德国莱比锡 | 德国莱比锡 | （年龄：39）赴德国留学，入莱比锡大学。 |\n| 1912 |  |  | （年龄：44）出任中华民国首任教育总长。 |\n| 1913 | 法国（华法教育会） | 法国 | （年龄：45）赴法国，参与组织留法勤工俭学。 |\n| 1916 |  |  | （年龄：48）回国。 |\n| 1917 | 北京（北京大学） | 北京市 | （年龄：49）出任北京大学校长。 |\n| 1920 |  |  | （年龄：52）在北大招收女生，开中国国立大学男女同校之先河。 |\n| 1927 | 上海（中央研究院） | 上海市 | （年龄：59）主持筹建大学院，任院长；筹备中央研究院。 |\n| 1928 | 上海（中央研究院） | 上海市 | （年龄：60）出任中央研究院院长。 |\n| 1932 |  |  | （年龄：64）与宋庆龄、鲁迅等组织中国民权保障同盟，任副主席。 |\n| 1937 | 香港 | 香港特别行政区 | （年龄：69）迁居香港。 |\n| 1940 | 香港 | 香港特别行政区 | （年龄：72）在香港病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 浙江省绍兴市 | 30.00 | 120.58 |\n| 北京市 | 39.90 | 116.40 |\n| 上海市 | 31.23 | 121.47 |\n| 德国莱比锡 | 51.34 | 12.38 |\n| 江苏省南京市 | 32.06 | 118.80 |\n| 法国巴黎 | 48.86 | 2.35 |\n| 香港特别行政区 | 22.30 | 114.17 |", "relatedGraph": {"center": {"id": "蔡元培", "name": "蔡元培", "file": "蔡元培.html", "dynasty": "清末至民国", "aliases": ["蔡鹤卿", "蔡孑民"], "birth_year": 1868, "death_year": 1940, "quote": "学界泰斗，人世楷模", "review": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "蔡元培", "name": "蔡元培", "file": "蔡元培.html", "dynasty": "清末至民国", "aliases": ["蔡鹤卿", "蔡孑民"], "birth_year": 1868, "death_year": 1940, "quote": "学界泰斗，人世楷模", "review": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "清末民国", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "蔡元培", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "陈延年", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "闻一多", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:44Z", "generated_at": "2026-06-22T11:31:44Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "蔡元培", "title": "学界泰斗，人世楷模", "description": "蔡元培生于清末，早年通过科举成为翰林院编修。甲午战败后，他转向新学，投身反清革命，参与创立光复会与同盟会。民国成立后，他出任首任教育总长，进行教育改革。1917年，他出任北京大学校长，以“兼容并包”为宗旨，将北大改造为新文化运动的中心。此后，他历任大学院院长、中央研究院院长等职，致力于科学与教育事业。晚年，他为抗日救国奔走，病逝于香港。他的一生贯穿了中国从帝制向现代国家转型的关键时期，其教育思想与实践深刻影响了中国现代文明进程。", "quote": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "shortReview": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "dynasty": "清末至民国", "courtesyName": "", "artName": "", "aliases": ["蔡鹤卿", "蔡孑民"], "birthplace": "绍兴府山阴县（今浙江省绍兴市）", "avatar": "", "birth": {"date": "1868年", "location": "绍兴府山阴县（今浙江省绍兴市）", "lat": 30.0, "lng": 120.58, "coordSystem": "WGS84"}, "death": {"date": "1940年", "location": "香港（今香港特别行政区）", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84"}, "lifespan": "72岁", "highlights": {"honor": "学界泰斗，人世楷模", "status": "中国现代教育制度的主要奠基人，被毛泽东誉为“学界泰斗，人世楷模”。", "identities": "教育家、革命家、政治家、思想家", "achievements": "1. 参与创立资产阶级革命团体光复会（重要的资产阶级革命团体之一）并加入同盟会；2. 出任中华民国首任教育总长，奠定现代教育体系基础；3. 主持改革北京大学，确立“思想自由，兼容并包”的办学原则；4. 推动建立中国大学院与中央研究院，完善国家科研与教育行政体系。", "works": [], "reviews": []}}, "locations": [{"name": "绍兴府山阴县", "ancientName": "绍兴府山阴县", "modernName": "浙江省绍兴市", "lat": 30.0, "lng": 120.58, "coordSystem": "WGS84", "type": "birth", "event": "出生于商人家庭，接受传统私塾教育，17岁考中秀才。", "time": "公元1868年", "duration": "约20年", "significance": "奠定了深厚的国学基础，形成了早期世界观。", "works": [], "quoteLines": []}, {"name": "北京（翰林院）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "经殿试成为翰林院编修，跻身士大夫阶层。甲午战争后，开始接触西学，同情维新变法。", "time": "公元1892年-1898年", "duration": "约6年", "significance": "达到传统科举功名的顶峰，但国难促使其思想发生根本转变，从传统士大夫转向维新与革命者。", "works": [], "quoteLines": []}, {"name": "上海（南洋公学、爱国学社）", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "任南洋公学特班总教习；创办中国教育会与爱国学社，宣传革命；创立《警钟日报》；参与创立光复会并任会长，后加入同盟会。", "time": "公元1901年-1906年", "duration": "约5年", "significance": "从教育转向直接的革命组织与宣传工作，成为重要的革命党人。", "works": ["警钟日报"], "quoteLines": []}, {"name": "德国莱比锡", "ancientName": "莱比锡", "modernName": "德国莱比锡", "lat": 51.34, "lng": 12.38, "coordSystem": "WGS84", "type": "normal", "event": "入莱比锡大学学习哲学、文学、心理学、美学等课程。", "time": "公元1907年-1911年", "duration": "约4年", "significance": "系统接触西方现代学术与教育理念，为其日后融合中西的教育思想打下基础。", "works": [], "quoteLines": []}, {"name": "南京（临时政府）", "ancientName": "南京", "modernName": "江苏省南京市", "lat": 32.06, "lng": 118.8, "coordSystem": "WGS84", "type": "normal", "event": "出任中华民国临时政府首任教育总长，颁布《普通教育暂行办法》，主张废除忠君尊孔的教育宗旨，倡导军国民教育、实利主义、公民道德、世界观、美感“五育并举”。", "time": "公元1912年", "duration": "数月", "significance": "首次将现代教育理念转化为国家政策，奠定了民国教育的基本框架。", "works": ["普通教育暂行办法"], "quoteLines": []}, {"name": "法国（华法教育会）", "ancientName": "巴黎等地", "modernName": "法国", "lat": 48.86, "lng": 2.35, "coordSystem": "WGS84", "type": "normal", "event": "旅居法国，学习法语，与李石曾等组织留法勤工俭学活动，发起成立华法教育会。", "time": "公元1913年-1916年", "duration": "约3年", "significance": "推动了影响深远的留法勤工俭学运动，为一批后来的中国革命与建设人才提供了出国深造的机会。", "works": [], "quoteLines": []}, {"name": "北京（北京大学）", "ancientName": "北京", "modernName": "北京市", "lat": 39.9, "lng": 116.4, "coordSystem": "WGS84", "type": "normal", "event": "出任北京大学校长。进行大刀阔斧的改革：贯彻“思想自由，兼容并包”方针，延揽陈独秀、胡适、李大钊等各派学者；改革学制与管理体制；倡导“砥砺德行”，发起进德会；支持新文化运动。", "time": "公元1917年-1923年（实际主持校务）", "duration": "约6年", "significance": "将北大改造为新文化运动的中心和学术圣地，其办学模式成为现代中国大学的典范，影响极其深远。", "works": [], "quoteLines": ["《就任北京大学校长之演说》：“诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。”"]}, {"name": "上海（中央研究院）", "ancientName": "上海", "modernName": "上海市", "lat": 31.23, "lng": 121.47, "coordSystem": "WGS84", "type": "normal", "event": "出任国立中央研究院首任院长，致力于建立国家科学研究体系，领导全国的科学研究事业。", "time": "公元1928年-1937年", "duration": "约9年", "significance": "为中国现代科学研究的制度化、组织化做出了开创性贡献。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84", "type": "normal", "event": "抗战爆发后迁居香港，继续领导中央研究院工作，组织抗日救亡活动，担任国际反侵略运动大会中国分会名誉主席。", "time": "公元1937年-1940年", "duration": "约3年", "significance": "在生命最后阶段，仍为抗战与学术事业鞠躬尽瘁。", "works": [], "quoteLines": []}, {"name": "香港", "ancientName": "香港", "modernName": "香港特别行政区", "lat": 22.3, "lng": 114.17, "coordSystem": "WGS84", "type": "death", "event": "病逝于香港养和医院。", "time": "公元1940年3月5日", "duration": "定居于此直至去世", "significance": "一代教育巨星陨落，全国哀悼。其葬礼上，国民政府发布褒奖令，中共中央唁电称其“为革命奋斗四十余年，为发展中国教育文化事业勋劳卓著”。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---", "workTexts": {"就任北京大学校长之演说": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "普通教育暂行办法": "“五育并举”"}, "workSummaries": {"警钟日报": {"title": "警钟日报", "aliases": [], "authors": [], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "", "genre": "", "one_liner": "蔡元培生于清末，早年通过科举成为翰林院编修", "summary": "蔡元培生于清末，早年通过科举成为翰林院编修", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "普通教育暂行办法": {"title": "普通教育暂行办法", "aliases": [], "authors": [], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "", "genre": "", "one_liner": "五育并举", "summary": "五育并举", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "就任北京大学校长之演说": {"title": "就任北京大学校长之演说", "aliases": [], "authors": ["蔡元培"], "related_people": ["蔡元培"], "source_pages": ["蔡元培"], "era": "清末至民国", "genre": "说理文", "one_liner": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "summary": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "quote": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "quotes": ["诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。"], "quote_policy": "preferred"}}, "markdown": "# 蔡元培\n\n## 人物档案\n\n### 基本信息\n- **姓名**：蔡元培\n- **别名**：蔡鹤卿、蔡孑民\n- **时代**：清末至民国\n- **出生**：公元1868年1月11日，绍兴府山阴县（今浙江省绍兴市）\n- **去世**：公元1940年3月5日，香港（今香港特别行政区）\n- **享年**：72岁\n- **主要身份**：教育家、革命家、政治家、思想家\n- **历史地位**：中国现代教育制度的主要奠基人，被毛泽东誉为“学界泰斗，人世楷模”。\n- **主要成就**：1. 参与创立资产阶级革命团体光复会（重要的资产阶级革命团体之一）并加入同盟会；2. 出任中华民国首任教育总长，奠定现代教育体系基础；3. 主持改革北京大学，确立“思想自由，兼容并包”的办学原则；4. 推动建立中国大学院与中央研究院，完善国家科研与教育行政体系。\n\n### 生平概述\n蔡元培生于清末，早年通过科举成为翰林院编修。甲午战败后，他转向新学，投身反清革命，参与创立光复会与同盟会。民国成立后，他出任首任教育总长，进行教育改革。1917年，他出任北京大学校长，以“兼容并包”为宗旨，将北大改造为新文化运动的中心。此后，他历任大学院院长、中央研究院院长等职，致力于科学与教育事业。晚年，他为抗日救国奔走，病逝于香港。他的一生贯穿了中国从帝制向现代国家转型的关键时期，其教育思想与实践深刻影响了中国现代文明进程。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹遍及中国浙江、北京、上海、香港等地，并曾留学德国、法国。\n- ⏱️ **时间跨度**：公元1868年至1940年，共约72年。\n- 📍 **地理范围**：主要活动于中国华东、华北、华南地区，以及西欧。\n- 🌟 **重要节点数量**：核心地点10个。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 📍 出生地：绍兴府山阴县\n- **时间**：公元1868年\n- **停留时间**：约20年\n- **地点**：绍兴府山阴县（今浙江省绍兴市）\n- **事件**：出生于商人家庭，接受传统私塾教育，17岁考中秀才。\n- **意义**：奠定了深厚的国学基础，形成了早期世界观。\n\n### 📍 重要地点：北京（翰林院）\n- **时间**：公元1892年-1898年\n- **停留时间**：约6年\n- **地点**：北京（今北京市）\n- **事件**：经殿试成为翰林院编修，跻身士大夫阶层。甲午战争后，开始接触西学，同情维新变法。\n- **意义**：达到传统科举功名的顶峰，但国难促使其思想发生根本转变，从传统士大夫转向维新与革命者。\n\n### 📍 重要地点：上海（南洋公学、爱国学社）\n- **时间**：公元1901年-1906年\n- **停留时间**：约5年\n- **地点**：上海（今上海市）\n- **事件**：任南洋公学特班总教习；创办中国教育会与爱国学社，宣传革命；创立《警钟日报》；参与创立光复会并任会长，后加入同盟会。\n- **意义**：从教育转向直接的革命组织与宣传工作，成为重要的革命党人。\n\n### 📍 重要地点：德国莱比锡\n- **时间**：公元1907年-1911年\n- **停留时间**：约4年\n- **地点**：莱比锡（今德国莱比锡）\n- **事件**：入莱比锡大学学习哲学、文学、心理学、美学等课程。\n- **意义**：系统接触西方现代学术与教育理念，为其日后融合中西的教育思想打下基础。\n\n### 📍 重要地点：南京（临时政府）\n- **时间**：公元1912年\n- **停留时间**：数月\n- **地点**：南京（今江苏省南京市）\n- **事件**：出任中华民国临时政府首任教育总长，颁布《普通教育暂行办法》，主张废除忠君尊孔的教育宗旨，倡导军国民教育、实利主义、公民道德、世界观、美感“五育并举”。\n- **意义**：首次将现代教育理念转化为国家政策，奠定了民国教育的基本框架。\n\n### 📍 重要地点：法国（华法教育会）\n- **时间**：公元1913年-1916年\n- **停留时间**：约3年\n- **地点**：巴黎等地（今法国）\n- **事件**：旅居法国，学习法语，与李石曾等组织留法勤工俭学活动，发起成立华法教育会。\n- **意义**：推动了影响深远的留法勤工俭学运动，为一批后来的中国革命与建设人才提供了出国深造的机会。\n\n### 📍 重要地点：北京（北京大学）\n- **时间**：公元1917年-1923年（实际主持校务）\n- **停留时间**：约6年\n- **地点**：北京（今北京市）\n- **事件**：出任北京大学校长。进行大刀阔斧的改革：贯彻“思想自由，兼容并包”方针，延揽陈独秀、胡适、李大钊等各派学者；改革学制与管理体制；倡导“砥砺德行”，发起进德会；支持新文化运动。\n- **意义**：将北大改造为新文化运动的中心和学术圣地，其办学模式成为现代中国大学的典范，影响极其深远。\n- **名篇名句**：《就任北京大学校长之演说》：“诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。”\n\n### 📍 重要地点：上海（中央研究院）\n- **时间**：公元1928年-1937年\n- **停留时间**：约9年\n- **地点**：上海（今上海市）\n- **事件**：出任国立中央研究院首任院长，致力于建立国家科学研究体系，领导全国的科学研究事业。\n- **意义**：为中国现代科学研究的制度化、组织化做出了开创性贡献。\n\n### 📍 重要地点：香港\n- **时间**：公元1937年-1940年\n- **停留时间**：约3年\n- **地点**：香港（今香港特别行政区）\n- **事件**：抗战爆发后迁居香港，继续领导中央研究院工作，组织抗日救亡活动，担任国际反侵略运动大会中国分会名誉主席。\n- **意义**：在生命最后阶段，仍为抗战与学术事业鞠躬尽瘁。\n\n### 📍 去世地：香港\n- **时间**：公元1940年3月5日\n- **停留时间**：定居于此直至去世\n- **地点**：香港（今香港特别行政区）\n- **事件**：病逝于香港养和医院。\n- **意义**：一代教育巨星陨落，全国哀悼。其葬礼上，国民政府发布褒奖令，中共中央唁电称其“为革命奋斗四十余年，为发展中国教育文化事业勋劳卓著”。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1868 | 绍兴府山阴县 | 浙江省绍兴市 | （年龄：0）出生于浙江绍兴。 |\n| 1885 |  |  | （年龄：17）考中秀才。 |\n| 1890 |  |  | （年龄：22）中举人。 |\n| 1892 | 北京（翰林院） | 北京市 | （年龄：24）中进士，授翰林院编修。 |\n| 1898 |  |  | （年龄：30）戊戌变法失败后，离京南下，投身教育。 |\n| 1902 | 上海（南洋公学、爱国学社） | 上海市 | （年龄：34）在上海创立中国教育会、爱国学社。 |\n| 1904 | 上海（南洋公学、爱国学社） | 上海市 | （年龄：36）在上海创立光复会，任会长。 |\n| 1905 |  |  | （年龄：37）加入中国同盟会。 |\n| 1907 | 德国莱比锡 | 德国莱比锡 | （年龄：39）赴德国留学，入莱比锡大学。 |\n| 1912 |  |  | （年龄：44）出任中华民国首任教育总长。 |\n| 1913 | 法国（华法教育会） | 法国 | （年龄：45）赴法国，参与组织留法勤工俭学。 |\n| 1916 |  |  | （年龄：48）回国。 |\n| 1917 | 北京（北京大学） | 北京市 | （年龄：49）出任北京大学校长。 |\n| 1920 |  |  | （年龄：52）在北大招收女生，开中国国立大学男女同校之先河。 |\n| 1927 | 上海（中央研究院） | 上海市 | （年龄：59）主持筹建大学院，任院长；筹备中央研究院。 |\n| 1928 | 上海（中央研究院） | 上海市 | （年龄：60）出任中央研究院院长。 |\n| 1932 |  |  | （年龄：64）与宋庆龄、鲁迅等组织中国民权保障同盟，任副主席。 |\n| 1937 | 香港 | 香港特别行政区 | （年龄：69）迁居香港。 |\n| 1940 | 香港 | 香港特别行政区 | （年龄：72）在香港病逝。 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：**《就任北京大学校长之演说》**（常见于高中语文教材）\n- 核心要点：\n    - **重点**：演说中提出的“**三事**”——“抱定宗旨”、“砥砺德行”、“敬爱师友”，是其教育理念的集中体现。\n    - **重点**：核心办学方针“**思想自由，兼容并包**”，打破了旧北大沉闷的学术氛围，为新思想传播创造了条件。\n    - **重点**：文章体现了**蔡元培**作为教育家的**远见卓识**与**改革勇气**，以及对青年学子的殷切期望。\n    - 演说辞语言恳切，逻辑清晰，是现代**演讲词**的典范。\n    - 通过对比**北大**改革前后的状况，凸显了改革的必要性与紧迫性。\n    - 文中蕴含的**公民道德**教育思想，至今仍有现实意义。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1917年出任**北京大学校长**，推行“**兼容并包，思想自由**”的办学方针，使北大成为**新文化运动**的中心。\n    - **重点**：民国初年任**教育总长**，提出“**五育并举**”（军国民教育、实利主义教育、公民道德教育、世界观教育、美感教育）的教育方针。\n    - 晚清参与创立革命团体**光复会**并加入**同盟会**，是重要的**资产阶级革命家**。\n    - 1928年创建**国立中央研究院**并任首任院长，是中国现代**科学事业**的重要奠基人。\n- 核心要点：\n    - **重点**：**蔡元培**是中国近代**教育现代化**的关键人物，其教育思想与实践塑造了现代中国大学的基本精神与制度。\n    - **重点**：他成功地将**北京大学**从一所官僚养成所转变为学术殿堂，其改革是**中国高等教育史**上的里程碑。\n    - **重点**：他一生践行“**教育救国**”、“**科学救国**”的理念，是**知识分子**的楷模。\n    - 他的政治立场经历了从**传统士大夫**到**革命党人**再到**民主人士**的转变，始终与国家和民族的命运紧密相连。\n    - 其“**兼容并包**”的思想，不仅是一种办学方法，更体现了**学术自由**与**文化宽容**的现代精神。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n|---|---|---|\n| 浙江省绍兴市 | 30.00 | 120.58 |\n| 北京市 | 39.90 | 116.40 |\n| 上海市 | 31.23 | 121.47 |\n| 德国莱比锡 | 51.34 | 12.38 |\n| 江苏省南京市 | 32.06 | 118.80 |\n| 法国巴黎 | 48.86 | 2.35 |\n| 香港特别行政区 | 22.30 | 114.17 |", "relatedGraph": {"center": {"id": "蔡元培", "name": "蔡元培", "file": "蔡元培.html", "dynasty": "清末至民国", "aliases": ["蔡鹤卿", "蔡孑民"], "birth_year": 1868, "death_year": 1940, "quote": "学界泰斗，人世楷模", "review": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "蔡元培", "name": "蔡元培", "file": "蔡元培.html", "dynasty": "清末至民国", "aliases": ["蔡鹤卿", "蔡孑民"], "birth_year": 1868, "death_year": 1940, "quote": "学界泰斗，人世楷模", "review": "诸君来此求学，必有一定宗旨，欲求宗旨之正大与否，必先知大学之性质。", "foreign_name": "", "main_role_label": "教育家", "birthplace": "绍兴府山阴县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "鲁迅", "name": "鲁迅", "file": "鲁迅.html", "dynasty": "清末民国", "aliases": [], "birth_year": 1881, "death_year": 1936, "quote": "不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹……", "review": "", "foreign_name": "", "main_role_label": "文学家", "birthplace": "浙江绍兴府会稽县", "birthplace_modern": "浙江省绍兴市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "顾颉刚", "name": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "aliases": [], "birth_year": 1893, "death_year": 1980, "quote": "层累地造成的中国古史", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "农历三月廿三", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈独秀", "name": "陈独秀", "file": "陈独秀.html", "dynasty": "清末民初至中华民国时期", "aliases": [], "birth_year": 1879, "death_year": 1942, "quote": "陈独秀原名陈庆同，字仲甫，安徽怀宁人", "review": "", "foreign_name": "", "main_role_label": "思想家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市怀宁县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈延年", "name": "陈延年", "file": "陈延年.html", "dynasty": "清末至民国（中国近代）", "aliases": [], "birth_year": 1898, "death_year": 1927, "quote": "开疆辟土的拖拉机", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "安徽省安庆府怀宁县", "birthplace_modern": "安徽省安庆市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "闻一多", "name": "闻一多", "file": "闻一多.html", "dynasty": "清末至中华民国", "aliases": ["闻家骅", "闻友三", "闻亦多"], "birth_year": 1899, "death_year": 1946, "quote": "一沟绝望的死水", "review": "", "foreign_name": "", "main_role_label": "诗人", "birthplace": "湖北省黄州府蕲水县", "birthplace_modern": "湖北省黄冈市浠水县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "蔡元培", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "鲁迅", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "顾颉刚", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "陈独秀", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "陈延年", "label": "同时代人物", "confidence": null}, {"source": "蔡元培", "target": "闻一多", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:47Z", "generated_at": "2026-06-25T07:13:47Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:44Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:47Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

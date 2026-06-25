@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "曹操", "title": "", "description": "曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。", "quote": "白骨露于野，千里无鸡鸣。", "shortReview": "白骨露于野，千里无鸡鸣。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "沛国谯县（今安徽省亳州市）", "avatar": "", "birth": {"date": "155年", "location": "沛国谯县（今安徽省亳州市）", "lat": 33.8693, "lng": 115.7793, "coordSystem": "WGS84"}, "death": {"date": "220年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "六十六岁（虚岁，周岁六十五岁）", "highlights": {"honor": "", "status": "三国时期曹魏政权的奠基者，建安文学的领袖。", "identities": "政治家、军事家、文学家", "achievements": "统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。", "works": [], "reviews": []}}, "locations": [{"name": "沛国谯县", "ancientName": "沛国谯县", "modernName": "安徽省亳州市", "lat": 33.8693, "lng": 115.7793, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦家庭，父曹嵩为宦官曹腾养子。", "time": "公元155年", "duration": "少年时期", "significance": "其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。", "time": "约公元174年 - 188年", "duration": "断续数年", "significance": "初入政坛，展现了不畏强权的执法风格，赢得了声誉。", "works": [], "quoteLines": []}, {"name": "兖州", "ancientName": "兖州（古州名，东汉末年治所昌邑县，", "modernName": "山东省巨野县南）", "lat": 35.3933, "lng": 116.0894, "coordSystem": "WGS84", "type": "normal", "event": "领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。", "time": "公元192年 - 195年", "duration": "约3年", "significance": "获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。", "works": [], "quoteLines": []}, {"name": "许县", "ancientName": "许县", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。", "time": "公元196年 - 220年", "duration": "24年（作为政治中心）", "significance": "取得了政治上的绝对主动权，建立了霸业的政治与经济中心。", "works": ["置屯田令"], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县东北", "lat": 34.74, "lng": 114.02, "coordSystem": "WGS84", "type": "normal", "event": "以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。", "time": "公元200年", "duration": "数月", "significance": "扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.3, "lng": 114.55, "coordSystem": "WGS84", "type": "normal", "event": "攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。", "time": "公元204年 - 220年", "duration": "16年（作为实际统治中心）", "significance": "取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。", "works": ["登台赋"], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市西南", "lat": 41.55, "lng": 120.4, "coordSystem": "WGS84", "type": "normal", "event": "北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。", "time": "公元207年", "duration": "短暂", "significance": "彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。", "works": ["步出夏门行", "观沧海"], "quoteLines": []}, {"name": "赤壁", "ancientName": "赤壁", "modernName": "赤壁（一般认为在今湖北省赤壁市西北）", "lat": 29.75, "lng": 113.85, "coordSystem": "WGS84", "type": "normal", "event": "率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。", "time": "公元208年", "duration": "数月", "significance": "**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。", "works": [], "quoteLines": []}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "coordSystem": "WGS84", "type": "normal", "event": "公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。", "time": "公元215年、219年", "duration": "断续数月", "significance": "得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "病逝于洛阳，临终前作《遗令》。", "time": "公元220年", "duration": "晚年常居", "significance": "一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。", "works": ["遗令"], "quoteLines": ["《蒿里行》：“白骨露于野，千里无鸡鸣。”", "《短歌行》：“对酒当歌，人生几何！”", "《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。", "examPoints": "### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。", "workTexts": {"蒿里行": "白骨露于野，千里无鸡鸣。", "短歌行": "对酒当歌，人生几何！", "步出夏门行·龟虽寿": "老骥伏枥，志在千里。", "步出夏门行": "老骥伏枥，志在千里。", "龟虽寿": "老骥伏枥，志在千里。", "置屯田令": "“挟天子以令诸侯”", "登台赋": "事件：攻克袁氏大本营邺城，自领冀州牧。", "遗令": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。"}, "workSummaries": {"置屯田令": {"title": "置屯田令", "aliases": [], "authors": [], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "", "genre": "", "one_liner": "挟天子以令诸侯", "summary": "挟天子以令诸侯", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "登台赋": {"title": "登台赋", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "赋", "one_liner": "事件：攻克袁氏大本营邺城，自领冀州牧。", "summary": "事件：攻克袁氏大本营邺城，自领冀州牧。", "quote": "事件：攻克袁氏大本营邺城，自领冀州牧。", "quotes": ["事件：攻克袁氏大本营邺城，自领冀州牧。", "在此营建宫殿，开设玄武池训练水军。", "其子曹植于此写下《登台赋》。"], "quote_policy": "preferred"}, "步出夏门行": {"title": "步出夏门行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "老骥伏枥，志在千里。", "summary": "老骥伏枥，志在千里。", "quote": "《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "quotes": ["《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "彻底解除了北方的威胁，统一了中国北方。", "日月之行，若出其中；星汉灿烂，若出其里"], "quote_policy": "preferred"}, "观沧海": {"title": "观沧海", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "曹操生于东汉桓帝时期，成长于天下大乱的汉末", "summary": "曹操生于东汉桓帝时期，成长于天下大乱的汉末", "quote": "《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "quotes": ["《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "彻底解除了北方的威胁，统一了中国北方。", "日月之行，若出其中；星汉灿烂，若出其里"], "quote_policy": "preferred"}, "遗令": {"title": "遗令", "aliases": [], "authors": [], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "", "genre": "", "one_liner": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。", "summary": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "蒿里行": {"title": "蒿里行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操", "成平"], "source_pages": ["曹操", "成平"], "era": "东汉末年", "genre": "", "one_liner": "白骨露于野，千里无鸡鸣。", "summary": "白骨露于野，千里无鸡鸣。", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}, "短歌行": {"title": "短歌行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "对酒当歌，人生几何！", "summary": "对酒当歌，人生几何！", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}, "步出夏门行·龟虽寿": {"title": "步出夏门行·龟虽寿", "aliases": ["步出夏门行", "龟虽寿"], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "老骥伏枥，志在千里。", "summary": "老骥伏枥，志在千里。", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}}, "markdown": "# 曹操\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹操\n- **别名/外文名**：魏武帝、曹孟德、阿瞒\n- **时代**：东汉末年\n- **出生**：公元155年，沛国谯县（今安徽省亳州市）\n- **去世**：公元220年，洛阳（今河南省洛阳市）\n- **享年**：六十六岁（虚岁，周岁六十五岁）\n- **主要身份**：政治家、军事家、文学家\n- **历史地位**：三国时期曹魏政权的奠基者，建安文学的领袖。\n- **主要成就**：统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。\n\n### 生平概述\n曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：沛国谯县\n- **时间**：公元155年\n- **停留时间**：少年时期\n- **地点**：沛国谯县（今安徽省亳州市）\n- **事件**：出生于官宦家庭，父曹嵩为宦官曹腾养子。\n- **意义**：其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元174年 - 188年\n- **停留时间**：断续数年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。\n- **意义**：初入政坛，展现了不畏强权的执法风格，赢得了声誉。\n\n### 📍 重要地点：兖州\n- **时间**：公元192年 - 195年\n- **停留时间**：约3年\n- **地点**：兖州（古州名，东汉末年治所昌邑县，今山东省巨野县南）\n- **事件**：领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。\n- **意义**：获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。\n\n### 📍 重要地点：许县\n- **时间**：公元196年 - 220年\n- **停留时间**：24年（作为政治中心）\n- **地点**：许县（今河南省许昌市）\n- **事件**：迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。\n- **意义**：取得了政治上的绝对主动权，建立了霸业的政治与经济中心。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：数月\n- **地点**：官渡（今河南省中牟县东北）\n- **事件**：以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。\n- **意义**：扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年 - 220年\n- **停留时间**：16年（作为实际统治中心）\n- **地点**：邺城（今河北省临漳县西南）\n- **事件**：攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。\n- **意义**：取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。\n\n### 📍 重要地点：柳城\n- **时间**：公元207年\n- **停留时间**：短暂\n- **地点**：柳城（今辽宁省朝阳市西南）\n- **事件**：北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。\n- **意义**：彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。\n\n### 📍 重要地点：赤壁\n- **时间**：公元208年\n- **停留时间**：数月\n- **地点**：赤壁（一般认为在今湖北省赤壁市西北）\n- **事件**：率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。\n- **意义**：**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。\n\n### 📍 重要地点：汉中\n- **时间**：公元215年、219年\n- **停留时间**：断续数月\n- **地点**：汉中（今陕西省汉中市）\n- **事件**：公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。\n- **意义**：得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。\n\n### 🔴 去世地：洛阳\n- **时间**：公元220年\n- **停留时间**：晚年常居\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：病逝于洛阳，临终前作《遗令》。\n- **意义**：一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。\n- **名篇名句**：《蒿里行》：“白骨露于野，千里无鸡鸣。”；《短歌行》：“对酒当歌，人生几何！”；《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”\n\n---\n\n\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元155年 | 沛国谯县 | 安徽省亳州市 | （阶段：出生地：沛国谯县）出生于官宦家庭，父曹嵩为宦官曹腾养子。 |\n| 约公元174年 - 188年 | 洛阳 | 河南省洛阳市 | （阶段：重要地点：洛阳）年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。 |\n| 公元192年 - 195年 | 兖州 | 兖州 | （阶段：重要地点：兖州）领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。 |\n| 公元196年 - 220年 | 许县 | 河南省许昌市 | （阶段：重要地点：许县）迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。 |\n| 公元200年 | 官渡 | 河南省中牟县东北 | （阶段：重要地点：官渡）以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。 |\n| 公元204年 - 220年 | 邺城 | 河北省临漳县西南 | （阶段：重要地点：邺城）攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。 |\n| 公元207年 | 柳城 | 辽宁省朝阳市西南 | （阶段：重要地点：柳城）北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。 |\n| 公元208年 | 赤壁 | 赤壁 | （阶段：重要地点：赤壁）率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。 |\n| 公元215年、219年 | 汉中 | 陕西省汉中市 | （阶段：重要地点：汉中）公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。 |\n| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。 |\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 安徽省亳州市 | 33.8693 | 115.7793 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省巨野县 | 35.3933 | 116.0894 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省中牟县 | 34.7400 | 114.0200 |\n| 河北省临漳县 | 36.3000 | 114.5500 |\n| 辽宁省朝阳市 | 41.5500 | 120.4000 |\n| 湖北省赤壁市 | 29.7500 | 113.8500 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。\n\n## 初高中阶段考点\n\n### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。\n", "relatedGraph": {"center": {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "白骨露于野，千里无鸡鸣。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "白骨露于野，千里无鸡鸣。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "东汉末年至三国（曹魏）", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "秋风萧瑟天气凉，草木摇落露为霜。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "汉献帝", "name": "汉献帝", "file": "汉献帝.html", "dynasty": "东汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "东汉末代皇帝", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹操", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "曹操", "target": "汉献帝", "label": "君臣", "confidence": null}, {"source": "曹操", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "郭嘉", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "诸葛亮", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:26Z", "generated_at": "2026-06-22T11:31:26Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "曹操", "title": "", "description": "曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。", "quote": "白骨露于野，千里无鸡鸣。", "shortReview": "白骨露于野，千里无鸡鸣。", "dynasty": "东汉末年", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "沛国谯县（今安徽省亳州市）", "avatar": "", "birth": {"date": "155年", "location": "沛国谯县（今安徽省亳州市）", "lat": 33.8693, "lng": 115.7793, "coordSystem": "WGS84"}, "death": {"date": "220年", "location": "洛阳（今河南省洛阳市）", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84"}, "lifespan": "六十六岁（虚岁，周岁六十五岁）", "highlights": {"honor": "", "status": "三国时期曹魏政权的奠基者，建安文学的领袖。", "identities": "政治家、军事家、文学家", "achievements": "统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。", "works": [], "reviews": []}}, "locations": [{"name": "沛国谯县", "ancientName": "沛国谯县", "modernName": "安徽省亳州市", "lat": 33.8693, "lng": 115.7793, "coordSystem": "WGS84", "type": "birth", "event": "出生于官宦家庭，父曹嵩为宦官曹腾养子。", "time": "公元155年", "duration": "少年时期", "significance": "其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "normal", "event": "年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。", "time": "约公元174年 - 188年", "duration": "断续数年", "significance": "初入政坛，展现了不畏强权的执法风格，赢得了声誉。", "works": [], "quoteLines": []}, {"name": "兖州", "ancientName": "兖州（古州名，东汉末年治所昌邑县，", "modernName": "山东省巨野县南）", "lat": 35.3933, "lng": 116.0894, "coordSystem": "WGS84", "type": "normal", "event": "领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。", "time": "公元192年 - 195年", "duration": "约3年", "significance": "获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。", "works": [], "quoteLines": []}, {"name": "许县", "ancientName": "许县", "modernName": "河南省许昌市", "lat": 34.0358, "lng": 113.8527, "coordSystem": "WGS84", "type": "normal", "event": "迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。", "time": "公元196年 - 220年", "duration": "24年（作为政治中心）", "significance": "取得了政治上的绝对主动权，建立了霸业的政治与经济中心。", "works": ["置屯田令"], "quoteLines": []}, {"name": "官渡", "ancientName": "官渡", "modernName": "河南省中牟县东北", "lat": 34.74, "lng": 114.02, "coordSystem": "WGS84", "type": "normal", "event": "以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。", "time": "公元200年", "duration": "数月", "significance": "扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。", "works": [], "quoteLines": []}, {"name": "邺城", "ancientName": "邺城", "modernName": "河北省临漳县西南", "lat": 36.3, "lng": 114.55, "coordSystem": "WGS84", "type": "normal", "event": "攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。", "time": "公元204年 - 220年", "duration": "16年（作为实际统治中心）", "significance": "取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。", "works": ["登台赋"], "quoteLines": []}, {"name": "柳城", "ancientName": "柳城", "modernName": "辽宁省朝阳市西南", "lat": 41.55, "lng": 120.4, "coordSystem": "WGS84", "type": "normal", "event": "北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。", "time": "公元207年", "duration": "短暂", "significance": "彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。", "works": ["步出夏门行", "观沧海"], "quoteLines": []}, {"name": "赤壁", "ancientName": "赤壁", "modernName": "赤壁（一般认为在今湖北省赤壁市西北）", "lat": 29.75, "lng": 113.85, "coordSystem": "WGS84", "type": "normal", "event": "率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。", "time": "公元208年", "duration": "数月", "significance": "**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。", "works": [], "quoteLines": []}, {"name": "汉中", "ancientName": "汉中", "modernName": "陕西省汉中市", "lat": 33.0676, "lng": 107.0238, "coordSystem": "WGS84", "type": "normal", "event": "公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。", "time": "公元215年、219年", "duration": "断续数月", "significance": "得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。", "works": [], "quoteLines": []}, {"name": "洛阳", "ancientName": "洛阳", "modernName": "河南省洛阳市", "lat": 34.6197, "lng": 112.454, "coordSystem": "WGS84", "type": "death", "event": "病逝于洛阳，临终前作《遗令》。", "time": "公元220年", "duration": "晚年常居", "significance": "一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。", "works": ["遗令"], "quoteLines": ["《蒿里行》：“白骨露于野，千里无鸡鸣。”", "《短歌行》：“对酒当歌，人生几何！”", "《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”"]}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。", "examPoints": "### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。", "workTexts": {"蒿里行": "白骨露于野，千里无鸡鸣。", "短歌行": "对酒当歌，人生几何！", "步出夏门行·龟虽寿": "老骥伏枥，志在千里。", "步出夏门行": "老骥伏枥，志在千里。", "龟虽寿": "老骥伏枥，志在千里。", "置屯田令": "“挟天子以令诸侯”", "登台赋": "事件：攻克袁氏大本营邺城，自领冀州牧。", "遗令": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。"}, "workSummaries": {"置屯田令": {"title": "置屯田令", "aliases": [], "authors": [], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "", "genre": "", "one_liner": "挟天子以令诸侯", "summary": "挟天子以令诸侯", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "登台赋": {"title": "登台赋", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "赋", "one_liner": "事件：攻克袁氏大本营邺城，自领冀州牧。", "summary": "事件：攻克袁氏大本营邺城，自领冀州牧。", "quote": "事件：攻克袁氏大本营邺城，自领冀州牧。", "quotes": ["事件：攻克袁氏大本营邺城，自领冀州牧。", "在此营建宫殿，开设玄武池训练水军。", "其子曹植于此写下《登台赋》。"], "quote_policy": "preferred"}, "步出夏门行": {"title": "步出夏门行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "老骥伏枥，志在千里。", "summary": "老骥伏枥，志在千里。", "quote": "《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "quotes": ["《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "彻底解除了北方的威胁，统一了中国北方。", "日月之行，若出其中；星汉灿烂，若出其里"], "quote_policy": "preferred"}, "观沧海": {"title": "观沧海", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "曹操生于东汉桓帝时期，成长于天下大乱的汉末", "summary": "曹操生于东汉桓帝时期，成长于天下大乱的汉末", "quote": "《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "quotes": ["《观沧海》（《步出夏门行》之一）：借景抒怀，气象雄浑；", "彻底解除了北方的威胁，统一了中国北方。", "日月之行，若出其中；星汉灿烂，若出其里"], "quote_policy": "preferred"}, "遗令": {"title": "遗令", "aliases": [], "authors": [], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "", "genre": "", "one_liner": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。", "summary": "| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。", "quote": "", "quotes": [], "quote_policy": "summary_only"}, "蒿里行": {"title": "蒿里行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操", "成平"], "source_pages": ["曹操", "成平"], "era": "东汉末年", "genre": "", "one_liner": "白骨露于野，千里无鸡鸣。", "summary": "白骨露于野，千里无鸡鸣。", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}, "短歌行": {"title": "短歌行", "aliases": [], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "对酒当歌，人生几何！", "summary": "对酒当歌，人生几何！", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}, "步出夏门行·龟虽寿": {"title": "步出夏门行·龟虽寿", "aliases": ["步出夏门行", "龟虽寿"], "authors": ["曹操"], "related_people": ["曹操"], "source_pages": ["曹操"], "era": "东汉末年", "genre": "", "one_liner": "老骥伏枥，志在千里。", "summary": "老骥伏枥，志在千里。", "quote": "白骨露于野，千里无鸡鸣。", "quotes": ["白骨露于野，千里无鸡鸣。", "对酒当歌，人生几何！", "老骥伏枥，志在千里。"], "quote_policy": "preferred"}}, "markdown": "# 曹操\n\n## 人物档案\n\n### 基本信息\n- **姓名**：曹操\n- **别名/外文名**：魏武帝、曹孟德、阿瞒\n- **时代**：东汉末年\n- **出生**：公元155年，沛国谯县（今安徽省亳州市）\n- **去世**：公元220年，洛阳（今河南省洛阳市）\n- **享年**：六十六岁（虚岁，周岁六十五岁）\n- **主要身份**：政治家、军事家、文学家\n- **历史地位**：三国时期曹魏政权的奠基者，建安文学的领袖。\n- **主要成就**：统一中国北方；实行屯田制，恢复北方经济；开创建安文风，推动文学发展。\n\n### 生平概述\n曹操生于东汉桓帝时期，成长于天下大乱的汉末。他早年举孝廉入仕，在镇压黄巾起义中崭露头角。后“挟天子以令诸侯”，逐步击败袁绍、袁术、吕布等割据势力，统一了中国北方。他推行屯田、兴修水利、唯才是举，奠定了曹魏立国的基础。同时，他雅好诗文，其作品慷慨悲凉，是建安风骨的代表。晚年进位魏王，为儿子曹丕代汉建魏铺平了道路。\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：沛国谯县\n- **时间**：公元155年\n- **停留时间**：少年时期\n- **地点**：沛国谯县（今安徽省亳州市）\n- **事件**：出生于官宦家庭，父曹嵩为宦官曹腾养子。\n- **意义**：其家族背景为其早期仕途提供了基础，也常成为政敌攻击的由头。\n\n### 📍 重要地点：洛阳\n- **时间**：约公元174年 - 188年\n- **停留时间**：断续数年\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。\n- **意义**：初入政坛，展现了不畏强权的执法风格，赢得了声誉。\n\n### 📍 重要地点：兖州\n- **时间**：公元192年 - 195年\n- **停留时间**：约3年\n- **地点**：兖州（古州名，东汉末年治所昌邑县，今山东省巨野县南）\n- **事件**：领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。\n- **意义**：获得了第一块稳固的地盘和重要的军事力量，成为逐鹿中原的起点。\n\n### 📍 重要地点：许县\n- **时间**：公元196年 - 220年\n- **停留时间**：24年（作为政治中心）\n- **地点**：许县（今河南省许昌市）\n- **事件**：迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。\n- **意义**：取得了政治上的绝对主动权，建立了霸业的政治与经济中心。\n\n### 📍 重要地点：官渡\n- **时间**：公元200年\n- **停留时间**：数月\n- **地点**：官渡（今河南省中牟县东北）\n- **事件**：以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。\n- **意义**：扭转了与袁绍的战略劣势，为统一北方奠定了最关键的基础。\n\n### 📍 重要地点：邺城\n- **时间**：公元204年 - 220年\n- **停留时间**：16年（作为实际统治中心）\n- **地点**：邺城（今河北省临漳县西南）\n- **事件**：攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。\n- **意义**：取代许县成为曹操新的权力中心，是其“霸府”所在地，也是**建安文学**的重要活动中心。\n\n### 📍 重要地点：柳城\n- **时间**：公元207年\n- **停留时间**：短暂\n- **地点**：柳城（今辽宁省朝阳市西南）\n- **事件**：北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。\n- **意义**：彻底解除了北方的威胁，统一了中国北方。归途中创作名篇《步出夏门行》组诗（含《观沧海》），一般认为创作于北征乌桓途中或之后。\n\n### 📍 重要地点：赤壁\n- **时间**：公元208年\n- **停留时间**：数月\n- **地点**：赤壁（一般认为在今湖北省赤壁市西北）\n- **事件**：率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。\n- **意义**：**赤壁之战**的失败，使其短期内统一全国的计划破灭，奠定了三国鼎立的格局。\n\n### 📍 重要地点：汉中\n- **时间**：公元215年、219年\n- **停留时间**：断续数月\n- **地点**：汉中（今陕西省汉中市）\n- **事件**：公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。\n- **意义**：得而失汉中，标志着对刘备战略进攻的结束，转为战略防御。\n\n### 🔴 去世地：洛阳\n- **时间**：公元220年\n- **停留时间**：晚年常居\n- **地点**：洛阳（今河南省洛阳市）\n- **事件**：病逝于洛阳，临终前作《遗令》。\n- **意义**：一代枭雄落幕。其子曹丕随即代汉称帝，追尊曹操为**魏武帝**。\n- **名篇名句**：《蒿里行》：“白骨露于野，千里无鸡鸣。”；《短歌行》：“对酒当歌，人生几何！”；《步出夏门行·龟虽寿》：“老骥伏枥，志在千里。”\n\n---\n\n\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 公元155年 | 沛国谯县 | 安徽省亳州市 | （阶段：出生地：沛国谯县）出生于官宦家庭，父曹嵩为宦官曹腾养子。 |\n| 约公元174年 - 188年 | 洛阳 | 河南省洛阳市 | （阶段：重要地点：洛阳）年二十，举孝廉，为郎，任洛阳北部尉。造五色棒，棒杀蹇硕叔父，不避权贵。后历任顿丘令、议郎等职。 |\n| 公元192年 - 195年 | 兖州 | 兖州 | （阶段：重要地点：兖州）领兖州牧，收编青州黄巾军精锐，组建“青州兵”。在与吕布、张邈的争夺中巩固了根据地。 |\n| 公元196年 - 220年 | 许县 | 河南省许昌市 | （阶段：重要地点：许县）迎汉献帝都许，“挟天子以令诸侯”。在此发布《置屯田令》，推行屯田。官渡之战的大本营。 |\n| 公元200年 | 官渡 | 河南省中牟县东北 | （阶段：重要地点：官渡）以少胜多，击败袁绍主力，取得官渡之战的决定性胜利。 |\n| 公元204年 - 220年 | 邺城 | 河北省临漳县西南 | （阶段：重要地点：邺城）攻克袁氏大本营邺城，自领冀州牧。在此营建宫殿，开设**玄武池**训练水军。其子曹植于此写下《登台赋》。 |\n| 公元207年 | 柳城 | 辽宁省朝阳市西南 | （阶段：重要地点：柳城）北征乌桓，于白狼山斩杀乌桓单于蹋顿，基本肃清袁氏残余势力。 |\n| 公元208年 | 赤壁 | 赤壁 | （阶段：重要地点：赤壁）率大军南征荆州，与孙刘联军对峙于赤壁，遭火攻大败。 |\n| 公元215年、219年 | 汉中 | 陕西省汉中市 | （阶段：重要地点：汉中）公元215年征张鲁，取汉中。公元219年，与刘备相拒于汉中，战事不利，最终撤出。 |\n| 公元220年 | 洛阳 | 河南省洛阳市 | （阶段：去世地：洛阳）病逝于洛阳，临终前作《遗令》。 |\n\n## 地点坐标\n| 现称 | 纬度 | 经度 |\n| --- | --- | --- |\n| 安徽省亳州市 | 33.8693 | 115.7793 |\n| 河南省洛阳市 | 34.6197 | 112.4540 |\n| 山东省巨野县 | 35.3933 | 116.0894 |\n| 河南省许昌市 | 34.0358 | 113.8527 |\n| 河南省中牟县 | 34.7400 | 114.0200 |\n| 河北省临漳县 | 36.3000 | 114.5500 |\n| 辽宁省朝阳市 | 41.5500 | 120.4000 |\n| 湖北省赤壁市 | 29.7500 | 113.8500 |\n| 陕西省汉中市 | 33.0676 | 107.0238 |\n\n---\n\n## 人教版教材知识点\n\n### 语文（课文/词作）\n- **《短歌行》（其一）**：乐府旧题；主旨常解为“求贤若渴、及时建功”；名句“对酒当歌，人生几何”“山不厌高，海不厌深”“周公吐哺，天下归心”。\n- **《观沧海》**（《步出夏门行》之一）：借景抒怀，气象雄浑；以宏阔的海天意象承载政治抱负；名句“日月之行，若出其中；星汉灿烂，若出其里”。\n- **建安风骨**：语言质朴、气势沉雄，常以战争与时代动荡为背景，体现现实关怀与英雄气概。\n\n### 历史（史实/人物定位）\n- **东汉末年政局**：迎汉献帝都许，掌握朝政，以“挟天子以令诸侯”取得政治主动权。\n- **统一北方的关键战役**：官渡之战击败袁绍主力，奠定北方统一基础；北征乌桓平定北部威胁。\n- **制度与治理**：推行屯田制、整饬吏治、唯才是举，强化财政与军粮供给，为曹魏政权奠基。\n- **赤壁之战与格局**：赤壁败北后，短期内无法统一全国，三国鼎立格局由此形成。\n\n## 初高中阶段考点\n\n### 常见语文考点\n- 古典诗歌鉴赏：意象（海、日月、星汉）、情景关系、气象与格局、用典（“周公吐哺”）与主旨把握。\n- 文学史：建安文学与建安风骨的特点；曹操与建安诗风代表性。\n\n### 常见历史考点\n- 东汉末年割据与中央权力：曹操“奉天子以令不臣”的政治策略及影响。\n- 官渡、赤壁的历史意义：对势力格局的决定性作用。\n- 经济与军事制度：屯田制的背景、内容与作用。\n", "relatedGraph": {"center": {"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "白骨露于野，千里无鸡鸣。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "曹操", "name": "曹操", "file": "曹操.html", "dynasty": "东汉末年", "aliases": [], "birth_year": 155, "death_year": 220, "quote": "挟天子以令诸侯", "review": "白骨露于野，千里无鸡鸣。", "foreign_name": "", "main_role_label": "政治家", "birthplace": "沛国谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "曹丕", "name": "曹丕", "file": "曹丕.html", "dynasty": "东汉末年至三国（曹魏）", "aliases": [], "birth_year": 187, "death_year": 226, "quote": "秋风萧瑟天气凉，草木摇落露为霜。", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "古称谯县", "birthplace_modern": "安徽省亳州市", "domain_tags": [], "has_story": true, "relationLabel": "禅让", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "汉献帝", "name": "汉献帝", "file": "汉献帝.html", "dynasty": "东汉", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "挟天子以令诸侯", "review": "", "foreign_name": "", "main_role_label": "东汉末代皇帝", "birthplace": "洛阳", "birthplace_modern": "河南省洛阳市", "domain_tags": [], "has_story": true, "relationLabel": "君臣", "sourceType": "markdown", "confidence": null, "isCenter": false}, {"id": "马超", "name": "马超", "file": "马超.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 176, "death_year": 222, "quote": "西凉马超，有吕布之勇。", "review": "", "foreign_name": "", "main_role_label": "将领", "birthplace": "扶风茂陵", "birthplace_modern": "陕西省咸阳市兴平市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "陈实", "name": "陈实", "file": "陈实.html", "dynasty": "东汉", "aliases": [], "birth_year": 104, "death_year": 187, "quote": "（寔）除太丘长。修德清静，百姓以安。", "review": "", "foreign_name": "", "main_role_label": "官员", "birthplace": "颍川许县", "birthplace_modern": "河南许昌市建安区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "郭嘉", "name": "郭嘉", "file": "郭嘉.html", "dynasty": "东汉末年（三国时期）", "aliases": [], "birth_year": 170, "death_year": 207, "quote": "才策谋略，世之奇士", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "据《三国志》载其享年三十八岁", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "诸葛亮", "name": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "aliases": [], "birth_year": 181, "death_year": 234, "quote": "鞠躬尽瘁，死而后已", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "琅琊郡阳都县", "birthplace_modern": "山东省临沂市沂南县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "曹操", "target": "曹丕", "label": "禅让", "confidence": null}, {"source": "曹操", "target": "汉献帝", "label": "君臣", "confidence": null}, {"source": "曹操", "target": "马超", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "陈实", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "郭嘉", "label": "同时代人物", "confidence": null}, {"source": "曹操", "target": "诸葛亮", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:28Z", "generated_at": "2026-06-25T07:13:28Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:26Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:28Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

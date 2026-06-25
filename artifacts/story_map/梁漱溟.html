@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "梁漱溟", "title": "", "description": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quote": "出版《东西文化及其哲学》，引起广泛讨论", "shortReview": "出版《东西文化及其哲学》，引起广泛讨论", "dynasty": "近代（清末民国至中华人民共和国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1988年", "location": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "思想家、哲学家、教育家、社会活动家、现代新儒家代表人物", "achievements": "提出东西文化三路向说，比较中西印三大文化系统；开展乡村建设运动，主持山东邹平乡村建设实验；发起创建中国民主同盟，参与政治协商；长期从事教育与讲学，曾任教于北京大学", "works": ["东西文化及其哲学", "中国文化要义", "人心与人生"], "reviews": []}}, "locations": [{"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "生于北京", "time": "1893年", "duration": "", "significance": "北京与“生于北京”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "应蔡元培之聘任教北京大学，讲授印度哲学", "time": "1917年", "duration": "", "significance": "北京与“应蔡元培之聘任教北京大学，讲授印度哲学”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "出版《东西文化及其哲学》，引起广泛讨论", "time": "1921年", "duration": "", "significance": "北京与“出版《东西文化及其哲学》，引起广泛讨论”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": ["东西文化及其哲学"], "quoteLines": []}, {"name": "山东邹平", "ancientName": "山东邹平", "modernName": "山东邹平", "lat": 36.862985, "lng": 117.737088, "coordSystem": "WGS84", "type": "normal", "event": "在山东邹平主持乡村建设研究院，开展乡村建设实验", "time": "1930年代", "duration": "", "significance": "山东邹平与“在山东邹平主持乡村建设研究院，开展乡村建设实验”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "重庆/南京", "ancientName": "重庆/南京", "modernName": "重庆", "lat": 29.565529, "lng": 106.54807, "coordSystem": "WGS84", "type": "normal", "event": "参与政治协商会议，呼吁和平建国", "time": "1946年", "duration": "", "significance": "重庆/南京与“参与政治协商会议，呼吁和平建国”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海", "lat": 31.232467, "lng": 121.469144, "coordSystem": "WGS84", "type": "normal", "event": "参与创建中国民主同盟", "time": "1947年", "duration": "", "significance": "上海与“参与创建中国民主同盟”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "在政协会议上与毛泽东发生公开争论", "time": "1953年", "duration": "", "significance": "北京与“在政协会议上与毛泽东发生公开争论”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "death", "event": "逝世", "time": "1988年", "duration": "", "significance": "北京对应梁漱溟人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"东西文化及其哲学": "事迹：出版《东西文化及其哲学》，引起广泛讨论"}, "workSummaries": {"东西文化及其哲学": {"title": "东西文化及其哲学", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "事迹：出版《东西文化及其哲学》，引起广泛讨论", "summary": "事迹：出版《东西文化及其哲学》，引起广泛讨论", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。", "事迹：出版《东西文化及其哲学》，引起广泛讨论"], "quote_policy": "preferred"}, "中国文化要义": {"title": "中国文化要义", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "summary": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。"], "quote_policy": "preferred"}, "人心与人生": {"title": "人心与人生", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "summary": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。"], "quote_policy": "preferred"}}, "markdown": "# 梁漱溟\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：梁漱溟\n- **时代**：近代（清末民国至中华人民共和国）\n- **出生**：\n- **去世**：1988年，北京\n- **主要身份**：思想家、哲学家、教育家、社会活动家、现代新儒家代表人物\n- **主要成就**：提出东西文化三路向说，比较中西印三大文化系统；开展乡村建设运动，主持山东邹平乡村建设实验；发起创建中国民主同盟，参与政治协商；长期从事教育与讲学，曾任教于北京大学\n\n### 生平概述\n中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。\n\n## 三、人生历程与重要地点（按时间顺序）\n### 📍 重要地点：北京\n- **公元纪年**：1893年\n- **位置**：北京\n- **事迹**：生于北京\n\n### 📍 重要地点：北京\n- **公元纪年**：1917年\n- **位置**：北京\n- **事迹**：应蔡元培之聘任教北京大学，讲授印度哲学\n\n### 📍 重要地点：北京\n- **公元纪年**：1921年\n- **位置**：北京\n- **事迹**：出版《东西文化及其哲学》，引起广泛讨论\n\n### 📍 重要地点：山东邹平\n- **公元纪年**：1930年代\n- **位置**：山东邹平\n- **事迹**：在山东邹平主持乡村建设研究院，开展乡村建设实验\n\n### 📍 重要地点：重庆/南京\n- **公元纪年**：1946年\n- **位置**：重庆/南京（今重庆）\n- **事迹**：参与政治协商会议，呼吁和平建国\n\n### 📍 重要地点：上海\n- **公元纪年**：1947年\n- **位置**：上海\n- **事迹**：参与创建中国民主同盟\n\n### 📍 重要地点：北京\n- **公元纪年**：1953年\n- **位置**：北京\n- **事迹**：在政协会议上与毛泽东发生公开争论\n\n### 🔴 去世地：北京\n- **公元纪年**：1988年\n- **位置**：北京\n- **经过**：逝世\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1893年 | 北京 | 北京 | 生于北京 |\n| 1917年 | 北京 | 北京 | 应蔡元培之聘任教北京大学，讲授印度哲学 |\n| 1921年 | 北京 | 北京 | 出版《东西文化及其哲学》，引起广泛讨论 |\n| 1930年代 | 山东邹平 | 山东邹平 | 在山东邹平主持乡村建设研究院，开展乡村建设实验 |\n| 1946年 | 重庆/南京 | 重庆 | 参与政治协商会议，呼吁和平建国 |\n| 1947年 | 上海 | 上海 | 参与创建中国民主同盟 |\n| 1953年 | 北京 | 北京 | 在政协会议上与毛泽东发生公开争论 |\n| 1988年 | 北京 | 北京 | 逝世 |\n\n## 五、补充说明\n\n- 其乡村建设理论受多种思想影响，学术评价历来分歧较大\n- 20世纪50年代与毛泽东的争论具体细节存在不同记述\n- 部分履历年份（如创办民盟、乡村建设具体起止）需进一步史实核实\n- 无外部资料支撑，信息基于一般常识整理\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 北京 | 北京 | 39.902776 | 116.401145 | WGS84 |\n| 山东邹平 | 山东邹平 | 36.862985 | 117.737088 | WGS84 |\n| 重庆 | 重庆 | 29.565529 | 106.548070 | WGS84 |\n| 上海 | 上海 | 31.232467 | 121.469144 | WGS84 |", "relatedGraph": {"center": {"id": "梁漱溟", "name": "梁漱溟", "file": "梁漱溟.html", "dynasty": "近代（清末民国至中华人民共和国）", "aliases": [], "birth_year": 1988, "death_year": 1988, "quote": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "review": "出版《东西文化及其哲学》，引起广泛讨论", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "梁漱溟", "name": "梁漱溟", "file": "梁漱溟.html", "dynasty": "近代（清末民国至中华人民共和国）", "aliases": [], "birth_year": 1988, "death_year": 1988, "quote": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "review": "出版《东西文化及其哲学》，引起广泛讨论", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "纪伯伦", "name": "纪伯伦", "file": "纪伯伦.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": [], "birth_year": 1883, "death_year": 1931, "quote": "爱除自身外无施与，除自身外无接受。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "贝什里", "birthplace_modern": "黎巴嫩北部省贝什里", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "近代（18世纪末至19世纪初）", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "马背上的世界精神", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "梁漱溟", "target": "纪伯伦", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "杨虎城", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "李公朴", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "居里夫人", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "高斯", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:32Z", "generated_at": "2026-06-22T11:31:32Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "梁漱溟", "title": "", "description": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quote": "出版《东西文化及其哲学》，引起广泛讨论", "shortReview": "出版《东西文化及其哲学》，引起广泛讨论", "dynasty": "近代（清末民国至中华人民共和国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "", "avatar": "", "birth": {"date": "", "location": "", "lat": null, "lng": null, "coordSystem": ""}, "death": {"date": "1988年", "location": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84"}, "lifespan": "", "highlights": {"honor": "", "status": "", "identities": "思想家、哲学家、教育家、社会活动家、现代新儒家代表人物", "achievements": "提出东西文化三路向说，比较中西印三大文化系统；开展乡村建设运动，主持山东邹平乡村建设实验；发起创建中国民主同盟，参与政治协商；长期从事教育与讲学，曾任教于北京大学", "works": ["东西文化及其哲学", "中国文化要义", "人心与人生"], "reviews": []}}, "locations": [{"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "生于北京", "time": "1893年", "duration": "", "significance": "北京与“生于北京”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "应蔡元培之聘任教北京大学，讲授印度哲学", "time": "1917年", "duration": "", "significance": "北京与“应蔡元培之聘任教北京大学，讲授印度哲学”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "出版《东西文化及其哲学》，引起广泛讨论", "time": "1921年", "duration": "", "significance": "北京与“出版《东西文化及其哲学》，引起广泛讨论”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": ["东西文化及其哲学"], "quoteLines": []}, {"name": "山东邹平", "ancientName": "山东邹平", "modernName": "山东邹平", "lat": 36.862985, "lng": 117.737088, "coordSystem": "WGS84", "type": "normal", "event": "在山东邹平主持乡村建设研究院，开展乡村建设实验", "time": "1930年代", "duration": "", "significance": "山东邹平与“在山东邹平主持乡村建设研究院，开展乡村建设实验”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "重庆/南京", "ancientName": "重庆/南京", "modernName": "重庆", "lat": 29.565529, "lng": 106.54807, "coordSystem": "WGS84", "type": "normal", "event": "参与政治协商会议，呼吁和平建国", "time": "1946年", "duration": "", "significance": "重庆/南京与“参与政治协商会议，呼吁和平建国”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "上海", "ancientName": "上海", "modernName": "上海", "lat": 31.232467, "lng": 121.469144, "coordSystem": "WGS84", "type": "normal", "event": "参与创建中国民主同盟", "time": "1947年", "duration": "", "significance": "上海与“参与创建中国民主同盟”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "normal", "event": "在政协会议上与毛泽东发生公开争论", "time": "1953年", "duration": "", "significance": "北京与“在政协会议上与毛泽东发生公开争论”这一事件紧密相关，是理解梁漱溟生平轨迹的重要地点。", "works": [], "quoteLines": []}, {"name": "北京", "ancientName": "北京", "modernName": "北京", "lat": 39.902776, "lng": 116.401145, "coordSystem": "WGS84", "type": "death", "event": "逝世", "time": "1988年", "duration": "", "significance": "北京对应梁漱溟人生终章，是观察其命运转折与历史结局的重要节点。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "", "examPoints": "", "workTexts": {"东西文化及其哲学": "事迹：出版《东西文化及其哲学》，引起广泛讨论"}, "workSummaries": {"东西文化及其哲学": {"title": "东西文化及其哲学", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "事迹：出版《东西文化及其哲学》，引起广泛讨论", "summary": "事迹：出版《东西文化及其哲学》，引起广泛讨论", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。", "事迹：出版《东西文化及其哲学》，引起广泛讨论"], "quote_policy": "preferred"}, "中国文化要义": {"title": "中国文化要义", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "summary": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。"], "quote_policy": "preferred"}, "人心与人生": {"title": "人心与人生", "aliases": [], "authors": ["梁漱溟"], "related_people": ["梁漱溟"], "source_pages": ["梁漱溟"], "era": "近代（清末民国至中华人民共和国）", "genre": "", "one_liner": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "summary": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "quote": "著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "quotes": ["著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。", "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。"], "quote_policy": "preferred"}}, "markdown": "# 梁漱溟\n\n## 一、人物档案\n\n### 基本信息\n- **姓名**：梁漱溟\n- **时代**：近代（清末民国至中华人民共和国）\n- **出生**：\n- **去世**：1988年，北京\n- **主要身份**：思想家、哲学家、教育家、社会活动家、现代新儒家代表人物\n- **主要成就**：提出东西文化三路向说，比较中西印三大文化系统；开展乡村建设运动，主持山东邹平乡村建设实验；发起创建中国民主同盟，参与政治协商；长期从事教育与讲学，曾任教于北京大学\n\n### 生平概述\n中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一。著有《东西文化及其哲学》《中国文化要义》《人心与人生》等，被誉为'中国最后一位大儒'。\n\n## 三、人生历程与重要地点（按时间顺序）\n### 📍 重要地点：北京\n- **公元纪年**：1893年\n- **位置**：北京\n- **事迹**：生于北京\n\n### 📍 重要地点：北京\n- **公元纪年**：1917年\n- **位置**：北京\n- **事迹**：应蔡元培之聘任教北京大学，讲授印度哲学\n\n### 📍 重要地点：北京\n- **公元纪年**：1921年\n- **位置**：北京\n- **事迹**：出版《东西文化及其哲学》，引起广泛讨论\n\n### 📍 重要地点：山东邹平\n- **公元纪年**：1930年代\n- **位置**：山东邹平\n- **事迹**：在山东邹平主持乡村建设研究院，开展乡村建设实验\n\n### 📍 重要地点：重庆/南京\n- **公元纪年**：1946年\n- **位置**：重庆/南京（今重庆）\n- **事迹**：参与政治协商会议，呼吁和平建国\n\n### 📍 重要地点：上海\n- **公元纪年**：1947年\n- **位置**：上海\n- **事迹**：参与创建中国民主同盟\n\n### 📍 重要地点：北京\n- **公元纪年**：1953年\n- **位置**：北京\n- **事迹**：在政协会议上与毛泽东发生公开争论\n\n### 🔴 去世地：北京\n- **公元纪年**：1988年\n- **位置**：北京\n- **经过**：逝世\n\n## 四、生平时间线\n\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1893年 | 北京 | 北京 | 生于北京 |\n| 1917年 | 北京 | 北京 | 应蔡元培之聘任教北京大学，讲授印度哲学 |\n| 1921年 | 北京 | 北京 | 出版《东西文化及其哲学》，引起广泛讨论 |\n| 1930年代 | 山东邹平 | 山东邹平 | 在山东邹平主持乡村建设研究院，开展乡村建设实验 |\n| 1946年 | 重庆/南京 | 重庆 | 参与政治协商会议，呼吁和平建国 |\n| 1947年 | 上海 | 上海 | 参与创建中国民主同盟 |\n| 1953年 | 北京 | 北京 | 在政协会议上与毛泽东发生公开争论 |\n| 1988年 | 北京 | 北京 | 逝世 |\n\n## 五、补充说明\n\n- 其乡村建设理论受多种思想影响，学术评价历来分歧较大\n- 20世纪50年代与毛泽东的争论具体细节存在不同记述\n- 部分履历年份（如创办民盟、乡村建设具体起止）需进一步史实核实\n- 无外部资料支撑，信息基于一般常识整理\n\n## 地点坐标（自动地理编码）\n| 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |\n| --- | --- | --- | --- | --- |\n| 北京 | 北京 | 39.902776 | 116.401145 | WGS84 |\n| 山东邹平 | 山东邹平 | 36.862985 | 117.737088 | WGS84 |\n| 重庆 | 重庆 | 29.565529 | 106.548070 | WGS84 |\n| 上海 | 上海 | 31.232467 | 121.469144 | WGS84 |", "relatedGraph": {"center": {"id": "梁漱溟", "name": "梁漱溟", "file": "梁漱溟.html", "dynasty": "近代（清末民国至中华人民共和国）", "aliases": [], "birth_year": 1988, "death_year": 1988, "quote": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "review": "出版《东西文化及其哲学》，引起广泛讨论", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "梁漱溟", "name": "梁漱溟", "file": "梁漱溟.html", "dynasty": "近代（清末民国至中华人民共和国）", "aliases": [], "birth_year": 1988, "death_year": 1988, "quote": "中国现代著名思想家、哲学家、教育家、社会改造运动者，现代新儒家早期代表人物之一", "review": "出版《东西文化及其哲学》，引起广泛讨论", "foreign_name": "", "main_role_label": "思想家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "纪伯伦", "name": "纪伯伦", "file": "纪伯伦.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": [], "birth_year": 1883, "death_year": 1931, "quote": "爱除自身外无施与，除自身外无接受。", "review": "", "foreign_name": "", "main_role_label": "作家", "birthplace": "贝什里", "birthplace_modern": "黎巴嫩北部省贝什里", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "杨虎城", "name": "杨虎城", "file": "杨虎城.html", "dynasty": "中国近代（清末至民国）", "aliases": [], "birth_year": 1893, "death_year": 1949, "quote": "我们救国的主张……是绝对不变更的。", "review": "", "foreign_name": "", "main_role_label": "爱国将领", "birthplace": "陕西省蒲城县", "birthplace_modern": "陕西省渭南市蒲城县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "李公朴", "name": "李公朴", "file": "李公朴.html", "dynasty": "中国近代（清末至民国）", "aliases": ["李永祥", "李晋祥"], "birth_year": 1902, "death_year": 1946, "quote": "**七君子事件**", "review": "", "foreign_name": "", "main_role_label": "社会教育家", "birthplace": "江苏淮安府", "birthplace_modern": "江苏省淮安市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "居里夫人", "name": "居里夫人", "file": "居里夫人.html", "dynasty": "近代（19世纪末至20世纪初）", "aliases": ["玛丽亚斯克沃多夫斯卡居里", "玛丽居里", "MarieCurie"], "birth_year": 1867, "death_year": 1934, "quote": "在科学上，我们应该注意事，不应该注意人。", "review": "", "foreign_name": "", "main_role_label": "物理学家", "birthplace": "华沙", "birthplace_modern": "波兰华沙", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黑格尔", "name": "黑格尔", "file": "黑格尔.html", "dynasty": "近代（18世纪末至19世纪初）", "aliases": [], "birth_year": 1770, "death_year": 1831, "quote": "马背上的世界精神", "review": "", "foreign_name": "", "main_role_label": "哲学家", "birthplace": "符腾堡公国斯图加特", "birthplace_modern": "德国巴登-符腾堡州斯图加特市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "高斯", "name": "高斯", "file": "高斯.html", "dynasty": "近代（18-19世纪）", "aliases": [], "birth_year": 1777, "death_year": 1855, "quote": "高斯出生于一个工匠家庭，幼年即展现出惊人的数学天赋，得到不伦瑞克公爵的资助求学与游历", "review": "", "foreign_name": "", "main_role_label": "数学家", "birthplace": "不伦瑞克公国不伦瑞克", "birthplace_modern": "德国下萨克森州不伦瑞克", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "梁漱溟", "target": "纪伯伦", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "杨虎城", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "李公朴", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "居里夫人", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "黑格尔", "label": "同时代人物", "confidence": null}, {"source": "梁漱溟", "target": "高斯", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:34Z", "generated_at": "2026-06-25T07:13:34Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:32Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:34Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

@@ -1765,6 +1765,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -2219,14 +2224,15 @@ const {
   useState,
   useEffect,
   useRef,
-  useMemo
+  useMemo,
+  useCallback
 } = React;
-const data = {"person": {"name": "弗里德里希·威廉·维克托·阿尔贝特·冯·霍亨索伦", "title": "", "description": "威廉二世是德意志帝国首位皇帝威廉一世的孙子，于1888年继位，当年德意志帝国经历了威廉一世、腓特烈三世和威廉二世三位皇帝，史称“三皇之年”。他性格冲动、野心勃勃，继位后不久便迫使“铁血宰相”俾斯麦辞职，亲掌大权。他摒弃了俾斯麦的大陆政策，转而推行具有扩张性和冒险性的“世界政策”，积极扩建海军（如扩建威廉港、基尔等海军基地），争夺海外殖民地，导致与英、法、俄等国的矛盾激化。其鲁莽的外交政策（如“电报事件”和“每日电讯报事件”）使德国陷入孤立。1914年，他支持奥匈帝国对塞尔维亚宣战，成为第一次世界大战爆发的关键推动者之一。战争后期，德军节节败退，国内爆发革命，他于1918年11月被迫退位，流亡荷兰直至去世。", "quote": "", "shortReview": "", "dynasty": "德意志帝国时期（德意志第二帝国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "柏林（今德国柏林）", "avatar": "", "birth": {"date": "1859年", "location": "柏林（今德国柏林）", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84"}, "death": {"date": "1941年", "location": "多伦（今荷兰乌得勒支省多伦）", "lat": 52.0116, "lng": 5.1528, "coordSystem": "WGS84"}, "lifespan": "82岁", "highlights": {"honor": "", "status": "德意志帝国末代皇帝，其统治时期德国走向世界政策并最终引发第一次世界大战。", "identities": "德意志帝国皇帝、普鲁士国王", "achievements": "推行“世界政策”；扩建海军，挑战英国海权；推动德国工业化与科技发展；在其统治初期，德国经济延续了俾斯麦时期的繁荣态势。", "works": [], "reviews": []}}, "locations": [{"name": "柏林", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "birth", "event": "出生于普鲁士王室家庭，因出生时臀位分娩导致左臂萎缩。", "time": "1859年1月27日", "duration": "童年及青少年时期主要居所", "significance": "霍亨索伦王朝的继承人，其成长深受普鲁士军国主义宫廷氛围影响。", "works": [], "quoteLines": []}, {"name": "波恩", "ancientName": "波恩", "modernName": "德国波恩", "lat": 50.7374, "lng": 7.0982, "coordSystem": "WGS84", "type": "normal", "event": "作为王储在波恩大学学习法律与国家学。", "time": "1877年-1879年", "duration": "约2年", "significance": "接受了系统的大学教育，但更热衷于社交与军事活动。", "works": [], "quoteLines": []}, {"name": "波茨坦", "ancientName": "波茨坦", "modernName": "德国波茨坦", "lat": 52.3906, "lng": 13.0645, "coordSystem": "WGS84", "type": "normal", "event": "婚后居住于新宫，后常驻无忧宫或新宫处理政务。", "time": "1881年起常驻", "duration": "长期居住地之一", "significance": "其统治时期重要的政治与军事决策中心之一。", "works": [], "quoteLines": []}, {"name": "柏林（皇宫）", "ancientName": "柏林城市宫", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "在此接见大臣、外国使节，发布重要政令，策划外交行动。", "time": "1888年-1918年", "duration": "统治核心期", "significance": "帝国政治权力的象征与中心，见证了其与俾斯麦的决裂及一系列重大决策。", "works": [], "quoteLines": []}, {"name": "夏洛滕堡宫（柏林）", "ancientName": "柏林夏洛滕堡宫", "modernName": "德国柏林", "lat": 52.52, "lng": 13.295, "coordSystem": "WGS84", "type": "normal", "event": "在其父腓特烈三世去世后，于此地继位为德意志帝国皇帝与普鲁士国王。", "time": "1888年6月15日", "duration": "短暂", "significance": "正式开启“威廉时代”，德国进入其个人主导的扩张性统治时期。", "works": [], "quoteLines": []}, {"name": "斯帕（比利时）", "ancientName": "斯帕", "modernName": "比利时斯帕", "lat": 50.4922, "lng": 5.8647, "coordSystem": "WGS84", "type": "normal", "event": "第一次世界大战期间，将德军最高统帅部（OHL）设于此地，名义上指挥战争。1918年11月，在德国十一月革命浪潮中，被迫于此签署退位声明，随后仓皇出逃至荷兰。", "time": "1914年-1918年（一战期间多次驻跸）及1918年11月9日-10日", "duration": "断续居住约4年，含短暂退位时刻", "significance": "一战期间德国的实际军事指挥中心，也是其权力被兴登堡和鲁登道夫架空之地，并最终见证了其退位与德意志帝国的终结。", "works": [], "quoteLines": []}, {"name": "多伦庄园（荷兰）", "ancientName": "多伦", "modernName": "荷兰乌得勒支省多伦", "lat": 52.0116, "lng": 5.1528, "coordSystem": "WGS84", "type": "death", "event": "流亡于此，过着隐居生活，撰写回忆录，关注德国政局，对纳粹德国初期胜利一度表示欣喜。", "time": "1918年11月流亡至荷兰，1920年起定居于此，直至1941年去世", "duration": "流亡生涯约23年，其中在多伦约21年", "significance": "其流亡生涯的终点，直至去世也未能重返德国。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---", "workTexts": {}, "workSummaries": {}, "markdown": "# 威廉二世\n\n## 人物档案\n\n### 基本信息\n- **姓名**：弗里德里希·威廉·维克托·阿尔贝特·冯·霍亨索伦（常用名：威廉二世）\n- **时代**：德意志帝国时期（德意志第二帝国）\n- **出生**：公元1859年1月27日，柏林（今德国柏林）\n- **去世**：公元1941年6月4日，多伦（今荷兰乌得勒支省多伦）\n- **享年**：82岁\n- **主要身份**：德意志帝国皇帝、普鲁士国王\n- **历史地位**：德意志帝国末代皇帝，其统治时期德国走向世界政策并最终引发第一次世界大战。\n- **主要成就**：推行“世界政策”；扩建海军，挑战英国海权；推动德国工业化与科技发展；在其统治初期，德国经济延续了俾斯麦时期的繁荣态势。\n\n### 生平概述\n威廉二世是德意志帝国首位皇帝威廉一世的孙子，于1888年继位，当年德意志帝国经历了威廉一世、腓特烈三世和威廉二世三位皇帝，史称“三皇之年”。他性格冲动、野心勃勃，继位后不久便迫使“铁血宰相”俾斯麦辞职，亲掌大权。他摒弃了俾斯麦的大陆政策，转而推行具有扩张性和冒险性的“世界政策”，积极扩建海军（如扩建威廉港、基尔等海军基地），争夺海外殖民地，导致与英、法、俄等国的矛盾激化。其鲁莽的外交政策（如“电报事件”和“每日电讯报事件”）使德国陷入孤立。1914年，他支持奥匈帝国对塞尔维亚宣战，成为第一次世界大战爆发的关键推动者之一。战争后期，德军节节败退，国内爆发革命，他于1918年11月被迫退位，流亡荷兰直至去世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖德意志帝国（今德国）及流亡地荷兰。\n- ⏱️ **时间跨度**：1859年-1941年，共82年。\n- 📍 **地理范围**：中欧、西欧，核心区域为德国柏林、波茨坦及荷兰。\n- 🌟 **重要节点数量**：7个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：柏林\n- **时间**：1859年1月27日\n- **停留时间**：童年及青少年时期主要居所\n- **地点**：柏林（今德国柏林）\n- **事件**：出生于普鲁士王室家庭，因出生时臀位分娩导致左臂萎缩。\n- **意义**：霍亨索伦王朝的继承人，其成长深受普鲁士军国主义宫廷氛围影响。\n\n### 📍 重要地点：波恩\n- **时间**：1877年-1879年\n- **停留时间**：约2年\n- **地点**：波恩（今德国波恩）\n- **事件**：作为王储在波恩大学学习法律与国家学。\n- **意义**：接受了系统的大学教育，但更热衷于社交与军事活动。\n\n### 📍 重要地点：波茨坦\n- **时间**：1881年起常驻\n- **停留时间**：长期居住地之一\n- **地点**：波茨坦（今德国波茨坦）\n- **事件**：婚后居住于新宫，后常驻无忧宫或新宫处理政务。\n- **意义**：其统治时期重要的政治与军事决策中心之一。\n\n### 📍 重要地点：夏洛滕堡宫（柏林）\n- **时间**：1888年6月15日\n- **停留时间**：短暂\n- **地点**：柏林夏洛滕堡宫（今德国柏林）\n- **事件**：在其父腓特烈三世去世后，于此地继位为德意志帝国皇帝与普鲁士国王。\n- **意义**：正式开启“威廉时代”，德国进入其个人主导的扩张性统治时期。\n\n### 📍 重要地点：柏林（皇宫）\n- **时间**：1888年-1918年\n- **停留时间**：统治核心期\n- **地点**：柏林城市宫（今德国柏林）\n- **事件**：在此接见大臣、外国使节，发布重要政令，策划外交行动。\n- **意义**：帝国政治权力的象征与中心，见证了其与俾斯麦的决裂及一系列重大决策。\n\n### 📍 重要地点：斯帕（比利时）\n- **时间**：1914年-1918年（一战期间多次驻跸）及1918年11月9日-10日\n- **停留时间**：断续居住约4年，含短暂退位时刻\n- **地点**：斯帕（今比利时斯帕）\n- **事件**：第一次世界大战期间，将德军最高统帅部（OHL）设于此地，名义上指挥战争。1918年11月，在德国十一月革命浪潮中，被迫于此签署退位声明，随后仓皇出逃至荷兰。\n- **意义**：一战期间德国的实际军事指挥中心，也是其权力被兴登堡和鲁登道夫架空之地，并最终见证了其退位与德意志帝国的终结。\n\n### 🔴 去世地：多伦庄园（荷兰）\n- **时间**：1918年11月流亡至荷兰，1920年起定居于此，直至1941年去世\n- **停留时间**：流亡生涯约23年，其中在多伦约21年\n- **地点**：多伦（今荷兰乌得勒支省多伦）\n- **事件**：流亡于此，过着隐居生活，撰写回忆录，关注德国政局，对纳粹德国初期胜利一度表示欣喜。\n- **意义**：其流亡生涯的终点，直至去世也未能重返德国。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1859 | 柏林 | 德国柏林 | （年龄：0）出生于柏林 |\n| 1877 | 波恩 | 德国波恩 | （年龄：18）进入波恩大学学习 |\n| 1881 |  |  | （年龄：22）与石勒苏益格-荷尔斯泰因的奥古斯塔·维多利亚公主结婚 |\n| 1888 |  |  | （年龄：29）继位为德意志帝国皇帝和普鲁士国王（“三皇之年”） |\n| 1890 |  |  | （年龄：31）迫使宰相俾斯麦辞职，亲掌大权 |\n| 1897 |  |  | （年龄：38）任命提尔皮茨为海军大臣，开始大规模扩建海军 |\n| 1900 |  |  | （年龄：41）镇压义和团运动期间发表“匈奴演说” |\n| 1905 |  |  | （年龄：46）第一次摩洛哥危机，挑战法国在摩洛哥的利益 |\n| 1908 |  |  | （年龄：49）“每日电讯报事件”引发外交风波，损害其威望 |\n| 1911 |  |  | （年龄：52）第二次摩洛哥危机，加剧与法、英的对抗 |\n| 1914 |  |  | （年龄：55）支持奥匈帝国对塞尔维亚宣战，第一次世界大战爆发 |\n| 1918 | 多伦庄园（荷兰） | 荷兰乌得勒支省多伦 | （年龄：59）德国战败，十一月革命爆发，被迫退位并流亡荷兰 |\n| 1941 | 多伦庄园（荷兰） | 荷兰乌得勒支省多伦 | （年龄：82）6月4日，在荷兰多伦去世 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| --- | --- | --- | --- |\n| 柏林 | 52.5200 | 13.4050 | |\n| 波恩 | 50.7374 | 7.0982 | |\n| 波茨坦 | 52.3906 | 13.0645 | |\n| 夏洛滕堡宫（柏林） | 52.5200 | 13.2950 | 柏林宫殿 |\n| 斯帕（比利时） | 50.4922 | 5.8647 | |\n| 多伦（荷兰） | 52.0116 | 5.1528 | |\n| 威廉港（德国） | 53.5224 | 8.1032 | 重要海军基地，威廉二世时期扩建 |\n| 基尔（德国） | 54.3233 | 10.1228 | 重要海军基地与基尔运河起点 |", "relatedGraph": {"center": {"id": "威廉二世", "name": "威廉二世", "file": "威廉二世.html", "dynasty": "德意志帝国时期（德意志第二帝国）", "aliases": [], "birth_year": 1859, "death_year": 1941, "quote": "每日电讯报事件", "review": "", "foreign_name": "", "main_role_label": "德意志帝国皇帝", "birthplace": "柏林", "birthplace_modern": "德国柏林", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "威廉二世", "name": "威廉二世", "file": "威廉二世.html", "dynasty": "德意志帝国时期（德意志第二帝国）", "aliases": [], "birth_year": 1859, "death_year": 1941, "quote": "每日电讯报事件", "review": "", "foreign_name": "", "main_role_label": "德意志帝国皇帝", "birthplace": "柏林", "birthplace_modern": "德国柏林", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "威尔逊", "name": "威尔逊", "file": "威尔逊.html", "dynasty": "19世纪末至20世纪初（美国进步时代及一战时期）", "aliases": [], "birth_year": 1856, "death_year": 1924, "quote": "公开的和平条约，公开达成……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "斯汤顿", "birthplace_modern": "美国弗吉尼亚州斯汤顿市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "威廉二世", "target": "威尔逊", "label": "同册共现", "confidence": 0.15}, {"source": "威廉二世", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "c6615d3640a1", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "7355d343d41b", "build_version": "7355d343d41b", "build_at": "2026-06-22T11:31:18Z", "generated_at": "2026-06-22T11:31:18Z", "source_commit": "7355d343d41b5ef00151005d8e8fb85b84f6cc27", "pages_run_id": "", "pages_run_attempt": ""}};
+const data = {"person": {"name": "弗里德里希·威廉·维克托·阿尔贝特·冯·霍亨索伦", "title": "", "description": "威廉二世是德意志帝国首位皇帝威廉一世的孙子，于1888年继位，当年德意志帝国经历了威廉一世、腓特烈三世和威廉二世三位皇帝，史称“三皇之年”。他性格冲动、野心勃勃，继位后不久便迫使“铁血宰相”俾斯麦辞职，亲掌大权。他摒弃了俾斯麦的大陆政策，转而推行具有扩张性和冒险性的“世界政策”，积极扩建海军（如扩建威廉港、基尔等海军基地），争夺海外殖民地，导致与英、法、俄等国的矛盾激化。其鲁莽的外交政策（如“电报事件”和“每日电讯报事件”）使德国陷入孤立。1914年，他支持奥匈帝国对塞尔维亚宣战，成为第一次世界大战爆发的关键推动者之一。战争后期，德军节节败退，国内爆发革命，他于1918年11月被迫退位，流亡荷兰直至去世。", "quote": "", "shortReview": "", "dynasty": "德意志帝国时期（德意志第二帝国）", "courtesyName": "", "artName": "", "aliases": [], "birthplace": "柏林（今德国柏林）", "avatar": "", "birth": {"date": "1859年", "location": "柏林（今德国柏林）", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84"}, "death": {"date": "1941年", "location": "多伦（今荷兰乌得勒支省多伦）", "lat": 52.0116, "lng": 5.1528, "coordSystem": "WGS84"}, "lifespan": "82岁", "highlights": {"honor": "", "status": "德意志帝国末代皇帝，其统治时期德国走向世界政策并最终引发第一次世界大战。", "identities": "德意志帝国皇帝、普鲁士国王", "achievements": "推行“世界政策”；扩建海军，挑战英国海权；推动德国工业化与科技发展；在其统治初期，德国经济延续了俾斯麦时期的繁荣态势。", "works": [], "reviews": []}}, "locations": [{"name": "柏林", "ancientName": "柏林", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "birth", "event": "出生于普鲁士王室家庭，因出生时臀位分娩导致左臂萎缩。", "time": "1859年1月27日", "duration": "童年及青少年时期主要居所", "significance": "霍亨索伦王朝的继承人，其成长深受普鲁士军国主义宫廷氛围影响。", "works": [], "quoteLines": []}, {"name": "波恩", "ancientName": "波恩", "modernName": "德国波恩", "lat": 50.7374, "lng": 7.0982, "coordSystem": "WGS84", "type": "normal", "event": "作为王储在波恩大学学习法律与国家学。", "time": "1877年-1879年", "duration": "约2年", "significance": "接受了系统的大学教育，但更热衷于社交与军事活动。", "works": [], "quoteLines": []}, {"name": "波茨坦", "ancientName": "波茨坦", "modernName": "德国波茨坦", "lat": 52.3906, "lng": 13.0645, "coordSystem": "WGS84", "type": "normal", "event": "婚后居住于新宫，后常驻无忧宫或新宫处理政务。", "time": "1881年起常驻", "duration": "长期居住地之一", "significance": "其统治时期重要的政治与军事决策中心之一。", "works": [], "quoteLines": []}, {"name": "柏林（皇宫）", "ancientName": "柏林城市宫", "modernName": "德国柏林", "lat": 52.52, "lng": 13.405, "coordSystem": "WGS84", "type": "normal", "event": "在此接见大臣、外国使节，发布重要政令，策划外交行动。", "time": "1888年-1918年", "duration": "统治核心期", "significance": "帝国政治权力的象征与中心，见证了其与俾斯麦的决裂及一系列重大决策。", "works": [], "quoteLines": []}, {"name": "夏洛滕堡宫（柏林）", "ancientName": "柏林夏洛滕堡宫", "modernName": "德国柏林", "lat": 52.52, "lng": 13.295, "coordSystem": "WGS84", "type": "normal", "event": "在其父腓特烈三世去世后，于此地继位为德意志帝国皇帝与普鲁士国王。", "time": "1888年6月15日", "duration": "短暂", "significance": "正式开启“威廉时代”，德国进入其个人主导的扩张性统治时期。", "works": [], "quoteLines": []}, {"name": "斯帕（比利时）", "ancientName": "斯帕", "modernName": "比利时斯帕", "lat": 50.4922, "lng": 5.8647, "coordSystem": "WGS84", "type": "normal", "event": "第一次世界大战期间，将德军最高统帅部（OHL）设于此地，名义上指挥战争。1918年11月，在德国十一月革命浪潮中，被迫于此签署退位声明，随后仓皇出逃至荷兰。", "time": "1914年-1918年（一战期间多次驻跸）及1918年11月9日-10日", "duration": "断续居住约4年，含短暂退位时刻", "significance": "一战期间德国的实际军事指挥中心，也是其权力被兴登堡和鲁登道夫架空之地，并最终见证了其退位与德意志帝国的终结。", "works": [], "quoteLines": []}, {"name": "多伦庄园（荷兰）", "ancientName": "多伦", "modernName": "荷兰乌得勒支省多伦", "lat": 52.0116, "lng": 5.1528, "coordSystem": "WGS84", "type": "death", "event": "流亡于此，过着隐居生活，撰写回忆录，关注德国政局，对纳粹德国初期胜利一度表示欣喜。", "time": "1918年11月流亡至荷兰，1920年起定居于此，直至1941年去世", "duration": "流亡生涯约23年，其中在多伦约21年", "significance": "其流亡生涯的终点，直至去世也未能重返德国。", "works": [], "quoteLines": []}], "coordinateSystem": "WGS84", "mapStyle": {"pathColor": "#1e40af", "markers": {"normal": {"color": "#3498db"}, "birth": {"color": "#2ecc71"}, "death": {"color": "#e74c3c"}}}, "textbookPoints": "### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---", "examPoints": "### 考点\n### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---", "workTexts": {}, "workSummaries": {}, "markdown": "# 威廉二世\n\n## 人物档案\n\n### 基本信息\n- **姓名**：弗里德里希·威廉·维克托·阿尔贝特·冯·霍亨索伦（常用名：威廉二世）\n- **时代**：德意志帝国时期（德意志第二帝国）\n- **出生**：公元1859年1月27日，柏林（今德国柏林）\n- **去世**：公元1941年6月4日，多伦（今荷兰乌得勒支省多伦）\n- **享年**：82岁\n- **主要身份**：德意志帝国皇帝、普鲁士国王\n- **历史地位**：德意志帝国末代皇帝，其统治时期德国走向世界政策并最终引发第一次世界大战。\n- **主要成就**：推行“世界政策”；扩建海军，挑战英国海权；推动德国工业化与科技发展；在其统治初期，德国经济延续了俾斯麦时期的繁荣态势。\n\n### 生平概述\n威廉二世是德意志帝国首位皇帝威廉一世的孙子，于1888年继位，当年德意志帝国经历了威廉一世、腓特烈三世和威廉二世三位皇帝，史称“三皇之年”。他性格冲动、野心勃勃，继位后不久便迫使“铁血宰相”俾斯麦辞职，亲掌大权。他摒弃了俾斯麦的大陆政策，转而推行具有扩张性和冒险性的“世界政策”，积极扩建海军（如扩建威廉港、基尔等海军基地），争夺海外殖民地，导致与英、法、俄等国的矛盾激化。其鲁莽的外交政策（如“电报事件”和“每日电讯报事件”）使德国陷入孤立。1914年，他支持奥匈帝国对塞尔维亚宣战，成为第一次世界大战爆发的关键推动者之一。战争后期，德军节节败退，国内爆发革命，他于1918年11月被迫退位，流亡荷兰直至去世。\n\n---\n\n## 人生足迹地图说明\n- 🗺️ **行程概览**：足迹主要覆盖德意志帝国（今德国）及流亡地荷兰。\n- ⏱️ **时间跨度**：1859年-1941年，共82年。\n- 📍 **地理范围**：中欧、西欧，核心区域为德国柏林、波茨坦及荷兰。\n- 🌟 **重要节点数量**：7个\n\n---\n\n## 人生历程与重要地点（按时间顺序）\n### 🟢 出生地：柏林\n- **时间**：1859年1月27日\n- **停留时间**：童年及青少年时期主要居所\n- **地点**：柏林（今德国柏林）\n- **事件**：出生于普鲁士王室家庭，因出生时臀位分娩导致左臂萎缩。\n- **意义**：霍亨索伦王朝的继承人，其成长深受普鲁士军国主义宫廷氛围影响。\n\n### 📍 重要地点：波恩\n- **时间**：1877年-1879年\n- **停留时间**：约2年\n- **地点**：波恩（今德国波恩）\n- **事件**：作为王储在波恩大学学习法律与国家学。\n- **意义**：接受了系统的大学教育，但更热衷于社交与军事活动。\n\n### 📍 重要地点：波茨坦\n- **时间**：1881年起常驻\n- **停留时间**：长期居住地之一\n- **地点**：波茨坦（今德国波茨坦）\n- **事件**：婚后居住于新宫，后常驻无忧宫或新宫处理政务。\n- **意义**：其统治时期重要的政治与军事决策中心之一。\n\n### 📍 重要地点：夏洛滕堡宫（柏林）\n- **时间**：1888年6月15日\n- **停留时间**：短暂\n- **地点**：柏林夏洛滕堡宫（今德国柏林）\n- **事件**：在其父腓特烈三世去世后，于此地继位为德意志帝国皇帝与普鲁士国王。\n- **意义**：正式开启“威廉时代”，德国进入其个人主导的扩张性统治时期。\n\n### 📍 重要地点：柏林（皇宫）\n- **时间**：1888年-1918年\n- **停留时间**：统治核心期\n- **地点**：柏林城市宫（今德国柏林）\n- **事件**：在此接见大臣、外国使节，发布重要政令，策划外交行动。\n- **意义**：帝国政治权力的象征与中心，见证了其与俾斯麦的决裂及一系列重大决策。\n\n### 📍 重要地点：斯帕（比利时）\n- **时间**：1914年-1918年（一战期间多次驻跸）及1918年11月9日-10日\n- **停留时间**：断续居住约4年，含短暂退位时刻\n- **地点**：斯帕（今比利时斯帕）\n- **事件**：第一次世界大战期间，将德军最高统帅部（OHL）设于此地，名义上指挥战争。1918年11月，在德国十一月革命浪潮中，被迫于此签署退位声明，随后仓皇出逃至荷兰。\n- **意义**：一战期间德国的实际军事指挥中心，也是其权力被兴登堡和鲁登道夫架空之地，并最终见证了其退位与德意志帝国的终结。\n\n### 🔴 去世地：多伦庄园（荷兰）\n- **时间**：1918年11月流亡至荷兰，1920年起定居于此，直至1941年去世\n- **停留时间**：流亡生涯约23年，其中在多伦约21年\n- **地点**：多伦（今荷兰乌得勒支省多伦）\n- **事件**：流亡于此，过着隐居生活，撰写回忆录，关注德国政局，对纳粹德国初期胜利一度表示欣喜。\n- **意义**：其流亡生涯的终点，直至去世也未能重返德国。\n\n---\n\n## 生平时间线\n| 年份 | 古称 | 现称 | 事件 |\n| --- | --- | --- | --- |\n| 1859 | 柏林 | 德国柏林 | （年龄：0）出生于柏林 |\n| 1877 | 波恩 | 德国波恩 | （年龄：18）进入波恩大学学习 |\n| 1881 |  |  | （年龄：22）与石勒苏益格-荷尔斯泰因的奥古斯塔·维多利亚公主结婚 |\n| 1888 |  |  | （年龄：29）继位为德意志帝国皇帝和普鲁士国王（“三皇之年”） |\n| 1890 |  |  | （年龄：31）迫使宰相俾斯麦辞职，亲掌大权 |\n| 1897 |  |  | （年龄：38）任命提尔皮茨为海军大臣，开始大规模扩建海军 |\n| 1900 |  |  | （年龄：41）镇压义和团运动期间发表“匈奴演说” |\n| 1905 |  |  | （年龄：46）第一次摩洛哥危机，挑战法国在摩洛哥的利益 |\n| 1908 |  |  | （年龄：49）“每日电讯报事件”引发外交风波，损害其威望 |\n| 1911 |  |  | （年龄：52）第二次摩洛哥危机，加剧与法、英的对抗 |\n| 1914 |  |  | （年龄：55）支持奥匈帝国对塞尔维亚宣战，第一次世界大战爆发 |\n| 1918 | 多伦庄园（荷兰） | 荷兰乌得勒支省多伦 | （年龄：59）德国战败，十一月革命爆发，被迫退位并流亡荷兰 |\n| 1941 | 多伦庄园（荷兰） | 荷兰乌得勒支省多伦 | （年龄：82）6月4日，在荷兰多伦去世 |\n\n---\n\n## 人教版教材知识点\n### 语文（课文/词作）\n- 课文/词作：威廉二世并非文学人物，在语文教材中通常不涉及其作品。其形象与言论多出现在**历史**或**世界史**相关课文的背景叙述中。\n- 核心要点：\n    - **重点**：其言论（如“匈奴演说”、“世界政策”）常作为分析**德国军国主义**与**民族主义**情绪的史料案例。\n    - **重点**：在分析**第一次世界大战爆发原因**时，其个人性格、外交决策被视为重要的**偶然性因素**。\n    - **重点**：其形象常与**德皇**、**末代皇帝**等**历史符号**关联，用于理解**帝国主义**阶段的特征。\n    - 其统治时期被视为**德国崛起**与**欧洲国际关系失衡**的关键阶段。\n\n### 历史（史实/人物定位）\n- 关键史实：\n    - **重点**：1888年继位，1890年迫使**俾斯麦**辞职，终结了其主导的**大陆政策**。\n    - **重点**：19世纪90年代末开始推行 **“世界政策”** ，核心是建设强大海军和争夺**殖民地**。\n    - 1905年、1911年先后挑起两次**摩洛哥危机**，加剧与英法的矛盾。\n    - **重点**：1914年7月，给予奥匈帝国 **“空白支票”** 支持，成为**第一次世界大战**爆发的直接诱因之一。\n    - 1918年11月，因德国战败和国内革命被迫**退位**，流亡荷兰。\n- 核心要点：\n    - **重点**：其统治时期是**德国帝国主义**的典型阶段，特点是经济高速发展、政治保守、外交富有侵略性。\n    - **重点**：其 **“新路线”** 和 **“世界政策”** 破坏了俾斯麦建立的欧洲**大陆均势**体系，导致德国陷入**外交孤立**。\n    - **重点**：他与**第一次世界大战**的爆发有直接关联，是理解战争**起源**不可或缺的人物。\n    - 其个人**专断**、**虚荣**的性格特点，对德国内政外交产生了显著负面影响。\n    - 作为**霍亨索伦王朝**的末代君主，其退位标志着德国**君主制**的终结。\n\n---\n\n## 地点坐标\n| 现称 | 纬度 | 经度 | 备注 |\n| --- | --- | --- | --- |\n| 柏林 | 52.5200 | 13.4050 | |\n| 波恩 | 50.7374 | 7.0982 | |\n| 波茨坦 | 52.3906 | 13.0645 | |\n| 夏洛滕堡宫（柏林） | 52.5200 | 13.2950 | 柏林宫殿 |\n| 斯帕（比利时） | 50.4922 | 5.8647 | |\n| 多伦（荷兰） | 52.0116 | 5.1528 | |\n| 威廉港（德国） | 53.5224 | 8.1032 | 重要海军基地，威廉二世时期扩建 |\n| 基尔（德国） | 54.3233 | 10.1228 | 重要海军基地与基尔运河起点 |", "relatedGraph": {"center": {"id": "威廉二世", "name": "威廉二世", "file": "威廉二世.html", "dynasty": "德意志帝国时期（德意志第二帝国）", "aliases": [], "birth_year": 1859, "death_year": 1941, "quote": "每日电讯报事件", "review": "", "foreign_name": "", "main_role_label": "德意志帝国皇帝", "birthplace": "柏林", "birthplace_modern": "德国柏林", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, "nodes": [{"id": "威廉二世", "name": "威廉二世", "file": "威廉二世.html", "dynasty": "德意志帝国时期（德意志第二帝国）", "aliases": [], "birth_year": 1859, "death_year": 1941, "quote": "每日电讯报事件", "review": "", "foreign_name": "", "main_role_label": "德意志帝国皇帝", "birthplace": "柏林", "birthplace_modern": "德国柏林", "domain_tags": [], "has_story": true, "relationLabel": "中心人物", "isCenter": true}, {"id": "威尔逊", "name": "威尔逊", "file": "威尔逊.html", "dynasty": "19世纪末至20世纪初（美国进步时代及一战时期）", "aliases": [], "birth_year": 1856, "death_year": 1924, "quote": "公开的和平条约，公开达成……", "review": "", "foreign_name": "", "main_role_label": "政治家", "birthplace": "斯汤顿", "birthplace_modern": "美国弗吉尼亚州斯汤顿市", "domain_tags": [], "has_story": true, "relationLabel": "同册共现", "sourceType": "same_book", "confidence": 0.15, "isCenter": false}, {"id": "齐世荣", "name": "齐世荣", "file": "齐世荣.html", "dynasty": "现当代", "aliases": [], "birth_year": 1926, "death_year": 2015, "quote": "中国世界史学科的主要奠基人和开拓者之一", "review": "", "foreign_name": "", "main_role_label": "历史学家", "birthplace": "江苏省灌云县板浦镇", "birthplace_modern": "属江苏省连云港市海州区", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄继光", "name": "黄继光", "file": "黄继光.html", "dynasty": "中华人民共和国成立初期，抗美援朝战争时期", "aliases": [], "birth_year": 1931, "death_year": 1952, "quote": "黄继光出生于四川省中江县一个贫苦农民家庭，幼年丧父", "review": "", "foreign_name": "", "main_role_label": "其他", "birthplace": "古称铜山县", "birthplace_modern": "四川省德阳市中江县", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄兴", "name": "黄兴", "file": "黄兴.html", "dynasty": "清末民初", "aliases": [], "birth_year": 1874, "death_year": 1916, "quote": "我未吞胡恢汉业，君先悬首看吴荒", "review": "", "foreign_name": "", "main_role_label": "革命家", "birthplace": "长沙府善化县", "birthplace_modern": "湖南省长沙市", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "黄仁宇", "name": "黄仁宇", "file": "黄仁宇.html", "dynasty": "近现代（20世纪美籍华人历史学家）", "aliases": [], "birth_year": 1918, "death_year": 2000, "quote": "大历史观的倡导者，以技术角度重新解读中国历史。", "review": "", "foreign_name": "", "main_role_label": "美籍华人历史学家", "birthplace": "", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}, {"id": "麦克阿瑟", "name": "麦克阿瑟", "file": "麦克阿瑟.html", "dynasty": "近现代（美国）", "aliases": [], "birth_year": 1880, "death_year": 1964, "quote": "远征军中最引人注目、最勇敢的军官", "review": "", "foreign_name": "Douglas MacArthur", "main_role_label": "军事家", "birthplace": "美国阿肯色州小石城Little Rock", "birthplace_modern": "", "domain_tags": [], "has_story": true, "relationLabel": "同时代人物", "sourceType": "fallback", "confidence": null, "isCenter": false}], "links": [{"source": "威廉二世", "target": "威尔逊", "label": "同册共现", "confidence": 0.15}, {"source": "威廉二世", "target": "齐世荣", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄继光", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄兴", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "黄仁宇", "label": "同时代人物", "confidence": null}, {"source": "威廉二世", "target": "麦克阿瑟", "label": "同时代人物", "confidence": null}]}, "personRedirects": {}, "templateSignature": "af07d1e5421e", "artifactMeta": {"artifact_component": "profile_page", "artifact_version": "3fadda8405a9", "build_version": "3fadda8405a9", "build_at": "2026-06-25T07:13:19Z", "generated_at": "2026-06-25T07:13:19Z", "source_commit": "3fadda8405a93b2b89c0ea585d4f497d6e310a13", "pages_run_id": "", "pages_run_attempt": ""}};
 window.__EXPORT_DATA__ = data;
 const __BUILD_META__ = {
-  version: "7355d343d41b",
-  builtAt: "2026-06-22T11:31:18Z",
-  sourceCommit: "7355d343d41b5ef00151005d8e8fb85b84f6cc27",
+  version: "3fadda8405a9",
+  builtAt: "2026-06-25T07:13:19Z",
+  sourceCommit: "3fadda8405a93b2b89c0ea585d4f497d6e310a13",
   component: "profile_page"
 };
 window.__BUILD_META__ = __BUILD_META__;
@@ -2939,8 +2945,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -5002,6 +5014,20 @@ const App = () => {
       pulse: true
     });
   };
+  const handleTimelineNavKeyDown = useCallback(event => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = raw => {
     if (typeof raw === 'boolean') {
       return {
@@ -8141,6 +8167,13 @@ const App = () => {
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = rawChunk => {
@@ -8184,6 +8217,9 @@ const App = () => {
   } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -8200,7 +8236,7 @@ const App = () => {
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try {
@@ -8218,6 +8254,11 @@ const App = () => {
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -8234,8 +8275,23 @@ const App = () => {
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -8307,6 +8363,15 @@ const App = () => {
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -8437,6 +8502,11 @@ const App = () => {
         streaming: false
       } : item));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -8477,6 +8547,11 @@ const App = () => {
           streaming: false
         } : item));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -8646,25 +8721,29 @@ const App = () => {
   }, "km")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end"
   }, React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex - 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0A\u4E00\u4E8B\u4EF6",
     title: "\u4E0A\u4E00\u4E8B\u4EF6",
     disabled: activeIndex === 0,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2190"), React.createElement("span", {
     className: "text-[var(--color-text-secondary)]"
   }, selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : '', totalEvents ? activeIndex + 1 : 0, " / ", totalEvents), React.createElement("button", {
+    type: "button",
     onClick: () => {
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
     },
+    onKeyDown: handleTimelineNavKeyDown,
     "aria-label": "\u4E0B\u4E00\u4E8B\u4EF6",
     title: "\u4E0B\u4E00\u4E8B\u4EF6",
     disabled: activeIndex + 1 >= totalEvents,
-    className: "theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+    className: "timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
   }, "\u2192")))), React.createElement("div", {
     className: "flex-1 overflow-y-auto custom-scrollbar p-4"
   }, locations.length ? React.createElement("div", {

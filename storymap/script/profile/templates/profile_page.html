@@ -1263,6 +1263,11 @@ body {
   border-color: color-mix(in srgb, var(--graph-accent) 36%, rgba(255,255,255,0.22));
   outline: none;
 }
+.timeline-nav-button:focus-visible {
+  outline: 2px solid rgba(66, 133, 244, 0.92);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.18);
+}
 .related-graph-entry.is-left {
   flex-direction: row-reverse;
   text-align: right;
@@ -1713,7 +1718,7 @@ body {
       })();
     </script>
     <script type="text/babel" data-presets="env,react">
-      const { useState, useEffect, useRef, useMemo } = React;
+      const { useState, useEffect, useRef, useMemo, useCallback } = React;
       const data = __DATA__;
       window.__EXPORT_DATA__ = data;
       const __BUILD_META__ = {
@@ -2453,8 +2458,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -4404,6 +4415,20 @@ const LIFE_GRADIENT_END = '#5D4037';
     setSelectedLoc(nextLoc);
     applySelectionToMap(nextIndex, nextLoc, { pulse: true });
   };
+  const handleTimelineNavKeyDown = useCallback((event) => {
+    if (!event) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(activeIndex + 1);
+    }
+  }, [activeIndex, changeEvent]);
   const normalizeFocusOptions = (raw) => {
     if (typeof raw === 'boolean') {
       return { pulse: raw, strict: false };
@@ -7477,6 +7502,13 @@ const LIFE_GRADIENT_END = '#5D4037';
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = (rawChunk) => {
@@ -7517,6 +7549,9 @@ const LIFE_GRADIENT_END = '#5D4037';
   const _postChat = async (messages, { onDelta, signal } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -7531,7 +7566,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try { controller.abort(); } catch (_) {}
@@ -7547,6 +7582,11 @@ const LIFE_GRADIENT_END = '#5D4037';
       try {
         startIdleWatch();
         const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
@@ -7563,8 +7603,23 @@ const LIFE_GRADIENT_END = '#5D4037';
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -7627,6 +7682,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -7737,6 +7801,11 @@ const LIFE_GRADIENT_END = '#5D4037';
           : item
       )));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -7776,6 +7845,11 @@ const LIFE_GRADIENT_END = '#5D4037';
             : item
         )));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -7955,28 +8029,32 @@ const LIFE_GRADIENT_END = '#5D4037';
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)] lg:justify-end">
                     <button
+                      type="button"
                       onClick={() => {
                         setIsAutoPlaying(false);
                         changeEvent(activeIndex - 1);
                       }}
+                      onKeyDown={handleTimelineNavKeyDown}
                       aria-label="上一事件"
                       title="上一事件"
                       disabled={activeIndex === 0}
-                      className="theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+                      className="timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
                     >←</button>
                     <span className="text-[var(--color-text-secondary)]">
                       {selectedLoc ? (getAgeText(selectedLoc) || '年龄待考') + ' · ' : ''}
                       {totalEvents ? activeIndex + 1 : 0} / {totalEvents}
                     </span>
                     <button
+                      type="button"
                       onClick={() => {
                         setIsAutoPlaying(false);
                         changeEvent(activeIndex + 1);
                       }}
+                      onKeyDown={handleTimelineNavKeyDown}
                       aria-label="下一事件"
                       title="下一事件"
                       disabled={activeIndex + 1 >= totalEvents}
-                      className="theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
+                      className="timeline-nav-button theme-button-secondary px-2.5 py-1 rounded-lg text-[var(--color-text-secondary)] disabled:opacity-40"
                     >→</button>
                   </div>
                 </div>
