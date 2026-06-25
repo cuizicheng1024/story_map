@@ -120,6 +120,7 @@ def _get_work_summary_item(title: str) -> Dict[str, object]:
 def _collect_profile_work_summaries(
     *,
     normalized_md: str,
+    person_name: str,
     highlight_works: List[str],
     locations: List[Dict[str, object]],
 ) -> Dict[str, Dict[str, object]]:
@@ -128,9 +129,12 @@ def _collect_profile_work_summaries(
         highlight_works,
         [str(work or "").strip() for loc in locations for work in (loc.get("works") or [])],
     )
+    titles = _sanitize_person_works(person_name, titles)
     out: Dict[str, Dict[str, object]] = {}
     for raw_title in titles:
         item = _get_work_summary_item(raw_title)
+        key = str((item or {}).get("title") or raw_title or "").strip()
+        item = _apply_person_work_summary_override(person_name, key or raw_title, item)
         if not item:
             continue
         key = str(item.get("title") or raw_title or "").strip()
@@ -181,6 +185,176 @@ def _sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str
 
 def _work_title_aliases(title: str) -> List[str]:
     return profile_text_utils.work_title_aliases(title)
+
+
+_PERSON_WORK_EXCLUSIONS = {
+    "关羽": {"三国演义"},
+    "诸葛亮": {"三国演义"},
+    "班固": {"史记"},
+    "纪昀": {"聊斋志异"},
+    "董仲舒": {"春秋"},
+    "孟子": {"诗", "书", "诗经", "书经"},
+    "孟子，名轲": {"诗", "书", "诗经", "书经"},
+    "周敦颐": {"周易"},
+    "陈寿": {"三国志"},
+    "郦道元": {"水经"},
+    "闻一多": {"周易", "诗经", "庄子", "楚辞"},
+    "张思德": {"为人民服务"},
+    "严复": {"国闻报"},
+    "列宁": {"火星报"},
+    "弗拉基米尔·列宁": {"火星报"},
+    "弗拉基米尔·伊里奇·乌里扬诺夫": {"火星报"},
+    "袁鹰": {"人民日报"},
+    "陆定一": {"红星", "解放日报"},
+    "康有为": {"马关条约"},
+    "希特勒": {"凡尔赛条约"},
+    "阿道夫·希特勒": {"凡尔赛条约"},
+    "刘少奇": {"中国土地法大纲", "土地改革法", "中华人民共和国土地改革法"},
+    "华盛顿": {"美利坚合众国宪法", "美国宪法"},
+    "乔治·华盛顿": {"美利坚合众国宪法", "美国宪法"},
+    "马丁·路德": {"圣经"},
+    "李世民": {"氏族志", "贞观律"},
+    "利玛窦": {"几何原本"},
+    "大卫·劳合·乔治": {"凡尔赛和约", "国民保险法", "人民代表法"},
+    "劳合·乔治": {"凡尔赛和约", "国民保险法", "人民代表法"},
+    "姚鼐": {"四库全书"},
+    "孔丘": {"论语"},
+    "孔子": {"论语"},
+    "叶圣陶": {"小说月报"},
+    "玄奘": {"大般若经", "瑜伽师地论"},
+    "杜牧": {"孙子兵法"},
+    "康熙": {"古今图书集成", "康熙字典", "尼布楚条约"},
+    "康熙帝": {"古今图书集成", "康熙字典", "尼布楚条约"},
+    "爱新觉罗·玄烨": {"古今图书集成", "康熙字典", "尼布楚条约"},
+    "江竹筠": {"挺进报", "红岩"},
+    "瞿秋白": {"晨报"},
+    "陈独秀": {"新青年"},
+    "陈韪": {"三国志"},
+    "贾宪": {"九章算术"},
+    "陈伯达": {"红旗"},
+    "阿沛·阿旺晋美": {"十七条协议", "关于和平解放西藏办法的协议"},
+    "崔融": {"三教珠英"},
+    "卓文君": {"白头吟"},
+    "孙膑": {"史记", "齐孙子"},
+    "蔡文姬": {"胡笳十八拍"},
+    "姚文元": {"海瑞罢官"},
+}
+
+
+_PERSON_PREFERRED_WORKS = {
+    "列宁": ["帝国主义是资本主义的最高阶段", "国家与革命"],
+    "弗拉基米尔·伊里奇·乌里扬诺夫": ["帝国主义是资本主义的最高阶段", "国家与革命"],
+    "刘少奇": ["论共产党员的修养"],
+    "希特勒": ["我的奋斗"],
+    "阿道夫·希特勒": ["我的奋斗"],
+    "康有为": ["新学伪经考", "孔子改制考", "大同书"],
+    "瞿秋白": ["赤都心史", "饿乡纪程"],
+    "陈独秀": ["敬告青年"],
+    "孙膑": ["孙膑兵法"],
+}
+
+
+_PERSON_ACHIEVEMENT_REPLACEMENTS = {
+    "方志敏": {
+        "创立中国工农红军第十军团": "创建中国工农红军第十军，并在红十军团成立后担任重要领导职务",
+    },
+    "常遇春": {
+        "鄱阳湖之战俘获陈友谅": "鄱阳湖之战重创陈友谅部，陈友谅最终败亡",
+    },
+}
+
+
+_PERSON_SUMMARY_OVERRIDES = {
+    "孙膑": {
+        "spotlight": "战国时期齐国军事家，因桂陵、马陵之战而名扬后世。",
+        "intro": "战国时期齐国军事家，因桂陵、马陵之战而名扬后世。",
+        "short_review": "辅佐田忌，策划桂陵、马陵之战，是中国古代兵家思想的重要代表人物之一。",
+        "status": "战国时期著名军事家，因桂陵、马陵之战而名扬后世，是中国古代兵家思想的重要代表人物之一。",
+        "identities": "军事家、兵家代表人物、齐国军师",
+        "achievements": "辅佐田忌，策划桂陵之战大败魏军；在马陵之战中以减灶之计诱敌深入，重创魏军；相传著有《孙膑兵法》，承继并发展孙武军事思想。",
+        "works": ["孙膑兵法"],
+    },
+    "蔡文姬": {
+        "short_review": "创作《悲愤诗》二首，为中国早期文人五言、骚体长篇叙事诗代表作。",
+        "achievements": "继承家学，博通经史音律，长于诗文、书法与琴艺；创作《悲愤诗》二首，为中国早期文人五言、骚体长篇叙事诗代表作；《胡笳十八拍》历来多附会于蔡文姬名下，作者归属存疑；默写其父蔡邕所藏典籍四百余篇，为保存汉代文献做出贡献",
+        "works": ["悲愤诗"],
+    },
+}
+
+
+_PERSON_WORK_SUMMARY_OVERRIDES = {
+    ("孙膑", "孙膑兵法"): {
+        "title": "孙膑兵法",
+        "authors": ["孙膑"],
+        "related_people": ["孙膑"],
+        "source_pages": ["孙膑"],
+        "era": "战国",
+        "genre": "兵书",
+        "one_liner": "相传为孙膑所撰或整理的兵书，继承并发展了先秦兵家思想。",
+        "summary": "相传为孙膑所撰或整理的兵书，继承并发展了先秦兵家思想。",
+        "quote": "今本《孙膑兵法》系银雀山汉墓竹简出土后重见天日，其具体成书情况与作者归属仍有讨论。",
+        "quotes": [
+            "今本《孙膑兵法》系银雀山汉墓竹简出土后重见天日，其具体成书情况与作者归属仍有讨论。"
+        ],
+        "quote_policy": "preferred",
+    },
+    ("蔡文姬", "悲愤诗"): {
+        "title": "悲愤诗",
+        "authors": ["蔡文姬"],
+        "related_people": ["蔡文姬"],
+        "source_pages": ["蔡文姬"],
+        "era": "东汉末年",
+        "genre": "诗",
+        "one_liner": "现存较能确定归于蔡文姬名下的代表作品，为中国早期文人叙事诗的重要篇章。",
+        "summary": "现存较能确定归于蔡文姬名下的代表作品，为中国早期文人叙事诗的重要篇章。",
+        "quote": "现存较能确定归于她名下的作品主要是《悲愤诗》二首。",
+        "quotes": ["现存较能确定归于她名下的作品主要是《悲愤诗》二首。"],
+        "quote_policy": "preferred",
+    },
+}
+
+
+def _filter_person_works(person_name: str, works: List[str]) -> List[str]:
+    exclusions = _PERSON_WORK_EXCLUSIONS.get(str(person_name or "").strip(), set())
+    if not exclusions:
+        return works
+    return [title for title in works if str(title or "").strip() not in exclusions]
+
+
+def _sanitize_person_works(person_name: str, works: List[str]) -> List[str]:
+    name = str(person_name or "").strip()
+    filtered = _filter_person_works(name, list(works or []))
+    preferred = _PERSON_PREFERRED_WORKS.get(name) or []
+    return _merge_unique_strings(filtered, preferred)
+
+
+def _normalize_person_achievements(person_name: str, achievements: str) -> str:
+    text = str(achievements or "").strip()
+    replacements = _PERSON_ACHIEVEMENT_REPLACEMENTS.get(str(person_name or "").strip()) or {}
+    for source, target in replacements.items():
+        if source:
+            text = text.replace(source, target)
+    return text
+
+
+def _merge_person_summary_overrides(person_name: str, summary: Dict[str, object]) -> Dict[str, object]:
+    merged = dict(summary or {})
+    overrides = _PERSON_SUMMARY_OVERRIDES.get(str(person_name or "").strip()) or {}
+    if overrides:
+        merged.update(overrides)
+    return merged
+
+
+def _apply_person_work_summary_override(
+    person_name: str,
+    title: str,
+    item: Dict[str, object],
+) -> Dict[str, object]:
+    merged = dict(item or {})
+    overrides = _PERSON_WORK_SUMMARY_OVERRIDES.get((str(person_name or "").strip(), str(title or "").strip())) or {}
+    if overrides:
+        merged.update(overrides)
+    return merged
 
 
 def extract_work_texts(md: str) -> Dict[str, str]:
@@ -389,9 +563,10 @@ def build_profile_data(
         if not info and not locations:
             return None
     fallback_person = str(fallback_person or "").strip()
-    name_raw = info.get("姓名", "") or fallback_person
-    name = name_raw.split("（", 1)[0].strip() or name_raw.strip()
-    summary = _get_person_summary_item(name)
+    name_raw = str(info.get("姓名", "") or fallback_person).strip()
+    canonical_name = name_raw.split("（", 1)[0].strip() or name_raw
+    name = name_raw or canonical_name
+    summary = _merge_person_summary_overrides(canonical_name, _get_person_summary_item(canonical_name))
     title = (
         str(summary.get("title") or summary.get("honor") or "").strip()
         or extract_title_from_text(info.get("历史地位", ""))
@@ -403,6 +578,7 @@ def build_profile_data(
         description = "；".join([t for t in [info.get("历史地位", ""), info.get("主要成就", "")] if t])
     description = re.sub(r"-{3,}$", "", description).strip()
     works = extract_works(" ".join([description, info.get("主要成就", ""), info.get("历史地位", "")]))
+    works = _sanitize_person_works(canonical_name, works)
     work_texts = extract_work_texts(normalized_md)
     short_review = choose_short_review(
         info=info,
@@ -462,7 +638,7 @@ def build_profile_data(
         if loc_items:
             locations = loc_items
 
-    person_key = name or fallback_person
+    person_key = canonical_name or fallback_person
     if person_key in {"徐霞客", "徐弘祖"} or "徐霞客" in name_raw:
         existing_keys = set()
         for loc in locations:
@@ -548,8 +724,11 @@ def build_profile_data(
     dynasty = (info.get("时代", "") or info.get("朝代", "")).strip()
     highlight_status = str(summary.get("status") or info.get("历史地位", "") or "").strip()
     highlight_identities = str(summary.get("identities") or info.get("主要身份", "") or "").strip()
-    highlight_achievements = str(summary.get("achievements") or info.get("主要成就", "") or "").strip()
-    highlight_works = _merge_unique_strings(summary.get("works") or [], works)
+    highlight_achievements = _normalize_person_achievements(
+        canonical_name,
+        str(summary.get("achievements") or info.get("主要成就", "") or "").strip(),
+    )
+    highlight_works = _sanitize_person_works(canonical_name, _merge_unique_strings(summary.get("works") or [], works))
     summary_reviews = summary.get("reviews")
     if not isinstance(summary_reviews, list):
         summary_reviews = []
@@ -634,6 +813,7 @@ def build_profile_data(
     loc_items = _sort_profile_locations(loc_items)
     work_summaries = _collect_profile_work_summaries(
         normalized_md=normalized_md,
+        person_name=canonical_name,
         highlight_works=highlight_works,
         locations=loc_items,
     )

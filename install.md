@@ -60,6 +60,10 @@ AMAP_KEY=你的高德 JS Key
 AMAP_SECURITY=你的高德安全密钥
 MAP_STORY_API_BASE=http://127.0.0.1:8765
 AMAP_WEBSERVICE_KEY=你的高德 WebService Key
+MAP_STORY_GA_MEASUREMENT_ID=你的 GA Measurement ID
+MAP_STORY_VOLCENGINE_APM_AID=1002542
+MAP_STORY_VOLCENGINE_APM_TOKEN=你的火山引擎 APM Token
+MAP_STORY_VOLCENGINE_APM_ENV=prod
 
 LLM_PROVIDER=minimax
 LLM_API_KEY=你的大模型 Key
@@ -73,6 +77,10 @@ LLM_MODEL_ID=MiniMax-M3
 - `AMAP_SECURITY`：高德安全密钥，配合前端地图加载
 - `AMAP_WEBSERVICE_KEY`：用于在线地理编码补点
 - `MAP_STORY_API_BASE`：静态站接回外部 FastAPI 时使用；本地开发通常写 `http://127.0.0.1:8765`
+- `MAP_STORY_GA_MEASUREMENT_ID`：Google Analytics 测量 ID
+- `MAP_STORY_VOLCENGINE_APM_AID`：火山引擎 APM AppID，当前项目默认使用 `1002542`
+- `MAP_STORY_VOLCENGINE_APM_TOKEN`：火山引擎 APM Token，配置后会自动注入首页和人物页埋点
+- `MAP_STORY_VOLCENGINE_APM_ENV`：火山引擎 APM 环境标识，建议区分 `prod` / `staging`
 - `LLM_PROVIDER`：当前推荐使用 `minimax`
 - `LLM_API_KEY`：用于人物对话与新人物实时生成
 - `LLM_BASE_URL`：默认推荐使用 OpenAI 兼容地址 `https://api.minimaxi.com/v1`
@@ -367,6 +375,49 @@ opendeploy context save \
 
 - OpenDeploy 的完整排障与踩坑记录见：
   - `docs/opendeploy_deployment_notes.md`
+
+## Git Push 自动部署
+
+仓库已补充自动部署 workflow：
+
+- `.github/workflows/deploy-runtime.yml`
+
+触发方式：
+
+- `main` 分支上的 `Python CI` 成功后自动触发
+- 或者在 GitHub Actions 中手动执行 `Deploy Runtime`
+
+执行内容：
+
+- `deploy-volc`：调用 `scripts/quick_deploy_storymap.sh --target volc --verify-public`
+- `deploy-opendeploy`：调用 `scripts/quick_deploy_storymap.sh --target opendeploy`
+
+需要配置的 GitHub secrets / vars：
+
+- `secrets.STORYMAP_DEPLOY_KEY`：火山云 ECS 的 SSH 私钥
+- `secrets.STORYMAP_DEPLOY_HOST`：火山云主机地址
+- `secrets.STORYMAP_DEPLOY_USER`：SSH 用户
+- `secrets.STORYMAP_DEPLOY_PORT`：SSH 端口，可选
+- `secrets.STORYMAP_DEPLOY_APP_DIR`：远端部署目录，可选
+- `secrets.STORYMAP_DEPLOY_SERVICE`：远端 systemd 服务名，可选
+- `secrets.MAP_STORY_VOLCENGINE_APM_TOKEN`：火山引擎 APM Token
+- `secrets.OPENDEPLOY_HOME_TGZ_BASE64`：本机 `~/.opendeploy` 目录打包后的 base64 内容
+- `vars.OPENDEPLOY_REGION_ID`：OpenDeploy region id，可选
+- `vars.STORYMAP_DEPLOY_HEALTHCHECK_URL`：火山云机内健康检查地址，可选
+- `vars.STORYMAP_DEPLOY_PUBLIC_BASE_URL`：火山云公网地址，可选
+- `vars.MAP_STORY_VOLCENGINE_APM_AID`：默认填 `1002542`
+- `vars.MAP_STORY_VOLCENGINE_APM_ENV`：建议填 `prod`
+
+生成 `OPENDEPLOY_HOME_TGZ_BASE64` 的一种方式：
+
+```bash
+tar -czf - ~/.opendeploy | base64
+```
+
+说明：
+
+- 如果某一端缺少对应 secret，那个 job 会自动跳过，不会影响另一端
+- 自动发布和本地快发共用 `scripts/quick_deploy_storymap.sh`
 
 ## 回滚与验收
 

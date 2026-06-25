@@ -7,6 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..core.analytics import analytics_head_html
 from ..core.build_meta import build_artifact_meta
 from ..core.env_utils import apply_story_map_env_aliases, env_flag
 from ..core.person_registry import person_redirects
@@ -172,22 +173,6 @@ def _runtime_api_base_env() -> str:
     if "legacy.example" in api_base.lower():
         return ""
     return api_base
-
-
-def _analytics_head_html() -> str:
-    measurement_id = _first_env("MAP_STORY_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID")
-    if not measurement_id:
-        return ""
-    quoted_id = json.dumps(measurement_id, ensure_ascii=False)
-    return (
-        f'<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>'
-        "<script>"
-        "window.dataLayer=window.dataLayer||[];"
-        "function gtag(){dataLayer.push(arguments);}"
-        "gtag('js', new Date());"
-        f"gtag('config', {quoted_id});"
-        "</script>"
-    )
 
 
 def _runtime_page_config_html() -> str:
@@ -620,7 +605,7 @@ def render_profile_html(data: Dict[str, object]) -> str:
     runtime_config = _runtime_page_config_html()
     site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html() + _profile_map_bootstrap_html()
-    analytics_head = _analytics_head_html()
+    analytics_head = analytics_head_html(page_type="profile", page_name=str(name or ""))
     return _render_html_template(
         _compiled_profile_template(),
         title=title,
@@ -638,7 +623,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
     runtime_config = _runtime_page_config_html()
     site_mode_notice = _site_mode_notice_html()
     amap_bootstrap = _amap_bootstrap_html()
-    analytics_head = _analytics_head_html()
+    analytics_head = analytics_head_html(page_type="multi_profile", page_name=str(title or ""))
     html = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -755,7 +740,7 @@ def render_amap_html(title: str, points: List[Dict[str, object]], info_panel_htm
     pts_json = json.dumps(points, ensure_ascii=False)
     runtime_config = _runtime_page_config_html()
     amap_bootstrap = _amap_bootstrap_html()
-    analytics_head = _analytics_head_html()
+    analytics_head = analytics_head_html(page_type="amap_profile", page_name=str(title or ""))
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>

@@ -81,6 +81,18 @@ class StaticService:
             return "image/svg+xml"
         return "application/octet-stream"
 
+    def _response_headers_for_path(self, path: str) -> Dict[str, str]:
+        lower = str(path or "").lower()
+        if lower.endswith(".html"):
+            # Generated HTML changes frequently during hotfixes; prevent browsers
+            # from pinning stale人物页 after redeploys.
+            return {
+                "Cache-Control": "no-store, max-age=0, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        return {}
+
     def _resolve_target_in_root(self, static_root: Path, rel: str) -> Optional[Path]:
         target = (static_root / rel).resolve()
         try:
@@ -115,7 +127,11 @@ class StaticService:
             raise HTTPException(status_code=404, detail="not found")
         local_target = self._local_vendor_target(safe_name)
         if local_target is not None:
-            return FileResponse(path=local_target, media_type=self.guess_content_type(local_target.name))
+            return FileResponse(
+                path=local_target,
+                media_type=self.guess_content_type(local_target.name),
+                headers=self._response_headers_for_path(local_target.name),
+            )
         with self._vendor_lock:
             cached = self._vendor_cache.get(safe_name)
         if cached:
@@ -136,7 +152,11 @@ class StaticService:
         target = self.static_target_path(parsed_path)
         if target is None:
             raise HTTPException(status_code=404, detail="not found")
-        return FileResponse(path=target, media_type=self.guess_content_type(target.name))
+        return FileResponse(
+            path=target,
+            media_type=self.guess_content_type(target.name),
+            headers=self._response_headers_for_path(target.name),
+        )
 
     def debug_static_payload(self) -> Dict[str, object]:
         static_dir = self._active_story_map_dir()

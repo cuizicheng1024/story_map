@@ -138,14 +138,10 @@ def _build_home_graph_file_fallback() -> Dict[str, Any]:
             weight = int(item.get("weight") or 0)
         except Exception:
             weight = 0
-        if edge_type not in {"manual", "same_book"} or weight < 2:
+        if edge_type != "manual" or weight < 2:
             continue
-        if edge_type == "manual":
-            label = "人工关系"
-            confidence = 0.9
-        else:
-            label = "同册共现"
-            confidence = max(0.15, min(0.60, 0.15 + 0.07 * max(0, weight - 2)))
+        label = "人工关系"
+        confidence = 0.9
         edges.append(
             {
                 "a": a,
@@ -286,6 +282,38 @@ def _pick_year_range(person: Dict[str, Any], node: Optional[Dict[str, Any]] = No
         if life_years and 0 < life_years < 130:
             death = birth + life_years
     return birth, death
+
+
+def _pick_display_year_range(person: Dict[str, Any], node: Optional[Dict[str, Any]] = None) -> Tuple[Optional[int], Optional[int]]:
+    node = node or {}
+    birth = _coerce_int(((person.get("birth") or {}) if isinstance(person.get("birth"), dict) else {}).get("date"))
+    death = _coerce_int(((person.get("death") or {}) if isinstance(person.get("death"), dict) else {}).get("date"))
+    if birth is None:
+        birth = _coerce_int(node.get("birth_year"))
+    if death is None:
+        death = _coerce_int(node.get("death_year"))
+    return birth, death
+
+
+def _is_invalid_graph_text(value: Any) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return True
+    if text in {"{", "}", "summary"}:
+        return True
+    if re.fullmatch(r"[-_*:\s]+", text):
+        return True
+    if text.startswith("- **") or text.startswith("### "):
+        return True
+    return False
+
+
+def _choose_graph_text(primary: Any, fallback: Any = "") -> str:
+    if not _is_invalid_graph_text(primary):
+        return str(primary or "").strip()
+    if not _is_invalid_graph_text(fallback):
+        return str(fallback or "").strip()
+    return ""
 
 
 def _collect_node_aliases(node: Dict[str, Any]) -> List[str]:
@@ -1049,7 +1077,6 @@ def get_related_people_graph_from_payload(
         if canonical_name:
             seen_canonical_names.add(canonical_name)
 
-    deferred_same_book_edges: List[Tuple[int, Dict[str, Any]]] = []
     if current_idx is not None:
         explicit_edges = sorted(
             adjacency.get(current_idx, []),
@@ -1069,7 +1096,6 @@ def get_related_people_graph_from_payload(
             except Exception:
                 confidence = None
             if edge_type == "same_book":
-                deferred_same_book_edges.append((other_idx, edge))
                 continue
             base_score = 100.0
             if edge_type == "manual":
@@ -1086,23 +1112,6 @@ def get_related_people_graph_from_payload(
     if len(selected) < limit:
         for score, label, node, confidence in _extract_markdown_relation_candidates(markdown, alias_to_idx, nodes, current_aliases):
             add_candidate(node, label, score, "markdown", confidence)
-            if len(selected) >= limit:
-                break
-
-    if current_idx is not None and len(selected) < limit:
-        for other_idx, edge in deferred_same_book_edges:
-            other = nodes[other_idx]
-            label = str(edge.get("label") or "相关人物").strip() or "相关人物"
-            try:
-                confidence = float(edge.get("confidence"))
-            except Exception:
-                confidence = None
-            score = 78.0 + (confidence or 0.0) * 10.0
-            try:
-                score += float(edge.get("weight") or 0)
-            except Exception:
-                pass
-            add_candidate(other, label, score, "same_book", confidence)
             if len(selected) >= limit:
                 break
 
@@ -1163,20 +1172,21 @@ def get_related_people_graph_from_payload(
         item.pop("_score", None)
 
     center_file = str(current_node.get("file") or f"{display_name}.html").strip()
+    center_birth, center_death = _pick_display_year_range(person, current_node)
     center = {
         "id": display_name,
         "name": display_name,
         "file": center_file,
         "dynasty": current_dynasty,
         "aliases": [x for x in _collect_node_aliases(current_node) if str(x or "").strip() and str(x).strip() != display_name][:4],
-        "birth_year": current_birth,
-        "death_year": current_death,
-        "quote": str(current_node.get("quote") or person.get("quote") or "").strip(),
-        "review": str(current_node.get("review") or person.get("shortReview") or "").strip(),
+        "birth_year": center_birth,
+        "death_year": center_death,
+        "quote": _choose_graph_text(current_node.get("quote"), person.get("quote")),
+        "review": _choose_graph_text(current_node.get("review"), person.get("shortReview")),
         "foreign_name": str(current_node.get("foreign_name") or "").strip(),
         "main_role_label": str(current_node.get("main_role_label") or person.get("title") or "").strip(),
-        "birthplace": str(current_node.get("birthplace") or person.get("birthplace") or "").strip(),
-        "birthplace_modern": str(current_node.get("birthplace_modern") or "").strip(),
+        "birthplace": _choose_graph_text(current_node.get("birthplace"), person.get("birthplace")),
+        "birthplace_modern": _choose_graph_text(current_node.get("birthplace_modern")),
         "domain_tags": [str(x).strip() for x in (current_node.get("domain_tags") if isinstance(current_node.get("domain_tags"), list) else []) if str(x).strip()][:4],
         "has_story": bool(current_node.get("has_story", True)),
         "relationLabel": "中心人物",

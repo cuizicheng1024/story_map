@@ -867,25 +867,108 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert 'className="journey-map-column relative flex-1 min-w-0"' in html
     assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
     assert 'className="flex min-h-full flex-col justify-end gap-3"' in html
+
+
+def test_load_profile_applies_sunbin_summary_and_work_summary_overrides():
+    md = (REPO_ROOT / "storymap" / "examples" / "story" / "孙膑.md").read_text(encoding="utf-8")
+
+    profile = story_map.load_profile_from_md(md, allow_geocode=False)
+    work_summary = (profile.get("workSummaries") or {}).get("孙膑兵法") or {}
+
+    assert "桂陵" in str(profile["person"].get("shortReview") or "")
+    assert profile["person"]["highlights"]["works"] == ["孙膑兵法"]
+    assert "summary”" not in str(work_summary.get("summary") or "")
+    assert "银雀山汉墓竹简" in str(work_summary.get("quote") or "")
+
+
+def test_load_profile_applies_caiwenji_work_and_achievement_overrides():
+    md = (REPO_ROOT / "storymap" / "examples" / "story" / "蔡文姬.md").read_text(encoding="utf-8")
+
+    profile = story_map.load_profile_from_md(md, allow_geocode=False)
+    work_summary = (profile.get("workSummaries") or {}).get("悲愤诗") or {}
+
+    assert profile["person"]["highlights"]["works"] == ["悲愤诗"]
+    assert "作者归属存疑" in str(profile["person"]["highlights"].get("achievements") or "")
+    assert "胡笳十八拍" not in str(work_summary.get("quote") or "")
+
+
+def test_related_people_graph_cleans_invalid_center_fields_from_shared_payload(monkeypatch):
+    renderer._load_stellar_home_data.cache_clear()
+    renderer.invalidate_graph_service_cache()
+    payload = {
+        "nodes": [
+            {
+                "person": "孙膑",
+                "file": "孙膑.html",
+                "dynasty": "战国",
+                "time_year": -348,
+                "quote": "{",
+                "review": "",
+                "birthplace": "- **去世**：",
+                "birthplace_modern": "",
+                "main_role_label": "军事家",
+            },
+            {
+                "person": "田忌",
+                "file": "田忌.html",
+                "dynasty": "战国",
+                "birth_year": -380,
+                "death_year": -320,
+            },
+        ],
+        "edges": [{"a": 0, "b": 1, "type": "bio", "label": "君臣", "confidence": 0.88}],
+    }
+    monkeypatch.setattr(renderer, "get_related_people_graph", lambda person, markdown="", limit=6: {})
+    monkeypatch.setattr(renderer, "load_home_graph_payload", lambda _path=None: payload)
+
+    html = render_profile_html(
+        {
+            "person": {
+                "name": "孙膑",
+                "dynasty": "战国",
+                "quote": "辅佐田忌，策划桂陵、马陵之战。",
+                "shortReview": "辅佐田忌，策划桂陵、马陵之战。",
+                "birthplace": "",
+                "birth": {"date": "", "location": ""},
+                "death": {"date": "", "location": ""},
+            },
+            "locations": [],
+            "highlights": {},
+            "markdown": "# 孙膑\n\n辅佐田忌，策划桂陵、马陵之战。",
+        }
+    )
+
+    center = ((_extract_export_data_from_html(html).get("relatedGraph") or {}).get("center") or {})
+
+    assert center.get("birth_year") is None
+    assert center.get("birthplace") == ""
+    assert center.get("quote") == "辅佐田忌，策划桂陵、马陵之战。"
     assert "draggingRef.current = 'horizontal';" in html
     assert "draggingRef.current = 'vertical';" in html
 
 
-def test_profile_page_template_defers_map_init_until_viewport_or_manual_trigger():
+def test_profile_page_template_boots_map_eagerly_and_supports_segment_animation():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "const [mapLoadState, setMapLoadState] = useState('idle');" in html
     assert "const [mapInitRequestTick, setMapInitRequestTick] = useState(0);" in html
     assert "const requestMapInitialization = React.useCallback((reason = 'manual') => {" in html
-    assert "new window.IntersectionObserver((entries) => {" in html
-    assert "requestMapInitialization('viewport');" in html
-    assert "requestMapInitialization('fallback');" in html
+    assert "requestMapInitialization('boot');" in html
+    assert "new window.IntersectionObserver((entries) => {" not in html
+    assert "requestMapInitialization('viewport');" not in html
+    assert "requestMapInitialization('fallback');" not in html
     assert "if (mapInitRequestTick <= 0 || mapRef.current) return () => { disposed = true; };" in html
     assert "data-testid=\"profile-map-lazy-overlay\"" in html
-    assert "地图进入视口后也会自动加载" in html
+    assert "const mapLazyTitle = mapLoading ? '地图正在展开'" in html
+    assert "正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。" in html
+    assert "地图已完成初始化。" in html
     assert "onClick={() => requestMapInitialization('manual')}" in html
     assert "{mapReady ? (" in html
     assert "{mapReady && mapStatusNotice ? (" in html
+    assert "function buildPartialSegmentPath(path, progress) {" in html
+    assert "function getSegmentFollowCenter(path, progress) {" in html
+    assert "const startSegmentTransition = React.useCallback((fromIdx, toIdx) => {" in html
+    assert "followSegmentProgress: (segmentIdx, progress) => {" in html
 
 
 def test_profile_page_template_prefers_geovis_without_vector_probe_preflight():
@@ -942,12 +1025,11 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert "const getCanonicalPersonName = (name) => {" in html
     assert "const redirects = data?.personRedirects && typeof data.personRedirects === 'object' ? data.personRedirects : {};" in html
     assert "const getPersonAliasList = (personName, aliases = []) => {" in html
-    assert "const isSameBookGraphRelation = (node) => {" in html
-    assert "sourceType === 'same_book' || /同册共现/.test(relationLabel)" in html
     assert "const RELATED_GRAPH_CENTER_COPY = '人物生平\\n传记与足迹';" in html
     assert "const relatedGraphColumns = useMemo(() => {" in html
     assert "const payload = { ...node, isLeft: idx % 2 === 0 };" in html
     assert "const getRelatedGraphNodeMeta = (node) => {" in html
+    assert "const relationText = /(同时代人物|相关人物)/.test(relation) ? '' : relation;" in html
     assert ".related-graph-core {" in html
     assert ".related-graph-core-dot {" in html
     assert ".related-graph-board {" in html
@@ -957,7 +1039,8 @@ def test_profile_page_template_simplifies_related_graph_and_merges_su_shi_alias(
     assert ".related-graph-entry-meta {" in html
     assert "人物关系一览，点击人物名跳转" in html
     assert "return getCanonicalPersonName(rawName) !== getCanonicalPersonName(data.person?.name);" in html
-    assert "if (isSameBookGraphRelation(node)) return false;" in html
+    assert "const isSameBookGraphRelation = (node) => {" not in html
+    assert "同册共现" not in html
     assert "'苏东坡'" not in html.split("const centerPersonAliases = useMemo", 1)[1].split("const relatedCenterNode = useMemo", 1)[0]
     assert "related-graph-legend" not in html
     assert "中心人物在中间，相关人物按左右列展开" not in html
@@ -1198,7 +1281,7 @@ def test_profile_page_template_uses_high_contrast_amap_text_label_style():
 
 
 def test_render_profile_html_exposes_feedback_button_and_build_meta():
-    """人物页应当带反馈错误按钮，并向页面注入可识别的构建版本和构建时间。"""
+    """人物页应当带内容纠错入口，并向页面注入可识别的构建版本和构建时间。"""
 
     html = render_profile_html(
         {
@@ -1209,13 +1292,7 @@ def test_render_profile_html_exposes_feedback_button_and_build_meta():
     )
 
     assert "feedback-button" in html
-    # Babel 编译后中文会被转成 \uXXXX 转义（大写十六进制），
-    # 同时兼容未编译/编译后两种形态。
-    assert (
-        "反馈错误" in html
-        or "\\u53CD\\u9988\\u9519\\u8BEF" in html
-        or "\\u53cd\\u9988\\u9519\\u8bef" in html
-    )
+    assert "page-footer" in html
     assert "openFeedbackDialog" in html
     assert "__BUILD_META__" in html
     assert "__BUILD_VERSION__" not in html

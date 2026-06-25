@@ -655,6 +655,78 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.narrative-description {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.95;
+  letter-spacing: 0.012em;
+}
+.narrative-description-line {
+  display: block;
+  margin-bottom: 0.48rem;
+}
+.narrative-description-line:last-child {
+  margin-bottom: 0;
+}
+.narrative-description-line.is-lead {
+  color: var(--color-text-primary);
+}
+.narrative-description-line.is-body {
+  color: color-mix(in srgb, var(--color-text-secondary) 92%, #64748b 8%);
+}
+.narrative-sentence {
+  display: inline;
+}
+.narrative-sentence.is-turning {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.narrative-inline-strong {
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.narrative-inline-em {
+  font-style: italic;
+  color: color-mix(in srgb, var(--color-text-secondary) 88%, var(--color-primary) 12%);
+}
+.narrative-inline-accent {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-primary) 82%, #1d4ed8 18%);
+}
+.narrative-inline-time {
+  font-weight: 700;
+  color: #b45309;
+}
+.narrative-inline-place {
+  font-weight: 600;
+  color: #166534;
+}
+.narrative-inline-identity {
+  font-weight: 800;
+  color: color-mix(in srgb, #7c2d12 72%, var(--color-primary) 28%);
+}
+.narrative-inline-quote {
+  color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary) 18%);
+  font-style: italic;
+}
+.narrative-description-line.is-lead .narrative-inline-accent,
+.narrative-description-line.is-lead .narrative-inline-time,
+.narrative-description-line.is-lead .narrative-inline-place,
+.narrative-description-line.is-lead .narrative-inline-identity {
+  filter: saturate(1.08);
+}
+.narrative-description-line.is-body .narrative-inline-accent {
+  color: color-mix(in srgb, var(--color-primary) 68%, #475569 32%);
+}
+.narrative-description-line.is-body .narrative-inline-time {
+  color: #b7791f;
+}
+.narrative-description-line.is-body .narrative-inline-place {
+  color: #2f855a;
+}
+.narrative-description-line.is-body .narrative-inline-identity {
+  color: color-mix(in srgb, #7c2d12 58%, var(--color-text-secondary) 42%);
+}
 .age-marker {
   background: transparent;
   border: none;
@@ -757,6 +829,11 @@ body {
 }
 .map-point-label.is-start .map-point-label-text {
   color: var(--color-success);
+}
+.map-point-label.is-start .map-point-label-badge {
+  background: rgba(30, 122, 58, 0.24);
+  color: #166534;
+  box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 .map-point-label.is-start .map-point-label-name {
   color: var(--color-success);
@@ -1644,7 +1721,12 @@ body {
       const { useState, useEffect, useRef, useMemo, useCallback } = React;
       const data = __DATA__;
       window.__EXPORT_DATA__ = data;
-      const __BUILD_META__ = { version: "__BUILD_VERSION__", builtAt: "__BUILD_AT__" };
+      const __BUILD_META__ = {
+        version: "__BUILD_VERSION__",
+        builtAt: "__BUILD_AT__",
+        sourceCommit: "__BUILD_SOURCE_COMMIT__",
+        component: "__BUILD_COMPONENT__"
+      };
       window.__BUILD_META__ = __BUILD_META__;
       const openFeedbackDialog = (anchor) => {
         try {
@@ -1661,7 +1743,7 @@ body {
           lines.push('构建时间：' + String(meta.builtAt || 'unknown'));
           lines.push('提交时间：' + new Date().toISOString());
           lines.push('--- 请在下方描述具体问题 ---');
-          lines.push('错误类型（例：作品摘要错误 / 出生地错误 / 朝代错误 / 地图标记错误 / 其他）：');
+          lines.push('错误类型（例：作品摘要错误 / 出生地错误 / 朝代错误 / 地图注记错误 / 其他）：');
           lines.push('');
           lines.push('详细描述：');
           lines.push('');
@@ -1915,6 +1997,93 @@ const buildRenderedSegmentPath = (idx) => {
   const next = idx + 2 < locations.length ? getRenderedLngLat(idx + 2) : null;
   return buildCurvedSegmentPath(from, to, idx, prev, next);
 };
+function normalizeSegmentPath(path) {
+  if (!Array.isArray(path)) return [];
+  return path
+    .filter((item) => Array.isArray(item) && item.length >= 2 && Number.isFinite(Number(item[0])) && Number.isFinite(Number(item[1])))
+    .map((item) => [Number(item[0]), Number(item[1])]);
+}
+function interpolateSegmentPoint(path, progress) {
+  const coords = normalizeSegmentPath(path);
+  if (!coords.length) return null;
+  if (coords.length === 1) return coords[0];
+  const clamped = Math.min(1, Math.max(0, Number(progress || 0)));
+  if (clamped <= 0) return coords[0];
+  if (clamped >= 1) return coords[coords.length - 1];
+  const lengths = [];
+  let total = 0;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const from = coords[i];
+    const to = coords[i + 1];
+    const len = calculateDistance(Number(from[1]), Number(from[0]), Number(to[1]), Number(to[0]));
+    const safeLen = Number.isFinite(len) && len > 0 ? len : 0;
+    lengths.push(safeLen);
+    total += safeLen;
+  }
+  if (!(total > 0)) return coords[coords.length - 1];
+  const target = total * clamped;
+  let acc = 0;
+  for (let i = 0; i < lengths.length; i += 1) {
+    const segLen = lengths[i];
+    const from = coords[i];
+    const to = coords[i + 1];
+    if (!(segLen > 0)) continue;
+    if (acc + segLen >= target) {
+      const ratio = (target - acc) / segLen;
+      return [
+        Number(from[0]) + (Number(to[0]) - Number(from[0])) * ratio,
+        Number(from[1]) + (Number(to[1]) - Number(from[1])) * ratio
+      ];
+    }
+    acc += segLen;
+  }
+  return coords[coords.length - 1];
+}
+function buildPartialSegmentPath(path, progress) {
+  const coords = normalizeSegmentPath(path);
+  if (coords.length < 2) return coords;
+  const tip = interpolateSegmentPoint(coords, progress) || coords[coords.length - 1];
+  const clamped = Math.min(1, Math.max(0, Number(progress || 0)));
+  if (clamped <= 0) return [coords[0], tip];
+  if (clamped >= 1) return coords;
+  const lengths = [];
+  let total = 0;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const from = coords[i];
+    const to = coords[i + 1];
+    const len = calculateDistance(Number(from[1]), Number(from[0]), Number(to[1]), Number(to[0]));
+    const safeLen = Number.isFinite(len) && len > 0 ? len : 0;
+    lengths.push(safeLen);
+    total += safeLen;
+  }
+  if (!(total > 0)) return [coords[0], tip];
+  const target = total * clamped;
+  const partial = [coords[0]];
+  let acc = 0;
+  for (let i = 0; i < lengths.length; i += 1) {
+    const segLen = lengths[i];
+    const from = coords[i];
+    const to = coords[i + 1];
+    if (!(segLen > 0)) continue;
+    if (acc + segLen >= target) {
+      partial.push(tip);
+      return partial;
+    }
+    partial.push(to);
+    acc += segLen;
+  }
+  return coords;
+}
+function getSegmentFollowCenter(path, progress) {
+  const coords = normalizeSegmentPath(path);
+  if (!coords.length) return null;
+  const start = coords[0];
+  const tip = interpolateSegmentPoint(coords, progress) || coords[coords.length - 1];
+  return [
+    (Number(start[0]) + Number(tip[0])) / 2,
+    (Number(start[1]) + Number(tip[1])) / 2
+  ];
+}
 const buildLabelCollisionBox = (screenPoint, detailLevel) => {
   if (!screenPoint || !Number.isFinite(Number(screenPoint.x)) || !Number.isFinite(Number(screenPoint.y))) return null;
   const level = Number(detailLevel || 0);
@@ -2376,8 +2545,14 @@ const getDebugEventEndpoint = () => {
   try {
     if (typeof window === 'undefined') return '';
     const raw = window.__STORY_MAP_DEBUG_SERVER__;
-    if (!raw) return '';
-    return String(raw || '').trim();
+    if (raw) return String(raw || '').trim();
+    const search = String(window.location?.search || '').trim();
+    if (search) {
+      const params = new URLSearchParams(search);
+      const queryVal = String(params.get('storymap_debug_server') || params.get('debug_server') || '').trim();
+      if (queryVal) return queryVal;
+    }
+    return '';
   } catch (_) {
     return '';
   }
@@ -2416,8 +2591,32 @@ try {
     });
   }
 } catch (_) {}
-const DEBUG_SESSION_ID = 'lichun-map-runtime';
-const DEBUG_RUN_ID = 'post-fix';
+const DEBUG_SESSION_ID = (() => {
+  try {
+    if (typeof window === 'undefined') return 'map-loading-stuck';
+    const raw = window.__STORY_MAP_DEBUG_SESSION_ID__;
+    if (raw) return String(raw || '').trim() || 'map-loading-stuck';
+    const search = String(window.location?.search || '').trim();
+    if (!search) return 'map-loading-stuck';
+    const params = new URLSearchParams(search);
+    return String(params.get('storymap_debug_session') || params.get('debug_session') || 'map-loading-stuck').trim() || 'map-loading-stuck';
+  } catch (_) {
+    return 'map-loading-stuck';
+  }
+})();
+const DEBUG_RUN_ID = (() => {
+  try {
+    if (typeof window === 'undefined') return 'pre-fix';
+    const raw = window.__STORY_MAP_DEBUG_RUN_ID__;
+    if (raw) return String(raw || '').trim() || 'pre-fix';
+    const search = String(window.location?.search || '').trim();
+    if (!search) return 'pre-fix';
+    const params = new URLSearchParams(search);
+    return String(params.get('storymap_debug_run') || params.get('debug_run') || 'pre-fix').trim() || 'pre-fix';
+  } catch (_) {
+    return 'pre-fix';
+  }
+})();
 const debugEmit = (hypothesisId, location, msg, data) => {
   try {
     try {
@@ -2724,6 +2923,121 @@ const renderInline = (text) => {
   });
 };
 
+const NARRATIVE_TRANSITION_RE = /(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/g;
+const NARRATIVE_TIME_RE = /(公元前?\d{1,4}年|\d{1,4}年|约\d{1,3}岁|年仅\d{1,3}岁|\d{1,3}岁|少年时期|青年时期|中年时期|晚年|幼年|早年)/g;
+const NARRATIVE_PLACE_RE = /(在[^，。；]{2,14}(?:定居|起兵|求学|隐居|任职|出生|成长|驻留|作战|讲学|写作|辞世))/g;
+const NARRATIVE_IDENTITY_RE = /(诗人|词人|文学家|思想家|政治家|军事家|改革家|史学家|哲学家|教育家|科学家|数学家|物理学家|化学家|生物学家|发明家|航海家|探险家|外交家|将领|名将|皇帝|君主|帝王|将军|统帅|名臣|宰相|大臣|圣人|民族英雄|革命家|艺术家|画家|音乐家|作家|史官|学者|天主教圣人)/g;
+const NARRATIVE_QUOTE_RE = /(“[^”]{2,24}”|《[^》]{1,24}》)/g;
+const NARRATIVE_TURNING_SENTENCE_RE = /^(然而|后来|随后|不久|于是|因此|最终|从此|渐渐|逐渐|一度|此后|很快|尤其|正是在此时|也正是在这一时期)/;
+
+const renderNarrativeFragment = (text, keyPrefix = 'narrative') => {
+  const raw = String(text || '');
+  if (!raw) return null;
+  const pattern = new RegExp(
+    `${NARRATIVE_TIME_RE.source}|${NARRATIVE_TRANSITION_RE.source}|${NARRATIVE_PLACE_RE.source}|${NARRATIVE_IDENTITY_RE.source}|${NARRATIVE_QUOTE_RE.source}`,
+    'g'
+  );
+  const out = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(raw)) !== null) {
+    const token = match[0];
+    const start = match.index;
+    if (start > lastIndex) {
+      out.push(
+        <span key={`${keyPrefix}-txt-${lastIndex}`}>
+          {renderWorkTokens(raw.slice(lastIndex, start), `${keyPrefix}-txt-${lastIndex}`)}
+        </span>
+      );
+    }
+    let className = 'narrative-inline-accent';
+    if (new RegExp(`^${NARRATIVE_TIME_RE.source}$`).test(token)) {
+      className = 'narrative-inline-time';
+    } else if (new RegExp(`^${NARRATIVE_PLACE_RE.source}$`).test(token)) {
+      className = 'narrative-inline-place';
+    } else if (new RegExp(`^${NARRATIVE_IDENTITY_RE.source}$`).test(token)) {
+      className = 'narrative-inline-identity';
+    } else if (new RegExp(`^${NARRATIVE_QUOTE_RE.source}$`).test(token)) {
+      className = 'narrative-inline-quote';
+    }
+    out.push(
+      <span key={`${keyPrefix}-accent-${start}`} className={className}>
+        {renderWorkTokens(token, `${keyPrefix}-accent-${start}`)}
+      </span>
+    );
+    lastIndex = start + token.length;
+  }
+  if (lastIndex < raw.length) {
+    out.push(
+      <span key={`${keyPrefix}-tail-${lastIndex}`}>
+        {renderWorkTokens(raw.slice(lastIndex), `${keyPrefix}-tail-${lastIndex}`)}
+      </span>
+    );
+  }
+  return out;
+};
+
+const renderNarrativeInline = (text, keyPrefix = 'narrative-inline') => {
+  const raw = String(text || '');
+  const parts = raw.split(/(\[[^\]]+\]\((?:https?:\/\/|\/)[^)]+\)|\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
+  return parts.map((p, idx) => {
+    const link = p.match(/^\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)$/);
+    if (link) {
+      const label = String(link[1] || '').trim();
+      const href = String(link[2] || '').trim();
+      return (
+        <a
+          key={idx}
+          href={href}
+          target={/^https?:\/\//.test(href) ? '_blank' : undefined}
+          rel={/^https?:\/\//.test(href) ? 'noreferrer noopener' : undefined}
+          className="theme-link"
+        >
+          {renderNarrativeFragment(label, `${keyPrefix}-link-${idx}`)}
+        </a>
+      );
+    }
+    const strong = p.match(/^\*\*(.+?)\*\*$/);
+    if (strong) {
+      return (
+        <strong key={idx} className="narrative-inline-strong">
+          {renderNarrativeFragment(strong[1], `${keyPrefix}-strong-${idx}`)}
+        </strong>
+      );
+    }
+    const italic = p.match(/^\*(.+?)\*$/);
+    if (italic) {
+      return (
+        <em key={idx} className="narrative-inline-em">
+          {renderNarrativeFragment(italic[1], `${keyPrefix}-em-${idx}`)}
+        </em>
+      );
+    }
+    return (
+      <span key={idx}>
+        {renderNarrativeFragment(p.replaceAll('**', '').replaceAll('*', ''), `${keyPrefix}-${idx}`)}
+      </span>
+    );
+  });
+};
+
+const renderNarrativeLine = (text, lineIdx) => {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+  const sentences = raw.match(/[^。！？]+[。！？]?/g) || [raw];
+  return sentences.map((sentence, idx) => {
+    const trimmed = String(sentence || '').trim();
+    if (!trimmed) return null;
+    const turning = NARRATIVE_TURNING_SENTENCE_RE.test(trimmed);
+    const className = `narrative-sentence${turning ? ' is-turning' : ''}`;
+    return (
+      <span key={`line-${lineIdx}-sentence-${idx}`} className={className}>
+        {renderNarrativeInline(trimmed, `narrative-line-${lineIdx}-sentence-${idx}`)}
+      </span>
+    );
+  });
+};
+
 const normalizeDisplayText = (text) => {
   return String(text || '')
     .replace(/\\r\\n/g, '\n')
@@ -2816,11 +3130,6 @@ const getPersonAliasList = (personName, aliases = []) => {
   push(personName);
   (Array.isArray(aliases) ? aliases : []).forEach(push);
   return out;
-};
-const isSameBookGraphRelation = (node) => {
-  const sourceType = String(node?.sourceType || '').trim().toLowerCase();
-  const relationLabel = String(node?.relationLabel || '').trim();
-  return sourceType === 'same_book' || /同册共现/.test(relationLabel);
 };
 const RELATED_GRAPH_CENTER_COPY = '人物生平\n传记与足迹';
 __PERSON_TOOLTIP_JS__
@@ -3207,6 +3516,93 @@ const App = () => {
   const [isJourneyExportFullscreenLayout, setIsJourneyExportFullscreenLayout] = useState(false);
   const [terrainCompassState, setTerrainCompassState] = useState({ headingDeg: 0, pitchDeg: -45 });
   const [mapStatusNotice, setMapStatusNotice] = useState(null);
+  const labelPrefsKey = useMemo(() => {
+    const personName = String(data?.person?.name || '').trim() || 'unknown';
+    return `storymap:mapLabelPrefs:v3:${personName}`;
+  }, [data?.person?.name]);
+  const defaultLabelPrefs = useMemo(() => ({
+    showIndex: true,
+    showLabel: false,
+    labelMode: 'custom',
+    customVisible: {}
+  }), []);
+  const [labelPrefs, setLabelPrefs] = useState(() => {
+    const fallback = defaultLabelPrefs;
+    if (typeof window === 'undefined') return fallback;
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(labelPrefsKey) : null;
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return fallback;
+      const merged = { ...fallback, ...parsed };
+      const rawCustomVisible = parsed.customVisible && typeof parsed.customVisible === 'object' ? parsed.customVisible : {};
+      merged.customVisible = rawCustomVisible;
+      merged.showIndex = true;
+      const showLabelFromParsed = typeof parsed.showLabel === 'boolean'
+        ? parsed.showLabel
+        : (parsed.showName !== false || Boolean(parsed.showAge));
+      merged.showLabel = typeof merged.showLabel === 'boolean' ? merged.showLabel : Boolean(showLabelFromParsed);
+      return merged;
+    } catch (_) {
+      return fallback;
+    }
+  });
+  const labelPrefsRef = useRef(defaultLabelPrefs);
+  labelPrefsRef.current = labelPrefs;
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try { window.localStorage.setItem(labelPrefsKey, JSON.stringify(labelPrefs)); } catch (_) {}
+  }, [labelPrefsKey, labelPrefs]);
+  useEffect(() => {
+    const controller = mapRef.current;
+    if (!controller || typeof controller.refreshLabels !== 'function') return;
+    try { controller.refreshLabels(activeIndexRef.current); } catch (_) {}
+  }, [labelPrefs]);
+  const setLabelPrefsPatch = React.useCallback((patch) => {
+    setLabelPrefs((prev) => ({ ...prev, ...(patch && typeof patch === 'object' ? patch : {}) }));
+  }, []);
+  const toggleShowLabel = React.useCallback(() => {
+    setLabelPrefs((prev) => {
+      const nextEnabled = prev?.showLabel !== true;
+      const customVisibleRaw = prev?.customVisible && typeof prev.customVisible === 'object' ? { ...prev.customVisible } : {};
+      const hasAny = Object.keys(customVisibleRaw).some((idx) => Boolean(customVisibleRaw[idx]));
+      if (!nextEnabled) {
+        return { ...prev, showLabel: false };
+      }
+      if (!Object.keys(customVisibleRaw).length || !hasAny) {
+        const nextCustom = {};
+        for (let i = 0; i < locations.length; i += 1) nextCustom[String(i)] = true;
+        return { ...prev, showLabel: true, customVisible: nextCustom };
+      }
+      return { ...prev, showLabel: true, customVisible: customVisibleRaw };
+    });
+  }, [locations.length]);
+  const setLabelMode = React.useCallback((mode) => {
+    const next = String(mode || 'smart');
+    setLabelPrefs((prev) => {
+      const target = next === 'all' ? 'all' : (next === 'custom' ? 'custom' : 'smart');
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? { ...prev.customVisible } : {};
+      if (target === 'custom' && !Object.keys(customVisible).length) {
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = true;
+      }
+      return { ...prev, labelMode: target, customVisible };
+    });
+  }, []);
+  const toggleCustomLabelIndex = React.useCallback((idx) => {
+    const targetIdx = Number(idx);
+    if (!Number.isFinite(targetIdx) || targetIdx < 0 || targetIdx >= locations.length) return;
+    setLabelPrefs((prev) => {
+      const customVisible = prev?.customVisible && typeof prev.customVisible === 'object' ? { ...prev.customVisible } : {};
+      if (!Object.keys(customVisible).length) {
+        const defaultValue = prev?.showLabel === true;
+        for (let i = 0; i < locations.length; i += 1) customVisible[String(i)] = defaultValue;
+      }
+      const key = String(targetIdx);
+      customVisible[key] = !customVisible[key];
+      const anyVisible = Object.keys(customVisible).some((k) => Boolean(customVisible[k]));
+      return { ...prev, showLabel: anyVisible, labelMode: 'custom', customVisible };
+    });
+  }, []);
   const maplibreMapRef = useRef(null);
   const cesiumViewerRef = useRef(null);
   const amapMapRef = useRef(null);
@@ -3215,6 +3611,13 @@ const App = () => {
   const pulseMarkerRef = useRef(null);
   const pulseTimerRef = useRef(null);
   const activeIndexRef = useRef(initialLocIdx);
+  const segmentAnimationFrameRef = useRef(0);
+  const segmentAnimationStateRef = useRef({
+    segmentIdx: -1,
+    progress: 1,
+    fromIndex: initialLocIdx,
+    toIndex: initialLocIdx
+  });
   const skippedInitialHashWriteRef = useRef(false);
   const currentBaseLayerRef = useRef('vector');
   const mapProviderRef = useRef('geovis');
@@ -3229,6 +3632,7 @@ const App = () => {
   const draggingRef = useRef(null);
   const didRunActiveEffectRef = useRef(false);
   const skippedInitialOverviewActiveSyncRef = useRef(false);
+  const didAutoFitOnLoadRef = useRef(false);
   const chatListRef = useRef(null);
   const chatSectionRef = useRef(null);
   const fullscreenChatRestoreRef = useRef(null);
@@ -3345,6 +3749,92 @@ const App = () => {
     chatDisplayedTextRef.current = '';
   }, [clearChatFlushTimer]);
   const totalEvents = locations.length;
+  const getSegmentAnimationSnapshot = () => {
+    const raw = segmentAnimationStateRef.current || {};
+    const segmentIdx = Number(raw.segmentIdx);
+    return {
+      segmentIdx: Number.isFinite(segmentIdx) ? segmentIdx : -1,
+      progress: clampValue(Number(raw.progress), 0, 1),
+      fromIndex: Number(raw.fromIndex),
+      toIndex: Number(raw.toIndex)
+    };
+  };
+  const getSegmentAnimationProgress = (segmentIdx, activeIdx) => {
+    const state = getSegmentAnimationSnapshot();
+    if (state.segmentIdx !== Number(segmentIdx)) return 1;
+    if (state.toIndex !== Number(activeIdx)) return 1;
+    return state.progress;
+  };
+  const refreshAnimatedSegmentFrame = React.useCallback(() => {
+    const controller = mapRef.current;
+    if (controller && typeof controller.setActive === 'function') {
+      try { controller.setActive(activeIndexRef.current); } catch (_) {}
+    }
+    if (!isAutoPlayingRef.current || !controller || typeof controller.followSegmentProgress !== 'function') return;
+    const state = getSegmentAnimationSnapshot();
+    if (state.segmentIdx < 0) return;
+    try { controller.followSegmentProgress(state.segmentIdx, state.progress); } catch (_) {}
+  }, []);
+  const stopSegmentTransition = React.useCallback((finalProgress = 1) => {
+    if (segmentAnimationFrameRef.current) {
+      try { window.cancelAnimationFrame(segmentAnimationFrameRef.current); } catch (_) {}
+      segmentAnimationFrameRef.current = 0;
+    }
+    segmentAnimationStateRef.current = {
+      ...segmentAnimationStateRef.current,
+      progress: clampValue(Number(finalProgress), 0, 1)
+    };
+  }, []);
+  const startSegmentTransition = React.useCallback((fromIdx, toIdx) => {
+    stopSegmentTransition(1);
+    const start = Number(fromIdx);
+    const end = Number(toIdx);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end !== start + 1) {
+      segmentAnimationStateRef.current = {
+        segmentIdx: -1,
+        progress: 1,
+        fromIndex: start,
+        toIndex: end
+      };
+      refreshAnimatedSegmentFrame();
+      return;
+    }
+    const duration = isAutoPlayingRef.current ? 1150 : 820;
+    const startedAt = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+      ? performance.now()
+      : Date.now();
+    segmentAnimationStateRef.current = {
+      segmentIdx: start,
+      progress: 0,
+      fromIndex: start,
+      toIndex: end
+    };
+    const tick = (now) => {
+      const current = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+      const progress = clampValue((current - startedAt) / duration, 0, 1);
+      segmentAnimationStateRef.current = {
+        segmentIdx: start,
+        progress,
+        fromIndex: start,
+        toIndex: end
+      };
+      refreshAnimatedSegmentFrame();
+      if (progress >= 1) {
+        stopSegmentTransition(1);
+        segmentAnimationStateRef.current = {
+          segmentIdx: -1,
+          progress: 1,
+          fromIndex: start,
+          toIndex: end
+        };
+        refreshAnimatedSegmentFrame();
+        return;
+      }
+      segmentAnimationFrameRef.current = window.requestAnimationFrame(tick);
+    };
+    refreshAnimatedSegmentFrame();
+    segmentAnimationFrameRef.current = window.requestAnimationFrame(tick);
+  }, [refreshAnimatedSegmentFrame, stopSegmentTransition]);
   const getOverviewPadding = (containerWidth) => {
     const width = Number(containerWidth || 0) || (typeof window !== 'undefined' ? Number(window.innerWidth || 0) : 0) || 1200;
     const left = clampValue(Math.round(width * 0.29), 220, 360);
@@ -3569,7 +4059,6 @@ const App = () => {
   const relatedNeighborNodes = useMemo(
     () => relatedGraphNodes.filter((node) => {
       if (!node || node.isCenter) return false;
-      if (isSameBookGraphRelation(node)) return false;
       const rawName = String(node.name || '').trim();
       if (!rawName) return false;
       const candidateNames = uniqStrings([
@@ -3722,19 +4211,25 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (age === null) return '';
     return `${age}岁`;
   };
-  const getMarkerBadgeText = (loc, idx) => {
-    if (isPosthumousEvent(loc)) return '身后';
+  const getAgeLabel = (loc, idx) => {
     const ageText = getAgeText(loc);
     if (loc.type === 'birth' || idx === 0) return ageText || '年龄待考';
+    if (isPosthumousEvent(loc)) return '身后';
     if (loc.type === 'death' || idx === totalEvents - 1) return ageText || '终章';
-    return ageText || `第${idx + 1}站`;
+    return ageText || '年龄待考';
+  };
+  const getMarkerBadgeText = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
+    if (prefs.showLabel !== true) return '';
+    return getAgeLabel(loc, idx);
   };
   const getMapPointLabelName = (loc, idx) => (
     String(loc.name || loc.ancientName || loc.modernName || `第${idx + 1}站`).trim()
   );
   const getMapPointLabelParts = (loc, idx) => {
+    const prefs = labelPrefsRef.current || {};
     const badgeText = String(getMarkerBadgeText(loc, idx) || '').trim();
-    const name = String(getMapPointLabelName(loc, idx) || '').trim();
+    const name = prefs.showLabel === true ? String(getMapPointLabelName(loc, idx) || '').trim() : '';
     return { badgeText, name };
   };
   const escapeHtml = (value) => String(value || '')
@@ -3746,6 +4241,25 @@ const LIFE_GRADIENT_END = '#5D4037';
   const getMapPointLabelText = (loc, idx) => {
     const { badgeText, name } = getMapPointLabelParts(loc, idx);
     return badgeText && name ? `${badgeText}\n${name}` : (badgeText || name);
+  };
+  const computeVisibleLabelIndexes = (activeIdx, { detailLevel = 6, isVisible, projectToScreen } = {}) => {
+    const prefs = labelPrefsRef.current || {};
+    const total = locations.length;
+    if (total <= 0) return new Set();
+    if (prefs.showLabel !== true) return new Set();
+    const visible = new Set();
+    const custom = prefs.customVisible && typeof prefs.customVisible === 'object' ? prefs.customVisible : {};
+    const keys = Object.keys(custom);
+    if (!keys.length) {
+      for (let i = 0; i < total; i += 1) visible.add(i);
+      return visible;
+    }
+    keys.forEach((key) => {
+      if (!custom[key]) return;
+      const idx = Number(key);
+      if (Number.isFinite(idx) && idx >= 0 && idx < total) visible.add(idx);
+    });
+    return visible;
   };
   const getMapPointLabelVisualState = (loc, idx, activeIdx) => {
     const isActive = idx === activeIdx;
@@ -3964,6 +4478,15 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (paths[1]) paths[1].setAttribute('stroke', String(color || '#1a73e8'));
     if (paths[2]) paths[2].setAttribute('stroke', String(color || '#1a73e8'));
   };
+  const setDirectionArrowAngle = (arrowEl, angle) => {
+    if (!arrowEl) return;
+    const rotor = typeof arrowEl.querySelector === 'function' ? arrowEl.querySelector('.map-segment-arrow-rotor') : null;
+    if (rotor && rotor.style) {
+      rotor.style.transform = `rotate(${Number(angle || 0)}deg)`;
+    } else if (arrowEl.style) {
+      arrowEl.style.transform = `rotate(${Number(angle || 0)}deg)`;
+    }
+  };
   const buildDirectionArrowDataUrl = (color) => {
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -4079,20 +4602,21 @@ const LIFE_GRADIENT_END = '#5D4037';
     const dynasty = String(node?.dynasty || '').trim();
     const title = String(node?.title || node?.role || '').trim();
     const relation = String(node?.relationLabel || node?.relation || '').trim();
-    const relationText = /(同时代人物|相关人物|同册共现)/.test(relation) ? '' : relation;
+    const relationText = /(同时代人物|相关人物)/.test(relation) ? '' : relation;
     return uniqStrings([dynasty, title, relationText]).slice(0, 2).join(' · ');
   };
   const renderDescription = () => {
     if (!description) return null;
     return (
       <div>
-        <div className={`text-gray-600 leading-7 ${showFullDesc ? '' : 'desc-clamp'}`}>
+        <div className={`narrative-description ${showFullDesc ? '' : 'desc-clamp'}`}>
           {descSegments.map((seg, idx) => {
             const t = String(seg || '').trim();
             if (/^-{3,}$/.test(t)) {
               return <hr key={idx} className="my-2 border-gray-200" />;
             }
-            return <span key={idx} className="block">{renderInline(seg)}</span>;
+            const lineClassName = `narrative-description-line ${idx < 2 ? 'is-lead' : 'is-body'}`;
+            return <span key={idx} className={lineClassName}>{renderNarrativeLine(seg, idx)}</span>;
           })}
         </div>
         {isLongDesc ? (
@@ -4107,7 +4631,9 @@ const LIFE_GRADIENT_END = '#5D4037';
     );
   };
   const changeEvent = (nextIndex) => {
-    if (nextIndex < 0 || nextIndex >= totalEvents || nextIndex === activeIndex) return;
+    const currentIdx = Number(activeIndexRef.current);
+    if (nextIndex < 0 || nextIndex >= totalEvents || nextIndex === currentIdx) return;
+    startSegmentTransition(currentIdx, nextIndex);
     const nextLoc = locations[nextIndex] || null;
     activeIndexRef.current = nextIndex;
     setActiveIndex(nextIndex);
@@ -4374,6 +4900,14 @@ const LIFE_GRADIENT_END = '#5D4037';
     setMapStatusNotice(next);
   };
   const requestMapInitialization = React.useCallback((reason = 'manual') => {
+    // #region debug-point A:map-init-request
+    debugEmit('A', 'profile_page.html:requestMapInitialization', 'map init requested', {
+      reason: String(reason || 'manual'),
+      mapLoadState: String(mapLoadState || ''),
+      hasMapRef: Boolean(mapRef.current),
+      tick: Number(mapInitRequestTick || 0)
+    });
+    // #endregion
     if (mapRef.current || mapLoadState === 'loading') return false;
     setMapLoadState('loading');
     setMapInitRequestTick((value) => value + 1);
@@ -4401,20 +4935,8 @@ const LIFE_GRADIENT_END = '#5D4037';
   }, []);
   useEffect(() => {
     if (mapInitRequestTick > 0 || mapRef.current) return undefined;
-    const target = mapViewportRef.current;
-    if (!target) return undefined;
-    if (typeof window === 'undefined' || typeof window.IntersectionObserver !== 'function') {
-      requestMapInitialization('fallback');
-      return undefined;
-    }
-    const observer = new window.IntersectionObserver((entries) => {
-      const visible = entries.some((entry) => entry && entry.isIntersecting);
-      if (!visible) return;
-      observer.disconnect();
-      requestMapInitialization('viewport');
-    }, { rootMargin: '240px 0px', threshold: 0.12 });
-    observer.observe(target);
-    return () => observer.disconnect();
+    requestMapInitialization('boot');
+    return undefined;
   }, [mapInitRequestTick, requestMapInitialization]);
   const handleMapNoticeAction = (action) => {
     if (!action || typeof action !== 'object') return;
@@ -4494,6 +5016,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           segmentEntries.push({
             idx: i,
             color: segmentColor,
+            path: segmentPath,
             polyline,
             arrowEl,
             arrowMarker,
@@ -4511,13 +5034,15 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (!renderLoc) return;
         const isEndpoint = idx === 0 || idx === totalEvents - 1;
         const labelOffset = getMapPointLabelOffset(idx);
+        const pointColor = getLifeColor(loc, idx);
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
         const marker = new AMap.CircleMarker({
           center: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
-          radius: isEndpoint ? 8 : 6.5,
-          strokeColor: getLifeColor(loc, idx),
-          strokeWeight: 3,
-          fillColor: getLifeColor(loc, idx),
-          fillOpacity: 0.35,
+          radius: shouldShowIndex ? (isEndpoint ? 10 : 9) : (isEndpoint ? 8 : 6.5),
+          strokeColor: pointColor,
+          strokeWeight: shouldShowIndex ? 4 : 3,
+          fillColor: pointColor,
+          fillOpacity: shouldShowIndex ? 0 : 0.35,
           bubble: true,
           zIndex: 180 + idx
         });
@@ -4537,10 +5062,43 @@ const LIFE_GRADIENT_END = '#5D4037';
             amapControllerRef.current.focusIndex(idx, true);
           }
         };
+        let indexLabel = null;
+        try {
+          const isActive = idx === activeIndexRef.current;
+          const isPassed = idx < activeIndexRef.current;
+          indexLabel = new AMap.Text({
+            text: String(idx + 1),
+            position: [Number(renderLoc.renderLng), Number(renderLoc.renderLat)],
+            offset: new AMap.Pixel(0, 0),
+            anchor: 'center',
+            style: {
+              height: '22px',
+              minWidth: '22px',
+              lineHeight: '22px',
+              textAlign: 'center',
+              borderRadius: '999px',
+              background: 'rgba(0,0,0,0)',
+              border: 'none',
+              color: '#111827',
+              fontSize: '14px',
+              fontWeight: '800',
+              textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : (isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)'),
+              opacity: String(isPassed ? 0.82 : (isActive ? 1.0 : 0.96))
+            }
+          });
+        } catch (_) {
+          indexLabel = null;
+        }
         marker.on('click', focusPoint);
         label.on('click', focusPoint);
-        map.add([marker, label]);
-        pointEntries.push({ idx, loc, marker, label, isEndpoint });
+        if (indexLabel && typeof indexLabel.on === 'function') {
+          try { indexLabel.on('click', focusPoint); } catch (_) {}
+        }
+        if (indexLabel && !shouldShowIndex && typeof indexLabel.hide === 'function') {
+          try { indexLabel.hide(); } catch (_) {}
+        }
+        map.add(indexLabel ? [marker, label, indexLabel] : [marker, label]);
+        pointEntries.push({ idx, loc, marker, label, indexLabel, isEndpoint });
       });
       const initialActiveLoc = getRenderedPointLoc(activeIndexRef.current);
       const activePinMarker = initialActiveLoc ? new AMap.Marker({
@@ -4559,7 +5117,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
       const updateAmapLabelVisibility = (activeIdx) => {
         const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-        const visibleIndexes = getPreferredLabelIndexes({
+        const visibleIndexes = computeVisibleLabelIndexes(activeIdx, {
           activeIdx,
           detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
           isVisible: (lng, lat) => {
@@ -4595,20 +5153,77 @@ const LIFE_GRADIENT_END = '#5D4037';
           } catch (_) {}
         });
       };
+      const updateAmapIndexLabels = (activeIdx) => {
+        const shouldShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+        pointEntries.forEach((entry) => {
+          if (!entry.indexLabel) return;
+          const isActive = entry.idx === activeIdx;
+          const isPassed = entry.idx < activeIdx;
+          const pointColor = getLifeColor(entry.loc, entry.idx);
+          try {
+            if (entry.marker && typeof entry.marker.setOptions === 'function') {
+              entry.marker.setOptions({
+                radius: shouldShowIndex ? (entry.isEndpoint ? 10 : 9) : (entry.isEndpoint ? 8 : 6.5),
+                strokeColor: pointColor,
+                strokeWeight: shouldShowIndex ? 4 : 3,
+                fillColor: pointColor,
+                fillOpacity: shouldShowIndex ? 0 : 0.35
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setStyle === 'function') {
+              entry.indexLabel.setStyle({
+                background: 'rgba(0,0,0,0)',
+                border: 'none',
+                color: '#111827',
+                fontWeight: '800',
+                textShadow: isActive ? '0 0 4px rgba(255,255,255,0.96), 0 0 10px rgba(0,0,0,0.48)' : (isPassed ? '0 0 3px rgba(255,255,255,0.92), 0 0 8px rgba(0,0,0,0.44)' : '0 0 3px rgba(255,255,255,0.94), 0 0 9px rgba(0,0,0,0.46)'),
+                opacity: String(isPassed ? 0.82 : (isActive ? 1.0 : 0.96))
+              });
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.show === 'function' && typeof entry.indexLabel.hide === 'function') {
+              if (shouldShowIndex) entry.indexLabel.show();
+              else entry.indexLabel.hide();
+            }
+          } catch (_) {}
+          try {
+            if (typeof entry.indexLabel.setzIndex === 'function') {
+              entry.indexLabel.setzIndex(isActive ? 255 : (205 + entry.idx));
+            }
+          } catch (_) {}
+        });
+      };
       const setActive = (activeIdx) => {
         activeIndexRef.current = activeIdx;
         segmentEntries.forEach((segment) => {
             const segmentVisual = getSegmentVisualState(segment.idx, activeIdx, segment.color);
+            const animatedPath = buildPartialSegmentPath(
+              segment.path,
+              getSegmentAnimationProgress(segment.idx, activeIdx)
+            );
           try {
             segment.polyline.setOptions({
+              path: animatedPath,
                 strokeColor: segmentVisual.baseColor,
                 strokeOpacity: segmentVisual.lineOpacity,
                 strokeWeight: segmentVisual.lineWidth
             });
           } catch (_) {}
-          if (segment.arrowEl) {
-            segment.arrowEl.style.display = segmentVisual.showArrow ? '' : 'none';
-            segment.arrowEl.style.opacity = segmentVisual.showArrow ? '1' : '0';
+          if (segment.arrowMarker && segment.arrowEl) {
+            const arrowMeta = getSegmentArrowMeta(animatedPath);
+            if (arrowMeta && isValidMapCoordinatePair(arrowMeta.position)) {
+              try { segment.arrowMarker.setPosition([Number(arrowMeta.position[0]), Number(arrowMeta.position[1])]); } catch (_) {}
+              setDirectionArrowColor(segment.arrowEl, segmentVisual.baseColor);
+              setDirectionArrowAngle(segment.arrowEl, arrowMeta.angle);
+              segment.arrowEl.style.display = segmentVisual.showArrow ? '' : 'none';
+              segment.arrowEl.style.opacity = segmentVisual.showArrow ? '1' : '0';
+            } else {
+              segment.arrowEl.style.display = 'none';
+              segment.arrowEl.style.opacity = '0';
+            }
           }
           segment.state = {
             idx: segment.idx,
@@ -4652,6 +5267,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           }
         }
         updateAmapLabelVisibility(activeIdx);
+        updateAmapIndexLabels(activeIdx);
       };
       const focusIndex = (idx, rawOptions) => {
         const nextIdx = Number(idx);
@@ -4722,6 +5338,25 @@ const LIFE_GRADIENT_END = '#5D4037';
         },
         focusIndex,
         setActive,
+        followSegmentProgress: (segmentIdx, progress) => {
+          const segment = segmentEntries.find((item) => item.idx === Number(segmentIdx));
+          if (!segment) return;
+          const center = getSegmentFollowCenter(segment.path, progress);
+          if (!center) return;
+          try { map.setCenter(center); } catch (_) {}
+        },
+        refreshLabels: (activeIdx) => {
+          const idx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+          pointEntries.forEach((entry) => {
+            try {
+              const nextText = getMapPointLabelText(entry.loc, entry.idx);
+              if (entry.label && typeof entry.label.setText === 'function') entry.label.setText(nextText);
+              else if (entry.label && typeof entry.label.setOptions === 'function') entry.label.setOptions({ text: nextText });
+            } catch (_) {}
+          });
+          updateAmapLabelVisibility(idx);
+          updateAmapIndexLabels(idx);
+        },
         pulse: () => {},
         applyBaseLayer,
         getState: () => ({
@@ -4818,13 +5453,49 @@ const LIFE_GRADIENT_END = '#5D4037';
     let disposed = false;
     if (mapInitRequestTick <= 0 || mapRef.current) return () => { disposed = true; };
     const initMap = async () => {
+      // #region debug-point A:init-map-entry
+      debugEmit('A', 'profile_page.html:initMap', 'init map effect entered', {
+        mapInitRequestTick: Number(mapInitRequestTick || 0),
+        activeIndex: Number(activeIndexRef.current || 0),
+        locationCount: Array.isArray(locations) ? locations.length : 0,
+        hasGeoVis: Boolean(window.__MAP_STORY_GEOVIS__),
+        hasEnsureMapLibre: Boolean((window.__MAP_STORY_GEOVIS__ && window.__MAP_STORY_GEOVIS__.ensureMapLibre) || _ensureMapLibre),
+        hasEnsureAmap: typeof _ensureAmap === 'function'
+      });
+      // #endregion
       setMapLoadState('loading');
       const first = locations[0] || { lat: 35, lng: 105 };
       const geovis = window.__MAP_STORY_GEOVIS__;
+      let mapLoadResolved = false;
+      let mapLoadTimeout = 0;
       const fallbackToAmap = async (reason, preferredMode = 'vector') => {
+        mapLoadResolved = true;
+        if (mapLoadTimeout) {
+          try { window.clearTimeout(mapLoadTimeout); } catch (_) {}
+          mapLoadTimeout = 0;
+        }
+        if (maplibreMapRef.current) {
+          try { maplibreMapRef.current.remove(); } catch (_) {}
+          maplibreMapRef.current = null;
+        }
+        // #region debug-point C:fallback-to-amap
+        debugEmit('C', 'profile_page.html:fallbackToAmap', 'fallback to amap requested', {
+          reason: String(reason || ''),
+          preferredMode: String(preferredMode || 'vector'),
+          hasEnsureAmap: typeof _ensureAmap === 'function'
+        });
+        // #endregion
         try {
           await activateAmapFallback(preferredMode, reason || 'GeoVis 服务暂不可用，已回退到高德地图');
         } catch (err) {
+          // #region debug-point B:fallback-to-amap-error
+          debugEmit('B', 'profile_page.html:fallbackToAmap', 'fallback to amap failed', {
+            reason: String(reason || ''),
+            preferredMode: String(preferredMode || 'vector'),
+            errorName: String(err?.name || ''),
+            errorMessage: String(err?.message || err || '')
+          });
+          // #endregion
           setMapLoadState('error');
           setMapNotice(`${String(reason || 'GeoVis 服务暂不可用')}；高德地图加载失败：${String(err?.message || err)}`);
         }
@@ -4834,8 +5505,24 @@ const LIFE_GRADIENT_END = '#5D4037';
         return;
       }
       try {
+        // #region debug-point A:ensure-maplibre-start
+        debugEmit('A', 'profile_page.html:initMap', 'ensure maplibre start', {
+          provider: 'geovis'
+        });
+        // #endregion
         await ((window.__MAP_STORY_GEOVIS__ && window.__MAP_STORY_GEOVIS__.ensureMapLibre) || _ensureMapLibre)();
+        // #region debug-point A:ensure-maplibre-done
+        debugEmit('A', 'profile_page.html:initMap', 'ensure maplibre done', {
+          provider: 'geovis'
+        });
+        // #endregion
       } catch (err) {
+        // #region debug-point B:ensure-maplibre-error
+        debugEmit('B', 'profile_page.html:initMap', 'ensure maplibre failed', {
+          errorName: String(err?.name || ''),
+          errorMessage: String(err?.message || err || '')
+        });
+        // #endregion
         await fallbackToAmap(`GeoVis 服务暂不可用：${String(err?.message || err)}，已回退到高德地图`);
         return;
       }
@@ -4857,7 +5544,19 @@ const LIFE_GRADIENT_END = '#5D4037';
           },
           maxPitch: 70
         });
+        // #region debug-point A:maplibre-constructed
+        debugEmit('A', 'profile_page.html:initMap', 'maplibre constructed', {
+          center: [Number(first.lng || 0), Number(first.lat || 0)],
+          zoom: 4
+        });
+        // #endregion
       } catch (err) {
+        // #region debug-point B:maplibre-construct-error
+        debugEmit('B', 'profile_page.html:initMap', 'maplibre construction failed', {
+          errorName: String(err?.name || ''),
+          errorMessage: String(err?.message || err || '')
+        });
+        // #endregion
         await fallbackToAmap(`GeoVis 地图初始化失败：${String(err?.message || err)}，已回退到高德地图`);
         return;
       }
@@ -4962,7 +5661,9 @@ const LIFE_GRADIENT_END = '#5D4037';
       };
       const pointSourceId = 'story-point-source';
       const pointHaloId = 'story-point-halo';
+      const pointRingOuterId = 'story-point-ring-outer';
       const pointCoreId = 'story-point-core';
+      const pointIndexLayerId = 'story-point-index';
       const pointLabelSourceId = 'story-point-label-source';
       const pointLabelLayerId = 'story-point-label';
       const isValidMapCoordinatePair = (pair) => {
@@ -5017,8 +5718,9 @@ const LIFE_GRADIENT_END = '#5D4037';
           if (segmentPath.length < 2) continue;
           const segmentColor = mixHex(getLifeColor(locations[i], i), getLifeColor(locations[i + 1], i + 1), 0.5);
           const segmentVisual = getSegmentVisualState(i, activeIdx, segmentColor);
+          const visiblePath = buildPartialSegmentPath(segmentPath, getSegmentAnimationProgress(i, activeIdx));
           const screenPath = [];
-          for (const coord of segmentPath) {
+          for (const coord of visiblePath) {
             try {
               const point = map.project(coord);
               if (!Number.isFinite(Number(point?.x)) || !Number.isFinite(Number(point?.y))) continue;
@@ -5227,6 +5929,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                 haloId,
                 lineId,
                 color: segmentColor,
+                path: segmentPath,
                 arrowMarker
               });
             } catch (error) {
@@ -5240,8 +5943,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         const pointData = buildPointFeatureCollection(activeIndexRef.current);
         const buildMapLibreVisibleLabelIndexes = (activeIdx) => {
           const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
-          return getPreferredLabelIndexes({
-            activeIdx,
+          return computeVisibleLabelIndexes(activeIdx, {
             detailLevel: typeof map.getZoom === 'function' ? Number(map.getZoom()) : 6,
             isVisible: (lng, lat) => {
               if (!bounds || typeof bounds.contains !== 'function') return true;
@@ -5265,10 +5967,13 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (pointData.features.length) {
           try {
             ensureLayerRemoved(pointHaloId);
+            ensureLayerRemoved(pointRingOuterId);
             ensureLayerRemoved(pointCoreId);
+            ensureLayerRemoved(pointIndexLayerId);
             ensureLayerRemoved(pointLabelLayerId);
             ensureSourceRemoved(pointLabelSourceId);
             ensureSourceRemoved(pointSourceId);
+            const initialShowIndex = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
             map.addSource(pointSourceId, { type: 'geojson', data: pointData });
             map.addLayer({
               id: pointHaloId,
@@ -5282,19 +5987,57 @@ const LIFE_GRADIENT_END = '#5D4037';
               }
             });
             map.addLayer({
+              id: pointRingOuterId,
+              type: 'circle',
+              source: pointSourceId,
+              layout: {
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'circle-radius': ['+', ['get', 'radius'], 2.6],
+                'circle-color': 'rgba(0,0,0,0)',
+                'circle-opacity': 0,
+                'circle-stroke-color': 'rgba(0,0,0,0.62)',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 5.6
+              }
+            });
+            map.addLayer({
               id: pointCoreId,
               type: 'circle',
               source: pointSourceId,
               paint: {
                 'circle-radius': ['get', 'radius'],
                 'circle-color': ['get', 'fillColor'],
-                'circle-opacity': ['get', 'fillOpacity'],
-                'circle-stroke-color': ['get', 'strokeColor'],
-                'circle-stroke-width': ['get', 'strokeWeight']
+                'circle-opacity': initialShowIndex ? 0 : ['get', 'fillOpacity'],
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-opacity': 1.0,
+                'circle-stroke-width': 3.4
               }
             });
-            pointLayers.push(pointHaloId, pointCoreId);
-            extraLayerIds.push(pointHaloId, pointCoreId);
+            map.addLayer({
+              id: pointIndexLayerId,
+              type: 'symbol',
+              source: pointSourceId,
+              layout: {
+                'text-field': ['to-string', ['+', ['get', 'idx'], 1]],
+                'text-size': ['case', ['>=', ['get', 'idx'], 99], 11, ['>=', ['get', 'idx'], 9], 13, 14],
+                'text-anchor': 'center',
+                'text-offset': [0, 0],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+                'visibility': initialShowIndex ? 'visible' : 'none'
+              },
+              paint: {
+                'text-color': '#111827',
+                'text-halo-color': 'rgba(255,255,255,0.96)',
+                'text-halo-width': 1.8,
+                'text-halo-blur': 0.2,
+                'text-opacity': 1.0
+              }
+            });
+            pointLayers.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
+            extraLayerIds.push(pointHaloId, pointRingOuterId, pointCoreId, pointIndexLayerId);
             extraSourceIds.push(pointSourceId);
           } catch (error) {
             debugEmit('A', 'profile_page.html:renderStoryOverlays', 'point layers skipped after render failure', {
@@ -5359,11 +6102,43 @@ const LIFE_GRADIENT_END = '#5D4037';
             setMarkerZ(marker, idx === activeIdx ? 280 : ((idx === 0 || idx === totalEvents - 1) ? 240 : 220));
           });
         };
+        const updateMapLibreIndexVisibility = () => {
+          const shouldShow = !(labelPrefsRef.current && labelPrefsRef.current.showIndex === false);
+          try {
+            if (map.getLayer(pointRingOuterId)) {
+              map.setLayoutProperty(pointRingOuterId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointIndexLayerId)) {
+              map.setLayoutProperty(pointIndexLayerId, 'visibility', shouldShow ? 'visible' : 'none');
+            }
+            if (map.getLayer(pointCoreId)) {
+              map.setPaintProperty(pointCoreId, 'circle-opacity', shouldShow ? 0 : ['get', 'fillOpacity']);
+            }
+          } catch (_) {}
+        };
         const setActive = (activeIdx) => {
           activeIndexRef.current = activeIdx;
           segmentLayers.forEach((segment) => {
             const segmentVisual = getSegmentVisualState(segment.idx, activeIdx, segment.color);
+            const animatedPath = buildPartialSegmentPath(
+              segment.path,
+              getSegmentAnimationProgress(segment.idx, activeIdx)
+            );
             try {
+              const haloSource = map.getSource(segment.haloId);
+              if (haloSource && typeof haloSource.setData === 'function') {
+                haloSource.setData({
+                  type: 'Feature',
+                  geometry: { type: 'LineString', coordinates: animatedPath }
+                });
+              }
+              const lineSource = map.getSource(segment.lineId);
+              if (lineSource && typeof lineSource.setData === 'function') {
+                lineSource.setData({
+                  type: 'Feature',
+                  geometry: { type: 'LineString', coordinates: animatedPath }
+                });
+              }
               if (map.getLayer(segment.haloId)) {
                 map.setPaintProperty(segment.haloId, 'line-color', segmentVisual.haloColor ? hexToRgba(segmentVisual.haloColor, segmentVisual.haloOpacity) : hexToRgba(segmentVisual.baseColor, segmentVisual.haloOpacity));
                 map.setPaintProperty(segment.haloId, 'line-opacity', segmentVisual.haloLineOpacity);
@@ -5378,9 +6153,17 @@ const LIFE_GRADIENT_END = '#5D4037';
             if (segment.arrowMarker && typeof segment.arrowMarker.getElement === 'function') {
               const arrowEl = segment.arrowMarker.getElement();
               if (arrowEl) {
-                setDirectionArrowColor(arrowEl, segmentVisual.baseColor);
-                arrowEl.style.display = segmentVisual.showArrow ? '' : 'none';
-                arrowEl.style.opacity = segmentVisual.showArrow ? '1' : '0';
+                const arrowMeta = getSegmentArrowMeta(animatedPath);
+                if (arrowMeta && isValidMapCoordinatePair(arrowMeta.position)) {
+                  try { segment.arrowMarker.setLngLat(arrowMeta.position); } catch (_) {}
+                  setDirectionArrowColor(arrowEl, segmentVisual.baseColor);
+                  setDirectionArrowAngle(arrowEl, arrowMeta.angle);
+                  arrowEl.style.display = segmentVisual.showArrow ? '' : 'none';
+                  arrowEl.style.opacity = segmentVisual.showArrow ? '1' : '0';
+                } else {
+                  arrowEl.style.display = 'none';
+                  arrowEl.style.opacity = '0';
+                }
               }
             }
           });
@@ -5478,6 +6261,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           lineIds,
           extraLayerIds,
           extraSourceIds,
+          markers,
           pointSourceId,
           pointCoreId,
           clear: () => {
@@ -5565,6 +6349,25 @@ const LIFE_GRADIENT_END = '#5D4037';
             focusTimelineIndex(nextIdx, pulse);
           },
           setActive,
+          followSegmentProgress: (segmentIdx, progress) => {
+            const segment = segmentLayers.find((item) => item.idx === Number(segmentIdx));
+            if (!segment) return;
+            const center = getSegmentFollowCenter(segment.path, progress);
+            if (!center) return;
+            try {
+              map.jumpTo({
+                center,
+                zoom: typeof map.getZoom === 'function' ? map.getZoom() : focusZoom,
+                bearing: typeof map.getBearing === 'function' ? map.getBearing() : 0,
+                pitch: typeof map.getPitch === 'function' ? map.getPitch() : 0
+              });
+            } catch (_) {}
+          },
+          refreshLabels: (activeIdx) => {
+            const nextIdx = Number.isFinite(Number(activeIdx)) ? Number(activeIdx) : Number(activeIndexRef.current);
+            updateMapLibreLabelVisibility(nextIdx);
+            updateMapLibreIndexVisibility();
+          },
           pulse: pulseByIndex,
           getState: () => ({
             engine: 'maplibre',
@@ -5583,6 +6386,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         };
         maplibreControllerRef.current = controller;
         updateMapLibreLabelVisibility(activeIndexRef.current);
+        updateMapLibreIndexVisibility();
         if (!isTerrain3DMode(currentBaseLayerRef.current)) {
           mapRef.current = controller;
         }
@@ -5743,6 +6547,11 @@ const LIFE_GRADIENT_END = '#5D4037';
       try { map.on('idle', () => healMapLibreOverlaysIfMissing('idle')); } catch (_) {}
       map.on('load', () => {
         if (!disposed) {
+          mapLoadResolved = true;
+          if (mapLoadTimeout) {
+            try { window.clearTimeout(mapLoadTimeout); } catch (_) {}
+            mapLoadTimeout = 0;
+          }
           // #region debug-point A:map-load
           debugEmit('A', 'profile_page.html:map.on(load)', 'maplibre load', {
             initialLocIdx,
@@ -5754,10 +6563,76 @@ const LIFE_GRADIENT_END = '#5D4037';
           try { geovis.applyMapLibreMode(map, 'vector'); } catch (_) {}
           applyMapViewMode(map, 'vector', true);
           renderStoryOverlays();
+          // #region debug-point A:map-ready
+          debugEmit('A', 'profile_page.html:map.on(load)', 'map state ready', {
+            provider: 'geovis',
+            activeIndex: Number(activeIndexRef.current || 0),
+            lineCount: Array.isArray(locations) ? Math.max(locations.length - 1, 0) : 0
+          });
+          // #endregion
+          // #region debug-point A:map-ready-state
+          debugEmit('A', 'profile_page.html:map.on(load)', 'map state transition ready', {
+            provider: 'geovis',
+            hasMapRef: Boolean(mapRef.current),
+            hasMapLibreRef: Boolean(maplibreMapRef.current)
+          });
+          // #endregion
           setMapLoadState('ready');
           setMapReadyTick((value) => value + 1);
         }
       });
+      // #region debug-point B:maplibre-runtime-events
+      try {
+        map.on('error', (event) => {
+          debugEmit('B', 'profile_page.html:map.on(error)', 'maplibre runtime error', {
+            errorName: String(event?.error?.name || ''),
+            errorMessage: String(event?.error?.message || event?.error || ''),
+            sourceId: String(event?.sourceId || ''),
+            tile: event?.tile ? 'present' : 'none'
+          });
+        });
+      } catch (_) {}
+      try {
+        map.on('styledata', () => {
+          debugEmit('A', 'profile_page.html:map.on(styledata)', 'maplibre styledata', {
+            isStyleLoaded: typeof map.isStyleLoaded === 'function' ? Boolean(map.isStyleLoaded()) : null
+          });
+        });
+      } catch (_) {}
+      try {
+        map.on('sourcedata', (event) => {
+          if (!event || event.isSourceLoaded === undefined) return;
+          debugEmit('A', 'profile_page.html:map.on(sourcedata)', 'maplibre sourcedata', {
+            sourceId: String(event.sourceId || ''),
+            sourceDataType: String(event.sourceDataType || ''),
+            isSourceLoaded: Boolean(event.isSourceLoaded)
+          });
+        });
+      } catch (_) {}
+      try {
+        window.setTimeout(() => {
+          if (disposed || mapRef.current) return;
+          debugEmit('D', 'profile_page.html:initMap', 'map load watchdog snapshot', {
+            hasMapLibreRef: Boolean(maplibreMapRef.current),
+            hasMapRef: Boolean(mapRef.current),
+            mapLoadState: String(mapLoadState || ''),
+            isStyleLoaded: typeof map.isStyleLoaded === 'function' ? Boolean(map.isStyleLoaded()) : null,
+            areTilesLoaded: typeof map.areTilesLoaded === 'function' ? Boolean(map.areTilesLoaded()) : null
+          });
+        }, 8000);
+      } catch (_) {}
+      try {
+        mapLoadTimeout = window.setTimeout(async () => {
+          if (disposed || mapLoadResolved || mapRef.current) return;
+          debugEmit('D', 'profile_page.html:initMap', 'map load timeout, switching to amap fallback', {
+            timeoutMs: 4500,
+            isStyleLoaded: typeof map.isStyleLoaded === 'function' ? Boolean(map.isStyleLoaded()) : null,
+            areTilesLoaded: typeof map.areTilesLoaded === 'function' ? Boolean(map.areTilesLoaded()) : null
+          });
+          await fallbackToAmap('GeoVis 首屏底图加载超时，已自动切换到高德地图');
+        }, 4500);
+      } catch (_) {}
+      // #endregion
     };
     initMap();
     return () => {
@@ -5765,6 +6640,10 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (overlayRepairRaf) {
           try { window.cancelAnimationFrame(overlayRepairRaf); } catch (_) {}
           overlayRepairRaf = 0;
+        }
+        if (mapLoadTimeout) {
+          try { window.clearTimeout(mapLoadTimeout); } catch (_) {}
+          mapLoadTimeout = 0;
         }
         if (fallbackOverlayRaf) {
           try { window.cancelAnimationFrame(fallbackOverlayRaf); } catch (_) {}
@@ -6148,10 +7027,17 @@ const LIFE_GRADIENT_END = '#5D4037';
         activeIndexRef.current = activeIdx;
         segmentEntries.forEach((segment) => {
           const segmentVisual = getSegmentVisualState(segment.idx, activeIdx, segment.color);
+          const animatedPath = buildPartialSegmentPath(
+            segment.path,
+            getSegmentAnimationProgress(segment.idx, activeIdx)
+          );
+          const animatedPositions = toCartesianArray(animatedPath);
           if (segment.haloEntity && segment.haloEntity.polyline) {
+            segment.haloEntity.polyline.positions = animatedPositions;
             segment.haloEntity.polyline.material = buildCesiumSegmentHaloMaterial(segmentVisual);
             segment.haloEntity.polyline.width = segmentVisual.haloLineWidth + 2.4;
           }
+          segment.entity.polyline.positions = animatedPositions;
           segment.entity.polyline.material = buildCesiumSegmentMaterial(segmentVisual);
           segment.entity.polyline.width = segmentVisual.lineWidth + (segmentVisual.showArrow ? 1.8 : 0.9);
           segment.state = {
@@ -6264,6 +7150,7 @@ const LIFE_GRADIENT_END = '#5D4037';
           segmentEntries.push({
             idx: i,
             color: segmentColor,
+            path: segmentPath,
             haloEntity,
             entity,
             state: {
@@ -6414,6 +7301,23 @@ const LIFE_GRADIENT_END = '#5D4037';
           } catch (_) {}
         },
         setActive,
+        followSegmentProgress: (segmentIdx, progress) => {
+          const segment = segmentEntries.find((item) => item.idx === Number(segmentIdx));
+          if (!segment) return;
+          const center = getSegmentFollowCenter(segment.path, progress);
+          if (!center) return;
+          try {
+            const currentHeight = Math.max(Number(viewer.camera?.positionCartographic?.height || 900000), 280000);
+            viewer.camera.setView({
+              destination: Cesium.Cartesian3.fromDegrees(Number(center[0]), Number(center[1]), currentHeight),
+              orientation: {
+                heading: Number(viewer.camera.heading || 0),
+                pitch: Number(viewer.camera.pitch || Cesium.Math.toRadians(-45)),
+                roll: 0
+              }
+            });
+          } catch (_) {}
+        },
         pulse: () => {},
         getState: () => ({
           engine: 'cesium',
@@ -6452,6 +7356,15 @@ const LIFE_GRADIENT_END = '#5D4037';
       cancelled = true;
     };
   }, [mapLayerType, mapRecoveryTick]);
+  useEffect(() => {
+    if (didAutoFitOnLoadRef.current) return;
+    if (mapLoadState !== 'ready') return;
+    if (initialLocFromHash || hasLocHash()) return;
+    const controller = mapRef.current;
+    if (!controller || typeof controller.fitAll !== 'function') return;
+    didAutoFitOnLoadRef.current = true;
+    try { controller.fitAll(false); } catch (_) {}
+  }, [mapLoadState, initialLocFromHash]);
   // 把当前位置写到 URL hash，分享链接可定位到具体地点
   useEffect(() => {
     if (typeof window === 'undefined' || !window.history) return;
@@ -6525,13 +7438,19 @@ const LIFE_GRADIENT_END = '#5D4037';
   const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '620px';
   const mapReady = mapLoadState === 'ready';
   const mapLoading = mapLoadState === 'loading';
-  const mapLazyTitle = mapLoading ? '地图与足迹正在加载' : (mapLoadState === 'error' ? '地图暂时加载失败' : '滚动到这里后自动加载地图');
+  const labelTotalCount = totalEvents;
+  const labelCustomVisible = labelPrefs?.customVisible && typeof labelPrefs.customVisible === 'object' ? labelPrefs.customVisible : null;
+  const labelCustomHasKeys = Boolean(labelCustomVisible && Object.keys(labelCustomVisible).length);
+  const labelSelectedCount = labelPrefs?.showLabel
+    ? (labelCustomHasKeys ? Object.keys(labelCustomVisible).filter((k) => Boolean(labelCustomVisible[k])).length : labelTotalCount)
+    : 0;
+  const mapLazyTitle = mapLoading ? '地图正在展开' : (mapLoadState === 'error' ? '地图暂时加载失败' : '地图已准备好');
   const mapLazyCopy = mapLoading
     ? '正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。'
     : (mapLoadState === 'error'
       ? '你可以立即重试地图加载；即使地图暂不可用，人物信息与时间线也不会受影响。'
-      : '为减少首屏等待，地图会在进入可视区后再初始化；如果你想马上查看，也可以手动触发。');
-  const mapLazyActionLabel = mapLoading ? '正在加载地图…' : (mapLoadState === 'error' ? '重试加载地图' : '立即加载地图');
+      : '地图已完成初始化。');
+  const mapLazyActionLabel = mapLoading ? '正在加载地图…' : (mapLoadState === 'error' ? '重试加载地图' : '查看地图');
   useEffect(() => {
     const syncMapViewport = () => {
       try {
@@ -7027,9 +7946,18 @@ const LIFE_GRADIENT_END = '#5D4037';
       }
     }
     if (!staticSite || isLocalHost) {
+      pushUrl('http://127.0.0.1:8877/api/ai/proxy');
+      pushUrl('http://localhost:8877/api/ai/proxy');
       pushUrl('http://127.0.0.1:8765/api/ai/proxy');
       pushUrl('http://localhost:8765/api/ai/proxy');
     }
+    debugEmit('A', 'profile_page.html:_resolveChatProxyUrls', 'chat proxy urls resolved', {
+      personName: String(data?.person?.name || '').trim(),
+      staticSite,
+      host,
+      isLocalHost,
+      tryUrls
+    });
     return tryUrls;
   };
   const _parseSsePayloads = (rawChunk) => {
@@ -7070,6 +7998,9 @@ const LIFE_GRADIENT_END = '#5D4037';
   const _postChat = async (messages, { onDelta, signal } = {}) => {
     const tryUrls = _resolveChatProxyUrls();
     if (!tryUrls.length) {
+      debugEmit('A', 'profile_page.html:_postChat', 'chat proxy url list empty', {
+        personName: String(data?.person?.name || '').trim()
+      });
       throw new Error('LLM_ENDPOINT_UNAVAILABLE');
     }
     let lastErr = null;
@@ -7084,7 +8015,7 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (!controller) return;
         idleTimer = setInterval(() => {
           const elapsed = Date.now() - lastChunkAt;
-          const limit = hadAnyChunk ? 20000 : 9000;
+          const limit = hadAnyChunk ? 45000 : 30000;
           if (elapsed >= limit) {
             idleTimedOut = true;
             try { controller.abort(); } catch (_) {}
@@ -7099,13 +8030,19 @@ const LIFE_GRADIENT_END = '#5D4037';
       };
       try {
         startIdleWatch();
+        const signal = requestSignal;
+        debugEmit('B', 'profile_page.html:_postChat', 'chat fetch start', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream
+        });
         const resp = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'text/event-stream, application/json'
           },
-          signal: requestSignal,
+          signal,
           body: JSON.stringify({
             messages,
             temperature: 0.5,
@@ -7115,8 +8052,23 @@ const LIFE_GRADIENT_END = '#5D4037';
             }
           })
         });
+        debugEmit('C', 'profile_page.html:_postChat', 'chat fetch response', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          status: Number(resp.status || 0),
+          ok: !!resp.ok,
+          contentType: String(resp.headers.get('content-type') || '').trim()
+        });
         if (!resp.ok) {
           const text = await resp.text();
+          debugEmit('C', 'profile_page.html:_postChat', 'chat fetch non-ok response', {
+            personName: String(data?.person?.name || '').trim(),
+            url,
+            stream: !!stream,
+            status: Number(resp.status || 0),
+            bodyPreview: String(text || '').slice(0, 280)
+          });
           throw new Error(text || `HTTP ${resp.status}`);
         }
         const contentType = String(resp.headers.get('content-type') || '').toLowerCase();
@@ -7179,6 +8131,15 @@ const LIFE_GRADIENT_END = '#5D4037';
           meta
         };
       } catch (e) {
+        debugEmit('D', 'profile_page.html:_postChat', 'chat fetch error', {
+          personName: String(data?.person?.name || '').trim(),
+          url,
+          stream: !!stream,
+          errorName: String(e?.name || ''),
+          errorMessage: String(e?.message || e || '').trim(),
+          idleTimedOut: !!idleTimedOut,
+          aborted: !!(signal && signal.aborted)
+        });
         if (idleTimedOut && !(signal && signal.aborted)) {
           const err = new Error('STREAM_IDLE_TIMEOUT');
           err.cause = e;
@@ -7191,11 +8152,11 @@ const LIFE_GRADIENT_END = '#5D4037';
     };
     for (const url of tryUrls) {
       try {
-        return await _tryOnce(url, { stream: true });
+        return await _tryOnce(url, { stream: true, mode: 'sse' });
       } catch (e) {
         if (!(signal && signal.aborted) && String(e?.message || '').trim() === 'STREAM_IDLE_TIMEOUT') {
           try {
-            return await _tryOnce(url, { stream: false });
+            return await _tryOnce(url, { stream: false, mode: 'json' });
           } catch (retryErr) {
             lastErr = retryErr;
             continue;
@@ -7289,6 +8250,11 @@ const LIFE_GRADIENT_END = '#5D4037';
           : item
       )));
       if (meta?.used_fallback) {
+        debugEmit('E', 'profile_page.html:sendChat', 'chat fell back to archive answer', {
+          personName: String(data?.person?.name || '').trim(),
+          source: String(meta?.source || '').trim(),
+          fallbackReason: String(meta?.fallback_reason || '').trim()
+        });
         setChatError(getChatFallbackNotice(meta, null));
       }
     } catch (e) {
@@ -7328,6 +8294,11 @@ const LIFE_GRADIENT_END = '#5D4037';
             : item
         )));
       }
+      debugEmit('E', 'profile_page.html:sendChat', 'chat request failed and fallback notice shown', {
+        personName: String(data?.person?.name || '').trim(),
+        errorName: String(e?.name || ''),
+        errorMessage: String(e?.message || e || '').trim()
+      });
       setChatError(getChatFallbackNotice(null, e));
     } finally {
       if (chatAbortControllerRef.current === controller) {
@@ -7398,17 +8369,6 @@ const LIFE_GRADIENT_END = '#5D4037';
             {headerSubtitle ? (
               <p className="theme-subtitle mt-3 text-sm leading-relaxed italic border-l-2 border-[rgba(26,115,232,0.18)] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
-            <div className="mt-3 flex flex-wrap gap-2" data-feedback-anchor="header">
-              <button
-                type="button"
-                onClick={() => openFeedbackDialog('header')}
-                className="theme-chip-muted text-[10px] font-medium px-2 py-0.5 rounded-full border border-[rgba(26,115,232,0.18)] hover:bg-[rgba(26,115,232,0.08)] transition leading-snug"
-                data-testid="feedback-button"
-                aria-label="反馈本页内容错误"
-              >
-                ⚠️ 反馈错误
-              </button>
-            </div>
             <div className="mt-4 space-y-3 text-left">
               {renderDescription()}
               {introFactLines.length ? (
@@ -7474,6 +8434,23 @@ const LIFE_GRADIENT_END = '#5D4037';
                     >
                       {isAutoPlaying ? '停止播放' : '自动播放'}
                     </button>
+                    <div className="w-px h-5 bg-[rgba(26,115,232,0.18)]"></div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <label
+                        className={`theme-chip-muted inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-normal shadow-sm ${labelPrefs?.showLabel ? 'border-[rgba(26,115,232,0.22)] bg-white/90 text-[var(--color-text-secondary)]' : ''} ${labelTotalCount <= 0 ? 'opacity-50' : ''}`}
+                        title={labelTotalCount ? `地图注记：${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的地图注记'}
+                      >
+                        <span>地图注记</span>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(labelPrefs?.showLabel)}
+                          disabled={labelTotalCount <= 0}
+                          onChange={toggleShowLabel}
+                          aria-label={labelTotalCount ? `切换地图注记（年龄+地点），当前 ${labelSelectedCount}/${labelTotalCount}` : '当前没有可显示的地图注记'}
+                          className="h-3.5 w-3.5 accent-[var(--color-primary)] cursor-pointer disabled:cursor-not-allowed"
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -7525,6 +8502,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(16 * timelineZoom)}px` }}>
                       {locations.map((loc, idx) => {
                         const ageText = getAgeText(loc) || (idx === 0 ? '年龄待考' : (idx === totalEvents - 1 ? '终章' : '年龄待考'));
+                        const ageBadgeText = isPosthumousEvent(loc) ? '身后' : ageText;
                         const stageText = getLifeStage(loc, idx);
                         const lifeColor = getLifeColor(loc, idx);
                         const lifeProgress = Math.round(getLifeProgress(loc, idx) * 100);
@@ -7588,6 +8566,22 @@ const LIFE_GRADIENT_END = '#5D4037';
                                 <div className="flex justify-between items-start gap-3 mb-2">
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
+                                      <span
+                                        className="inline-flex items-center justify-center font-bold text-white shrink-0"
+                                        style={{
+                                          width: `${Math.round(22 * timelineZoom)}px`,
+                                          height: `${Math.round(22 * timelineZoom)}px`,
+                                          borderRadius: '999px',
+                                          background: lifeColor,
+                                          border: `2px solid ${hexToRgba('#ffffff', idx === activeIndex ? 0.98 : 0.92)}`,
+                                          boxShadow: idx === activeIndex ? `0 12px 24px ${hexToRgba(lifeColor, 0.3)}` : `0 8px 18px ${hexToRgba(lifeColor, 0.2)}`,
+                                          fontSize: `${Math.round(12 * timelineZoom)}px`,
+                                          lineHeight: '1',
+                                          opacity: idx < activeIndex ? 0.86 : 1
+                                        }}
+                                      >
+                                        {idx + 1}
+                                      </span>
                                       <span className="font-bold truncate" style={{ fontSize: `${Math.round(14 * timelineZoom)}px` }}>{getSelectedLocDisplayName(loc)}</span>
                                       <span
                                         className="px-2 py-0.5 rounded-full border font-semibold"
@@ -7598,7 +8592,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                                           background: hexToRgba(lifeColor, 0.08)
                                         }}
                                       >
-                                        {ageText}
+                                        {ageBadgeText}
                                       </span>
                                       <span className="px-2 py-0.5 rounded-full bg-white/70 text-gray-500 border border-[#c8b496]/40" style={{ fontSize: `${Math.round(10 * timelineZoom)}px` }}>
                                         {stageText}
@@ -7611,9 +8605,31 @@ const LIFE_GRADIENT_END = '#5D4037';
                                     </div>
                                     <div className="text-gray-400 truncate" style={{ fontSize: `${Math.round(10 * timelineZoom)}px` }}>{loc.ancientName} : {loc.modernName}</div>
                                   </div>
-                                  <span className="px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500" style={{ fontSize: `${Math.round(10 * timelineZoom)}px` }}>
-                                    {loc.time || '未知'}
-                                  </span>
+                                  <div className="flex flex-col items-end gap-2 shrink-0">
+                                    <span className="px-1.5 py-0.5 rounded bg-gray-100/90 text-gray-500" style={{ fontSize: `${Math.round(10 * timelineZoom)}px` }}>
+                                      {loc.time || '未知'}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className={`theme-chip-muted inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-normal shadow-none transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.2)] bg-white/88 text-[var(--color-text-secondary)]' : 'border-transparent bg-white/55 text-gray-500 hover:bg-white/72'}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleCustomLabelIndex(idx);
+                                      }}
+                                      aria-label={`切换第${idx + 1}站地图注记`}
+                                      aria-pressed={Boolean(labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false))}
+                                    >
+                                      <span
+                                        aria-hidden="true"
+                                        className={`inline-flex h-3 w-3 items-center justify-center rounded-[3px] border transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'border-[rgba(26,115,232,0.4)] bg-[rgba(26,115,232,0.12)]' : 'border-[rgba(148,163,184,0.5)] bg-white/80'}`}
+                                      >
+                                        <span
+                                          className={`h-1.5 w-1.5 rounded-[2px] transition-colors ${labelPrefs?.showLabel && (!labelPrefs?.customVisible || labelPrefs.customVisible[String(idx)] !== false) ? 'bg-[var(--color-primary)]' : 'bg-transparent'}`}
+                                        ></span>
+                                      </span>
+                                      <span>地图注记</span>
+                                    </button>
+                                  </div>
                                 </div>
                                 <div className="space-y-1 text-gray-500 mb-2" style={{ fontSize: `${Math.round(11 * timelineZoom)}px` }}>
                                   <div className="flex justify-between">
@@ -7671,17 +8687,12 @@ const LIFE_GRADIENT_END = '#5D4037';
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-amap" className="map-canvas is-hidden"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
-                {!mapReady ? (
+                {(mapLoading || mapLoadState === 'error') ? (
                   <div className="map-lazy-overlay" data-map-state={mapLoadState} data-testid="profile-map-lazy-overlay">
                     <div className="map-lazy-card">
-                      <div className="map-lazy-kicker">按需加载</div>
+                      <div className="map-lazy-kicker">{mapLoadState === 'error' ? '地图异常' : '地图加载中'}</div>
                       <div className="map-lazy-title">{mapLazyTitle}</div>
                       <p className="map-lazy-copy">{mapLazyCopy}</p>
-                      <div className="map-lazy-skeleton" aria-hidden="true">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
                       <div className="map-lazy-actions">
                         <button
                           type="button"
@@ -7691,7 +8702,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                         >
                           {mapLazyActionLabel}
                         </button>
-                        <span className="map-lazy-hint">地图进入视口后也会自动加载</span>
+                        <span className="map-lazy-hint">人物正文已可阅读，地图会继续完成初始化</span>
                       </div>
                     </div>
                   </div>
@@ -8128,6 +9139,17 @@ const LIFE_GRADIENT_END = '#5D4037';
           </section>
         </div>
 
+      </div>
+      <div className="flex justify-center pt-1" data-feedback-anchor="page-footer" data-export-ignore="true">
+        <button
+          type="button"
+          onClick={() => openFeedbackDialog('page-footer')}
+          className="theme-chip-muted text-xs font-medium px-3 py-1 rounded-full border border-[rgba(26,115,232,0.14)] hover:bg-[rgba(26,115,232,0.06)] transition"
+          data-testid="feedback-button"
+          aria-label="反馈本页内容错误"
+        >
+          内容纠错
+        </button>
       </div>
       <footer className="text-center text-gray-400 text-[10px] py-8 border-t border-gray-200">
         <p>

@@ -109,6 +109,8 @@ def test_generate_for_person_refreshes_cached_html_when_markdown_is_newer(tmp_pa
     monkeypatch.setattr(sm, "_story_paths", lambda _person: (str(md_path), str(html_path)))
     monkeypatch.setattr(sm, "load_profile_from_md", lambda md, **_kwargs: {"person": {"name": person}, "locations": [], "markdown": md})
     monkeypatch.setattr(sm, "render_profile_html", lambda profile: f"<html><body>{profile.get('markdown','')}</body></html>")
+    monkeypatch.setattr(sm, "refresh_stellar_homepage", lambda requested_person: {"ok": True, "person": requested_person})
+    monkeypatch.setattr(sm, "_enqueue_background_job", _run_background_job_inline)
 
     result = sm.generate_for_person(client=None, person=person, allow_cache=True)
 

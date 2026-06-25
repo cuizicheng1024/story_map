@@ -8,6 +8,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from storymap.script.profile import builder as profile_builder
 from storymap.script.profile import renderer as map_html_renderer
+from storymap.script.core import parsers as parser_utils
 
 
 def test_profile_map_bootstrap_uses_official_geovis_terrain_metadata_url():
@@ -254,6 +255,28 @@ def test_build_profile_data_marks_coordinates_as_wgs84():
     assert profile["person"]["birth"]["coordSystem"] == "WGS84"
     assert profile["person"]["death"]["coordSystem"] == "WGS84"
     assert all(item.get("coordSystem") == "WGS84" for item in profile["locations"])
+
+
+def test_parse_date_location_details_preserves_uncertain_year_marker():
+    date, loc, geocode_loc = parser_utils._parse_date_location_details(
+        "约公元619年（存疑），婺州义乌（今浙江义乌）",
+        ["出生于", "生于"],
+    )
+
+    assert date == "约公元619年（存疑）"
+    assert "婺州义乌" in loc
+    assert geocode_loc == loc
+
+
+def test_parse_date_location_details_keeps_ambiguous_death_outcome_as_raw_location():
+    date, loc, geocode_loc = parser_utils._parse_date_location_details(
+        "约公元684年，结局存疑（一说被杀于扬州，一说逃遁不知所终）",
+        ["卒于", "去世于", "卒"],
+    )
+
+    assert date == "约公元684年（存疑）"
+    assert loc == "结局存疑（一说被杀于扬州，一说逃遁不知所终）"
+    assert geocode_loc == ""
 
 
 def test_build_profile_data_keeps_clear_birthplace_but_strips_date_only_uncertainty():
@@ -522,6 +545,83 @@ def test_build_profile_data_prefers_summary_index_copy(monkeypatch):
     assert profile["person"]["highlights"]["reviews"][0] == "新的历史评价"
 
 
+def test_build_profile_data_filters_summary_works_and_backfills_preferred_titles(monkeypatch):
+    md = """# 列宁
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：弗拉基米尔·伊里奇·乌里扬诺夫（列宁）
+- **时代**：19世纪末至20世纪初
+"""
+
+    monkeypatch.setattr(
+        profile_builder,
+        "_get_person_summary_item",
+        lambda name: {
+            "works": ["火星报"],
+        }
+        if name == "弗拉基米尔·伊里奇·乌里扬诺夫"
+        else {},
+    )
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["highlights"]["works"] == [
+        "帝国主义是资本主义的最高阶段",
+        "国家与革命",
+    ]
+
+
+def test_build_profile_data_normalizes_summary_achievements_for_known_people(monkeypatch):
+    md = """# 方志敏
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：方志敏
+- **时代**：近现代
+"""
+
+    monkeypatch.setattr(
+        profile_builder,
+        "_get_person_summary_item",
+        lambda name: {
+            "achievements": "创建赣东北革命根据地；创立中国工农红军第十军团；坚持斗争。",
+        }
+        if name == "方志敏"
+        else {},
+    )
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["highlights"]["achievements"] == (
+        "创建赣东北革命根据地；创建中国工农红军第十军，并在红十军团成立后担任重要领导职务；坚持斗争。"
+    )
+
+
 def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
     md = """## 地点坐标
 | 现称 | 纬度 | 经度 |
@@ -545,6 +645,33 @@ def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
     assert profile is not None
     assert profile["person"]["name"] == "李四光"
     assert profile["locations"][0]["modernName"] == "湖北黄冈"
+
+
+def test_build_profile_data_preserves_parenthetical_display_name():
+    md = """# 鲁迅
+
+## 人物档案
+
+### 基本信息
+- **姓名**：鲁迅（周树人）
+- **历史地位**：中国现代文学的奠基人
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        fallback_person="鲁迅",
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["name"] == "鲁迅（周树人）"
 
 
 def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_exists():

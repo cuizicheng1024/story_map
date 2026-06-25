@@ -1,0 +1,149 @@
+name: Deploy Runtime
+
+on:
+  workflow_run:
+    workflows: ["Python CI"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-runtime-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-volc:
+    if: >
+      (github.event_name == 'workflow_dispatch' || (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )) &&
+      secrets.STORYMAP_DEPLOY_KEY != ''
+    runs-on: ubuntu-latest
+    env:
+      STORYMAP_DEPLOY_HOST: ${{ secrets.STORYMAP_DEPLOY_HOST }}
+      STORYMAP_DEPLOY_USER: ${{ secrets.STORYMAP_DEPLOY_USER }}
+      STORYMAP_DEPLOY_PORT: ${{ secrets.STORYMAP_DEPLOY_PORT }}
+      STORYMAP_DEPLOY_APP_DIR: ${{ secrets.STORYMAP_DEPLOY_APP_DIR }}
+      STORYMAP_DEPLOY_SERVICE: ${{ secrets.STORYMAP_DEPLOY_SERVICE }}
+      STORYMAP_DEPLOY_HEALTHCHECK_URL: ${{ vars.STORYMAP_DEPLOY_HEALTHCHECK_URL || 'http://127.0.0.1:8765/health/ready' }}
+      STORYMAP_DEPLOY_PUBLIC_BASE_URL: ${{ vars.STORYMAP_DEPLOY_PUBLIC_BASE_URL || 'http://124.174.16.20' }}
+      STORYMAP_DEPLOY_ALLOW_DEFAULT_TARGET: "1"
+      PYTHONPATH: .
+      STORY_MAP_STRICT_STARTUP: "0"
+      AMAP_KEY: ${{ secrets.AMAP_KEY }}
+      AMAP_SECURITY: ${{ secrets.AMAP_SECURITY }}
+      MAP_STORY_VOLCENGINE_APM_AID: ${{ vars.MAP_STORY_VOLCENGINE_APM_AID || '1002542' }}
+      MAP_STORY_VOLCENGINE_APM_TOKEN: ${{ secrets.MAP_STORY_VOLCENGINE_APM_TOKEN }}
+      MAP_STORY_VOLCENGINE_APM_ENV: ${{ vars.MAP_STORY_VOLCENGINE_APM_ENV || 'prod' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Write SSH key
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/storymap"
+          printf '%s' "${{ secrets.STORYMAP_DEPLOY_KEY }}" > "$RUNNER_TEMP/storymap/storymap-key.pem"
+          chmod 600 "$RUNNER_TEMP/storymap/storymap-key.pem"
+          echo "STORYMAP_DEPLOY_KEY=$RUNNER_TEMP/storymap/storymap-key.pem" >> "$GITHUB_ENV"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+
+      - name: Build static artifacts
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          python tools/build/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+
+      - name: Quick Deploy To 火山云
+        shell: bash
+        run: |
+          set -euxo pipefail
+          chmod +x scripts/quick_deploy_storymap.sh
+          scripts/quick_deploy_storymap.sh --target volc --verify-public
+
+  deploy-opendeploy:
+    if: >
+      (github.event_name == 'workflow_dispatch' || (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )) &&
+      secrets.OPENDEPLOY_HOME_TGZ_BASE64 != ''
+    runs-on: ubuntu-latest
+    env:
+      OPENDEPLOY_REGION_ID: ${{ vars.OPENDEPLOY_REGION_ID || 'b717f9dc-6149-4c86-adea-c7252bd1123c' }}
+      PYTHONPATH: .
+      STORY_MAP_STRICT_STARTUP: "0"
+      AMAP_KEY: ${{ secrets.AMAP_KEY }}
+      AMAP_SECURITY: ${{ secrets.AMAP_SECURITY }}
+      MAP_STORY_VOLCENGINE_APM_AID: ${{ vars.MAP_STORY_VOLCENGINE_APM_AID || '1002542' }}
+      MAP_STORY_VOLCENGINE_APM_TOKEN: ${{ secrets.MAP_STORY_VOLCENGINE_APM_TOKEN }}
+      MAP_STORY_VOLCENGINE_APM_ENV: ${{ vars.MAP_STORY_VOLCENGINE_APM_ENV || 'prod' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install OpenDeploy CLI
+        shell: bash
+        run: |
+          set -euxo pipefail
+          npm install -g @opendeploydev/cli
+          opendeploy --help >/dev/null
+
+      - name: Restore OpenDeploy auth context
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.opendeploy"
+          printf '%s' "${{ secrets.OPENDEPLOY_HOME_TGZ_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/opendeploy-home.tgz"
+          tar -xzf "$RUNNER_TEMP/opendeploy-home.tgz" -C "$HOME"
+
+      - name: Build static artifacts
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          python tools/build/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+
+      - name: Quick Deploy To OpenDeploy
+        shell: bash
+        run: |
+          set -euxo pipefail
+          chmod +x scripts/quick_deploy_storymap.sh
+          scripts/quick_deploy_storymap.sh --target opendeploy

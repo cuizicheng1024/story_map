@@ -111,3 +111,11 @@ def test_pick_geocode_name_collapses_foreign_admin_chain_to_city_leaf():
 def test_pick_geocode_name_keeps_plain_city_name():
     assert parsers._pick_geocode_name("纽约市") == "纽约市"
     assert parsers._pick_geocode_name("巴黎") == "巴黎"
+
+
+def test_parse_date_location_details_treats_alive_marker_as_no_death():
+    date, loc, geocode_loc = parsers._parse_date_location_details("健在（截至2024年7月）", ["卒于", "去世于", "卒"])
+
+    assert date == ""
+    assert loc == ""
+    assert geocode_loc == ""

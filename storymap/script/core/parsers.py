@@ -524,17 +524,22 @@ def _parse_location_sections(md: str) -> List[Dict[str, str]]:
 
 
 def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, str]:
+    raw_text = str(text or "").strip()
+    if raw_text and re.search(r"(健在|在世|尚健在|仍健在)", raw_text):
+        return "", "", ""
     date = ""
-    m = re.search(r"(公元前|前)?\d{1,4}(?:/\d{1,4})?年", text)
+    m = re.search(r"((?:约|大约|约于)?\s*(?:公元前|公元|前)?\d{1,4}(?:/\d{1,4})?年(?:[（(]存疑[）)])?)", raw_text)
     if m:
-        date = m.group(0)
+        date = re.sub(r"\s+", "", m.group(1))
+        if "存疑" not in date and re.search(r"(存疑|待考|说法不一|不详)", raw_text):
+            date = f"{date}（存疑）"
     loc_raw = ""
     for k in keys:
-        if re.search(rf"^\s*{re.escape(k)}", str(text or "")):
-            loc_raw = re.sub(rf"^\s*{re.escape(k)}", "", str(text or ""), count=1).strip("。；; ")
+        if re.search(rf"^\s*{re.escape(k)}", raw_text):
+            loc_raw = re.sub(rf"^\s*{re.escape(k)}", "", raw_text, count=1).strip("。；; ")
             break
     if not loc_raw:
-        loc_raw = str(text or "").strip("。；; ")
+        loc_raw = raw_text.strip("。；; ")
     try:
         if (not re.search(r"(一说|或说|又说|另说|另有传说|说法不一)", loc_raw)) and (
             not _birthplace_has_alternate_place_note(loc_raw)
@@ -557,7 +562,11 @@ def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, 
     loc_raw = re.sub(r"^\s*(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
     normalized_loc_raw = _strip_common_birthplace_prefixes(loc_raw.strip("。；; ")).strip("。；; ")
     normalized_loc_raw = _strip_birthplace_date_ambiguity_text(normalized_loc_raw).strip("。；; ")
-    if _birthplace_has_multiple_place_options(normalized_loc_raw) or _birthplace_has_alternate_place_note(normalized_loc_raw):
+    if (
+        _birthplace_has_multiple_place_options(normalized_loc_raw)
+        or _birthplace_has_alternate_place_note(normalized_loc_raw)
+        or re.search(r"(结局存疑|下落不明|一说.+一说|说法不一)", normalized_loc_raw)
+    ):
         return date, normalized_loc_raw, ""
     parts = [p.strip("。；; ") for p in re.split(r"[，,；;]", loc_raw) if p.strip("。；; ")]
     bad = re.compile(r"(存疑|不详|未详|未知|无法确认|生年不详|卒年不详)")

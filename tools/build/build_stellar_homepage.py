@@ -32,6 +32,7 @@ from storymap.script.core.project_paths import (
     story_person_names,
 )
 from storymap.script.core.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
+from storymap.script.core.analytics import analytics_head_html
 from storymap.script.profile.tooltip_js import person_tooltip_js
 from storymap.script.core.build_meta import build_artifact_meta
 
@@ -172,22 +173,7 @@ def _build_payload_meta() -> Dict[str, object]:
 
 
 def _analytics_head_html() -> str:
-    measurement_id = (
-        str(os.getenv("MAP_STORY_GA_MEASUREMENT_ID", "")).strip()
-        or str(os.getenv("GA_MEASUREMENT_ID", "")).strip()
-    )
-    if not measurement_id:
-        return ""
-    quoted_id = json.dumps(measurement_id, ensure_ascii=False)
-    return (
-        f'<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>'
-        "<script>"
-        "window.dataLayer=window.dataLayer||[];"
-        "function gtag(){dataLayer.push(arguments);}"
-        "gtag('js', new Date());"
-        f"gtag('config', {quoted_id});"
-        "</script>"
-    )
+    return analytics_head_html(page_type="homepage", page_name="人类群星闪耀时")
 
 
 def _runtime_api_base_env() -> str:
@@ -8563,6 +8549,8 @@ def main() -> int:
                 ia = person_to_idx.get(a)
                 ib = person_to_idx.get(b)
                 if ia is None or ib is None or ia == ib:
+                    continue
+                if typ == "same_book":
                     continue
                 conf = None
                 try:

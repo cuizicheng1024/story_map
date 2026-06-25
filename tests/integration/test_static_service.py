@@ -38,6 +38,24 @@ def test_static_service_prefers_homepage_index_but_can_find_generated_artifact(t
     assert service.static_target_path("/artifacts/story_map/霍去病.html") == artifact_dir / "霍去病.html"
 
 
+def test_static_service_disables_cache_for_html_pages(tmp_path):
+    homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
+    artifact_dir = tmp_path / "artifacts" / "story_map"
+    homepage_dir.mkdir(parents=True)
+    artifact_dir.mkdir(parents=True)
+    (homepage_dir / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (artifact_dir / "苏轼.html").write_text("<html>sushi</html>", encoding="utf-8")
+
+    service = _build_service(homepage_dir, artifact_dir)
+
+    response = service.static_response("/苏轼.html")
+
+    assert isinstance(response, FileResponse)
+    assert response.headers["cache-control"] == "no-store, max-age=0, must-revalidate"
+    assert response.headers["pragma"] == "no-cache"
+    assert response.headers["expires"] == "0"
+
+
 def test_static_service_prefers_artifact_pages_over_legacy_duplicates(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"
