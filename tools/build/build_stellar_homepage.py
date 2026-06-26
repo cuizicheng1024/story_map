@@ -35,6 +35,7 @@ from storymap.script.core.person_registry import canonical_story_name_entries as
 from storymap.script.core.analytics import analytics_head_html
 from storymap.script.profile.tooltip_js import person_tooltip_js
 from storymap.script.core.build_meta import build_artifact_meta
+from storymap.script.core import parsers as parser_utils
 
 try:
     from tools.build.homepage_search import HAS_PINYIN, build_search_fields
@@ -43,6 +44,14 @@ except Exception:
         from tools.homepage_search import HAS_PINYIN, build_search_fields
     except Exception:
         from homepage_search import HAS_PINYIN, build_search_fields
+
+try:
+    from tools.build.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
+except Exception:
+    try:
+        from tools.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
+    except Exception:
+        _sync_orange_office_ui_impl = None
 
 
 REPO_ROOT = project_root_path()
@@ -123,7 +132,7 @@ def _canonical_story_name_entries(raw_names: List[str]) -> List[Tuple[str, str, 
 
 
 def _design_tokens_style_tag() -> str:
-    css_path = REPO_ROOT / "storymap" / "script" / "templates" / "design_tokens.css"
+    css_path = REPO_ROOT / "storymap" / "script" / "profile" / "templates" / "design_tokens.css"
     try:
         css = css_path.read_text(encoding="utf-8")
     except Exception:
@@ -131,38 +140,18 @@ def _design_tokens_style_tag() -> str:
     return f"<style>\n{css}\n</style>"
 
 
-def _render_person_alias_redirect_html(alias: str, canonical: str) -> str:
-    alias_q = json.dumps(str(alias or "").strip(), ensure_ascii=False)
-    canonical_q = json.dumps(str(canonical or "").strip(), ensure_ascii=False)
-    return f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{alias} - 跳转中</title>
-</head>
-<body>
-  <script>
-    (function() {{
-      var alias = {alias_q};
-      var canonical = {canonical_q};
-      var search = window.location ? (window.location.search || "") : "";
-      var hash = window.location ? (window.location.hash || "") : "";
-      var target = "./" + encodeURIComponent(canonical + ".html") + search + hash;
-      try {{
-        window.location.replace(target);
-      }} catch (_) {{
-        window.location.href = target;
-      }}
-    }})();
-  </script>
-  <p>“{alias}”为“{canonical}”的别名，正在跳转…</p>
-  <noscript>
-    <p><a href="./{canonical}.html">点击进入 {canonical}</a></p>
-  </noscript>
-</body>
-</html>
-"""
+def _remove_person_alias_redirect_pages(story_map_dir: Path, redirects: dict[str, str]) -> None:
+    for alias, canonical in (redirects or {}).items():
+        alias_name = str(alias or "").strip()
+        canonical_name = str(canonical or "").strip()
+        if not alias_name or not canonical_name or alias_name == canonical_name:
+            continue
+        try:
+            alias_path = Path(story_map_dir) / f"{alias_name}.html"
+            if alias_path.exists():
+                alias_path.unlink()
+        except Exception:
+            continue
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -481,6 +470,8 @@ def _extract_birthplace_from_md(md_text: str) -> Tuple[str, str, str]:
     ).strip()
     text = re.sub(r"^\s*\d{1,2}\s*(?:日|号)\s*[?？]?\s*[，,]?\s*", "", text).strip()
     text = re.sub(r"^\s*(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]?\s*", "", text).strip()
+    if parser_utils._location_text_is_native_place_only(parser_utils._strip_common_birthplace_prefixes(text)):
+        return "", "", ""
     if not text:
         return "", "", ""
     if re.fullmatch(
@@ -507,7 +498,7 @@ def _extract_birthplace_from_md(md_text: str) -> Tuple[str, str, str]:
         break
     if not loc:
         loc = parts[0] if parts else text
-    loc = loc.strip()
+    loc = parser_utils._strip_native_place_annotations(loc.strip())
     loc = re.sub(r"^\s*(?:出生于|出生在|生于|生在|于|在)\s*", "", loc).strip()
     if (loc.startswith("（") and loc.endswith("）")) or (loc.startswith("(") and loc.endswith(")")):
         loc = loc[1:-1].strip()
@@ -542,6 +533,32 @@ def _extract_birthplace_from_md(md_text: str) -> Tuple[str, str, str]:
     if _birthplace_has_multiple_place_options(loc):
         modern = ""
     return loc, ancient, modern
+
+
+def _extract_basic_place_from_md(md_text: str, labels: Tuple[str, ...]) -> Tuple[str, str, str]:
+    if not isinstance(md_text, str) or not md_text.strip():
+        return "", "", ""
+    match = None
+    for label in labels:
+        match = re.search(rf"\*\*{re.escape(label)}\*\*[:：]\s*([^\n]+)", md_text)
+        if match:
+            break
+    raw = str(match.group(1) or "").strip() if match else ""
+    if not raw:
+        raw = parser_utils._extract_native_place_from_story_text(md_text)
+    if not raw:
+        return "", "", ""
+    ancient = raw
+    modern = ""
+    bracket_match = re.match(r"^(.*?)[（(]([^）)]+)[）)]\s*$", raw)
+    if bracket_match:
+        ancient = str(bracket_match.group(1) or "").strip()
+        modern = str(bracket_match.group(2) or "").strip()
+    modern = re.sub(r"^今", "", modern).strip()
+    raw = re.sub(r"[（）()]+", "", raw).strip()
+    ancient = re.sub(r"[（）()]+", "", ancient).strip()
+    modern = re.sub(r"[（）()]+", "", modern).strip()
+    return raw, ancient, modern
 
 
 def _looks_like_date_or_period_text(text: str) -> bool:
@@ -1102,7 +1119,7 @@ def _pick_person_work_summaries(
 
 
 _FOREIGN_PLACE_HINT_RE = re.compile(
-    r"(美国|智利|法国|英国|俄罗斯|希腊|乌克兰|西班牙|意大利|德国|日本|韩国|朝鲜|越南|泰国|缅甸|斯里兰卡|印度尼西亚|印度|巴西|阿根廷|墨西哥|古巴|加拿大|澳大利亚|新西兰|南非|埃及|以色列|巴勒斯坦|土耳其|伊朗|伊拉克|叙利亚|阿富汗|巴基斯坦|挪威|瑞典|芬兰|丹麦|冰岛|荷兰|比利时|瑞士|奥地利|葡萄牙|波兰|捷克|匈牙利|罗马尼亚|保加利亚|塞尔维亚|克罗地亚|爱尔兰|苏联|罗马|雅典|马其顿|佛罗伦萨|伦敦|巴黎|柏林|东京|都柏林|莫斯科)"
+    r"(美国|智利|法国|英国|俄罗斯|希腊|乌克兰|西班牙|意大利|德国|日本|韩国|朝鲜|越南|泰国|缅甸|斯里兰卡|印度尼西亚|印度|巴西|阿根廷|墨西哥|古巴|加拿大|澳大利亚|新西兰|南非|埃及|以色列|巴勒斯坦|土耳其|伊朗|伊拉克|叙利亚|阿富汗|巴基斯坦|挪威|瑞典|芬兰|丹麦|冰岛|荷兰|比利时|瑞士|奥地利|葡萄牙|波兰|捷克|匈牙利|罗马尼亚|保加利亚|塞尔维亚|克罗地亚|爱尔兰|苏联|黎巴嫩|哥伦比亚|尼泊尔|乌兹别克斯坦|土库曼斯坦|拉丁美洲|中亚|花拉子模|花剌子模|罗马|雅典|马其顿|佛罗伦萨|伦敦|巴黎|柏林|东京|都柏林|莫斯科)"
 )
 _DOMESTIC_PLACE_HINT_RE = re.compile(
     r"(中国|中华|北京|上海|天津|重庆|河北|山西|辽宁|吉林|黑龙江|江苏|浙江|安徽|福建|江西|山东|河南|湖北|湖南|广东|广西|海南|四川|贵州|云南|陕西|甘肃|青海|台湾|内蒙古|西藏|宁夏|新疆|香港|澳门|京师|汴京|临安|长安|洛阳|开封|应天府|顺天府|松江府|苏州府|杭州府|眉州|眉山|黄州|密州|徐州|常州|惠州|儋州|郡|府|州|县|省|市)"
@@ -1111,12 +1128,13 @@ _CHINESE_DYNASTY_HINT_RE = re.compile(
     r"(中国|中华|夏|商|周|春秋|战国|秦|汉|三国|魏|蜀汉|吴|晋|南北朝|隋|唐|宋|辽|金|元|明|清|民国|中国近代|中国现代|中国当代|近现代中国|当代中国)"
 )
 _FOREIGN_DYNASTY_HINT_RE = re.compile(
-    r"(美国|智利|法国|英国|俄罗斯|希腊|乌克兰|西班牙|意大利|德国|日本|韩国|朝鲜|越南|泰国|缅甸|斯里兰卡|印度尼西亚|印度|巴西|阿根廷|墨西哥|古巴|加拿大|澳大利亚|新西兰|南非|埃及|以色列|巴勒斯坦|土耳其|伊朗|伊拉克|叙利亚|阿富汗|巴基斯坦|挪威|瑞典|芬兰|丹麦|冰岛|荷兰|比利时|瑞士|奥地利|葡萄牙|波兰|捷克|匈牙利|罗马尼亚|保加利亚|塞尔维亚|克罗地亚|爱尔兰|苏联|古希腊|古罗马|罗马帝国|拜占庭|奥斯曼|波斯|阿拉伯|蒙兀儿|欧洲|欧洲近代|文艺复兴|启蒙|工业革命|维多利亚时代|托勒密王国|神圣罗马帝国|英属印度|法兰西|英格兰|苏格兰|马其顿|美索不达米亚)"
+    r"(美国|智利|法国|英国|俄罗斯|希腊|乌克兰|西班牙|意大利|德国|日本|韩国|朝鲜|越南|泰国|缅甸|斯里兰卡|印度尼西亚|印度|巴西|阿根廷|墨西哥|古巴|加拿大|澳大利亚|新西兰|南非|埃及|以色列|巴勒斯坦|土耳其|伊朗|伊拉克|叙利亚|阿富汗|巴基斯坦|挪威|瑞典|芬兰|丹麦|冰岛|荷兰|比利时|瑞士|奥地利|葡萄牙|波兰|捷克|匈牙利|罗马尼亚|保加利亚|塞尔维亚|克罗地亚|爱尔兰|苏联|黎巴嫩|哥伦比亚|尼泊尔|乌兹别克斯坦|土库曼斯坦|拉丁美洲|中亚|古希腊|古罗马|罗马帝国|拜占庭|奥斯曼|波斯|阿拉伯|伊斯兰|阿拔斯|花拉子模|花剌子模|蒙兀儿|欧洲|欧洲近代|文艺复兴|启蒙|工业革命|维多利亚时代|托勒密王国|神圣罗马帝国|英属印度|法兰西|英格兰|苏格兰|马其顿|美索不达米亚)"
 )
 
 
 def _is_foreign_person(*, foreign_name: str, birthplace_modern: str, birthplace_raw: str, dynasty: str) -> bool:
     dynasty_text = str(dynasty or "").strip()
+    dynasty_text = dynasty_text.replace("公元前", "").replace("公元", "")
     has_chinese_dynasty = bool(_CHINESE_DYNASTY_HINT_RE.search(dynasty_text))
     has_foreign_dynasty = bool(_FOREIGN_DYNASTY_HINT_RE.search(dynasty_text))
     if has_chinese_dynasty and not has_foreign_dynasty:
@@ -6582,6 +6600,17 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             const years = formatYearRange(n.birth_year, n.death_year);
             const dynasty = String(n.dynasty || "").trim();
             const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
+            const bpRaw = String(n.birthplace_raw || n.birthplace || "").trim();
+            const nativePlace = formatBirthplace(n.native_place, n.native_place_modern);
+            const placeCompareKey = value => String(value || "")
+              .replace(/^今\s*/g, "")
+              .replace(/[（(][^）)]*[）)]/g, "")
+              .replace(/[省市县区州郡府道镇乡村]/g, "")
+              .replace(/\s+/g, "")
+              .trim();
+            const showNativePlace = nativePlace && (!bp || placeCompareKey(nativePlace) !== placeCompareKey(bp));
+            const birthplaceAmbiguous = /存疑|一说|或说|又说|另说|未详|不详/.test(bpRaw);
+            const bpDisplay = bp && birthplaceAmbiguous && showNativePlace ? "存疑" : bp;
             const quote = stripMd(String(n.quote || "").trim());
             const review = stripMd(String(n.review || "").trim());
             const tagline = stripOuterQuotes(review || quote);
@@ -6597,7 +6626,8 @@ def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str
             appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
             appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
             if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (bp) appendLine("籍贯：" + bp, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (bpDisplay) appendLine("出生地：" + bpDisplay, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (showNativePlace) appendLine("籍贯：" + nativePlace, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
             if (tagline) appendLine("“" + tagline + "”", "margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4");
             const actions = document.createElement("div");
             actions.style.marginTop = "8px";
@@ -7237,6 +7267,16 @@ def _sync_vendor_assets(story_map_dir: Path) -> None:
     shutil.copytree(src, story_map_dir / "vendor", dirs_exist_ok=True)
 
 
+def _sync_embedded_apps(story_map_dir: Path) -> None:
+    syncer = _sync_orange_office_ui_impl
+    if not callable(syncer):
+        return
+    try:
+        syncer(story_map_dir)
+    except FileNotFoundError:
+        return
+
+
 def _sync_homepage_pet_asset(story_map_dir: Path) -> None:
     for src in HOMEPAGE_PET_ASSET_CANDIDATES:
         if src.is_file():
@@ -7347,15 +7387,9 @@ def _write_homepage_outputs(
     out_data.write_text(json.dumps(core_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     out_detail.write_text(json.dumps(detail_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     out_index.write_text(_render_index_html(title, out_data.name, out_detail.name), encoding="utf-8")
-    for alias, canonical in active_redirects.items():
-        if not alias or not canonical:
-            continue
-        try:
-            redirect_path = story_map_dir / f"{alias}.html"
-            redirect_path.write_text(_render_person_alias_redirect_html(alias, canonical), encoding="utf-8")
-        except Exception:
-            pass
+    _remove_person_alias_redirect_pages(story_map_dir, active_redirects)
     _sync_vendor_assets(story_map_dir)
+    _sync_embedded_apps(story_map_dir)
     _sync_homepage_pet_asset(story_map_dir)
     return {
         "index": str(out_index),
@@ -7596,19 +7630,26 @@ def main() -> int:
                     continue
                 if not (-90 <= lat <= 90 and -180 <= lng <= 180):
                     continue
-                variants = [str(name or "").strip()]
+                raw_name = str(name or "").strip()
+                variants = [raw_name]
                 try:
-                    stripped = re.sub(r"[（(].*?[）)]", "", str(name or "")).strip()
+                    stripped = re.sub(r"[（(].*?[）)]", "", raw_name).strip()
                     if stripped and stripped not in variants:
                         variants.append(stripped)
-                    if "（" in name:
-                        left = name.split("（", 1)[0].strip()
+                    if "（" in raw_name:
+                        left = raw_name.split("（", 1)[0].strip()
                         if left and left not in variants:
                             variants.append(left)
-                    if "(" in name:
-                        left = name.split("(", 1)[0].strip()
+                    if "(" in raw_name:
+                        left = raw_name.split("(", 1)[0].strip()
                         if left and left not in variants:
                             variants.append(left)
+                    label_stripped = re.sub(r"^(?:出生地|去世地|重要地点)[:：]\s*", "", raw_name).strip()
+                    if label_stripped and label_stripped not in variants:
+                        variants.append(label_stripped)
+                    label_stripped_plain = re.sub(r"[（(].*?[）)]", "", label_stripped).strip()
+                    if label_stripped_plain and label_stripped_plain not in variants:
+                        variants.append(label_stripped_plain)
                 except Exception:
                     pass
                 for v in variants:
@@ -8235,6 +8276,9 @@ def main() -> int:
         birthplace_ancient: str,
         birthplace_raw: str,
         birthplace_modern: str,
+        native_place_ancient: str,
+        native_place_raw: str,
+        native_place_modern: str,
         birth_lat: object,
         birth_lng: object,
         html_entry: Optional[HtmlEntry],
@@ -8265,6 +8309,9 @@ def main() -> int:
             "birthplace": birthplace_ancient,
             "birthplace_raw": birthplace_raw,
             "birthplace_modern": birthplace_modern,
+            "native_place": native_place_ancient,
+            "native_place_raw": native_place_raw,
+            "native_place_modern": native_place_modern,
             "birth_lat_wgs84": birth_lat,
             "birth_lng_wgs84": birth_lng,
             "birth_lat": birth_lat,
@@ -8303,6 +8350,9 @@ def main() -> int:
         birthplace_raw = ""
         birthplace_ancient = ""
         birthplace_modern = ""
+        native_place_raw = ""
+        native_place_ancient = ""
+        native_place_modern = ""
         coords_table: Dict[str, Tuple[float, float]] = {}
         works: List[str] = []
         work_summaries: Dict[str, Dict[str, Any]] = {}
@@ -8313,6 +8363,10 @@ def main() -> int:
             relations, relations_meta = _extract_relations(md_text)
             aliases, foreign_name, domain_tags = _extract_disambiguation(md_text)
             birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(md_text)
+            native_place_raw, native_place_ancient, native_place_modern = _extract_basic_place_from_md(
+                md_text,
+                ("籍贯", "祖籍"),
+            )
             coords_table = _parse_coords_table_from_md(md_text)
         audit_risk_level, audit_overall_pass, audit_uncertain = _load_person_audit(name)
         if birth_year is not None:
@@ -8326,12 +8380,6 @@ def main() -> int:
         quote, review = _resolve_spotlight_copy(name)
         works = _resolve_person_works(spotlight_items.get(name), md_text)
         work_summaries = _pick_person_work_summaries(works, work_summary_items)
-        is_foreign = _is_foreign_person(
-            foreign_name=foreign_name,
-            birthplace_modern=birthplace_modern,
-            birthplace_raw=birthplace_raw,
-            dynasty=dynasty,
-        )
         main_role_band, main_role_label = _resolve_main_role_band(
             md_text=md_text,
             domain_tags=domain_tags,
@@ -8384,6 +8432,12 @@ def main() -> int:
                 aliases.append(alias_name)
         search_fields = build_search_fields(name, aliases, foreign_name)
         dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
+        is_foreign = _is_foreign_person(
+            foreign_name=foreign_name,
+            birthplace_modern=birthplace_modern,
+            birthplace_raw=birthplace_raw,
+            dynasty=dynasty,
+        )
         nodes.append(
             _build_person_node(
                 name=name,
@@ -8403,6 +8457,9 @@ def main() -> int:
                 birthplace_ancient=birthplace_ancient,
                 birthplace_raw=birthplace_raw,
                 birthplace_modern=birthplace_modern,
+                native_place_ancient=native_place_ancient,
+                native_place_raw=native_place_raw,
+                native_place_modern=native_place_modern,
                 birth_lat=birth_lat,
                 birth_lng=birth_lng,
                 html_entry=html_entry,

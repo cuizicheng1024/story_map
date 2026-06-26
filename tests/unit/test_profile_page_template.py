@@ -35,7 +35,7 @@ def test_render_profile_html_uses_external_template():
     assert "window.__EXPORT_DATA__ = data;" in html
     assert "personName: String(data?.person?.name || '').trim()" in html
     payload = _extract_export_data_from_html(html)
-    assert "苏东坡" not in payload["personRedirects"]
+    assert payload["personRedirects"].get("苏东坡") == "苏轼"
     assert payload["templateSignature"] == renderer.profile_template_signature()
 
 
@@ -120,6 +120,69 @@ def test_render_profile_html_omits_legacy_placeholder_api_base(monkeypatch):
     assert "window.MAP_STORY_API_BASE=" not in html
 
 
+def test_runtime_page_config_html_omits_debug_config_without_explicit_opt_in(monkeypatch, tmp_path):
+    monkeypatch.delenv("MAP_STORY_ENABLE_RUNTIME_DEBUG_CONFIG", raising=False)
+    monkeypatch.delenv("STORY_MAP_ENABLE_RUNTIME_DEBUG_CONFIG", raising=False)
+    monkeypatch.setattr(renderer, "_REPO_ROOT", tmp_path)
+    dbg_dir = tmp_path / ".dbg"
+    dbg_dir.mkdir(parents=True)
+    (dbg_dir / "map-loading-blank.env").write_text(
+        "DEBUG_SERVER_URL=http://127.0.0.1:7777/event\nDEBUG_SESSION_ID=map-loading-blank\n",
+        encoding="utf-8",
+    )
+
+    html = renderer._runtime_page_config_html()
+
+    assert "__STORY_MAP_DEBUG_SERVER__" not in html
+    assert "__STORY_MAP_DEBUG_SESSION_ID__" not in html
+
+
+def test_runtime_page_config_html_includes_debug_config_after_explicit_opt_in(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_ENABLE_RUNTIME_DEBUG_CONFIG", "1")
+    monkeypatch.setattr(renderer, "_REPO_ROOT", tmp_path)
+    dbg_dir = tmp_path / ".dbg"
+    dbg_dir.mkdir(parents=True)
+    (dbg_dir / "map-loading-blank.env").write_text(
+        "DEBUG_SERVER_URL=http://127.0.0.1:7777/event\nDEBUG_SESSION_ID=map-loading-blank\n",
+        encoding="utf-8",
+    )
+
+    html = renderer._runtime_page_config_html()
+
+    assert 'window.__STORY_MAP_DEBUG_SERVER__="http://127.0.0.1:7777/event";' in html
+    assert 'window.__STORY_MAP_DEBUG_SESSION_ID__="map-loading-blank";' in html
+
+
+def test_runtime_page_config_html_uses_selected_debug_session_env(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_ENABLE_RUNTIME_DEBUG_CONFIG", "1")
+    monkeypatch.setenv("MAP_STORY_RUNTIME_DEBUG_SESSION", "map-blank-v2")
+    monkeypatch.setattr(renderer, "_REPO_ROOT", tmp_path)
+    dbg_dir = tmp_path / ".dbg"
+    dbg_dir.mkdir(parents=True)
+    (dbg_dir / "map-loading-blank.env").write_text(
+        "DEBUG_SERVER_URL=http://127.0.0.1:7777/event\nDEBUG_SESSION_ID=map-loading-blank\n",
+        encoding="utf-8",
+    )
+    (dbg_dir / "map-blank-v2.env").write_text(
+        "DEBUG_SERVER_URL=http://127.0.0.1:7777/event\nDEBUG_SESSION_ID=map-blank-v2\n",
+        encoding="utf-8",
+    )
+
+    html = renderer._runtime_page_config_html()
+
+    assert 'window.__STORY_MAP_DEBUG_SESSION_ID__="map-blank-v2";' in html
+
+
+def test_render_profile_html_does_not_inline_public_map_credentials(monkeypatch):
+    monkeypatch.setenv("AMAP_KEY", "test-amap-key")
+    monkeypatch.setenv("AMAP_SECURITY", "test-amap-security")
+
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert 'window.AMAP_KEY="test-amap-key";' not in html
+    assert 'window.AMAP_SECURITY="test-amap-security";' not in html
+
+
 def test_profile_template_signature_covers_render_dependency_sources():
     deps = renderer.profile_render_dependency_paths()
     names = {path.name for path in deps}
@@ -127,6 +190,8 @@ def test_profile_template_signature_covers_render_dependency_sources():
     assert "person_registry.py" in names
     assert "profile_builder.py" in names
     assert "generate_pure_story_map.py" in names
+    assert not any(str(path).endswith("storymap/script/templates/profile_page.html") for path in deps)
+    assert not any(str(path).endswith("storymap/script/templates/design_tokens.css") for path in deps)
 
 
 def test_build_info_panel_html_initializes_wrapper():
@@ -307,21 +372,58 @@ def test_render_profile_html_injects_shared_person_tooltip_helper():
     assert "tipModel.rows.map(row => React.createElement(" in html
 
 
+def test_render_profile_html_prefers_foreign_name_as_primary_header():
+    html = render_profile_html(
+        {
+            "person": {"name": "乔纳森·斯威夫特", "foreignName": "Jonathan Swift"},
+            "locations": [],
+            "highlights": {},
+        }
+    )
+
+    assert "const personForeignName = String(data.person?.foreignName || data.person?.foreign_name || '').trim();" in html
+    assert "const headerPrimaryName = personForeignName || String(data.person?.name || '').trim();" in html
+    assert "tipModel.displayName || tipModel.name" in html
+    assert "secondaryName" in html
+    assert "related-graph-tooltip-row" in html
+
+
 def test_timeline_card_click_uses_strict_map_focus():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+    template_source = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "const normalizeFocusOptions = raw => {" in html
     assert "controller.focusIndex(idx, {" in html
     assert "pulse: pulseNow" in html
     assert "strict" in html
+    assert "const run = (pulseNow = pulse, syncActive = true) => {" in html
+    assert "if (syncActive && typeof idx === 'number' && typeof controller.setActive === 'function') {" in html
+    assert "try { run(false, false); } catch (_) {}" in template_source
     assert "applySelectionToMap(idx, loc, {" in html
     assert "stabilize: true" in html
+
+
+def test_profile_template_throttles_maplibre_overlay_rebuild_feedback_loop():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "let overlayRebuildInProgress = false;" in html
+    assert "let overlayRebuildMutedUntil = 0;" in html
+    assert "const performOverlayRebuild = (reason = 'unknown') => {" in html
+    assert "if (overlayRebuildInProgress) return false;" in html
+    assert "if (now < overlayRebuildMutedUntil) return false;" in html
+    assert "overlayRebuildMutedUntil = Date.now() + 320;" in html
 
 
 def test_profile_template_declares_curved_segment_builder_before_usage():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "function buildCurvedSegmentPath(from, to, idx, prev, next) {" in html
+    assert "function getSegmentDistanceKm(from, to) {" in html
+    assert "function getApproximateContinent(coord) {" in html
+    assert "function shouldSkipSegmentConnection(from, to, rawContext) {" in html
+    assert "shouldSkipSegmentConnection(" in html
+    assert "buildFlowDotHtml" not in html
+    assert "showFlowDots" not in html
     assert html.index("function buildCurvedSegmentPath(from, to, idx, prev, next) {") < html.index("const buildRenderedSegmentPath = idx => {")
 
 
@@ -346,7 +448,10 @@ def test_profile_template_defines_birthplace_label_before_intro_tags_use_it():
     intro_tags_idx = html.index("const introTags = useMemo(() => {")
 
     assert birthplace_idx < intro_tags_idx
-    assert "if (birthplaceLabel) push(`籍贯：${birthplaceLabel}`);" in html
+    assert "const birthplaceDisplayLabel = useMemo(() => {" in html
+    assert "if (birthplaceDisplayLabel) push(`出生地：${birthplaceDisplayLabel}`);" in html
+    assert "const showNativePlaceLabel = useMemo(() => {" in html
+    assert "if (showNativePlaceLabel) push(`籍贯：${nativePlaceLabel}`);" in html
 
 
 def test_profile_template_defines_journey_panel_sizes_before_effect_uses_them():
@@ -358,6 +463,14 @@ def test_profile_template_defines_journey_panel_sizes_before_effect_uses_them():
     assert panel_height_idx < sync_effect_idx
     assert "mapEl.style.height = journeyPanelHeight;" in html
     assert "mapEl.style.minHeight = journeyPanelMinHeight;" in html
+    assert ": 'clamp(480px, 68vh, 760px)';" in html
+    assert "const journeyPanelMinHeight = journeyFullscreenActive ? '0px' : '480px';" in html
+
+
+def test_profile_template_uses_natural_ambiguous_birthplace_note_copy():
+    template_source = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "出生地说法：" in template_source
 
 
 def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_arrows():
@@ -368,7 +481,7 @@ def test_profile_template_persists_stage_key_point_labels_and_shows_all_segment_
     assert "const essential = getPersistentLabelIndexes();" in html
     assert "const stride = totalSegments >= 12 ? 3 : totalSegments >= 7 ? 2 : 1;" in html
     assert "if (item.distance >= 80 && order % stride === 0) keep.add(item.idx);" in html
-    assert "showArrow: true," in html
+    assert "showArrow: false," in html
 
 
 def test_profile_template_zooms_out_single_point_story_to_show_basemap():
@@ -383,13 +496,21 @@ def test_profile_template_zooms_out_single_point_story_to_show_basemap():
 
 
 def test_profile_template_only_uses_fallback_overlay_when_maplibre_artifacts_are_missing():
-    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
+    assert "const isValidMapCoordinatePair = (pair) => {" in html
+    assert "const expectedPointLayerIds = getExpectedPointLayerIds();" in html
+    assert "const expectedLineIds = getExpectedSegmentLayerIds();" in html
+    assert "const hasPointArtifacts = !expectedPointLayerIds.length || (" in html
+    assert "map.getLayer(id)" in html
+    assert "const hasSegmentArtifacts = !expectedLineIds.length || expectedLineIds.every((id) => {" in html
     assert "if (hasRenderableOverlayArtifacts()) {" in html
-    assert "map.on('movestart', clearFallbackOverlay);" in html
-    assert "map.on('zoomstart', clearFallbackOverlay);" in html
-    assert "scheduleFallbackOverlayRender('move');" in html
-    assert "scheduleFallbackOverlayRender('zoom');" in html
+    assert "map.on('movestart', () => {" in html
+    assert "map.on('zoomstart', () => {" in html
+    assert "scheduleFallbackOverlayRender('moveend');" in html
+    assert "scheduleFallbackOverlayRender('zoomend');" in html
+    assert 'pointMarkup.push(`<text x="${x.toFixed(2)}"' in html
+    assert 'paint-order="stroke">${idx + 1}</text>' in html
 
 
 def test_static_site_notice_hides_on_localhost(monkeypatch):
@@ -402,11 +523,12 @@ def test_static_site_notice_hides_on_localhost(monkeypatch):
     assert "if (notice) notice.style.display = 'none';" in html
 
 
-def test_runtime_map_config_loaders_treat_private_network_hosts_as_dev_hosts():
+def test_runtime_map_config_loaders_try_runtime_api_base_before_relative_config_files():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
-    assert "const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');" in html
-    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
+    assert "window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__" in html
+    assert "const apiBase = String(window.MAP_STORY_API_BASE || '').trim();" in html
+    assert "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));" in html
 
 
 def test_static_profile_page_tries_local_ai_proxy_on_localhost():
@@ -415,6 +537,15 @@ def test_static_profile_page_tries_local_ai_proxy_on_localhost():
     assert "if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {" in html
     assert "if (!staticSite || isLocalHost) {" in html
     assert "pushUrl('http://127.0.0.1:8765/api/ai/proxy');" in html
+
+
+def test_chat_fallback_notice_hides_raw_failed_to_fetch_message():
+    html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
+
+    assert "const _isChatEndpointUnavailableError = error => {" in html
+    assert "'failed to fetch'" in html
+    assert "throw _normalizeChatRequestError(lastErr || new Error('LLM_ENDPOINT_UNAVAILABLE'));" in html
+    assert "if (!message || _isChatEndpointUnavailableError(error)) {" in html
 
 
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
@@ -583,12 +714,12 @@ def test_load_profile_prefers_work_quote_for_literary_person():
     assert "泰山不让土壤" in str(profile["person"].get("shortReview") or "")
 
 
-def test_load_profile_prefers_literary_persons_own_work_for_short_review():
+def test_load_profile_prefers_explicit_summary_short_review_over_spotlight_fallback():
     md = (REPO_ROOT / "storymap" / "examples" / "story" / "李白.md").read_text(encoding="utf-8")
 
     profile = story_map.load_profile_from_md(md, allow_geocode=False)
 
-    assert "犬吠水声中" in str(profile["person"].get("shortReview") or "")
+    assert "天才英特" in str(profile["person"].get("shortReview") or "")
 
 
 def test_load_profile_prefers_external_literary_review_for_non_literary_person():
@@ -747,7 +878,8 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
     assert "全屏查看" in html
     assert "退出全屏" in html
     assert "生成图片" in html
-    assert "fullscreenChatRestoreRef" in html
+    assert "fullscreenChatRestoreRef" not in html
+    assert "is-chat-collapsed" in html
     assert ".map-compact-action-button {" in html
     assert "width: 52px;" in html
     assert ".map-bottom-button.is-accent-export {" in html
@@ -756,6 +888,9 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
     assert 'absolute bottom-4 right-8 z-[1000] map-floating-controls flex items-center gap-2' in html
     assert 'data-export-ignore="true"' in html
     assert 'label="底图"' in html
+    assert "{journeyFullscreenActive && chatOpen ? (" in html
+    assert "{(!journeyFullscreenActive || chatOpen) ? (" in html
+    assert "const [chatOpen, setChatOpen] = useState(true);" in html
     assert 'className="map-layer-trigger map-bottom-button text-sm inline-flex items-center gap-2 hover:bg-white transition-colors"' in html
     assert 'className={`map-layer-tray ${open ? \'is-open\' : \'\'}' in html
     assert 'className="theme-button-secondary px-3 py-1.5 rounded-lg text-xs text-[var(--color-text-secondary)] disabled:opacity-40"' in html
@@ -774,6 +909,7 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
     assert "adjustCesiumView('tilt-down')" in html
     assert "adjustCesiumView('reset-bearing')" in html
     assert "const buildSelectedPinDataUrl = (color) => {" in html
+    assert '<circle cx="15" cy="14.4" r="4.8" fill="none" stroke="${main}" stroke-width="1.9" />' in html
     assert "className = 'selected-point-pin'" in html
     assert "const waitForMs = (ms) => new Promise((resolve) => window.setTimeout(resolve, Math.max(0, Number(ms || 0))));" in html
     assert "SCREEN_CAPTURE_UNSUPPORTED" in html
@@ -785,6 +921,16 @@ def test_profile_page_template_contains_fullscreen_and_3d_control_hooks():
     assert "ref={shellContentRef}" in html
     assert "const canvas = await captureCurrentTabFrame();" in html
     assert "link.download = `${safePersonName}-当前视图截图.png`;" in html
+    assert ".story-marker-dot {\n  display: none;\n}" in html
+    assert ".map-point-core.is-index-only {" in html
+    assert "if (shouldShowIndex) div.classList.add('is-index-only');" in html
+    assert "strokeWeight: shouldShowIndex ? 0 : 3," in html
+    assert "fillOpacity: shouldShowIndex ? 0.14 : 0.35," in html
+    assert "'visibility': initialShowIndex ? 'none' : 'visible'" in html
+    assert "'circle-stroke-opacity': initialShowIndex ? 0 : 1.0," in html
+    assert "map.setLayoutProperty(pointHaloId, 'visibility', shouldShow ? 'none' : 'visible');" in html
+    assert "map.setPaintProperty(pointCoreId, 'circle-stroke-opacity', shouldShow ? 0 : 1.0);" in html
+    assert "entry.entity.point.pixelSize = shouldShowIndex ? 0 : (isActive ? 18 : (entry.isEndpoint ? 14 : 11));" in html
     assert ".journey-map-column {" in html
     assert ".journey-timeline-column {" in html
     assert ".journey-pane-resizer.is-horizontal" in html
@@ -832,7 +978,7 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "const scheduleFallbackOverlayRender = (reason = 'map-change') => {" in html
     assert ".map-fallback-overlay {" in html
     assert "map.on('styledata', () => healMapLibreOverlaysIfMissing('styledata'))" in html
-    assert "map.on('idle', () => healMapLibreOverlaysIfMissing('idle'))" in html
+    assert "map.on('idle', () => healMapLibreOverlaysIfMissing('idle'))" not in html
     assert "rebuildOverlaysRef.current();" in html
     assert "{ id: 'vector', label: '矢量', title: '切换到矢量地图', badge: '标准', previewClass: 'is-vector' }" in html
     assert "{ id: 'imagery', label: '影像', title: '切换到卫星影像', badge: '卫星', previewClass: 'is-imagery' }" in html
@@ -866,7 +1012,7 @@ def test_profile_page_template_contains_2d_map_control_hooks():
     assert "getRelatedGraphEdgeLabel(node)" not in html
     assert 'className="journey-map-column relative flex-1 min-w-0"' in html
     assert 'className="journey-timeline-column glass-panel theme-card rounded-xl overflow-visible flex flex-col min-w-0"' in html
-    assert 'className="flex min-h-full flex-col justify-end gap-3"' in html
+    assert 'className="flex min-h-full flex-col justify-start gap-3"' in html
 
 
 def test_load_profile_applies_sunbin_summary_and_work_summary_overrides():
@@ -947,22 +1093,29 @@ def test_related_people_graph_cleans_invalid_center_fields_from_shared_payload(m
     assert "draggingRef.current = 'vertical';" in html
 
 
-def test_profile_page_template_boots_map_eagerly_and_supports_segment_animation():
+def test_profile_page_template_boots_map_by_viewport_and_supports_segment_animation():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "const [mapLoadState, setMapLoadState] = useState('idle');" in html
     assert "const [mapInitRequestTick, setMapInitRequestTick] = useState(0);" in html
     assert "const requestMapInitialization = React.useCallback((reason = 'manual') => {" in html
-    assert "requestMapInitialization('boot');" in html
-    assert "new window.IntersectionObserver((entries) => {" not in html
-    assert "requestMapInitialization('viewport');" not in html
-    assert "requestMapInitialization('fallback');" not in html
+    assert "requestMapInitialization('boot');" not in html
+    assert "new window.IntersectionObserver((entries) => {" in html
+    assert "requestViewportInit('viewport');" in html
+    assert "requestViewportInit('fallback');" in html
+    assert "正文与时间轴会优先显示；当地图区域进入视口时，再初始化底图、轨迹与地点标注。" in html
+    assert "立即展开地图" in html
+    assert "journeyFullscreenActive && !chatOpen" in html
+    assert "onClick={() => setChatOpen(true)}" in html
+    assert "if (typeof geovis.ensureConfig === 'function') {" in html
+    assert "await geovis.ensureConfig();" in html
     assert "if (mapInitRequestTick <= 0 || mapRef.current) return () => { disposed = true; };" in html
     assert "data-testid=\"profile-map-lazy-overlay\"" in html
-    assert "const mapLazyTitle = mapLoading ? '地图正在展开'" in html
+    assert "const mapLazyTitle = mapIdle" in html
     assert "正在初始化底图、轨迹和地点标注，人物正文已经可以正常浏览。" in html
     assert "地图已完成初始化。" in html
     assert "onClick={() => requestMapInitialization('manual')}" in html
+    assert "flex min-h-full flex-col justify-start gap-3" in html
     assert "{mapReady ? (" in html
     assert "{mapReady && mapStatusNotice ? (" in html
     assert "function buildPartialSegmentPath(path, progress) {" in html
@@ -975,12 +1128,40 @@ def test_profile_page_template_prefers_geovis_without_vector_probe_preflight():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "await ((window.__MAP_STORY_GEOVIS__ && window.__MAP_STORY_GEOVIS__.ensureMapLibre) || _ensureMapLibre)();" in html
+    assert "const scheduleMapLoadFallback = (delayMs) => {" in html
+    assert "scheduleMapLoadFallback(12000);" in html
+    assert "scheduleMapLoadFallback(18000);" in html
+    assert "timeoutMs: 4500" not in html
     assert "probeGeoVisLayerType(geovis, 'vector')" not in html
     assert "if (mode === 'vector') {" in html
     assert "fallbackToMapLibreMode(`${label} 暂不可用，已保留当前 GeoVis 底图。`, mapLayerType);" in html
     assert "title: '已切换到高德备用底图'" in html
     assert "label: '恢复 GeoVis'" in html
     assert "label: `重试${describeLayerType(attemptedLayerType)}`" in html
+
+
+def test_profile_page_template_removes_embedded_localhost_debug_fetches():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert 'fetch("http://127.0.0.1:7777/event"' not in html
+
+
+def test_renderer_bootstrap_uses_runtime_script_loader_and_api_base_candidates():
+    amap_html = renderer._amap_bootstrap_html()
+    geovis_html = renderer._profile_map_bootstrap_html()
+
+    assert "window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__" in amap_html
+    assert "window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__" in amap_html
+    assert "window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__" in amap_html
+    assert "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));" in amap_html
+    assert "const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');" in amap_html
+    assert "window.location.protocol !== 'file:' && isDevHost" in amap_html
+    assert "await window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('amap', 'amap-config.js', () => Boolean(_getAmapKey()));" in amap_html
+    assert "cacheKey: 'amap-sdk'" in amap_html
+    assert "cacheKey: 'maplibre-sdk'" in geovis_html
+    assert "cacheKey: 'cesium-sdk'" in geovis_html
+    assert "ensureConfig: () => (" in geovis_html
+    assert "window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('geovis', 'geovis-config.js', () => Boolean(_getGeoVisToken()))" in geovis_html
 
 
 def test_profile_page_template_uses_colon_for_ancient_and_modern_place_names():
@@ -1103,6 +1284,7 @@ def test_profile_page_template_removes_floating_chat_button_and_keeps_inline_ent
 
     assert "打开对话" in html
     assert "收起对话" in html
+    assert "aria-label={chatOpen ? '收起对话' : '打开对话'}" in html
     assert "fixed bottom-6 right-6" not in html
     assert "`跟${data.person.name}对话`" not in html
     assert ">NEW</span>" not in html
@@ -1216,7 +1398,7 @@ def test_profile_page_template_distinguishes_terrain_palette_and_uniform_line_wi
     assert "glowPower: segmentVisual.isCurrent ? 0.4 : 0.3" in html
     assert "const buildCesiumSegmentHaloMaterial = (segmentVisual) => (" in html
     assert "width: initialVisual.haloLineWidth + 2.4," in html
-    assert html.count("showArrow: true,") >= 2
+    assert html.count("showArrow: false,") >= 2
     assert "controller.fitAll(false);" in html
     assert "heading: 0," in html
     assert "Math.max(sphere.radius * 5.2, 1100000)" in html
@@ -1243,6 +1425,43 @@ def test_profile_page_template_defaults_to_overview_while_showing_first_location
     assert "if (!initialLocFromHash && activeIndex === initialLocIdx && !skippedInitialOverviewActiveSyncRef.current) {" in html
 
 
+def test_profile_page_template_does_not_resync_active_marker_on_every_segment_tick():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const refreshAnimatedSegmentFrame = React.useCallback(() => {" in html
+    assert "try { controller.followSegmentProgress(state.segmentIdx, state.progress); } catch (_) {}" in html
+    assert "try { controller.setActive(activeIndexRef.current); } catch (_) {}" not in html
+
+
+def test_profile_page_template_does_not_rebuild_maplibre_overlays_from_idle_events():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "try { map.on('styledata', () => healMapLibreOverlaysIfMissing('styledata')); } catch (_) {}" in html
+    assert "try { map.on('idle', () => healMapLibreOverlaysIfMissing('idle')); } catch (_) {}" not in html
+
+
+def test_profile_page_template_clears_fallback_overlay_at_drag_start_and_only_restores_when_needed():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const scheduleFallbackOverlayRender = (reason = 'map-change') => {" in html
+    assert "try { map.on('movestart', () => {" in html
+    assert "try { map.on('zoomstart', () => {" in html
+    assert "try { map.on('moveend', () => {" in html
+    assert "const missingArtifacts = !hasRenderableOverlayArtifacts();" in html
+    assert "if (missingArtifacts) scheduleFallbackOverlayRender('moveend');" in html
+    assert "try { map.on('zoomend', () => {" in html
+    assert "if (missingArtifacts) scheduleFallbackOverlayRender('zoomend');" in html
+
+
+def test_profile_page_template_rebinds_existing_amap_controller_when_reentering_fallback():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const reusingExistingMap = Boolean(map);" in html
+    assert "if (reusingExistingMap && amapControllerRef.current) {" in html
+    assert "mapRef.current = amapControllerRef.current;" in html
+    assert "setMapLoadState('ready');" in html
+
+
 def test_profile_page_template_shows_age_and_city_name_on_map_node_labels():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
@@ -1254,12 +1473,43 @@ def test_profile_page_template_shows_age_and_city_name_on_map_node_labels():
     assert "element: buildMapPointLabelShell(loc, idx, activeIndexRef.current)," in html
     assert "setMapPointLabelMarkerVisibility(marker, shouldShow);" in html
     assert "const getRenderedPointLoc = (idx) => {" in html
+
+
+def test_profile_page_template_highlights_active_map_point_numbers_without_filled_center():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "indexBadgeRadius: visual.radius + (visual.isActive ? 4.8 : 3.8)," in html
+    assert "indexBadgeStrokeColor: visual.isActive ? hexToRgba(pointColor, 0.4) : 'rgba(148,163,184,0.28)'" in html
+    assert "indexTextColor: visual.isActive ? pointColor : '#0f172a'" in html
+    assert "indexTextHaloWidth: visual.isActive ? 1.8 : 1.4," in html
+    assert "'visibility': initialShowIndex ? 'visible' : 'none'" in html
+    assert "map.setLayoutProperty(pointRingOuterId, 'visibility', 'none');" in html
+    assert "'text-color': ['get', 'indexTextColor']" in html
+    assert "color: isActive ? pointColor : '#0f172a'," in html
+    assert "fontSize: isActive ? '14px' : '13px'," in html
     assert 'class="map-point-label-text"' in html
     assert 'class="map-point-label-badge"' in html
     assert 'class="map-point-label-name"' in html
     assert "font-size: 11px;" in html
     assert "maplibre: [0, isEndpoint ? -24 : -20]," in html
     assert "amap: [0, isEndpoint ? -34 : -28]," in html
+
+
+def test_profile_page_template_includes_person_specific_recommended_questions():
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "const customPromptMap = {" in html
+    assert "'诸葛亮': [" in html
+    assert "question: '你为什么写《出师表》？'" in html
+    assert "'刘禅': [" in html
+    assert "question: '你怎么看《出师表》？'" in html
+    assert "'鲁迅': [" in html
+    assert "question: '你怎么看瓜田里的猹？'" in html
+    assert "'牛顿': [" in html
+    assert "question: '那颗苹果怎么砸醒你的？'" in html
+    assert "'曹操': [" in html
+    assert "question: '你当时为何杀吕伯奢一家？'" in html
+    assert "(customPromptMap[personName] || []).forEach((item) => {" in html
 
 
 def test_profile_page_template_does_not_fake_zero_age_for_unknown_start_age():

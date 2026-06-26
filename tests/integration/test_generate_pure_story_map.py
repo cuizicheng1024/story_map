@@ -61,7 +61,7 @@ def test_changed_people_rebuilds_when_profile_builder_is_newer(tmp_path, monkeyp
     _touch(root / "storymap" / "script" / "map_html_renderer.py", 10)
     _touch(root / "storymap" / "script" / "profile_builder.py", 30)
     _touch(root / "storymap" / "script" / "story_map.py", 10)
-    _touch(root / "storymap" / "script" / "templates" / "profile_page.html", 10)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "profile_page.html", 10)
     _touch(root / "cli" / "generate_pure_story_map.py", 10)
     _touch(md_dir / "苏轼.md", 15)
     _touch(html_dir / "苏轼.html", 20)
@@ -82,8 +82,8 @@ def test_changed_people_rebuilds_when_design_tokens_css_is_newer(tmp_path, monke
     _touch(root / "storymap" / "script" / "map_html_renderer.py", 10)
     _touch(root / "storymap" / "script" / "profile_builder.py", 10)
     _touch(root / "storymap" / "script" / "story_map.py", 10)
-    _touch(root / "storymap" / "script" / "templates" / "profile_page.html", 10)
-    _touch(root / "storymap" / "script" / "templates" / "design_tokens.css", 30)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "profile_page.html", 10)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "design_tokens.css", 30)
     _touch(root / "cli" / "generate_pure_story_map.py", 10)
     _touch(md_dir / "苏轼.md", 15)
     _touch(html_dir / "苏轼.html", 20)
@@ -107,7 +107,7 @@ def test_changed_people_rebuilds_when_shared_person_registry_is_newer(tmp_path, 
     _touch(root / "storymap" / "script" / "person_tooltip_js.py", 10)
     _touch(root / "storymap" / "script" / "profile_builder.py", 10)
     _touch(root / "storymap" / "script" / "story_map.py", 10)
-    _touch(root / "storymap" / "script" / "templates" / "profile_page.html", 10)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "profile_page.html", 10)
     _touch(root / "cli" / "generate_pure_story_map.py", 10)
     _touch(md_dir / "苏轼.md", 15)
     _touch(html_dir / "苏轼.html", 20)
@@ -131,8 +131,8 @@ def test_changed_people_rebuilds_when_signature_is_stale_even_if_html_is_newer(t
     _touch(root / "storymap" / "script" / "person_tooltip_js.py", 10)
     _touch(root / "storymap" / "script" / "profile_builder.py", 10)
     _touch(root / "storymap" / "script" / "story_map.py", 10)
-    _touch(root / "storymap" / "script" / "templates" / "profile_page.html", 10)
-    _touch(root / "storymap" / "script" / "templates" / "design_tokens.css", 10)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "profile_page.html", 10)
+    _touch(root / "storymap" / "script" / "profile" / "templates" / "design_tokens.css", 10)
     _touch(root / "cli" / "generate_pure_story_map.py", 10)
     _touch(md_dir / "苏轼.md", 15)
     html_path = html_dir / "苏轼.html"
@@ -358,9 +358,9 @@ def test_generate_pure_html_syncs_alias_redirect_pages(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
 
     md_path = tmp_path / "苏轼.md"
-    md_path.write_text("# 苏轼\n", encoding="utf-8")
     out_path = tmp_path / "苏轼.html"
     captured = {}
+    md_path.write_text("# 苏轼\n", encoding="utf-8")
 
     monkeypatch.setattr(module, "_add_import_paths", lambda: None)
     monkeypatch.setattr(module, "_story_artifacts_dir", lambda: str(tmp_path))
@@ -386,28 +386,42 @@ def test_generate_pure_html_syncs_alias_redirect_pages(monkeypatch, tmp_path):
         "render_profile_html",
         FakeRenderer.render_profile_html,
     )
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.cli.story_map"),
+        "_amap_config_js",
+        lambda: b'window.AMAP_KEY="amap";',
+    )
+    monkeypatch.setattr(
+        importlib.import_module("storymap.script.cli.story_map"),
+        "_geovis_config_js",
+        lambda: b'window.GEOVIS_TOKEN="geo";',
+    )
     monkeypatch.setattr(module, "_sync_alias_redirect_pages", lambda html_dir: captured.setdefault("alias_sync", html_dir))
 
     result = module.generate_pure_html(str(md_path), out_path=str(out_path), no_geocode=False)
 
     assert result["html_path"] == str(out_path)
     assert captured["alias_sync"] == tmp_path
+    assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="amap";'
+    assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
 
 
 def test_sync_alias_redirect_pages_keeps_dynamic_empty_redirects(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
+    homepage = importlib.import_module("tools.build_stellar_homepage")
 
-    class FakeHomepage:
-        PERSON_PAGE_REDIRECTS = {"苏东坡": "苏轼"}
-
-        @staticmethod
-        def _render_person_alias_redirect_html(alias, canonical):
-            return f"{alias}->{canonical}"
+    def fake_cleanup(html_dir, redirects):
+        _ = redirects
+        target = html_dir / "苏东坡.html"
+        if target.exists():
+            target.unlink()
 
     monkeypatch.setattr(module, "_repo_root", lambda: str(tmp_path))
     monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: {"苏轼", "苏东坡"})
     monkeypatch.setattr(module, "story_md_dir_path", lambda: tmp_path / "story")
-    monkeypatch.setitem(sys.modules, "tools.build_stellar_homepage", FakeHomepage)
+    monkeypatch.setattr(homepage, "_remove_person_alias_redirect_pages", fake_cleanup)
+    (tmp_path / "html").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "html" / "苏东坡.html").write_text("redirect", encoding="utf-8")
 
     module._sync_alias_redirect_pages(tmp_path / "html")
 

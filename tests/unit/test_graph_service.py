@@ -368,3 +368,92 @@ def test_get_related_people_graph_from_payload_dedupes_story_alias_pages():
     names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
     assert names.count("苏轼") == 1
     assert names.count("苏东坡") == 0
+
+
+def test_get_related_people_graph_from_payload_prefers_manual_edge_for_gu_jiegang():
+    payload = {
+        "nodes": [
+            {"person": "顾颉刚", "file": "顾颉刚.html", "dynasty": "清末至中华人民共和国", "birth_year": 1893, "death_year": 1980, "domain_tags": ["史学", "民俗学"]},
+            {"person": "鲁迅", "file": "鲁迅.html", "dynasty": "近现代", "birth_year": 1881, "death_year": 1936, "domain_tags": ["文学", "思想"]},
+            {"person": "胡适", "file": "胡适.html", "dynasty": "近现代", "birth_year": 1891, "death_year": 1962, "domain_tags": ["思想", "学术"]},
+        ],
+        "edges": [
+            {"a": 0, "b": 1, "type": "manual", "label": "同时代学人", "confidence": 0.92, "weight": 3},
+        ],
+    }
+
+    related = graph_service.get_related_people_graph_from_payload(
+        {"name": "顾颉刚", "dynasty": "清末至中华人民共和国"},
+        payload,
+        markdown="# 顾颉刚\n\n顾颉刚是现代史学家。",
+        limit=2,
+    )
+
+    names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
+    assert names[0] == "顾颉刚"
+    assert "鲁迅" in names[1:]
+
+
+def test_get_related_people_graph_from_payload_marks_sima_guang_as_wang_anshi_opponent():
+    payload = {
+        "nodes": [
+            {"person": "王安石", "file": "王安石.html", "dynasty": "北宋", "birth_year": 1021, "death_year": 1086},
+            {"person": "司马光", "file": "司马光.html", "dynasty": "北宋", "birth_year": 1019, "death_year": 1086},
+            {"person": "宋神宗", "file": "宋神宗.html", "dynasty": "北宋", "birth_year": 1048, "death_year": 1085},
+        ],
+        "edges": [],
+    }
+
+    related = graph_service.get_related_people_graph_from_payload(
+        {"name": "王安石", "dynasty": "北宋"},
+        payload,
+        markdown=(
+            "# 王安石\n\n"
+            "神宗即位后重用王安石推行新法，与司马光等保守派长期政见对立，"
+            "后者持续反对变法。"
+        ),
+        limit=3,
+    )
+
+    node_by_name = {str(node.get("name") or ""): node for node in (related.get("nodes") or [])}
+    assert node_by_name["司马光"]["relationLabel"] == "对手"
+
+
+def test_get_related_people_graph_from_payload_prioritizes_liushan_core_relations():
+    payload = {
+        "nodes": [
+            {"person": "刘禅", "file": "刘禅.html", "dynasty": "三国时期", "birth_year": 207, "death_year": 271},
+            {"person": "刘备", "file": "刘备.html", "dynasty": "东汉末年至三国时期", "birth_year": 161, "death_year": 223},
+            {"person": "诸葛亮", "file": "诸葛亮.html", "dynasty": "东汉末年至三国时期", "birth_year": 181, "death_year": 234},
+            {"person": "姜维", "file": "姜维.html", "dynasty": "三国时期", "birth_year": 202, "death_year": 264},
+            {"person": "赵云", "file": "赵云.html", "dynasty": "三国时期", "birth_year": 168, "death_year": 229},
+        ],
+        "edges": [],
+    }
+
+    related = graph_service.get_related_people_graph_from_payload(
+        {"name": "刘禅", "dynasty": "三国时期"},
+        payload,
+        markdown=(
+            "# 刘禅\n\n"
+            "刘备死于白帝城，刘禅继位，由诸葛亮受遗命辅政。"
+            "诸葛亮死后，蒋琬、费祎、姜维相继影响蜀汉政局。"
+        ),
+        limit=4,
+    )
+
+    names = [str(node.get("name") or "") for node in (related.get("nodes") or [])[1:4]]
+    node_by_name = {str(node.get("name") or ""): node for node in (related.get("nodes") or [])}
+    assert names == ["刘备", "诸葛亮", "姜维"]
+    assert node_by_name["刘备"]["relationLabel"] == "父子"
+    assert node_by_name["诸葛亮"]["relationLabel"] == "托孤辅政"
+    assert node_by_name["姜维"]["relationLabel"] == "后期主战"
+
+
+def test_pick_display_year_range_normalizes_bce_order():
+    person = {"birth": {"date": "前128年"}, "death": {"date": "前139年"}}
+
+    birth, death = graph_service._pick_display_year_range(person, {})
+
+    assert birth == -139
+    assert death == -128

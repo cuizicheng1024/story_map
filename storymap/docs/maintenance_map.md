@@ -84,8 +84,8 @@
   - 这里承载大部分前端交互、知识点、地图、对话区逻辑
 - `storymap/script/story_generation_api.py` / `storymap/script/story_artifact_api.py` / `storymap/script/story_geocode_api.py` / `storymap/script/story_profile_api.py`
   - 以上旧平铺 API 入口仍保留兼容转发
-- `storymap/script/profile_builder.py` / `storymap/script/map_html_renderer.py` / `storymap/script/templates/profile_page.html`
-  - 以上旧平铺 profile 路径仍保留兼容转发或兼容副本，维护时优先查看新子包实现
+- `storymap/script/profile_builder.py` / `storymap/script/map_html_renderer.py`
+  - 以上旧平铺 profile 路径仍保留兼容转发，维护时优先查看新子包实现
 
 ### 2. 地图与地理解析
 

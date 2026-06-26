@@ -100,6 +100,32 @@ def test_resolve_main_role_band_places_philosophers_into_academic_band():
     assert label == "哲学家"
 
 
+def test_extract_basic_place_from_md_reads_native_place_and_modern_name():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    raw, ancient, modern = module._extract_basic_place_from_md(
+        "- **籍贯**：广东新会（今广东省江门市新会区）\n",
+        ("籍贯", "祖籍"),
+    )
+
+    assert raw == "广东新会今广东省江门市新会区"
+    assert ancient == "广东新会"
+    assert modern == "广东省江门市新会区"
+
+
+def test_extract_basic_place_from_md_can_fallback_to_overview_native_place():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    raw, ancient, modern = module._extract_basic_place_from_md(
+        "### 生平概述\n王安石，字介甫，号半山，祖籍抚州临川，出生于临江军清江县（今江西省樟树市）。\n",
+        ("籍贯", "祖籍"),
+    )
+
+    assert raw == "抚州临川"
+    assert ancient == "抚州临川"
+    assert modern == ""
+
+
 def test_build_payload_meta_prefers_github_env(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -127,7 +153,9 @@ def test_analytics_head_html_requires_explicit_measurement_id(monkeypatch):
     monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)
     monkeypatch.delenv("GA_MEASUREMENT_ID", raising=False)
 
-    assert module._analytics_head_html() == ""
+    html = module._analytics_head_html()
+
+    assert "googletagmanager.com/gtag/js" not in html
 
 
 def test_analytics_head_html_uses_explicit_measurement_id(monkeypatch):
@@ -209,6 +237,11 @@ def test_write_homepage_outputs_writes_core_detail_and_index(tmp_path, monkeypat
     story_map_dir.mkdir()
 
     monkeypatch.setattr(module, "_sync_vendor_assets", lambda _dir: None)
+    monkeypatch.setattr(
+        module,
+        "_sync_embedded_apps",
+        lambda out_dir: (out_dir / "orange-office.html").write_text("<html>office</html>", encoding="utf-8"),
+    )
     monkeypatch.setattr(module, "_sync_homepage_pet_asset", lambda _dir: None)
     monkeypatch.setattr(module, "write_normalized_graph_json", None)
     monkeypatch.setattr(module, "should_sync_to_neo4j", None)
@@ -249,6 +282,7 @@ def test_write_homepage_outputs_writes_core_detail_and_index(tmp_path, monkeypat
     assert "review" not in core_payload["nodes"][0]
     assert "work_summaries" not in core_payload["nodes"][0]
     assert detail_payload["nodes"][0]["review"] == "浪漫主义诗歌高峰。"
+    assert (story_map_dir / "orange-office.html").read_text(encoding="utf-8") == "<html>office</html>"
     assert 'const DATA_DETAIL_FILE = "stellar_home_data_detail.json";' in html
     assert "loadHomeDetailData()" in html
 
@@ -606,6 +640,11 @@ def test_render_index_html_shows_person_info_on_map_marker_hover():
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     assert "const buildMapPersonInfoHtml = (n) => {" in html
+    assert 'const birthplaceAmbiguous = /存疑|一说|或说|又说|另说|未详|不详/.test(bpRaw);' in html
+    assert 'const bpDisplay = bp && birthplaceAmbiguous && showNativePlace ? "存疑" : bp;' in html
+    assert 'const showNativePlace = nativePlace && (!bp || placeCompareKey(nativePlace) !== placeCompareKey(bp));' in html
+    assert "if (birthplace) rows.push({ label: '出生地', value: birthplace });" in html
+    assert 'if (showNativePlace) appendLine("籍贯：" + nativePlace' in html
     assert 'id="mapTip" class="tooltip hidden"' in html
     assert "const showMapTip = (n, clientX, clientY) => {" in html
     assert "const resolveMapTipClientPoint = (evt, lng, lat) => {" in html
@@ -1089,6 +1128,84 @@ def test_is_foreign_person_keeps_mixed_japan_tang_identity_as_foreign():
     ) is True
 
 
+def test_is_foreign_person_treats_explicit_foreign_era_as_foreign():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    assert module._is_foreign_person(
+        foreign_name="Matteo Ricci",
+        birthplace_modern="",
+        birthplace_raw="意大利马切拉塔",
+        dynasty="意大利文艺复兴晚期、明代（万历年间）",
+    ) is True
+
+
+def test_is_foreign_person_treats_abbasid_khwarazmian_figures_as_foreign():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    assert module._is_foreign_person(
+        foreign_name="Muḥammad ibn Mūsā al-Khwārizmī",
+        birthplace_modern="",
+        birthplace_raw="花拉子模地区",
+        dynasty="阿拔斯王朝（伊斯兰黄金时代）",
+    ) is True
+
+
+def test_main_uses_normalized_dynasty_for_foreign_detection(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    story_map_dir = tmp_path / "story_map"
+    story_map_dir.mkdir()
+    story_md_dir = tmp_path / "story"
+    story_md_dir.mkdir()
+    summary_index = tmp_path / "people_summary_index.json"
+    summary_index.write_text(json.dumps({"items": {"释迦牟尼": {"review": "佛教创始人。"}}}, ensure_ascii=False), encoding="utf-8")
+    work_summary_index = tmp_path / "work_summary_index.json"
+    work_summary_index.write_text(json.dumps({"items": {}}, ensure_ascii=False), encoding="utf-8")
+    (story_md_dir / "释迦牟尼.md").write_text("# 释迦牟尼\n", encoding="utf-8")
+    args = argparse.Namespace(
+        story_map_dir=str(story_map_dir),
+        story_md_dir=str(story_md_dir),
+        summary_index=str(summary_index),
+        out_index="index.html",
+        out_data="stellar_home_data.json",
+        title="故事地图",
+        default_start=100,
+        default_end=1600,
+        graph_source="",
+    )
+    captured = {}
+    data_root = tmp_path / "data"
+    (data_root / "validation_reports" / "strict_audit").mkdir(parents=True)
+    birth_coords_path = data_root / "people_birth_coords_wgs84.json"
+    birth_coords_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
+    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(module, "BIRTH_COORDS_WGS84_JSON", birth_coords_path)
+    monkeypatch.setattr(module, "WORK_SUMMARY_INDEX_JSON", work_summary_index)
+    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
+    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: ["释迦牟尼"])
+    monkeypatch.setattr(module, "_canonical_story_name_entries", lambda names: [("释迦牟尼", "释迦牟尼", [])])
+    monkeypatch.setattr(
+        module,
+        "_read_json",
+        lambda path: json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {},
+    )
+    monkeypatch.setattr(module, "_extract_years_from_md", lambda md: (-563, -483))
+    monkeypatch.setattr(module, "_dynasty_hint_from_md", lambda md: "")
+    monkeypatch.setattr(module, "_extract_relations", lambda md: ([], []))
+    monkeypatch.setattr(module, "_extract_disambiguation", lambda md: ([], "", []))
+    monkeypatch.setattr(module, "_extract_birthplace_from_md", lambda md: ("", "", ""))
+    monkeypatch.setattr(module, "_resolve_main_role_band", lambda **kwargs: ("thought", "宗教家"))
+    monkeypatch.setattr(module, "build_search_fields", lambda name, aliases, foreign_name: {"search_keys": [], "search_tokens": [], "search_pinyin": []})
+    monkeypatch.setattr(module, "_normalize_dynasty_label", lambda **kwargs: "古印度列国时代（约公元前6世纪至前5世纪）")
+    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: captured.update(kwargs) or {"index": "i", "data": "d", "count": 1})
+
+    assert module.main() == 0
+    node = captured["payload"]["nodes"][0]
+    assert node["dynasty"] == "古印度列国时代（约公元前6世纪至前5世纪）"
+    assert node["is_foreign"] is True
+
+
 def test_extract_birthplace_from_md_prefers_specific_place_over_uncertain_period_prefix():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1111,6 +1228,30 @@ def test_extract_birthplace_from_md_strips_date_only_uncertainty_but_keeps_place
     assert raw == "崇安今福建省南平市武夷山市"
     assert ancient == "崇安"
     assert modern == "福建省南平市武夷山市"
+
+
+def test_extract_birthplace_from_md_strips_parenthetical_native_place_note():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    raw, ancient, modern = module._extract_birthplace_from_md(
+        "- **出生**：1957年9月，北京（祖籍河北赵县）\n"
+    )
+
+    assert raw == "北京"
+    assert ancient == "北京"
+    assert modern == ""
+
+
+def test_extract_birthplace_from_md_returns_empty_when_birth_field_only_declares_native_place():
+    module = importlib.import_module("tools.build_stellar_homepage")
+
+    raw, ancient, modern = module._extract_birthplace_from_md(
+        "- **出生**：约公元前140年，籍贯杜陵（今陕西省西安市）\n"
+    )
+
+    assert raw == ""
+    assert ancient == ""
+    assert modern == ""
 
 
 def test_extract_birthplace_from_md_clears_modern_place_when_birthplace_has_multiple_options():
@@ -1195,6 +1336,79 @@ def test_main_prefers_markdown_coords_table_over_stale_cached_birth_coords(tmp_p
     assert node["birth_lat_wgs84"] == 31.944
     assert node["birth_lng_wgs84"] == 119.167
     assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {"曹鎏": [31.944, 119.167]}
+
+
+def test_main_matches_birthplace_against_labeled_coords_table_rows(tmp_path, monkeypatch):
+    module = importlib.import_module("tools.build_stellar_homepage")
+    story_map_dir = tmp_path / "story_map"
+    story_map_dir.mkdir()
+    story_md_dir = tmp_path / "story"
+    story_md_dir.mkdir()
+    summary_index = tmp_path / "people_summary_index.json"
+    summary_index.write_text(json.dumps({"items": {"奥本海默": {"review": "美国理论物理学家。"}}}, ensure_ascii=False), encoding="utf-8")
+    work_summary_index = tmp_path / "work_summary_index.json"
+    work_summary_index.write_text(json.dumps({"items": {}}, ensure_ascii=False), encoding="utf-8")
+    (story_md_dir / "奥本海默.md").write_text(
+        "\n".join(
+            [
+                "# 奥本海默",
+                "",
+                "- **出生**：公元1904年，美国纽约州纽约市",
+                "",
+                "## 地点坐标",
+                "| 现称 | 纬度 | 经度 |",
+                "| --- | --- | --- |",
+                "| 出生地：纽约市 | 40.7128 | -74.0060 |",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    args = argparse.Namespace(
+        story_map_dir=str(story_map_dir),
+        story_md_dir=str(story_md_dir),
+        summary_index=str(summary_index),
+        out_index="index.html",
+        out_data="stellar_home_data.json",
+        title="故事地图",
+        default_start=100,
+        default_end=1600,
+        graph_source="",
+    )
+    captured = {}
+    data_root = tmp_path / "data"
+    (data_root / "validation_reports" / "strict_audit").mkdir(parents=True)
+    birth_coords_path = data_root / "people_birth_coords_wgs84.json"
+    birth_coords_path.write_text(
+        json.dumps({"奥本海默": [45.2968009, 130.9673405]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
+    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(module, "BIRTH_COORDS_WGS84_JSON", birth_coords_path)
+    monkeypatch.setattr(module, "WORK_SUMMARY_INDEX_JSON", work_summary_index)
+    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
+    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: ["奥本海默"])
+    monkeypatch.setattr(module, "_canonical_story_name_entries", lambda names: [("奥本海默", "奥本海默", [])])
+    monkeypatch.setattr(
+        module,
+        "_read_json",
+        lambda path: json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {},
+    )
+    monkeypatch.setattr(module, "_extract_years_from_md", lambda md: (1904, 1967))
+    monkeypatch.setattr(module, "_dynasty_hint_from_md", lambda md: "20世纪")
+    monkeypatch.setattr(module, "_extract_relations", lambda md: ([], []))
+    monkeypatch.setattr(module, "_extract_disambiguation", lambda md: ([], "", []))
+    monkeypatch.setattr(module, "_resolve_main_role_band", lambda **kwargs: ("academic", "理论物理学家"))
+    monkeypatch.setattr(module, "build_search_fields", lambda name, aliases, foreign_name: {"search_keys": [], "search_tokens": [], "search_pinyin": []})
+    monkeypatch.setattr(module, "_normalize_dynasty_label", lambda **kwargs: "20世纪")
+    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: captured.update(kwargs) or {"index": "i", "data": "d", "count": 1})
+
+    assert module.main() == 0
+    node = captured["payload"]["nodes"][0]
+    assert node["birth_lat_wgs84"] == 40.7128
+    assert node["birth_lng_wgs84"] == -74.006
+    assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {"奥本海默": [40.7128, -74.006]}
 
 
 def test_main_drops_ambiguous_cached_birth_coords_when_birthplace_is_not_precise(tmp_path, monkeypatch):
@@ -1318,16 +1532,14 @@ def test_main_drops_birth_marker_when_birthplace_has_multiple_place_options(tmp_
     assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {}
 
 
-def test_render_person_alias_redirect_html_preserves_hash_and_targets_canonical_page():
+def test_remove_person_alias_redirect_pages_deletes_alias_html(tmp_path):
     module = importlib.import_module("tools.build_stellar_homepage")
+    alias_path = tmp_path / "苏东坡.html"
+    alias_path.write_text("redirect", encoding="utf-8")
 
-    html = module._render_person_alias_redirect_html("苏东坡", "苏轼")
+    module._remove_person_alias_redirect_pages(tmp_path, {"苏东坡": "苏轼"})
 
-    assert "encodeURIComponent(canonical + \".html\") + search + hash" in html
-    assert "window.location.replace(target);" in html
-    assert "“苏东坡”为“苏轼”的别名，正在跳转" in html
-    assert 'meta http-equiv="refresh"' not in html
-    assert '<noscript>' in html
+    assert not alias_path.exists()
 
 
 def test_canonical_story_name_entries_preserves_real_story_sources():

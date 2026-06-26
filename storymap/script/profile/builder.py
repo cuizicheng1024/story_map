@@ -143,6 +143,36 @@ def _collect_profile_work_summaries(
     return out
 
 
+_LOCATION_POSTER_OVERRIDES: Dict[str, Dict[str, Dict[str, str]]] = {
+    "梁思成": {
+        "五台山佛光寺": {
+            "png": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Foguang_Temple_9.JPG"
+        }
+    }
+}
+
+
+def _attach_location_posters(person_name: str, locations: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    overrides = _LOCATION_POSTER_OVERRIDES.get(str(person_name or "").strip()) or {}
+    if not overrides:
+        return locations
+    updated: List[Dict[str, object]] = []
+    for item in locations:
+        loc = dict(item or {})
+        name_candidates = [
+            str(loc.get("name") or "").strip(),
+            str(loc.get("ancientName") or "").strip(),
+            str(loc.get("modernName") or "").strip(),
+        ]
+        for key, value in overrides.items():
+            needle = str(key or "").strip()
+            if needle and any(needle in candidate for candidate in name_candidates if candidate):
+                loc["poster"] = dict(value)
+                break
+        updated.append(loc)
+    return updated
+
+
 def _coord_group_key(lat: object, lng: object) -> str:
     return profile_location_utils.coord_group_key(lat, lng)
 
@@ -235,7 +265,7 @@ _PERSON_WORK_EXCLUSIONS = {
     "阿沛·阿旺晋美": {"十七条协议", "关于和平解放西藏办法的协议"},
     "崔融": {"三教珠英"},
     "卓文君": {"白头吟"},
-    "孙膑": {"史记", "齐孙子"},
+    "孙膑": {"史记", "史记·孙子吴起列传", "齐孙子"},
     "蔡文姬": {"胡笳十八拍"},
     "姚文元": {"海瑞罢官"},
 }
@@ -587,9 +617,15 @@ def build_profile_data(
         historical_reviews=parsed_doc.historical_reviews,
         fallback=title,
     )
-    summary_short_review = _clean_short_review_text(
-        summary.get("short_review") or summary.get("review") or summary.get("spotlight") or ""
-    )
+    summary_short_review = ""
+    for candidate in (
+        summary.get("short_review"),
+        summary.get("review"),
+        summary.get("spotlight"),
+    ):
+        summary_short_review = _clean_short_review_text(str(candidate or ""))
+        if summary_short_review:
+            break
     short_review = summary_short_review or short_review
     birth_text = info.get("出生", "")
     death_text = info.get("去世", "")
@@ -722,6 +758,11 @@ def build_profile_data(
     )
 
     dynasty = (info.get("时代", "") or info.get("朝代", "")).strip()
+    native_place = parser_utils._extract_native_place_from_story_text(
+        normalized_md,
+        basic_info_map=info,
+        overview=description,
+    )
     highlight_status = str(summary.get("status") or info.get("历史地位", "") or "").strip()
     highlight_identities = str(summary.get("identities") or info.get("主要身份", "") or "").strip()
     highlight_achievements = _normalize_person_achievements(
@@ -743,8 +784,10 @@ def build_profile_data(
         courtesy_name,
         art_name,
     )
+    foreign_name = str(info.get("外文名", "") or info.get("外文", "")).strip()
     person = {
         "name": name or "人物",
+        "foreignName": foreign_name,
         "title": title,
         "description": description,
         "quote": short_review or title,
@@ -754,6 +797,7 @@ def build_profile_data(
         "artName": art_name,
         "aliases": aliases,
         "birthplace": birth_loc,
+        "nativePlace": native_place,
         "avatar": "",
         "birth": {
             "date": birth_date,
@@ -811,6 +855,7 @@ def build_profile_data(
         )
     loc_items = _collapse_sparse_single_site_locations(loc_items)
     loc_items = _sort_profile_locations(loc_items)
+    loc_items = _attach_location_posters(canonical_name, loc_items)
     work_summaries = _collect_profile_work_summaries(
         normalized_md=normalized_md,
         person_name=canonical_name,

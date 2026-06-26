@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>回到大宋当宰相 · 王安石变法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700;900&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="paper-grain"></div>
+<div class="vignette"></div>
+<div id="bgmCtrl" class="bgm-ctrl">
+  <button id="bgmBtn" class="bgm-btn" onclick="BGM.toggle()" title="背景音乐开关">
+    <span class="bgm-ico">♪</span>
+  </button>
+  <div class="vol-pop">
+    <span class="vol-ico vol-min">♪</span>
+    <input id="volSlider" class="vol-slider" type="range" min="0" max="100" value="50"
+           oninput="BGM.setVolume(this.value/100)" title="音量">
+    <span class="vol-ico vol-max">♬</span>
+  </div>
+</div>
+
+<!-- ===== 封面 ===== -->
+<section id="cover" class="screen active">
+  <div class="cover-bg" style="background-image:url('assets/court.png')"></div>
+  <div class="cover-scrim"></div>
+  <div class="cover-inner">
+    <div class="seal-top">熙 宁 新 政</div>
+    <h1 class="title-main">回到大宋<br>当宰相</h1>
+    <div class="title-sub">王安石变法 · 文字互动</div>
+    <p class="cover-desc">
+      晨钟自宣德门外传来。<br>
+      你睁眼，铜镜里是一张陌生又熟悉的脸——王安石。<br>
+      熙宁年间，国库吃紧、军力疲弱、豪强坐大。<br>
+      变法的刀，今日就要落下。
+    </p>
+    <button class="btn-start" onclick="Game.start()">入 朝 · 开 局</button>
+    <div class="char-roster">
+      <div class="roster-item"><img src="assets/p_wanganshi.png" alt="王安石"><span>王安石</span></div>
+      <div class="roster-item"><img src="assets/p_shenzong.png" alt="宋神宗"><span>宋神宗</span></div>
+      <div class="roster-item"><img src="assets/p_simaguang.png" alt="司马光"><span>司马光</span></div>
+      <div class="roster-item"><img src="assets/p_zhengxia.png" alt="郑侠"><span>郑侠</span></div>
+      <div class="roster-item"><img src="assets/p_sushi.png" alt="苏轼"><span>苏轼</span></div>
+    </div>
+    <div class="cover-foot">每一次抉择，都在朝局、财政与民心之间称量。</div>
+    <button class="lore-link" onclick="Lore.open()">史 海 钩 沉 · 素材出处</button>
+  </div>
+</section>
+
+<!-- ===== 游戏主界面 ===== -->
+<section id="game" class="screen">
+  <!-- 状态栏 -->
+  <header class="hud">
+    <div class="hud-title">
+      <span class="hud-seal">相</span>
+      <div>
+        <div class="hud-name">参知政事 · 王安石</div>
+        <div class="hud-turn">熙宁 · 第 <span id="turnNum">一</span> 回</div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <!-- 剧情卡 -->
+  <main class="stage">
+    <div class="scene-card" id="sceneCard">
+      <div class="scene-img-wrap">
+        <img id="sceneImg" src="assets/court.png" alt="场景">
+        <div class="scene-img-tag" id="sceneTag">朝堂</div>
+      </div>
+      <div class="scene-body">
+        <div class="scene-char" id="sceneChar" style="display:none"></div>
+        <h2 class="scene-title" id="sceneTitle">第一幕 · 早朝前夜</h2>
+        <div class="scene-text" id="sceneText"></div>
+        <div class="choices" id="choices"></div>
+      </div>
+    </div>
+    <!-- 状态变化飘字 -->
+    <div class="fx-toast" id="fxToast"></div>
+  </main>
+</section>
+
+<!-- ===== 结局界面 ===== -->
+<section id="ending" class="screen">
+  <div class="cover-bg" id="endBg"></div>
+  <div class="cover-scrim"></div>
+  <div class="cover-inner">
+    <div class="seal-top" id="endTag">终 章</div>
+    <h1 class="title-main end-title" id="endTitle"></h1>
+    <p class="cover-desc" id="endText"></p>
+    <div class="end-stats" id="endStats"></div>
+    <div class="end-comments" id="endComments" style="display:none"></div>
+    <button class="btn-start" onclick="Game.restart()">重 开 一 局</button>
+    <div class="cover-foot" id="endNote"></div>
+    <button class="lore-link" onclick="Lore.open()">史 海 钩 沉 · 素材出处</button>
+  </div>
+</section>
+
+<!-- ===== 史海钩沉 · 史料出处弹层 ===== -->
+<div id="loreMask" class="lore-mask" onclick="Lore.close(event)">
+  <div class="lore-card" onclick="event.stopPropagation()">
+    <button class="lore-close" onclick="Lore.close()" title="关闭">×</button>
+    <div class="lore-head">
+      <img src="assets/pdf_img13.png" alt="王安石像" class="lore-portrait">
+      <div>
+        <div class="lore-kicker">史 海 钩 沉</div>
+        <h3 class="lore-title">熙宁七年的雨</h3>
+        <div class="lore-by">剧情灵感与史料 · 撰文／曾雄生</div>
+      </div>
+    </div>
+    <div class="lore-body">
+      <p>本作《回到大宋当宰相·王安石变法》的灾情主线，取材自文章<span class="lore-em">《熙宁七年的雨》（撰文／曾雄生）</span>。</p>
+      <p>熙宁七年（1074）春，京东、河北久旱不雨，<span class="lore-em">旱极而蝗</span>，流民塞道。地方官报雨量「一寸则云三寸，三寸则云一尺，多不以其实」，皇帝竟亲自<span class="lore-em">掘地验雨</span>。监安上门小吏<span class="lore-em">郑侠</span>绘《流民图》直送御前，以性命作保「十日不雨，乞斩臣」，更言「天旱由王安石所致，若罢安石，天必雨」。一图冲决禁城红墙，太后泣言「安石乱天下」，王安石遂罢相。</p>
+      <p>游戏中的<span class="lore-em">旱极而蝗、一寸报三寸、流民图、天变不足畏、罢相离京绝句</span>等情节与文句，皆本于此文。文章结语云：<span class="lore-em">「呜呼！熙宁七年，果然是雨点小，而雷声大。」</span></p>
+      <p>「苏子寄诗」一幕中，<span class="lore-em">苏轼</span>熙宁四年上《上神宗皇帝书》力陈青苗、助役之弊，自请外放、通判杭州，所引诗句出自其<span class="lore-em">《吴中田妇叹》</span>（「卖牛纳税拆屋炊……不如却作河伯妇」），写新法之下江南农户的困苦。各结局的「时人评说」为依人物立场所作的互动改编点评。</p>
+      <p>背景音乐：<span class="lore-em">《Guzheng City》</span>，作者 Kevin MacLeod（incompetech.com），授权 <span class="lore-em">CC BY 4.0</span>（古筝纯音乐，可商用，注明出处即可）。</p>
+      <p class="lore-note">注：剧情为互动改编，史实细节请以正史与原文为准。</p>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>

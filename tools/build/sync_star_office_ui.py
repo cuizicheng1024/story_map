@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -7,8 +8,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 STAR_OFFICE_FRONTEND = REPO_ROOT / ".tmp_star_office_ui" / "frontend"
 TARGET_DIR = REPO_ROOT / "artifacts" / "story_map"
-TARGET_STATIC_DIR = TARGET_DIR / "static"
-TARGET_HTML = TARGET_DIR / "orange-office.html"
 
 SKIP_FILES = {
     "index.html",
@@ -191,15 +190,38 @@ INTERNAL_AGENT_FILTER_SCRIPT = """
 """
 
 
-def sync_star_office_ui() -> None:
+def _disable_embedded_debug_reporter(html: str) -> str:
+    text = str(html or "")
+    pattern = re.compile(
+        r"\s*// #region debug-point A:runtime-reporter[\s\S]*?// #endregion\s*",
+        flags=re.MULTILINE,
+    )
+    replacement = """
+        function orangeOfficeDebugReport() {}
+
+"""
+    return pattern.sub(replacement, text, count=1)
+
+
+def _resolve_target_dir(target_dir: Path | None = None) -> Path:
+    if target_dir is None:
+        return TARGET_DIR
+    return Path(target_dir)
+
+
+def sync_star_office_ui(target_dir: Path | None = None) -> None:
     if not STAR_OFFICE_FRONTEND.exists():
         raise FileNotFoundError(f"missing source frontend: {STAR_OFFICE_FRONTEND}")
 
-    TARGET_STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    resolved_target_dir = _resolve_target_dir(target_dir)
+    target_static_dir = resolved_target_dir / "static"
+    target_html = resolved_target_dir / "orange-office.html"
+
+    target_static_dir.mkdir(parents=True, exist_ok=True)
     for item in STAR_OFFICE_FRONTEND.iterdir():
         if item.name in SKIP_FILES:
             continue
-        target = TARGET_STATIC_DIR / item.name
+        target = target_static_dir / item.name
         if item.is_dir():
             if target.exists():
                 shutil.rmtree(target)
@@ -208,6 +230,7 @@ def sync_star_office_ui() -> None:
             shutil.copy2(item, target)
 
     html = (STAR_OFFICE_FRONTEND / "index.html").read_text(encoding="utf-8")
+    html = _disable_embedded_debug_reporter(html)
     html = html.replace("<title>Star 的像素办公室</title>", "<title>橙子科技公司</title>")
     html = html.replace(
         """            #lang-btn-en,
@@ -264,7 +287,7 @@ def sync_star_office_ui() -> None:
         1,
     )
     html = html.replace("</body>", GENERATION_BANNER_SCRIPT + "\n</body>", 1)
-    TARGET_HTML.write_text(html, encoding="utf-8")
+    target_html.write_text(html, encoding="utf-8")
 
 
 if __name__ == "__main__":

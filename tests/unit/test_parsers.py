@@ -119,3 +119,41 @@ def test_parse_date_location_details_treats_alive_marker_as_no_death():
     assert date == ""
     assert loc == ""
     assert geocode_loc == ""
+
+
+def test_parse_date_location_details_strips_parenthetical_native_place_from_birthplace():
+    date, loc, geocode_loc = parsers._parse_date_location_details(
+        "1957年9月，北京（祖籍河北赵县）",
+        ["出生于", "生于"],
+    )
+
+    assert date == "1957年"
+    assert loc == "北京"
+    assert geocode_loc == "北京"
+
+
+def test_extract_native_place_from_story_text_can_fallback_to_overview():
+    md = """# 王安石
+
+## 人物档案
+
+### 基本信息
+- **姓名**：王安石
+- **出生**：约公元1021年，古称临江军清江县（今江西省樟树市）
+
+### 生平概述
+王安石，字介甫，号半山，祖籍抚州临川，出生于临江军清江县（今江西省樟树市）。
+"""
+
+    assert parsers._extract_native_place_from_story_text(md) == "抚州临川"
+
+
+def test_parse_date_location_details_drops_birthplace_when_birth_field_only_declares_native_place():
+    date, loc, geocode_loc = parsers._parse_date_location_details(
+        "约公元前140年，籍贯杜陵（今陕西省西安市）",
+        ["出生于", "生于"],
+    )
+
+    assert date == "约公元前140年"
+    assert loc == ""
+    assert geocode_loc == ""

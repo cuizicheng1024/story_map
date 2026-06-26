@@ -56,6 +56,31 @@ def test_place_aliases_can_resolve_foreign_historical_places_without_network(mon
     assert round(city_coord[1], 4) == 23.6000
 
 
+def test_place_aliases_can_resolve_foreign_modern_places_without_network(monkeypatch):
+    monkeypatch.setattr(gs, "_PLACE_ALIASES", None)
+    monkeypatch.setattr(gs, "_HISTORICAL_INDEX", {})
+    monkeypatch.setattr(
+        gs,
+        "_tgaz_query",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not call tgaz")),
+    )
+    monkeypatch.setattr(
+        gs,
+        "geocode_city",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not call geocode_city")),
+    )
+
+    new_york_coord = sm.resolve_place_coord("美国纽约州纽约市")
+    petrovichi_coord = sm.resolve_place_coord("俄罗斯斯摩棱斯克州彼得罗维奇镇")
+
+    assert new_york_coord is not None
+    assert round(new_york_coord[0], 4) == 40.7128
+    assert round(new_york_coord[1], 4) == -74.0060
+    assert petrovichi_coord is not None
+    assert round(petrovichi_coord[0], 4) == 53.9750
+    assert round(petrovichi_coord[1], 4) == 32.1589
+
+
 def test_resolve_place_coord_skips_non_place_candidates_before_network(monkeypatch):
     monkeypatch.setattr(gs, "_PLACE_ALIASES", {})
     monkeypatch.setattr(gs, "lookup_coords_from_historical_index", lambda *_args: None)

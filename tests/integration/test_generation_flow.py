@@ -923,7 +923,8 @@ def test_story_map_wrapper_schedules_homepage_refresh_in_background(tmp_path, mo
     assert queued[0]["label"] == f"homepage-refresh:{person}"
 
 
-def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(tmp_path):
+def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
     person = "李四光"
     md_path = tmp_path / f"{person}.md"
     html_path = tmp_path / f"{person}.html"
@@ -1402,7 +1403,7 @@ def test_enrich_markdown_for_map_normalizes_basic_info_birth_fields_before_geoco
     )
 
     assert enriched == seen["markdown"]
-    assert "- **出生**：公元前428/427年，雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）" in enriched
+    assert "- **出生**：约公元前428/427年（存疑），雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）" in enriched
 
 
 def test_generate_for_person_refreshes_cached_html_when_code_dependency_is_newer(tmp_path):
@@ -1511,7 +1512,8 @@ def test_generate_for_person_refreshes_cached_html_when_template_signature_is_st
     assert result["_profile"]["person"]["name"] == "新诸葛亮"
 
 
-def test_generate_for_person_writes_runtime_map_config_files_next_to_html(tmp_path):
+def test_generate_for_person_writes_runtime_map_config_files_next_to_html(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
     md_path = tmp_path / "关羽.md"
     html_path = tmp_path / "关羽.html"
     md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
@@ -1551,7 +1553,8 @@ def test_generate_for_person_writes_runtime_map_config_files_next_to_html(tmp_pa
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
 
 
-def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(tmp_path):
+def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
     md_path = tmp_path / "关羽.md"
     html_path = tmp_path / "关羽.html"
     md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")
@@ -1598,7 +1601,8 @@ def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(tm
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
 
 
-def test_generate_for_person_cache_hit_marks_degraded_when_runtime_config_write_fails(tmp_path):
+def test_generate_for_person_cache_hit_marks_degraded_when_runtime_config_write_fails(monkeypatch, tmp_path):
+    monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
     md_path = tmp_path / "关羽.md"
     html_path = tmp_path / "关羽.html"
     md_path.write_text("# 关羽\n\n## 一、人物档案\n", encoding="utf-8")

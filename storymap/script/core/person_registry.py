@@ -6,6 +6,10 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 _PERSON_CANONICAL_REGISTRY: Dict[str, str] = {
     "苏东坡": "苏轼",
+    "唐三藏": "玄奘",
+    "唐太宗": "李世民",
+    "毛主席": "毛泽东",
+    "乔纳森": "乔纳森·斯威夫特",
 }
 
 

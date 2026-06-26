@@ -1042,6 +1042,71 @@ async def test_ai_proxy_streams_local_fallback_when_llm_fails(monkeypatch):
     assert '"used_fallback": true' in response.text
 
 
+def test_proxy_service_strips_think_blocks_from_non_stream_response():
+    class _ThinkingClient:
+        def latest_trace(self):
+            return {"classification": "ok", "request_id": "think-trace"}
+
+        def metrics_snapshot(self):
+            return {"requests": 1, "successes": 1}
+
+        def think(self, _messages, temperature=0.5):
+            assert temperature == 0.5
+            return "<think>先想一想</think>\n\n李白是盛唐最具代表性的浪漫主义诗人。"
+
+    service = ProxyService(
+        get_llm_client=lambda: _ThinkingClient(),
+        local_agent_reply=lambda _data: {"handled": False, "content": "", "person_name": ""},
+        local_history_reply=lambda _messages: "fallback",
+        logger=logging.getLogger("proxy-think-test"),
+    )
+    try:
+        status, payload = service.proxy_llm({"messages": [{"role": "user", "content": "介绍一下李白"}]})
+
+        assert status == 200
+        assert "<think>" not in payload["choices"][0]["message"]["content"]
+        assert "李白是盛唐最具代表性的浪漫主义诗人。" in payload["choices"][0]["message"]["content"]
+        assert payload["meta"]["used_fallback"] is False
+    finally:
+        service.shutdown()
+
+
+def test_proxy_service_strips_split_think_blocks_from_stream_response():
+    class _ThinkingStreamClient:
+        def latest_trace(self):
+            return {"classification": "ok", "request_id": "think-stream-trace"}
+
+        def metrics_snapshot(self):
+            return {"requests": 1, "successes": 1}
+
+        def stream_think(self, _messages, temperature=0.5):
+            assert temperature == 0.5
+            yield "<th"
+            yield "ink>先想"
+            yield "一想</thi"
+            yield "nk>李白"
+            yield "豪放飘逸。"
+
+    service = ProxyService(
+        get_llm_client=lambda: _ThinkingStreamClient(),
+        local_agent_reply=lambda _data: {"handled": False, "content": "", "person_name": ""},
+        local_history_reply=lambda _messages: "fallback",
+        logger=logging.getLogger("proxy-think-stream-test"),
+    )
+    try:
+        status, iterator = service.proxy_llm_stream({"messages": [{"role": "user", "content": "介绍一下李白"}], "temperature": 0.5})
+        payload = "".join(list(iterator))
+
+        assert status == 200
+        assert "<think>" not in payload
+        assert "先想一想" not in payload
+        assert '"delta": "李白"' in payload
+        assert '"delta": "豪放飘逸。"' in payload
+        assert '"used_fallback": false' in payload
+    finally:
+        service.shutdown()
+
+
 def test_proxy_service_resets_executor_after_timeout(monkeypatch):
     class _SlowClient:
         def latest_trace(self):

@@ -56,8 +56,6 @@ def profile_render_dependency_paths(root: Optional[Path] = None) -> tuple[Path, 
         base_root / "storymap" / "script" / "profile_builder.py",
         _TEMPLATE_DIR / "profile_page.html",
         _TEMPLATE_DIR / "design_tokens.css",
-        base_root / "storymap" / "script" / "templates" / "profile_page.html",
-        base_root / "storymap" / "script" / "templates" / "design_tokens.css",
         base_root / "storymap" / "script" / "story_map.py",
         base_root / "cli" / "generate_pure_story_map.py",
     )
@@ -175,15 +173,46 @@ def _runtime_api_base_env() -> str:
     return api_base
 
 
+def _runtime_debug_config() -> Dict[str, str]:
+    if not env_flag("MAP_STORY_ENABLE_RUNTIME_DEBUG_CONFIG", "STORY_MAP_ENABLE_RUNTIME_DEBUG_CONFIG"):
+        return {}
+    result: Dict[str, str] = {}
+    session_name = _first_env("MAP_STORY_RUNTIME_DEBUG_SESSION", "STORY_MAP_RUNTIME_DEBUG_SESSION")
+    dbg_name = f"{session_name}.env" if session_name else "map-loading-blank.env"
+    dbg_env = _REPO_ROOT / ".dbg" / dbg_name
+    if not dbg_env.exists():
+        return result
+    try:
+        for raw_line in dbg_env.read_text(encoding="utf-8").splitlines():
+            line = str(raw_line or "").strip()
+            if not line or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = str(key or "").strip()
+            value = str(value or "").strip()
+            if key == "DEBUG_SERVER_URL":
+                result["server"] = value
+            elif key == "DEBUG_SESSION_ID":
+                result["session"] = value
+    except Exception:
+        return {}
+    return result
+
+
 def _runtime_page_config_html() -> str:
     static_site = env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")
     api_base = _runtime_api_base_env()
     ai_endpoint = _first_env("MAP_STORY_AI_ENDPOINT")
     parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
+    debug_cfg = _runtime_debug_config()
     if api_base:
         parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
     if ai_endpoint:
         parts.append(f"window.MAP_STORY_AI_ENDPOINT={json.dumps(ai_endpoint, ensure_ascii=False)};")
+    if debug_cfg.get("server"):
+        parts.append(f"window.__STORY_MAP_DEBUG_SERVER__={json.dumps(debug_cfg['server'], ensure_ascii=False)};")
+    if debug_cfg.get("session"):
+        parts.append(f"window.__STORY_MAP_DEBUG_SESSION_ID__={json.dumps(debug_cfg['session'], ensure_ascii=False)};")
     return "<script>" + "".join(parts) + "</script>"
 
 
@@ -219,31 +248,144 @@ def _site_mode_notice_html() -> str:
 
 
 def _amap_bootstrap_html() -> str:
-    key = _first_env("AMAP_KEY")
-    security = _first_env("AMAP_SECURITY")
-    parts: List[str] = []
-    if key:
-        parts.append(f"window.AMAP_KEY={json.dumps(key, ensure_ascii=False)};")
-    if security:
-        parts.append(f"window.AMAP_SECURITY={json.dumps(security, ensure_ascii=False)};")
-    inline = f"<script>{''.join(parts)}</script>" if parts else ""
     loader = """<script>
-(() => {
+window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ = window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ || {};
+window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ = window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ || {};
+window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__ = window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__ || function(filename) {
+  const out = [];
+  const seen = new Set();
+  const push = (url) => {
+    const normalized = String(url || '').trim();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    out.push(normalized);
+  };
+  try {
+    const apiBase = String(window.MAP_STORY_API_BASE || '').trim();
+    if (apiBase) {
+      push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));
+    }
+  } catch (_) {}
   try {
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
     const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
     const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_AMAP_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
-      window.__MAP_STORY_AMAP_CONFIG__ = true;
-      const cfg = document.createElement('script');
-      cfg.src = new URL('./amap-config.js', window.location.href).toString();
-      cfg.async = false;
-      document.head.appendChild(cfg);
+    if (window.location && window.location.protocol !== 'file:' && isDevHost) {
+      push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());
     }
   } catch (_) {}
-})();
-let amapLoading = false;
+  return out;
+};
+window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ = window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ || function(options) {
+  const opts = options && typeof options === 'object' ? options : {};
+  const cacheKey = String(opts.cacheKey || '').trim();
+  const src = String(opts.src || '').trim();
+  const checkReady = typeof opts.checkReady === 'function' ? opts.checkReady : null;
+  const timeoutMs = Math.max(1000, Number(opts.timeoutMs || 12000));
+  const loadError = String(opts.loadError || 'SCRIPT_LOAD_FAILED');
+  const timeoutError = String(opts.timeoutError || 'SCRIPT_LOAD_TIMEOUT');
+  if (checkReady && checkReady()) return Promise.resolve(true);
+  if (!cacheKey || !src) return Promise.reject(new Error('SCRIPT_SRC_REQUIRED'));
+  const registry = window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ || (window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ = {});
+  if (registry[cacheKey]) return registry[cacheKey];
+  const promise = new Promise((resolve, reject) => {
+    let settled = false;
+    let timer = 0;
+    let script = document.querySelector(`script[data-runtime-key="${cacheKey}"]`);
+    if (script && script.getAttribute('data-runtime-state') === 'error') {
+      try { script.remove(); } catch (_) {}
+      script = null;
+    }
+    const cleanup = () => {
+      if (timer) {
+        try { window.clearTimeout(timer); } catch (_) {}
+        timer = 0;
+      }
+      if (!script) return;
+      try { script.removeEventListener('load', onLoad); } catch (_) {}
+      try { script.removeEventListener('error', onError); } catch (_) {}
+    };
+    const succeed = () => {
+      if (settled) return;
+      settled = true;
+      if (script) script.setAttribute('data-runtime-state', 'loaded');
+      cleanup();
+      registry[cacheKey] = Promise.resolve(true);
+      resolve(true);
+    };
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      if (script) script.setAttribute('data-runtime-state', 'error');
+      cleanup();
+      delete registry[cacheKey];
+      reject(err);
+    };
+    const onLoad = () => {
+      if (checkReady && !checkReady()) {
+        fail(new Error(loadError));
+        return;
+      }
+      succeed();
+    };
+    const onError = () => fail(new Error(loadError));
+    if (!script) {
+      script = document.createElement('script');
+      script.async = true;
+      script.src = src;
+      script.setAttribute('data-runtime-key', cacheKey);
+      script.setAttribute('data-runtime-state', 'loading');
+      document.head.appendChild(script);
+    } else if (script.getAttribute('data-runtime-state') === 'loaded' && (!checkReady || checkReady())) {
+      succeed();
+      return;
+    }
+    try { script.addEventListener('load', onLoad, { once: true }); } catch (_) {}
+    try { script.addEventListener('error', onError, { once: true }); } catch (_) {}
+    timer = window.setTimeout(() => {
+      if (checkReady && checkReady()) {
+        succeed();
+        return;
+      }
+      fail(new Error(timeoutError));
+    }, timeoutMs);
+  });
+  registry[cacheKey] = promise;
+  return promise;
+};
+window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ = window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ || function(kind, filename, isReady) {
+  if (typeof isReady === 'function' && isReady()) return Promise.resolve(true);
+  const registry = window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ || (window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ = {});
+  const cacheKey = `config:${String(kind || filename || 'runtime')}`;
+  if (registry[cacheKey]) return registry[cacheKey];
+  const promise = (async () => {
+    const urls = window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__(filename);
+    for (let idx = 0; idx < urls.length; idx += 1) {
+      const url = urls[idx];
+      try {
+        await window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
+          cacheKey: `${cacheKey}:${idx}:${url}`,
+          src: url,
+          checkReady: isReady,
+          timeoutMs: 4000,
+          loadError: `${String(kind || 'config').toUpperCase()}_CONFIG_LOAD_FAILED`,
+          timeoutError: `${String(kind || 'config').toUpperCase()}_CONFIG_LOAD_TIMEOUT`,
+        });
+      } catch (_) {}
+      if (typeof isReady === 'function' && isReady()) return true;
+    }
+    return typeof isReady === 'function' ? isReady() : false;
+  })();
+  registry[cacheKey] = promise.finally(() => {
+    if (typeof isReady === 'function' && isReady()) {
+      registry[cacheKey] = Promise.resolve(true);
+    } else {
+      delete registry[cacheKey];
+    }
+  });
+  return registry[cacheKey];
+};
 const _getAmapKey = () => {
   let k = '';
   try {
@@ -268,59 +410,34 @@ const _getAmapSecurity = () => {
 };
 const _ensureAmap = () => new Promise((resolve, reject) => {
   if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
-  const key = _getAmapKey();
-  if (!key) return reject(new Error('AMAP_KEY_REQUIRED'));
-  const sec = _getAmapSecurity();
-  if (sec) {
-    window._AMapSecurityConfig = { securityJsCode: sec };
-  }
-  if (amapLoading) {
-    const t0 = Date.now();
-    const tick = () => {
-      if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
-      if (Date.now() - t0 > 12000) return reject(new Error('AMAP_LOAD_TIMEOUT'));
-      setTimeout(tick, 80);
-    };
-    return tick();
-  }
-  amapLoading = true;
-  const sEl = document.createElement('script');
-  sEl.async = true;
-  sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.TileLayer.Satellite,AMap.TerrainLayer`;
-  sEl.onload = () => {
-    amapLoading = false;
-    if (window.AMap && typeof window.AMap.Map === 'function') resolve(true);
-    else reject(new Error('AMAP_LOAD_FAILED'));
+  const finish = async () => {
+    try {
+      await window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('amap', 'amap-config.js', () => Boolean(_getAmapKey()));
+    } catch (_) {}
+    const key = _getAmapKey();
+    if (!key) throw new Error('AMAP_KEY_REQUIRED');
+    const sec = _getAmapSecurity();
+    if (sec) {
+      window._AMapSecurityConfig = { securityJsCode: sec };
+    }
+    await window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
+      cacheKey: 'amap-sdk',
+      src: `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.TileLayer.Satellite,AMap.TerrainLayer`,
+      checkReady: () => Boolean(window.AMap && typeof window.AMap.Map === 'function'),
+      timeoutMs: 12000,
+      loadError: 'AMAP_LOAD_FAILED',
+      timeoutError: 'AMAP_LOAD_TIMEOUT',
+    });
+    return true;
   };
-  sEl.onerror = () => {
-    amapLoading = false;
-    reject(new Error('AMAP_LOAD_FAILED'));
-  };
-  document.head.appendChild(sEl);
+  finish().then(resolve).catch(reject);
 });
 </script>"""
-    return inline + loader
+    return loader
 
 
 def _profile_map_bootstrap_html() -> str:
     loader = """<script>
-(() => {
-  try {
-    const host = String(window.location?.hostname || '').trim().toLowerCase();
-    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
-    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
-    if (window.location && window.location.protocol !== 'file:' && !window.__MAP_STORY_GEOVIS_CONFIG__ && (window.MAP_STORY_STATIC_SITE !== true || isDevHost)) {
-      window.__MAP_STORY_GEOVIS_CONFIG__ = true;
-      const cfg = document.createElement('script');
-      cfg.src = new URL('./geovis-config.js', window.location.href).toString();
-      cfg.async = false;
-      document.head.appendChild(cfg);
-    }
-  } catch (_) {}
-})();
-let mapLibreLoading = false;
-let cesiumLoading = false;
 const _getGeoVisToken = () => {
   let token = '';
   try {
@@ -356,26 +473,17 @@ const _ensureMapLibre = () => new Promise((resolve, reject) => {
   const cssHref = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
   const jsSrc = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
   _appendCss(cssHref);
-  if (mapLibreLoading) {
-    const t0 = Date.now();
-    const tick = () => {
-      if (window.maplibregl && typeof window.maplibregl.Map === 'function') return resolve(true);
-      if (Date.now() - t0 > 12000) return reject(new Error('MAPLIBRE_LOAD_TIMEOUT'));
-      setTimeout(tick, 80);
-    };
-    return tick();
+  if (typeof window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ !== 'function') {
+    return reject(new Error('MAPLIBRE_LOADER_UNAVAILABLE'));
   }
-  mapLibreLoading = true;
-  const sEl = _appendScript(jsSrc) || document.querySelector(`script[data-runtime-src="${jsSrc}"]`);
-  sEl.onload = () => {
-    mapLibreLoading = false;
-    if (window.maplibregl && typeof window.maplibregl.Map === 'function') resolve(true);
-    else reject(new Error('MAPLIBRE_LOAD_FAILED'));
-  };
-  sEl.onerror = () => {
-    mapLibreLoading = false;
-    reject(new Error('MAPLIBRE_LOAD_FAILED'));
-  };
+  window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
+    cacheKey: 'maplibre-sdk',
+    src: jsSrc,
+    checkReady: () => Boolean(window.maplibregl && typeof window.maplibregl.Map === 'function'),
+    timeoutMs: 12000,
+    loadError: 'MAPLIBRE_LOAD_FAILED',
+    timeoutError: 'MAPLIBRE_LOAD_TIMEOUT',
+  }).then(resolve).catch(reject);
 });
 const _ensureCesium = () => new Promise((resolve, reject) => {
   if (window.Cesium && typeof window.Cesium.Viewer === 'function') return resolve(true);
@@ -387,26 +495,17 @@ const _ensureCesium = () => new Promise((resolve, reject) => {
       window.CESIUM_BASE_URL = 'https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/';
     }
   } catch (_) {}
-  if (cesiumLoading) {
-    const t0 = Date.now();
-    const tick = () => {
-      if (window.Cesium && typeof window.Cesium.Viewer === 'function') return resolve(true);
-      if (Date.now() - t0 > 16000) return reject(new Error('CESIUM_LOAD_TIMEOUT'));
-      setTimeout(tick, 100);
-    };
-    return tick();
+  if (typeof window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ !== 'function') {
+    return reject(new Error('CESIUM_LOADER_UNAVAILABLE'));
   }
-  cesiumLoading = true;
-  const sEl = _appendScript(jsSrc) || document.querySelector(`script[data-runtime-src="${jsSrc}"]`);
-  sEl.onload = () => {
-    cesiumLoading = false;
-    if (window.Cesium && typeof window.Cesium.Viewer === 'function') resolve(true);
-    else reject(new Error('CESIUM_LOAD_FAILED'));
-  };
-  sEl.onerror = () => {
-    cesiumLoading = false;
-    reject(new Error('CESIUM_LOAD_FAILED'));
-  };
+  window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
+    cacheKey: 'cesium-sdk',
+    src: jsSrc,
+    checkReady: () => Boolean(window.Cesium && typeof window.Cesium.Viewer === 'function'),
+    timeoutMs: 16000,
+    loadError: 'CESIUM_LOAD_FAILED',
+    timeoutError: 'CESIUM_LOAD_TIMEOUT',
+  }).then(resolve).catch(reject);
 });
 const _geoVisTileUrl = (kind, format) => {
   const token = _getGeoVisToken();
@@ -513,6 +612,11 @@ const _applyGeoVisMapLibreMode = (map, layerType) => {
 };
 window.__MAP_STORY_GEOVIS__ = {
   getToken: _getGeoVisToken,
+  ensureConfig: () => (
+    typeof window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ === 'function'
+      ? window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('geovis', 'geovis-config.js', () => Boolean(_getGeoVisToken()))
+      : Promise.resolve(Boolean(_getGeoVisToken()))
+  ),
   tileUrl: _geoVisTileUrl,
   terrainServiceUrl: _geoVisTerrainServiceUrl,
   terrainRootUrl: _geoVisTerrainRootUrl,

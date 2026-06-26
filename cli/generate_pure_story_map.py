@@ -86,6 +86,23 @@ def _write_text(path: str, content: str) -> None:
         f.write(content)
 
 
+def _write_runtime_map_configs(output_html_path: str, story_map_module: object) -> None:
+    output_dir = os.path.dirname(os.path.abspath(output_html_path))
+    writers = (
+        ("amap-config.js", getattr(story_map_module, "_amap_config_js", None)),
+        ("geovis-config.js", getattr(story_map_module, "_geovis_config_js", None)),
+    )
+    for filename, builder in writers:
+        if not callable(builder):
+            continue
+        content = builder()
+        if isinstance(content, bytes):
+            text = content.decode("utf-8")
+        else:
+            text = str(content or "")
+        _write_text(os.path.join(output_dir, filename), text)
+
+
 def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geocode: bool = False) -> dict:
     """Generate pure AMap HTML and return metadata."""
 
@@ -140,6 +157,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
         out_path = os.path.join(out_dir, f"{person_name}__pure__{ts}.html")
 
     _write_text(out_path, html)
+    _write_runtime_map_configs(out_path, sm)
 
     try:
         _sync_alias_redirect_pages(Path(_story_artifacts_dir()).resolve())
@@ -384,24 +402,13 @@ def _sync_alias_redirect_pages(html_dir: Path) -> None:
     except Exception:
         return
     # 这里必须保留动态过滤后的结果；如果过滤后为空，意味着当前磁盘上
-    # 没有需要生成的 alias redirect，不能再回退到静态映射把真实人物页覆盖掉。
+    # 没有需要清理的 alias HTML，不能再回退到静态映射误删真实人物页。
     redirects = person_redirects(_scan_people_from_story_md(story_md_dir_path()))
-    render_redirect = getattr(homepage, "_render_person_alias_redirect_html", None)
-    if not isinstance(redirects, dict) or not callable(render_redirect):
+    cleanup_redirects = getattr(homepage, "_remove_person_alias_redirect_pages", None)
+    if not isinstance(redirects, dict) or not callable(cleanup_redirects):
         return
     html_dir.mkdir(parents=True, exist_ok=True)
-    for alias, canonical in redirects.items():
-        alias_name = str(alias or "").strip()
-        canonical_name = str(canonical or "").strip()
-        if not alias_name or not canonical_name:
-            continue
-        try:
-            (html_dir / f"{alias_name}.html").write_text(
-                render_redirect(alias_name, canonical_name),
-                encoding="utf-8",
-            )
-        except Exception:
-            continue
+    cleanup_redirects(html_dir, redirects)
 
 
 def render_missing_people_html(*, max_people: int = 0, mode: str = "nogeocode") -> int:

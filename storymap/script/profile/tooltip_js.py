@@ -46,10 +46,12 @@ const personTooltipUniqStrings = (items) => {
 };
 const buildPersonTooltipModel = (node, options = {}) => {
   const name = String((node && (node.person || node.name)) || options.fallbackName || '相关人物').trim();
+  const foreign = String(node?.foreign_name || node?.foreignName || '').trim();
   const aliases = personTooltipUniqStrings(Array.isArray(node?.aliases) ? node.aliases : [node?.aliases])
     .filter((item) => String(item || '').trim() && String(item || '').trim() !== name)
     .slice(0, Number.isFinite(Number(options.aliasLimit)) ? Math.max(0, Number(options.aliasLimit)) : 3);
-  const foreign = String(node?.foreign_name || '').trim();
+  const displayName = foreign || name;
+  const secondaryName = foreign && name && foreign !== name ? name : '';
   const roleLabel = String(node?.main_role_label || '').trim();
   const tags = personTooltipUniqStrings(Array.isArray(node?.domain_tags) ? node.domain_tags : []).slice(0, 4);
   const dynasty = String(node?.dynasty || '').trim();
@@ -63,11 +65,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
   if (dynasty) rows.push({ label: '时代', value: dynasty });
   if (roleLabel) rows.push({ label: '身份', value: roleLabel });
   if (aliases.length) rows.push({ label: '别名', value: aliases.join(' / ') });
-  if (foreign) rows.push({ label: '外文', value: foreign });
   if (tags.length) rows.push({ label: '领域', value: tags.join(' / ') });
-  if (birthplace) rows.push({ label: '籍贯', value: birthplace });
+  if (birthplace) rows.push({ label: '出生地', value: birthplace });
   return {
     name,
+    displayName,
+    secondaryName,
     rows,
     tagline,
     hasStory: node?.has_story !== false,

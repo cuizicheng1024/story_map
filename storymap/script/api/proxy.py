@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
@@ -137,6 +138,73 @@ class ProxyService:
             yield content[idx : idx + size]
 
     @staticmethod
+    def _strip_think_blocks(text: object) -> str:
+        content = str(text or "")
+        if not content:
+            return ""
+        content = re.sub(r"<think\b[^>]*>[\s\S]*?</think>", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"</?think\b[^>]*>", "", content, flags=re.IGNORECASE)
+        return content
+
+    @staticmethod
+    def _overlap_suffix(text: str, marker: str) -> str:
+        max_size = min(len(text), max(len(marker) - 1, 0))
+        for size in range(max_size, 0, -1):
+            if marker.startswith(text[-size:].lower()):
+                return text[-size:]
+        return ""
+
+    @classmethod
+    def _sanitize_stream_delta(cls, state: Dict[str, object], delta: object) -> Tuple[str, Dict[str, object]]:
+        open_prefix = "<think"
+        close_tag = "</think>"
+        carry = str(state.get("carry") or "") + str(delta or "")
+        in_think = bool(state.get("in_think"))
+        visible_parts = []
+
+        while carry:
+            lowered = carry.lower()
+            if in_think:
+                close_idx = lowered.find(close_tag)
+                if close_idx == -1:
+                    overlap = cls._overlap_suffix(carry, close_tag)
+                    return "".join(visible_parts), {"carry": overlap, "in_think": True}
+                carry = carry[close_idx + len(close_tag) :]
+                in_think = False
+                continue
+
+            open_idx = lowered.find(open_prefix)
+            if open_idx == -1:
+                overlap = cls._overlap_suffix(carry, open_prefix)
+                if overlap:
+                    visible_parts.append(carry[: -len(overlap)])
+                else:
+                    visible_parts.append(carry)
+                return "".join(visible_parts), {"carry": overlap, "in_think": False}
+
+            if open_idx > 0:
+                visible_parts.append(carry[:open_idx])
+                carry = carry[open_idx:]
+                lowered = carry.lower()
+
+            tag_end = lowered.find(">")
+            if tag_end == -1:
+                return "".join(visible_parts), {"carry": carry, "in_think": False}
+            carry = carry[tag_end + 1 :]
+            in_think = True
+
+        return "".join(visible_parts), {"carry": "", "in_think": in_think}
+
+    @classmethod
+    def _flush_sanitized_stream_tail(cls, state: Dict[str, object]) -> str:
+        carry = str(state.get("carry") or "")
+        if not carry or bool(state.get("in_think")):
+            return ""
+        if "<think".startswith(carry.lower()):
+            return ""
+        return cls._strip_think_blocks(carry)
+
+    @staticmethod
     def _sse_data(payload: Dict[str, object]) -> str:
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
@@ -227,6 +295,9 @@ class ProxyService:
             trace_classification = str((llm_meta.get("trace") or {}).get("classification") or "").strip()
             if not content and trace_classification:
                 fallback_reason = trace_classification
+        content = self._strip_think_blocks(content)
+        if not content.strip():
+            content = ""
         if not content:
             self._record_proxy_metric("proxy_fallbacks")
             local_result = {}
@@ -237,14 +308,16 @@ class ProxyService:
             except Exception as exc:
                 self._logger.warning("llm_proxy_local_agent_failed error=%s", exc)
                 local_result = {}
-            local_content = str(local_result.get("content") or "").strip()
-            if local_result.get("handled") and local_content:
-                content = local_content
+            local_content = self._strip_think_blocks(local_result.get("content") or "")
+            if local_result.get("handled") and local_content.strip():
+                content = self._strip_think_blocks(local_content)
                 used_fallback = True
                 source = "local_agent"
             else:
                 self._logger.warning("llm_proxy_empty_response use_fallback=true")
-                content = self._local_history_reply(messages)
+                content = self._strip_think_blocks(self._local_history_reply(messages))
+                if not content.strip():
+                    content = ""
                 used_fallback = True
                 source = "fallback"
                 if not fallback_reason:
@@ -282,6 +355,7 @@ class ProxyService:
             client = None
             llm_meta: Dict[str, object] = {}
             iterator = None
+            stream_filter_state: Dict[str, object] = {"carry": "", "in_think": False}
             self._record_proxy_metric("proxy_stream_requests")
             try:
                 primary_available, remaining = self._primary_available()
@@ -307,18 +381,26 @@ class ProxyService:
                             except FutureTimeoutError as exc:
                                 future.cancel()
                                 raise TimeoutError(f"stream idle timeout {idle_timeout}s") from exc
-                            delta = str(piece or "")
+                            raw_delta = str(piece or "")
+                            if not raw_delta:
+                                continue
+                            delta, stream_filter_state = self._sanitize_stream_delta(stream_filter_state, raw_delta)
                             if not delta:
                                 continue
-                            emitted = True
                             content += delta
+                            emitted = True
                             yield self._sse_data({"type": "delta", "delta": delta})
                     else:
                         future = self._executor.submit(client.think, messages, temperature=temperature)
-                        content = str(future.result(timeout=self._timeout_seconds()) or "")
+                        content = self._strip_think_blocks(future.result(timeout=self._timeout_seconds()) or "")
                         for delta in self._chunk_text(content):
                             emitted = True
                             yield self._sse_data({"type": "delta", "delta": delta})
+                    tail_delta = self._flush_sanitized_stream_tail(stream_filter_state)
+                    if tail_delta:
+                        content += tail_delta
+                        emitted = True
+                        yield self._sse_data({"type": "delta", "delta": tail_delta})
                     stream_completed = True
                     llm_meta = self._client_meta_snapshot(client)
                     self._record_primary_success()
@@ -367,14 +449,16 @@ class ProxyService:
                 except Exception as exc:
                     self._logger.warning("llm_proxy_stream_local_agent_failed error=%s", exc)
                     local_result = {}
-                local_content = str(local_result.get("content") or "").strip()
-                if local_result.get("handled") and local_content:
-                    content = local_content
+                local_content = self._strip_think_blocks(local_result.get("content") or "")
+                if local_result.get("handled") and local_content.strip():
+                    content = self._strip_think_blocks(local_content)
                     used_fallback = True
                     source = "local_agent"
                 else:
                     self._logger.warning("llm_proxy_stream_empty_response use_fallback=true")
-                    content = self._local_history_reply(messages)
+                    content = self._strip_think_blocks(self._local_history_reply(messages))
+                    if not content.strip():
+                        content = ""
                     used_fallback = True
                     source = "fallback"
                     if not fallback_reason:

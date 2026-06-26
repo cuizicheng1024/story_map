@@ -4,8 +4,14 @@ import json
 import os
 from typing import Dict, Optional
 
+from .env_utils import apply_story_map_env_aliases, load_project_env
+
 
 DEFAULT_VOLCENGINE_APM_AID = "1002542"
+
+
+load_project_env(from_file=__file__, override=False)
+apply_story_map_env_aliases()
 
 
 def first_env(*names: str) -> str:
@@ -72,7 +78,8 @@ def _volcengine_apm_head_html(
         "env": json.dumps(env_name, ensure_ascii=False) if env_name else None,
         "release": json.dumps(release_name, ensure_ascii=False) if release_name else None,
     }
-    init_items = [f"aid:{init_payload['aid']}", f"token:{init_payload['token']}", "pid: window.location.pathname"]
+    page_name_literal = json.dumps(str(page_name or "").strip(), ensure_ascii=False)
+    init_items = [f"aid:{init_payload['aid']}", f"token:{init_payload['token']}", "pid: window.__storyMapApmPid"]
     if init_payload["env"] is not None:
         init_items.append(f"env:{init_payload['env']}")
     if init_payload["release"] is not None:
@@ -95,11 +102,54 @@ def _volcengine_apm_head_html(
         f'}})(window,document,"https://apm.volccdn.com/mars-web/apmplus/web/browser.cn.js",{aid_literal},"apmPlus");'
         "</script>"
         "<script>"
+        f"window.__storyMapApmConfiguredPageName={page_name_literal};"
+        "window.__storyMapApmReadablePath=(function(){"
+        "try{"
+        "const raw=String((window.location&&window.location.pathname)||'').trim();"
+        "const decoded=decodeURIComponent(raw||'/');"
+        "if(!decoded||decoded==='/') return '首页';"
+        "const normalized=decoded.replace(/\\/+/g,'/');"
+        "const last=normalized.split('/').filter(Boolean).pop()||normalized;"
+        "return String(last||normalized||'').trim()||'首页';"
+        "}catch(_err){"
+        "const raw=String((window.location&&window.location.pathname)||'').trim();"
+        "if(!raw||raw==='/') return '首页';"
+        "const normalized=raw.replace(/\\/+/g,'/');"
+        "return normalized.split('/').filter(Boolean).pop()||normalized;"
+        "}"
+        "})();"
+        "window.__storyMapApmPageTitle=(function(){"
+        "const raw=String(document.title||'').trim();"
+        "if(!raw) return '';"
+        "return raw.replace(/的人生足迹地图$/,'').trim();"
+        "})();"
+        "window.__storyMapApmPid=(function(){"
+        "const preferred=String(window.__storyMapApmConfiguredPageName||'').trim();"
+        "if(preferred) return preferred;"
+        "const title=String(window.__storyMapApmPageTitle||'').trim();"
+        "if(title) return title;"
+        "const readablePath=String(window.__storyMapApmReadablePath||'').trim();"
+        "if(readablePath) return readablePath;"
+        "return '首页';"
+        "})();"
+        "window.__storyMapApmDecodedPath=(function(){"
+        "try{return decodeURIComponent(String((window.location&&window.location.pathname)||''));}"
+        "catch(_err){return String((window.location&&window.location.pathname)||'');}"
+        "})();"
+        "</script>"
+        "<script>"
         "window.apmPlus('init',{" + ",".join(init_items) + "});"
         "window.apmPlus('start');"
         "window.apmPlus('sendEvent', {"
         "name:'story_map_page_open',"
-        f"categories:Object.assign({categories_literal},{{path:window.location.pathname,hostname:window.location.hostname}})"
+        f"categories:Object.assign({categories_literal},{{"
+        "path:window.location.pathname,"
+        "path_decoded:window.__storyMapApmDecodedPath,"
+        "readable_path:window.__storyMapApmReadablePath,"
+        "readable_pid:window.__storyMapApmPid,"
+        "page_title:document.title,"
+        "hostname:window.location.hostname"
+        "}})"
         "});"
         "</script>"
     )

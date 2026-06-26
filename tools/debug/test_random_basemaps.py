@@ -108,10 +108,18 @@ def _sample_candidates(candidates: List[Dict[str, Any]], count: int, rng: random
 
 
 def _wait_for_page_ready(page) -> None:
-    page.wait_for_selector("#map .maplibregl-canvas", timeout=30000)
+    page.wait_for_selector("#map", timeout=30000)
     try:
         page.wait_for_function(
-            "() => !!window.__STORY_MAP_TEST__ && typeof window.__STORY_MAP_TEST__.getState === 'function'",
+            """() => {
+                const api = window.__STORY_MAP_TEST__;
+                if (!api || typeof api.getState !== 'function') return false;
+                return Boolean(
+                    document.querySelector('#map-maplibre .maplibregl-canvas') ||
+                    document.querySelector('#map-amap .amap-maps') ||
+                    document.querySelector('#map-cesium canvas')
+                );
+            }""",
             timeout=30000,
         )
     except PlaywrightTimeoutError as exc:

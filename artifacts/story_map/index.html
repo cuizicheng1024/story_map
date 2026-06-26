@@ -7,9 +7,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
     <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
     <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8F24PMY4F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-B8F24PMY4F");</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-XXXXXXXXXX");</script><script>(function(n,e,r,t,a,o,s,i,c,l,f,m,p,u){o="precollect";s="getAttribute";i="addEventListener";c="PerformanceObserver";l=function(e){f=[].slice.call(arguments);f.push(Date.now(),location.href);(e==o?l.p.a:l.q).push(f)};l.q=[];l.p={a:[]};n[a]=l;m=document.createElement("script");m.src=r+"?aid="+t+"&globalName="+a;m.crossOrigin="anonymous";e.getElementsByTagName("head")[0].appendChild(m);if(i in n){l.pcErr=function(e){e=e||n.event;p=e.target||e.srcElement;if(p instanceof Element||p instanceof HTMLElement){n[a](o,"st",{tagName:p.tagName,url:p[s]("href")||p[s]("src")});}else{n[a](o,"err",e.error||e.message)}};l.pcRej=function(e){e=e||n.event;n[a](o,"reject",e.reason||e.detail&&e.detail.reason)};n[i]("error",l.pcErr,true);n[i]("unhandledrejection",l.pcRej,true)}if("PerformanceLongTaskTiming"in n){u=l.pp={entries:[]};u.observer=new PerformanceObserver(function(e){u.entries=u.entries.concat(e.getEntries())});u.observer.observe({entryTypes:["longtask"]})}})(window,document,"https://apm.volccdn.com/mars-web/apmplus/web/browser.cn.js",1002542,"apmPlus");</script><script>window.__storyMapApmConfiguredPageName="人类群星闪耀时";window.__storyMapApmReadablePath=(function(){try{const raw=String((window.location&&window.location.pathname)||'').trim();const decoded=decodeURIComponent(raw||'/');if(!decoded||decoded==='/') return '首页';const normalized=decoded.replace(/\/+/g,'/');const last=normalized.split('/').filter(Boolean).pop()||normalized;return String(last||normalized||'').trim()||'首页';}catch(_err){const raw=String((window.location&&window.location.pathname)||'').trim();if(!raw||raw==='/') return '首页';const normalized=raw.replace(/\/+/g,'/');return normalized.split('/').filter(Boolean).pop()||normalized;}})();window.__storyMapApmPageTitle=(function(){const raw=String(document.title||'').trim();if(!raw) return '';return raw.replace(/的人生足迹地图$/,'').trim();})();window.__storyMapApmPid=(function(){const preferred=String(window.__storyMapApmConfiguredPageName||'').trim();if(preferred) return preferred;const title=String(window.__storyMapApmPageTitle||'').trim();if(title) return title;const readablePath=String(window.__storyMapApmReadablePath||'').trim();if(readablePath) return readablePath;return '首页';})();window.__storyMapApmDecodedPath=(function(){try{return decodeURIComponent(String((window.location&&window.location.pathname)||''));}catch(_err){return String((window.location&&window.location.pathname)||'');}})();</script><script>window.apmPlus('init',{aid:1002542,token:"b2156d4359034cb9937301e121351d4f",pid: window.__storyMapApmPid,env:"prod"});window.apmPlus('start');window.apmPlus('sendEvent', {name:'story_map_page_open',categories:Object.assign({"page_type": "homepage", "page_name": "人类群星闪耀时", "site_name": "map_story"},{path:window.location.pathname,path_decoded:window.__storyMapApmDecodedPath,readable_path:window.__storyMapApmReadablePath,readable_pid:window.__storyMapApmPid,page_title:document.title,hostname:window.location.hostname}})});</script>
     <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script>
-    <script>window.MAP_STORY_STATIC_SITE=false;</script>
+    <script>window.MAP_STORY_STATIC_SITE=false;window.MAP_STORY_API_BASE="http://127.0.0.1:8765";</script>
     <style>
 :root {
   --color-primary: #1a73e8;
@@ -2300,10 +2300,12 @@ const personTooltipUniqStrings = (items) => {
 };
 const buildPersonTooltipModel = (node, options = {}) => {
   const name = String((node && (node.person || node.name)) || options.fallbackName || '相关人物').trim();
+  const foreign = String(node?.foreign_name || node?.foreignName || '').trim();
   const aliases = personTooltipUniqStrings(Array.isArray(node?.aliases) ? node.aliases : [node?.aliases])
     .filter((item) => String(item || '').trim() && String(item || '').trim() !== name)
     .slice(0, Number.isFinite(Number(options.aliasLimit)) ? Math.max(0, Number(options.aliasLimit)) : 3);
-  const foreign = String(node?.foreign_name || '').trim();
+  const displayName = foreign || name;
+  const secondaryName = foreign && name && foreign !== name ? name : '';
   const roleLabel = String(node?.main_role_label || '').trim();
   const tags = personTooltipUniqStrings(Array.isArray(node?.domain_tags) ? node.domain_tags : []).slice(0, 4);
   const dynasty = String(node?.dynasty || '').trim();
@@ -2317,11 +2319,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
   if (dynasty) rows.push({ label: '时代', value: dynasty });
   if (roleLabel) rows.push({ label: '身份', value: roleLabel });
   if (aliases.length) rows.push({ label: '别名', value: aliases.join(' / ') });
-  if (foreign) rows.push({ label: '外文', value: foreign });
   if (tags.length) rows.push({ label: '领域', value: tags.join(' / ') });
-  if (birthplace) rows.push({ label: '籍贯', value: birthplace });
+  if (birthplace) rows.push({ label: '出生地', value: birthplace });
   return {
     name,
+    displayName,
+    secondaryName,
     rows,
     tagline,
     hasStory: node?.has_story !== false,
@@ -5704,6 +5707,17 @@ const buildPersonTooltipModel = (node, options = {}) => {
             const years = formatYearRange(n.birth_year, n.death_year);
             const dynasty = String(n.dynasty || "").trim();
             const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
+            const bpRaw = String(n.birthplace_raw || n.birthplace || "").trim();
+            const nativePlace = formatBirthplace(n.native_place, n.native_place_modern);
+            const placeCompareKey = value => String(value || "")
+              .replace(/^今\s*/g, "")
+              .replace(/[（(][^）)]*[）)]/g, "")
+              .replace(/[省市县区州郡府道镇乡村]/g, "")
+              .replace(/\s+/g, "")
+              .trim();
+            const showNativePlace = nativePlace && (!bp || placeCompareKey(nativePlace) !== placeCompareKey(bp));
+            const birthplaceAmbiguous = /存疑|一说|或说|又说|另说|未详|不详/.test(bpRaw);
+            const bpDisplay = bp && birthplaceAmbiguous && showNativePlace ? "存疑" : bp;
             const quote = stripMd(String(n.quote || "").trim());
             const review = stripMd(String(n.review || "").trim());
             const tagline = stripOuterQuotes(review || quote);
@@ -5719,7 +5733,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
             appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
             appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
             if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (bp) appendLine("籍贯：" + bp, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (bpDisplay) appendLine("出生地：" + bpDisplay, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
+            if (showNativePlace) appendLine("籍贯：" + nativePlace, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
             if (tagline) appendLine("“" + tagline + "”", "margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4");
             const actions = document.createElement("div");
             actions.style.marginTop = "8px";

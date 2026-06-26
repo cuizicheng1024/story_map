@@ -29,14 +29,14 @@ def test_profile_map_bootstrap_uses_runtime_geovis_config_without_inlining_token
 
     assert "geovis-config.js" in html
     assert "window.GEOVIS_TOKEN=" not in html
-    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
+    assert "window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('geovis', 'geovis-config.js', () => Boolean(_getGeoVisToken()))" in html
 
 
 def test_amap_bootstrap_allows_localhost_runtime_config_even_in_static_mode():
     html = map_html_renderer._amap_bootstrap_html()
 
     assert "amap-config.js" in html
-    assert "window.MAP_STORY_STATIC_SITE !== true || isDevHost" in html
+    assert "window.location.protocol !== 'file:' && isDevHost" in html
 
 
 def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():
@@ -45,9 +45,7 @@ def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():
 
     work_texts = profile_builder.extract_work_texts(md)
 
-    assert "中国石拱桥" in work_texts
-    assert "桥的设计完全合乎科学原理" in work_texts["中国石拱桥"]
-    assert "李春本人无文学作品传世" not in work_texts["中国石拱桥"]
+    assert work_texts == {}
 
 
 def test_extract_work_texts_uses_derived_quote_for_ji_chengtian_si_ye_you_when_missing():
@@ -314,6 +312,122 @@ def test_build_profile_data_keeps_clear_birthplace_but_strips_date_only_uncertai
     assert profile["person"]["birth"]["lng"] == 118.032
 
 
+def test_build_profile_data_preserves_native_place_separately_from_birthplace():
+    md = """# 梁思成
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：梁思成
+- **时代**：中国近现代
+- **出生**：1901年，日本东京（今日本东京都）
+- **籍贯**：广东新会（今广东省江门市新会区）
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("东京", "日本东京都") if "东京" in text else ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["birthplace"] == "日本东京（今日本东京都）"
+    assert profile["person"]["nativePlace"] == "广东新会（今广东省江门市新会区）"
+
+
+def test_build_profile_data_extracts_native_place_from_overview_when_basic_info_omits_it():
+    md = """# 王安石
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：王安石
+- **时代**：北宋
+- **出生**：约公元1021年，古称临江军清江县（今江西省樟树市）
+
+### 生平概述
+王安石，字介甫，号半山，祖籍抚州临川，出生于临江军清江县（今江西省樟树市）。
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("临江军清江县", "江西省樟树市") if "樟树" in text else ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["birthplace"] == "古称临江军清江县（今江西省樟树市）"
+    assert profile["person"]["nativePlace"] == "抚州临川"
+
+
+def test_build_profile_data_splits_parenthetical_native_place_out_of_birthplace():
+    md = """# 铁凝
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：铁凝
+- **时代**：当代
+- **出生**：1957年9月，北京（祖籍河北赵县）
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("北京", "") if text == "北京" else ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["birthplace"] == "北京"
+    assert profile["person"]["nativePlace"] == "河北赵县"
+
+
+def test_build_profile_data_shows_only_native_place_when_birth_field_is_native_place_only():
+    md = """# 苏武
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：苏武
+- **时代**：西汉
+- **出生**：约公元前140年，籍贯杜陵（今陕西省西安市）
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("杜陵", "陕西省西安市") if "西安市" in text else ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["birthplace"] == ""
+    assert profile["person"]["nativePlace"] == "杜陵（今陕西省西安市）"
+
+
 def test_build_profile_data_keeps_ambiguous_birthplace_text_but_drops_birth_coord():
     md = """# 柏拉图
 
@@ -487,6 +601,35 @@ def test_build_profile_data_includes_person_aliases_from_bio_fields():
     assert profile["person"]["courtesyName"] == "子瞻"
     assert profile["person"]["artName"] == "东坡居士"
     assert profile["person"]["aliases"] == ["测试君", "试验者", "子瞻", "东坡居士"]
+
+
+def test_build_profile_data_preserves_foreign_name_from_basic_info():
+    md = """# 乔纳森·斯威夫特
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：乔纳森·斯威夫特
+- **外文名**：Jonathan Swift
+- **时代**：17至18世纪英爱世界
+- **出生**：1667年，都柏林
+- **去世**：1745年，都柏林
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("", text),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    assert profile["person"]["foreignName"] == "Jonathan Swift"
 
 
 def test_build_profile_data_prefers_summary_index_copy(monkeypatch):

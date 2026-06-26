@@ -18,6 +18,15 @@ from ..runtime.legacy_agent.runtime import extract_agent_runtime_metadata as _ex
 from ..runtime.legacy_agent.runtime import normalize_runtime_snapshot as _normalize_runtime_snapshot
 
 
+def _public_runtime_map_configs_enabled() -> bool:
+    value = (
+        os.getenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG")
+        or os.getenv("STORY_MAP_EMIT_PUBLIC_MAP_CONFIG")
+        or ""
+    ).strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
 def summarize_samples(items: List[str], limit: int = 3) -> str:
     if not items:
         return ""
@@ -305,7 +314,7 @@ def _write_runtime_map_configs(
     build_amap_config_js: Optional[Callable[[], bytes]] = None,
     build_geovis_config_js: Optional[Callable[[], bytes]] = None,
 ) -> None:
-    if not html_path:
+    if (not html_path) or (not _public_runtime_map_configs_enabled()):
         return
     output_dir = os.path.dirname(os.path.abspath(html_path))
     writers = (
@@ -345,6 +354,8 @@ def _try_write_runtime_map_configs(
 
 
 def _runtime_map_configs_missing(html_path: str) -> bool:
+    if not _public_runtime_map_configs_enabled():
+        return False
     if not html_path:
         return True
     output_dir = os.path.dirname(os.path.abspath(html_path))

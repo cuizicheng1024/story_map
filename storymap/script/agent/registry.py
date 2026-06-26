@@ -448,8 +448,6 @@ class StoryAgentLLM:
         provider = "minimax"
         request_signature = self._request_signature(messages, temperature, stream=False)
 
-        if not silent:
-            print(f"🧠 正在调用 {self.model} 模型 (via {provider})...")
         self._emit(f"🧠 正在调用 {self.model} 模型 (via {provider})...")
         request_id = uuid.uuid4().hex[:12]
         base_trace: Dict[str, object] = {
@@ -500,8 +498,6 @@ class StoryAgentLLM:
                 self._record_metric("successes")
 
                 if content:
-                    if not silent:
-                        print(content)
                     self._emit("✅ 大语言模型响应成功")
                     return content
                 else:

@@ -213,6 +213,10 @@ def clean_short_review_text(text: str, *, max_len: int = 88) -> str:
     raw = str(text or "").strip()
     if not raw:
         return ""
+    if raw.startswith("|") and raw.count("|") >= 3:
+        return ""
+    if re.fullmatch(r"\|\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)+\|?", raw):
+        return ""
     raw = re.sub(r"^\s*[-*•]\s*", "", raw)
     raw = re.sub(r"^\d+\.\s*", "", raw)
     raw = raw.replace("**", "").strip()

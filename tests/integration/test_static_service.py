@@ -87,6 +87,34 @@ def test_static_service_serves_export_files(tmp_path):
     assert service.guess_content_type("苏轼.csv") == "text/csv; charset=utf-8"
 
 
+def test_static_service_serves_zip_downloads(tmp_path):
+    homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
+    artifact_dir = tmp_path / "artifacts" / "story_map"
+    homepage_dir.mkdir(parents=True)
+    artifact_dir.mkdir(parents=True)
+    (homepage_dir / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (artifact_dir / "song-minister-game.zip").write_bytes(b"PK\x03\x04demo")
+
+    service = _build_service(homepage_dir, artifact_dir)
+
+    assert service.static_target_path("/song-minister-game.zip") == artifact_dir / "song-minister-game.zip"
+    assert service.guess_content_type("song-minister-game.zip") == "application/zip"
+
+
+def test_static_service_serves_mp3_assets(tmp_path):
+    homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
+    artifact_dir = tmp_path / "artifacts" / "story_map"
+    homepage_dir.mkdir(parents=True)
+    artifact_dir.mkdir(parents=True)
+    (homepage_dir / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (artifact_dir / "bgm.mp3").write_bytes(b"ID3demo")
+
+    service = _build_service(homepage_dir, artifact_dir)
+
+    assert service.static_target_path("/bgm.mp3") == artifact_dir / "bgm.mp3"
+    assert service.guess_content_type("bgm.mp3") == "audio/mpeg"
+
+
 def test_static_service_prefers_local_vendor_files_over_remote_fetch(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"

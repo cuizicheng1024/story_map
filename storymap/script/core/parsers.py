@@ -65,6 +65,77 @@ def _strip_common_birthplace_prefixes(text: str) -> str:
     return cleaned
 
 
+def _clean_native_place_text(text: str) -> str:
+    cleaned = str(text or "").strip("。；; ，,")
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"^(?:祖籍|籍贯)\s*(?:地)?\s*(?:为|在)?\s*", "", cleaned).strip()
+    cleaned = cleaned.strip("。；; ，,")
+    if not cleaned:
+        return ""
+    if re.search(r"(失载|不详|未详|未知|待考|存疑|说法|细节|记载|通常只知)", cleaned):
+        return ""
+    return cleaned
+
+
+def _extract_native_place_from_text(text: str) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    patterns = [
+        r"[（(]\s*(?:祖籍|籍贯)\s*([^）)]+)[）)]",
+        r"(?:^|[，,；;。]\s*)(?:祖籍|籍贯)\s*(?:地)?\s*(?:为|在)?\s*([^，。；;]+(?:[（(][^）)]*[）)])?)",
+    ]
+    for pattern in patterns:
+        for match in re.finditer(pattern, raw):
+            candidate = _clean_native_place_text(match.group(1) if match.lastindex else "")
+            if candidate:
+                return candidate
+    return ""
+
+
+def _extract_native_place_from_story_text(
+    md_text: str,
+    *,
+    basic_info_map: Optional[Dict[str, str]] = None,
+    overview: str = "",
+) -> str:
+    info = basic_info_map or _parse_basic_info(md_text)
+    direct = _clean_native_place_text(str((info or {}).get("籍贯", "") or (info or {}).get("祖籍", "")).strip())
+    if direct:
+        return direct
+    birth_text = str((info or {}).get("出生", "")).strip()
+    birth_candidate = _extract_native_place_from_text(birth_text)
+    if birth_candidate:
+        return birth_candidate
+    overview_text = str(overview or _parse_overview(md_text) or "").strip()
+    overview_candidate = _extract_native_place_from_text(overview_text)
+    if overview_candidate:
+        return overview_candidate
+    return _extract_native_place_from_text(md_text[:400])
+
+
+def _location_text_is_native_place_only(text: str) -> bool:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return False
+    return bool(re.match(r"^(?:祖籍|籍贯)\s*(?:地)?\s*(?:为|在)?", cleaned))
+
+
+def _strip_native_place_annotations(text: str) -> str:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"\s*[（(]\s*(?:祖籍|籍贯)\s*[^）)]*[）)]", "", cleaned).strip()
+    cleaned = re.sub(
+        r"(?:[，,；;]\s*)(?:祖籍|籍贯)\s*(?:地)?\s*(?:为|在)?\s*[^，。；;]+(?:[（(][^）)]*[）)])?\s*$",
+        "",
+        cleaned,
+    ).strip()
+    cleaned = re.sub(r"^\s*(?:祖籍|籍贯)\s*(?:地)?\s*(?:为|在)?\s*", "", cleaned).strip()
+    return cleaned.strip("。；; ，,")
+
+
 def _strip_birthplace_date_ambiguity_text(text: str) -> str:
     cleaned = str(text or "").strip()
     if not cleaned:
@@ -560,6 +631,10 @@ def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, 
     loc_raw = re.sub(r"^\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号))?\s*[?？]?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
     loc_raw = re.sub(r"^\s*\d{1,2}\s*(?:日|号)\s*[?？]?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
     loc_raw = re.sub(r"^\s*(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
+    raw_semantic_loc = _strip_birthplace_date_ambiguity_text(_strip_common_birthplace_prefixes(loc_raw)).strip("。；; ")
+    if _location_text_is_native_place_only(raw_semantic_loc):
+        return date, "", ""
+    loc_raw = _strip_native_place_annotations(loc_raw)
     normalized_loc_raw = _strip_common_birthplace_prefixes(loc_raw.strip("。；; ")).strip("。；; ")
     normalized_loc_raw = _strip_birthplace_date_ambiguity_text(normalized_loc_raw).strip("。；; ")
     if (

@@ -67,6 +67,51 @@ def _uniq(xs: Sequence[str]) -> List[str]:
     return out
 
 
+def _extract_year(text: str) -> Optional[int]:
+    content = str(text or "")
+    bce_match = re.search(r"(?:公元前|前)\s*(\d{1,4})(?!\d)", content)
+    if bce_match:
+        try:
+            return -int(bce_match.group(1))
+        except Exception:
+            return None
+    match = re.search(r"(-?\d{1,4})(?!\d)", content)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except Exception:
+        return None
+
+
+def _extract_years(text: str) -> List[int]:
+    content = str(text or "")
+    years: List[int] = []
+    for match in re.finditer(r"(公元前|前|公元)?\s*(-?\d{1,4})(?!\d)", content):
+        prefix = str(match.group(1) or "").strip()
+        raw = str(match.group(2) or "").strip()
+        if not raw:
+            continue
+        try:
+            year = int(raw)
+        except Exception:
+            continue
+        if prefix in {"公元前", "前"} and year > 0:
+            year = -year
+        years.append(year)
+    return years
+
+
+def _normalize_year_pair(birth: Optional[int], death: Optional[int]) -> Tuple[Optional[int], Optional[int]]:
+    if birth is None or death is None:
+        return birth, death
+    if birth < 0 and death < 0 and birth >= death:
+        return min(birth, death), max(birth, death)
+    if birth >= 0 and death >= 0 and birth > death:
+        return min(birth, death), max(birth, death)
+    return birth, death
+
+
 def _pick_years(md_text: str) -> Tuple[Optional[int], Optional[int]]:
     text = md_text or ""
 
@@ -77,23 +122,11 @@ def _pick_years(md_text: str) -> Tuple[Optional[int], Optional[int]]:
                 return str(m.group(1) or "").strip()
         return ""
 
-    def pick_year(s: str) -> Optional[int]:
-        ys = re.findall(r"(?<!\d)(-?\d{1,4})(?!\d)", str(s or ""))
-        if not ys:
-            return None
-        try:
-            return int(ys[0])
-        except Exception:
-            return None
-
     def pick_two_years(s: str) -> Tuple[Optional[int], Optional[int]]:
-        ys = re.findall(r"(?<!\d)(-?\d{1,4})(?!\d)", str(s or ""))
+        ys = _extract_years(s)
         if len(ys) < 2:
             return None, None
-        try:
-            return int(ys[0]), int(ys[1])
-        except Exception:
-            return None, None
+        return ys[0], ys[1]
 
     lifespan_text = pick_line_value(
         [
@@ -104,7 +137,7 @@ def _pick_years(md_text: str) -> Tuple[Optional[int], Optional[int]]:
     if lifespan_text:
         b, d = pick_two_years(lifespan_text)
         if b is not None or d is not None:
-            return b, d
+            return _normalize_year_pair(b, d)
 
     birth = None
     death = None
@@ -115,7 +148,7 @@ def _pick_years(md_text: str) -> Tuple[Optional[int], Optional[int]]:
         ]
     )
     if birth_text:
-        birth = pick_year(birth_text)
+        birth = _extract_year(birth_text)
 
     death_text = pick_line_value(
         [
@@ -124,9 +157,9 @@ def _pick_years(md_text: str) -> Tuple[Optional[int], Optional[int]]:
         ]
     )
     if death_text:
-        death = pick_year(death_text)
+        death = _extract_year(death_text)
 
-    return birth, death
+    return _normalize_year_pair(birth, death)
 
 
 def _pick_dynasty(md_text: str) -> str:
@@ -152,7 +185,7 @@ def _pick_birthplace(md_text: str) -> Tuple[str, str, str]:
     if not text:
         return "", "", ""
     text = re.sub(
-        r"^(?:约|大约)?(?:公元前?-?\d{1,4}年(?:\d{1,2}月(?:\d{1,2}日)?)*[，,、 ]*|-?\d{1,4}年(?:\d{1,2}月(?:\d{1,2}日)?)*[，,、 ]*)",
+        r"^(?:约|大约)?(?:(?:公元前|公元|前)?\s*-?\d{1,4}(?:/\d{1,4})?\s*年(?:\d{1,2}月(?:\d{1,2}日)?)*[，,、 ]*)",
         "",
         text,
     ).strip()

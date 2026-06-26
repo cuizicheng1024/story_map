@@ -1,0 +1,306 @@
+:root{
+  --ink:#2b2419;
+  --ink-soft:#5a4f3c;
+  --paper:#efe6d2;
+  --paper-2:#e6d9bd;
+  --gold:#a9842f;
+  --gold-bright:#caa454;
+  --cinnabar:#9e2b25;
+  --cinnabar-bright:#c0392b;
+  --jade:#5d7a5a;
+  --line:rgba(43,36,25,.16);
+  --shadow:rgba(43,36,25,.28);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:"Noto Serif SC",serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 20% 15%,#f3ebda 0%,#e9ddc2 45%,#e0d1af 100%);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* 纸张颗粒 + 暗角 */
+.paper-grain{
+  position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;
+  background-image:
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(120,95,50,.04) 3px 4px),
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(120,95,50,.03) 3px 4px);
+  mix-blend-mode:multiply;
+}
+.vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:2;
+  box-shadow:inset 0 0 220px rgba(60,45,20,.45);
+}
+
+/* ===== 屏幕切换 ===== */
+.screen{display:none;position:relative;z-index:3;min-height:100vh}
+.screen.active{display:block;animation:fade .7s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* ===== 封面 ===== */
+#cover,#ending{display:none}
+#cover.active,#ending.active{display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+.cover-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(.92) contrast(1.02)}
+.cover-scrim{position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at center,rgba(28,22,12,.34) 0%,rgba(28,22,12,.72) 100%),
+    linear-gradient(180deg,rgba(20,15,8,.5),rgba(20,15,8,.25) 40%,rgba(20,15,8,.75))}
+.cover-inner{position:relative;max-width:760px;color:#f3e9d2}
+.seal-top{
+  display:inline-block;font-family:"ZCOOL QingKe HuangYou",serif;letter-spacing:.55em;
+  font-size:15px;color:#f0d9a0;border:1px solid rgba(202,164,84,.6);
+  padding:7px 20px 7px 26px;border-radius:3px;margin-bottom:26px;
+  background:rgba(158,43,37,.28);backdrop-filter:blur(2px);
+}
+.title-main{
+  font-family:"Ma Shan Zheng",cursive;font-weight:400;line-height:1.05;
+  font-size:clamp(56px,11vw,118px);
+  color:#f7eed7;
+  text-shadow:0 4px 26px rgba(0,0,0,.6),0 0 2px rgba(202,164,84,.4);
+  letter-spacing:.04em;
+}
+.title-sub{
+  margin-top:18px;font-size:clamp(16px,2.4vw,22px);letter-spacing:.4em;
+  color:#e6c878;font-weight:500;
+}
+.cover-desc{
+  margin:30px auto 38px;max-width:560px;line-height:2.1;font-size:16px;
+  color:#e8ddc5;text-shadow:0 2px 10px rgba(0,0,0,.7);font-weight:400;
+}
+.btn-start{
+  font-family:"Noto Serif SC",serif;font-weight:700;font-size:20px;letter-spacing:.35em;
+  color:#f6ecd2;cursor:pointer;
+  padding:16px 46px 16px 56px;border:none;border-radius:4px;
+  background:linear-gradient(160deg,#a9322b,#7e1f1c);
+  box-shadow:0 10px 30px rgba(120,25,20,.5),inset 0 1px 0 rgba(255,220,170,.3);
+  transition:transform .25s ease,box-shadow .25s ease;position:relative;
+}
+.btn-start:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 40px rgba(120,25,20,.6),inset 0 1px 0 rgba(255,220,170,.4)}
+.btn-start:active{transform:translateY(0)}
+.cover-foot{margin-top:30px;font-size:13px;letter-spacing:.2em;color:#c9b88f;opacity:.85}
+
+/* ===== 游戏 HUD ===== */
+.hud{
+  position:sticky;top:0;z-index:20;
+  display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+  padding:14px clamp(16px,4vw,46px);
+  background:linear-gradient(180deg,rgba(238,228,206,.97),rgba(229,216,186,.94));
+  border-bottom:2px solid var(--line);
+  box-shadow:0 6px 20px rgba(60,45,20,.12);
+  backdrop-filter:blur(6px);
+}
+.hud-title{display:flex;align-items:center;gap:13px;flex:0 0 auto}
+.hud-seal{
+  width:46px;height:46px;display:grid;place-items:center;flex:0 0 auto;
+  font-family:"Ma Shan Zheng",cursive;font-size:26px;color:#f6ecd2;
+  background:linear-gradient(150deg,#a9322b,#7e1f1c);border-radius:6px;
+  box-shadow:0 4px 12px rgba(120,25,20,.4),inset 0 1px 0 rgba(255,220,170,.3);
+}
+.hud-name{font-weight:700;font-size:16px;color:var(--ink)}
+.hud-turn{font-size:12.5px;color:var(--ink-soft);letter-spacing:.1em;margin-top:2px}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:9px 22px;flex:1 1 480px}
+.stat{font-size:12px}
+.stat-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.stat-name{font-weight:600;color:var(--ink-soft);letter-spacing:.05em}
+.stat-val{font-weight:700;font-variant-numeric:tabular-nums}
+.stat-bar{height:7px;border-radius:6px;background:rgba(43,36,25,.13);overflow:hidden;position:relative}
+.stat-fill{height:100%;border-radius:6px;transition:width .8s cubic-bezier(.22,1,.36,1),background .4s}
+.stat.good .stat-fill{background:linear-gradient(90deg,#7a9a6d,#5d7a5a)}
+.stat.warn .stat-fill{background:linear-gradient(90deg,#d99b3f,#c47f2a)}
+.stat.danger .stat-fill{background:linear-gradient(90deg,#c0392b,#8e211c)}
+.stat.gold .stat-fill{background:linear-gradient(90deg,#d2ad5c,#a9842f)}
+
+/* ===== 剧情舞台 ===== */
+.stage{max-width:920px;margin:0 auto;padding:clamp(20px,4vw,44px) clamp(16px,4vw,30px) 70px;position:relative}
+.scene-card{
+  background:linear-gradient(180deg,rgba(250,244,229,.96),rgba(243,234,212,.96));
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  box-shadow:0 20px 50px rgba(60,45,20,.2),0 2px 0 rgba(255,250,235,.6) inset;
+  animation:cardIn .55s cubic-bezier(.22,1,.36,1);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}
+.scene-img-wrap{position:relative;height:clamp(190px,34vw,340px);overflow:hidden}
+.scene-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:saturate(.95);transition:transform 6s ease;transform:scale(1.02)}
+.scene-card:hover .scene-img-wrap img{transform:scale(1.08)}
+.scene-img-wrap::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(243,234,212,0) 55%,rgba(243,234,212,.95) 100%)}
+.scene-img-tag{
+  position:absolute;left:18px;bottom:16px;z-index:2;
+  font-family:"ZCOOL QingKe HuangYou",serif;font-size:13px;letter-spacing:.3em;
+  color:#f6ecd2;padding:5px 14px 5px 18px;border-radius:3px;
+  background:rgba(158,43,37,.82);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.scene-body{padding:clamp(20px,3.5vw,36px) clamp(20px,4vw,44px) clamp(26px,4vw,40px)}
+.scene-title{
+  font-family:"Ma Shan Zheng",cursive;font-weight:400;
+  font-size:clamp(26px,4.5vw,38px);color:var(--cinnabar);letter-spacing:.04em;
+  margin-bottom:18px;position:relative;display:inline-block;
+}
+.scene-title::after{content:"";position:absolute;left:0;bottom:-7px;width:54px;height:3px;
+  background:linear-gradient(90deg,var(--gold-bright),transparent);border-radius:2px}
+.scene-text{font-size:16.5px;line-height:2.05;color:var(--ink);white-space:pre-line;font-weight:400}
+.scene-text .quote{
+  display:block;margin:16px 0;padding:13px 20px;border-left:4px solid var(--cinnabar);
+  background:rgba(158,43,37,.07);border-radius:0 8px 8px 0;color:var(--ink-soft);
+  font-size:15.5px;line-height:1.95}
+.scene-text .em{color:var(--cinnabar);font-weight:600}
+.scene-text .em2{color:var(--jade);font-weight:600}
+
+/* ===== 选项 ===== */
+.choices{margin-top:28px;display:flex;flex-direction:column;gap:13px}
+.choice{
+  text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:10px;
+  padding:16px 20px 16px 58px;position:relative;
+  background:linear-gradient(180deg,rgba(255,251,240,.9),rgba(244,235,214,.9));
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  font-family:"Noto Serif SC",serif;
+}
+.choice::before{
+  content:attr(data-k);position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;display:grid;place-items:center;
+  font-family:"Ma Shan Zheng",cursive;font-size:17px;color:#f6ecd2;border-radius:50%;
+  background:linear-gradient(150deg,#b8923a,#8c6a23);box-shadow:0 3px 8px rgba(120,90,30,.35)}
+.choice:hover{transform:translateX(6px);border-color:var(--cinnabar);
+  box-shadow:0 8px 22px rgba(120,25,20,.18)}
+.choice:hover::before{background:linear-gradient(150deg,#c0392b,#8e211c)}
+.choice-t{font-weight:700;font-size:16px;color:var(--ink);margin-bottom:4px}
+.choice-d{font-size:13px;color:var(--ink-soft);line-height:1.7}
+
+/* 飘字提示 */
+.fx-toast{
+  position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);
+  z-index:40;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;max-width:90vw}
+.fx-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.fx-chip{
+  font-size:13px;font-weight:700;padding:7px 14px;border-radius:20px;
+  background:rgba(43,36,25,.9);color:#f3e9d2;box-shadow:0 6px 18px rgba(0,0,0,.3);white-space:nowrap}
+.fx-chip.up{background:linear-gradient(150deg,#5d7a5a,#46603f)}
+.fx-chip.down{background:linear-gradient(150deg,#c0392b,#8e211c)}
+
+/* ===== 结局 ===== */
+.end-title{font-size:clamp(46px,9vw,92px)}
+.end-stats{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:center;margin:6px auto 30px;max-width:560px}
+.end-stat{font-size:13.5px;color:#e8ddc5;letter-spacing:.05em}
+.end-stat b{color:#e6c878;font-size:15px}
+
+/* ===== 结局 · 时人评说 ===== */
+.end-comments{max-width:600px;margin:0 auto 30px;text-align:left}
+.ec-title{font-family:"Ma Shan Zheng",cursive;font-size:24px;color:#e6c878;
+  letter-spacing:.12em;text-align:center;margin-bottom:18px;position:relative}
+.ec-title::after{content:"";display:block;width:46px;height:2px;margin:8px auto 0;
+  background:linear-gradient(90deg,transparent,#caa454,transparent)}
+.ec-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;
+  padding:14px 16px;border-radius:12px;
+  background:rgba(28,22,14,.42);border:1px solid rgba(202,164,84,.35);
+  box-shadow:0 6px 18px rgba(0,0,0,.32)}
+.ec-face{width:52px;height:52px;flex:0 0 auto;border-radius:50%;object-fit:cover;
+  border:2px solid rgba(202,164,84,.7);box-shadow:0 3px 9px rgba(0,0,0,.45)}
+.ec-body{flex:1;min-width:0}
+.ec-name{font-family:"Ma Shan Zheng",cursive;font-size:20px;color:#e6c878;line-height:1.15}
+.ec-role{font-family:"Noto Serif SC",serif;font-size:11.5px;color:#bfae86;
+  letter-spacing:.06em;margin-left:9px}
+.ec-quote{font-size:14.5px;line-height:1.85;color:#ece1c8;margin-top:5px}
+
+@media(max-width:640px){
+  .end-comments{max-width:100%}
+  .ec-quote{font-size:14px}
+}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px 16px}
+  .hud{gap:12px}
+  .cover-desc{font-size:15px;line-height:1.95}
+}
+
+/* ===== 人物头像 · 封面花名册 ===== */
+.char-roster{display:flex;gap:clamp(14px,4vw,34px);justify-content:center;margin:32px auto 4px;flex-wrap:wrap}
+.roster-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.roster-item img{
+  width:clamp(56px,12vw,76px);height:clamp(56px,12vw,76px);border-radius:50%;object-fit:cover;
+  border:2px solid rgba(202,164,84,.75);box-shadow:0 6px 18px rgba(0,0,0,.45);
+  filter:saturate(.96);transition:transform .3s ease,border-color .3s ease}
+.roster-item:hover img{transform:translateY(-4px) scale(1.05);border-color:#e6c878}
+.roster-item span{font-size:13px;letter-spacing:.12em;color:#e8ddc5;font-weight:500}
+
+/* ===== 场景内出场人物 ===== */
+.scene-char{display:flex;align-items:center;gap:13px;margin-bottom:16px;
+  padding:9px 16px 9px 9px;border-radius:40px;width:fit-content;
+  background:linear-gradient(90deg,rgba(158,43,37,.1),rgba(158,43,37,.02));
+  border:1px solid rgba(158,43,37,.2)}
+.scene-char img{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:0 0 auto;
+  border:2px solid var(--cinnabar);box-shadow:0 3px 8px rgba(120,25,20,.3)}
+.scene-char .ch-name{font-family:"Ma Shan Zheng",cursive;font-size:20px;color:var(--cinnabar);line-height:1.1}
+.scene-char .ch-role{font-size:12px;color:var(--ink-soft);letter-spacing:.08em;margin-top:2px}
+
+/* ===== 背景音乐按钮 ===== */
+.bgm-ctrl{position:fixed;right:18px;bottom:18px;z-index:50;display:flex;align-items:center;gap:0}
+.bgm-btn{
+  width:46px;height:46px;border-radius:50%;flex:none;
+  border:1px solid rgba(202,164,84,.6);cursor:pointer;display:grid;place-items:center;
+  background:linear-gradient(150deg,rgba(43,36,25,.88),rgba(60,45,20,.88));
+  color:#e6c878;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .2s ease,box-shadow .2s ease}
+.bgm-btn:hover{transform:scale(1.08)}
+.bgm-ico{font-size:20px;line-height:1;opacity:.55;transition:opacity .3s ease}
+.bgm-btn.playing .bgm-ico{opacity:1;animation:bgmPulse 1.6s ease-in-out infinite}
+@keyframes bgmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+
+/* ===== 音量调节弹条（悬停 / 触屏展开） ===== */
+.vol-pop{
+  display:flex;align-items:center;gap:8px;overflow:hidden;
+  max-width:0;opacity:0;margin-right:0;padding:0;
+  background:linear-gradient(150deg,rgba(43,36,25,.92),rgba(60,45,20,.92));
+  border-radius:22px;box-shadow:0 6px 18px rgba(0,0,0,.35);
+  transition:max-width .35s ease,opacity .3s ease,padding .35s ease,margin-right .35s ease}
+.bgm-ctrl:hover .vol-pop,.bgm-ctrl.show-vol .vol-pop{
+  max-width:170px;opacity:1;padding:0 14px 0 16px;margin-right:8px;border:1px solid rgba(202,164,84,.45)}
+.vol-ico{font-size:13px;color:#e6c878;opacity:.7;flex:none}
+.vol-slider{
+  -webkit-appearance:none;appearance:none;width:96px;height:4px;border-radius:3px;cursor:pointer;
+  background:linear-gradient(90deg,#c7a85a 0%,#c7a85a 50%,rgba(230,200,120,.22) 50%,rgba(230,200,120,.22) 100%)}
+.vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f3dca0,#b0852f);
+  border:1px solid rgba(120,80,20,.8);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.vol-slider::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;border:1px solid rgba(120,80,20,.8);
+  background:radial-gradient(circle at 35% 30%,#f3dca0,#b0852f)}
+
+/* ===== 史海钩沉 · 史料出处入口 + 弹层 ===== */
+.lore-link{
+  display:inline-block;margin-top:18px;cursor:pointer;
+  font-family:"Noto Serif SC",serif;font-size:12.5px;letter-spacing:.28em;
+  color:#e6c878;background:transparent;border:1px solid rgba(202,164,84,.5);
+  padding:8px 20px 8px 24px;border-radius:3px;
+  transition:background .25s ease,color .25s ease,border-color .25s ease}
+.lore-link:hover{background:rgba(158,43,37,.28);color:#f6ecd2;border-color:rgba(202,164,84,.8)}
+
+.lore-mask{
+  position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;
+  padding:24px;background:rgba(20,15,8,.72);backdrop-filter:blur(3px)}
+.lore-mask.show{display:flex;animation:fade .35s ease}
+.lore-card{
+  position:relative;max-width:560px;width:100%;max-height:86vh;overflow-y:auto;
+  background:linear-gradient(180deg,#f6efdc,#ece0c2);
+  border:1px solid rgba(169,132,47,.5);border-radius:12px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,250,235,.6);
+  padding:clamp(22px,4vw,34px);color:var(--ink);
+  animation:cardIn .4s cubic-bezier(.22,1,.36,1)}
+.lore-close{
+  position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);cursor:pointer;background:rgba(255,251,240,.7);
+  font-size:22px;line-height:1;color:var(--ink-soft);transition:background .2s,color .2s}
+.lore-close:hover{background:var(--cinnabar);color:#f6ecd2}
+.lore-head{display:flex;align-items:center;gap:16px;margin-bottom:16px;
+  padding-bottom:16px;border-bottom:1px solid var(--line)}
+.lore-portrait{width:64px;height:64px;border-radius:8px;object-fit:cover;flex:0 0 auto;
+  border:2px solid rgba(169,132,47,.6);box-shadow:0 4px 12px rgba(60,45,20,.3)}
+.lore-kicker{font-family:"ZCOOL QingKe HuangYou",serif;font-size:12px;letter-spacing:.35em;color:var(--gold)}
+.lore-title{font-family:"Ma Shan Zheng",cursive;font-weight:400;font-size:30px;color:var(--cinnabar);line-height:1.1;margin:2px 0 4px}
+.lore-by{font-size:12.5px;color:var(--ink-soft);letter-spacing:.05em}
+.lore-body p{font-size:14.5px;line-height:1.95;color:var(--ink);margin-bottom:12px}
+.lore-em{color:var(--cinnabar);font-weight:600}
+.lore-note{font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:4px}

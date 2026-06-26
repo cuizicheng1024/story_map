@@ -79,6 +79,10 @@ class StaticService:
             return "image/jpeg"
         if lower.endswith(".svg"):
             return "image/svg+xml"
+        if lower.endswith(".mp3"):
+            return "audio/mpeg"
+        if lower.endswith(".zip"):
+            return "application/zip"
         return "application/octet-stream"
 
     def _response_headers_for_path(self, path: str) -> Dict[str, str]:
@@ -109,7 +113,7 @@ class StaticService:
             rel = rel.split("artifacts/story_map/", 1)[-1]
         if parsed_path == "/" or rel == "":
             rel = "index.html"
-        if not re.search(r"\.(html|geojson|json|csv|css|js|png|webp|jpg|jpeg|svg|woff2|woff|ttf|txt|md|py)$", rel, flags=re.IGNORECASE):
+        if not re.search(r"\.(html|geojson|json|csv|css|js|png|webp|jpg|jpeg|svg|woff2|woff|ttf|txt|md|py|zip|mp3)$", rel, flags=re.IGNORECASE):
             return None
         roots = list(self._public_story_map_dirs())
         if rel != "index.html" and len(roots) > 1:
