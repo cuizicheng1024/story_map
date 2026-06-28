@@ -923,6 +923,22 @@ def test_static_portrait_url_matches_cache_filename_with_unicode_safe_name():
     assert "endsWith('.svg')" in html
 
 
+def test_map_initialisation_has_safety_net_timer():
+    """B9: when the IntersectionObserver never fires (fixed viewport,
+    mocked environment, hidden map container), the map must still
+    initialise within ~2.5s so the page never gets stuck on
+    "正在加载地图…". A pure static-page lint of the template is
+    sufficient here."""
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    # The viewport observer must exist (existing behaviour)
+    assert "IntersectionObserver" in html
+    # AND a deterministic safety net that runs if the observer is
+    # never satisfied.
+    assert "requestViewportInit('safety-net')" in html
+    assert "safetyTimer" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     registry = importlib.import_module("storymap.script.core.person_registry")
     hints = typing.get_type_hints(registry.canonical_person_name)
