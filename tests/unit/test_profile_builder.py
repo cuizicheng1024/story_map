@@ -790,7 +790,13 @@ def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
     assert profile["locations"][0]["modernName"] == "湖北黄冈"
 
 
-def test_build_profile_data_preserves_parenthetical_display_name():
+def test_build_profile_data_strips_parenthetical_real_name_into_aliases():
+    """When the parenthetical in the 姓名 field is a real name (e.g.
+    鲁迅 / 周树人) rather than a "字" courtesy marker, strip it from
+    the heading display name and surface it as an alias / courtesy
+    name so it can still be rendered in the introduction.
+    """
+
     md = """# 鲁迅
 
 ## 人物档案
@@ -814,7 +820,15 @@ def test_build_profile_data_preserves_parenthetical_display_name():
     )
 
     assert profile is not None
-    assert profile["person"]["name"] == "鲁迅（周树人）"
+    # Heading shows only the canonical name now.
+    assert profile["person"]["name"] == "鲁迅"
+    # Raw name is preserved so other consumers can still inspect it.
+    assert profile["person"]["nameRaw"] == "鲁迅（周树人）"
+    # Parenthetical surfaced as the courtesyName so it can be rendered
+    # in the subtitle next to / below the heading.
+    assert profile["person"]["courtesyName"] == "周树人"
+    # And the parenthetical should also feed into the alias list.
+    assert "周树人" in profile["person"]["aliases"]
 
 
 def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_exists():
@@ -1045,3 +1059,43 @@ def test_build_profile_data_infers_location_significance_when_missing():
     assert profile["locations"]
     assert profile["locations"][0]["significance"]
     assert "关羽" in profile["locations"][0]["significance"]
+
+
+def test_build_profile_data_strips_parenthetical_courtesy_name_from_display_name():
+    """The heading should show only the canonical name (e.g. "王勃")
+    even when the source markdown lists the courtesy name in parens
+    (e.g. "- **姓名**：王勃（字子安）"). The full raw name is preserved
+    separately on nameRaw so other consumers can still inspect it.
+    """
+
+    md = """# 王勃
+
+## 一、人物档案
+
+### 基本信息
+- **姓名**：王勃（字子安）
+- **时代**：唐代（初唐）
+- **出生**：约650年，绛州龙门（今山西河津市）
+- **去世**：约676年，南海海域
+"""
+
+    profile = profile_builder.build_profile_data(
+        md,
+        allow_geocode=False,
+        event_callback=None,
+        split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
+        batch_split_ancient_modern=lambda _items, event_callback=None: None,
+        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        lookup_coords_from_historical_index=lambda *args: None,
+        resolve_place_coord=lambda *args: None,
+        build_points_fn=lambda *args, **kwargs: [],
+    )
+
+    assert profile is not None
+    # Heading display name: stripped of the parenthetical
+    assert profile["person"]["name"] == "王勃"
+    # Raw name preserved for consumers that still want the full string
+    assert profile["person"]["nameRaw"] == "王勃（字子安）"
+    # Courtesy name extracted independently (the leading "字" is
+    # dropped so the template can render "字 子安" cleanly).
+    assert profile["person"]["courtesyName"] == "子安"

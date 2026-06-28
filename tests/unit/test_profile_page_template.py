@@ -523,20 +523,31 @@ def test_static_site_notice_hides_on_localhost(monkeypatch):
     assert "if (notice) notice.style.display = 'none';" in html
 
 
-def test_runtime_map_config_loaders_try_runtime_api_base_before_relative_config_files():
+def test_runtime_map_config_loaders_prefer_same_origin_before_runtime_api_base():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__" in html
+    # Same-origin branch now also gates on isDevHost so static prod
+    # (file://) skips it while localhost dev can still resolve.
+    assert "window.location.protocol !== 'file:' && isDevHost" in html
+    assert "push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());" in html
     assert "const apiBase = String(window.MAP_STORY_API_BASE || '').trim();" in html
     assert "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));" in html
+    assert html.index("push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());") < html.index(
+        "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));"
+    )
 
 
 def test_static_profile_page_tries_local_ai_proxy_on_localhost():
     html = render_profile_html({"person": {"name": "测试人物"}, "locations": [], "highlights": {}})
 
     assert "if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {" in html
+    assert "pushUrl(new URL('./api/ai/proxy', window.location.href).toString());" in html
     assert "if (!staticSite || isLocalHost) {" in html
     assert "pushUrl('http://127.0.0.1:8765/api/ai/proxy');" in html
+    assert html.index("pushUrl(new URL('./api/ai/proxy', window.location.href).toString());") < html.index(
+        "pushUrl('http://127.0.0.1:8765/api/ai/proxy');"
+    )
 
 
 def test_chat_fallback_notice_hides_raw_failed_to_fetch_message():
@@ -546,6 +557,328 @@ def test_chat_fallback_notice_hides_raw_failed_to_fetch_message():
     assert "'failed to fetch'" in html
     assert "throw _normalizeChatRequestError(lastErr || new Error('LLM_ENDPOINT_UNAVAILABLE'));" in html
     assert "if (!message || _isChatEndpointUnavailableError(error)) {" in html
+
+
+def test_amap_fallback_complete_event_refreshes_overlays():
+    """Regression test for B1 (map-loading-blank): after the AMap fallback
+    fires 'complete', overlays (markers/segments) must be re-synced so the
+    first frame after tiles load is not blank."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    # The complete handler must trigger a resize + setActive + refreshLabels
+    assert "map.on('complete', () => {" in html
+    assert "amap complete refresh" in html
+    assert "amapControllerRef.current.setActive(activeIndexRef.current)" in html
+    assert "amapControllerRef.current.refreshLabels(activeIndexRef.current)" in html
+    assert "typeof map.resize === 'function'" in html
+
+
+def test_setActive_is_idempotent_for_same_active_index():
+    """Regression test for B3 + B6 (wanganshi-marker-flicker):
+    setActive should short-circuit when called with the same active index
+    so it does not flash repeatedly."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    # The maplibre setActive implementation should compare against lastActiveIdx
+    assert "lastActiveIdx" in html
+    assert "if (typeof activeIdx === 'number' && activeIdx === lastActiveIdx) {" in html
+
+
+def test_overlay_rebuild_loop_has_backoff_guard():
+    """Regression test for B2 + B5 (map-loading-stuck): the overlay rebuild
+    loop must have a counter/breaker so styledata storms cannot deadlock it."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "overlayRebuildMutedUntil" in html
+    assert "overlayRebuildInProgress" in html
+    # There should be a hard cap on consecutive rebuilds so the loop dies
+    # instead of starving the UI thread.
+    assert "overlayRebuildMaxConsecutive" in html
+    assert "if (consecutiveOverlayRebuilds >= overlayRebuildMaxConsecutive)" in html
+
+
+def test_geo_vis_token_error_dispatches_retry_geovis_action():
+    """Regression test for B4: when GeoVis token is missing the notice must
+    expose a retry-geovis action so the user can recover without a hard
+    page reload."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "retry-geovis" in html
+    # The retry handler should dispatch and re-attempt ensureMapLibre
+    assert "kind === 'retry-geovis'" in html
+    assert "ensureMapLibre" in html or "ensureConfig" in html
+    # And the action label is visible to the user
+    assert "恢复 GeoVis" in html
+
+
+def test_global_error_handler_distinguishes_opaque_cross_origin_errors():
+    """Regression test for B7 (profile-debugemit-boot): the global error
+    handler must tag opaque 'Script error.' events so triage is possible
+    instead of dumping empty payloads into debug logs."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "addEventListener('error', (event) => {" in html
+    assert "opaqueCrossOrigin" in html
+    assert "crossorigin=\"anonymous\"" in html
+    # Promise rejections are a separate, more common failure mode in this app
+    assert "addEventListener('unhandledrejection', (event) => {" in html
+    assert "unhandled rejection captured" in html
+
+
+def test_static_site_avatar_prefers_relative_portraits_path():
+    """Regression test for B8 (production-map-fail): in static production
+    builds the FastAPI /portrait/ endpoint returns 404. The page must use
+    the relative ./portraits/<name>.jpg cache directory instead."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "MAP_STORY_STATIC_SITE === true" in html
+    assert "./portraits/" in html
+    # Sanity: we still keep the API path for dev runs
+    assert "/portrait/${encodeURIComponent(personName)}" in html
+
+
+def test_pulse_marker_css_promotes_to_own_layer():
+    """Stage 3 / P1: pulse markers must declare will-change + contain so
+    frequent focus events stay at 60fps without repainting the parent."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert ".map-pulse-marker {" in html
+    # The two declarations should appear inside the .map-pulse-marker rule
+    # block (rather than as global defaults).
+    pulse_idx = html.index(".map-pulse-marker {")
+    next_rule = html.index("}", pulse_idx)
+    pulse_block = html[pulse_idx:next_rule]
+    assert "will-change: transform, opacity" in pulse_block
+    assert "contain: layout style paint" in pulse_block
+
+
+def test_map_point_core_declares_will_change_for_layer_promotion():
+    """Stage 3 / P4: per-point markers must declare will-change so the
+    active/inactive transition does not trigger layout/paint on the map
+    canvas container."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert ".map-point-core {" in html
+    point_idx = html.index(".map-point-core {")
+    next_rule = html.index("}", point_idx)
+    point_block = html[point_idx:next_rule]
+    assert "will-change" in point_block
+    assert "contain:" in point_block
+
+
+def test_vendor_scripts_have_preload_hints_for_lcp():
+    """Stage 3 / P2: vendor scripts should be preloaded so the browser
+    starts fetching them in parallel with the HTML parser."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert 'rel="preload" href="./vendor/tailwindcss.js" as="script"' in html
+    assert 'rel="preload" href="./vendor/react.production.min.js" as="script"' in html
+    assert 'rel="preload" href="./vendor/react-dom.production.min.js" as="script"' in html
+    assert 'rel="preload" href="./vendor/babel.min.js" as="script"' in html
+    # Sanity: preloads come before the actual script tags
+    preload_pos = html.index('rel="preload" href="./vendor/tailwindcss.js"')
+    script_pos = html.index('<script src="./vendor/tailwindcss.js"></script>')
+    assert preload_pos < script_pos
+
+
+def test_set_active_paint_is_coalesced_with_request_animation_frame():
+    """Stage 3 / P3: setActive must defer the heavy paint work to the
+    next animation frame so multiple calls in the same frame collapse
+    into one composite update."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "setActivePaintRaf" in html
+    assert "performSetActivePaint" in html
+    assert "setPaintIfChanged" in html
+    # The cached paint helper should compare against the prior value to
+    # skip redundant setPaintProperty calls.
+    assert "lastSegmentPaint" in html
+    # The cache must be flushed when overlays are rebuilt so it does not
+    # leak stale layer ids.
+    assert "flushSegmentPaintCache" in html
+
+
+def test_pulse_marker_uses_element_pool():
+    """Stage 3 / P1: pulse marker DOM elements should be pooled (limit 3)
+    so the focus hot-path does not allocate a fresh <div> + maplibre.Marker
+    every click."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "PULSE_POOL_LIMIT = 3" in html
+    assert "acquirePulseElement" in html
+    assert "releasePulseElement" in html
+    assert "pulseElementPool" in html
+
+
+def test_prefers_reduced_motion_disables_animations():
+    """UX1: a global media query must disable keyframe animations and
+    transitions for users who opted out of motion."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "@media (prefers-reduced-motion: reduce)" in html
+    # There may be multiple reduce-motion blocks (UX1 + UX3 skeleton).
+    # Gather them all and assert each critical selector is covered.
+    blocks = []
+    cursor = 0
+    needle = "@media (prefers-reduced-motion: reduce)"
+    while True:
+        idx = html.find(needle, cursor)
+        if idx < 0:
+            break
+        # naive but adequate: find the first closing brace pair after idx.
+        # The block ends at the next "}" on the same indentation level.
+        end = html.find("\n}", idx)
+        if end < 0:
+            break
+        blocks.append(html[idx:end + 2])
+        cursor = end + 2
+    combined = "\n".join(blocks)
+    for selector in [".map-pulse-marker", ".story-marker", ".map-point-core", ".selected-point-pin"]:
+        assert selector in combined, f"selector {selector} missing from reduced-motion blocks: {combined!r}"
+    # Skeleton must also be covered
+    assert ".map-lazy-title.is-skeleton" in combined
+
+
+def test_focus_uses_flyto_with_custom_easing():
+    """UX2: focus on a trajectory point must animate the camera via flyTo
+    with a custom easing curve instead of teleporting with jumpTo."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "map.flyTo({" in html
+    assert "duration: 700" in html
+    assert "easing:" in html
+    # Sanity: prefers-reduced-motion falls back to jumpTo
+    assert "matchMedia('(prefers-reduced-motion: reduce)')" in html
+
+
+def test_loading_state_uses_skeleton_shimmer():
+    """UX3: when the map is loading, the lazy-card title must use a
+    skeleton placeholder so the user perceives forward motion."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert ".map-lazy-title.is-skeleton" in html
+    assert "@keyframes map-lazy-shimmer" in html
+    assert "is-skeleton' : ''}" in html
+
+
+def test_active_marker_has_lift_transition():
+    """UX4: the active marker must lift + slightly scale on activation so
+    users can spot the focused point in their peripheral vision."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert ".story-marker.is-active .story-marker-dot," in html
+    assert ".story-marker.is-active .story-marker-badge {" in html
+    assert "translateY(-2px) scale(1.08)" in html
+
+
+def test_keyboard_navigation_supports_home_end_and_global_listener():
+    """UX5: timeline must respond to ArrowLeft/Right + Home/End, and a
+    global keydown listener must route those keys when no input is
+    focused."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "event.key === 'Home'" in html
+    assert "event.key === 'End'" in html
+    assert "window.addEventListener('keydown', onKeyDown);" in html
+    assert "isContentEditable" in html
+
+
+def test_markers_outside_viewport_are_marked_for_culling():
+    """UX8: the moveend handler must tag off-viewport markers so CSS can
+    skip painting them — a cheap optimisation for large trajectories."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "data-out-of-view" in html
+    assert "bounds.contains(ll)" in html or "bounds.contains" in html
+    assert "visibility: hidden;" in html
+
+
+def test_map_preconnect_warms_amap_and_geovis_cdns():
+    """O1: the head must preconnect + dns-prefetch the map SDK CDNs so
+    the first SDK fetch doesn't pay the handshake cost on click."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert 'rel="preconnect" href="https://webapi.amap.com"' in html
+    assert 'rel="preconnect" href="https://atlasapi.geovisearth.com"' in html
+    assert 'rel="dns-prefetch" href="https://webapi.amap.com"' in html
+    assert 'rel="dns-prefetch" href="https://atlasapi.geovisearth.com"' in html
+
+
+def test_segment_visual_state_supports_time_gradient_fade():
+    """O2: getSegmentVisualState must compute a time-faded base color
+    so users can read chronology along the trajectory without studying
+    dates."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "timeFadedBaseColor" in html
+    assert "ageRatio" in html
+    assert "totalSegments" in html
+    assert "mixHex(normalBaseColor, '#ffffff'" in html
+
+
+def test_segment_direction_arrows_are_pooled_per_segment_index():
+    """O3: each segment gets a directional arrow at its midpoint,
+    aligned to the dominant edge bearing, and arrows are pooled by
+    segment index so repeated rebuilds don't churn DOM."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert ".map-segment-arrow" in html
+    assert "segmentArrowMarkersRef" in html
+    assert "computeSegmentBearing" in html
+    assert "ensureSegmentArrow" in html
+    assert "rotate(" in html
+
+
+def test_markers_are_keyboard_focusable_and_announced_via_aria_live():
+    """O4: markers must be keyboard-focusable (tabindex=0) with an
+    aria-label, and switching the active point must update an ARIA live
+    region so screen readers catch up."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    # The DOM API is called with single quotes in the JS source; check
+    # for either quote style to stay forward-compatible.
+    assert ("setAttribute('tabindex', '0')" in html
+            or 'setAttribute("tabindex", "0")' in html)
+    assert ("setAttribute('aria-label'" in html
+            or 'setAttribute("aria-label"' in html)
+    assert 'aria-live' in html
+    assert "story-map-aria-live" in html
+    # The ARIA live region is created via setAttribute('role', 'status').
+    assert ("setAttribute('role', 'status')" in html
+            or 'setAttribute("role", "status")' in html)
+
+
+def test_active_point_writes_to_url_hash_for_shareable_links():
+    """O5: navigating to a new active point must update the URL hash
+    via history.replaceState so a refresh / link share restores the
+    same view."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "window.history.replaceState" in html
+    assert "#loc=" in html
+    assert "targetHash" in html
 
 
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
@@ -815,6 +1148,8 @@ def test_render_profile_html_prefers_short_review_and_work_hover_helpers():
     assert "const shortReview = String(data.person?.shortReview || data.person?.quote || '').trim();" in html
     assert "const WorkTitleWithTooltip = ({" in html
     assert "const renderWorkTitleWithTooltip = (fullTitle, key, className) => React.createElement(WorkTitleWithTooltip" in html
+    assert 'className: className || "work-title-link"' in html
+    assert ".work-title-link {" in html
     assert "quotePolicy: String(item.quote_policy || '').trim()" in html
     assert "quotePolicy === 'summary_only' && !quoteItems.length" in html
 
@@ -1153,9 +1488,15 @@ def test_renderer_bootstrap_uses_runtime_script_loader_and_api_base_candidates()
     assert "window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__" in amap_html
     assert "window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__" in amap_html
     assert "window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__" in amap_html
-    assert "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));" in amap_html
-    assert "const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');" in amap_html
+    # The same-origin branch now also gates on isDevHost so static
+    # production builds (file://) skip it while localhost dev can still
+    # resolve runtime config.
     assert "window.location.protocol !== 'file:' && isDevHost" in amap_html
+    assert "push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());" in amap_html
+    assert "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));" in amap_html
+    assert amap_html.index("push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());") < amap_html.index(
+        "push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));"
+    )
     assert "await window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('amap', 'amap-config.js', () => Boolean(_getAmapKey()));" in amap_html
     assert "cacheKey: 'amap-sdk'" in amap_html
     assert "cacheKey: 'maplibre-sdk'" in geovis_html
@@ -1376,7 +1717,10 @@ def test_profile_page_template_restores_maplibre_pulse_marker_feedback():
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     assert "const runPulse = (lng, lat, color) => {" in html
-    assert "el.className = 'map-pulse-marker';" in html
+    # The pulse className is now set inside acquirePulseElement (pool); the
+    # literal assignment string may appear in either helper.
+    assert ("el.className = 'map-pulse-marker';" in html
+            or "fresh.className = 'map-pulse-marker';" in html)
     assert "new maplibregl.Marker({" in html
     assert ".setLngLat([Number(lng), Number(lat)])" in html
     assert "const renderLoc = getRenderedPointLoc(idx);" in html

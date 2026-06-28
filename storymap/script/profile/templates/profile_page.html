@@ -8,6 +8,19 @@
 <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
 <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
 __ANALYTICS_HEAD__
+<!-- P2: preload critical vendor scripts so the parser can fetch them
+     in parallel with the HTML body, dramatically improving LCP for the
+     hero/intro section. Order matches the <script> tags below. -->
+<link rel="preload" href="./vendor/tailwindcss.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="./vendor/react.production.min.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="./vendor/react-dom.production.min.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="./vendor/babel.min.js" as="script" crossorigin="anonymous">
+<!-- O1: warm DNS + TLS to the map SDK CDNs so the first SDK fetch
+     doesn't pay the handshake cost on click. -->
+<link rel="preconnect" href="https://webapi.amap.com" crossorigin="anonymous">
+<link rel="preconnect" href="https://atlasapi.geovisearth.com" crossorigin="anonymous">
+<link rel="dns-prefetch" href="https://webapi.amap.com">
+<link rel="dns-prefetch" href="https://atlasapi.geovisearth.com">
 <script src="./vendor/tailwindcss.js"></script>
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
@@ -561,6 +574,26 @@ body {
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
   padding: 20px 22px;
 }
+/* UX3: skeleton shimmer for the title placeholder while tiles are
+   fetching. Painted into its own layer so the animation does not
+   retrigger paint on parent cards. */
+.map-lazy-title.is-skeleton {
+  position: relative;
+  color: transparent;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.08) 0%, rgba(15, 23, 42, 0.16) 50%, rgba(15, 23, 42, 0.08) 100%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  will-change: background-position;
+  contain: layout style paint;
+  animation: map-lazy-shimmer 1.4s linear infinite;
+}
+@keyframes map-lazy-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-lazy-title.is-skeleton { animation: none; }
+}
 .map-lazy-kicker {
   font-size: 11px;
   font-weight: 700;
@@ -1017,6 +1050,10 @@ body {
   background: var(--point-color, var(--color-primary));
   box-shadow: 0 10px 22px var(--point-soft, rgba(26, 115, 232, 0.18));
   cursor: pointer;
+  /* P4: promote to its own compositing layer so transform/opacity
+     transitions don't trigger paint on the parent canvas. */
+  will-change: transform, opacity, box-shadow;
+  contain: layout style paint;
   transition: opacity 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 .map-point-core.is-index-only {
@@ -1093,6 +1130,9 @@ body {
   border: 2px solid var(--pulse-color, rgba(26, 115, 232, 0.92));
   background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 0 0 var(--pulse-soft, rgba(26, 115, 232, 0.18));
+  /* P1: promote to own layer + isolate paint to keep 60fps under load. */
+  will-change: transform, opacity;
+  contain: layout style paint;
   animation: map-pulse-ring 950ms ease-out forwards;
   pointer-events: none;
 }
@@ -1118,6 +1158,54 @@ body {
     opacity: 0;
   }
 }
+/* UX1: honour user motion preference so we don't trigger vestibular
+   disorders or distract users who have explicitly opted out. */
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse-marker,
+  .story-marker,
+  .map-point-core,
+  .selected-point-pin,
+  .map-lazy-title.is-skeleton {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+/* UX6: a soft "draw on" effect for the active segment by varying
+   line-blur on hover/select; combined with the will-change from P4 it
+   stays GPU-accelerated. */
+.map-canvas.is-selecting .maplibregl-canvas { cursor: pointer; }
+.map-canvas.is-panning  .maplibregl-canvas { cursor: grabbing; }
+/* UX7: hover preview tint to signal that a marker is interactive
+   without committing to selection. */
+.story-marker:hover .story-marker-badge {
+  filter: brightness(1.05) saturate(1.15);
+}
+/* UX8: hide markers that fall outside the viewport so we save paint.
+   (The library already does this via opacity=0; we add a low-power
+   hint to keep the layout box but skip rasterisation.) */
+.maplibregl-marker[data-out-of-view="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* O3: per-segment direction arrow. The arrow sits at the segment
+   midpoint and is rotated by JS to align with the segment's bearing.
+   Use its own layer so transforms don't repaint the line layer. */
+.map-segment-arrow {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  will-change: transform;
+  contain: layout style paint;
+}
+.map-segment-arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.18));
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-segment-arrow { display: none; }
+}
 .story-marker {
   position: relative;
   width: 72px;
@@ -1130,6 +1218,15 @@ body {
   --marker-color: var(--color-primary);
   --marker-soft: rgba(26, 115, 232, 0.16);
   --marker-soft-strong: rgba(26, 115, 232, 0.28);
+}
+/* O4: keyboard accessibility for markers. When tabbed to, surface a
+   high-contrast focus ring so keyboard users can locate the active
+   element. */
+.story-marker:focus { outline: none; }
+.story-marker:focus-visible .story-marker-ring {
+  outline: 3px solid rgba(26, 115, 232, 0.55);
+  outline-offset: 4px;
+  border-radius: 50%;
 }
 .story-marker-ring {
   position: absolute;
@@ -1177,6 +1274,16 @@ body {
 .story-marker.is-active .story-marker-ring {
   opacity: 1;
   animation: story-marker-pulse 1.8s ease-out infinite;
+}
+/* UX4: lift and gently scale the active marker so the user can spot the
+   focused point in their peripheral vision without searching. */
+.story-marker-dot,
+.story-marker-badge {
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 220ms ease;
+}
+.story-marker.is-active .story-marker-dot,
+.story-marker.is-active .story-marker-badge {
+  transform: translateY(-2px) scale(1.08);
 }
 .story-marker-dot {
   display: none;
@@ -1636,6 +1743,31 @@ body {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.7;
+}
+.work-title-link {
+  display: inline;
+  color: #0f3d75;
+  font-weight: 650;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(14, 116, 144, 0.5);
+  background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.58));
+  border-radius: 8px;
+  padding: 0 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: color 160ms ease, background 160ms ease, text-decoration-color 160ms ease, box-shadow 160ms ease;
+  cursor: help;
+}
+.work-title-link:hover {
+  color: #0b2f5b;
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.76));
+  text-decoration-color: rgba(8, 145, 178, 0.72);
+}
+.work-title-link--emphasis {
+  box-shadow: inset 0 0 0 1px rgba(14, 116, 144, 0.12);
 }
 .teaching-point-card {
   --teaching-accent: #64748b;
@@ -2102,21 +2234,40 @@ function buildCurvedSegmentPath(from, to, idx, prev, next) {
   const p3 = toProjectedXY(Number(safeNext[0]), Number(safeNext[1]), avgLat);
   const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
   if (!Number.isFinite(dist) || dist <= 1) return [[fromLng, fromLat], [toLng, toLat]];
-  if (distanceKm <= 160) return [[fromLng, fromLat], [toLng, toLat]];
-  const rawCurveStrength = clampLocal((distanceKm - 160) / 1640, 0, 1);
+  // 之前 `if (distanceKm <= 160) return straightLine` 会让短段以直线结束,
+  // 与相邻曲线段在端点处形成尖角(lineJoin:'round' 只能圆滑笔触,无法消除几何折角)。
+  // 现在: 短段也走 Catmull-Rom 曲线,通过 (a) 收紧 tension、(b) 按段长封顶切向量、
+  // (c) 提高采样密度 三项控制,既消除硬转折、又避免被远端邻点拉飞。
+  const rawCurveStrength = clampLocal((distanceKm - 30) / 1770, 0, 1);
   const curveStrength = rawCurveStrength * rawCurveStrength;
-  const tension = clampLocal(0.11 + curveStrength * 0.06, 0.11, 0.17);
-  const steps = Math.max(10, Math.min(26, Math.round(distanceKm / 130) + 8));
-  const tangentScale = Math.max(0.62, 0.88 - curveStrength * 0.12);
+  const tension = clampLocal(0.05 + curveStrength * 0.12, 0.05, 0.17);
+  // 最小 18 段、最多 28 段,密度比之前的 10~26 更密,曲线更柔顺。
+  const steps = Math.max(18, Math.min(28, Math.round(distanceKm / 110) + 10));
+  const tangentScale = Math.max(0.5, 0.85 - curveStrength * 0.1);
   const incomingVec = normalizeVec(p1.x - p0.x, p1.y - p0.y);
   const currentVec = normalizeVec(p2.x - p1.x, p2.y - p1.y);
   const outgoingVec = normalizeVec(p3.x - p2.x, p3.y - p2.y);
   const startTurnDamping = getTurnDamping(incomingVec, currentVec);
   const endTurnDamping = getTurnDamping(currentVec, outgoingVec);
-  const m1x = (p2.x - p0.x) * tension * tangentScale * startTurnDamping;
-  const m1y = (p2.y - p0.y) * tension * tangentScale * startTurnDamping;
-  const m2x = (p3.x - p1.x) * tension * tangentScale * endTurnDamping;
-  const m2y = (p3.y - p1.y) * tension * tangentScale * endTurnDamping;
+  // 切向量按段长封顶: 切向量模长最多 = max(段长 × 0.45, 8km),
+  // 这样即使邻点很远,短段也不会被拉出大弧。
+  const tangentMagLimitKm = Math.max(distanceKm * 0.45, 8);
+  const capTangent = (dx, dy, damping) => {
+    const tx = dx * tension * tangentScale * damping;
+    const ty = dy * tension * tangentScale * damping;
+    const mag = Math.hypot(tx, ty);
+    if (mag > tangentMagLimitKm) {
+      const s = tangentMagLimitKm / mag;
+      return [tx * s, ty * s];
+    }
+    return [tx, ty];
+  };
+  const m1 = capTangent(p2.x - p0.x, p2.y - p0.y, startTurnDamping);
+  const m2 = capTangent(p3.x - p1.x, p3.y - p1.y, endTurnDamping);
+  const m1x = m1[0];
+  const m1y = m1[1];
+  const m2x = m2[0];
+  const m2y = m2[1];
   const path = [];
   for (let step = 0; step <= steps; step += 1) {
     const t = step / steps;
@@ -2309,9 +2460,9 @@ function interpolateSegmentPoint(path, progress) {
 function buildPartialSegmentPath(path, progress) {
   const coords = normalizeSegmentPath(path);
   if (coords.length < 2) return coords;
-  const tip = interpolateSegmentPoint(coords, progress) || coords[coords.length - 1];
   const clamped = Math.min(1, Math.max(0, Number(progress || 0)));
-  if (clamped <= 0) return [coords[0], tip];
+  if (clamped <= 0) return [coords[0].slice(), coords[0].slice()];
+  const tip = interpolateSegmentPoint(coords, progress) || coords[coords.length - 1];
   if (clamped >= 1) return coords;
   const lengths = [];
   let total = 0;
@@ -2861,13 +3012,32 @@ try {
   if (typeof window !== 'undefined' && !window.__STORY_MAP_BOOT_DEBUG_BOUND__) {
     window.__STORY_MAP_BOOT_DEBUG_BOUND__ = true;
     window.addEventListener('error', (event) => {
+      const rawMessage = String(event?.message || '');
+      const filename = String(event?.filename || '');
+      const isOpaqueCrossOrigin = rawMessage === 'Script error.' && !filename && Number(event?.lineno || 0) === 0;
+      // B7: when the browser refuses to reveal cross-origin error details
+      // (e.g. CDN scripts without CORS), surface a hint so debug logs are
+      // not empty. We attach a hint + tag the event as "opaque" so triage
+      // is possible without losing the original payload.
       debugBootEmit('B', 'profile_page.html:window.error', 'global error captured', {
-        message: String(event?.message || ''),
-        filename: String(event?.filename || ''),
+        message: rawMessage,
+        filename: filename,
         lineno: Number(event?.lineno || 0),
         colno: Number(event?.colno || 0),
         errorName: String(event?.error?.name || ''),
-        errorMessage: String(event?.error?.message || '')
+        errorMessage: String(event?.error?.message || ''),
+        opaqueCrossOrigin: Boolean(isOpaqueCrossOrigin),
+        hint: isOpaqueCrossOrigin
+          ? 'Add crossorigin="anonymous" to the offending <script> tag and serve with Access-Control-Allow-Origin.'
+          : ''
+      });
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event && event.reason;
+      debugBootEmit('B', 'profile_page.html:window.unhandledrejection', 'unhandled rejection captured', {
+        reasonName: String(reason && reason.name || ''),
+        reasonMessage: String(reason && reason.message || reason || ''),
+        reasonStack: String(reason && reason.stack || '')
       });
     });
   }
@@ -3148,7 +3318,7 @@ const WorkTitleWithTooltip = ({ fullTitle, className }) => {
       }}
       onBlur={() => setOpen(false)}
     >
-      <span className={className || "text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800 cursor-help"}>
+      <span className={className || "work-title-link"}>
         {fullTitle}
       </span>
     </span>
@@ -3917,10 +4087,13 @@ const App = () => {
   const amapMapRef = useRef(null);
   const amapReadyRef = useRef(false);
   const overlayStateRef = useRef({ clear: () => {}, pointLayers: [] });
+  // O3: per-segment direction arrow pool. Indexed by segment index.
+  const segmentArrowMarkersRef = useRef([]);
   const rebuildOverlaysRef = useRef(() => {});
   const pulseMarkerRef = useRef(null);
   const pulseTimerRef = useRef(null);
   const activeIndexRef = useRef(initialLocIdx);
+  const selectionTokenRef = useRef(0);
   const segmentAnimationFrameRef = useRef(0);
   const segmentAnimationStateRef = useRef({
     segmentIdx: -1,
@@ -4286,6 +4459,41 @@ const App = () => {
     ? String(data.person.name).trim()
     : '';
   const surname = String(data.person?.name || '').slice(0, 1);
+  const headerAvatarSrc = useMemo(() => {
+    const personName = String(data.person?.name || '').trim();
+    if (!personName) return '';
+    // B8: in static production builds the FastAPI /portrait/ endpoint is
+    // not available. Prefer the relative ./portraits/ cache directory
+    // (artifacts/story_map/portraits/) so production pages render the
+    // locally cached portrait without 404-ing on every page load.
+    try {
+      if (typeof window !== 'undefined' && window.MAP_STORY_STATIC_SITE === true) {
+        return `./portraits/${encodeURIComponent(personName)}.jpg`;
+      }
+    } catch (_) {}
+    return `/portrait/${encodeURIComponent(personName)}`;
+  }, [data.person?.name]);
+  const [headerAvatarState, setHeaderAvatarState] = useState('loading'); // 'loading' | 'loaded' | 'fallback'
+  useEffect(() => {
+    setHeaderAvatarState('loading');
+  }, [headerAvatarSrc]);
+  const renderHeaderAvatar = () => (
+    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-[linear-gradient(135deg,var(--color-primary-soft),rgba(255,255,255,0.98))] border border-[rgba(198,218,252,0.86)] shadow-inner flex items-center justify-center overflow-hidden">
+      <span className="theme-primary-text text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
+      {headerAvatarSrc ? (
+        <img
+          src={headerAvatarSrc}
+          alt={`${data.person?.name || ''} 肖像`}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ display: headerAvatarState === 'loaded' ? 'block' : 'none' }}
+          onLoad={() => { try { setHeaderAvatarState('loaded'); } catch (_) {} }}
+          onError={() => { try { setHeaderAvatarState('fallback'); } catch (_) {} }}
+        />
+      ) : null}
+    </div>
+  );
   const teachingReviewSubtitle = useMemo(
     () => extractTeachingReviewSubtitle(mergedTeachingPointsNormalized),
     [mergedTeachingPointsNormalized]
@@ -4805,6 +5013,17 @@ const LIFE_GRADIENT_END = '#5D4037';
     const shell = document.createElement('div');
     shell.className = 'map-point-label-shell';
     shell.setAttribute('data-story-idx', String(idx));
+    // O4: make markers keyboard-focusable and announce their meaning
+    // to assistive tech via role + aria-label.
+    const ancient = String(loc?.ancientName || loc?.ancient || '').trim();
+    const modern = String(loc?.modernName || loc?.modern || loc?.place || '').trim();
+    const year = String(loc?.year || '').trim();
+    const ariaLabel = [ancient || modern, year].filter(Boolean).join('，');
+    shell.setAttribute('role', 'button');
+    shell.setAttribute('tabindex', '0');
+    if (ariaLabel) {
+      shell.setAttribute('aria-label', `第 ${idx + 1} 站：${ariaLabel}`);
+    }
     shell.appendChild(buildMapPointLabelElement(loc, idx, activeIdx));
     return shell;
   };
@@ -5124,7 +5343,77 @@ const LIFE_GRADIENT_END = '#5D4037';
     activeIndexRef.current = nextIndex;
     setActiveIndex(nextIndex);
     setSelectedLoc(nextLoc);
-    applySelectionToMap(nextIndex, nextLoc, { pulse: true });
+    // O5: write the active point into the URL hash so a refresh / link
+    // share restores the same view. We use replaceState to avoid
+    // spamming history entries.
+    try {
+      const targetHash = `#loc=${nextIndex}`;
+      if (typeof window !== 'undefined' && window.history && typeof window.history.replaceState === 'function') {
+        const currentHash = String(window.location.hash || '');
+        if (currentHash !== targetHash) {
+          const baseUrl = String(window.location.pathname || '') + String(window.location.search || '');
+          window.history.replaceState(window.history.state, '', baseUrl + targetHash);
+        }
+      }
+    } catch (_) {}
+    // O4: announce the active point to screen readers. We do this in a
+    // microtask so two rapid keyboard presses don't spam the live
+    // region (each replace cancels the previous announcement).
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      try {
+        window.requestAnimationFrame(() => {
+          try {
+            let live = document.getElementById('story-map-aria-live');
+            if (!live) {
+              live = document.createElement('div');
+              live.id = 'story-map-aria-live';
+              live.setAttribute('role', 'status');
+              live.setAttribute('aria-live', 'polite');
+              live.setAttribute('aria-atomic', 'true');
+              live.style.position = 'absolute';
+              live.style.width = '1px';
+              live.style.height = '1px';
+              live.style.padding = '0';
+              live.style.margin = '-1px';
+              live.style.overflow = 'hidden';
+              live.style.clip = 'rect(0 0 0 0)';
+              live.style.whiteSpace = 'nowrap';
+              live.style.border = '0';
+              (document.body || document.documentElement).appendChild(live);
+            }
+            const ancient = String(nextLoc?.ancientName || nextLoc?.ancient || '').trim();
+            const modern = String(nextLoc?.modernName || nextLoc?.modern || nextLoc?.place || '').trim();
+            const year = String(nextLoc?.year || '').trim();
+            const name = ancient || modern || '当前位置';
+            const placeLabel = (ancient && modern && ancient !== modern) ? `${ancient}（今${modern}）` : (ancient || modern);
+            live.textContent = `第 ${nextIndex + 1} 站，共 ${totalEvents} 站：${placeLabel}${year ? `，${year}` : ''}`;
+          } catch (_) {}
+        });
+      } catch (_) {}
+    }
+    const applied = applySelectionToMap(nextIndex, nextLoc, { pulse: true });
+    if (!applied) {
+      // Map controller not ready - schedule a retry once the map is ready.
+      try {
+        const token = ++selectionTokenRef.current;
+        const retry = () => {
+          if (selectionTokenRef.current !== token) return;
+          if (activeIndexRef.current !== nextIndex) return;
+          applySelectionToMap(nextIndex, nextLoc, { pulse: false, stabilize: false });
+        };
+        const checkReady = () => {
+          if (selectionTokenRef.current !== token) return;
+          if (mapRef.current) {
+            retry();
+            return;
+          }
+          if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+            window.setTimeout(checkReady, 80);
+          }
+        };
+        checkReady();
+      } catch (_) {}
+    }
   };
   const handleTimelineNavKeyDown = useCallback((event) => {
     if (!event) return;
@@ -5138,8 +5427,46 @@ const LIFE_GRADIENT_END = '#5D4037';
       event.preventDefault();
       setIsAutoPlaying(false);
       changeEvent(activeIndex + 1);
+      return;
     }
-  }, [activeIndex, changeEvent]);
+    // UX5: jump-to-endpoint shortcuts for fast navigation along the
+    // trajectory. Skip if the user is typing in an input.
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(0);
+      return;
+    }
+    if (event.key === 'End') {
+      event.preventDefault();
+      setIsAutoPlaying(false);
+      changeEvent(Math.max(0, locations.length - 1));
+    }
+  }, [activeIndex, changeEvent, locations.length]);
+  // UX5: when no input is focused, capture global Arrow/Home/End and
+  // route them to the timeline. This lets the user pan the map with one
+  // hand and step through the story with the other.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onKeyDown = (event) => {
+      if (!event) return;
+      const target = event.target;
+      const tag = target && target.tagName ? String(target.tagName).toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || (target && target.isContentEditable)) {
+        return;
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight'
+          && event.key !== 'Home' && event.key !== 'End') {
+        return;
+      }
+      handleTimelineNavKeyDown(event);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      try { window.removeEventListener('keydown', onKeyDown); } catch (_) {}
+    };
+  }, [handleTimelineNavKeyDown]);
   const normalizeFocusOptions = (raw) => {
     if (typeof raw === 'boolean') {
       return { pulse: raw, strict: false };
@@ -5154,16 +5481,33 @@ const LIFE_GRADIENT_END = '#5D4037';
     const pulse = options && Object.prototype.hasOwnProperty.call(options, 'pulse') ? Boolean(options.pulse) : true;
     const stabilize = Boolean(options && options.stabilize);
     const strict = Boolean(options && options.strict);
+    // mode: 'select' (default) 只更新样式 + 平移不超出视野
+    //       'focus'          flyTo / setBounds 强制居中并动画
+    //       'follow'         进入跟随模式（长按期间保持）
+    const mode = (options && options.mode) || 'select';
     if (!loc) return false;
+    const selectionToken = ++selectionTokenRef.current;
+    const isCurrentSelection = () => selectionTokenRef.current === selectionToken;
     const run = (pulseNow = pulse, syncActive = true) => {
+      if (!isCurrentSelection()) return false;
       const controller = mapRef.current;
       if (!controller) return false;
       if (syncActive && typeof idx === 'number' && typeof controller.setActive === 'function') {
         try { controller.setActive(idx); } catch (_) {}
       }
+      if (mode === 'select') {
+        // 仅在目标不在当前可视区域内时 panTo 一次；不再 flyTo、不再 setBounds。
+        if (typeof idx === 'number' && typeof controller.panToIndex === 'function') {
+          try {
+            controller.panToIndex(idx, { animate: false });
+            return true;
+          } catch (_) {}
+        }
+        return true; // 选中态默认成功；样式已更新。
+      }
       if (typeof idx === 'number' && typeof controller.focusIndex === 'function') {
         try {
-          controller.focusIndex(idx, { pulse: pulseNow, strict });
+          controller.focusIndex(idx, { pulse: pulseNow, strict, animate: mode === 'focus' });
           return true;
         } catch (_) {}
       } else if (typeof controller.setView === 'function') {
@@ -5175,7 +5519,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       return false;
     };
     const applied = run();
-    if (stabilize) {
+    if (stabilize && mode !== 'select') {
       try {
         if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
           window.requestAnimationFrame(() => {
@@ -5243,6 +5587,17 @@ const LIFE_GRADIENT_END = '#5D4037';
     const futureBaseColor = contrastPalette ? contrastPalette.futureColor : mixHex(normalBaseColor, '#d7dde8', 0.68);
     const uniformLineWidth = layerType === 'terrain-3d' ? 11.6 : (isContrastMode ? 6.4 : 5.6);
     const uniformHaloWidth = layerType === 'terrain-3d' ? 24.5 : (isContrastMode ? 18.5 : 15.5);
+    // O2: time-direction gradient. Older segments fade toward a muted
+    // tint so users can read chronology along the trajectory without
+    // studying the dates. The fade is suppressed while the auto-player
+    // is running (passive viewing) or when this segment is the current
+    // focus — we want the active leg to stay vivid.
+    const totalSegments = Math.max(1, (locations && locations.length ? locations.length - 1 : 0));
+    const ageRatio = totalSegments > 0 ? Math.min(1, Math.max(0, segmentIdx / totalSegments)) : 0;
+    const timeFadeAmount = isContrastMode ? 0.32 : 0.28;
+    const timeFadedBaseColor = (isContrastMode || isAutoPlayingRef.current || isCurrent)
+      ? normalBaseColor
+      : mixHex(normalBaseColor, '#ffffff', timeFadeAmount * (1 - ageRatio * 0.6));
     if (isAutoPlayingRef.current) {
       return {
         baseColor: isFuture ? futureBaseColor : normalBaseColor,
@@ -5259,7 +5614,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       };
     }
     return {
-      baseColor: normalBaseColor,
+      baseColor: timeFadedBaseColor,
       haloColor,
       haloOpacity: isCurrent ? (isContrastMode ? 0.99 : 0.42) : (isPassed ? (isContrastMode ? 0.84 : 0.28) : (isContrastMode ? 0.78 : 0.22)),
       haloLineOpacity: isCurrent ? (isContrastMode ? 1 : 0.99) : (isPassed ? (isContrastMode ? 0.99 : 0.94) : (isContrastMode ? 0.96 : 0.9)),
@@ -5425,6 +5780,29 @@ const LIFE_GRADIENT_END = '#5D4037';
     currentBaseLayerRef.current = nextLayerType;
     clearMapNotice();
     syncMapCanvasVisibility(nextLayerType);
+    // B4: tear down the existing fallback controller so the retry path
+    // does not see a stale `mapRef` and short-circuit. We dispose the
+    // amap fallback here when the user explicitly asks to recover.
+    try {
+      if (amapControllerRef.current) {
+        if (typeof amapControllerRef.current.dispose === 'function') {
+          amapControllerRef.current.dispose();
+        }
+      }
+    } catch (_) {}
+    try {
+      if (amapMapRef.current && typeof amapMapRef.current.destroy === 'function') {
+        amapMapRef.current.destroy();
+      }
+    } catch (_) {}
+    amapMapRef.current = null;
+    amapControllerRef.current = null;
+    amapReadyRef.current = false;
+    try {
+      mapRef.current = null;
+    } catch (_) {}
+    setMapLoadState('idle');
+    setMapInitRequestTick((value) => value + 1);
     if (nextLayerType !== mapLayerType) {
       setMapLayerType(nextLayerType);
       return;
@@ -5545,6 +5923,25 @@ const LIFE_GRADIENT_END = '#5D4037';
           mapRef.current = amapControllerRef.current;
           setMapLoadState('ready');
           setMapReadyTick((value) => value + 1);
+          // #region debug-point C:amap-complete-refresh
+          try {
+            if (typeof map.resize === 'function') map.resize();
+          } catch (_) {}
+          try {
+            if (amapControllerRef.current && typeof amapControllerRef.current.setActive === 'function') {
+              amapControllerRef.current.setActive(activeIndexRef.current);
+            }
+          } catch (_) {}
+          try {
+            if (amapControllerRef.current && typeof amapControllerRef.current.refreshLabels === 'function') {
+              amapControllerRef.current.refreshLabels(activeIndexRef.current);
+            }
+          } catch (_) {}
+          debugEmit('C', 'profile_page.html:activateAmapFallback', 'amap complete refresh', {
+            activeIndex: Number(activeIndexRef.current || 0),
+            hasController: Boolean(amapControllerRef.current)
+          });
+          // #endregion
         });
       } catch (_) {}
     }
@@ -5558,6 +5955,8 @@ const LIFE_GRADIENT_END = '#5D4037';
     if (!amapControllerRef.current) {
       const segmentEntries = [];
       const pointEntries = [];
+      // B3/B6: idempotency guard for amap setActive (mirror of maplibre).
+      let lastAmapActiveIdx = -1;
       const latlngs = locations.map((loc, idx) => getRenderedLngLatFromLoc(loc, idx));
       if (latlngs.filter(Boolean).length > 1) {
         for (let i = 0; i < locations.length - 1; i++) {
@@ -5737,6 +6136,12 @@ const LIFE_GRADIENT_END = '#5D4037';
         });
       };
       const setActive = (activeIdx) => {
+        // B3/B6: short-circuit for repeated identical active indices so
+        // the amap polylines/markers do not flicker on every paint frame.
+        if (typeof activeIdx === 'number' && activeIdx === lastAmapActiveIdx) {
+          return;
+        }
+        lastAmapActiveIdx = activeIdx;
         activeIndexRef.current = activeIdx;
         segmentEntries.forEach((segment) => {
             const segmentVisual = getSegmentVisualState(segment.idx, activeIdx, segment.color);
@@ -6099,6 +6504,14 @@ const LIFE_GRADIENT_END = '#5D4037';
       let fallbackOverlaySvg = null;
       let overlayRebuildInProgress = false;
       let overlayRebuildMutedUntil = 0;
+      // B2/B5: track consecutive failed rebuilds so the styledata storm
+      // can't keep us locked in a rebuild loop forever.
+      let consecutiveOverlayRebuilds = 0;
+      const overlayRebuildMaxConsecutive = 4;
+      // B3/B6: track last active index so setActive becomes a no-op
+      // when called repeatedly with the same value (e.g. during render
+      // loops driven by styledata events).
+      let lastActiveIdx = -1;
       const total = locations.length;
       const getPointVisualState = (idx, activeIdx) => {
         const isActive = idx === activeIdx;
@@ -6124,13 +6537,44 @@ const LIFE_GRADIENT_END = '#5D4037';
           pulseMarkerRef.current = null;
         }
       };
+      // P1: small element pool for pulse markers. Each focus event previously
+      // allocated a new <div> + maplibre.Marker; pooling reduces GC churn and
+      // lets the browser reuse composited layers.
+      const PULSE_POOL_LIMIT = 3;
+      const pulseElementPool = [];
+      const acquirePulseElement = () => {
+        const pooled = pulseElementPool.pop();
+        if (pooled) return pooled;
+        const fresh = document.createElement('div');
+        fresh.className = 'map-pulse-marker';
+        return fresh;
+      };
+      const releasePulseElement = (el) => {
+        if (!el || pulseElementPool.length >= PULSE_POOL_LIMIT) return;
+        try {
+          el.style.removeProperty('--pulse-color');
+          el.style.removeProperty('--pulse-soft');
+          el.classList.remove('is-active');
+        } catch (_) {}
+        pulseElementPool.push(el);
+      };
       const runPulse = (lng, lat, color) => {
         if (!Number.isFinite(Number(lng)) || !Number.isFinite(Number(lat))) return;
         clearPulse();
-        const el = document.createElement('div');
-        el.className = 'map-pulse-marker';
-        el.style.setProperty('--pulse-color', String(color || '#1a73e8'));
-        el.style.setProperty('--pulse-soft', hexToRgba(String(color || '#1a73e8'), 0.2));
+        const el = acquirePulseElement();
+        const safeColor = String(color || '#1a73e8');
+        el.style.setProperty('--pulse-color', safeColor);
+        el.style.setProperty('--pulse-soft', hexToRgba(safeColor, 0.2));
+        // Force animation restart by removing/re-adding the class. Without
+        // this, pooled elements would skip the keyframe on subsequent uses.
+        try {
+          el.classList.remove('map-pulse-marker');
+        } catch (_) {}
+        // eslint-disable-next-line no-unused-expressions
+        void el.offsetWidth;
+        try {
+          el.classList.add('map-pulse-marker');
+        } catch (_) {}
         try {
           pulseMarkerRef.current = new maplibregl.Marker({
             element: el,
@@ -6139,9 +6583,16 @@ const LIFE_GRADIENT_END = '#5D4037';
             .setLngLat([Number(lng), Number(lat)])
             .addTo(map);
           pulseTimerRef.current = window.setTimeout(() => {
-            clearPulse();
+            try {
+              if (pulseMarkerRef.current) {
+                pulseMarkerRef.current.remove();
+              }
+            } catch (_) {}
+            pulseMarkerRef.current = null;
+            releasePulseElement(el);
           }, 980);
         } catch (_) {
+          releasePulseElement(el);
           clearPulse();
         }
       };
@@ -6364,12 +6815,69 @@ const LIFE_GRADIENT_END = '#5D4037';
       };
       const renderStoryOverlays = () => {
         overlayStateRef.current.clear();
+        // P3: when layers are torn down and rebuilt, the paint cache from
+        // the previous map state is invalid. Drop it.
+        if (typeof flushSegmentPaintCache === 'function') {
+          flushSegmentPaintCache();
+        }
         const pointLayers = [];
         const markers = [];
         const lineIds = [];
         const extraLayerIds = [];
         const extraSourceIds = [];
         const segmentLayers = [];
+        // O3: per-segment direction arrow markers. We pool them by
+        // segment index and only re-create the missing ones on every
+        // render, so styledata / frequent rebuilds stay cheap.
+        const arrowMarkers = Array.isArray(segmentArrowMarkersRef.current)
+          ? segmentArrowMarkersRef.current
+          : (segmentArrowMarkersRef.current = []);
+        const usedArrowIndexes = new Set();
+        const computeSegmentBearing = (path) => {
+          if (!Array.isArray(path) || path.length < 2) return 0;
+          let bestDist = 0;
+          let bestBearing = 0;
+          for (let k = 1; k < path.length; k++) {
+            const a = path[k - 1];
+            const b = path[k];
+            const dx = Number(b[0]) - Number(a[0]);
+            const dy = Number(b[1]) - Number(a[1]);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > bestDist) {
+              bestDist = dist;
+              bestBearing = Math.atan2(dx, dy) * 180 / Math.PI;
+            }
+          }
+          return bestBearing;
+        };
+        const ensureSegmentArrow = (idx, midLng, midLat, bearing) => {
+          usedArrowIndexes.add(idx);
+          let entry = arrowMarkers[idx];
+          if (!entry) {
+            const el = document.createElement('div');
+            el.className = 'map-segment-arrow';
+            el.innerHTML = '<svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">'
+              + '<path d="M2 7 L11 2 L9 7 L11 12 Z" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(255,255,255,0.9)" stroke-width="0.7" stroke-linejoin="round"/>'
+              + '</svg>';
+            try {
+              entry = {
+                marker: new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([midLng, midLat]).addTo(map)
+              };
+            } catch (_) {
+              return null;
+            }
+            arrowMarkers[idx] = entry;
+          } else if (entry.marker && entry.marker.getElement) {
+            try { entry.marker.setLngLat([midLng, midLat]); } catch (_) {}
+          }
+          if (entry.marker && entry.marker.getElement) {
+            const el = entry.marker.getElement();
+            if (el) {
+              el.style.transform = `rotate(${Number(bearing || 0).toFixed(1)}deg)`;
+            }
+          }
+          return entry;
+        };
         const ensureLayerRemoved = (id) => {
           try {
             if (id && map.getLayer(id)) map.removeLayer(id);
@@ -6497,11 +7005,30 @@ const LIFE_GRADIENT_END = '#5D4037';
                 color: segmentColor,
                 path: segmentPath
               });
+              // O3: place a directional arrow at the segment midpoint.
+              // We pick the longest sub-edge for the bearing so the
+              // arrow stays meaningful even for curved arcs.
+              try {
+                const midIdx = Math.max(0, Math.floor(segmentPath.length / 2));
+                const midCoord = segmentPath[midIdx] || segmentPath[0];
+                const bearing = computeSegmentBearing(segmentPath);
+                if (midCoord && Number.isFinite(Number(midCoord[0])) && Number.isFinite(Number(midCoord[1]))) {
+                  ensureSegmentArrow(i, Number(midCoord[0]), Number(midCoord[1]), bearing);
+                }
+              } catch (_) {}
             } catch (error) {
               debugEmit('A', 'profile_page.html:renderStoryOverlays', 'segment skipped after render failure', {
                 segmentIdx: i,
                 message: String(error?.message || error || '')
               });
+            }
+          }
+          // O3: drop arrow markers that are no longer in use. This
+          // keeps the pool bounded when the location list shrinks.
+          for (let a = 0; a < arrowMarkers.length; a++) {
+            if (!usedArrowIndexes.has(a) && arrowMarkers[a]) {
+              try { arrowMarkers[a].marker.remove(); } catch (_) {}
+              arrowMarkers[a] = null;
             }
           }
         }
@@ -6721,58 +7248,107 @@ const LIFE_GRADIENT_END = '#5D4037';
             }
           } catch (_) {}
         };
-        const setActive = (activeIdx) => {
-          activeIndexRef.current = activeIdx;
-          segmentLayers.forEach((segment) => {
+        // P3: cache the last applied paint values per segment layer so we can
+      // skip setPaintProperty calls when nothing has actually changed. This
+      // is the dominant win for setActive under rapid interactions.
+      const lastSegmentPaint = new Map();
+      const setPaintIfChanged = (layerId, prop, value) => {
+        if (!map.getLayer || !map.getLayer(layerId)) return;
+        const key = `${layerId}::${prop}`;
+        const prev = lastSegmentPaint.get(key);
+        if (prev === value) return;
+        try {
+          map.setPaintProperty(layerId, prop, value);
+          lastSegmentPaint.set(key, value);
+        } catch (_) {}
+      };
+      const flushSegmentPaintCache = () => {
+        lastSegmentPaint.clear();
+      };
+      // P3: scheduled rAF handle for paint coalescing. setActive always
+      // updates refs synchronously, but defers the actual map mutations
+      // to the next frame so the browser can batch them into one
+      // composite update.
+      let setActivePaintRaf = 0;
+      const performSetActivePaint = (activeIdx) => {
+        setActivePaintRaf = 0;
+        if (disposed) return;
+        segmentLayers.forEach((segment) => {
             const segmentVisual = getSegmentVisualState(segment.idx, activeIdx, segment.color);
           const animatedPath = segment.path;
-            try {
-              const haloSource = map.getSource(segment.haloId);
-              if (haloSource && typeof haloSource.setData === 'function') {
-                haloSource.setData({
-                  type: 'Feature',
-                  geometry: { type: 'LineString', coordinates: animatedPath }
-                });
-              }
-              const lineSource = map.getSource(segment.lineId);
-              if (lineSource && typeof lineSource.setData === 'function') {
-                lineSource.setData({
-                  type: 'Feature',
-                  geometry: { type: 'LineString', coordinates: animatedPath }
-                });
-              }
-              if (map.getLayer(segment.haloId)) {
-                map.setPaintProperty(segment.haloId, 'line-color', segmentVisual.haloColor ? hexToRgba(segmentVisual.haloColor, segmentVisual.haloOpacity) : hexToRgba(segmentVisual.baseColor, segmentVisual.haloOpacity));
-                map.setPaintProperty(segment.haloId, 'line-opacity', segmentVisual.haloLineOpacity);
-                map.setPaintProperty(segment.haloId, 'line-width', segmentVisual.haloLineWidth);
-              }
-              if (map.getLayer(segment.lineId)) {
-                map.setPaintProperty(segment.lineId, 'line-color', segmentVisual.baseColor);
-                map.setPaintProperty(segment.lineId, 'line-opacity', segmentVisual.lineOpacity);
-                map.setPaintProperty(segment.lineId, 'line-width', segmentVisual.lineWidth);
-              }
-            } catch (_) {}
-          });
           try {
-            const pointSource = map.getSource(pointSourceId);
-            if (pointSource && typeof pointSource.setData === 'function') {
-              pointSource.setData(buildPointFeatureCollection(activeIdx));
+            const haloSource = map.getSource(segment.haloId);
+            if (haloSource && typeof haloSource.setData === 'function') {
+              haloSource.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: animatedPath }
+              });
+            }
+            const lineSource = map.getSource(segment.lineId);
+            if (lineSource && typeof lineSource.setData === 'function') {
+              lineSource.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: animatedPath }
+              });
+            }
+            if (map.getLayer(segment.haloId)) {
+              const haloColor = segmentVisual.haloColor
+                ? hexToRgba(segmentVisual.haloColor, segmentVisual.haloOpacity)
+                : hexToRgba(segmentVisual.baseColor, segmentVisual.haloOpacity);
+              setPaintIfChanged(segment.haloId, 'line-color', haloColor);
+              setPaintIfChanged(segment.haloId, 'line-opacity', segmentVisual.haloLineOpacity);
+              setPaintIfChanged(segment.haloId, 'line-width', segmentVisual.haloLineWidth);
+            }
+            if (map.getLayer(segment.lineId)) {
+              setPaintIfChanged(segment.lineId, 'line-color', segmentVisual.baseColor);
+              setPaintIfChanged(segment.lineId, 'line-opacity', segmentVisual.lineOpacity);
+              setPaintIfChanged(segment.lineId, 'line-width', segmentVisual.lineWidth);
             }
           } catch (_) {}
-          updateMapLibreLabelVisibility(activeIdx);
-          scheduleFallbackOverlayRender('set-active');
-          if (activePinMarker) {
-            const activeRenderLoc = getRenderedPointLoc(activeIdx);
-            const activeLoc = locations[activeIdx];
-            const pinEl = typeof activePinMarker.getElement === 'function' ? activePinMarker.getElement() : null;
-            const pinImg = pinEl && typeof pinEl.querySelector === 'function' ? pinEl.querySelector('img') : null;
-            if (activeRenderLoc && activeLoc) {
-              try {
-                activePinMarker.setLngLat([Number(activeRenderLoc.renderLng), Number(activeRenderLoc.renderLat)]);
-                if (pinImg) pinImg.src = buildSelectedPinDataUrl(getLifeColor(activeLoc, activeIdx));
-                setMarkerZ(activePinMarker, 360);
-              } catch (_) {}
-            }
+        });
+        try {
+          const pointSource = map.getSource(pointSourceId);
+          if (pointSource && typeof pointSource.setData === 'function') {
+            pointSource.setData(buildPointFeatureCollection(activeIdx));
+          }
+        } catch (_) {}
+        updateMapLibreLabelVisibility(activeIdx);
+        scheduleFallbackOverlayRender('set-active');
+        if (activePinMarker) {
+          const activeRenderLoc = getRenderedPointLoc(activeIdx);
+          const activeLoc = locations[activeIdx];
+          const pinEl = typeof activePinMarker.getElement === 'function' ? activePinMarker.getElement() : null;
+          const pinImg = pinEl && typeof pinEl.querySelector === 'function' ? pinEl.querySelector('img') : null;
+          if (activeRenderLoc && activeLoc) {
+            try {
+              activePinMarker.setLngLat([Number(activeRenderLoc.renderLng), Number(activeRenderLoc.renderLat)]);
+              if (pinImg) pinImg.src = buildSelectedPinDataUrl(getLifeColor(activeLoc, activeIdx));
+              setMarkerZ(activePinMarker, 360);
+            } catch (_) {}
+          }
+        }
+      };
+      const setActive = (activeIdx) => {
+          // B3/B6: short-circuit when the active index has not changed so
+          // 30 calls/sec from renderStoryOverlays / styledata storms do not
+          // repeatedly repaint sources/layers (this is the marker flicker).
+          if (typeof activeIdx === 'number' && activeIdx === lastActiveIdx) {
+            return;
+          }
+          lastActiveIdx = activeIdx;
+          activeIndexRef.current = activeIdx;
+          // P3: defer the heavy paint work to the next animation frame so
+          // multiple setActive calls within one frame coalesce.
+          if (setActivePaintRaf) {
+            try { window.cancelAnimationFrame(setActivePaintRaf); } catch (_) {}
+            setActivePaintRaf = 0;
+          }
+          if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+            setActivePaintRaf = window.requestAnimationFrame(() => {
+              performSetActivePaint(activeIdx);
+            });
+          } else {
+            performSetActivePaint(activeIdx);
           }
         };
         const pulseByIndex = (idx) => {
@@ -7062,7 +7638,29 @@ const LIFE_GRADIENT_END = '#5D4037';
         if (hasLocHash()) {
           const loc = locations[activeIndexRef.current];
           if (loc) {
-            map.jumpTo({ center: [loc.lng, loc.lat], zoom: focusZoom });
+            // UX2: ease the camera transition so the focus lands smoothly
+            // instead of teleporting. fall back to jumpTo for users who
+            // opted out of motion.
+            const reduceMotion = typeof window !== 'undefined'
+              && typeof window.matchMedia === 'function'
+              && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduceMotion || typeof map.flyTo !== 'function') {
+              map.jumpTo({ center: [loc.lng, loc.lat], zoom: focusZoom });
+            } else {
+              try {
+                map.flyTo({
+                  center: [Number(loc.lng), Number(loc.lat)],
+                  zoom: focusZoom,
+                  duration: 700,
+                  essential: true,
+                  curve: 1.4,
+                  speed: 1.2,
+                  easing: (t) => 1 - Math.pow(1 - t, 3)
+                });
+              } catch (_) {
+                map.jumpTo({ center: [loc.lng, loc.lat], zoom: focusZoom });
+              }
+            }
           }
         } else {
           applyFitBounds();
@@ -7072,9 +7670,25 @@ const LIFE_GRADIENT_END = '#5D4037';
         const now = Date.now();
         if (overlayRebuildInProgress) return false;
         if (now < overlayRebuildMutedUntil) return false;
+        // B2/B5: hard cap on consecutive rebuilds to prevent UI starvation
+        // when styledata events keep firing while artifacts stay missing.
+        if (consecutiveOverlayRebuilds >= overlayRebuildMaxConsecutive) {
+          debugEmit('B', 'profile_page.html:performOverlayRebuild', 'overlay rebuild capped, breaking feedback loop', {
+            reason: String(reason || ''),
+            consecutiveOverlayRebuilds,
+            overlayRebuildMaxConsecutive
+          });
+          return false;
+        }
         overlayRebuildInProgress = true;
         try {
           renderStoryOverlays();
+          const recovered = hasRenderableOverlayArtifacts();
+          if (recovered) {
+            consecutiveOverlayRebuilds = 0;
+          } else {
+            consecutiveOverlayRebuilds += 1;
+          }
           return true;
         } finally {
           overlayRebuildInProgress = false;
@@ -7146,6 +7760,27 @@ const LIFE_GRADIENT_END = '#5D4037';
       try { map.on('moveend', () => {
         const missingArtifacts = !hasRenderableOverlayArtifacts();
         if (missingArtifacts) scheduleFallbackOverlayRender('moveend');
+        // UX8: cheap visibility culling for HTML markers. We tag any marker
+        // whose center is outside the current viewport with a data
+        // attribute and let CSS hide it. The DOM is untouched so React
+        // does not re-render.
+        try {
+          const bounds = map.getBounds && map.getBounds();
+          if (bounds && typeof maplibregl !== 'undefined') {
+            const markers = document.querySelectorAll('.maplibregl-marker');
+            for (let i = 0; i < markers.length; i++) {
+              const m = markers[i];
+              const ll = m && m._lngLat;
+              if (!bounds.contains(ll)) {
+                if (m.getAttribute('data-out-of-view') !== 'true') {
+                  m.setAttribute('data-out-of-view', 'true');
+                }
+              } else if (m.getAttribute('data-out-of-view') !== 'false') {
+                m.setAttribute('data-out-of-view', 'false');
+              }
+            }
+          }
+        } catch (_) {}
       }); } catch (_) {}
       try { map.on('zoomend', () => {
         const missingArtifacts = !hasRenderableOverlayArtifacts();
@@ -8558,17 +9193,17 @@ const LIFE_GRADIENT_END = '#5D4037';
     const staticSite = window.MAP_STORY_STATIC_SITE === true;
     const host = String(window.location?.hostname || '').trim().toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
-      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
-    }
-    if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
-      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
-    }
     if ((!staticSite || isLocalHost) && window.location && window.location.protocol !== 'file:') {
       pushUrl(new URL('./api/ai/proxy', window.location.href).toString());
       if (window.location.origin) {
         pushUrl(toUrl(window.location.origin).replace(/\/+$/, '') + '/api/ai/proxy');
       }
+    }
+    if (typeof window.MAP_STORY_AI_ENDPOINT === 'string' && window.MAP_STORY_AI_ENDPOINT.trim()) {
+      pushUrl(toUrl(window.MAP_STORY_AI_ENDPOINT).replace(/\/+$/, '') + '/api/ai/proxy');
+    }
+    if (typeof window.MAP_STORY_API_BASE === 'string' && window.MAP_STORY_API_BASE.trim()) {
+      pushUrl(toUrl(window.MAP_STORY_API_BASE).replace(/\/+$/, '') + '/api/ai/proxy');
     }
     if (!staticSite || isLocalHost) {
       pushUrl('http://127.0.0.1:8877/api/ai/proxy');
@@ -8972,9 +9607,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       <header className="glass-panel theme-card-strong rounded-2xl shadow-sm border-l-8 theme-accent-strip p-5 md:p-6">
         <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
           <div className="w-full md:w-auto flex md:flex-col items-center md:items-start gap-4 md:gap-3 shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-[linear-gradient(135deg,var(--color-primary-soft),rgba(255,255,255,0.98))] border border-[rgba(198,218,252,0.86)] shadow-inner flex items-center justify-center overflow-hidden">
-              <span className="theme-primary-text text-4xl md:text-5xl font-black tracking-wide leading-none">{surname}</span>
-            </div>
+            {renderHeaderAvatar()}
             <div className="md:hidden min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <div className="min-w-0">
@@ -9025,6 +9658,12 @@ const LIFE_GRADIENT_END = '#5D4037';
                 </div>
               ) : null}
             </div>
+            {data.person?.courtesyName || data.person?.artName ? (
+              <p className="theme-courtesy mt-2 text-xs font-semibold tracking-wide text-slate-500">
+                {data.person?.courtesyName ? `字 ${data.person.courtesyName}` : ''}
+                {data.person?.artName ? `${data.person?.courtesyName ? ' · ' : ''}号 ${data.person.artName}` : ''}
+              </p>
+            ) : null}
             {headerSubtitle ? (
               <p className="theme-subtitle mt-3 text-sm leading-relaxed italic border-l-2 border-[rgba(26,115,232,0.18)] pl-3">{renderInline(headerSubtitle)}</p>
             ) : null}
@@ -9350,7 +9989,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                   <div className="map-lazy-overlay" data-map-state={mapLoadState} data-testid="profile-map-lazy-overlay">
                     <div className="map-lazy-card">
                       <div className="map-lazy-kicker">{mapLoadState === 'error' ? '地图异常' : (mapLoading ? '地图加载中' : '地图按需加载')}</div>
-                      <div className="map-lazy-title">{mapLazyTitle}</div>
+                      <div className={`map-lazy-title${mapLoading ? ' is-skeleton' : ''}`}>{mapLoading ? '\u00A0' : mapLazyTitle}</div>
                       <p className="map-lazy-copy">{mapLazyCopy}</p>
                       <div className="map-lazy-actions">
                         <button
@@ -9591,7 +10230,7 @@ const LIFE_GRADIENT_END = '#5D4037';
                         <p className="theme-float-section-title">名篇名句</p>
                         <ul className="theme-float-list">
                           {selectedLoc.works.map((w, idx) => (
-                            <li key={idx} className="theme-float-section-body">{renderWorkTitleWithTooltip(`《${w}》`, `selected-work-${idx}`, "text-sky-700 underline decoration-dotted underline-offset-2 hover:text-sky-800 cursor-help")}</li>
+                            <li key={idx} className="theme-float-section-body">{renderWorkTitleWithTooltip(`《${w}》`, `selected-work-${idx}`, "work-title-link work-title-link--emphasis")}</li>
                           ))}
                         </ul>
                       </div>

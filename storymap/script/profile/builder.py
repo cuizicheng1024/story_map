@@ -55,6 +55,43 @@ def _merge_unique_strings(*values: object) -> List[str]:
     return out
 
 
+_FOREIGN_ALIAS_PATH = data_corpus_file_path("foreign_name_aliases.json")
+_FOREIGN_ALIAS_CACHE: Dict[str, Dict[str, str]] = {}
+_FOREIGN_ALIAS_LOADED = False
+
+
+def _load_foreign_aliases() -> Dict[str, Dict[str, str]]:
+    global _FOREIGN_ALIAS_LOADED
+    if _FOREIGN_ALIAS_LOADED:
+        return _FOREIGN_ALIAS_CACHE
+    _FOREIGN_ALIAS_LOADED = True
+    try:
+        payload = json.loads(_FOREIGN_ALIAS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return _FOREIGN_ALIAS_CACHE
+    entries = payload.get("entries") if isinstance(payload, dict) else {}
+    if isinstance(entries, dict):
+        for key, value in entries.items():
+            if isinstance(value, dict):
+                _FOREIGN_ALIAS_CACHE[str(key).strip()] = {
+                    str(k).strip(): str(v).strip()
+                    for k, v in value.items()
+                    if isinstance(v, (str, int, float))
+                }
+    return _FOREIGN_ALIAS_CACHE
+
+
+def _lookup_foreign_alias(name: str) -> Tuple[str, str, str]:
+    """返回 (foreign_name, country_en, country_zh)。无匹配则返回空串。"""
+    aliases = _load_foreign_aliases()
+    info = aliases.get(str(name or "").strip()) or {}
+    return (
+        str(info.get("foreign_name") or "").strip(),
+        str(info.get("country") or "").strip(),
+        str(info.get("country_zh") or "").strip(),
+    )
+
+
 @lru_cache(maxsize=1)
 def _load_people_summary_index() -> Dict[str, Dict[str, object]]:
     try:
@@ -776,6 +813,21 @@ def build_profile_data(
     highlight_reviews = _merge_unique_strings(summary_reviews, parsed_doc.historical_reviews)
     courtesy_name = str(info.get("字", "") or info.get("表字", "")).strip()
     art_name = str(info.get("号", "") or info.get("别号", "")).strip()
+    # When the source markdown writes the courtesy / art name in the
+    # `**姓名**` field (e.g. "王勃（字子安）") instead of using the
+    # dedicated `**字**` field, fall back to the parenthetical so it
+    # can still be surfaced in the introduction subtitle below the
+    # heading.
+    if not courtesy_name or not art_name:
+        paren_match = re.search(r"（([^（）]+)）", name_raw or "")
+        if paren_match:
+            paren_value = str(paren_match.group(1) or "").strip()
+            if not courtesy_name and paren_value.startswith("字"):
+                courtesy_name = paren_value[1:].strip() or courtesy_name
+            elif not courtesy_name:
+                courtesy_name = paren_value
+            if not art_name and paren_value.startswith("号"):
+                art_name = paren_value[1:].strip() or art_name
     aliases = _split_person_alias_values(
         info.get("别名", ""),
         info.get("别称", ""),
@@ -785,9 +837,22 @@ def build_profile_data(
         art_name,
     )
     foreign_name = str(info.get("外文名", "") or info.get("外文", "")).strip()
+    if not foreign_name:
+        foreign_name, foreign_country, foreign_country_zh = _lookup_foreign_alias(name)
+    else:
+        foreign_country = str(info.get("外文国家", "")).strip()
+        foreign_country_zh = str(info.get("国家", "")).strip()
     person = {
-        "name": name or "人物",
+        # Strip the parenthetical courtesy / art name from the display
+        # name so the heading only shows the person's actual name
+        # (e.g. "王勃" instead of "王勃（字子安）"). The courtesy name
+        # is preserved separately as courtesyName and can be rendered
+        # in the introduction subtitle below the heading.
+        "name": canonical_name or "人物",
+        "nameRaw": name,
         "foreignName": foreign_name,
+        "foreignCountry": foreign_country,
+        "foreignCountryZh": foreign_country_zh,
         "title": title,
         "description": description,
         "quote": short_review or title,

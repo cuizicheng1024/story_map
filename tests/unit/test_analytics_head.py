@@ -34,7 +34,16 @@ def test_analytics_head_html_includes_volcengine_apm_when_token_is_configured(mo
     html = analytics_head_html(page_type="profile", page_name="苏轼")
 
     assert "https://apm.volccdn.com/mars-web/apmplus/web/browser.cn.js" in html
-    assert "window.apmPlus('init',{aid:1002542,token:\"token-demo\",pid: window.location.pathname,env:\"prod\",release:\"build-v1\"});" in html
+    # The init payload now resolves pid through __storyMapApmPid so it can
+    # honour the configured page name first (here: "苏轼") before falling
+    # back to the readable path. Verify the structural shape rather than
+    # the literal placeholder.
+    assert "window.apmPlus('init',{aid:1002542" in html
+    assert 'token:"token-demo"' in html
+    assert 'env:"prod"' in html
+    assert 'release:"build-v1"' in html
+    # The pid field references the global that the surrounding IIFE sets.
+    assert "pid: window.__storyMapApmPid" in html
     assert "window.apmPlus('start');" in html
     assert "story_map_page_open" in html
     assert '"page_type": "profile"' in html

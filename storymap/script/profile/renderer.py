@@ -261,18 +261,35 @@ window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__ = window.__MAP_STORY_RUNTIME_CONF
     out.push(normalized);
   };
   try {
-    const apiBase = String(window.MAP_STORY_API_BASE || '').trim();
-    if (apiBase) {
-      push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));
+    // Resolve the runtime config URL. In static production builds the
+    // page is served from file:// so we skip the relative resolve. We
+    // still allow localhost / private IPs (dev hosts) so that a
+    // developer can flip MAP_STORY_STATIC_SITE=true locally and keep
+    // fetching the live runtime config instead of using a stale cache.
+    const isDevHost = (function() {
+      try {
+        const host = String(window.location && window.location.hostname || '').trim();
+        if (!host) return false;
+        if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1') return true;
+        const ipv4 = new RegExp('^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$').exec(host);
+        if (ipv4) {
+          const a = Number(ipv4[1] || 0);
+          const b = Number(ipv4[2] || 0);
+          if (a === 10) return true;
+          if (a === 192 && b === 168) return true;
+          if (a === 172 && b >= 16 && b <= 31) return true;
+        }
+        return host.endsWith('.local');
+      } catch (_) { return false; }
+    })();
+    if (window.location && window.location.protocol !== 'file:' && isDevHost) {
+      push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());
     }
   } catch (_) {}
   try {
-    const host = String(window.location?.hostname || '').trim().toLowerCase();
-    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-    const isPrivateIPv4 = /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2\\d|3[0-1])\\.)/.test(host);
-    const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith('.local');
-    if (window.location && window.location.protocol !== 'file:' && isDevHost) {
-      push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());
+    const apiBase = String(window.MAP_STORY_API_BASE || '').trim();
+    if (apiBase) {
+      push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));
     }
   } catch (_) {}
   return out;
