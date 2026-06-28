@@ -901,6 +901,28 @@ def test_scholar_profile_includes_person_evaluation_prompt():
     assert "你如何看待老子的学说" in html
 
 
+def test_static_portrait_url_matches_cache_filename_with_unicode_safe_name():
+    """The header avatar URL must mirror the on-disk cache file name:
+    safeName (where Chinese letters are preserved, matching Python's
+    str.isalnum()) + 12-char sha1. Falling back to a non-Unicode-safe
+    regex breaks all 27 Wikimedia portraits."""
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "buildStaticPortraitUrl" in html
+    # CJK Unified range must be allowed in safeName (孔子 etc.)
+    assert "0x4E00 && code <= 0x9FFF" in html
+    # sha1 must be computed (sync impl, no window.crypto.subtle assumption)
+    assert "sha1Sync" in html
+    # Output format must include the digest and a 48-char cap
+    assert ".slice(0, 48)" in html
+    assert "digest12" in html
+    # Extension fallback chain on 404
+    assert "endsWith('.jpg')" in html
+    assert "endsWith('.png')" in html
+    assert "endsWith('.webp')" in html
+    assert "endsWith('.svg')" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     registry = importlib.import_module("storymap.script.core.person_registry")
     hints = typing.get_type_hints(registry.canonical_person_name)

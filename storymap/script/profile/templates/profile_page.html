@@ -4459,20 +4459,111 @@ const App = () => {
     ? String(data.person.name).trim()
     : '';
   const surname = String(data.person?.name || '').slice(0, 1);
-  const headerAvatarSrc = useMemo(() => {
-    const personName = String(data.person?.name || '').trim();
+  // Mirror storymap.script.map.portrait_service._safe_filename so the
+  // static ./portraits/ URL matches the on-disk cache file. The on-disk
+  // name is `{safeName}-{12 char sha1}`; we encode the same way.
+  const buildStaticPortraitUrl = (personName) => {
     if (!personName) return '';
-    // B8: in static production builds the FastAPI /portrait/ endpoint is
-    // not available. Prefer the relative ./portraits/ cache directory
-    // (artifacts/story_map/portraits/) so production pages render the
-    // locally cached portrait without 404-ing on every page load.
+    const digest = (() => {
+      try {
+        if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+          return null; // synchronous sha1 not available, fall back to JS impl below
+        }
+      } catch (_) {}
+      return null;
+    })();
+    // Lightweight sha1 (FIPS 180-4) — only used to mirror the filename
+    // produced by Python's hashlib.sha1(name).hexdigest()[:12]. We
+    // keep it inline so the static site has no extra dependencies.
+    const sha1Sync = (str) => {
+      const utf8 = unescape(encodeURIComponent(str));
+      const bytes = new Array(utf8.length);
+      for (let i = 0; i < utf8.length; i++) bytes[i] = utf8.charCodeAt(i);
+      // Prepend length as 64-bit big-endian (only low 32 bits matter here)
+      bytes.unshift(0x80);
+      while (bytes.length % 64 !== 56) bytes.push(0);
+      const bitLen = utf8.length * 8;
+      for (let i = 7; i >= 0; i--) bytes.push((bitLen >>> (i * 8)) & 0xff);
+      const H = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+      const rotl = (x, n) => ((x << n) | (x >>> (32 - n))) >>> 0;
+      const w = new Array(80);
+      for (let block = 0; block < bytes.length; block += 64) {
+        for (let i = 0; i < 16; i++) {
+          w[i] = (bytes[block + i * 4] << 24)
+            | (bytes[block + i * 4 + 1] << 16)
+            | (bytes[block + i * 4 + 2] << 8)
+            | (bytes[block + i * 4 + 3]);
+          w[i] >>>= 0;
+        }
+        for (let i = 16; i < 80; i++) {
+          w[i] = rotl(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        }
+        let [a, b, c, d, e] = H;
+        for (let i = 0; i < 80; i++) {
+          let f, k;
+          if (i < 20) { f = (b & c) | ((~b) & d); k = 0x5A827999; }
+          else if (i < 40) { f = b ^ c ^ d; k = 0x6ED9EBA1; }
+          else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+          else { f = b ^ c ^ d; k = 0xCA62C1D6; }
+          const t = (rotl(a, 5) + f + e + k + w[i]) >>> 0;
+          e = d; d = c; c = rotl(b, 30); b = a; a = t;
+        }
+        H[0] = (H[0] + a) >>> 0;
+        H[1] = (H[1] + b) >>> 0;
+        H[2] = (H[2] + c) >>> 0;
+        H[3] = (H[3] + d) >>> 0;
+        H[4] = (H[4] + e) >>> 0;
+      }
+      let hex = '';
+      for (let i = 0; i < 5; i++) hex += H[i].toString(16).padStart(8, '0');
+      return hex.slice(0, 12);
+    };
+    // Mirror storymap.script.map.portrait_service._safe_filename: keep
+    // all alphanumeric chars (Python's str.isalnum() matches Chinese
+    // letters too) and treat only true punctuation as `_`.
+    const safeName = (() => {
+      let out = '';
+      for (const ch of String(personName)) {
+        const code = ch.codePointAt(0);
+        // Keep A-Z, a-z, 0-9, _, - (ASCII) + any char that is a
+        // letter/digit in another script (CJK, Cyrillic, etc.).
+        const isAsciiSafe = (code >= 0x30 && code <= 0x39) // 0-9
+          || (code >= 0x41 && code <= 0x5A) // A-Z
+          || (code >= 0x61 && code <= 0x7A) // a-z
+          || code === 0x5F || code === 0x2D; // _ -
+        const isLetterLike = (code >= 0x00C0 && code <= 0x024F) // Latin extended
+          || (code >= 0x0370 && code <= 0x03FF) // Greek
+          || (code >= 0x0400 && code <= 0x04FF) // Cyrillic
+          || (code >= 0x0530 && code <= 0x058F) // Armenian
+          || (code >= 0x0590 && code <= 0x05FF) // Hebrew
+          || (code >= 0x0600 && code <= 0x06FF) // Arabic
+          || (code >= 0x0900 && code <= 0x097F) // Devanagari
+          || (code >= 0x4E00 && code <= 0x9FFF) // CJK Unified
+          || (code >= 0x3040 && code <= 0x30FF) // Hiragana / Katakana
+          || (code >= 0xAC00 && code <= 0xD7AF) // Hangul
+          || (code >= 0x3400 && code <= 0x4DBF) // CJK Ext A
+          || (code >= 0x20000 && code <= 0x2A6DF); // CJK Ext B
+        if (isAsciiSafe || isLetterLike) out += ch;
+        else out += '_';
+      }
+      return out.slice(0, 48);
+    })();
+    const digest12 = sha1Sync(personName);
+    const encoded = encodeURIComponent(`${safeName}-${digest12}`);
+    // Try common extensions; the onError handler below falls back if 404.
+    return `./portraits/${encoded}.jpg`;
+  };
+  const computeInitialAvatarSrc = (name) => {
+    const personName = String(name || '').trim();
+    if (!personName) return '';
     try {
       if (typeof window !== 'undefined' && window.MAP_STORY_STATIC_SITE === true) {
-        return `./portraits/${encodeURIComponent(personName)}.jpg`;
+        return buildStaticPortraitUrl(personName);
       }
     } catch (_) {}
     return `/portrait/${encodeURIComponent(personName)}`;
-  }, [data.person?.name]);
+  };
+  const [headerAvatarSrc, setHeaderAvatarSrc] = useState(() => computeInitialAvatarSrc(data.person?.name));
   const [headerAvatarState, setHeaderAvatarState] = useState('loading'); // 'loading' | 'loaded' | 'fallback'
   useEffect(() => {
     setHeaderAvatarState('loading');
@@ -4489,7 +4580,33 @@ const App = () => {
           className="absolute inset-0 w-full h-full object-cover"
           style={{ display: headerAvatarState === 'loaded' ? 'block' : 'none' }}
           onLoad={() => { try { setHeaderAvatarState('loaded'); } catch (_) {} }}
-          onError={() => { try { setHeaderAvatarState('fallback'); } catch (_) {} }}
+          onError={(e) => {
+            try {
+              const cur = String(e?.currentTarget?.src || headerAvatarSrc || '');
+              // B8 fallback chain: try .png / .webp / .svg after .jpg 404.
+              // Also probe the legacy unhashed format for figures whose
+              // cache predates the sha1 renaming.
+              const baseMatch = cur.match(/^(.*?)(?:\.[a-z]+)$/);
+              const baseNoExt = baseMatch ? baseMatch[1] : cur;
+              if (cur.endsWith('.jpg')) {
+                setHeaderAvatarSrc(`${baseNoExt}.png`);
+                return;
+              }
+              if (cur.endsWith('.png')) {
+                setHeaderAvatarSrc(`${baseNoExt}.webp`);
+                return;
+              }
+              if (cur.endsWith('.webp')) {
+                setHeaderAvatarSrc(`${baseNoExt}.svg`);
+                return;
+              }
+              if (cur.endsWith('.svg')) {
+                setHeaderAvatarSrc(`${baseNoExt}.jpg`); // legacy unhashed
+                return;
+              }
+            } catch (_) {}
+            try { setHeaderAvatarState('fallback'); } catch (_) {}
+          }}
         />
       ) : null}
     </div>
