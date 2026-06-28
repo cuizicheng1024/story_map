@@ -939,6 +939,29 @@ def test_map_initialisation_has_safety_net_timer():
     assert "safetyTimer" in html
 
 
+def test_map_outside_click_dismisses_location_popup():
+    """B10: clicking the empty map area should dismiss the stuck
+    location-detail popup. Marker clicks must not trigger it."""
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "setSelectedLoc(null)" in html
+    # The outside-click must skip the markers + arrows + glass panel
+    # so they don't accidentally close the popup.
+    assert ".map-point-label-shell" in html
+    assert ".glass-panel" in html
+
+
+def test_libai_has_jiangling_travel_custom_prompt():
+    """李白 should expose a 江陵游历 question so the user gets a
+    Jiangling-specific prompt instead of the generic
+    `${placeName}此处经历如何...` slot."""
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "'李白'" in html
+    assert "江陵游历" in html
+    assert "在江陵的游历如何改变了你的诗歌风格与气质" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     registry = importlib.import_module("storymap.script.core.person_registry")
     hints = typing.get_type_hints(registry.canonical_person_name)

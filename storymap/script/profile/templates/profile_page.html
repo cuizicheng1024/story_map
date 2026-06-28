@@ -9226,6 +9226,10 @@ const LIFE_GRADIENT_END = '#5D4037';
         // UX: 人物评价类型 — 让孔子评价同时代其他学派（老子）
         { label: '人物评价', question: '你如何看待老子的学说？', tone: 'rose' },
       ],
+      '李白': [
+        // UX: 替换默认的"此地触发"通用 prompt，给李白一个更聚焦的江陵游历问题
+        { label: '江陵游历', question: '在江陵的游历如何改变了你的诗歌风格与气质？', tone: 'green' },
+      ],
       '诸葛亮': [
         { label: '《出师表》', question: '你为什么写《出师表》？', tone: 'purple' },
       ],
@@ -10131,7 +10135,29 @@ const LIFE_GRADIENT_END = '#5D4037';
               ></div>
             )}
             <div className="journey-map-column relative flex-1 min-w-0">
-              <div id="map" ref={mapViewportRef} style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}>
+              <div
+                id="map"
+                ref={mapViewportRef}
+                style={{ height: journeyPanelHeight, minHeight: journeyPanelMinHeight }}
+                onClick={(e) => {
+                  // B10: clicking the empty map area dismisses the
+                  // location detail popup. The marker click handler
+                  // stopPropagation()s, so this only fires for true
+                  // empty-space clicks. Improves UX where the popup
+                  // would otherwise stay stuck after navigating away.
+                  try {
+                    const target = e.target;
+                    if (target && typeof target.closest === 'function') {
+                      if (target.closest('.map-point-label-shell')
+                          || target.closest('.map-segment-arrow')
+                          || target.closest('.glass-panel')) {
+                        return;
+                      }
+                    }
+                    setSelectedLoc(null);
+                  } catch (_) {}
+                }}
+              >
                 <div id="map-maplibre" className="map-canvas"></div>
                 <div id="map-amap" className="map-canvas is-hidden"></div>
                 <div id="map-cesium" className="map-canvas is-hidden"></div>
