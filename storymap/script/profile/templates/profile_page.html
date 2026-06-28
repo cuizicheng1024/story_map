@@ -4601,27 +4601,43 @@ const App = () => {
           onError={(e) => {
             try {
               const cur = String(e?.currentTarget?.src || headerAvatarSrc || '');
-              // B8 fallback chain: try .png / .webp / .svg after .jpg 404.
-              // Also probe the legacy unhashed format for figures whose
-              // cache predates the sha1 renaming.
-              const baseMatch = cur.match(/^(.*?)(?:\.[a-z]+)$/);
-              const baseNoExt = baseMatch ? baseMatch[1] : cur;
-              if (cur.endsWith('.jpg')) {
-                setHeaderAvatarSrc(`${baseNoExt}.png`);
+              // B8 fallback chain. We probe, in order:
+              //   1. ./portraits/<safename>-<sha1>.{ext}     (static disk, hashed)
+              //   2. /portrait/{name}.{ext}                  (FastAPI endpoint with ext)
+              //   3. /portrait/{name}                        (FastAPI endpoint, no ext)
+              // Each probe tries jpg → png → webp → svg. We stop as
+              // soon as any URL is set (the next onLoad/onError will
+              // recurse the chain if it also fails).
+              const personName = String(data.person?.name || '').trim();
+              if (!personName) {
+                try { setHeaderAvatarState('fallback'); } catch (_) {}
                 return;
               }
-              if (cur.endsWith('.png')) {
-                setHeaderAvatarSrc(`${baseNoExt}.webp`);
+              // Compute the hashed path once.
+              const hashed = (() => {
+                try {
+                  if (typeof buildStaticPortraitUrl === 'function') {
+                    return buildStaticPortraitUrl(personName).replace(/^\.\//, '/');
+                  }
+                } catch (_) {}
+                return null;
+              })();
+              const exts = ['jpg', 'png', 'webp', 'svg'];
+              // Determine what we just tried.
+              const triedExt = (() => {
+                const m = cur.replace(/\?.*$/, '').match(/\.([a-z]+)$/i);
+                return m ? m[1].toLowerCase() : '';
+              })();
+              const nextExtIdx = triedExt ? (exts.indexOf(triedExt) + 1) % exts.length : 0;
+              const nextExt = exts[nextExtIdx];
+              // Try hashed static path with next extension (only on first
+              // round of probing or when we cycled back to jpg).
+              if (hashed && (triedExt === '' || nextExtIdx === 0)) {
+                setHeaderAvatarSrc(`${hashed.replace(/\.jpg$/, '')}.${nextExt}?v=${avatarCacheBust}`);
                 return;
               }
-              if (cur.endsWith('.webp')) {
-                setHeaderAvatarSrc(`${baseNoExt}.svg`);
-                return;
-              }
-              if (cur.endsWith('.svg')) {
-                setHeaderAvatarSrc(`${baseNoExt}.jpg`); // legacy unhashed
-                return;
-              }
+              // Try API endpoint with explicit extension.
+              setHeaderAvatarSrc(`/portrait/${encodeURIComponent(personName)}.${nextExt}?v=${avatarCacheBust}`);
             } catch (_) {}
             try { setHeaderAvatarState('fallback'); } catch (_) {}
           }}
