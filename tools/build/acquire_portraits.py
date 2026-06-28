@@ -55,7 +55,7 @@ WIKIMEDIA_PORTRAITS: Dict[str, str] = {
     "欧阳修": "Ouyang_Xiu.jpg",
     "苏轼": "Su_shi.jpg",
     "王安石": "Wang_Anshi.jpg",
-    "范仲淹": "Fan_Zhongyan.jpg",
+    "范仲淹": "Fan_Zhongyan2.jpg",
     "李清照": "Li_Qingzhao.jpg",
     "屈原": "Qu_Yuan.jpg",
     "岳飞": "Yue_Fei.jpg",
@@ -68,6 +68,11 @@ WIKIMEDIA_PORTRAITS: Dict[str, str] = {
     "汉武帝": "Emperor_Wu_of_Han.jpg",
     "乾隆": "Qianlong_Emperor.jpg",
     "周恩来": "Zhou_Enlai.jpg",
+    # 新发现
+    "刘邦": "Liu_Bang.jpg",
+    "项羽": "Xiang_Yu.jpg",
+    "张良": "Zhang_Liang.jpg",
+    "关羽": "Guan_Yu.jpg",
     # 西洋（已验证存在）
     "苏格拉底": "Socrates_Louvre.jpg",
     "牛顿": "GodfreyKneller-IsaacNewton-1689.jpg",
