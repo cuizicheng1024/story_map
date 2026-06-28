@@ -4563,7 +4563,25 @@ const App = () => {
     } catch (_) {}
     return `/portrait/${encodeURIComponent(personName)}`;
   };
-  const [headerAvatarSrc, setHeaderAvatarSrc] = useState(() => computeInitialAvatarSrc(data.person?.name));
+  // Cache-bust portrait URLs so an HTML page opened after the build
+  // never sees a stale browser-cached 404. Use the page's build
+  // signature when available (window.__STORYMAP_BUILD_TAG__) and fall
+  // back to a session-stable random token.
+  const avatarCacheBust = useMemo(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const fromBuild = String(window.__STORYMAP_BUILD_TAG__ || '').trim();
+        if (fromBuild) return fromBuild;
+      }
+    } catch (_) {}
+    return `s${Math.floor(Math.random() * 1e9).toString(36)}`;
+  }, []);
+  const appendCacheBust = (url) => {
+    if (!url) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}v=${avatarCacheBust}`;
+  };
+  const [headerAvatarSrc, setHeaderAvatarSrc] = useState(() => appendCacheBust(computeInitialAvatarSrc(data.person?.name)));
   const [headerAvatarState, setHeaderAvatarState] = useState('loading'); // 'loading' | 'loaded' | 'fallback'
   useEffect(() => {
     setHeaderAvatarState('loading');
@@ -5977,6 +5995,14 @@ const LIFE_GRADIENT_END = '#5D4037';
         requestViewportInit('fallback');
       }, 1200);
     }
+    // B9: deterministic safety net — if the viewport observer never
+    // fires (e.g. the user is in a fixed viewport, the map element is
+    // re-positioned by CSS, or IntersectionObserver is mocked in tests)
+    // we still kick the map init within 2.5s of mount so the page
+    // never stays in "正在加载地图…" indefinitely.
+    const safetyTimer = window.setTimeout(() => {
+      if (!didRequest) requestViewportInit('safety-net');
+    }, 2500);
     return () => {
       if (fallbackTimer) {
         try { window.clearTimeout(fallbackTimer); } catch (_) {}
@@ -5984,6 +6010,7 @@ const LIFE_GRADIENT_END = '#5D4037';
       if (observer) {
         try { observer.disconnect(); } catch (_) {}
       }
+      try { window.clearTimeout(safetyTimer); } catch (_) {}
     };
   }, [mapInitRequestTick, mapLoadState, requestMapInitialization]);
   const handleMapNoticeAction = (action) => {
