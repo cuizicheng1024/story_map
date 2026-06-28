@@ -100,13 +100,51 @@ def portrait_cache_path(name: str) -> Path:
     """
     返回人物肖像缓存路径。先检查已存在的扩展名，避免 .png/.jpg 漂移。
     支持 .jpg/.png/.webp/.gif/.svg 五种扩展名（SVG 由本地占位生成）。
+
+    同一人物可能有多个别名（如 孔子 / 孔丘 / 至圣先师），按以下顺序查找：
+      1. 传入的 name 直接哈希
+      2. 该人物的已知别名列表（合并去重）
+      3. 兜底：返回 .png 路径让调用方决定
     """
-    base = portrait_dir() / _safe_filename(name)
-    for ext in (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"):
-        candidate = base.with_suffix(ext)
-        if candidate.exists() and candidate.stat().st_size > 0:
-            return candidate
-    return base.with_suffix(".png")
+    # 加载别名表（首次调用时缓存）
+    candidates = _name_candidates(name)
+    for candidate_name in candidates:
+        base = portrait_dir() / _safe_filename(candidate_name)
+        for ext in (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"):
+            p = base.with_suffix(ext)
+            if p.exists() and p.stat().st_size > 0:
+                return p
+    # 兜底：使用传入 name 的 .png 路径（让调用方决定）
+    return portrait_dir() / _safe_filename(name) / _safe_filename(name) if False else (
+        (portrait_dir() / _safe_filename(name)).with_suffix(".png")
+    )
+
+
+# ---------------------------------------------------------------------------
+# 别名支持：data.person.name = "孔丘" 但磁盘文件名按 "孔子" 哈希
+# ---------------------------------------------------------------------------
+_ALIAS_OVERRIDES: Dict[str, List[str]] = {
+    # 当 name 命中键时，额外尝试这些别名（包括原名本身）
+    "孔丘": ["孔丘", "孔子"],
+    "至圣先师": ["至圣先师", "孔子", "孔丘"],
+}
+
+
+def _name_candidates(name: str) -> List[str]:
+    """返回查找该人物 portrait 时应该尝试的所有 name 候选。"""
+    name = (name or "").strip()
+    if not name:
+        return []
+    if name in _ALIAS_OVERRIDES:
+        # 去重保持顺序
+        seen = set()
+        out = []
+        for n in _ALIAS_OVERRIDES[name]:
+            if n and n not in seen:
+                seen.add(n)
+                out.append(n)
+        return out
+    return [name]
 
 
 def portrait_base_path(name: str) -> Path:
