@@ -881,6 +881,26 @@ def test_active_point_writes_to_url_hash_for_shareable_links():
     assert "targetHash" in html
 
 
+def test_scholar_profile_includes_person_evaluation_prompt():
+    """The scholar profile's recommended-question set must include a
+    人物评价 (person evaluation) prompt so users can ask scholars to
+    comment on contemporaries / predecessors."""
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    assert "人物评价" in html
+    # The scholar-specific question should reference "同时代" (contemporary)
+    # so it surfaces naturally for figures like 孔子 → 老子.
+    scholar_idx = html.index("profile === 'scholar'")
+    scholar_block = html[scholar_idx:scholar_idx + 1500]
+    assert "人物评价" in scholar_block
+    # 孔子 should have a custom override that points at 老子's teachings
+    # so the user gets the persona-appropriate prompt even before the
+    # generic slot fires.
+    assert "'孔子'" in html
+    assert "你如何看待老子的学说" in html
+
+
 def test_map_html_renderer_type_hints_resolve_for_canonical_person_name():
     registry = importlib.import_module("storymap.script.core.person_registry")
     hints = typing.get_type_hints(registry.canonical_person_name)
