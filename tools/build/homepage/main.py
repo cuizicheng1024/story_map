@@ -1,235 +1,241 @@
-<!doctype html>
+#!/usr/bin/env python3
+
+from __future__ import annotations
+import logging
+_logger = logging.getLogger(__name__)
+
+import argparse
+import hashlib
+import json
+import math
+import os
+import re
+import shutil
+import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote as url_quote
+from urllib.request import Request, urlopen
+
+from storymap.script.core.project_paths import (
+    data_corpus_file_path,
+    data_corpus_dir_path,
+    data_reports_dir_path,
+    is_valid_person_name,
+    person_name_from_filename,
+    project_root_path,
+    story_artifacts_dir_path,
+    story_md_dir_path,
+    story_person_names,
+)
+from storymap.script.core.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
+from storymap.script.core.analytics import analytics_head_html
+from storymap.script.profile.tooltip_js import person_tooltip_js
+from storymap.script.core.build_meta import build_artifact_meta
+from storymap.script.core import parsers as parser_utils
+
+try:
+    from tools.build.homepage_search import HAS_PINYIN, build_search_fields
+except Exception as _exc:
+    try:
+        from tools.homepage_search import HAS_PINYIN, build_search_fields
+    except Exception as _exc:
+        from homepage_search import HAS_PINYIN, build_search_fields
+
+try:
+    from tools.build.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
+except Exception as _exc:
+    try:
+        from tools.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
+    except Exception as _exc:
+        _sync_orange_office_ui_impl = None
+
+
+REPO_ROOT = project_root_path()
+try:
+    from dotenv import load_dotenv  # type: ignore
+except Exception as _exc:
+    load_dotenv = None
+try:
+    from storymap.script.core.env_utils import apply_story_map_env_aliases, env_flag
+    from storymap.script.profile.graph_service import (
+        graph_backend_name,
+        load_home_graph_payload_with_source,
+        should_sync_to_neo4j,
+        sync_graph_payload_to_neo4j,
+        write_normalized_graph_json,
+    )
+except Exception as _exc:
+    apply_story_map_env_aliases = None
+    env_flag = None
+    graph_backend_name = None
+    load_home_graph_payload_with_source = None
+    should_sync_to_neo4j = None
+    sync_graph_payload_to_neo4j = None
+    write_normalized_graph_json = None
+if load_dotenv:
+    load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
+    load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
+    load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
+if apply_story_map_env_aliases:
+    apply_story_map_env_aliases()
+STORY_MD_DIR = story_md_dir_path()
+STORY_MAP_DIR = story_artifacts_dir_path()
+GRAPH_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "graph"
+DATA_CORPUS_DIR = data_corpus_dir_path()
+DATA_REPORTS_DIR = data_reports_dir_path()
+SUMMARY_INDEX_JSON = data_corpus_file_path("people_summary_index.json")
+WORK_SUMMARY_INDEX_JSON = data_corpus_file_path("work_summary_index.json")
+KNOWLEDGE_GRAPH_JSON = data_corpus_file_path("people_knowledge_graph.json")
+BIRTH_COORDS_WGS84_JSON = data_corpus_file_path("people_birth_coords_wgs84.json")
+HOMEPAGE_PET_ASSET_OUTPUT_NAME = "orange.png"
+HOMEPAGE_PET_ASSET_CANDIDATES = [
+    REPO_ROOT / "assets" / "orange.png",
+    REPO_ROOT / "tools" / "orange.png",
+    REPO_ROOT / "orange.png",
+    REPO_ROOT / "orange.PNG",
+    REPO_ROOT / "tools" / "orange-avatar.png",
+    REPO_ROOT / "orange-avatar.png",
+]
+HOME_DETAIL_NODE_FIELDS: Tuple[str, ...] = (
+    "review",
+    "work_summaries",
+    "relations",
+    "relations_meta",
+    "domain_tags",
+    "risk_level",
+    "audit_pass",
+    "audit_uncertain",
+)
+MIN_YEAR = -800
+MAX_YEAR = 2000
+ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
+    ("military", "军事", ("军事家", "兵家", "将领", "将军", "武将", "统帅", "元帅", "名将", "军人", "起义军领袖")),
+    ("politics", "政治", ("政治家", "改革家", "革命家", "外交家", "领袖", "君主", "帝王", "皇帝", "总统", "丞相", "宰相", "大臣", "官员", "赞普", "首领")),
+    ("literature", "文学", ("文学家", "诗人", "词人", "作家", "文豪", "散文家", "小说家", "剧作家", "文人", "辞赋家", "翻译家")),
+    ("academic", "学术思想", ("哲学家", "教育家", "史学家", "历史学家", "学者", "理学家", "儒学家", "经学家", "古文字学家", "考古学家", "思想史家")),
+    ("thought", "思想", ("思想家", "宗教家", "社会活动家", "启蒙思想家", "理论家", "法家代表人物")),
+    ("science", "科学", ("科学家", "数学家", "物理学家", "化学家", "生物学家", "医学家", "医家", "发明家", "工程师", "农学家", "天文学家", "地理学家", "地质学家", "飞机设计师", "航空工程师")),
+    ("art", "艺术", ("艺术家", "画家", "书法家", "音乐家", "戏剧家", "戏曲家", "建筑师", "雕塑家", "设计师")),
+]
+ROLE_BAND_ORDER: List[str] = [item[0] for item in ROLE_BAND_SPECS] + ["other"]
+ROLE_BAND_LABELS: Dict[str, str] = {key: label for key, label, _ in ROLE_BAND_SPECS}
+ROLE_BAND_LABELS["other"] = "其他"
+PERSON_PAGE_REDIRECTS: Dict[str, str] = person_redirects()
+
+
+
+from tools.build.homepage.utils import (
+    HtmlEntry,
+    _analytics_head_html,
+    _canonical_story_name_entries,
+    _design_tokens_style_tag,
+    _extract_birth_from_story_map_html,
+    _gcj02_to_wgs84,
+    _is_inside_china,
+    _now,
+    _read_json,
+    _remove_person_alias_redirect_pages,
+    _scan_latest_html,
+    _sha1_int,
+    _transform_lat,
+    _transform_lng,
+    _wgs84_to_gcj02,
+    _runtime_api_base_env,
+)
+from tools.build.homepage.md_extract import (
+    _birthplace_has_multiple_place_options,
+    _birthplace_lookup_terms,
+    _birthplace_source_values,
+    _birthplace_text_is_ambiguous,
+    _clean_review_text,
+    _dynasty_hint_from_md,
+    _dynasty_mid_year,
+    _dynasty_range_from_label,
+    _extract_basic_place_from_md,
+    _extract_birthplace_from_md,
+    _extract_disambiguation,
+    _extract_relations,
+    _extract_work_titles_from_text,
+    _extract_years_from_md,
+    _is_foreign_person,
+    _load_llm_relations_cache,
+    _load_work_summary_items,
+    _looks_like_date_or_period_text,
+    _match_role_band,
+    _normalize_dynasty_label,
+    _normalize_home_work_title,
+    _pick_main_dynasty_by_years,
+    _pick_markdown_field,
+    _pick_person_work_summaries,
+    _pick_quote,
+    _resolve_main_role_band,
+    _resolve_person_works,
+    _scan_people_from_story_md,
+    _split_role_parts,
+    _strip_birthplace_date_ambiguity_text,
+    _strip_common_birthplace_prefixes,
+    _strip_markdown_markers,
+    _strip_parenthetical_place_text,
+)
+from tools.build.homepage.output import (
+    _derive_home_detail_file_name,
+    _prepare_home_payload_for_output,
+    _split_home_payload_for_delivery,
+    _sync_embedded_apps,
+    _sync_homepage_pet_asset,
+    _sync_vendor_assets,
+    _write_homepage_outputs,
+)
+
+def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str:
+    safe_title = title.strip() or "故事地图"
+    design_tokens = _design_tokens_style_tag()
+    # Always render a fresh index.html instead of patching an existing template.
+    # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
+    static_site = bool(env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")) if env_flag else False
+    api_base = _runtime_api_base_env()
+    amap_key = str(os.getenv("AMAP_KEY", "")).strip()
+    amap_sec = str(os.getenv("AMAP_SECURITY", "")).strip()
+    amap_inline = ""
+    if amap_key or amap_sec:
+        parts = []
+        if amap_key:
+            parts.append(f"window.AMAP_KEY={json.dumps(amap_key, ensure_ascii=False)};")
+        if amap_sec:
+            parts.append(f"window.AMAP_SECURITY={json.dumps(amap_sec, ensure_ascii=False)};")
+        amap_inline = "<script>" + "".join(parts) + "</script>"
+    runtime_parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
+    if api_base:
+        runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
+    runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
+    analytics_head = _analytics_head_html()
+    shared_person_tooltip_js = person_tooltip_js()
+    demo_banner = ""
+    return rf"""<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>故事地图</title>
+    <title>{safe_title}</title>
     <link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
     <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
     <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8F24PMY4F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', "G-B8F24PMY4F");</script><script>(function(n,e,r,t,a,o,s,i,c,l,f,m,p,u){o="precollect";s="getAttribute";i="addEventListener";c="PerformanceObserver";l=function(e){f=[].slice.call(arguments);f.push(Date.now(),location.href);(e==o?l.p.a:l.q).push(f)};l.q=[];l.p={a:[]};n[a]=l;m=document.createElement("script");m.src=r+"?aid="+t+"&globalName="+a;m.crossOrigin="anonymous";e.getElementsByTagName("head")[0].appendChild(m);if(i in n){l.pcErr=function(e){e=e||n.event;p=e.target||e.srcElement;if(p instanceof Element||p instanceof HTMLElement){n[a](o,"st",{tagName:p.tagName,url:p[s]("href")||p[s]("src")});}else{n[a](o,"err",e.error||e.message)}};l.pcRej=function(e){e=e||n.event;n[a](o,"reject",e.reason||e.detail&&e.detail.reason)};n[i]("error",l.pcErr,true);n[i]("unhandledrejection",l.pcRej,true)}if("PerformanceLongTaskTiming"in n){u=l.pp={entries:[]};u.observer=new PerformanceObserver(function(e){u.entries=u.entries.concat(e.getEntries())});u.observer.observe({entryTypes:["longtask"]})}})(window,document,"https://apm.volccdn.com/mars-web/apmplus/web/browser.cn.js",1002542,"apmPlus");</script><script>window.__storyMapApmConfiguredPageName="人类群星闪耀时";window.__storyMapApmReadablePath=(function(){try{const raw=String((window.location&&window.location.pathname)||'').trim();const decoded=decodeURIComponent(raw||'/');if(!decoded||decoded==='/') return '首页';const normalized=decoded.replace(/\/+/g,'/');const last=normalized.split('/').filter(Boolean).pop()||normalized;return String(last||normalized||'').trim()||'首页';}catch(_err){const raw=String((window.location&&window.location.pathname)||'').trim();if(!raw||raw==='/') return '首页';const normalized=raw.replace(/\/+/g,'/');return normalized.split('/').filter(Boolean).pop()||normalized;}})();window.__storyMapApmPageTitle=(function(){const raw=String(document.title||'').trim();if(!raw) return '';return raw.replace(/的人生足迹地图$/,'').trim();})();window.__storyMapApmPid=(function(){const preferred=String(window.__storyMapApmConfiguredPageName||'').trim();if(preferred) return preferred;const title=String(window.__storyMapApmPageTitle||'').trim();if(title) return title;const readablePath=String(window.__storyMapApmReadablePath||'').trim();if(readablePath) return readablePath;return '首页';})();window.__storyMapApmDecodedPath=(function(){try{return decodeURIComponent(String((window.location&&window.location.pathname)||''));}catch(_err){return String((window.location&&window.location.pathname)||'');}})();</script><script>window.apmPlus('init',{aid:1002542,token:"b2156d4359034cb9937301e121351d4f",pid: window.__storyMapApmPid,env:"prod"});window.apmPlus('start');window.apmPlus('sendEvent', {name:'story_map_page_open',categories:Object.assign({"page_type": "homepage", "page_name": "人类群星闪耀时", "site_name": "map_story"},{path:window.location.pathname,path_decoded:window.__storyMapApmDecodedPath,readable_path:window.__storyMapApmReadablePath,readable_pid:window.__storyMapApmPid,page_title:document.title,hostname:window.location.hostname})});</script>
-    <script>window.AMAP_KEY="5fa83d7e29e8a74369f9e81098e3842f";window.AMAP_SECURITY="1447ba9d24c2b840b8be056867c21730";</script>
-    <script>window.MAP_STORY_STATIC_SITE=false;</script>
-    <style>
-:root {
-  --color-primary: #8B6914;
-  --color-primary-hover: #6B4F10;
-  --color-primary-soft: #F5EDDE;
-  --color-success: #5B8C5A;
-  --color-success-soft: rgba(91, 140, 90, 0.14);
-  --color-warning: #D4A853;
-  --color-warning-soft: rgba(212, 168, 83, 0.16);
-  --color-danger: #B8453A;
-  --color-danger-soft: rgba(184, 69, 58, 0.14);
-  --color-surface: rgba(255, 250, 238, 0.92);
-  --color-surface-strong: rgba(255, 252, 243, 0.96);
-  --color-surface-muted: #F5F0E6;
-  --color-surface-alt: #F0EAD6;
-  --color-bg: #F5F0E6;
-  --color-bg-elevated: #F0EAD6;
-  --color-text: #3D2E1F;
-  --color-text-secondary: #6B5B4E;
-  --color-text-tertiary: #9B8C7D;
-  --color-border: #D5C9B5;
-  --color-border-strong: #BFAD93;
-  --color-white: #FFFDF8;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-pill: 999px;
-  --shadow-sm: 0 8px 18px rgba(80, 50, 20, 0.06);
-  --shadow-md: 0 16px 36px rgba(80, 50, 20, 0.10);
-  --shadow-lg: 0 28px 56px rgba(80, 50, 20, 0.14);
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-  --motion-fast: 160ms;
-  --motion-base: 220ms;
-  --motion-slow: 360ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --font-ui: "Inter", "SF Pro Display", "PingFang SC", "Noto Sans SC", sans-serif;
-  --font-serif: "Noto Serif SC", "Songti SC", serif;
-}
-
-body {
-  color: var(--color-text);
-  background:
-    radial-gradient(900px 620px at 10% 0%, rgba(139, 105, 20, 0.08), transparent 60%),
-    radial-gradient(760px 520px at 100% 6%, rgba(91, 140, 90, 0.06), transparent 58%),
-    linear-gradient(180deg, #FDFAF3 0%, var(--color-bg) 100%);
-}
-
-button,
-input,
-textarea,
-select {
-  font-family: var(--font-ui);
-}
-
-.theme-card {
-  background: var(--color-surface);
-  border: 1px solid rgba(213, 201, 181, 0.88);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
-}
-
-.theme-card-strong {
-  background: var(--color-surface-strong);
-  border: 1px solid rgba(191, 173, 147, 0.72);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-}
-
-.theme-panel-muted {
-  background: rgba(245, 240, 230, 0.9);
-  border: 1px solid rgba(213, 201, 181, 0.72);
-  border-radius: var(--radius-lg);
-}
-
-.theme-input {
-  background: rgba(255, 252, 245, 0.94);
-  border: 1px solid rgba(213, 201, 181, 0.96);
-  color: var(--color-text);
-  border-radius: var(--radius-lg);
-  transition:
-    border-color var(--motion-fast) var(--ease-standard),
-    box-shadow var(--motion-fast) var(--ease-standard),
-    background-color var(--motion-fast) var(--ease-standard);
-}
-
-.theme-input::placeholder {
-  color: var(--color-text-tertiary);
-}
-
-.theme-input:focus {
-  outline: none;
-  border-color: rgba(139, 105, 20, 0.38);
-  box-shadow: 0 0 0 4px rgba(139, 105, 20, 0.12);
-}
-
-.theme-button-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: var(--color-white);
-  border: 1px solid rgba(139, 105, 20, 0.26);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 12px 24px rgba(139, 105, 20, 0.18);
-  transition:
-    transform var(--motion-fast) var(--ease-standard),
-    box-shadow var(--motion-fast) var(--ease-standard),
-    filter var(--motion-fast) var(--ease-standard);
-}
-
-.theme-button-primary:hover {
-  box-shadow: 0 16px 28px rgba(139, 105, 20, 0.22);
-  filter: saturate(1.04);
-}
-
-.theme-button-primary:active {
-  transform: translateY(1px);
-}
-
-.theme-button-secondary {
-  background: rgba(255, 252, 245, 0.92);
-  color: var(--color-text);
-  border: 1px solid rgba(213, 201, 181, 0.96);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition:
-    transform var(--motion-fast) var(--ease-standard),
-    border-color var(--motion-fast) var(--ease-standard),
-    box-shadow var(--motion-fast) var(--ease-standard),
-    background-color var(--motion-fast) var(--ease-standard);
-}
-
-.theme-button-secondary:hover {
-  background: var(--color-white);
-  border-color: rgba(139, 105, 20, 0.22);
-  box-shadow: 0 12px 24px rgba(80, 50, 20, 0.10);
-}
-
-.theme-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary-soft);
-  border: 1px solid rgba(191, 173, 147, 0.9);
-  color: var(--color-primary);
-}
-
-.theme-chip-muted {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 252, 245, 0.78);
-  border: 1px solid rgba(213, 201, 181, 0.9);
-  color: var(--color-text-secondary);
-}
-
-.theme-title {
-  color: var(--color-text);
-  letter-spacing: -0.02em;
-}
-
-.theme-subtitle {
-  color: var(--color-text-secondary);
-}
-
-.theme-kicker {
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  border: 1px solid rgba(191, 173, 147, 0.86);
-  border-radius: var(--radius-pill);
-}
-
-.theme-link {
-  color: var(--color-primary);
-}
-
-.theme-link:hover {
-  color: var(--color-primary-hover);
-}
-
-.theme-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.theme-scrollbar::-webkit-scrollbar-track {
-  background: rgba(213, 201, 181, 0.6);
-  border-radius: var(--radius-pill);
-}
-
-.theme-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(107, 91, 78, 0.48);
-  border-radius: var(--radius-pill);
-}
-
-.theme-graph-panel {
-  background:
-    radial-gradient(1200px 720px at 10% 0%, rgba(139, 105, 20, 0.16), transparent 56%),
-    radial-gradient(760px 560px at 86% 12%, rgba(91, 140, 90, 0.10), transparent 56%),
-    radial-gradient(720px 520px at 40% 100%, rgba(212, 168, 83, 0.12), transparent 58%),
-    linear-gradient(140deg, #2A2218 0%, #3D3422 56%, #4A3E28 100%);
-}
-
-</style>
+    {analytics_head}
+    {amap_inline}
+    {runtime_inline}
+    {design_tokens}
     <script src="./vendor/tailwindcss.js"></script>
     <link rel="stylesheet" href="./index.css?v=202607031" />
   </head>
   <body class="min-h-screen">
     <div class="max-w-[1310px] mx-auto px-4 py-6 space-y-4">
-      
+      {demo_banner}
       <div class="glass card theme-card home-search-card px-6 py-5 relative z-30 overflow-visible">
         <div class="home-title-wrap">
           <div class="home-title-mark">STORY MAP</div>
@@ -322,7 +328,7 @@ select {
               </div>
               <div class="pixel-progress-workbench">
                 <div id="pixelOcelotWrap" class="pixel-orange-pet-wrap" data-idle-scene="idle">
-                  <img class="pixel-orange-pet-img" src="./orange.png" alt="橙子工位形象" loading="eager" decoding="async" onerror="this.style.display='none';" />
+                  <img class="pixel-orange-pet-img" src="./{HOMEPAGE_PET_ASSET_OUTPUT_NAME}" alt="橙子工位形象" loading="eager" decoding="async" onerror="this.style.display='none';" />
                   <div class="pixel-orange-pet-fallback" aria-hidden="true"></div>
                 </div>
                 <div class="pixel-progress-bubble">
@@ -469,12 +475,12 @@ select {
           <div class="flex items-center justify-between mt-2 text-[11px] text-white/55">
             <div class="flex items-center gap-2">
               <span>起：</span>
-              <input id="startYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="-800" max="2000" step="1" inputmode="numeric" />
+              <input id="startYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
             </div>
             <div>窗口跨度：约 <span id="spanYear">-</span> 年</div>
             <div class="flex items-center gap-2">
               <span>止：</span>
-              <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="-800" max="2000" step="1" inputmode="numeric" />
+              <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
             </div>
           </div>
           <div id="timeRangeHint" class="hidden mt-2 text-[11px] text-amber-200"></div>
@@ -500,13 +506,13 @@ select {
     <div id="workTip" class="home-work-tooltip hidden"></div>
 
     <script>
-      const DATA_FILE = "stellar_home_data.json";
-      const DATA_DETAIL_FILE = "stellar_home_data_detail.json";
+      const DATA_FILE = "{data_file}";
+      const DATA_DETAIL_FILE = "{detail_file}";
       const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
       const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
-      const resolvedApiBase = (() => {
+      const resolvedApiBase = (() => {{
         if (API_BASE) return API_BASE;
-        try {
+        try {{
           const loc = window.location;
           const host = String(loc && loc.hostname ? loc.hostname : "").trim().toLowerCase();
           const isLocalHost = host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".localhost");
@@ -516,22 +522,22 @@ select {
           if (!STATIC_SITE) return "";
           const runtimeHost = host === "::1" ? "127.0.0.1" : (loc.hostname || "127.0.0.1");
           return loc.protocol + "//" + runtimeHost + ":8765";
-        } catch (_) {
+        }} catch (_) {{
           return "";
-        }
-      })();
-      const apiUrl = (path) => {
+        }}
+      }})();
+      const apiUrl = (path) => {{
         const rel = String(path || "").replace(/^\/+/, "");
         if (!rel) return "./";
-        if (resolvedApiBase) {
+        if (resolvedApiBase) {{
           return resolvedApiBase.replace(/\/+$/, "") + "/" + rel;
-        }
+        }}
         return "./" + rel;
-      };
-      const requireBackend = (actionText) => {
+      }};
+      const requireBackend = (actionText) => {{
         const action = String(actionText || "该功能").trim() || "该功能";
         return action + " 需要单独部署 FastAPI 后端；静态站当前仅支持浏览已生成内容。";
-      };
+      }};
       const $q = document.getElementById("q");
       const $go = document.getElementById("go");
       const $goLabel = $go ? $go.querySelector(".home-search-submit-label") : null;
@@ -600,8 +606,8 @@ select {
       const pixelGenSceneLights = Array.from(document.querySelectorAll("#pixelGenSceneLights .pixel-progress-scene-light"));
       const STAR_OFFICE_URL = "./orange-office.html";
       const STAR_OFFICE_OPEN_IN_NEW_TAB = true;
-      const YEAR_INPUT_MIN = -800;
-      const YEAR_INPUT_MAX = 2000;
+      const YEAR_INPUT_MIN = {MIN_YEAR};
+      const YEAR_INPUT_MAX = {MAX_YEAR};
       const PERSON_NAME_MAX_LENGTH = 12;
       const PERSON_NAME_ALLOWED_RE = /^[A-Za-z\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF\u3007\u00B7.\-'\s]+$/u;
       const $resetMap = document.getElementById("resetMap");
@@ -614,7 +620,7 @@ select {
       let W = $c.width;
       let H = $c.height;
       const pad = 18;
-      const syncCanvasSize = () => {
+      const syncCanvasSize = () => {{
         if (!$c || !ctx) return;
         const rect = $c.getBoundingClientRect();
         const cssW = Math.max(1, Math.round(rect.width || $c.width || 1));
@@ -624,32 +630,32 @@ select {
         H = cssH;
         const pixelW = Math.max(1, Math.round(cssW * dpr));
         const pixelH = Math.max(1, Math.round(cssH * dpr));
-        if ($c.width !== pixelW || $c.height !== pixelH) {
+        if ($c.width !== pixelW || $c.height !== pixelH) {{
           $c.width = pixelW;
           $c.height = pixelH;
-        }
-        try {
+        }}
+        try {{
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        } catch (_) {}
-      };
+        }} catch (_) {{}}
+      }};
       syncCanvasSize();
 
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
       const lerp = (a, b, t) => a + (b - a) * t;
-      const hash = (s) => {
+      const hash = (s) => {{
         let h = 2166136261;
-        for (let i=0;i<s.length;i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        for (let i=0;i<s.length;i++) {{ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }}
         return (h >>> 0);
-      };
-      const rand01 = (seed) => {
+      }};
+      const rand01 = (seed) => {{
         let x = seed >>> 0;
         x ^= x << 13; x >>>= 0;
         x ^= x >> 17; x >>>= 0;
         x ^= x << 5; x >>>= 0;
         return (x >>> 0) / 4294967296;
-      };
+      }};
 
-      const colorByYear = (y) => {
+      const colorByYear = (y) => {{
         if (y == null) return "rgba(255,255,255,0.75)";
         if (y < 0) return "#34a853";
         if (y < 220) return "#ea4335";
@@ -660,9 +666,9 @@ select {
         if (y < 1840) return "#0f9d58";
         if (y < 1911) return "#ff7043";
         return "#c0ca33";
-      };
+      }};
 
-      const hexToRgba = (hex, a) => {
+      const hexToRgba = (hex, a) => {{
         const s = String(hex || "").trim();
         const alpha = Number.isFinite(Number(a)) ? Number(a) : 1;
         if (!s.startsWith("#")) return s;
@@ -673,36 +679,36 @@ select {
         const g = parseInt(full.slice(2, 4), 16);
         const b = parseInt(full.slice(4, 6), 16);
         if (![r, g, b].every((x) => Number.isFinite(x))) return s;
-        return `rgba(${r},${g},${b},${alpha})`;
-      };
+        return `rgba(${{r}},${{g}},${{b}},${{alpha}})`;
+      }};
 
-      const _isInsideChina = (lat, lng) => {
+      const _isInsideChina = (lat, lng) => {{
         const la = Number(lat);
         const lo = Number(lng);
         if (!Number.isFinite(la) || !Number.isFinite(lo)) return false;
         return la >= 17.5 && la <= 55.5 && lo >= 72.0 && lo <= 136.5;
-      };
+      }};
       const _PI = Math.PI;
       const _A = 6378245.0;
       const _EE = 0.00669342162296594323;
-      const _transformLat = (x, y) => {
+      const _transformLat = (x, y) => {{
         let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
         ret += (20.0 * Math.sin(6.0 * x * _PI) + 20.0 * Math.sin(2.0 * x * _PI)) * 2.0 / 3.0;
         ret += (20.0 * Math.sin(y * _PI) + 40.0 * Math.sin(y / 3.0 * _PI)) * 2.0 / 3.0;
         ret += (160.0 * Math.sin(y / 12.0 * _PI) + 320.0 * Math.sin(y * _PI / 30.0)) * 2.0 / 3.0;
         return ret;
-      };
-      const _transformLng = (x, y) => {
+      }};
+      const _transformLng = (x, y) => {{
         let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
         ret += (20.0 * Math.sin(6.0 * x * _PI) + 20.0 * Math.sin(2.0 * x * _PI)) * 2.0 / 3.0;
         ret += (20.0 * Math.sin(x * _PI) + 40.0 * Math.sin(x / 3.0 * _PI)) * 2.0 / 3.0;
         ret += (150.0 * Math.sin(x / 12.0 * _PI) + 300.0 * Math.sin(x / 30.0 * _PI)) * 2.0 / 3.0;
         return ret;
-      };
-      const wgs84ToGcj02 = (lat, lng) => {
+      }};
+      const wgs84ToGcj02 = (lat, lng) => {{
         const la = Number(lat);
         const lo = Number(lng);
-        if (!_isInsideChina(la, lo)) return { lat: la, lng: lo };
+        if (!_isInsideChina(la, lo)) return {{ lat: la, lng: lo }};
         let dLat = _transformLat(lo - 105.0, la - 35.0);
         let dLng = _transformLng(lo - 105.0, la - 35.0);
         const radLat = (la / 180.0) * _PI;
@@ -711,138 +717,65 @@ select {
         const sqrtMagic = Math.sqrt(magic);
         dLat = (dLat * 180.0) / (((_A * (1 - _EE)) / (magic * sqrtMagic)) * _PI);
         dLng = (dLng * 180.0) / ((_A / sqrtMagic) * Math.cos(radLat) * _PI);
-        return { lat: la + dLat, lng: lo + dLng };
-      };
-      const gcj02ToWgs84 = (lat, lng) => {
+        return {{ lat: la + dLat, lng: lo + dLng }};
+      }};
+      const gcj02ToWgs84 = (lat, lng) => {{
         const la = Number(lat);
         const lo = Number(lng);
-        if (!_isInsideChina(la, lo)) return { lat: la, lng: lo };
+        if (!_isInsideChina(la, lo)) return {{ lat: la, lng: lo }};
         const mg = wgs84ToGcj02(la, lo);
-        return { lat: la * 2.0 - mg.lat, lng: lo * 2.0 - mg.lng };
-      };
+        return {{ lat: la * 2.0 - mg.lat, lng: lo * 2.0 - mg.lng }};
+      }};
 
-      const esc = (s) => String(s || "").replace(/[&<>\"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
-      const personTooltipStripMd = (s) => String(s || '').replace(/\*\*/g, '').replace(/__/g, '').trim();
-const personTooltipCleanTaglineText = (s) => String(s || '')
-  .replace(/^\s*[-*•]\s*/u, '')
-  .replace(/^\d+\.\s*/u, '')
-  .replace(/^(?:人物)?短评\s*[：:]\s*/u, '')
-  .trim();
-const personTooltipStripOuterQuotes = (s) => {
-  let t = String(s || '').trim();
-  t = t.replace(/^[“"‘'「『]+/g, '').replace(/[”"’'」』]+$/g, '');
-  return t.trim();
-};
-const personTooltipStripParenChars = (s) => String(s || '').replace(/[（）()]/g, '').trim();
-const personTooltipFormatBirthplace = (ancient, modern) => {
-  const a = personTooltipStripParenChars(String(ancient || '').trim());
-  const m0 = personTooltipStripParenChars(String(modern || '').trim());
-  const m = m0.replace(/^今\s*/g, '今').trim();
-  if (a && m && a !== m) return `${a} · ${m}`;
-  return a || m || '';
-};
-const personTooltipFormatYearLabel = (year) => {
-  const num = Number(year);
-  if (!Number.isFinite(num) || num === 0) return '';
-  return num < 0 ? `前${Math.abs(Math.trunc(num))}年` : `${Math.trunc(num)}年`;
-};
-const personTooltipFormatYearRange = (birthYear, deathYear) => {
-  const birth = personTooltipFormatYearLabel(birthYear);
-  const death = personTooltipFormatYearLabel(deathYear);
-  if (birth && death) return `${birth}-${death}`;
-  return birth || death || '生卒待考';
-};
-const personTooltipUniqStrings = (items) => {
-  const out = [];
-  const seen = new Set();
-  (Array.isArray(items) ? items : []).forEach((item) => {
-    const text = String(item || '').trim();
-    if (!text || seen.has(text)) return;
-    seen.add(text);
-    out.push(text);
-  });
-  return out;
-};
-const buildPersonTooltipModel = (node, options = {}) => {
-  const name = String((node && (node.person || node.name)) || options.fallbackName || '相关人物').trim();
-  const foreign = String(node?.foreign_name || node?.foreignName || '').trim();
-  const aliases = personTooltipUniqStrings(Array.isArray(node?.aliases) ? node.aliases : [node?.aliases])
-    .filter((item) => String(item || '').trim() && String(item || '').trim() !== name)
-    .slice(0, Number.isFinite(Number(options.aliasLimit)) ? Math.max(0, Number(options.aliasLimit)) : 3);
-  const displayName = foreign || name;
-  const secondaryName = foreign && name && foreign !== name ? name : '';
-  const roleLabel = String(node?.main_role_label || '').trim();
-  const tags = personTooltipUniqStrings(Array.isArray(node?.domain_tags) ? node.domain_tags : []).slice(0, 4);
-  const dynasty = String(node?.dynasty || '').trim();
-  const birthplace = personTooltipFormatBirthplace(node?.birthplace, node?.birthplace_modern);
-  const quote = personTooltipCleanTaglineText(personTooltipStripMd(String(node?.quote || '').trim()));
-  const review = personTooltipCleanTaglineText(personTooltipStripMd(String(node?.review || '').trim()));
-  const tagline = personTooltipStripOuterQuotes(review || quote);
-  const rows = [
-    { label: '生卒', value: personTooltipFormatYearRange(node?.birth_year, node?.death_year) },
-  ];
-  if (dynasty) rows.push({ label: '时代', value: dynasty });
-  if (roleLabel) rows.push({ label: '身份', value: roleLabel });
-  if (aliases.length) rows.push({ label: '别名', value: aliases.join(' / ') });
-  if (tags.length) rows.push({ label: '领域', value: tags.join(' / ') });
-  if (birthplace) rows.push({ label: '出生地', value: birthplace });
-  return {
-    name,
-    displayName,
-    secondaryName,
-    rows,
-    tagline,
-    hasStory: node?.has_story !== false,
-    badgeText: node?.has_story === false ? '暂未生成' : '',
-  };
-};
-      const normalizeSearchText = (s) => {
+      const esc = (s) => String(s || "").replace(/[&<>\"']/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}})[c]);
+      {shared_person_tooltip_js}
+      const normalizeSearchText = (s) => {{
         let t = String(s || "").trim().toLowerCase();
         if (!t) return "";
         t = t.replace(/[·・•‧]/g, "");
         t = t.replace(/[“”"'`‘’]/g, "");
-        t = t.replace(/[\s\-_./,，、:：;；()（）\[\]{}<>《》]+/g, "");
+        t = t.replace(/[\s\-_./,，、:：;；()（）\[\]{{}}<>《》]+/g, "");
         t = t.replace(/[^0-9a-z\u4e00-\u9fff]+/g, "");
         return t.trim();
-      };
-      const uniqStrings = (items) => {
+      }};
+      const uniqStrings = (items) => {{
         const out = [];
         const seen = new Set();
-        for (const item of (Array.isArray(items) ? items : [])) {
+        for (const item of (Array.isArray(items) ? items : [])) {{
           const s = String(item || "").trim();
           if (!s || seen.has(s)) continue;
           seen.add(s);
           out.push(s);
-        }
+        }}
         return out;
-      };
-      const normalizeHomeWorkTitle = (value) => {
+      }};
+      const normalizeHomeWorkTitle = (value) => {{
         let text = String(value || "").trim();
         if (!text) return "";
         text = text.replace(/[*_`]+/g, "").trim();
-        if (text.startsWith("《") && text.endsWith("》") && text.length > 2) {
+        if (text.startsWith("《") && text.endsWith("》") && text.length > 2) {{
           text = text.slice(1, -1).trim();
-        }
+        }}
         return text.replace(/\s+/g, " ").trim();
-      };
-      const cleanWorkTooltipText = (value, maxLen = 120) => {
+      }};
+      const cleanWorkTooltipText = (value, maxLen = 120) => {{
         let text = String(value || "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
         if (!text) return "";
         if (text.length > maxLen) text = text.slice(0, maxLen).trimEnd() + "…";
         return text;
-      };
-      const resolveNodeWorkSummary = (node, title) => {
+      }};
+      const resolveNodeWorkSummary = (node, title) => {{
         const cleanTitle = normalizeHomeWorkTitle(title);
         if (!cleanTitle || !node || typeof node !== "object") return null;
-        const summaries = node.work_summaries && typeof node.work_summaries === "object" ? node.work_summaries : {};
-        for (const [key, value] of Object.entries(summaries)) {
-          if (normalizeHomeWorkTitle(key) === cleanTitle && value && typeof value === "object") {
+        const summaries = node.work_summaries && typeof node.work_summaries === "object" ? node.work_summaries : {{}};
+        for (const [key, value] of Object.entries(summaries)) {{
+          if (normalizeHomeWorkTitle(key) === cleanTitle && value && typeof value === "object") {{
             return value;
-          }
-        }
+          }}
+        }}
         return null;
-      };
-      const hasWorkSummaryContent = (item) => {
+      }};
+      const hasWorkSummaryContent = (item) => {{
         if (!item || typeof item !== "object") return false;
         return Boolean(
           cleanWorkTooltipText(item.one_liner, 160) ||
@@ -853,8 +786,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
           cleanWorkTooltipText(item.genre, 40) ||
           uniqStrings(Array.isArray(item.authors) ? item.authors : []).length
         );
-      };
-      const buildWorkTooltipInnerHtml = (title, item) => {
+      }};
+      const buildWorkTooltipInnerHtml = (title, item) => {{
         const cleanTitle = normalizeHomeWorkTitle(title) || "相关作品";
         const authors = uniqStrings(Array.isArray(item?.authors) ? item.authors : []).join(" / ");
         const era = cleanWorkTooltipText(item?.era, 60);
@@ -868,23 +801,23 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const singleQuote = cleanWorkTooltipText(item?.quote, 96);
         if (!quoteItems.length && singleQuote) quoteItems.push(singleQuote);
         const rows = [
-          authors ? `<div class="text-slate-500 text-[11px] mt-1">作者：${esc(authors)}</div>` : "",
-          era ? `<div class="text-slate-500 text-[11px] mt-1">时代：${esc(era)}</div>` : "",
-          genre ? `<div class="text-slate-500 text-[11px] mt-1">体裁：${esc(genre)}</div>` : "",
+          authors ? `<div class="text-slate-500 text-[11px] mt-1">作者：${{esc(authors)}}</div>` : "",
+          era ? `<div class="text-slate-500 text-[11px] mt-1">时代：${{esc(era)}}</div>` : "",
+          genre ? `<div class="text-slate-500 text-[11px] mt-1">体裁：${{esc(genre)}}</div>` : "",
         ].filter(Boolean).join("");
-        const leadHtml = lead ? `<div class="text-slate-700 text-[12px] mt-1 whitespace-pre-wrap">${esc(lead)}</div>` : "";
+        const leadHtml = lead ? `<div class="text-slate-700 text-[12px] mt-1 whitespace-pre-wrap">${{esc(lead)}}</div>` : "";
         const quoteHtml = quoteItems.length
-          ? `<div class="text-slate-500 text-[11px] mt-1 whitespace-pre-wrap">${quoteItems.map((quote) => esc(quote)).join("<br>")}</div>`
+          ? `<div class="text-slate-500 text-[11px] mt-1 whitespace-pre-wrap">${{quoteItems.map((quote) => esc(quote)).join("<br>")}}</div>`
           : "";
         const quotePolicyHtml = quotePolicy === "summary_only" && !quoteItems.length
           ? `<div class="text-slate-400 text-[11px] mt-1">名句展示：此类作品默认仅展示摘要</div>`
           : "";
-        return `<div class="font-semibold text-slate-900">${esc(cleanTitle)}</div>${leadHtml}${rows}${quoteHtml}${quotePolicyHtml}`;
-      };
-      const hideWorkTip = () => {
+        return `<div class="font-semibold text-slate-900">${{esc(cleanTitle)}}</div>${{leadHtml}}${{rows}}${{quoteHtml}}${{quotePolicyHtml}}`;
+      }};
+      const hideWorkTip = () => {{
         if ($workTip) $workTip.classList.add("hidden");
-      };
-      const placeWorkTip = (clientX, clientY) => {
+      }};
+      const placeWorkTip = (clientX, clientY) => {{
         if (!$workTip) return;
         const pad = 12;
         const rect = $workTip.getBoundingClientRect();
@@ -894,19 +827,19 @@ const buildPersonTooltipModel = (node, options = {}) => {
         let top = Number(clientY) + 12;
         if (left + rect.width > vw - pad) left = Math.max(pad, Number(clientX) - rect.width - 12);
         if (top + rect.height > vh - pad) top = Math.max(pad, Number(clientY) - rect.height - 12);
-        $workTip.style.left = `${left}px`;
-        $workTip.style.top = `${top}px`;
-      };
-      const showWorkTip = (title, item, clientX, clientY) => {
-        if (!$workTip || !hasWorkSummaryContent(item)) {
+        $workTip.style.left = `${{left}}px`;
+        $workTip.style.top = `${{top}}px`;
+      }};
+      const showWorkTip = (title, item, clientX, clientY) => {{
+        if (!$workTip || !hasWorkSummaryContent(item)) {{
           hideWorkTip();
           return;
-        }
+        }}
         $workTip.innerHTML = buildWorkTooltipInnerHtml(title, item);
         $workTip.classList.remove("hidden");
         placeWorkTip(clientX, clientY);
-      };
-      const searchSummaryLabel = (reason) => {
+      }};
+      const searchSummaryLabel = (reason) => {{
         const r = String(reason || "").trim();
         if (r === "person_exact") return "本名精确";
         if (r === "alias_exact") return "别名精确";
@@ -921,7 +854,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (r === "foreign_fuzzy") return "外文模糊";
         if (r === "token_fuzzy") return "关键词模糊";
         return "相关结果";
-      };
+      }};
 
       let nodes = [];
       let edges = [];
@@ -948,55 +881,55 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let homeDetailLoaded = false;
       let homeDetailPending = false;
 
-      const detailNodeKey = (node) => {
+      const detailNodeKey = (node) => {{
         if (!node || typeof node !== "object") return "";
         const person = String(node.person || "").trim();
         if (person) return "person:" + person;
         const file = String(node.file || "").trim();
         return file ? "file:" + file : "";
-      };
-      const mergeNodeDetail = (node, patch) => {
+      }};
+      const mergeNodeDetail = (node, patch) => {{
         if (!node || typeof node !== "object" || !patch || typeof patch !== "object") return node;
         Object.assign(node, patch);
         return node;
-      };
-      const applyHomeDetailData = (detailData) => {
+      }};
+      const applyHomeDetailData = (detailData) => {{
         if (!detailData || typeof detailData !== "object") return;
         const detailNodes = Array.isArray(detailData.nodes) ? detailData.nodes : [];
-        if (!detailNodes.length || !nodes.length) {
+        if (!detailNodes.length || !nodes.length) {{
           homeDetailLoaded = true;
           return;
-        }
+        }}
         const nodeMap = new Map();
-        nodes.forEach((node) => {
+        nodes.forEach((node) => {{
           const key = detailNodeKey(node);
           if (key) nodeMap.set(key, node);
-        });
-        detailNodes.forEach((detailNode) => {
+        }});
+        detailNodes.forEach((detailNode) => {{
           const key = detailNodeKey(detailNode);
           if (!key || !nodeMap.has(key)) return;
           mergeNodeDetail(nodeMap.get(key), detailNode);
-        });
+        }});
         homeDetailLoaded = true;
-        try {
+        try {{
           if ($q && String($q.value || "").trim()) renderSearchSuggest($q.value);
-        } catch (_) {}
-        try { draw(); } catch (_) {}
-      };
-      const loadHomeDetailData = () => {
+        }} catch (_) {{}}
+        try {{ draw(); }} catch (_) {{}}
+      }};
+      const loadHomeDetailData = () => {{
         if (!DATA_DETAIL_FILE || homeDetailLoaded || homeDetailPending) return Promise.resolve(null);
         homeDetailPending = true;
         return fetch(DATA_DETAIL_FILE)
           .then((r) => (r && r.ok ? r.json() : null))
-          .then((detail) => {
+          .then((detail) => {{
             if (detail) applyHomeDetailData(detail);
             return detail;
-          })
+          }})
           .catch(() => null)
-          .finally(() => {
+          .finally(() => {{
             homeDetailPending = false;
-          });
-      };
+          }});
+      }};
 
       const isSpecialSunPerson = (n) => String((n && n.person) || "").trim() === "毛泽东";
 
@@ -1004,20 +937,20 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let camOffX = 0.0;
       let camOffY = 0.0;
 
-      const worldToScreen = (x, y) => {
-        return {
+      const worldToScreen = (x, y) => {{
+        return {{
           x,
           y: y * camScale + camOffY,
-        };
-      };
-      const screenToWorld = (x, y) => {
-        return {
+        }};
+      }};
+      const screenToWorld = (x, y) => {{
+        return {{
           x,
           y: (y - camOffY) / camScale,
-        };
-      };
-      const setSelected = (n) => {
-        if (!n || typeof n._idx !== "number") {
+        }};
+      }};
+      const setSelected = (n) => {{
+        if (!n || typeof n._idx !== "number") {{
           pendingMapFocusPerson = "";
           selectedIdx = -1;
           selected = null;
@@ -1028,7 +961,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           draw();
           updateMapMarkers();
           return;
-        }
+        }}
         selectedIdx = n._idx;
         selected = n;
         spotlightIdx = -1;
@@ -1037,86 +970,86 @@ const buildPersonTooltipModel = (node, options = {}) => {
         setLifeBar(selected);
         draw();
         updateMapMarkers();
-      };
-      const setSpotlight = (n, clientX, clientY) => {
-        if (!n || typeof n._idx !== "number") {
+      }};
+      const setSpotlight = (n, clientX, clientY) => {{
+        if (!n || typeof n._idx !== "number") {{
           spotlightIdx = -1;
           spotlight = null;
           setLifeBar(selected);
           draw();
           updateMapMarkers();
           return;
-        }
+        }}
         spotlightIdx = n._idx;
         spotlight = n;
         showTip(n, clientX, clientY);
         setLifeBar(spotlight);
         draw();
         updateMapMarkers();
-      };
+      }};
 
-      const timelineSegments = () => {
+      const timelineSegments = () => {{
         const segments = [
-          { a: minYear, b: Math.min(maxYear, 1840), w: 0.62 },
-          { a: Math.max(minYear, 1840), b: Math.min(maxYear, 1911), w: 0.16 },
-          { a: Math.max(minYear, 1911), b: maxYear, w: 0.22 },
+          {{ a: minYear, b: Math.min(maxYear, 1840), w: 0.62 }},
+          {{ a: Math.max(minYear, 1840), b: Math.min(maxYear, 1911), w: 0.16 }},
+          {{ a: Math.max(minYear, 1911), b: maxYear, w: 0.22 }},
         ].filter((seg) => Number.isFinite(seg.a) && Number.isFinite(seg.b) && seg.b > seg.a);
-        if (!segments.length) return [{ a: minYear, b: maxYear, w: 1 }];
+        if (!segments.length) return [{{ a: minYear, b: maxYear, w: 1 }}];
         const totalW = segments.reduce((sum, seg) => sum + Number(seg.w || 0), 0) || 1;
         let acc = 0;
-        return segments.map((seg, idx) => {
+        return segments.map((seg, idx) => {{
           const w = Number(seg.w || 0) / totalW;
           const start = acc;
           const end = idx === segments.length - 1 ? 1 : (acc + w);
           acc = end;
-          return { ...seg, start, end };
-        });
-      };
-      const toT = (year) => {
+          return {{ ...seg, start, end }};
+        }});
+      }};
+      const toT = (year) => {{
         const y = Number(year);
         if (!Number.isFinite(y)) return 0;
         const segments = timelineSegments();
         if (y <= segments[0].a) return 0;
-        for (const seg of segments) {
-          if (y <= seg.b) {
+        for (const seg of segments) {{
+          if (y <= seg.b) {{
             const local = clamp((y - seg.a) / Math.max(1, seg.b - seg.a), 0, 1);
             return seg.start + local * (seg.end - seg.start);
-          }
-        }
+          }}
+        }}
         return 1;
-      };
-      const fromT = (t) => {
+      }};
+      const fromT = (t) => {{
         const tt = clamp(Number(t) || 0, 0, 1);
         const segments = timelineSegments();
-        for (const seg of segments) {
-          if (tt <= seg.end || seg === segments[segments.length - 1]) {
+        for (const seg of segments) {{
+          if (tt <= seg.end || seg === segments[segments.length - 1]) {{
             const width = Math.max(1e-6, seg.end - seg.start);
             const local = clamp((tt - seg.start) / width, 0, 1);
             return Math.round(seg.a + local * (seg.b - seg.a));
-          }
-        }
+          }}
+        }}
         return maxYear;
-      };
+      }};
 
-      const formatYear = (y) => {
+      const formatYear = (y) => {{
         const yy = Math.round(Number(y));
         if (!Number.isFinite(yy)) return "";
         if (yy === 0) return "公元1";
-        if (yy < 0) return `前${-yy}`;
+        if (yy < 0) return `前${{-yy}}`;
         return String(yy);
-      };
+      }};
 
-      const formatYearRange = (a, b) => {
+      const formatYearRange = (a, b) => {{
         const hasA = a != null && Number.isFinite(Number(a));
         const hasB = b != null && Number.isFinite(Number(b));
         const dash = " \u2013 ";
-        if (hasA && hasB) return `${formatYear(a)}${dash}${formatYear(b)}`;
-        if (hasA) return `${formatYear(a)}${dash}?`;
-        if (hasB) return `?${dash}${formatYear(b)}`;
+        if (hasA && hasB) return `${{formatYear(a)}}${{dash}}${{formatYear(b)}}`;
+        if (hasA) return `${{formatYear(a)}}${{dash}}?`;
+        if (hasB) return `?${{dash}}${{formatYear(b)}}`;
         return "未知";
-      };
+      }};
 
-      const mainYear = (n) => {
+      const mainYear = (n) => {{
         if (!n) return null;
         const ty = n.time_year;
         if (typeof ty === "number" && Number.isFinite(ty)) return ty;
@@ -1125,9 +1058,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const dy = n.death_year;
         if (typeof dy === "number" && Number.isFinite(dy)) return dy;
         return null;
-      };
+      }};
 
-      const pickTickStep = (span) => {
+      const pickTickStep = (span) => {{
         const s = Math.max(1, Math.round(Number(span) || 1));
         if (s <= 60) return 5;
         if (s <= 120) return 10;
@@ -1136,49 +1069,49 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (s <= 900) return 100;
         if (s <= 1600) return 200;
         return 500;
-      };
-      const overlapYears = (a0, a1, b0, b1) => {
+      }};
+      const overlapYears = (a0, a1, b0, b1) => {{
         const lo = Math.max(Math.min(Number(a0), Number(a1)), Math.min(Number(b0), Number(b1)));
         const hi = Math.min(Math.max(Number(a0), Number(a1)), Math.max(Number(b0), Number(b1)));
         return Math.max(0, hi - lo);
-      };
-      const pickTickConfig = (start, end) => {
+      }};
+      const pickTickConfig = (start, end) => {{
         const span = Math.max(1, Math.round(Math.abs((Number(end) || 0) - (Number(start) || 0))));
         let step = pickTickStep(span);
         const recentRatio = overlapYears(start, end, 1840, maxYear) / span;
         const contemporaryRatio = overlapYears(start, end, 1911, maxYear) / span;
-        if (contemporaryRatio >= 0.7) {
+        if (contemporaryRatio >= 0.7) {{
           if (span <= 90) step = Math.max(step, 20);
           else if (span <= 180) step = Math.max(step, 25);
           else if (span <= 360) step = Math.max(step, 50);
           else if (span <= 700) step = Math.max(step, 100);
-        } else if (recentRatio >= 0.55) {
+        }} else if (recentRatio >= 0.55) {{
           if (span <= 80) step = Math.max(step, 15);
           else if (span <= 160) step = Math.max(step, 25);
           else if (span <= 320) step = Math.max(step, 50);
           else if (span <= 620) step = Math.max(step, 100);
-        }
+        }}
         const maxLabels = contemporaryRatio >= 0.7 ? 5 : (recentRatio >= 0.55 ? 6 : 9);
         const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);
-        return { step, maxLabels, minPxPerLabel };
-      };
+        return {{ step, maxLabels, minPxPerLabel }};
+      }};
 
-      const formatTickLabel = (y, span, step) => {
+      const formatTickLabel = (y, span, step) => {{
         let yy = Math.round(Number(y));
         if (!Number.isFinite(yy)) return "";
         if (yy === 0) yy = 1;
-        if (span >= 1200 || step >= 200) {
-          if (yy < 0) {
+        if (span >= 1200 || step >= 200) {{
+          if (yy < 0) {{
             const c = Math.floor(((-yy) - 1) / 100) + 1;
-            return `前${c}世纪`;
-          }
+            return `前${{c}}世纪`;
+          }}
           const c = Math.floor((yy - 1) / 100) + 1;
-          return `${c}世纪`;
-        }
+          return `${{c}}世纪`;
+        }}
         return formatYear(yy);
-      };
+      }};
 
-      const renderTicks = () => {
+      const renderTicks = () => {{
         if (!$ticks) return;
         const span = Math.max(1, endYear - startYear);
         const tickConfig = pickTickConfig(startYear, endYear);
@@ -1195,57 +1128,57 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (y0 > startYear) y0 -= step;
         let html = "";
         let idx = 0;
-        for (let y = y0; y <= endYear + step; y += step) {
+        for (let y = y0; y <= endYear + step; y += step) {{
           if (y < startYear - step) continue;
           if (y > endYear + step) break;
           const left = clamp(toT(y), 0, 1) * w;
           const major = (idx % labelEvery) === 0;
           const h = major ? 16 : 10;
           const op = major ? 0.32 : 0.14;
-          html += `<div style="position:absolute;left:${left.toFixed(2)}px;bottom:6px;width:1px;height:${h}px;background:rgba(255,255,255,${op})"></div>`;
-          if (major) {
+          html += `<div style="position:absolute;left:${{left.toFixed(2)}}px;bottom:6px;width:1px;height:${{h}}px;background:rgba(255,255,255,${{op}})"></div>`;
+          if (major) {{
             const lab = formatTickLabel(y, span, step);
-            if (lab) {
-              html += `<div style="position:absolute;left:${left.toFixed(2)}px;top:2px;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,0.56);white-space:nowrap">${esc(lab)}</div>`;
-            }
-          }
+            if (lab) {{
+              html += `<div style="position:absolute;left:${{left.toFixed(2)}}px;top:2px;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,0.56);white-space:nowrap">${{esc(lab)}}</div>`;
+            }}
+          }}
           idx += 1;
-        }
+        }}
         $ticks.innerHTML = html;
-      };
+      }};
 
-      const setLifeBar = (n) => {
+      const setLifeBar = (n) => {{
         if (!$lifeBar) return;
         const pick = n && typeof n === "object" ? n : null;
         const b = pick ? pick.birth_year : null;
         const d = pick ? pick.death_year : null;
-        if (b == null && d == null) {
+        if (b == null && d == null) {{
           $lifeBar.classList.add("hidden");
           return;
-        }
+        }}
         const m = railMetrics();
         const w = m.innerW || 1;
         let a = (b != null) ? b : d;
         let z = (d != null) ? d : b;
-        if (a == null || z == null) {
+        if (a == null || z == null) {{
           $lifeBar.classList.add("hidden");
           return;
-        }
-        if (a > z) { const t = a; a = z; z = t; }
+        }}
+        if (a > z) {{ const t = a; a = z; z = t; }}
         const t1 = clamp(toT(a), 0, 1);
         const t2 = clamp(toT(z), 0, 1);
         const minW = 6 / w;
         const tt2 = Math.max(t2, t1 + minW);
-        $lifeBar.style.left = `${(m.inset + t1 * w).toFixed(2)}px`;
-        $lifeBar.style.width = `${Math.max(6, (tt2 - t1) * w).toFixed(2)}px`;
+        $lifeBar.style.left = `${{(m.inset + t1 * w).toFixed(2)}}px`;
+        $lifeBar.style.width = `${{Math.max(6, (tt2 - t1) * w).toFixed(2)}}px`;
         $lifeBar.classList.remove("hidden");
-      };
+      }};
 
-      const zoomToFitWindowNodes = () => {
+      const zoomToFitWindowNodes = () => {{
         if (!nodes || !nodes.length) return;
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         let c = 0;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           if (!inWindow(n)) continue;
           if (typeof n.x !== "number" || typeof n.y !== "number") continue;
           minX = Math.min(minX, n.x);
@@ -1253,7 +1186,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           maxX = Math.max(maxX, n.x);
           maxY = Math.max(maxY, n.y);
           c += 1;
-        }
+        }}
         if (c < 2 || !Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) return;
         const bw = Math.max(10, maxX - minX);
         const bh = Math.max(10, maxY - minY);
@@ -1263,9 +1196,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
         camScale = clamp(Math.min(sx, sy), 0.35, 3.8);
         camOffX = (W - (minX + maxX) * camScale) / 2;
         camOffY = (H - (minY + maxY) * camScale) / 2;
-      };
+      }};
 
-      const getPresetRanges = () => ({
+      const getPresetRanges = () => ({{
         all: [minYear, maxYear],
         preqin: [-800, -221],
         qin: [-221, -206],
@@ -1279,22 +1212,22 @@ const buildPersonTooltipModel = (node, options = {}) => {
         qing: [1644, 1840],
         modern: [1840, 1911],
         contemporary: [1911, maxYear],
-      });
-      const syncPresetButtons = () => {
+      }});
+      const syncPresetButtons = () => {{
         if (!$presetBar) return;
         const presets = getPresetRanges();
         let activeKey = "";
-        for (const [key, rawRange] of Object.entries(presets)) {
+        for (const [key, rawRange] of Object.entries(presets)) {{
           const a = clamp(rawRange[0], minYear, maxYear);
           let b = clamp(rawRange[1], minYear, maxYear);
           if (a >= b) b = clamp(a + 1, minYear, maxYear);
-          if (startYear === a && endYear === b) {
+          if (startYear === a && endYear === b) {{
             activeKey = key;
             break;
-          }
-        }
+          }}
+        }}
         const buttons = $presetBar.querySelectorAll("button[data-preset]");
-        buttons.forEach((btn) => {
+        buttons.forEach((btn) => {{
           const key = String(btn.getAttribute("data-preset") || "");
           const active = key === activeKey;
           btn.style.background = active ? "linear-gradient(135deg, rgba(59,130,246,0.52), rgba(34,197,94,0.42))" : "rgba(255,255,255,0.10)";
@@ -1303,138 +1236,138 @@ const buildPersonTooltipModel = (node, options = {}) => {
           btn.style.fontWeight = active ? "700" : "500";
           btn.style.transform = active ? "translateY(-1px)" : "translateY(0)";
           btn.style.boxShadow = active ? "0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 26px rgba(37,99,235,0.28), 0 0 18px rgba(34,197,94,0.20)" : "none";
-        });
-      };
-      const railMetrics = () => {
+        }});
+      }};
+      const railMetrics = () => {{
         const r = $rail.getBoundingClientRect();
         const outerW = r.width || 1;
         const inset = 18;
         const innerW = Math.max(1, outerW - inset * 2);
-        return { outerW, innerW, inset };
-      };
-      const setSearchValidation = (txt) => {
+        return {{ outerW, innerW, inset }};
+      }};
+      const setSearchValidation = (txt) => {{
         if (!$searchValidation) return;
         const msg = String(txt || "").trim();
-        if (!msg) {
+        if (!msg) {{
           $searchValidation.textContent = "";
           $searchValidation.classList.add("hidden");
           return;
-        }
+        }}
         $searchValidation.textContent = msg;
         $searchValidation.classList.remove("hidden");
-      };
-      const setTimeRangeHint = (txt) => {
+      }};
+      const setTimeRangeHint = (txt) => {{
         if (!$timeRangeHint) return;
         const msg = String(txt || "").trim();
-        if (!msg) {
+        if (!msg) {{
           $timeRangeHint.textContent = "";
           $timeRangeHint.classList.add("hidden");
           return;
-        }
+        }}
         $timeRangeHint.textContent = msg;
         $timeRangeHint.classList.remove("hidden");
-      };
-      const validatePersonInput = (rawValue, options = {}) => {
+      }};
+      const validatePersonInput = (rawValue, options = {{}}) => {{
         const allowEmpty = !!(options && options.allowEmpty);
         const normalized = String(rawValue || "").replace(/\s+/g, " ").trim();
-        if (!normalized) {
-          return {
+        if (!normalized) {{
+          return {{
             value: "",
             hasValue: false,
             ok: allowEmpty,
             reason: allowEmpty ? "" : "请输入历史人物姓名",
-          };
-        }
-        if (normalized.length > PERSON_NAME_MAX_LENGTH) {
-          return {
+          }};
+        }}
+        if (normalized.length > PERSON_NAME_MAX_LENGTH) {{
+          return {{
             value: normalized,
             hasValue: true,
             ok: false,
             reason: "人物姓名最多支持 12 个字符",
-          };
-        }
-        if (!PERSON_NAME_ALLOWED_RE.test(normalized)) {
-          return {
+          }};
+        }}
+        if (!PERSON_NAME_ALLOWED_RE.test(normalized)) {{
+          return {{
             value: normalized,
             hasValue: true,
             ok: false,
             reason: "请输入 12 字以内的历史人物姓名，仅支持汉字、字母和常见人名连接符",
-          };
-        }
-        if (!/[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFFA-Za-z]/u.test(normalized)) {
-          return {
+          }};
+        }}
+        if (!/[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFFA-Za-z]/u.test(normalized)) {{
+          return {{
             value: normalized,
             hasValue: true,
             ok: false,
             reason: "请输入有效的历史人物姓名",
-          };
-        }
-        return {
+          }};
+        }}
+        return {{
           value: normalized,
           hasValue: true,
           ok: true,
           reason: "",
-        };
-      };
-      const syncSearchActionState = (options = {}) => {
+        }};
+      }};
+      const syncSearchActionState = (options = {{}}) => {{
         const showReason = !!(options && options.showReason);
         const generating = !!(options && options.generating);
-        const validation = validatePersonInput($q ? $q.value : "", { allowEmpty: true });
-        if (generating) {
+        const validation = validatePersonInput($q ? $q.value : "", {{ allowEmpty: true }});
+        if (generating) {{
           if ($go) $go.disabled = true;
           return validation;
-        }
+        }}
         const disabled = !validation.hasValue || !validation.ok;
         if ($go) $go.disabled = disabled;
-        if (!validation.hasValue) {
+        if (!validation.hasValue) {{
           setSearchValidation("");
-        } else if (!validation.ok && showReason) {
+        }} else if (!validation.ok && showReason) {{
           setSearchValidation(validation.reason);
-        } else if (validation.ok) {
+        }} else if (validation.ok) {{
           setSearchValidation("");
-        }
+        }}
         return validation;
-      };
-      const normalizeYearInputRange = (a, b) => {
+      }};
+      const normalizeYearInputRange = (a, b) => {{
         let start = Math.round(a);
         let end = Math.round(b);
         const notes = [];
-        if (start > end) {
+        if (start > end) {{
           const temp = start;
           start = end;
           end = temp;
           notes.push("起止年份已自动按先后顺序调整");
-        }
+        }}
         const rawStart = start;
         const rawEnd = end;
         start = clamp(start, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
         end = clamp(end, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        if (start !== rawStart || end !== rawEnd) {
-          notes.push(`年份范围已限制在 ${YEAR_INPUT_MIN} 到 ${YEAR_INPUT_MAX}`);
-        }
-        if (start === end) {
+        if (start !== rawStart || end !== rawEnd) {{
+          notes.push(`年份范围已限制在 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}}`);
+        }}
+        if (start === end) {{
           end = clamp(start + 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
           if (end === start) start = clamp(end - 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
           notes.push("时间窗口至少需要 1 年跨度");
-        }
-        return {
+        }}
+        return {{
           start,
           end,
           message: notes.join("；"),
-        };
-      };
-      const setYearInputs = () => {
+        }};
+      }};
+      const setYearInputs = () => {{
         if ($startYearInput) $startYearInput.value = String(startYear);
         if ($endYearInput) $endYearInput.value = String(endYear);
-      };
-      const applyYearInputs = () => {
+      }};
+      const applyYearInputs = () => {{
         const a = $startYearInput ? Number($startYearInput.value) : NaN;
         const b = $endYearInput ? Number($endYearInput.value) : NaN;
-        if (!Number.isFinite(a) || !Number.isFinite(b)) {
-          setTimeRangeHint(`请输入 ${YEAR_INPUT_MIN} 到 ${YEAR_INPUT_MAX} 之间的年份`);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) {{
+          setTimeRangeHint(`请输入 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}} 之间的年份`);
           setYearInputs();
           return;
-        }
+        }}
         const normalized = normalizeYearInputRange(a, b);
         startYear = normalized.start;
         endYear = normalized.end;
@@ -1444,53 +1377,53 @@ const buildPersonTooltipModel = (node, options = {}) => {
         updateCoordCount();
         updateMapMarkers();
         draw();
-      };
+      }};
 
-      const handlePosPx = () => {
+      const handlePosPx = () => {{
         const m = railMetrics();
         const x1 = m.inset + toT(startYear) * m.innerW;
         const x2 = m.inset + toT(endYear) * m.innerW;
-        return { x1, x2, w: m.outerW };
-      };
+        return {{ x1, x2, w: m.outerW }};
+      }};
 
-      const setHoverMarkers = (n) => {
-        if (!n) {
+      const setHoverMarkers = (n) => {{
+        if (!n) {{
           $mBirth.classList.add("hidden");
           $mDeath.classList.add("hidden");
           return;
-        }
+        }}
         const m = railMetrics();
-        const show = (el, year) => {
-          if (year == null) {
+        const show = (el, year) => {{
+          if (year == null) {{
             el.classList.add("hidden");
             return;
-          }
+          }}
           const t = clamp(toT(year), 0, 1);
-          el.style.left = `${(m.inset + t * m.innerW).toFixed(2)}px`;
+          el.style.left = `${{(m.inset + t * m.innerW).toFixed(2)}}px`;
           el.classList.remove("hidden");
-        };
+        }};
         show($mBirth, n.birth_year);
         show($mDeath, n.death_year);
-      };
+      }};
 
-      const setHandles = () => {
+      const setHandles = () => {{
         const m = railMetrics();
         const t1 = clamp(toT(startYear), 0, 1);
         const t2 = clamp(toT(endYear), 0, 1);
         const leftPx = m.inset + t1 * m.innerW;
         const rightPx = m.inset + t2 * m.innerW;
-        $h1.style.left = `${(leftPx - 7).toFixed(2)}px`;
-        $h2.style.left = `${(rightPx - 7).toFixed(2)}px`;
-        $sel.style.left = `${leftPx.toFixed(2)}px`;
-        $sel.style.width = `${Math.max(1, rightPx - leftPx).toFixed(2)}px`;
-        if ($maskL) {
-          $maskL.style.left = `${m.inset.toFixed(2)}px`;
-          $maskL.style.width = `${Math.max(0, leftPx - m.inset).toFixed(2)}px`;
-        }
-        if ($maskR) {
-          $maskR.style.left = `${rightPx.toFixed(2)}px`;
-          $maskR.style.width = `${Math.max(0, (m.outerW - m.inset) - rightPx).toFixed(2)}px`;
-        }
+        $h1.style.left = `${{(leftPx - 7).toFixed(2)}}px`;
+        $h2.style.left = `${{(rightPx - 7).toFixed(2)}}px`;
+        $sel.style.left = `${{leftPx.toFixed(2)}}px`;
+        $sel.style.width = `${{Math.max(1, rightPx - leftPx).toFixed(2)}}px`;
+        if ($maskL) {{
+          $maskL.style.left = `${{m.inset.toFixed(2)}}px`;
+          $maskL.style.width = `${{Math.max(0, leftPx - m.inset).toFixed(2)}}px`;
+        }}
+        if ($maskR) {{
+          $maskR.style.left = `${{rightPx.toFixed(2)}}px`;
+          $maskR.style.width = `${{Math.max(0, (m.outerW - m.inset) - rightPx).toFixed(2)}}px`;
+        }}
         $spanYear.textContent = String(Math.max(0, endYear - startYear));
         setYearInputs();
         $minLabel.textContent = formatYear(minYear);
@@ -1502,73 +1435,73 @@ const buildPersonTooltipModel = (node, options = {}) => {
         persistTimeWindow();
         scheduleMapFit();
         updateProvinceBars();
-      };
+      }};
 
-      const inWindow = (n) => {
+      const inWindow = (n) => {{
         const y = mainYear(n);
         if (y == null) return false;
         return y >= startYear && y <= endYear;
-      };
+      }};
 
-      const updateActiveCount = () => {
+      const updateActiveCount = () => {{
         let c = 0;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           if (inWindow(n)) c += 1;
-        }
+        }}
         if ($activeCount) $activeCount.textContent = String(c);
-      };
+      }};
 
-      const updateCoordCount = () => {
+      const updateCoordCount = () => {{
         let c = 0;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           if (typeof n.birth_lat === "number" && typeof n.birth_lng === "number") c += 1;
-        }
-      };
+        }}
+      }};
 
-      const provinceOf = (n) => {
+      const provinceOf = (n) => {{
         const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
         if (!raw) return "";
         const s = raw.replace(/^今\s*/g, "");
         const m = s.match(/(北京市|天津市|上海市|重庆市|香港特别行政区|澳门特别行政区|台湾省|内蒙古自治区|广西壮族自治区|宁夏回族自治区|新疆维吾尔自治区|西藏自治区|黑龙江省|吉林省|辽宁省|河北省|山西省|陕西省|山东省|河南省|江苏省|浙江省|安徽省|江西省|福建省|广东省|海南省|四川省|贵州省|云南省|湖北省|湖南省|甘肃省|青海省)/);
-        if (m) {
+        if (m) {{
           const t = String(m[1] || "").trim();
           if (t.endsWith("省")) return t.slice(0, -1);
           if (t.endsWith("市")) return t.slice(0, -1);
           if (t.endsWith("特别行政区")) return t.replace(/特别行政区$/, "");
           if (t.endsWith("自治区")) return t.replace(/自治区$/, "");
           return t;
-        }
+        }}
         const m2 = s.match(/(北京|天津|上海|重庆|香港|澳门|台湾|内蒙古|广西|宁夏|新疆|西藏|黑龙江|吉林|辽宁|河北|山西|陕西|山东|河南|江苏|浙江|安徽|江西|福建|广东|海南|四川|贵州|云南|湖北|湖南|甘肃|青海)/);
         if (m2) return String(m2[1] || "").trim();
         return "";
-      };
+      }};
 
-      const cityOf = (n) => {
+      const cityOf = (n) => {{
         const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
         if (!raw) return "";
         // Strip leading "今"; take first segment before separators; remove parentheses.
         let s = raw.replace(/^今\s*/g, "");
         s = s.split(/[；;，,、]/)[0].replace(/[（(].*?[）)]/g, "").trim();
         // After province prefix (xx省 / xx市 / xx自治区 / xx特别行政区), pull out the city / 地级 / 县级 token.
-        const m = s.match(/(?:[^省市区]+?省|[^省市区]+?自治区|[^省市区]+?特别行政区)?\s*([\u4e00-\u9fa5]{2,}?(?:市|地区|盟|州|县|区))/);
-        if (m && m[1]) {
+        const m = s.match(/(?:[^省市区]+?省|[^省市区]+?自治区|[^省市区]+?特别行政区)?\s*([\u4e00-\u9fa5]{{2,}}?(?:市|地区|盟|州|县|区))/);
+        if (m && m[1]) {{
           return String(m[1]).trim();
-        }
+        }}
         // If string itself ends with 市/县/州/区/地区/盟, return the whole short token.
-        const m2 = s.match(/^([\u4e00-\u9fa5]{2,}?(?:市|地区|盟|州|县|区))$/);
+        const m2 = s.match(/^([\u4e00-\u9fa5]{{2,}}?(?:市|地区|盟|州|县|区))$/);
         if (m2 && m2[1]) return String(m2[1]).trim();
         return "";
-      };
+      }};
 
       let mapSearchQuery = "";
       let mapSearchSuggestIdx = -1;
       const mapSearchHighlightSet = new Set();
-      const _normalizeMapSearch = (raw) => {
+      const _normalizeMapSearch = (raw) => {{
         const txt = String(raw == null ? "" : raw).trim();
         if (!txt) return "";
         return txt.replace(/^今\s*/g, "").replace(/(省|市|地区|盟|州|县|区|特别行政区|自治区)$/g, "").trim();
-      };
-      const matchPersonByPlace = (n, qNorm) => {
+      }};
+      const matchPersonByPlace = (n, qNorm) => {{
         if (!qNorm) return false;
         const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "");
         if (!raw) return false;
@@ -1579,43 +1512,43 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const city = cityOf(n);
         if (city && _normalizeMapSearch(city).indexOf(qNorm) >= 0) return true;
         return false;
-      };
-      const collectMapSearchMatches = (qRaw, limit) => {
+      }};
+      const collectMapSearchMatches = (qRaw, limit) => {{
         const qNorm = _normalizeMapSearch(qRaw);
         const out = [];
         if (!qNorm) return out;
         const cap = Math.max(1, Number(limit) || 30);
-        for (const n of nodes) {
+        for (const n of nodes) {{
           if (!n) continue;
           if (!matchPersonByPlace(n, qNorm)) continue;
           out.push(n);
           if (out.length >= cap) break;
-        }
+        }}
         return out;
-      };
-      const _hexColorByYearOrDefault = (n) => {
-        try {
+      }};
+      const _hexColorByYearOrDefault = (n) => {{
+        try {{
           const c = colorByYear(n && n.time_year);
           return c || "rgba(148,163,184,0.85)";
-        } catch (_) {
+        }} catch (_) {{
           return "rgba(148,163,184,0.85)";
-        }
-      };
-      const renderMapSearchSuggest = () => {
+        }}
+      }};
+      const renderMapSearchSuggest = () => {{
         if (!$mapSearchSuggest) return;
         const matches = collectMapSearchMatches(mapSearchQuery, 30);
-        if (!matches.length) {
-          if (!mapSearchQuery) {
+        if (!matches.length) {{
+          if (!mapSearchQuery) {{
             $mapSearchSuggest.classList.add("hidden");
             $mapSearchSuggest.innerHTML = "";
             return;
-          }
+          }}
           $mapSearchSuggest.classList.remove("hidden");
           $mapSearchSuggest.innerHTML = '<div class="px-3 py-2 text-[11px] text-white/55">未匹配到人物</div>';
           return;
-        }
+        }}
         const parts = [];
-        for (let i = 0; i < matches.length; i += 1) {
+        for (let i = 0; i < matches.length; i += 1) {{
           const n = matches[i];
           const active = i === mapSearchSuggestIdx ? "bg-white/15" : "hover:bg-white/10";
           const color = _hexColorByYearOrDefault(n);
@@ -1627,117 +1560,117 @@ const buildPersonTooltipModel = (node, options = {}) => {
               '<span class="ml-auto text-[10px] text-white/55 truncate max-w-[120px]" title="' + esc(place) + '">' + esc(place) + '</span>' +
             '</div>'
           );
-        }
+        }}
         $mapSearchSuggest.innerHTML = parts.join("");
         $mapSearchSuggest.classList.remove("hidden");
-      };
-      const recomputeMapSearchHighlights = () => {
+      }};
+      const recomputeMapSearchHighlights = () => {{
         mapSearchHighlightSet.clear();
         const qNorm = _normalizeMapSearch(mapSearchQuery);
         if (!qNorm) return;
-        for (const n of nodes) {
-          if (n && typeof n._idx === "number" && matchPersonByPlace(n, qNorm)) {
+        for (const n of nodes) {{
+          if (n && typeof n._idx === "number" && matchPersonByPlace(n, qNorm)) {{
             mapSearchHighlightSet.add(n._idx);
-          }
-        }
-      };
-      const focusMapOnSearchMatch = () => {
+          }}
+        }}
+      }};
+      const focusMapOnSearchMatch = () => {{
         if (!amap || currentTab !== "map") return;
         const matches = collectMapSearchMatches(mapSearchQuery, 200);
         if (!matches.length) return;
-        try {
+        try {{
           const positions = [];
-          for (const n of matches) {
+          for (const n of matches) {{
             const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
             const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
             if (!Number.isFinite(latW) || !Number.isFinite(lngW)) continue;
             const p = wgs84ToGcj02(latW, lngW);
             if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) positions.push([p.lng, p.lat]);
-          }
+          }}
           if (!positions.length) return;
-          if (positions.length === 1) {
+          if (positions.length === 1) {{
             const z = Math.max(7, Number(amap.getZoom ? amap.getZoom() : 7) || 7);
             amap.setZoomAndCenter(Math.min(10, z), positions[0]);
             mapCameraTouched = true;
             return;
-          }
-          if (window.AMap && window.AMap.Bounds) {
+          }}
+          if (window.AMap && window.AMap.Bounds) {{
             let minLng = positions[0][0], maxLng = positions[0][0];
             let minLat = positions[0][1], maxLat = positions[0][1];
-            for (const pos of positions) {
+            for (const pos of positions) {{
               if (pos[0] < minLng) minLng = pos[0];
               if (pos[0] > maxLng) maxLng = pos[0];
               if (pos[1] < minLat) minLat = pos[1];
               if (pos[1] > maxLat) maxLat = pos[1];
-            }
+            }}
             const bounds = new window.AMap.Bounds([minLng, minLat], [maxLng, maxLat]);
-            try {
+            try {{
               amap.setBounds(bounds, false, [56, 56, 56, 56]);
               mapCameraTouched = true;
-            } catch (e) {
+            }} catch (e) {{
               // setBounds 失败时不要把 mapCameraTouched 置为 true,
               // 否则后续 scheduleMapFit 会因为这个标志而永远不再自动 fit。
-              try { console.warn("[stellar-map] setBounds failed", e); } catch (_) {}
-            }
-          }
-        } catch (_) {}
-      };
-      const applyMapSearch = (raw, opts) => {
+              try {{ console.warn("[stellar-map] setBounds failed", e); }} catch (_) {{}}
+            }}
+          }}
+        }} catch (_) {{}}
+      }};
+      const applyMapSearch = (raw, opts) => {{
         const next = String(raw == null ? "" : raw);
         const same = next === mapSearchQuery;
         mapSearchQuery = next;
-        if ($mapSearchClear) {
+        if ($mapSearchClear) {{
           if (mapSearchQuery) $mapSearchClear.classList.remove("hidden");
           else $mapSearchClear.classList.add("hidden");
-        }
+        }}
         recomputeMapSearchHighlights();
         mapSearchSuggestIdx = -1;
         renderMapSearchSuggest();
-        if (currentTab === "map") {
+        if (currentTab === "map") {{
           updateMapMarkers();
           if (opts && opts.fit && !same) focusMapOnSearchMatch();
-        }
-      };
+        }}
+      }};
 
-      const _curvePathFromPoints = (pts) => {
+      const _curvePathFromPoints = (pts) => {{
         if (!Array.isArray(pts) || pts.length < 2) return "";
         const p = pts.map((x) => [Number(x[0]), Number(x[1])]).filter((x) => Number.isFinite(x[0]) && Number.isFinite(x[1]));
         if (p.length < 2) return "";
-        const cr = (p0, p1, p2, p3) => {
+        const cr = (p0, p1, p2, p3) => {{
           const x1 = p1[0] + (p2[0] - p0[0]) / 6;
           const y1 = p1[1] + (p2[1] - p0[1]) / 6;
           const x2 = p2[0] - (p3[0] - p1[0]) / 6;
           const y2 = p2[1] - (p3[1] - p1[1]) / 6;
           return [x1, y1, x2, y2, p2[0], p2[1]];
-        };
-        let d = `M ${p[0][0].toFixed(2)} ${p[0][1].toFixed(2)}`;
-        for (let i = 0; i < p.length - 1; i += 1) {
+        }};
+        let d = `M ${{p[0][0].toFixed(2)}} ${{p[0][1].toFixed(2)}}`;
+        for (let i = 0; i < p.length - 1; i += 1) {{
           const p0 = p[Math.max(0, i - 1)];
           const p1 = p[i];
           const p2 = p[i + 1];
           const p3 = p[Math.min(p.length - 1, i + 2)];
           const c = cr(p0, p1, p2, p3);
-          d += ` C ${c[0].toFixed(2)} ${c[1].toFixed(2)}, ${c[2].toFixed(2)} ${c[3].toFixed(2)}, ${c[4].toFixed(2)} ${c[5].toFixed(2)}`;
-        }
+          d += ` C ${{c[0].toFixed(2)}} ${{c[1].toFixed(2)}}, ${{c[2].toFixed(2)}} ${{c[3].toFixed(2)}}, ${{c[4].toFixed(2)}} ${{c[5].toFixed(2)}}`;
+        }}
         return d;
-      };
+      }};
 
-      const updateProvinceBars = () => {
+      const updateProvinceBars = () => {{
         if (!$provinceBars) return;
         const counts = new Map();
         let total = 0;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           if (!inWindow(n)) continue;
           const prov = provinceOf(n);
           if (!prov) continue;
           total += 1;
           counts.set(prov, (counts.get(prov) || 0) + 1);
-        }
+        }}
         const items = Array.from(counts.entries()).sort((a, b) => (b[1] - a[1]) || String(a[0]).localeCompare(String(b[0])));
         const top = items.slice(0, 5);
         const maxV = top.reduce((m, it) => Math.max(m, Number(it[1] || 0)), 1) || 1;
         const parts = [];
-        for (const [prov, v0] of top) {
+        for (const [prov, v0] of top) {{
           const v = Number(v0 || 0);
           const pct = Math.max(2, Math.round((v / maxV) * 100));
           parts.push(
@@ -1751,25 +1684,25 @@ const buildPersonTooltipModel = (node, options = {}) => {
               '<div class=\"w-10 text-right text-[11px] text-white/70\">' + esc(String(v)) + '</div>' +
             '</div>'
           );
-        }
+        }}
         $provinceBars.innerHTML = parts.join('') || '<div class=\"text-[11px] text-white/55\">当前时间窗无中国人物</div>';
-      };
+      }};
 
-      const renderBands = () => {
+      const renderBands = () => {{
         if (!$bands) return;
         const bands = [
-          { name: "春秋战国", a: -800, b: -221 },
-          { name: "秦", a: -221, b: -206 },
-          { name: "汉", a: -206, b: 220 },
-          { name: "魏晋南北", a: 220, b: 589 },
-          { name: "隋", a: 581, b: 618 },
-          { name: "唐", a: 618, b: 907 },
-          { name: "宋", a: 960, b: 1279 },
-          { name: "元", a: 1271, b: 1368 },
-          { name: "明", a: 1368, b: 1644 },
-          { name: "清", a: 1644, b: 1840 },
-          { name: "近代", a: 1840, b: 1911 },
-          { name: "现代", a: 1911, b: 2000 },
+          {{ name: "春秋战国", a: -800, b: -221 }},
+          {{ name: "秦", a: -221, b: -206 }},
+          {{ name: "汉", a: -206, b: 220 }},
+          {{ name: "魏晋南北", a: 220, b: 589 }},
+          {{ name: "隋", a: 581, b: 618 }},
+          {{ name: "唐", a: 618, b: 907 }},
+          {{ name: "宋", a: 960, b: 1279 }},
+          {{ name: "元", a: 1271, b: 1368 }},
+          {{ name: "明", a: 1368, b: 1644 }},
+          {{ name: "清", a: 1644, b: 1840 }},
+          {{ name: "近代", a: 1840, b: 1911 }},
+          {{ name: "现代", a: 1911, b: 2000 }},
         ];
         const bandColors = [
           "rgba(56,189,248,0.12)",
@@ -1783,7 +1716,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           "rgba(234,179,8,0.10)",
         ];
         const pieces = [];
-        for (let i = 0; i < bands.length; i++) {
+        for (let i = 0; i < bands.length; i++) {{
           const b = bands[i];
           const l = clamp(toT(b.a), 0, 1);
           const r = clamp(toT(b.b), 0, 1);
@@ -1791,26 +1724,26 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const left = (l * 100).toFixed(4) + "%";
           const width = ((r - l) * 100).toFixed(4) + "%";
           const bg = bandColors[i % bandColors.length];
-          pieces.push(`<div style="position:absolute;left:${left};width:${width};top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:visible;background:${bg};border-right:1px solid rgba(255,255,255,0.12);"><span style="white-space:nowrap;padding:0 6px;text-shadow:0 1px 0 rgba(0,0,0,0.25)">${esc(b.name)}</span></div>`);
-        }
+          pieces.push(`<div style="position:absolute;left:${{left}};width:${{width}};top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:visible;background:${{bg}};border-right:1px solid rgba(255,255,255,0.12);"><span style="white-space:nowrap;padding:0 6px;text-shadow:0 1px 0 rgba(0,0,0,0.25)">${{esc(b.name)}}</span></div>`);
+        }}
         $bands.innerHTML = pieces.join("");
         $bands.style.position = "absolute";
-      };
+      }};
 
-      const draw = () => {
+      const draw = () => {{
         ctx.clearRect(0, 0, W, H);
         ctx.fillStyle = "rgba(0,0,0,0)";
         ctx.fillRect(0, 0, W, H);
 
         ctx.globalCompositeOperation = "source-over";
         const selectedSet = new Set();
-        if (selectedIdx >= 0 && neigh[selectedIdx]) {
+        if (selectedIdx >= 0 && neigh[selectedIdx]) {{
           selectedSet.add(selectedIdx);
           for (const j of (neigh[selectedIdx] || [])) selectedSet.add(j);
-        }
-        if (edges.length) {
+        }}
+        if (edges.length) {{
           ctx.lineWidth = 1;
-          for (const e of edges) {
+          for (const e of edges) {{
             const typ = String((e && e.type) || "bio").trim().toLowerCase();
             const conf = Number((e && (e.confidence ?? e.conf)) ?? 0);
             const c = Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : 0;
@@ -1828,10 +1761,10 @@ const buildPersonTooltipModel = (node, options = {}) => {
             ctx.moveTo(pa.x, pa.y);
             ctx.lineTo(pb.x, pb.y);
             ctx.stroke();
-          }
+          }}
           ctx.globalAlpha = 1.0;
 
-          for (const e of edges) {
+          for (const e of edges) {{
             const typ = String((e && e.type) || "bio").trim().toLowerCase();
             const conf = Number((e && (e.confidence ?? e.conf)) ?? 0);
             const c = Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : 0;
@@ -1850,7 +1783,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
             ctx.moveTo(pa.x, pa.y);
             ctx.lineTo(pb.x, pb.y);
             ctx.stroke();
-          }
+          }}
           ctx.globalAlpha = 1.0;
 
           const hiIdx = selectedIdx >= 0
@@ -1858,12 +1791,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
             : (spotlightIdx >= 0
                 ? spotlightIdx
                 : (hover && typeof hover._idx === "number" ? hover._idx : -1));
-          if (hiIdx >= 0) {
+          if (hiIdx >= 0) {{
             const ns = neigh[hiIdx] || [];
             ctx.strokeStyle = "rgba(34,197,94,0.85)";
             ctx.lineWidth = 1.8;
             ctx.globalAlpha = 0.70;
-            for (const j of ns) {
+            for (const j of ns) {{
               const a = nodes[hiIdx];
               const b = nodes[j];
               if (!a || !b) continue;
@@ -1874,16 +1807,16 @@ const buildPersonTooltipModel = (node, options = {}) => {
               ctx.moveTo(pa.x, pa.y);
               ctx.lineTo(pb.x, pb.y);
               ctx.stroke();
-            }
+            }}
             ctx.globalAlpha = 1.0;
             ctx.lineWidth = 1;
 
-            if (selectedIdx >= 0) {
+            if (selectedIdx >= 0) {{
               ctx.save();
               ctx.font = "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
               ctx.textAlign = "center";
               ctx.textBaseline = "middle";
-              for (let ii = 0; ii < ns.length; ii += 1) {
+              for (let ii = 0; ii < ns.length; ii += 1) {{
                 const j = ns[ii];
                 const a = nodes[hiIdx];
                 const b = nodes[j];
@@ -1891,7 +1824,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
                 if (!(inWindow(a) && inWindow(b))) continue;
                 const lo = Math.min(hiIdx, j);
                 const hi = Math.max(hiIdx, j);
-                const meta = edgeMeta.get(`${lo},${hi}`) || null;
+                const meta = edgeMeta.get(`${{lo}},${{hi}}`) || null;
                 const label = meta && meta.label ? String(meta.label) : "";
                 if (!label) continue;
                 const pa = worldToScreen(a.x, a.y);
@@ -1911,16 +1844,16 @@ const buildPersonTooltipModel = (node, options = {}) => {
                 ctx.lineWidth = 3;
                 ctx.strokeStyle = "rgba(15,23,42,0.55)";
                 ctx.fillStyle = "rgba(255,255,255,0.88)";
-                try { ctx.strokeText(label, x, y); } catch (_) {}
+                try {{ ctx.strokeText(label, x, y); }} catch (_) {{}}
                 ctx.fillText(label, x, y);
-              }
+              }}
               ctx.restore();
-            }
-          }
-        }
+            }}
+          }}
+        }}
 
         ctx.globalCompositeOperation = "source-over";
-        const drawForeignRect = (pt, size, fillStyle, strokeStyle, lineAlpha, activeGlowAlpha) => {
+        const drawForeignRect = (pt, size, fillStyle, strokeStyle, lineAlpha, activeGlowAlpha) => {{
           const w = size * 2;
           const h = size * 2;
           const x = pt.x - w / 2;
@@ -1931,14 +1864,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
           ctx.globalAlpha = lineAlpha;
           ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
           ctx.strokeRect(x + 0.4, y + 0.4, Math.max(0.8, w - 0.8), Math.max(0.8, h - 0.8));
-          if (activeGlowAlpha > 0) {
+          if (activeGlowAlpha > 0) {{
             ctx.strokeStyle = "rgba(255,255,255,0.22)";
             ctx.globalAlpha = activeGlowAlpha;
             ctx.lineWidth = 1 * camScale;
             ctx.strokeRect(x - 2.2 * camScale, y - 2.2 * camScale, w + 4.4 * camScale, h + 4.4 * camScale);
-          }
-        };
-        for (const n of nodes) {
+          }}
+        }};
+        for (const n of nodes) {{
           const p = (typeof n.p === "number") ? clamp(n.p, 0, 1) : (inWindow(n) ? 1 : 0);
           const active = p > 0.55;
           const specialSun = isSpecialSunPerson(n);
@@ -1950,37 +1883,37 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const hovered = hover && hover.person === n.person;
           const selectedHere = selected && selected.person === n.person;
           const spotlightHere = (selectedIdx < 0) && spotlight && spotlight.person === n.person;
-          if (selectedIdx >= 0) {
-            if (!selectedSet.has(i)) {
+          if (selectedIdx >= 0) {{
+            if (!selectedSet.has(i)) {{
               alpha *= 0.12;
               col = "rgba(255,255,255,0.22)";
-            } else {
+            }} else {{
               alpha = Math.max(alpha, 0.70);
-            }
-          }
-          if (hovered) {
+            }}
+          }}
+          if (hovered) {{
             r = 9.2 * camScale;
             alpha = 1.0;
             col = "#fbbf24";
-          }
-          if (selectedHere) {
+          }}
+          if (selectedHere) {{
             r = 10.5 * camScale;
             alpha = 1.0;
             col = "#fbbf24";
-          }
-          if (spotlightHere) {
+          }}
+          if (spotlightHere) {{
             r = 11.0 * camScale;
             alpha = 1.0;
             col = "#fbbf24";
-          }
+          }}
           const pt = worldToScreen(n.x, n.y);
-          if (specialSun) {
+          if (specialSun) {{
             const rayOuter = r + 4.2 * camScale;
             const rayInner = r + 1.1 * camScale;
             ctx.globalAlpha = alpha;
             ctx.strokeStyle = "rgba(251,191,36,0.98)";
             ctx.lineWidth = Math.max(1.4, 1.8 * camScale);
-            for (let rayIdx = 0; rayIdx < 8; rayIdx += 1) {
+            for (let rayIdx = 0; rayIdx < 8; rayIdx += 1) {{
               const angle = (Math.PI * 2 * rayIdx) / 8 - Math.PI / 2;
               const x1 = pt.x + Math.cos(angle) * rayInner;
               const y1 = pt.y + Math.sin(angle) * rayInner;
@@ -1990,7 +1923,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
               ctx.moveTo(x1, y1);
               ctx.lineTo(x2, y2);
               ctx.stroke();
-            }
+            }}
             ctx.beginPath();
             ctx.fillStyle = "rgba(250,204,21,0.98)";
             ctx.arc(pt.x, pt.y, Math.max(1.2, r - 0.3 * camScale), 0, Math.PI * 2);
@@ -2001,7 +1934,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
             ctx.lineWidth = Math.max(1.1, 1.5 * camScale);
             ctx.arc(pt.x, pt.y, Math.max(0.8, r - 0.55 * camScale), 0, Math.PI * 2);
             ctx.stroke();
-          } else if (foreignPerson) {
+          }} else if (foreignPerson) {{
             ctx.globalAlpha = alpha;
             drawForeignRect(
               pt,
@@ -2011,7 +1944,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
               Math.min(1, alpha * (active ? 0.80 : 0.62)),
               active ? (0.35 + p * 0.35) : 0
             );
-          } else {
+          }} else {{
             ctx.beginPath();
             ctx.fillStyle = col;
             ctx.globalAlpha = alpha;
@@ -2023,49 +1956,49 @@ const buildPersonTooltipModel = (node, options = {}) => {
             ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
             ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
             ctx.stroke();
-            if (active) {
+            if (active) {{
               ctx.beginPath();
               ctx.strokeStyle = "rgba(255,255,255,0.22)";
               ctx.globalAlpha = 0.35 + p * 0.35;
               ctx.lineWidth = 1 * camScale;
               ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
               ctx.stroke();
-            }
-          }
-        }
+            }}
+          }}
+        }}
         ctx.globalAlpha = 1.0;
         ctx.lineWidth = 1;
 
-        if (hover || (selectedIdx >= 0 && selected)) {
+        if (hover || (selectedIdx >= 0 && selected)) {{
           const n = hover || selected;
           const pt = worldToScreen(n.x, n.y);
-          if (isForeignPerson(n) && !isSpecialSunPerson(n)) {
+          if (isForeignPerson(n) && !isSpecialSunPerson(n)) {{
             const size = 10 * camScale;
             ctx.strokeStyle = "rgba(255,255,255,0.75)";
             ctx.lineWidth = 2 * camScale;
             ctx.strokeRect(pt.x - size, pt.y - size, size * 2, size * 2);
-          } else {
+          }} else {{
             ctx.beginPath();
             ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
             ctx.lineWidth = 2 * camScale;
             ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
             ctx.stroke();
-          }
-        }
-      };
+          }}
+        }}
+      }};
 
-      const reduceMotion = (() => {
-        try {
+      const reduceMotion = (() => {{
+        try {{
           return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        } catch (_) {
+        }} catch (_) {{
           return false;
-        }
-      })();
+        }}
+      }})();
 
-      const animate = (nowMs) => {
+      const animate = (nowMs) => {{
         if (reduceMotion) return;
         const t = (nowMs || 0) * 0.001;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           const target = inWindow(n) ? 1 : 0;
           if (typeof n.p !== "number") n.p = target;
           n.p = n.p + (target - n.p) * 0.10;
@@ -2075,47 +2008,47 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const by = n.by != null ? n.by : n.y;
           n.x = clamp(bx, pad, W - pad);
           n.y = clamp(by + oy, pad, H - pad);
-        }
+        }}
         draw();
         window.requestAnimationFrame(animate);
-      };
+      }};
 
-      const pickNode = (mx, my) => {
+      const pickNode = (mx, my) => {{
         const w = screenToWorld(mx, my);
         let best = null;
         let bestD = 999999;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           const dx = w.x - n.x;
           const dy = w.y - n.y;
           const d = dx*dx + dy*dy;
           const thr = (16 / camScale);
-          if (d < bestD && d < thr*thr) {
+          if (d < bestD && d < thr*thr) {{
             bestD = d;
             best = n;
-          }
-        }
+          }}
+        }}
         return best;
-      };
+      }};
 
-      const buildTooltipInnerHtml = (n) => {
-        const tipModel = buildPersonTooltipModel(n, { fallbackName: '相关人物' });
-        const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${esc(row.label)}：${esc(row.value)}</div>`).join("");
-        const tline = tipModel.tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${esc(tipModel.tagline)}”</div>` : "";
-        const badge = !tipModel.hasStory ? ` <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">${esc(tipModel.badgeText)}</span>` : "";
+      const buildTooltipInnerHtml = (n) => {{
+        const tipModel = buildPersonTooltipModel(n, {{ fallbackName: '相关人物' }});
+        const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${{esc(row.label)}}：${{esc(row.value)}}</div>`).join("");
+        const tline = tipModel.tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tipModel.tagline)}}”</div>` : "";
+        const badge = !tipModel.hasStory ? ` <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">${{esc(tipModel.badgeText)}}</span>` : "";
         const primaryName = String(tipModel.displayName || tipModel.name || "").trim();
         const secondaryName = String(tipModel.secondaryName || "").trim();
         const secondaryHtml = secondaryName && secondaryName !== primaryName
-          ? `<div class="text-white/55 text-[11px] mt-0.5 font-normal">${esc(secondaryName)}</div>`
+          ? `<div class="text-white/55 text-[11px] mt-0.5 font-normal">${{esc(secondaryName)}}</div>`
           : "";
-        return `<div class="font-bold text-white/95">${esc(primaryName)}${badge}</div>${secondaryHtml}${rowHtml}${tline}`;
-      };
-      const hideTooltipEl = (el) => {
+        return `<div class="font-bold text-white/95">${{esc(primaryName)}}${{badge}}</div>${{secondaryHtml}}${{rowHtml}}${{tline}}`;
+      }};
+      const hideTooltipEl = (el) => {{
         if (!el) return;
         el.classList.add("hidden");
         // 清空 DOM,避免大名单下大量残留的旧 tooltip 节点留在内存里。
-        try { el.innerHTML = ""; } catch (_) {}
-      };
-      const placeTooltipEl = (el, hostRect, clientX, clientY) => {
+        try {{ el.innerHTML = ""; }} catch (_) {{}}
+      }};
+      const placeTooltipEl = (el, hostRect, clientX, clientY) => {{
         if (!el || !hostRect) return;
         const safeClientX = Number.isFinite(Number(clientX)) ? Number(clientX) : (hostRect.left + hostRect.width / 2);
         const safeClientY = Number.isFinite(Number(clientY)) ? Number(clientY) : (hostRect.top + hostRect.height / 2);
@@ -2128,80 +2061,80 @@ const buildPersonTooltipModel = (node, options = {}) => {
         el.style.left = left + "px";
         el.style.top = top + "px";
         el.classList.remove("hidden");
-      };
-      const showTip = (n, clientX, clientY) => {
-        if (!n) {
+      }};
+      const showTip = (n, clientX, clientY) => {{
+        if (!n) {{
           hideTooltipEl($tip);
           setHoverMarkers(null);
           return;
-        }
+        }}
         $tip.innerHTML = buildTooltipInnerHtml(n);
         placeTooltipEl($tip, $c.getBoundingClientRect(), clientX, clientY);
         setHoverMarkers(n);
-      };
-      const showMapTip = (n, clientX, clientY) => {
-        if (!n || !$mapTip || !$chinaMap) {
+      }};
+      const showMapTip = (n, clientX, clientY) => {{
+        if (!n || !$mapTip || !$chinaMap) {{
           hideTooltipEl($mapTip);
           return;
-        }
+        }}
         $mapTip.innerHTML = buildTooltipInnerHtml(n);
         placeTooltipEl($mapTip, $chinaMap.getBoundingClientRect(), clientX, clientY);
-      };
-      const closeMapTip = () => {
+      }};
+      const closeMapTip = () => {{
         hideTooltipEl($mapTip);
-      };
-      const resolveMapTipClientPoint = (evt, lng, lat) => {
+      }};
+      const resolveMapTipClientPoint = (evt, lng, lat) => {{
         const eventClientX = Number(evt && evt.originEvent ? evt.originEvent.clientX : evt && evt.clientX);
         const eventClientY = Number(evt && evt.originEvent ? evt.originEvent.clientY : evt && evt.clientY);
-        if (Number.isFinite(eventClientX) && Number.isFinite(eventClientY)) {
-          return { clientX: eventClientX, clientY: eventClientY };
-        }
-        try {
-          if (amap && typeof amap.lngLatToContainer === "function" && $chinaMap) {
+        if (Number.isFinite(eventClientX) && Number.isFinite(eventClientY)) {{
+          return {{ clientX: eventClientX, clientY: eventClientY }};
+        }}
+        try {{
+          if (amap && typeof amap.lngLatToContainer === "function" && $chinaMap) {{
             const pixel = amap.lngLatToContainer([lng, lat]);
             const px = Number(pixel && pixel.x);
             const py = Number(pixel && pixel.y);
-            if (Number.isFinite(px) && Number.isFinite(py)) {
+            if (Number.isFinite(px) && Number.isFinite(py)) {{
               const rect = $chinaMap.getBoundingClientRect();
-              return { clientX: rect.left + px, clientY: rect.top + py };
-            }
-          }
-        } catch (_) {}
-        const rect = $chinaMap ? $chinaMap.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
-        return {
+              return {{ clientX: rect.left + px, clientY: rect.top + py }};
+            }}
+          }}
+        }} catch (_) {{}}
+        const rect = $chinaMap ? $chinaMap.getBoundingClientRect() : {{ left: 0, top: 0, width: 0, height: 0 }};
+        return {{
           clientX: rect.left + rect.width / 2,
           clientY: rect.top + rect.height / 2,
-        };
-      };
+        }};
+      }};
 
-      const applyEdgeFilters = () => {
+      const applyEdgeFilters = () => {{
         edgesAll = [];
         edges = [];
         neigh = [];
         edgeMeta = new Map();
         draw();
-        if (currentTab === "map") {
+        if (currentTab === "map") {{
           updateMapMarkers();
-        }
-      };
+        }}
+      }};
 
       const PIXEL_STAGE_FLOW = [
-        { key: "queued", label: "排队" },
-        { key: "search", label: "检索" },
-        { key: "map", label: "定位" },
-        { key: "draft", label: "成稿" },
-        { key: "review", label: "审阅" },
-        { key: "deliver", label: "交付" },
+        {{ key: "queued", label: "排队" }},
+        {{ key: "search", label: "检索" }},
+        {{ key: "map", label: "定位" }},
+        {{ key: "draft", label: "成稿" }},
+        {{ key: "review", label: "审阅" }},
+        {{ key: "deliver", label: "交付" }},
       ];
       const PIXEL_AGENT_CARDS = [
-        { key: "search", label: "Search", role: "检索史料" },
-        { key: "map", label: "Map", role: "校正地点" },
-        { key: "draft", label: "Editor", role: "组织成稿" },
-        { key: "review", label: "Critic", role: "审阅校验" },
-        { key: "deliver", label: "Deliver", role: "保存交付" },
+        {{ key: "search", label: "Search", role: "检索史料" }},
+        {{ key: "map", label: "Map", role: "校正地点" }},
+        {{ key: "draft", label: "Editor", role: "组织成稿" }},
+        {{ key: "review", label: "Critic", role: "审阅校验" }},
+        {{ key: "deliver", label: "Deliver", role: "保存交付" }},
       ];
       const PIXEL_IDLE_STATES = [
-        {
+        {{
           key: "idle",
           person: "橙子Agent",
           sceneTitle: "待命",
@@ -2209,8 +2142,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
           speech: "待命中",
           summary: "暂无任务，正在工位待命。",
           footer: "空闲中",
-        },
-        {
+        }},
+        {{
           key: "nap",
           person: "橙子Agent",
           sceneTitle: "小睡",
@@ -2218,8 +2151,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
           speech: "打盹中",
           summary: "暂无任务，正在工位小睡。",
           footer: "空闲中",
-        },
-        {
+        }},
+        {{
           key: "stroll",
           person: "橙子Agent",
           sceneTitle: "巡查",
@@ -2227,7 +2160,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
           speech: "巡查中",
           summary: "暂无任务，正在附近巡查。",
           footer: "空闲中",
-        },
+        }},
       ];
       let pixelGenCollapsed = true;
       let pixelGenPinnedExpanded = false;
@@ -2236,7 +2169,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let pixelGenTypingSeq = 0;
       let pixelGenTypingTimer = null;
       let pixelIdleSceneTimer = null;
-      let pixelGenState = {
+      let pixelGenState = {{
         visible: true,
         person: "橙子Agent",
         status: "idle",
@@ -2248,12 +2181,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
         stageKey: "queued",
         speechText: "",
         idleSceneKey: "idle",
-      };
+      }};
       let currentGeneratePerson = "";
       let pendingPersonPageTab = null;
       let pendingPersonPageTabPerson = "";
       const runtimeReadinessEnabled = true;
-      let runtimeAvailability = {
+      let runtimeAvailability = {{
         checked: false,
         backendExpected: true,
         backendAvailable: false,
@@ -2265,24 +2198,24 @@ const buildPersonTooltipModel = (node, options = {}) => {
         queueLimit: 0,
         dependencySummary: "检查中",
         alerts: [],
-      };
-      const renderOpsChip = (el, tone, value) => {
+      }};
+      const renderOpsChip = (el, tone, value) => {{
         if (!el) return;
         const normalizedTone = String(tone || "muted").trim() || "muted";
         el.className = "pixel-progress-opschip is-" + normalizedTone;
         const valueEl = el.querySelector(".pixel-progress-opschip-value");
         if (valueEl) valueEl.textContent = String(value || "").trim() || "待命";
-      };
-      const resolveRuntimeBlockMessage = () => {
+      }};
+      const resolveRuntimeBlockMessage = () => {{
         if (runtimeAvailability.mode === "browser_only") return requireBackend("实时人物分析");
         if (runtimeAvailability.mode === "backend_unreachable") return "后端暂时不可达，当前仅支持浏览已生成人物页，请稍后再试。";
         if (runtimeAvailability.mode === "serve_unready") return "服务正在恢复，当前可稍后再试实时生成。";
         if (runtimeAvailability.mode === "generate_paused") return "实时生成人物暂时暂停，可先浏览已有内容，稍后再试。";
         return "";
-      };
-      const syncRuntimeOpsBoard = () => {
+      }};
+      const syncRuntimeOpsBoard = () => {{
         const queueValue = runtimeAvailability.checked
-          ? (runtimeAvailability.queueLimit > 0 ? `${runtimeAvailability.queuePending} / ${runtimeAvailability.queueLimit}` : String(runtimeAvailability.queuePending || 0))
+          ? (runtimeAvailability.queueLimit > 0 ? `${{runtimeAvailability.queuePending}} / ${{runtimeAvailability.queueLimit}}` : String(runtimeAvailability.queuePending || 0))
           : "等待采样";
         renderOpsChip(
           $pixelGenOpsServe,
@@ -2304,30 +2237,30 @@ const buildPersonTooltipModel = (node, options = {}) => {
           runtimeAvailability.generateReady ? "success" : (runtimeAvailability.checked ? "warning" : "muted"),
           runtimeAvailability.dependencySummary || "等待采样",
         );
-      };
-      const pickPixelIdleState = (excludeKey = "") => {
+      }};
+      const pickPixelIdleState = (excludeKey = "") => {{
         const states = PIXEL_IDLE_STATES.filter((item) => item && item.key !== excludeKey);
         const pool = states.length ? states : PIXEL_IDLE_STATES;
         const idx = Math.floor(Math.random() * Math.max(1, pool.length));
         return pool[idx] || PIXEL_IDLE_STATES[0];
-      };
-      const applyPixelIdleScene = (key) => {
+      }};
+      const applyPixelIdleScene = (key) => {{
         const safeKey = String(key || "idle").trim() || "idle";
         if ($pixelOcelotWrap) $pixelOcelotWrap.dataset.idleScene = safeKey;
         if ($pixelGenScene) $pixelGenScene.dataset.idleScene = safeKey;
-      };
-      const clearPixelIdleSceneRotation = () => {
-        if (pixelIdleSceneTimer) {
-          try { clearTimeout(pixelIdleSceneTimer); } catch (_) {}
+      }};
+      const clearPixelIdleSceneRotation = () => {{
+        if (pixelIdleSceneTimer) {{
+          try {{ clearTimeout(pixelIdleSceneTimer); }} catch (_) {{}}
           pixelIdleSceneTimer = null;
-        }
-      };
-      const schedulePixelIdleSceneRotation = () => {
+        }}
+      }};
+      const schedulePixelIdleSceneRotation = () => {{
         clearPixelIdleSceneRotation();
-        pixelIdleSceneTimer = window.setTimeout(() => {
+        pixelIdleSceneTimer = window.setTimeout(() => {{
           if (String(pixelGenState.status || "").trim() !== "idle") return;
           const next = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
-          updatePixelProgressPanel({
+          updatePixelProgressPanel({{
             status: "idle",
             idleSceneKey: next.key,
             person: next.person,
@@ -2336,14 +2269,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
             summary: next.summary,
             footerText: next.footer,
             speechText: next.speech,
-          });
-        }, 7000 + Math.floor(Math.random() * 5000));
-      };
-      const resolvePixelStageKey = (status, lastTxt, lastDetail, progress) => {
+          }});
+        }}, 7000 + Math.floor(Math.random() * 5000));
+      }};
+      const resolvePixelStageKey = (status, lastTxt, lastDetail, progress) => {{
         const head = String(lastTxt || "").trim();
         const detail = String(lastDetail || "").trim();
         const tail = Array.isArray(progress) && progress.length ? String(progress[progress.length - 1].label || "").trim() : "";
-        const text = `${head} ${detail} ${tail}`.toLowerCase();
+        const text = `${{head}} ${{detail}} ${{tail}}`.toLowerCase();
         if (status === "idle") return "queued";
         if (status === "queued") return "queued";
         if (status === "completed" || status === "failed" || status === "partial_failed") return "deliver";
@@ -2353,8 +2286,8 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (text.includes("criticagent") || text.includes("审阅") || text.includes("检查")) return "review";
         if (text.includes("保存") || text.includes("输出结论") || text.includes("构建时空结果") || text.includes("打开人物页") || text.includes("完成")) return "deliver";
         return "search";
-      };
-      const resolvePixelStageLabel = (status, stageKey) => {
+      }};
+      const resolvePixelStageLabel = (status, stageKey) => {{
         if (status === "idle") return String(pixelGenState.idleStageLabel || "").trim() || "空闲中";
         if (status === "queued") return "排队分发任务";
         if (status === "completed") return "交付完成";
@@ -2366,70 +2299,70 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (stageKey === "review") return "审阅与校验";
         if (stageKey === "deliver") return "保存并准备打开";
         return "等待开始";
-      };
-      const resolvePixelLampClass = (status) => {
+      }};
+      const resolvePixelLampClass = (status) => {{
         if (status === "idle") return "is-idle";
         if (status === "queued") return "is-queued";
         if (status === "failed" || status === "partial_failed") return "is-failed";
         if (status === "completed") return "is-completed";
         if (status === "running") return "is-running";
         return "";
-      };
-      const resolvePixelBadgeClass = (status) => {
+      }};
+      const resolvePixelBadgeClass = (status) => {{
         if (status === "idle") return "is-idle";
         if (status === "queued") return "is-queued";
         if (status === "failed" || status === "partial_failed") return "is-failed";
         if (status === "completed") return "is-completed";
         if (status === "running") return "is-running";
         return "is-idle";
-      };
-      const renderPixelSceneLights = (status, stageKey) => {
+      }};
+      const renderPixelSceneLights = (status, stageKey) => {{
         if (!pixelGenSceneLights.length) return;
         const defs = [
-          { on: status === "idle" || status === "queued", tint: status === "idle" ? "is-cyan" : "is-amber" },
-          { on: status === "running" || stageKey === "review", tint: "is-green" },
-          { on: stageKey === "deliver" || status === "completed", tint: "is-cyan" },
+          {{ on: status === "idle" || status === "queued", tint: status === "idle" ? "is-cyan" : "is-amber" }},
+          {{ on: status === "running" || stageKey === "review", tint: "is-green" }},
+          {{ on: stageKey === "deliver" || status === "completed", tint: "is-cyan" }},
         ];
-        pixelGenSceneLights.forEach((el, idx) => {
-          const conf = defs[idx] || { on: false, tint: "" };
-          el.className = "pixel-progress-scene-light" + (conf.tint ? ` ${conf.tint}` : "") + (conf.on ? " is-on" : "");
-        });
-      };
-      const setPixelPanelCollapsed = (collapsed) => {
+        pixelGenSceneLights.forEach((el, idx) => {{
+          const conf = defs[idx] || {{ on: false, tint: "" }};
+          el.className = "pixel-progress-scene-light" + (conf.tint ? ` ${{conf.tint}}` : "") + (conf.on ? " is-on" : "");
+        }});
+      }};
+      const setPixelPanelCollapsed = (collapsed) => {{
         pixelGenCollapsed = !!collapsed;
         if ($pixelGenBody) $pixelGenBody.style.display = pixelGenCollapsed ? "none" : "";
         if ($pixelGenPanel) $pixelGenPanel.classList.toggle("is-collapsed", pixelGenCollapsed);
-        if ($pixelGenPanel) {
-          $pixelGenPanel.setAttribute("aria-label", `系统状态：${resolvePixelCompactText(String(pixelGenState.status || "idle"), String(pixelGenState.stageKey || ""))}`);
+        if ($pixelGenPanel) {{
+          $pixelGenPanel.setAttribute("aria-label", `系统状态：${{resolvePixelCompactText(String(pixelGenState.status || "idle"), String(pixelGenState.stageKey || ""))}}`);
           $pixelGenPanel.setAttribute("title", "系统状态：只读展示，不能手动暂停或恢复");
-        }
-        if ($pixelGenToggle) {
-          if (STAR_OFFICE_OPEN_IN_NEW_TAB) {
+        }}
+        if ($pixelGenToggle) {{
+          if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
             $pixelGenToggle.textContent = "↗";
             $pixelGenToggle.setAttribute("aria-expanded", "false");
             $pixelGenToggle.setAttribute("aria-label", "查看 Orange Office 详情（状态只读）");
             $pixelGenToggle.setAttribute("title", "查看 Orange Office 详情（状态只读，不能手动暂停或恢复）");
-          } else {
+          }} else {{
             $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
             $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
             $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
             $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
-          }
-        }
-      };
-      const setPixelPanelPinnedExpanded = (expanded) => {
+          }}
+        }}
+      }};
+      const setPixelPanelPinnedExpanded = (expanded) => {{
         pixelGenPinnedExpanded = !!expanded;
-      };
-      const openStarOfficeInNewTab = () => {
-        try {
+      }};
+      const openStarOfficeInNewTab = () => {{
+        try {{
           const nextTab = window.open(STAR_OFFICE_URL, "_blank", "noopener");
           if (nextTab) return;
-        } catch (_) {}
-        try {
+        }} catch (_) {{}}
+        try {{
           window.location.href = STAR_OFFICE_URL;
-        } catch (_) {}
-      };
-      const shouldOpenStarOfficeFromPanelEvent = (target) => {
+        }} catch (_) {{}}
+      }};
+      const shouldOpenStarOfficeFromPanelEvent = (target) => {{
         if (!STAR_OFFICE_OPEN_IN_NEW_TAB) return false;
         if (!$pixelGenPanel) return false;
         const node = target instanceof Element ? target : null;
@@ -2438,21 +2371,21 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const interactive = node.closest("button, a, input, select, textarea, label, summary, iframe");
         if (!interactive) return true;
         return $pixelGenPanel === interactive;
-      };
-      const openPixelPanelTemporarily = () => {
+      }};
+      const openPixelPanelTemporarily = () => {{
         if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
         pixelGenHovering = true;
         if (!pixelGenPinnedExpanded && pixelGenCollapsed) setPixelPanelCollapsed(false);
-      };
-      const maybeCollapsePixelPanel = () => {
+      }};
+      const maybeCollapsePixelPanel = () => {{
         if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
         pixelGenHovering = false;
         if (!pixelGenPinnedExpanded) setPixelPanelCollapsed(true);
-      };
-      const setPixelSpeechText = (text) => {
+      }};
+      const setPixelSpeechText = (text) => {{
         if ($pixelGenSpeech) $pixelGenSpeech.textContent = String(text || "").trim() || "等待任务状态更新…";
-      };
-      const resolvePixelSceneSpeech = (status) => {
+      }};
+      const resolvePixelSceneSpeech = (status) => {{
         if (status === "idle") return String(pixelGenState.speechText || runtimeAvailability.summary || "").trim() || "空闲中";
         if (status === "queued") return "排队中";
         if (status === "completed") return "已完成";
@@ -2460,66 +2393,66 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (status === "partial_failed") return "部分完成";
         if (status === "running") return "执行中";
         return "等待任务状态更新…";
-      };
-      const typePixelSpeech = (text) => {
+      }};
+      const typePixelSpeech = (text) => {{
         const value = String(text || "").trim() || "等待任务状态更新…";
         pixelGenTypingSeq += 1;
         const seq = pixelGenTypingSeq;
-        if (pixelGenTypingTimer) {
-          try { clearTimeout(pixelGenTypingTimer); } catch (_) {}
+        if (pixelGenTypingTimer) {{
+          try {{ clearTimeout(pixelGenTypingTimer); }} catch (_) {{}}
           pixelGenTypingTimer = null;
-        }
-        if (reduceMotion || value.length <= 18) {
+        }}
+        if (reduceMotion || value.length <= 18) {{
           setPixelSpeechText(value);
           return;
-        }
-        const showChars = (count) => {
+        }}
+        const showChars = (count) => {{
           if (seq !== pixelGenTypingSeq) return;
           setPixelSpeechText(value.slice(0, count));
           if (count >= value.length) return;
           const nextCount = Math.min(value.length, count + (count < 20 ? 3 : 2));
           pixelGenTypingTimer = setTimeout(() => showChars(nextCount), 24);
-        };
+        }};
         showChars(1);
-      };
-      const setPixelDetailText = (text) => {
+      }};
+      const setPixelDetailText = (text) => {{
         if (!$pixelGenDetail) return;
         const value = String(text || "").trim();
         const safe = value || "等待任务状态更新…";
         $pixelGenDetail.textContent = safe;
         const longText = safe.length > 54;
         $pixelGenDetail.classList.toggle("is-collapsed", longText && !pixelGenDetailExpanded);
-        if ($pixelGenDetailHint) {
+        if ($pixelGenDetailHint) {{
           $pixelGenDetailHint.textContent = longText ? (pixelGenDetailExpanded ? "点击收起" : "点击展开") : "自动摘要";
-        }
-      };
-      const renderPixelProgressSteps = (status, stageKey) => {
+        }}
+      }};
+      const renderPixelProgressSteps = (status, stageKey) => {{
         if (!$pixelGenSteps) return;
         const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
         const isIdle = status === "idle";
-        $pixelGenSteps.innerHTML = PIXEL_STAGE_FLOW.map((item, idx) => {
+        $pixelGenSteps.innerHTML = PIXEL_STAGE_FLOW.map((item, idx) => {{
           const done = !isIdle && (status === "completed" ? true : idx < stageIdx);
           const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === stageIdx;
           const cls = "pixel-progress-step" + (done ? " is-done" : "") + (active ? " is-active" : "");
-          return `<div class="${cls}">${item.label}</div>`;
-        }).join("");
-      };
-      const resolvePixelStatusText = (status) => {
-        if (status === "idle") {
+          return `<div class="${{cls}}">${{item.label}}</div>`;
+        }}).join("");
+      }};
+      const resolvePixelStatusText = (status) => {{
+        if (status === "idle") {{
           if (runtimeAvailability.mode === "browser_only") return "只读";
           if (runtimeAvailability.mode === "backend_unreachable" || runtimeAvailability.mode === "serve_unready") return "恢复中";
           if (runtimeAvailability.mode === "generate_paused") return "降级";
           return "待命";
-        }
+        }}
         if (status === "queued") return "排队";
         if (status === "running") return "执行中";
         if (status === "completed") return "已完成";
         if (status === "failed") return "失败";
         if (status === "partial_failed") return "部分完成";
         return String(status || "").trim() || "待命";
-      };
-      const resolvePixelCompactText = (status, stageKey) => {
-        if (status === "running") return `进行中 · ${resolvePixelStageLabel(status, stageKey)}`;
+      }};
+      const resolvePixelCompactText = (status, stageKey) => {{
+        if (status === "running") return `进行中 · ${{resolvePixelStageLabel(status, stageKey)}}`;
         if (status === "queued") return "排队中";
         if (status === "completed") return "已生成";
         if (status === "failed" || status === "partial_failed") return "查看异常";
@@ -2528,68 +2461,68 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (runtimeAvailability.mode === "serve_unready") return "系统 · 恢复中";
         if (runtimeAvailability.mode === "generate_paused") return "系统 · 生成暂停";
         return "系统 · 待命";
-      };
-      const renderPixelAgentCards = (status, stageKey) => {
+      }};
+      const renderPixelAgentCards = (status, stageKey) => {{
         if (!$pixelGenAgents) return;
         const activeIdx = Math.max(0, PIXEL_AGENT_CARDS.findIndex((item) => item.key === stageKey || (stageKey === "queued" && item.key === "search")));
         const isIdle = status === "idle";
-        $pixelGenAgents.innerHTML = PIXEL_AGENT_CARDS.map((item, idx) => {
+        $pixelGenAgents.innerHTML = PIXEL_AGENT_CARDS.map((item, idx) => {{
           const done = !isIdle && (status === "completed" ? true : idx < activeIdx);
           const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === activeIdx;
           const cls = "pixel-progress-agent" + (done ? " is-done" : "") + (active ? " is-active" : "");
           const stateText = isIdle ? "待命" : (active ? "处理中" : (done ? "已完成" : "等待"));
-          return `<div class="${cls}"><div class="pixel-progress-agent-name">${item.label}</div><div class="pixel-progress-agent-role">${item.role}</div><div class="pixel-progress-agent-status">${stateText}</div></div>`;
-        }).join("");
-      };
-      const escapePixelLogHtml = (value) => {
+          return `<div class="${{cls}}"><div class="pixel-progress-agent-name">${{item.label}}</div><div class="pixel-progress-agent-role">${{item.role}}</div><div class="pixel-progress-agent-status">${{stateText}}</div></div>`;
+        }}).join("");
+      }};
+      const escapePixelLogHtml = (value) => {{
         return String(value || "")
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
-      };
-      const renderPixelProgressLog = (status, progress) => {
+      }};
+      const renderPixelProgressLog = (status, progress) => {{
         if (!$pixelGenLog) return;
         const items = (Array.isArray(progress) ? progress : []).slice(-5);
-        if (!items.length) {
+        if (!items.length) {{
           $pixelGenLog.innerHTML = status === "idle"
             ? '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">空闲中</div><div class="pixel-progress-log-detail">输入人物后开始生成。</div></div>'
             : '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">等待中</div><div class="pixel-progress-log-detail">任务创建后会在这里持续显示最新执行步骤。</div></div>';
           return;
-        }
-        $pixelGenLog.innerHTML = items.map((item) => {
+        }}
+        $pixelGenLog.innerHTML = items.map((item) => {{
           const label = String((item && item.label) || "进度更新").trim() || "进度更新";
           const detail = String((item && item.detail) || "").trim();
           const time = String((item && item.time) || "").trim();
-          const labelText = time ? `${label} · ${time}` : label;
+          const labelText = time ? `${{label}} · ${{time}}` : label;
           const safeLabelText = escapePixelLogHtml(labelText);
-          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${escapePixelLogHtml(detail)}</div>` : "";
-          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${safeLabelText}</div>${detailHtml}</div>`;
-        }).join("");
-      };
-      const updatePixelProgressPanel = (patch = {}) => {
+          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${{escapePixelLogHtml(detail)}}</div>` : "";
+          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${{safeLabelText}}</div>${{detailHtml}}</div>`;
+        }}).join("");
+      }};
+      const updatePixelProgressPanel = (patch = {{}}) => {{
         if (!$pixelGenPanel) return;
         const prevState = pixelGenState;
-        pixelGenState = Object.assign({}, pixelGenState, patch || {});
+        pixelGenState = Object.assign({{}}, pixelGenState, patch || {{}});
         const person = String(pixelGenState.person || "").trim();
         const summary = String(pixelGenState.summary || "").trim();
         const progress = Array.isArray(pixelGenState.progress) ? pixelGenState.progress : [];
         const visible = pixelGenState.visible !== false;
-        if (!visible) {
+        if (!visible) {{
           $pixelGenPanel.classList.add("hidden");
           return;
-        }
+        }}
         const status = String(pixelGenState.status || "running").trim() || "running";
         const stageKey = String(pixelGenState.stageKey || "search").trim() || "search";
-        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && (status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {
+        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && (status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {{
           setPixelPanelPinnedExpanded(true);
           setPixelPanelCollapsed(false);
-        }
-        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && status === "idle" && prevState && prevState.status && prevState.status !== "idle" && !pixelGenHovering) {
+        }}
+        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && status === "idle" && prevState && prevState.status && prevState.status !== "idle" && !pixelGenHovering) {{
           setPixelPanelPinnedExpanded(false);
           setPixelPanelCollapsed(true);
-        }
+        }}
         const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
         const basePercent = status === "idle"
           ? 0
@@ -2599,22 +2532,22 @@ const buildPersonTooltipModel = (node, options = {}) => {
         $pixelGenPanel.classList.remove("hidden");
         applyPixelIdleScene(String(pixelGenState.idleSceneKey || "idle"));
         if ($pixelGenPerson) $pixelGenPerson.textContent = person || "橙子Agent";
-        if ($pixelGenSceneTitle) {
+        if ($pixelGenSceneTitle) {{
           $pixelGenSceneTitle.textContent = status === "idle"
             ? (String(pixelGenState.sceneTitle || "").trim() || "工位")
             : "工位";
-        }
+        }}
         if ($pixelGenStage) $pixelGenStage.textContent = resolvePixelStageLabel(status, stageKey);
         if ($pixelGenStatusText) $pixelGenStatusText.textContent = resolvePixelStatusText(status);
         if ($pixelGenLamp) $pixelGenLamp.className = "pixel-progress-lamp " + resolvePixelLampClass(status);
-        if ($pixelGenStatusBadge) {
+        if ($pixelGenStatusBadge) {{
           $pixelGenStatusBadge.className = "pixel-progress-badge " + resolvePixelBadgeClass(status);
           $pixelGenStatusBadge.textContent = resolvePixelStatusText(status);
-        }
-        if ($pixelGenCompactText) {
+        }}
+        if ($pixelGenCompactText) {{
           $pixelGenCompactText.textContent = resolvePixelCompactText(status, stageKey);
-        }
-        if ($pixelGenFooterText) {
+        }}
+        if ($pixelGenFooterText) {{
           $pixelGenFooterText.textContent = status === "idle"
             ? (String(pixelGenState.footerText || "").trim() || "空闲中")
             : (status === "queued"
@@ -2624,63 +2557,63 @@ const buildPersonTooltipModel = (node, options = {}) => {
               : (status === "failed" || status === "partial_failed"
                 ? "任务已停止，请查看上方错误信息"
                 : "橙子Agent 正在持续汇报 agent 的执行进度")));
-        }
-        if ($pixelGenPercent) $pixelGenPercent.textContent = `${basePercent}%`;
-        if ($pixelGenFill) $pixelGenFill.style.width = `${basePercent}%`;
+        }}
+        if ($pixelGenPercent) $pixelGenPercent.textContent = `${{basePercent}}%`;
+        if ($pixelGenFill) $pixelGenFill.style.width = `${{basePercent}}%`;
         if (status === "idle") schedulePixelIdleSceneRotation();
         else clearPixelIdleSceneRotation();
         renderPixelSceneLights(status, stageKey);
         const sceneSpeech = resolvePixelSceneSpeech(status);
         setPixelDetailText(summary);
-        if (sceneSpeech !== String(prevState?.speechText || "")) {
+        if (sceneSpeech !== String(prevState?.speechText || "")) {{
           typePixelSpeech(sceneSpeech);
-        } else if (!$pixelGenSpeech || !String($pixelGenSpeech.textContent || "").trim()) {
+        }} else if (!$pixelGenSpeech || !String($pixelGenSpeech.textContent || "").trim()) {{
           setPixelSpeechText(sceneSpeech);
-        }
+        }}
         pixelGenState.speechText = sceneSpeech;
         renderPixelProgressSteps(status, stageKey);
         renderPixelAgentCards(status, stageKey);
         renderPixelProgressLog(status, progress);
-      };
-      try {
-        if ($pixelGenToggle) {
-          $pixelGenToggle.addEventListener("click", () => {
-            if (STAR_OFFICE_OPEN_IN_NEW_TAB) {
+      }};
+      try {{
+        if ($pixelGenToggle) {{
+          $pixelGenToggle.addEventListener("click", () => {{
+            if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
               openStarOfficeInNewTab();
               return;
-            }
-            if (pixelGenCollapsed) {
+            }}
+            if (pixelGenCollapsed) {{
               setPixelPanelPinnedExpanded(true);
               setPixelPanelCollapsed(false);
-            } else {
+            }} else {{
               setPixelPanelPinnedExpanded(false);
               setPixelPanelCollapsed(true);
-            }
-          });
-        }
-        if ($pixelGenPanel) {
+            }}
+          }});
+        }}
+        if ($pixelGenPanel) {{
           $pixelGenPanel.addEventListener("mouseenter", openPixelPanelTemporarily);
           $pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);
           $pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);
-          $pixelGenPanel.addEventListener("focusout", () => {
-            try {
+          $pixelGenPanel.addEventListener("focusout", () => {{
+            try {{
               if ($pixelGenPanel.contains(document.activeElement)) return;
-            } catch (_) {}
+            }} catch (_) {{}}
             maybeCollapsePixelPanel();
-          });
-        }
-        if ($pixelGenDetailCard) {
-          $pixelGenDetailCard.addEventListener("click", () => {
+          }});
+        }}
+        if ($pixelGenDetailCard) {{
+          $pixelGenDetailCard.addEventListener("click", () => {{
             const safe = String(pixelGenState.summary || "").trim();
             if (safe.length <= 54) return;
             pixelGenDetailExpanded = !pixelGenDetailExpanded;
             setPixelDetailText(safe);
-          });
-        }
-      } catch (_) {}
+          }});
+        }}
+      }} catch (_) {{}}
       setPixelPanelCollapsed(true);
       const initialIdleState = pickPixelIdleState();
-      pixelGenState = Object.assign({}, pixelGenState, {
+      pixelGenState = Object.assign({{}}, pixelGenState, {{
         idleSceneKey: initialIdleState.key,
         person: initialIdleState.person,
         sceneTitle: initialIdleState.sceneTitle,
@@ -2688,93 +2621,93 @@ const buildPersonTooltipModel = (node, options = {}) => {
         summary: initialIdleState.summary,
         footerText: initialIdleState.footer,
         speechText: initialIdleState.speech,
-      });
+      }});
       updatePixelProgressPanel(pixelGenState);
 
-      const setGenStatus = (txt) => {
+      const setGenStatus = (txt) => {{
         const t = String(txt || "").trim();
-        updatePixelProgressPanel({
+        updatePixelProgressPanel({{
           visible: true,
           summary: t,
-        });
+        }});
         if (!$genStatus) return;
-        if (!t) {
+        if (!t) {{
           $genStatus.classList.add("hidden");
           $genStatus.textContent = "";
           return;
-        }
+        }}
         $genStatus.textContent = t;
         $genStatus.classList.remove("hidden");
-      };
-      const clearGenerateRequestKey = (personName) => {
+      }};
+      const clearGenerateRequestKey = (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return;
-        try {
+        try {{
           const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
-          const payload = raw ? JSON.parse(raw) : {};
+          const payload = raw ? JSON.parse(raw) : {{}};
           if (!payload || typeof payload !== "object") return;
           delete payload[person];
           sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(payload));
-        } catch (_) {}
-      };
+        }} catch (_) {{}}
+      }};
       const isSafeGenerateRequestKey = (value) => /^[A-Za-z0-9._:-]+$/.test(String(value || "").trim());
-      const getGenerateRequestKey = (personName) => {
+      const getGenerateRequestKey = (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return "";
-        try {
+        try {{
           const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
-          const payload = raw ? JSON.parse(raw) : {};
+          const payload = raw ? JSON.parse(raw) : {{}};
           const now = Date.now();
           const hit = payload && typeof payload === "object" ? payload[person] : null;
-          if (hit && typeof hit === "object") {
+          if (hit && typeof hit === "object") {{
             const createdAt = Number(hit.created_at || 0);
             const key = String(hit.key || "").trim();
             if (key && isSafeGenerateRequestKey(key) && createdAt > 0 && (now - createdAt) < 10 * 60 * 1000) return key;
-          }
+          }}
           const fresh = "storymap-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 10);
-          const next = payload && typeof payload === "object" ? payload : {};
-          next[person] = { key: fresh, created_at: now };
+          const next = payload && typeof payload === "object" ? payload : {{}};
+          next[person] = {{ key: fresh, created_at: now }};
           sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(next));
           return fresh;
-        } catch (_) {
+        }} catch (_) {{
           return "storymap-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
-        }
-      };
-      const clearGenTask = () => {
+        }}
+      }};
+      const clearGenTask = () => {{
         clearTaskPoll();
-        try { localStorage.removeItem("stellar_gen_task_v1"); } catch (_) {}
+        try {{ localStorage.removeItem("stellar_gen_task_v1"); }} catch (_) {{}}
         if (currentGeneratePerson) clearGenerateRequestKey(currentGeneratePerson);
         currentGeneratePerson = "";
         pendingPersonPageTab = null;
         pendingPersonPageTabPerson = "";
-      };
-      const setGeneratingUI = (isGenerating) => {
+      }};
+      const setGeneratingUI = (isGenerating) => {{
         const on = !!isGenerating;
-        try {
-          if ($go) {
+        try {{
+          if ($go) {{
             $go.dataset.loading = on ? "true" : "false";
             $go.setAttribute("aria-label", on ? "分析中" : "开始分析");
             $go.setAttribute("title", on ? "分析中" : "开始分析");
-          }
+          }}
           if ($goLabel) $goLabel.textContent = on ? "分析中" : "开始分析";
-        } catch (_) {}
-        try {
-          if (on) {
+        }} catch (_) {{}}
+        try {{
+          if (on) {{
             $go.classList.add("opacity-60");
             $go.classList.add("cursor-not-allowed");
-          } else {
+          }} else {{
             $go.classList.remove("opacity-60");
             $go.classList.remove("cursor-not-allowed");
-          }
-        } catch (_) {}
-        syncSearchActionState({ generating: on });
-      };
-      const fetchWithTimeout = (url, ms, init) => {
+          }}
+        }} catch (_) {{}}
+        syncSearchActionState({{ generating: on }});
+      }};
+      const fetchWithTimeout = (url, ms, init) => {{
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), ms || 12000);
-        return fetch(url, Object.assign({ cache: "no-store", signal: controller.signal }, init || {})).finally(() => clearTimeout(id));
-      };
-      const normalizeRelativeHtmlFile = (file) => {
+        return fetch(url, Object.assign({{ cache: "no-store", signal: controller.signal }}, init || {{}})).finally(() => clearTimeout(id));
+      }};
+      const normalizeRelativeHtmlFile = (file) => {{
         const raw = String(file || "").trim();
         if (!raw) return "";
         const cleaned = raw.split("#")[0].split("?")[0].replace(/\\/g, "/").replace(/^[.\/]+/, "");
@@ -2782,14 +2715,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const parts = cleaned.split("/").filter(Boolean);
         const leaf = parts.length ? parts[parts.length - 1] : "";
         return /\.html?$/i.test(leaf) ? leaf : "";
-      };
-      const navigateToRelativeHtml = (file, options = {}) => {
+      }};
+      const navigateToRelativeHtml = (file, options = {{}}) => {{
         const target = normalizeRelativeHtmlFile(file);
         if (!target) return false;
         const targetUrl = "./" + encodeURIComponent(target);
         const useNewTab = !!(options && options.newTab);
-        if (useNewTab) {
-          try {
+        if (useNewTab) {{
+          try {{
             const link = document.createElement("a");
             link.href = targetUrl;
             link.target = "_blank";
@@ -2799,12 +2732,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
             link.click();
             link.remove();
             return true;
-          } catch (_) {}
-        }
+          }} catch (_) {{}}
+        }}
         window.location.href = targetUrl;
         return true;
-      };
-      const resolveStarOfficeUrl = (personName, taskId = "") => {
+      }};
+      const resolveStarOfficeUrl = (personName, taskId = "") => {{
         const params = new URLSearchParams();
         const person = String(personName || "").trim();
         const task = String(taskId || "").trim();
@@ -2812,34 +2745,34 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (task) params.set("task", task);
         const query = params.toString();
         return query ? (STAR_OFFICE_URL + "?" + query) : STAR_OFFICE_URL;
-      };
-      const ensurePendingPersonTab = (personName) => {
+      }};
+      const ensurePendingPersonTab = (personName) => {{
         const person = String(personName || "").trim();
         pendingPersonPageTabPerson = person;
         if (pendingPersonPageTab && !pendingPersonPageTab.closed) return pendingPersonPageTab;
-        try {
+        try {{
           const tab = window.open(resolveStarOfficeUrl(person), "_blank");
           if (!tab) return null;
           pendingPersonPageTab = tab;
           return tab;
-        } catch (_) {
+        }} catch (_) {{
           return null;
-        }
-      };
-      const navigatePendingPersonTabToOffice = (personName, taskId = "") => {
+        }}
+      }};
+      const navigatePendingPersonTabToOffice = (personName, taskId = "") => {{
         const person = String(personName || "").trim();
         if (!person) return false;
         if (pendingPersonPageTabPerson !== person) return false;
         const tab = pendingPersonPageTab;
         if (!tab || tab.closed) return false;
-        try {
+        try {{
           tab.location.href = resolveStarOfficeUrl(person, taskId);
           return true;
-        } catch (_) {
+        }} catch (_) {{
           return false;
-        }
-      };
-      const navigatePendingPersonTabToHtml = (personName, file) => {
+        }}
+      }};
+      const navigatePendingPersonTabToHtml = (personName, file) => {{
         const person = String(personName || "").trim();
         if (!person) return false;
         if (pendingPersonPageTabPerson !== person) return false;
@@ -2847,31 +2780,31 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (!tab || tab.closed) return false;
         const target = normalizeRelativeHtmlFile(file);
         if (!target) return false;
-        try {
+        try {{
           tab.location.href = "./" + encodeURIComponent(target);
           pendingPersonPageTab = null;
           pendingPersonPageTabPerson = "";
           return true;
-        } catch (_) {
+        }} catch (_) {{
           return false;
-        }
-      };
-      const probeGeneratedPersonHtml = async (personName) => {
+        }}
+      }};
+      const probeGeneratedPersonHtml = async (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return "";
         const target = person + ".html";
-        try {
-          const resp = await fetch("./" + encodeURIComponent(target), { method: "HEAD", cache: "no-store" });
+        try {{
+          const resp = await fetch("./" + encodeURIComponent(target), {{ method: "HEAD", cache: "no-store" }});
           if (resp && resp.ok) return target;
-        } catch (_) {}
+        }} catch (_) {{}}
         return "";
-      };
-      const resolveTaskResultHtml = (result, fallbackPerson) => {
+      }};
+      const resolveTaskResultHtml = (result, fallbackPerson) => {{
         const files = Array.isArray(result && result.files) ? result.files : [];
-        for (const item of files) {
+        for (const item of files) {{
           const html = normalizeRelativeHtmlFile(item && item.html);
           if (html) return html;
-        }
+        }}
         const multiHtml = normalizeRelativeHtmlFile(result && result.multi ? result.multi.html : "");
         if (multiHtml) return multiHtml;
         const people = Array.isArray(result && result.people) ? result.people : [];
@@ -2880,52 +2813,52 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const fallbackName = String(fallbackPerson || "").trim();
         if (primaryName) preferredNames.push(primaryName);
         if (fallbackName && !preferredNames.includes(fallbackName)) preferredNames.push(fallbackName);
-        for (const name of preferredNames) {
+        for (const name of preferredNames) {{
           const found = nodes.find((n) => n && String(n.person || "").trim() === name) || null;
           const html = normalizeRelativeHtmlFile(found && found.file ? found.file : (name ? (name + ".html") : ""));
           if (html) return html;
-        }
+        }}
         return "";
-      };
+      }};
       let activeTaskPollId = "";
       let activeTaskPollGeneration = 0;
       let activeTaskPollTimer = 0;
-      const clearTaskPoll = () => {
+      const clearTaskPoll = () => {{
         activeTaskPollId = "";
         activeTaskPollGeneration += 1;
-        if (activeTaskPollTimer) {
+        if (activeTaskPollTimer) {{
           clearTimeout(activeTaskPollTimer);
           activeTaskPollTimer = 0;
-        }
-      };
-      const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {
+        }}
+      }};
+      const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {{
         if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
         if (activeTaskPollTimer) clearTimeout(activeTaskPollTimer);
-        activeTaskPollTimer = setTimeout(() => {
+        activeTaskPollTimer = setTimeout(() => {{
           activeTaskPollTimer = 0;
           if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
           tick();
-        }, ms);
-      };
+        }}, ms);
+      }};
 
-      const openPerson = (name) => {
+      const openPerson = (name) => {{
         const q = String(name || "").trim();
         if (!q) return;
         const found = nodes.find((n) => n && String(n.person || "").trim() === q) || null;
-        if (found && found.has_story === false) {
+        if (found && found.has_story === false) {{
           setGenStatus("「" + q + "」暂未收录人物页，正在尝试创建分析任务");
           ensurePendingPersonTab(q);
           ensurePersonGenerated(q);
           return;
-        }
+        }}
         const file = found && found.file ? String(found.file) : "";
-        if (navigateToRelativeHtml(file, { newTab: true })) return;
+        if (navigateToRelativeHtml(file, {{ newTab: true }})) return;
         ensurePendingPersonTab(q);
         ensurePersonGenerated(q);
-      };
+      }};
       window.__openPerson = openPerson;
 
-      const pollTask = (taskId, personName) => {
+      const pollTask = (taskId, personName) => {{
         const id = String(taskId || "").trim();
         if (!id) return;
         if (activeTaskPollId === id) return;
@@ -2940,67 +2873,67 @@ const buildPersonTooltipModel = (node, options = {}) => {
         let lastKnownSummary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…";
         let lastKnownStageKey = "queued";
       let personPageOpened = false;
-        const tick = async () => {
+        const tick = async () => {{
           if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
           let snapshot = null;
-          try {
+          try {{
             const taskUrl = apiUrl("task?id=" + encodeURIComponent(id));
             const resp = await fetchWithTimeout(taskUrl, 12000);
             snapshot = await resp.json();
-          } catch (e) {
+          }} catch (e) {{
             snapshot = null;
-          }
-          if (!snapshot || snapshot.exists !== true) {
+          }}
+          if (!snapshot || snapshot.exists !== true) {{
             missingSnapshotCount += 1;
             const generatedHtml = await probeGeneratedPersonHtml(person);
-            if (generatedHtml) {
+            if (generatedHtml) {{
               const summary = "分析完成，正在打开人物页…";
               setGenStatus(summary);
-              updatePixelProgressPanel({
+              updatePixelProgressPanel({{
                 visible: true,
                 person,
                 status: "completed",
                 summary,
                 progress: lastKnownProgress,
                 stageKey: "deliver",
-              });
+              }});
               setGeneratingUI(false);
-              navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, { newTab: true });
+              navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, {{ newTab: true }});
               clearGenTask();
               return;
-            }
-            if (missingSnapshotCount <= 8) {
+            }}
+            if (missingSnapshotCount <= 8) {{
               const summary = "任务状态同步中，请稍候…";
               setGenStatus(summary);
-              updatePixelProgressPanel({
+              updatePixelProgressPanel({{
                 visible: true,
                 person,
                 status: "running",
                 summary,
                 progress: lastKnownProgress,
                 stageKey: lastKnownStageKey,
-              });
+              }});
               setGeneratingUI(true);
               scheduleTaskPoll(id, generation, tick, missingSnapshotCount >= 3 ? 1800 : 1100);
               return;
-            }
+            }}
             const summary = lastKnownSummary ? (lastKnownSummary + "；任务状态同步失败，请稍后重试。") : "分析任务查询失败，请稍后重试";
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: "failed",
               summary,
               progress: lastKnownProgress,
               stageKey: "deliver",
-            });
+            }});
             setGeneratingUI(false);
             clearGenTask();
             return;
-          }
+          }}
           missingSnapshotCount = 0;
           const st = String(snapshot.status || "").trim();
-          const queue = snapshot.queue || {};
+          const queue = snapshot.queue || {{}};
           const pos = queue.position ? String(queue.position) : "";
           const active = queue.active_at_start ? String(queue.active_at_start) : (queue.active ? String(queue.active) : "");
           const limit = queue.limit ? String(queue.limit) : "";
@@ -3008,277 +2941,277 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const last = progress.length ? progress[progress.length - 1] : null;
           const lastTxt = last && last.label ? String(last.label) : "";
           const lastDetail = last && last.detail ? String(last.detail) : "";
-          if (st === "queued") {
+          if (st === "queued") {{
             const qtxt = (pos && limit) ? ("排队中（" + pos + "/" + limit + "）") : "排队中";
             const summary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候… " + qtxt;
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: st,
               summary,
               progress,
               stageKey: "queued",
-            });
+            }});
             setGeneratingUI(true);
             lastKnownProgress = progress;
             lastKnownSummary = summary;
             lastKnownStageKey = "queued";
             scheduleTaskPoll(id, generation, tick, 900);
             return;
-          }
-          if (st === "running") {
+          }}
+          if (st === "running") {{
             const ptxt = lastDetail ? (lastTxt + "：" + lastDetail) : lastTxt;
             const head = "未找到本地人物「" + person + "」，正在分析并生成结果，请稍候…";
             const tail = ptxt ? ("（" + ptxt + "）") : (active && limit ? ("（执行中 " + active + "/" + limit + "）") : "");
             const summary = head + tail;
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: st,
               summary,
               progress,
               stageKey: resolvePixelStageKey(st, lastTxt, lastDetail, progress),
-            });
+            }});
             setGeneratingUI(true);
             lastKnownProgress = progress;
             lastKnownSummary = summary;
             lastKnownStageKey = resolvePixelStageKey(st, lastTxt, lastDetail, progress);
             scheduleTaskPoll(id, generation, tick, 900);
             return;
-          }
-          if (st === "failed") {
+          }}
+          if (st === "failed") {{
             const summary = "分析失败：" + String(snapshot.error || "未知错误");
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: st,
               summary,
               progress,
               stageKey: "deliver",
-            });
+            }});
             setGeneratingUI(false);
             clearGenTask();
             return;
-          }
-          if (st === "partial_failed") {
-            const result = snapshot.result || {};
+          }}
+          if (st === "partial_failed") {{
+            const result = snapshot.result || {{}};
             const detail = String(snapshot.error || result.conclusion || "部分任务未成功");
             const summary = "分析部分完成：" + detail;
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: st,
               summary,
               progress,
               stageKey: "deliver",
-            });
+            }});
             setGeneratingUI(false);
             clearGenTask();
             return;
-          }
-          if (st === "completed") {
-            const result = snapshot.result || {};
+          }}
+          if (st === "completed") {{
+            const result = snapshot.result || {{}};
             const ok = result && result.ok === true;
-            const archive = result.archive || {};
+            const archive = result.archive || {{}};
             const archiveState = String(archive.state || "").trim();
-            if (!ok) {
+            if (!ok) {{
               const summary = "分析失败：" + String(result.conclusion || snapshot.error || "未生成成功");
               setGenStatus(summary);
-              updatePixelProgressPanel({
+              updatePixelProgressPanel({{
                 visible: true,
                 person,
                 status: "failed",
                 summary,
                 progress,
                 stageKey: "deliver",
-              });
+              }});
               setGeneratingUI(false);
               clearGenTask();
               return;
-            }
+            }}
             const targetHtml = resolveTaskResultHtml(result, person);
-            if (!targetHtml) {
+            if (!targetHtml) {{
               setGenStatus("分析完成，但未找到可打开的人物页");
               setGeneratingUI(false);
               clearGenTask();
               return;
-            }
-            if (!personPageOpened) {
-              personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, { newTab: true });
-            }
-            if (!personPageOpened) {
+            }}
+            if (!personPageOpened) {{
+              personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, {{ newTab: true }});
+            }}
+            if (!personPageOpened) {{
               setGenStatus("分析完成，但未找到可打开的人物页");
               setGeneratingUI(false);
               clearGenTask();
               return;
-            }
-            if (archiveState === "queued" || archiveState === "running") {
+            }}
+            if (archiveState === "queued" || archiveState === "running") {{
               const summary = "人物页已打开，群星首页与关系图谱正在后台补齐…";
               setGenStatus(summary);
-              updatePixelProgressPanel({
+              updatePixelProgressPanel({{
                 visible: true,
                 person,
                 status: "running",
                 summary,
                 progress,
                 stageKey: "deliver",
-              });
+              }});
               setGeneratingUI(false);
               lastKnownProgress = progress;
               lastKnownSummary = summary;
               lastKnownStageKey = "deliver";
               scheduleTaskPoll(id, generation, tick, 1200);
               return;
-            }
+            }}
             clearGenTask();
             const summary = archiveState === "completed"
               ? "人物页已打开，群星首页与关系图谱已补齐，正在刷新首页…"
               : "分析完成，人物页已打开";
             setGenStatus(summary);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: st,
               summary,
               progress,
               stageKey: "deliver",
-            });
+            }});
             setGeneratingUI(false);
               clearGenTask();
-            if (archiveState === "completed") {
-              setTimeout(() => {
-                try {
+            if (archiveState === "completed") {{
+              setTimeout(() => {{
+                try {{
                   window.location.reload();
-                } catch (_err) {}
-              }, 320);
-            }
+                }} catch (_err) {{}}
+              }}, 320);
+            }}
             return;
-          }
+          }}
           setGenStatus("分析任务状态异常，请稍后重试");
           setGeneratingUI(false);
           clearGenTask();
-        };
+        }};
         tick();
-      };
+      }};
 
-      const ensurePersonGenerated = async (personName) => {
+      const ensurePersonGenerated = async (personName) => {{
         const person = String(personName || "").trim();
         if (!person) return;
         const blockedMessage = resolveRuntimeBlockMessage();
-        if (blockedMessage) {
+        if (blockedMessage) {{
           setGenStatus(blockedMessage);
-          updatePixelProgressPanel({
+          updatePixelProgressPanel({{
             visible: true,
             person,
             status: "idle",
             summary: blockedMessage,
             progress: [],
             stageKey: "queued",
-          });
+          }});
           setGeneratingUI(false);
           return;
-        }
-        try {
+        }}
+        try {{
           const existingHtml = await probeGeneratedPersonHtml(person);
-          if (existingHtml) {
+          if (existingHtml) {{
             setGenStatus("");
             setGeneratingUI(false);
             navigateToRelativeHtml(existingHtml);
             return;
-          }
-        } catch (_) {}
+          }}
+        }} catch (_) {{}}
         currentGeneratePerson = person;
         setGeneratingUI(true);
         setGenStatus("未找到本地人物「" + person + "」，正在创建分析任务，请稍候…");
-        updatePixelProgressPanel({
+        updatePixelProgressPanel({{
           visible: true,
           person,
           status: "queued",
           summary: "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…",
           progress: [],
           stageKey: "queued",
-        });
-        try {
+        }});
+        try {{
           const generateUrl = apiUrl("generate");
           const requestKey = getGenerateRequestKey(person);
-          const resp = await fetchWithTimeout(generateUrl, 12000, {
+          const resp = await fetchWithTimeout(generateUrl, 12000, {{
             method: "POST",
-            headers: { "Content-Type": "application/json", "X-Idempotency-Key": requestKey },
-            body: JSON.stringify({ person }),
-          });
+            headers: {{ "Content-Type": "application/json", "X-Idempotency-Key": requestKey }},
+            body: JSON.stringify({{ person }}),
+          }});
           const data = await resp.json();
-          if (!data || data.ok !== true || !data.task_id) {
+          if (!data || data.ok !== true || !data.task_id) {{
             const msg = data && data.error ? String(data.error) : "分析任务创建失败";
             const isPaused = msg === "service not ready for generate";
             setGenStatus(msg);
-            updatePixelProgressPanel({
+            updatePixelProgressPanel({{
               visible: true,
               person,
               status: isPaused ? "idle" : "failed",
               summary: msg,
               progress: [],
               stageKey: isPaused ? "queued" : "deliver",
-            });
+            }});
             setGeneratingUI(false);
             return;
-          }
+          }}
           const taskId = String(data.task_id || "").trim();
-          try { localStorage.setItem("stellar_gen_task_v1", JSON.stringify({ id: taskId, person })); } catch (_) {}
+          try {{ localStorage.setItem("stellar_gen_task_v1", JSON.stringify({{ id: taskId, person }})); }} catch (_) {{}}
           navigatePendingPersonTabToOffice(person, taskId);
           pollTask(taskId, person);
-        } catch (e) {
+        }} catch (e) {{
           setGenStatus("分析请求失败，请稍后重试");
-          updatePixelProgressPanel({
+          updatePixelProgressPanel({{
             visible: true,
             person,
             status: "failed",
             summary: "分析请求失败，请稍后重试",
             progress: [],
             stageKey: "deliver",
-          });
+          }});
           setGeneratingUI(false);
           clearGenerateRequestKey(person);
           currentGeneratePerson = "";
-        }
-      };
+        }}
+      }};
 
-      const resumeGenTask = () => {
+      const resumeGenTask = () => {{
         let raw = "";
-        try { raw = localStorage.getItem("stellar_gen_task_v1") || ""; } catch (_) {}
+        try {{ raw = localStorage.getItem("stellar_gen_task_v1") || ""; }} catch (_) {{}}
         if (!raw) return;
-        try {
+        try {{
           const obj = JSON.parse(raw);
           const id = obj && obj.id ? String(obj.id) : "";
           const person = obj && obj.person ? String(obj.person) : "";
-          if (id && person) {
+          if (id && person) {{
             pollTask(id, person);
             return;
-          }
-        } catch (_) {}
+          }}
+        }} catch (_) {{}}
         clearGenTask();
         setGenStatus("");
-      };
-      try {
-        document.addEventListener("visibilitychange", () => {
+      }};
+      try {{
+        document.addEventListener("visibilitychange", () => {{
           if (!document.hidden) resumeGenTask();
-        });
-      } catch (_) {}
+        }});
+      }} catch (_) {{}}
       setTimeout(resumeGenTask, 300);
 
-      const hideSearchSuggest = () => {
+      const hideSearchSuggest = () => {{
         hideWorkTip();
         searchSuggestItems = [];
         searchSuggestActive = -1;
-        if ($searchSuggest) {
+        if ($searchSuggest) {{
           $searchSuggest.classList.add("hidden");
           $searchSuggest.innerHTML = "";
-        }
-      };
-      const syncIdleRuntimeStateToPanel = () => {
+        }}
+      }};
+      const syncIdleRuntimeStateToPanel = () => {{
         if (activeTaskPollId || currentGeneratePerson) return;
         if (String(pixelGenState.status || "").trim() !== "idle") return;
         const idleState = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
@@ -3286,32 +3219,32 @@ const buildPersonTooltipModel = (node, options = {}) => {
         let summary = idleState.summary;
         let footerText = idleState.footer;
         let speechText = idleState.speech;
-        if (runtimeAvailability.mode === "browser_only") {
+        if (runtimeAvailability.mode === "browser_only") {{
           idleStageLabel = "只读模式";
           summary = requireBackend("实时人物分析");
           footerText = "当前仅支持浏览已生成内容";
           speechText = "只读浏览";
-        } else if (runtimeAvailability.mode === "backend_unreachable") {
+        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
           idleStageLabel = "等待恢复";
           summary = "后端暂时不可达，当前可继续浏览已有人物页。";
           footerText = "后端离线，暂不可生成";
           speechText = "等待恢复";
-        } else if (runtimeAvailability.mode === "serve_unready") {
+        }} else if (runtimeAvailability.mode === "serve_unready") {{
           idleStageLabel = "恢复中";
           summary = "服务正在恢复，浏览能力和生成能力将陆续恢复。";
           footerText = "服务恢复中";
           speechText = "恢复中";
-        } else if (runtimeAvailability.mode === "generate_paused") {
+        }} else if (runtimeAvailability.mode === "generate_paused") {{
           idleStageLabel = "降级运行";
           summary = "浏览能力正常，但实时生成人物已暂停，可稍后再试。";
           footerText = "可浏览，生成暂停";
           speechText = "生成暂停";
-        } else if (runtimeAvailability.mode === "active") {
+        }} else if (runtimeAvailability.mode === "active") {{
           summary = "服务在线，可以继续查询或发起实时人物生成。";
           footerText = "服务在线";
           speechText = "待命中";
-        }
-        updatePixelProgressPanel({
+        }}
+        updatePixelProgressPanel({{
           visible: true,
           person: idleState.person,
           status: "idle",
@@ -3321,41 +3254,41 @@ const buildPersonTooltipModel = (node, options = {}) => {
           summary,
           footerText,
           speechText,
-        });
-      };
-      const setSearchHint = () => {
+        }});
+      }};
+      const setSearchHint = () => {{
         if (!$searchHint) return;
         let runtimeLine = "";
-        if (runtimeAvailability.mode === "browser_only") {
+        if (runtimeAvailability.mode === "browser_only") {{
           runtimeLine = '<span class="text-amber-200">当前为只读浏览模式，实时生成人物需要单独部署 FastAPI 后端。</span>';
-        } else if (runtimeAvailability.mode === "backend_unreachable") {
+        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
           runtimeLine = '<span class="text-rose-200">当前后端不可达，仅建议浏览已有人物页；实时生成稍后再试。</span>';
-        } else if (runtimeAvailability.mode === "serve_unready") {
+        }} else if (runtimeAvailability.mode === "serve_unready") {{
           runtimeLine = '<span class="text-rose-200">服务正在恢复中，浏览与生成能力都可能受影响，请稍后重试。</span>';
-        } else if (runtimeAvailability.mode === "generate_paused") {
+        }} else if (runtimeAvailability.mode === "generate_paused") {{
           runtimeLine = '<span class="text-amber-200">当前可浏览但不可生成，系统正在等待 LLM / 地理编码依赖恢复。</span>';
-        } else if (runtimeAvailability.mode === "active") {
+        }} else if (runtimeAvailability.mode === "active") {{
           runtimeLine = '<span class="home-runtime-note">实时生成人物可用，若遇到排队或重试，橙子 Agent 会持续汇报进度。</span>';
-        } else if (runtimeAvailability.mode === "checking") {
+        }} else if (runtimeAvailability.mode === "checking") {{
           runtimeLine = '<span class="text-sky-200">正在检查实时生成服务与依赖健康，请稍候…</span>';
-        }
+        }}
         $searchHint.innerHTML = runtimeLine;
-      };
-      const refreshRuntimeAvailability = async () => {
-        if (!runtimeReadinessEnabled) {
+      }};
+      const refreshRuntimeAvailability = async () => {{
+        if (!runtimeReadinessEnabled) {{
           setSearchHint();
           syncRuntimeOpsBoard();
           syncIdleRuntimeStateToPanel();
           return;
-        }
-        try {
-          const response = await fetchWithTimeout(apiUrl("health/ready"), 8000, { cache: "no-store" });
+        }}
+        try {{
+          const response = await fetchWithTimeout(apiUrl("health/ready"), 8000, {{ cache: "no-store" }});
           const payload = await response.json();
-          const queue = payload && payload.task && payload.task.queue ? payload.task.queue : {};
-          const deps = payload && payload.dependency_status ? payload.dependency_status : {};
+          const queue = payload && payload.task && payload.task.queue ? payload.task.queue : {{}};
+          const deps = payload && payload.dependency_status ? payload.dependency_status : {{}};
           const llmOk = !!(deps.llm && deps.llm.ok);
           const geocodeOk = !!(deps.geocode && deps.geocode.ok);
-          runtimeAvailability = {
+          runtimeAvailability = {{
             checked: true,
             backendExpected: true,
             backendAvailable: true,
@@ -3369,9 +3302,9 @@ const buildPersonTooltipModel = (node, options = {}) => {
             queueLimit: Number(queue.limit || 0),
             dependencySummary: llmOk && geocodeOk ? "LLM / 地理编码正常" : (llmOk ? "地理编码待恢复" : (geocodeOk ? "LLM 待恢复" : "依赖待恢复")),
             alerts: Array.isArray(payload && payload.alerts) ? payload.alerts : [],
-          };
-        } catch (_) {
-          runtimeAvailability = {
+          }};
+        }} catch (_) {{
+          runtimeAvailability = {{
             checked: true,
             backendExpected: true,
             backendAvailable: false,
@@ -3383,24 +3316,24 @@ const buildPersonTooltipModel = (node, options = {}) => {
             queueLimit: 0,
             dependencySummary: "后端离线",
             alerts: [],
-          };
-        }
+          }};
+        }}
         setSearchHint();
         syncRuntimeOpsBoard();
         syncIdleRuntimeStateToPanel();
-      };
+      }};
       setSearchHint();
       syncRuntimeOpsBoard();
       syncIdleRuntimeStateToPanel();
-      if (runtimeReadinessEnabled) {
-        setTimeout(() => {
+      if (runtimeReadinessEnabled) {{
+        setTimeout(() => {{
           refreshRuntimeAvailability();
-          try {
+          try {{
             window.setInterval(refreshRuntimeAvailability, 30000);
-          } catch (_) {}
-        }, 120);
-      }
-      const scoreNodeMatch = (n, rawQuery) => {
+          }} catch (_) {{}}
+        }}, 120);
+      }}
+      const scoreNodeMatch = (n, rawQuery) => {{
         const qRaw = String(rawQuery || "").trim();
         const q = normalizeSearchText(qRaw);
         if (!qRaw || !q) return null;
@@ -3414,37 +3347,37 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const searchTokens = uniqStrings(Array.isArray(n.search_tokens) ? n.search_tokens : []);
         const searchPinyin = uniqStrings(Array.isArray(n.search_pinyin) ? n.search_pinyin : []);
 
-        if (person === qRaw) return { score: 1200, reason: "person_exact" };
-        if (personNorm === q) return { score: 1160, reason: "person_exact" };
-        if (aliases.some((x) => x === qRaw) || aliasNorms.includes(q)) return { score: 1120, reason: "alias_exact" };
-        if (foreignName && (foreignName === qRaw || foreignNorm === q)) return { score: 1090, reason: "foreign_exact" };
-        if (searchPinyin.includes(q)) return { score: 1060, reason: "pinyin_exact" };
+        if (person === qRaw) return {{ score: 1200, reason: "person_exact" }};
+        if (personNorm === q) return {{ score: 1160, reason: "person_exact" }};
+        if (aliases.some((x) => x === qRaw) || aliasNorms.includes(q)) return {{ score: 1120, reason: "alias_exact" }};
+        if (foreignName && (foreignName === qRaw || foreignNorm === q)) return {{ score: 1090, reason: "foreign_exact" }};
+        if (searchPinyin.includes(q)) return {{ score: 1060, reason: "pinyin_exact" }};
 
-        if (personNorm && personNorm.startsWith(q)) return { score: 980, reason: "person_prefix" };
-        if (aliasNorms.some((x) => x.startsWith(q))) return { score: 950, reason: "alias_prefix" };
-        if (foreignNorm && foreignNorm.startsWith(q)) return { score: 930, reason: "foreign_prefix" };
-        if (searchPinyin.some((x) => x.startsWith(q))) return { score: 900, reason: "pinyin_prefix" };
+        if (personNorm && personNorm.startsWith(q)) return {{ score: 980, reason: "person_prefix" }};
+        if (aliasNorms.some((x) => x.startsWith(q))) return {{ score: 950, reason: "alias_prefix" }};
+        if (foreignNorm && foreignNorm.startsWith(q)) return {{ score: 930, reason: "foreign_prefix" }};
+        if (searchPinyin.some((x) => x.startsWith(q))) return {{ score: 900, reason: "pinyin_prefix" }};
 
-        if (q.length >= 2) {
-          if (personNorm && personNorm.includes(q)) return { score: 860, reason: "person_fuzzy" };
-          if (aliasNorms.some((x) => x.includes(q))) return { score: 830, reason: "alias_fuzzy" };
-          if (foreignNorm && foreignNorm.includes(q)) return { score: 810, reason: "foreign_fuzzy" };
-          if (searchTokens.some((x) => x.includes(q))) return { score: 760, reason: "token_fuzzy" };
-          if (searchKeys.some((x) => normalizeSearchText(x).includes(q))) return { score: 740, reason: "token_fuzzy" };
-        }
+        if (q.length >= 2) {{
+          if (personNorm && personNorm.includes(q)) return {{ score: 860, reason: "person_fuzzy" }};
+          if (aliasNorms.some((x) => x.includes(q))) return {{ score: 830, reason: "alias_fuzzy" }};
+          if (foreignNorm && foreignNorm.includes(q)) return {{ score: 810, reason: "foreign_fuzzy" }};
+          if (searchTokens.some((x) => x.includes(q))) return {{ score: 760, reason: "token_fuzzy" }};
+          if (searchKeys.some((x) => normalizeSearchText(x).includes(q))) return {{ score: 740, reason: "token_fuzzy" }};
+        }}
         return null;
-      };
-      const findPersonMatches = (query, limit = 8) => {
+      }};
+      const findPersonMatches = (query, limit = 8) => {{
         const qRaw = String(query || "").trim();
         const q = normalizeSearchText(qRaw);
         if (!qRaw || !q) return [];
         const matches = [];
-        for (const n of nodes) {
+        for (const n of nodes) {{
           const scored = scoreNodeMatch(n, qRaw);
           if (!scored) continue;
-          matches.push({ node: n, score: scored.score, reason: scored.reason });
-        }
-        matches.sort((a, b) => {
+          matches.push({{ node: n, score: scored.score, reason: scored.reason }});
+        }}
+        matches.sort((a, b) => {{
           if (b.score !== a.score) return b.score - a.score;
           const ah = a.node && a.node.has_story === false ? 0 : 1;
           const bh = b.node && b.node.has_story === false ? 0 : 1;
@@ -3453,20 +3386,20 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const by = Number(b.node?.time_year ?? b.node?.birth_year ?? 0);
           if (by !== ay) return by - ay;
           return String(a.node?.person || "").localeCompare(String(b.node?.person || ""), "zh-Hans-CN");
-        });
+        }});
         return matches.slice(0, Math.max(1, limit | 0));
-      };
-      const renderSearchSuggest = (query) => {
+      }};
+      const renderSearchSuggest = (query) => {{
         if (!$searchSuggest) return;
         const matches = findPersonMatches(query, 8);
         searchSuggestItems = matches;
         searchSuggestActive = matches.length ? 0 : -1;
-        if (!matches.length) {
+        if (!matches.length) {{
           hideSearchSuggest();
           return;
-        }
-        $searchSuggest.innerHTML = matches.map((item, idx) => {
-          const n = item.node || {};
+        }}
+        $searchSuggest.innerHTML = matches.map((item, idx) => {{
+          const n = item.node || {{}};
           const personRaw = String(n.person || "").trim();
           const foreignRaw = String(n.foreign_name || "").trim();
           const isForeign = n.is_foreign === true && foreignRaw && foreignRaw !== personRaw;
@@ -3480,66 +3413,66 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if (!isForeign && foreignRaw) secondaryParts.push(foreignRaw);
           if (aliasText) secondaryParts.push(aliasText);
           const meta = secondaryParts.filter(Boolean).join(" · ");
-          const metaLine = meta ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate">${esc(meta)}</div>` : "";
+          const metaLine = meta ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate">${{esc(meta)}}</div>` : "";
           const works = uniqStrings(Array.isArray(n.works) ? n.works : [])
             .filter((work) => hasWorkSummaryContent(resolveNodeWorkSummary(n, work)))
             .slice(0, 3);
           const worksHtml = works.length
-            ? `<div class="mt-2 flex flex-wrap gap-1.5">${works.map((work) => `<span class="home-work-chip" data-search-idx="${idx}" data-work-title="${esc(normalizeHomeWorkTitle(work))}">《${esc(normalizeHomeWorkTitle(work))}》</span>`).join("")}</div>`
+            ? `<div class="mt-2 flex flex-wrap gap-1.5">${{works.map((work) => `<span class="home-work-chip" data-search-idx="${{idx}}" data-work-title="${{esc(normalizeHomeWorkTitle(work))}}">《${{esc(normalizeHomeWorkTitle(work))}}》</span>`).join("")}}</div>`
             : "";
           const badge = n.has_story === false
             ? '<span class="ml-2 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-medium">暂未生成</span>'
             : "";
           const activeCls = idx === searchSuggestActive ? "bg-slate-50" : "bg-white";
           return (
-            `<button type="button" data-search-idx="${idx}" class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 ${activeCls}">` +
+            `<button type="button" data-search-idx="${{idx}}" class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 ${{activeCls}}">` +
               `<div class="flex items-center justify-between gap-3">` +
                 `<div class="min-w-0">` +
-                  `<div class="text-sm font-semibold text-slate-800 truncate">${person}${badge}</div>` +
-                  `<div class="text-[11px] text-slate-400 mt-0.5">${years}</div>` +
-                  `${metaLine}` +
-                  `${worksHtml}` +
+                  `<div class="text-sm font-semibold text-slate-800 truncate">${{person}}${{badge}}</div>` +
+                  `<div class="text-[11px] text-slate-400 mt-0.5">${{years}}</div>` +
+                  `${{metaLine}}` +
+                  `${{worksHtml}}` +
                 `</div>` +
-                `<div class="shrink-0 text-[11px] text-slate-400">${reason}</div>` +
+                `<div class="shrink-0 text-[11px] text-slate-400">${{reason}}</div>` +
               `</div>` +
             `</button>`
           );
-        }).join("");
+        }}).join("");
         $searchSuggest.classList.remove("hidden");
-      };
-      const pickSearchMatch = (fallbackName) => {
-        if (!searchSuggestItems.length) {
+      }};
+      const pickSearchMatch = (fallbackName) => {{
+        if (!searchSuggestItems.length) {{
           const list = findPersonMatches(fallbackName, 1);
           return list.length ? list[0] : null;
-        }
+        }}
         if (searchSuggestActive >= 0 && searchSuggestActive < searchSuggestItems.length) return searchSuggestItems[searchSuggestActive];
         return searchSuggestItems[0] || null;
-      };
-      const findPersonNode = (name) => {
+      }};
+      const findPersonNode = (name) => {{
         const picked = pickSearchMatch(name);
         return picked ? picked.node : null;
-      };
-      const focusKnownPerson = (name) => {
+      }};
+      const focusKnownPerson = (name) => {{
         const n = findPersonNode(name);
         if (!n) return false;
         setSelected(n);
         // 搜索/推荐命中一个人物:停留在当前 tab,不做跨 tab 切换。
-        if (currentTab === "map") {
-          setTimeout(() => {
+        if (currentTab === "map") {{
+          setTimeout(() => {{
             const ok = centerMapOnPerson(n);
             pendingMapFocusPerson = ok ? "" : String(n.person || "").trim();
-          }, 260);
-        }
+          }}, 260);
+        }}
         return true;
-      };
+      }};
 
-      const onSearch = (ev) => {
+      const onSearch = (ev) => {{
         const validation = validatePersonInput($q ? $q.value : "");
-        if (!validation.ok) {
+        if (!validation.ok) {{
           setSearchValidation(validation.reason);
-          syncSearchActionState({ showReason: true });
+          syncSearchActionState({{ showReason: true }});
           return;
-        }
+        }}
         const rawName = validation.value;
         if ($q && rawName) $q.value = rawName;
         const picked = pickSearchMatch(rawName);
@@ -3547,74 +3480,74 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (name) $q.value = name;
         hideSearchSuggest();
         if (focusKnownPerson(name)) return;
-        const shouldGenerate = window.confirm(`该人物未收录，是否仍要尝试生成「${rawName}」？`);
+        const shouldGenerate = window.confirm(`该人物未收录，是否仍要尝试生成「${{rawName}}」？`);
         if (!shouldGenerate) return;
         openPerson(name || rawName);
-      };
+      }};
 
       $go.addEventListener("click", (ev) => onSearch(ev));
-      $q.addEventListener("input", () => {
+      $q.addEventListener("input", () => {{
         syncSearchActionState();
         renderSearchSuggest($q.value);
-      });
-      $q.addEventListener("focus", () => {
+      }});
+      $q.addEventListener("focus", () => {{
         syncSearchActionState();
         renderSearchSuggest($q.value);
-      });
-      $q.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowDown") {
-          if (!searchSuggestItems.length) {
+      }});
+      $q.addEventListener("keydown", (e) => {{
+        if (e.key === "ArrowDown") {{
+          if (!searchSuggestItems.length) {{
             renderSearchSuggest($q.value);
-          } else {
+          }} else {{
             searchSuggestActive = (searchSuggestActive + 1 + searchSuggestItems.length) % searchSuggestItems.length;
             renderSearchSuggest($q.value);
-          }
+          }}
           e.preventDefault();
           return;
-        }
-        if (e.key === "ArrowUp") {
-          if (searchSuggestItems.length) {
+        }}
+        if (e.key === "ArrowUp") {{
+          if (searchSuggestItems.length) {{
             searchSuggestActive = (searchSuggestActive - 1 + searchSuggestItems.length) % searchSuggestItems.length;
             renderSearchSuggest($q.value);
-          }
+          }}
           e.preventDefault();
           return;
-        }
-        if (e.key === "Escape") {
+        }}
+        if (e.key === "Escape") {{
           hideSearchSuggest();
           return;
-        }
-        if (e.key === "Enter") {
+        }}
+        if (e.key === "Enter") {{
           onSearch(e);
-        }
-      });
-      if ($searchSuggest) {
+        }}
+      }});
+      if ($searchSuggest) {{
         $searchSuggest.addEventListener("mousedown", (e) => e.preventDefault());
-        const syncSearchSuggestWorkTip = (e) => {
+        const syncSearchSuggestWorkTip = (e) => {{
           const chip = e && e.target && e.target.closest ? e.target.closest("[data-work-title][data-search-idx]") : null;
-          if (!chip || !$searchSuggest.contains(chip)) {
+          if (!chip || !$searchSuggest.contains(chip)) {{
             hideWorkTip();
             return;
-          }
+          }}
           const idx = Number(chip.getAttribute("data-search-idx"));
           const workTitle = normalizeHomeWorkTitle(chip.getAttribute("data-work-title") || "");
-          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length || !workTitle) {
+          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length || !workTitle) {{
             hideWorkTip();
             return;
-          }
+          }}
           const item = searchSuggestItems[idx] && searchSuggestItems[idx].node
             ? resolveNodeWorkSummary(searchSuggestItems[idx].node, workTitle)
             : null;
-          if (!item) {
+          if (!item) {{
             hideWorkTip();
             return;
-          }
+          }}
           showWorkTip(workTitle, item, e.clientX, e.clientY);
-        };
+        }};
         $searchSuggest.addEventListener("mouseover", syncSearchSuggestWorkTip);
         $searchSuggest.addEventListener("mousemove", syncSearchSuggestWorkTip);
         $searchSuggest.addEventListener("mouseleave", () => hideWorkTip());
-        $searchSuggest.addEventListener("click", (e) => {
+        $searchSuggest.addEventListener("click", (e) => {{
           const btn = e.target && e.target.closest ? e.target.closest("[data-search-idx]") : null;
           if (!btn) return;
           const idx = Number(btn.getAttribute("data-search-idx"));
@@ -3622,24 +3555,24 @@ const buildPersonTooltipModel = (node, options = {}) => {
           searchSuggestActive = idx;
           const picked = searchSuggestItems[idx];
           const person = picked && picked.node ? String(picked.node.person || "").trim() : "";
-          if (person) {
+          if (person) {{
             $q.value = person;
             onSearch(e);
-          }
-        });
-      }
-      try {
-        document.addEventListener("click", (e) => {
+          }}
+        }});
+      }}
+      try {{
+        document.addEventListener("click", (e) => {{
           const t = e.target;
           if (t === $q || t === $go) return;
           if ($searchSuggest && t && $searchSuggest.contains(t)) return;
           hideSearchSuggest();
-        });
-      } catch (_) {}
-      try {
+        }});
+      }} catch (_) {{}}
+      try {{
         window.addEventListener("resize", () => hideWorkTip());
         document.addEventListener("scroll", () => hideWorkTip(), true);
-      } catch (_) {}
+      }} catch (_) {{}}
 
       let currentTab = "graph";
       let mapInited = false;
@@ -3658,7 +3591,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
       let _persistTimer = null;
       let mapStyleValue = "amap://styles/light";
       let markerStyleValue = "circle";
-      let searchCapabilities = { aliases: true, foreign_name: true, pinyin: false };
+      let searchCapabilities = {{ aliases: true, foreign_name: true, pinyin: false }};
       let searchSuggestItems = [];
       let searchSuggestActive = -1;
 
@@ -3669,66 +3602,66 @@ const buildPersonTooltipModel = (node, options = {}) => {
       // 现阶段页面只支持一种地图风格,直接保留默认常量即可。如未来要扩展多风格,
       // 请同时新增 <select id="mapStyle"> 并补全上述判断。
 
-      const _getAmapKey = () => {
+      const _getAmapKey = () => {{
         let k = "";
-        try {
+        try {{
           k = (new URLSearchParams(window.location.search).get("amapKey") || "").trim();
-        } catch (_) {}
+        }} catch (_) {{}}
         if (!k) k = (window.AMAP_KEY || localStorage.getItem("AMAP_KEY") || "").trim();
         return k;
-      };
-      const _getAmapSecurity = () => {
+      }};
+      const _getAmapSecurity = () => {{
         let s = "";
-        try {
+        try {{
           s = (new URLSearchParams(window.location.search).get("amapSec") || "").trim();
-        } catch (_) {}
+        }} catch (_) {{}}
         if (!s) s = (window.AMAP_SECURITY || localStorage.getItem("AMAP_SECURITY") || "").trim();
         return s;
-      };
-      const _ensureAmap = () => new Promise((resolve, reject) => {
+      }};
+      const _ensureAmap = () => new Promise((resolve, reject) => {{
         if (window.AMap && typeof window.AMap.Map === "function") return resolve(true);
         const key = _getAmapKey();
         if (!key) return reject(new Error("AMAP_KEY_REQUIRED"));
         const sec = _getAmapSecurity();
-        if (sec) {
-          window._AMapSecurityConfig = { securityJsCode: sec };
-        }
-        if (amapLoading) {
+        if (sec) {{
+          window._AMapSecurityConfig = {{ securityJsCode: sec }};
+        }}
+        if (amapLoading) {{
           const t0 = Date.now();
-          const tick = () => {
+          const tick = () => {{
             if (window.AMap && typeof window.AMap.Map === "function") return resolve(true);
             if (Date.now() - t0 > 12000) return reject(new Error("AMAP_LOAD_TIMEOUT"));
             setTimeout(tick, 80);
-          };
+          }};
           return tick();
-        }
+        }}
         amapLoading = true;
         const sEl = document.createElement("script");
         sEl.async = true;
         // Load AMap JS with geocoder plugin only; markers remain individual so color + hover stay stable.
-        sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.Geocoder`;
-        sEl.onload = () => {
+        sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${{encodeURIComponent(key)}}&plugin=AMap.Geocoder`;
+        sEl.onload = () => {{
           amapLoading = false;
           if (window.AMap && typeof window.AMap.Map === "function") resolve(true);
           else reject(new Error("AMAP_LOAD_FAILED"));
-        };
-        sEl.onerror = () => {
+        }};
+        sEl.onerror = () => {{
           amapLoading = false;
           reject(new Error("AMAP_LOAD_FAILED"));
-        };
+        }};
         document.head.appendChild(sEl);
-      });
+      }});
 
       const COORD_CACHE_KEY = "stellar_birth_coords_wgs84_v1";
       const COORD_CACHE_OLD_KEY = "stellar_birth_coords_v1";
-      const migrateCoordCache = () => {
-        try {
+      const migrateCoordCache = () => {{
+        try {{
           const oldRaw = localStorage.getItem(COORD_CACHE_OLD_KEY);
           if (!oldRaw) return;
           const oldObj = JSON.parse(oldRaw);
           if (!oldObj || typeof oldObj !== "object") return;
-          const out = {};
-          for (const k of Object.keys(oldObj)) {
+          const out = {{}};
+          for (const k of Object.keys(oldObj)) {{
             const v = oldObj[k];
             if (!Array.isArray(v) || v.length < 2) continue;
             const latG = Number(v[0]);
@@ -3736,48 +3669,48 @@ const buildPersonTooltipModel = (node, options = {}) => {
             if (!Number.isFinite(latG) || !Number.isFinite(lngG)) continue;
             const w = gcj02ToWgs84(latG, lngG);
             out[k] = [w.lat, w.lng];
-          }
+          }}
           localStorage.setItem(COORD_CACHE_KEY, JSON.stringify(out));
           localStorage.removeItem(COORD_CACHE_OLD_KEY);
-        } catch (_) {}
-      };
-      const readCoordCache = () => {
-        try {
+        }} catch (_) {{}}
+      }};
+      const readCoordCache = () => {{
+        try {{
           const raw = localStorage.getItem(COORD_CACHE_KEY);
           const obj = raw ? JSON.parse(raw) : null;
-          return (obj && typeof obj === "object") ? obj : {};
-        } catch (_) {
-          return {};
-        }
-      };
-      const writeCoordCache = (cache) => {
-        try {
+          return (obj && typeof obj === "object") ? obj : {{}};
+        }} catch (_) {{
+          return {{}};
+        }}
+      }};
+      const writeCoordCache = (cache) => {{
+        try {{
           localStorage.setItem(COORD_CACHE_KEY, JSON.stringify(cache));
-        } catch (_) {}
-      };
-      let _coordDirty = {};
+        }} catch (_) {{}}
+      }};
+      let _coordDirty = {{}};
       let _coordDirtyCount = 0;
       let _coordFlushTimer = null;
-      const _flushCoordsToServer = () => {
+      const _flushCoordsToServer = () => {{
         const items = _coordDirty;
         const n = _coordDirtyCount;
-        _coordDirty = {};
+        _coordDirty = {{}};
         _coordDirtyCount = 0;
-        if (_coordFlushTimer) {
+        if (_coordFlushTimer) {{
           clearTimeout(_coordFlushTimer);
           _coordFlushTimer = null;
-        }
+        }}
         if (!n) return;
         if (STATIC_SITE && !API_BASE) return;
-        try {
-          fetch(apiUrl("coords/bulk"), {
+        try {{
+          fetch(apiUrl("coords/bulk"), {{
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items }),
-          }).catch(() => {});
-        } catch (_) {}
-      };
-      const _markCoordDirty = (person, lat, lng) => {
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ items }}),
+          }}).catch(() => {{}});
+        }} catch (_) {{}}
+      }};
+      const _markCoordDirty = (person, lat, lng) => {{
         const p = String(person || "").trim();
         if (!p) return;
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
@@ -3785,68 +3718,68 @@ const buildPersonTooltipModel = (node, options = {}) => {
         _coordDirtyCount += 1;
         if (_coordFlushTimer) return;
         _coordFlushTimer = setTimeout(_flushCoordsToServer, 1200);
-      };
-      const applyCoordCacheToNodes = (cache) => {
+      }};
+      const applyCoordCacheToNodes = (cache) => {{
         if (!cache) return;
-        for (const n of nodes) {
+        for (const n of nodes) {{
           const k = String(n.person || "").trim();
           const v = k ? cache[k] : null;
           const has = (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") || (typeof n.birth_lat === "number" && typeof n.birth_lng === "number");
-          if (v && !has && Array.isArray(v) && v.length >= 2) {
+          if (v && !has && Array.isArray(v) && v.length >= 2) {{
             const lat = Number(v[0]);
             const lng = Number(v[1]);
-            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {{
               n.birth_lat_wgs84 = lat;
               n.birth_lng_wgs84 = lng;
               n.birth_lat = lat;
               n.birth_lng = lng;
-            }
-          }
-        }
-      };
+            }}
+          }}
+        }}
+      }};
 
       const LEGACY_TIME_WINDOW_KEY = "stellar_time_window_v2";
       const LAST_MANUAL_TIME_WINDOW_KEY = "stellar_last_manual_time_window_v1";
-      const clearLegacyTimeWindow = () => {
-        try {
+      const clearLegacyTimeWindow = () => {{
+        try {{
           localStorage.removeItem(LEGACY_TIME_WINDOW_KEY);
-        } catch (_) {}
-      };
-      const persistTimeWindow = () => {
+        }} catch (_) {{}}
+      }};
+      const persistTimeWindow = () => {{
         if (_persistTimer) clearTimeout(_persistTimer);
-        _persistTimer = setTimeout(() => {
-          try {
-            localStorage.setItem(LAST_MANUAL_TIME_WINDOW_KEY, JSON.stringify({
+        _persistTimer = setTimeout(() => {{
+          try {{
+            localStorage.setItem(LAST_MANUAL_TIME_WINDOW_KEY, JSON.stringify({{
               a: startYear,
               b: endYear,
               sig: timeWindowSignature,
               saved_at: Date.now(),
-            }));
-          } catch (_) {}
-        }, 260);
-      };
+            }}));
+          }} catch (_) {{}}
+        }}, 260);
+      }};
 
-      const scheduleMapFit = (force = false) => {
+      const scheduleMapFit = (force = false) => {{
         if (_fitMapTimer) clearTimeout(_fitMapTimer);
-        _fitMapTimer = setTimeout(() => {
+        _fitMapTimer = setTimeout(() => {{
           if (currentTab !== "map" || !mapInited || !amap) return;
           if (mapCameraTouched && !force) return;
-          try {
+          try {{
             const markersForFit = markers
               .map((item) => item && item.mk)
               .filter((item) => item && typeof item.getPosition === "function");
-            if (!markersForFit.length) {
+            if (!markersForFit.length) {{
               // 还没拿到任何 marker(geocode 异步补点中或全失败):回退到中国全景,
               // 避免地图停留在默认位置时用户感知不到 fit 调度已经触发。
               applyChinaOverview();
               return;
-            }
+            }}
             amap.setFitView(markersForFit, false, [56, 56, 56, 56], 4);
-          } catch (_) {}
-        }, 220);
-      };
+          }} catch (_) {{}}
+        }}, 220);
+      }};
 
-      const centerMapOnPerson = (n) => {
+      const centerMapOnPerson = (n) => {{
         if (!n || !amap) return false;
         const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
         const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
@@ -3854,25 +3787,25 @@ const buildPersonTooltipModel = (node, options = {}) => {
         const lat = p.lat;
         const lng = p.lng;
         if (typeof lat !== "number" || typeof lng !== "number") return false;
-        try {
+        try {{
           const z = Math.max(6, Number(amap.getZoom ? amap.getZoom() : 6) || 6);
           amap.setZoomAndCenter(Math.min(10, z), [lng, lat]);
           return true;
-        } catch (_) {}
+        }} catch (_) {{}}
         return false;
-      };
-      const geocodeText = (n) => {
+      }};
+      const geocodeText = (n) => {{
         const m = String(n.birthplace_modern || "").trim().replace(/^今\s*/g, "");
         if (m) return m;
         const raw = String(n.birthplace_raw || "").trim();
-        if (raw) {
+        if (raw) {{
           const t = raw.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").replace(/^约\s*/g, "").replace(/^公元前?\d+年\s*/g, "").trim();
           if (t) return t;
-        }
+        }}
         const bp = String(n.birthplace || "").trim();
         return bp.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").trim();
-      };
-      const runSharedCoordFill = (cache, addMarkerIfReady) => {
+      }};
+      const runSharedCoordFill = (cache, addMarkerIfReady) => {{
         if (addMarkerIfReady) coordFillAddMarker = addMarkerIfReady;
         if (coordFillRunning) return;
         const key = _getAmapKey();
@@ -3880,31 +3813,31 @@ const buildPersonTooltipModel = (node, options = {}) => {
         coordFillRunning = true;
         applyCoordCacheToNodes(cache);
         updateCoordCount();
-        _ensureAmap().then(() => {
-          if (!window.AMap || !window.AMap.Geocoder) {
+        _ensureAmap().then(() => {{
+          if (!window.AMap || !window.AMap.Geocoder) {{
             coordFillRunning = false;
             return;
-          }
-          const geocoder = new window.AMap.Geocoder({ city: "全国" });
+          }}
+          const geocoder = new window.AMap.Geocoder({{ city: "全国" }});
           let idx = 0;
-          const tick = () => {
-            while (idx < nodes.length) {
+          const tick = () => {{
+            while (idx < nodes.length) {{
               const n = nodes[idx++];
               if (!n) continue;
-              if (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") {
+              if (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") {{
                 if (coordFillAddMarker && mapInited && amap) coordFillAddMarker(n);
                 continue;
-              }
+              }}
               const q = geocodeText(n);
               const person = String(n.person || "").trim();
               if (!q || !person) continue;
-              geocoder.getLocation(q, (status, result) => {
-                if (status === "complete" && result && result.geocodes && result.geocodes.length) {
+              geocoder.getLocation(q, (status, result) => {{
+                if (status === "complete" && result && result.geocodes && result.geocodes.length) {{
                   const loc = result.geocodes[0].location;
-                  if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {
+                  if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {{
                     const lng = Number(loc.getLng());
                     const lat = Number(loc.getLat());
-                    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                    if (Number.isFinite(lat) && Number.isFinite(lng)) {{
                       const w = gcj02ToWgs84(lat, lng);
                       n.birth_lat_wgs84 = w.lat;
                       n.birth_lng_wgs84 = w.lng;
@@ -3914,287 +3847,287 @@ const buildPersonTooltipModel = (node, options = {}) => {
                       writeCoordCache(cache);
                       updateCoordCount();
                       _markCoordDirty(person, w.lat, w.lng);
-                      if (coordFillAddMarker && mapInited && amap) {
+                      if (coordFillAddMarker && mapInited && amap) {{
                         coordFillAddMarker(n);
                         updateMapMarkers();
-                      }
+                      }}
                       if (
                         pendingMapFocusPerson &&
                         currentTab === "map" &&
                         person === pendingMapFocusPerson &&
                         centerMapOnPerson(n)
-                      ) {
+                      ) {{
                         pendingMapFocusPerson = "";
-                      }
-                    }
-                  }
-                }
-                if (idx >= nodes.length) {
+                      }}
+                    }}
+                  }}
+                }}
+                if (idx >= nodes.length) {{
                   coordFillRunning = false;
                   _flushCoordsToServer();
                   return;
-                }
+                }}
                 setTimeout(tick, 140);
-              });
+              }});
               return;
-            }
+            }}
             coordFillRunning = false;
             writeCoordCache(cache);
             updateCoordCount();
             _flushCoordsToServer();
-          };
+          }};
           setTimeout(tick, 400);
-        }).catch(() => {
+        }}).catch(() => {{
           coordFillRunning = false;
-        });
-      };
-      const prefillCoordsNoMap = () => {
+        }});
+      }};
+      const prefillCoordsNoMap = () => {{
         const cache = readCoordCache();
         applyCoordCacheToNodes(cache);
         updateCoordCount();
         runSharedCoordFill(cache, null);
-      };
+      }};
 
-      const refreshVisibleMapViewport = () => {
+      const refreshVisibleMapViewport = () => {{
         if (currentTab !== "map") return;
-        const doRefresh = () => {
+        const doRefresh = () => {{
           if (!mapInited || !amap || currentTab !== "map") return;
-          try {
+          try {{
             if (typeof amap.resize === "function") amap.resize();
-          } catch (e) {
-            try { console.warn("[stellar-map] amap.resize failed", e); } catch (_) {}
-          }
-          try {
+          }} catch (e) {{
+            try {{ console.warn("[stellar-map] amap.resize failed", e); }} catch (_) {{}}
+          }}
+          try {{
             updateMapMarkers();
-          } catch (_) {}
-          if (mapSearchQuery) {
-            try {
+          }} catch (_) {{}}
+          if (mapSearchQuery) {{
+            try {{
               focusMapOnSearchMatch();
-            } catch (_) {}
-          }
-        };
-        if (!mapInited || !amap) {
+            }} catch (_) {{}}
+          }}
+        }};
+        if (!mapInited || !amap) {{
           // AMap 还没就绪: 等下一帧再试一次(覆盖首次切到地图 tab 的场景)
-          if (typeof window.requestAnimationFrame === "function") {
+          if (typeof window.requestAnimationFrame === "function") {{
             window.requestAnimationFrame(doRefresh);
-          } else {
+          }} else {{
             setTimeout(doRefresh, 32);
-          }
+          }}
           return;
-        }
+        }}
         doRefresh();
-      };
-      const setTab = (tab) => {
+      }};
+      const setTab = (tab) => {{
         currentTab = tab;
-        if ($graphPane) {
+        if ($graphPane) {{
           if (tab === "graph") $graphPane.classList.remove("hidden");
           else $graphPane.classList.add("hidden");
-        }
-        if ($mapPane) {
+        }}
+        if ($mapPane) {{
           if (tab === "map") $mapPane.classList.remove("hidden");
           else $mapPane.classList.add("hidden");
-        }
-        if ($tabGraph && $tabMap) {
-          if (tab === "graph") {
+        }}
+        if ($tabGraph && $tabMap) {{
+          if (tab === "graph") {{
             $tabGraph.className = "px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90";
             $tabMap.className = "px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10";
-          } else {
+          }} else {{
             $tabGraph.className = "px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10";
             $tabMap.className = "px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90";
-          }
-        }
-        if (tab === "map") {
+          }}
+        }}
+        if (tab === "map") {{
           initMapOnce();
           refreshVisibleMapViewport();
-        }
-        if ($mapToolbar) {
+        }}
+        if ($mapToolbar) {{
           if (tab === "map") $mapToolbar.classList.remove("hidden");
           else $mapToolbar.classList.add("hidden");
-        }
-        if (tab !== "map" && $mapSearchSuggest) {
+        }}
+        if (tab !== "map" && $mapSearchSuggest) {{
           $mapSearchSuggest.classList.add("hidden");
-        }
-        if ($provinceCurvePanel) {
-          if (tab === "map") {
+        }}
+        if ($provinceCurvePanel) {{
+          if (tab === "map") {{
             $provinceCurvePanel.classList.remove("hidden");
             updateProvinceBars();
-          } else {
+          }} else {{
             $provinceCurvePanel.classList.add("hidden");
-          }
-        }
-      };
+          }}
+        }}
+      }};
 
       const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
       const CHINA_OVERVIEW_ZOOM = 3.9;
       const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";
       const isForeignPerson = (n) => Boolean(n && n.is_foreign);
 
-      const markerSvg = (sz, fill, glow, emph) => {
+      const markerSvg = (sz, fill, glow, emph) => {{
         const glowRadius = emph ? 10 : 6;
-        return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${fill}"></circle><circle cx="12" cy="12" r="6.0" fill="${fill}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
-      };
-      const foreignMarkerSvg = (sz, fill, glow, emph) => {
+        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
+      }};
+      const foreignMarkerSvg = (sz, fill, glow, emph) => {{
         const glowRadius = emph ? 10 : 6;
-        return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><rect x="2.5" y="2.5" width="19" height="19" rx="2.2" fill="rgba(255,255,255,0.001)"></rect><rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.8" fill="${fill}"></rect><rect x="5.8" y="5.8" width="12.4" height="12.4" rx="1.6" fill="${fill}" stroke="rgba(255,255,255,0.28)" stroke-width="0.9"></rect></svg>`;
-      };
-      const markerHtml = (n, sz, fill, glow, emph) => {
+        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><rect x="2.5" y="2.5" width="19" height="19" rx="2.2" fill="rgba(255,255,255,0.001)"></rect><rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.8" fill="${{fill}}"></rect><rect x="5.8" y="5.8" width="12.4" height="12.4" rx="1.6" fill="${{fill}}" stroke="rgba(255,255,255,0.28)" stroke-width="0.9"></rect></svg>`;
+      }};
+      const markerHtml = (n, sz, fill, glow, emph) => {{
         if (isSpecialSunMarker(n)) return sunMarkerHtml(sz, glow, emph);
         if (isForeignPerson(n)) return foreignMarkerSvg(sz, fill, glow, emph);
         return markerSvg(sz, fill, glow, emph);
-      };
+      }};
 
-      const sunMarkerHtml = (sz, glow, emph) => {
+      const sunMarkerHtml = (sz, glow, emph) => {{
         const glowRadius = emph ? 12 : 8;
         const core = Math.max(7.2, sz * 0.4);
         const rayOuter = Math.max(core + 3.4, sz * 0.48);
         const rayInner = Math.max(core + 1.0, sz * 0.32);
         const stroke = Math.max(1.5, sz * 0.1);
         const center = sz / 2;
-        const rays = Array.from({ length: 8 }, (_, idx) => {
+        const rays = Array.from({{ length: 8 }}, (_, idx) => {{
           const angle = (Math.PI * 2 * idx) / 8 - Math.PI / 2;
           const x1 = center + Math.cos(angle) * rayInner;
           const y1 = center + Math.sin(angle) * rayInner;
           const x2 = center + Math.cos(angle) * rayOuter;
           const y2 = center + Math.sin(angle) * rayOuter;
-          return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="rgba(251,191,36,0.98)" stroke-width="${stroke.toFixed(2)}" stroke-linecap="round"></line>`;
-        }).join("");
-        return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="overflow:visible;filter:drop-shadow(0 0 ${glowRadius}px ${glow});"><circle cx="${center}" cy="${center}" r="${core.toFixed(2)}" fill="rgba(250,204,21,0.98)" stroke="rgba(255,255,255,0.92)" stroke-width="${Math.max(1.4, sz * 0.08).toFixed(2)}"></circle>${rays}</svg>`;
-      };
+          return `<line x1="${{x1.toFixed(2)}}" y1="${{y1.toFixed(2)}}" x2="${{x2.toFixed(2)}}" y2="${{y2.toFixed(2)}}" stroke="rgba(251,191,36,0.98)" stroke-width="${{stroke.toFixed(2)}}" stroke-linecap="round"></line>`;
+        }}).join("");
+        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 ${{sz}} ${{sz}}" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="${{center}}" cy="${{center}}" r="${{core.toFixed(2)}}" fill="rgba(250,204,21,0.98)" stroke="rgba(255,255,255,0.92)" stroke-width="${{Math.max(1.4, sz * 0.08).toFixed(2)}}"></circle>${{rays}}</svg>`;
+      }};
 
-      const applyChinaOverview = () => {
+      const applyChinaOverview = () => {{
         if (!amap) return;
-        if ($chinaMap && $chinaMap.offsetWidth <= 0) {
+        if ($chinaMap && $chinaMap.offsetWidth <= 0) {{
           // 容器还没布局好:推迟到下一帧再调用,避免 setZoomAndCenter 在 size=0 时抛错。
-          const doApply = () => {
+          const doApply = () => {{
             if (!amap) return;
-            try {
+            try {{
               amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);
-            } catch (e) {
-              try { console.warn("[stellar-map] setZoomAndCenter failed", e); } catch (_) {}
-            }
-          };
-          if (typeof window.requestAnimationFrame === "function") {
+            }} catch (e) {{
+              try {{ console.warn("[stellar-map] setZoomAndCenter failed", e); }} catch (_) {{}}
+            }}
+          }};
+          if (typeof window.requestAnimationFrame === "function") {{
             window.requestAnimationFrame(doApply);
-          } else {
+          }} else {{
             setTimeout(doApply, 32);
-          }
+          }}
           return;
-        }
-        try {
+        }}
+        try {{
           amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);
-        } catch (e) {
-          try { console.warn("[stellar-map] setZoomAndCenter failed", e); } catch (_) {}
-        }
-      };
+        }} catch (e) {{
+          try {{ console.warn("[stellar-map] setZoomAndCenter failed", e); }} catch (_) {{}}
+        }}
+      }};
 
-      const showMapInitError = (msg) => {
+      const showMapInitError = (msg) => {{
         if (!$chinaMap) return;
-        try {
+        try {{
           mapInitError = String(msg || "");
           $chinaMap.innerHTML = "";
           const wrap = document.createElement("div");
           wrap.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6;background:rgba(8,15,36,0.6);border-radius:12px;";
-          wrap.innerHTML = `<div><div style="font-weight:700;font-size:15px;margin-bottom:8px;">地图加载失败</div><div style="color:rgba(255,255,255,0.7);">${mapInitError}</div><div style="margin-top:12px;color:rgba(255,255,255,0.5);font-size:11px;">请检查 AMAP_KEY 配置或网络连接后刷新页面。</div></div>`;
+          wrap.innerHTML = `<div><div style="font-weight:700;font-size:15px;margin-bottom:8px;">地图加载失败</div><div style="color:rgba(255,255,255,0.7);">${{mapInitError}}</div><div style="margin-top:12px;color:rgba(255,255,255,0.5);font-size:11px;">请检查 AMAP_KEY 配置或网络连接后刷新页面。</div></div>`;
           $chinaMap.appendChild(wrap);
-        } catch (_) {}
-      };
+        }} catch (_) {{}}
+      }};
 
-      const initMapOnce = () => {
+      const initMapOnce = () => {{
         if (mapInited || mapInitializing) return;
         if (!$chinaMap) return;
         if (!$chinaMap.style.position) $chinaMap.style.position = "relative";
         mapInitializing = true;
-        _ensureAmap().then(() => {
-          if (!window.AMap) {
+        _ensureAmap().then(() => {{
+          if (!window.AMap) {{
             mapInitializing = false;
             return;
-          }
-          try {
-            amap = new window.AMap.Map($chinaMap, {
+          }}
+          try {{
+            amap = new window.AMap.Map($chinaMap, {{
               zoom: CHINA_OVERVIEW_ZOOM,
               center: CHINA_OVERVIEW_CENTER,
               viewMode: "2D",
               mapStyle: mapStyleValue || "amap://styles/whitesmoke",
               resizeEnable: true,
-            });
+            }});
             // 容器刚由 hidden 切到可见时,AMap 拿到的尺寸可能尚未稳定;
             // 推迟到下一帧 + resize,保证首屏瓦片不被拉伸/错位。
-            try {
-              const doResize = () => {
+            try {{
+              const doResize = () => {{
                 if (!amap) return;
                 if (typeof amap.resize === "function") amap.resize();
-              };
-              if (typeof window.requestAnimationFrame === "function") {
+              }};
+              if (typeof window.requestAnimationFrame === "function") {{
                 window.requestAnimationFrame(doResize);
-              } else {
+              }} else {{
                 setTimeout(doResize, 32);
-              }
-            } catch (_) {}
-          } catch (e) {
+              }}
+            }} catch (_) {{}}
+          }} catch (e) {{
             mapInitializing = false;
             mapInited = false;
-            try { console.warn("[stellar-map] amap.Map constructor failed", e); } catch (_) {}
+            try {{ console.warn("[stellar-map] amap.Map constructor failed", e); }} catch (_) {{}}
             showMapInitError("地图实例初始化失败");
             return;
-          }
+          }}
           mapInited = true;
           mapInitializing = false;
-          try {
-            if (typeof amap.on === "function") {
-              const markTouched = () => {
+          try {{
+            if (typeof amap.on === "function") {{
+              const markTouched = () => {{
                 mapCameraTouched = true;
-              };
-              amap.on("dragstart", () => {
+              }};
+              amap.on("dragstart", () => {{
                 markTouched();
                 closeMarkerInfo();
                 closeMapTip();
-              });
+              }});
               amap.on("mousewheel", markTouched);
-              amap.on("zoomstart", () => {
+              amap.on("zoomstart", () => {{
                 markTouched();
                 closeMarkerInfo();
                 closeMapTip();
-              });
-              amap.on("touchstart", () => {
+              }});
+              amap.on("touchstart", () => {{
                 markTouched();
                 closeMarkerInfo();
                 closeMapTip();
-              });
-              amap.on("click", () => {
+              }});
+              amap.on("click", () => {{
                 closeMarkerInfo();
                 closeMapTip();
-              });
-            }
-          } catch (_) {}
-          try {
+              }});
+            }}
+          }} catch (_) {{}}
+          try {{
             const heihe = [127.500, 50.250];
             const tengchong = [98.490, 25.020];
             const mid = [
               heihe[0] + (tengchong[0] - heihe[0]) / 3,
               heihe[1] + (tengchong[1] - heihe[1]) / 3,
             ];
-            const line = new window.AMap.Polyline({
+            const line = new window.AMap.Polyline({{
               path: [heihe, tengchong],
               strokeColor: "rgba(249,115,22,0.92)",
               strokeWeight: 3,
               strokeStyle: "dashed",
               strokeDasharray: [10, 8],
               zIndex: 300,
-            });
+            }});
             line.setMap(amap);
             const dx = tengchong[0] - heihe[0];
             const dy = tengchong[1] - heihe[1];
             const len = Math.hypot(dx, dy) || 1;
             let nx = (-dy) / len;
             let ny = dx / len;
-            if (ny < 0) {
+            if (ny < 0) {{
               nx = -nx;
               ny = -ny;
-            }
+            }}
             const offsetDeg = 1.32;
             const labelPos = [mid[0] + nx * offsetDeg, mid[1] + ny * offsetDeg];
             const ang = 0;
-            const label = new window.AMap.Marker({
+            const label = new window.AMap.Marker({{
               position: labelPos,
               anchor: "center",
               offset: new window.AMap.Pixel(0, -5),
@@ -4204,14 +4137,14 @@ const buildPersonTooltipModel = (node, options = {}) => {
                 String(ang.toFixed(2)) +
                 'deg);transform-origin:center;background:rgba(15,23,42,0.72);border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.96);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap">胡焕庸线</div>',
               zIndex: 320,
-            });
+            }});
             label.setMap(amap);
-            const mkText = (text, pos) => {
-              const t = new window.AMap.Text({
+            const mkText = (text, pos) => {{
+              const t = new window.AMap.Text({{
                 text,
                 position: pos,
                 offset: new window.AMap.Pixel(0, -16),
-                style: {
+                style: {{
                   background: "rgba(255,255,255,0.92)",
                   border: "1px solid rgba(15,23,42,0.18)",
                   color: "rgba(15,23,42,0.92)",
@@ -4219,28 +4152,28 @@ const buildPersonTooltipModel = (node, options = {}) => {
                   borderRadius: "2px",
                   fontSize: "12px",
                   fontWeight: "700",
-                },
+                }},
                 zIndex: 320,
-              });
+              }});
               t.setMap(amap);
               return t;
-            };
+            }};
             mkText("黑河", heihe);
             mkText("腾冲", tengchong);
-          } catch (e) {
-            try { console.warn("[stellar-map] Hu Huanyong line init failed", e); } catch (_) {}
-          }
+          }} catch (e) {{
+            try {{ console.warn("[stellar-map] Hu Huanyong line init failed", e); }} catch (_) {{}}
+          }}
           const coordCache = readCoordCache();
           applyCoordCacheToNodes(coordCache);
 
           let infoWin = null;
-          try {
-            infoWin = new window.AMap.InfoWindow({ offset: new window.AMap.Pixel(0, -22) });
-          } catch (_) {
+          try {{
+            infoWin = new window.AMap.InfoWindow({{ offset: new window.AMap.Pixel(0, -22) }});
+          }} catch (_) {{
             infoWin = null;
-          }
+          }}
 
-          const buildMapPersonInfoHtml = (n) => {
+          const buildMapPersonInfoHtml = (n) => {{
             const years = formatYearRange(n.birth_year, n.death_year);
             const dynasty = String(n.dynasty || "").trim();
             const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
@@ -4261,12 +4194,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
             const root = document.createElement("div");
             root.style.minWidth = "220px";
             root.style.maxWidth = "280px";
-            const appendLine = (text, cssText) => {
+            const appendLine = (text, cssText) => {{
               const el = document.createElement("div");
               el.style.cssText = cssText;
               el.textContent = text;
               root.appendChild(el);
-            };
+            }};
             appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
             appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
             if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
@@ -4279,29 +4212,29 @@ const buildPersonTooltipModel = (node, options = {}) => {
             button.type = "button";
             button.textContent = "打开人物页";
             button.style.cssText = "background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer";
-            button.addEventListener("click", () => {
+            button.addEventListener("click", () => {{
               openPerson(n && n.person ? n.person : "");
-            });
+            }});
             actions.appendChild(button);
             root.appendChild(actions);
             return root;
-          };
+          }};
 
-          const openMarkerInfo = (n, lng, lat) => {
+          const openMarkerInfo = (n, lng, lat) => {{
             if (!infoWin) return;
-            try {
+            try {{
               infoWin.setContent(buildMapPersonInfoHtml(n));
               infoWin.open(amap, [lng, lat]);
-            } catch (_) {}
-          };
+            }} catch (_) {{}}
+          }};
 
-          const closeMarkerInfo = () => {
-            try {
+          const closeMarkerInfo = () => {{
+            try {{
               if (infoWin) infoWin.close();
-            } catch (_) {}
-          };
+            }} catch (_) {{}}
+          }};
 
-          const createMarkerContent = (n, lng, lat) => {
+          const createMarkerContent = (n, lng, lat) => {{
             const el = document.createElement("div");
             const active = inWindow(n);
             const base = colorByYear(n.time_year);
@@ -4325,10 +4258,10 @@ const buildPersonTooltipModel = (node, options = {}) => {
             // AMap 的 mk.on("mouseover"...) 已经接管,这里再挂一次会导致 tip 闪烁
             // 并重复调用 resolveMapTipClientPoint。点击/双击也由 marker.on 处理。
             return el;
-          };
+          }};
 
           // Keep markers as individual points so historical colors and hover cards stay visible.
-          const addMarker = (n) => {
+          const addMarker = (n) => {{
             if (n && n._mapMarkerAdded) return;
             const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
             const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
@@ -4338,37 +4271,37 @@ const buildPersonTooltipModel = (node, options = {}) => {
             const lng = p.lng;
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
             const markerEl = createMarkerContent(n, lng, lat);
-            const mk = new window.AMap.Marker({
+            const mk = new window.AMap.Marker({{
               position: [lng, lat],
               offset: new window.AMap.Pixel(-9, -9),
               content: markerEl,
               anchor: "center",
               clickable: true,
-            });
-            mk.on("mouseover", (evt) => {
+            }});
+            mk.on("mouseover", (evt) => {{
               const pos = resolveMapTipClientPoint(evt, lng, lat);
               showMapTip(n, pos.clientX, pos.clientY);
-            });
-            mk.on("mousemove", (evt) => {
+            }});
+            mk.on("mousemove", (evt) => {{
               const pos = resolveMapTipClientPoint(evt, lng, lat);
               showMapTip(n, pos.clientX, pos.clientY);
-            });
-            mk.on("mouseout", () => {
+            }});
+            mk.on("mouseout", () => {{
               closeMapTip();
-            });
-            mk.on("click", () => {
-              try {
+            }});
+            mk.on("click", () => {{
+              try {{
                 openMarkerInfo(n, lng, lat);
-              } catch (_) {}
-            });
+              }} catch (_) {{}}
+            }});
             mk.on("dblclick", () => openPerson(n.person));
-            try { mk.setMap(amap); } catch (_) {}
-            if (onlyActiveMarkers && !inWindow(n)) {
-              try { mk.hide(); } catch (_) {}
-            }
+            try {{ mk.setMap(amap); }} catch (_) {{}}
+            if (onlyActiveMarkers && !inWindow(n)) {{
+              try {{ mk.hide(); }} catch (_) {{}}
+            }}
             n._mapMarkerAdded = true;
-            markers.push({ mk, n, el: markerEl });
-          };
+            markers.push({{ mk, n, el: markerEl }});
+          }};
 
           for (const n of nodes) addMarker(n);
           updateCoordCount();
@@ -4377,42 +4310,42 @@ const buildPersonTooltipModel = (node, options = {}) => {
           mapCameraTouched = false;
 
           runSharedCoordFill(coordCache, addMarker);
-        }).catch((e) => {
+        }}).catch((e) => {{
           mapInited = false;
           mapInitializing = false;
-          try { console.warn("[stellar-map] amap init failed", e); } catch (_) {}
+          try {{ console.warn("[stellar-map] amap init failed", e); }} catch (_) {{}}
           const errMsg = (e && e.message) ? e.message : "高德地图脚本加载失败";
           showMapInitError(errMsg);
-        });
-      };
+        }});
+      }};
 
-      const updateMapMarkers = () => {
+      const updateMapMarkers = () => {{
         if (!mapInited || !amap) return;
         const hiIdx = selectedIdx >= 0 ? selectedIdx : (spotlightIdx >= 0 ? spotlightIdx : -1);
-        const focusSet = hiIdx >= 0 ? (() => {
+        const focusSet = hiIdx >= 0 ? (() => {{
           const s = new Set();
           s.add(hiIdx);
           for (const j of (neigh[hiIdx] || [])) s.add(j);
           return s;
-        })() : null;
+        }})() : null;
         const searchActive = mapSearchHighlightSet.size > 0;
         let shownCount = 0;
         let hiddenCount = 0;
         let forcedVisibleCount = 0;
-        for (const it of markers) {
+        for (const it of markers) {{
           const n = it.n;
           const idx = typeof n._idx === "number" ? n._idx : -1;
           const active = inWindow(n);
           const forceVisible = idx >= 0 && idx === hiIdx;
           const searchHit = searchActive && idx >= 0 && mapSearchHighlightSet.has(idx);
           if (forceVisible) forcedVisibleCount += 1;
-          if (onlyActiveMarkers && !active && !forceVisible && !searchHit) {
+          if (onlyActiveMarkers && !active && !forceVisible && !searchHit) {{
             hiddenCount += 1;
-            try { it.mk.hide(); } catch (_) {}
+            try {{ it.mk.hide(); }} catch (_) {{}}
             continue;
-          }
+          }}
           shownCount += 1;
-          try { it.mk.show(); } catch (_) {}
+          try {{ it.mk.show(); }} catch (_) {{}}
           const searchDim = searchActive && !searchHit && !forceVisible;
           const dim = (focusSet && idx >= 0 && !focusSet.has(idx)) || searchDim;
           const emph = (active || forceVisible || (searchActive && searchHit)) && !searchDim;
@@ -4424,25 +4357,25 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
           const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : accentSoft);
           const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
-          if (it.el) {
-            it.el.style.width = `${sz}px`;
-            it.el.style.height = `${sz}px`;
+          if (it.el) {{
+            it.el.style.width = `${{sz}}px`;
+            it.el.style.height = `${{sz}}px`;
             it.el.innerHTML = markerHtml(n, sz, fill, glow, emph);
             it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
-            try {
+            try {{
               it.mk.setContent(it.el);
-            } catch (_) {}
-          } else {
+            }} catch (_) {{}}
+          }} else {{
             it.mk.setContent(markerHtml(n, sz, fill, glow, emph));
-          }
+          }}
           it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
-        }
-      };
+        }}
+      }};
 
       if ($tabGraph) $tabGraph.addEventListener("click", () => setTab("graph"));
       if ($tabMap) $tabMap.addEventListener("click", () => setTab("map"));
-      if ($presetBar) {
-        $presetBar.addEventListener("click", (e) => {
+      if ($presetBar) {{
+        $presetBar.addEventListener("click", (e) => {{
           const t = e && e.target ? e.target : null;
           const btn = t && t.closest ? t.closest("button[data-preset]") : null;
           const key = btn ? String(btn.getAttribute("data-preset") || "") : "";
@@ -4458,91 +4391,91 @@ const buildPersonTooltipModel = (node, options = {}) => {
           updateCoordCount();
           updateMapMarkers();
           draw();
-        });
-      }
-      const resetMapView = () => {
-        try {
+        }});
+      }}
+      const resetMapView = () => {{
+        try {{
           mapCameraTouched = false;
           applyChinaOverview();
-        } catch (_) {}
-      };
+        }} catch (_) {{}}
+      }};
       if ($resetMap) $resetMap.addEventListener("click", resetMapView);
 
       let _mapSearchTimer = null;
-      const _scheduleMapSearch = (val, opts) => {
+      const _scheduleMapSearch = (val, opts) => {{
         if (_mapSearchTimer) clearTimeout(_mapSearchTimer);
-        _mapSearchTimer = setTimeout(() => {
-          applyMapSearch(val, opts || {});
-        }, 140);
-      };
-      if ($mapSearchInput) {
-        $mapSearchInput.addEventListener("input", (e) => {
+        _mapSearchTimer = setTimeout(() => {{
+          applyMapSearch(val, opts || {{}});
+        }}, 140);
+      }};
+      if ($mapSearchInput) {{
+        $mapSearchInput.addEventListener("input", (e) => {{
           const v = e && e.target ? String(e.target.value || "") : "";
           // 输入时同步缩放到匹配人物的边界框
-          _scheduleMapSearch(v, { fit: true });
-        });
-        $mapSearchInput.addEventListener("focus", () => {
+          _scheduleMapSearch(v, {{ fit: true }});
+        }});
+        $mapSearchInput.addEventListener("focus", () => {{
           if (mapSearchQuery) renderMapSearchSuggest();
-        });
-        $mapSearchInput.addEventListener("keydown", (e) => {
+        }});
+        $mapSearchInput.addEventListener("keydown", (e) => {{
           if (!$mapSearchSuggest) return;
           const key = e && e.key ? String(e.key) : "";
-          if (key === "Enter") {
-            applyMapSearch($mapSearchInput.value || "", { fit: true });
-            if (mapSearchSuggestIdx >= 0) {
+          if (key === "Enter") {{
+            applyMapSearch($mapSearchInput.value || "", {{ fit: true }});
+            if (mapSearchSuggestIdx >= 0) {{
               const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
               const pick = items[mapSearchSuggestIdx];
-              if (pick && pick.person) {
-                try { openPerson(pick.person); } catch (_) {}
-              }
-            }
+              if (pick && pick.person) {{
+                try {{ openPerson(pick.person); }} catch (_) {{}}
+              }}
+            }}
             if (e.preventDefault) e.preventDefault();
             return;
-          }
-          if (key === "Escape") {
+          }}
+          if (key === "Escape") {{
             $mapSearchInput.value = "";
-            applyMapSearch("", {});
+            applyMapSearch("", {{}});
             if (e.preventDefault) e.preventDefault();
             return;
-          }
-          if (key === "ArrowDown" || key === "ArrowUp") {
+          }}
+          if (key === "ArrowDown" || key === "ArrowUp") {{
             const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
             if (!items.length) return;
             if (key === "ArrowDown") mapSearchSuggestIdx = Math.min(items.length - 1, mapSearchSuggestIdx + 1);
             else mapSearchSuggestIdx = Math.max(0, mapSearchSuggestIdx - 1);
             renderMapSearchSuggest();
             if (e.preventDefault) e.preventDefault();
-          }
-        });
-      }
-      if ($mapSearchClear) {
-        $mapSearchClear.addEventListener("click", () => {
+          }}
+        }});
+      }}
+      if ($mapSearchClear) {{
+        $mapSearchClear.addEventListener("click", () => {{
           if ($mapSearchInput) $mapSearchInput.value = "";
-          applyMapSearch("", {});
+          applyMapSearch("", {{}});
           if ($mapSearchInput) $mapSearchInput.focus();
-        });
-      }
-      if ($mapSearchSuggest) {
-        $mapSearchSuggest.addEventListener("mousedown", (e) => {
+        }});
+      }}
+      if ($mapSearchSuggest) {{
+        $mapSearchSuggest.addEventListener("mousedown", (e) => {{
           const t = e && e.target ? e.target : null;
           const row = t && t.closest ? t.closest("[data-mperson]") : null;
           if (!row) return;
           const person = String(row.getAttribute("data-mperson") || "").trim();
           if (!person) return;
-          try { openPerson(person); } catch (_) {}
-        });
-      }
-      document.addEventListener("click", (e) => {
+          try {{ openPerson(person); }} catch (_) {{}}
+        }});
+      }}
+      document.addEventListener("click", (e) => {{
         if (!$mapSearchSuggest || $mapSearchSuggest.classList.contains("hidden")) return;
         const t = e && e.target ? e.target : null;
         if ($mapSearchInput && t === $mapSearchInput) return;
         if (t && $mapSearchSuggest.contains(t)) return;
         $mapSearchSuggest.classList.add("hidden");
-      });
+      }});
 
       setTab("graph");
 
-      const onMouseMove = (e) => {
+      const onMouseMove = (e) => {{
         const rect = $c.getBoundingClientRect();
         const mx = (e.clientX - rect.left) * (W / rect.width);
         const my = (e.clientY - rect.top) * (H / rect.height);
@@ -4551,120 +4484,120 @@ const buildPersonTooltipModel = (node, options = {}) => {
         if (n) showTip(n, e.clientX, e.clientY);
         else showTip(null);
         draw();
-      };
+      }};
 
       $c.addEventListener("mousemove", onMouseMove);
-      $c.addEventListener("mouseleave", () => {
+      $c.addEventListener("mouseleave", () => {{
         hover = null;
         showTip(null);
         draw();
-      });
-      $c.addEventListener("click", (event) => {
+      }});
+      $c.addEventListener("click", (event) => {{
         const rect = $c.getBoundingClientRect();
         const mx = (event.clientX - rect.left) * (W / rect.width);
         const my = (event.clientY - rect.top) * (H / rect.height);
         const n = pickNode(mx, my);
         if (_clickTimer) clearTimeout(_clickTimer);
-        _clickTimer = setTimeout(() => {
-          if (n) {
-            if (selected && typeof selected._idx === "number" && selected._idx === n._idx) {
+        _clickTimer = setTimeout(() => {{
+          if (n) {{
+            if (selected && typeof selected._idx === "number" && selected._idx === n._idx) {{
               openPerson(n.person);
               _clickTimer = null;
               return;
-            }
+            }}
             setSelected(n);
-          } else {
+          }} else {{
             setSelected(null);
-          }
+          }}
           _clickTimer = null;
-        }, 220);
-      });
-      $c.addEventListener("dblclick", (event) => {
-        if (_clickTimer) {
+        }}, 220);
+      }});
+      $c.addEventListener("dblclick", (event) => {{
+        if (_clickTimer) {{
           clearTimeout(_clickTimer);
           _clickTimer = null;
-        }
+        }}
         const rect = $c.getBoundingClientRect();
         const mx = (event.clientX - rect.left) * (W / rect.width);
         const my = (event.clientY - rect.top) * (H / rect.height);
         const n = pickNode(mx, my);
         if (n) openPerson(n.person);
-      });
+      }});
 
       let isPanning = false;
       let panStartX = 0;
       let panStartY = 0;
       let panStartOffX = 0;
       let panStartOffY = 0;
-      $c.addEventListener("mousedown", (e) => {
+      $c.addEventListener("mousedown", (e) => {{
         if (!(e.button === 2 || (e.shiftKey && e.button === 0) || e.button === 1)) return;
         isPanning = true;
         panStartX = e.clientX;
         panStartY = e.clientY;
         panStartOffX = camOffX;
         panStartOffY = camOffY;
-        try { e.preventDefault(); } catch (_) {}
-      });
-      $c.addEventListener("contextmenu", (e) => {
-        try { e.preventDefault(); } catch (_) {}
-      });
-      window.addEventListener("mouseup", () => {
+        try {{ e.preventDefault(); }} catch (_) {{}}
+      }});
+      $c.addEventListener("contextmenu", (e) => {{
+        try {{ e.preventDefault(); }} catch (_) {{}}
+      }});
+      window.addEventListener("mouseup", () => {{
         isPanning = false;
-      });
-      window.addEventListener("mousemove", (e) => {
+      }});
+      window.addEventListener("mousemove", (e) => {{
         if (!isPanning) return;
         camOffX = panStartOffX + (e.clientX - panStartX) * (W / $c.getBoundingClientRect().width);
         camOffY = panStartOffY + (e.clientY - panStartY) * (H / $c.getBoundingClientRect().height);
         draw();
-      });
+      }});
       const railRect = () => $rail.getBoundingClientRect();
 
-      const hitTestHandle = (e) => {
+      const hitTestHandle = (e) => {{
         const r = railRect();
         const x = e.clientX - r.left;
-        const {x1, x2} = handlePosPx();
+        const {{x1, x2}} = handlePosPx();
         const px1 = x1;
         const px2 = x2;
         if (Math.abs(x - px1) < 18) return "left";
         if (Math.abs(x - px2) < 18) return "right";
         if (x > px1 && x < px2) return "mid";
         return "";
-      };
+      }};
 
-      const isEventWithinRail = (e) => {
+      const isEventWithinRail = (e) => {{
         if (!$rail || !e || typeof e.clientX !== "number" || typeof e.clientY !== "number") return false;
         const r = railRect();
         return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-      };
+      }};
 
-      const onDown = (e) => {
+      const onDown = (e) => {{
         if (typeof e.button === "number" && e.button !== 0) return;
         const r = railRect();
         const rx = clamp(e.clientX - r.left, 0, r.width || 1);
         const m = hitTestHandle(e);
-        if (!m) {
+        if (!m) {{
           dragMode = "brush";
           brushStartX = rx;
           brushStartYear = fromT(clamp(rx / (r.width || 1), 0, 1));
           startYear = brushStartYear;
           endYear = clamp(brushStartYear + 1, minYear, maxYear);
-        } else {
+        }} else {{
           dragMode = m;
           dragStartX = e.clientX;
           dragStartA = startYear;
           dragStartB = endYear;
-        }
-        if ($rail.setPointerCapture) {
-          try { $rail.setPointerCapture(e.pointerId); } catch (_) {}
-        }
+        }}
+        if ($rail.setPointerCapture) {{
+          try {{ $rail.setPointerCapture(e.pointerId); }} catch (_) {{}}
+        }}
         if (e.stopPropagation) e.stopPropagation();
         e.preventDefault();
-      };
+      }};
 
-      const onMove = (e) => {
+      const onMove = (e) => {{
         if (!dragMode) return;
         const r = railRect();
-        if (dragMode === "brush") {
+        if (dragMode === "brush") {{
           const rx = clamp(e.clientX - r.left, 0, r.width || 1);
           const y = fromT(clamp(rx / (r.width || 1), 0, 1));
           let a = Math.min(brushStartYear, y);
@@ -4674,46 +4607,46 @@ const buildPersonTooltipModel = (node, options = {}) => {
           if (a === b) b = clamp(a + 1, minYear, maxYear);
           startYear = a;
           endYear = b;
-        } else {
+        }} else {{
           const dx = e.clientX - dragStartX;
           const dt = dx / r.width;
           const span = dragStartB - dragStartA;
-          if (dragMode === "left") {
+          if (dragMode === "left") {{
             const t = clamp(toT(dragStartA) + dt, 0, toT(dragStartB) - 0.01);
             startYear = fromT(t);
-          } else if (dragMode === "right") {
+          }} else if (dragMode === "right") {{
             const t = clamp(toT(dragStartB) + dt, toT(dragStartA) + 0.01, 1);
             endYear = fromT(t);
-          } else if (dragMode === "mid") {
+          }} else if (dragMode === "mid") {{
             const spanT = Math.max(0.01, toT(dragStartB) - toT(dragStartA));
             const nextStartT = clamp(toT(dragStartA) + dt, 0, 1 - spanT);
             const nextEndT = clamp(nextStartT + spanT, spanT, 1);
             startYear = fromT(nextStartT);
             endYear = fromT(nextEndT);
-          }
-        }
-        if (startYear >= endYear) {
+          }}
+        }}
+        if (startYear >= endYear) {{
           if (dragMode === "left") startYear = endYear - 1;
           else endYear = startYear + 1;
-        }
+        }}
         setHandles();
         updateActiveCount();
         updateCoordCount();
         updateMapMarkers();
         draw();
-      };
+      }};
 
-      const onUp = () => {
+      const onUp = () => {{
         if (!dragMode) return;
         const wasBrush = (dragMode === "brush");
         dragMode = "";
         if (wasBrush && currentTab === "graph") draw();
-      };
+      }};
 
-      const routeDown = (e) => {
+      const routeDown = (e) => {{
         if (!isEventWithinRail(e)) return;
         onDown(e);
-      };
+      }};
       document.addEventListener("pointerdown", routeDown, true);
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
@@ -4721,7 +4654,7 @@ const buildPersonTooltipModel = (node, options = {}) => {
       document.addEventListener("mousedown", routeDown, true);
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
-      $rail.addEventListener("dblclick", () => {
+      $rail.addEventListener("dblclick", () => {{
         startYear = 0;
         endYear = 1840;
         setHandles();
@@ -4729,42 +4662,42 @@ const buildPersonTooltipModel = (node, options = {}) => {
         updateCoordCount();
         updateMapMarkers();
         draw();
-      });
-      if ($startYearInput) {
-        $startYearInput.addEventListener("keydown", (e) => {
+      }});
+      if ($startYearInput) {{
+        $startYearInput.addEventListener("keydown", (e) => {{
           if (e.key === "Enter") applyYearInputs();
-        });
+        }});
         $startYearInput.addEventListener("change", applyYearInputs);
         $startYearInput.addEventListener("blur", applyYearInputs);
-      }
-      if ($endYearInput) {
-        $endYearInput.addEventListener("keydown", (e) => {
+      }}
+      if ($endYearInput) {{
+        $endYearInput.addEventListener("keydown", (e) => {{
           if (e.key === "Enter") applyYearInputs();
-        });
+        }});
         $endYearInput.addEventListener("change", applyYearInputs);
         $endYearInput.addEventListener("blur", applyYearInputs);
-      }
-      window.addEventListener("resize", () => {
+      }}
+      window.addEventListener("resize", () => {{
         syncCanvasSize();
         renderBands();
         setHandles();
         syncSearchActionState();
         draw();
-      });
+      }});
 
-      const groupKey = (n) => {
+      const groupKey = (n) => {{
         const role = String(n.main_role_band || "").trim();
         if (role) return role;
         const d = String(n.dynasty || "").trim();
         if (d) return d.slice(0, 6);
         const name = String(n.person || "").trim();
         return name ? name.slice(0, 1) : "？";
-      };
+      }};
 
-      const buildNeigh = () => {
-        neigh = Array.from({ length: nodes.length }, () => []);
+      const buildNeigh = () => {{
+        neigh = Array.from({{ length: nodes.length }}, () => []);
         edgeMeta = new Map();
-        for (const e of edges) {
+        for (const e of edges) {{
           if (!e) continue;
           const a = e.a;
           const b = e.b;
@@ -4775,20 +4708,20 @@ const buildPersonTooltipModel = (node, options = {}) => {
           neigh[b].push(a);
           const lo = Math.min(a, b);
           const hi = Math.max(a, b);
-          const k = `${lo},${hi}`;
+          const k = `${{lo}},${{hi}}`;
           const conf = edgeConf(e);
           const label = String((e && e.label) || "").trim();
           const t = edgeType(e);
           const prev = edgeMeta.get(k) || null;
-          if (!prev || conf >= (prev.confidence || 0)) {
-            edgeMeta.set(k, { label, confidence: conf, type: t });
-          }
-        }
-      };
+          if (!prev || conf >= (prev.confidence || 0)) {{
+            edgeMeta.set(k, {{ label, confidence: conf, type: t }});
+          }}
+        }}
+      }};
 
       migrateCoordCache();
-      fetch(DATA_FILE).then((r) => r.json()).then((data) => {
-        searchCapabilities = Object.assign({ aliases: true, foreign_name: true, pinyin: false }, data.search_capabilities || {});
+      fetch(DATA_FILE).then((r) => r.json()).then((data) => {{
+        searchCapabilities = Object.assign({{ aliases: true, foreign_name: true, pinyin: false }}, data.search_capabilities || {{}});
         setSearchHint();
         minYear = data.min_year ?? -800;
         maxYear = data.max_year ?? 1840;
@@ -4797,12 +4730,12 @@ const buildPersonTooltipModel = (node, options = {}) => {
           ? data.role_band_order
           : ["military", "politics", "literature", "thought", "science", "art", "other"];
         const roleBandIndex = new Map(roleBandOrder.map((key, idx) => [String(key || "").trim(), idx]));
-        const laneFor = (n) => {
+        const laneFor = (n) => {{
           const band = String(n.main_role_band || "").trim();
           const idx = roleBandIndex.has(band) ? roleBandIndex.get(band) : (roleBandOrder.length - 1);
           return (idx + 0.5) / Math.max(1, roleBandOrder.length);
-        };
-        const laneJitter = (n) => {
+        }};
+        const laneJitter = (n) => {{
           const bandCount = Math.max(1, roleBandOrder.length);
           const bandHeight = (H - pad * 2) / bandCount;
           const seed = hash(String(n.person || ""));
@@ -4810,35 +4743,35 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const local = (rand01(seed + 2) - 0.5) * bandHeight * 0.42;
           const dynastyBias = ((Math.abs(dynastySeed) % 5) - 2) * Math.min(6, bandHeight * 0.08);
           return local + dynastyBias;
-        };
+        }};
 
         const cell = 12;
         const occ = new Set();
-        const key = (cx, cy) => `${cx},${cy}`;
-        const isFree = (x, y) => {
+        const key = (cx, cy) => `${{cx}},${{cy}}`;
+        const isFree = (x, y) => {{
           const cx = Math.round(x / cell);
           const cy = Math.round(y / cell);
           const k = key(cx, cy);
           if (occ.has(k)) return false;
           occ.add(k);
           return true;
-        };
+        }};
 
-        const placeAtY = (dy, wantX, wantY) => {
+        const placeAtY = (dy, wantX, wantY) => {{
           const x = clamp(wantX, pad, W - pad);
           const y = clamp(wantY + dy, pad, H - pad);
           if (isFree(x, y)) return [x, y];
           return null;
-        };
+        }};
 
         const offsets = [];
         offsets.push(0);
-        for (let r = 1; r <= 12; r++) {
+        for (let r = 1; r <= 12; r++) {{
           const step = 10;
           offsets.push(r * step, -r * step);
-        }
+        }}
 
-        nodes = raw.map((n, idx) => {
+        nodes = raw.map((n, idx) => {{
           const seed = hash(n.person || "");
           const my = mainYear(n);
           const t = (typeof my === "number" && Number.isFinite(my)) ? clamp(toT(my), 0, 1) : null;
@@ -4847,17 +4780,17 @@ const buildPersonTooltipModel = (node, options = {}) => {
           const y0 = pad + yLane * (H - pad * 2) + laneJitter(n);
 
           let best = null;
-          for (const dy of offsets) {
+          for (const dy of offsets) {{
             const p = placeAtY(dy, x0, y0);
-            if (p) { best = p; break; }
-          }
-          if (!best) {
+            if (p) {{ best = p; break; }}
+          }}
+          if (!best) {{
             best = [clamp(x0, pad, W - pad), clamp(y0, pad, H - pad)];
-          }
+          }}
           const x = best[0];
           const y = best[1];
-          return { ...n, x, y, bx: x, by: y, _idx: idx };
-        });
+          return {{ ...n, x, y, bx: x, by: y, _idx: idx }};
+        }});
         edgesAll = [];
         startYear = data.default_start ?? 100;
         endYear = data.default_end ?? 1600;
@@ -4874,14 +4807,1341 @@ const buildPersonTooltipModel = (node, options = {}) => {
         prefillCoordsNoMap();
         syncSearchActionState();
         window.requestAnimationFrame(animate);
-        if (DATA_DETAIL_FILE) {
-          if (typeof window.requestIdleCallback === "function") {
-            window.requestIdleCallback(() => loadHomeDetailData(), { timeout: 1200 });
-          } else {
+        if (DATA_DETAIL_FILE) {{
+          if (typeof window.requestIdleCallback === "function") {{
+            window.requestIdleCallback(() => loadHomeDetailData(), {{ timeout: 1200 }});
+          }} else {{
             window.setTimeout(() => loadHomeDetailData(), 180);
-          }
-        }
-      });
+          }}
+        }}
+      }});
     </script>
   </body>
 </html>
+"""
+
+
+def main() -> int:
+    p = argparse.ArgumentParser()
+    p.add_argument("--story-map-dir", default=str(STORY_MAP_DIR))
+    p.add_argument("--story-md-dir", default=str(STORY_MD_DIR))
+    p.add_argument("--summary-index", "--spotlight", dest="summary_index", default=str(SUMMARY_INDEX_JSON))
+    p.add_argument("--out-index", default="index.html")
+    p.add_argument("--out-data", default="stellar_home_data.json")
+    p.add_argument("--title", default="故事地图")
+    p.add_argument("--default-start", type=int, default=100)
+    p.add_argument("--default-end", type=int, default=1600)
+    p.add_argument("--graph-source", choices=("auto", "build", "neo4j"), default="auto")
+    args = p.parse_args()
+
+    story_map_dir = Path(args.story_map_dir).resolve()
+    story_md_dir = Path(args.story_md_dir).resolve()
+    summary_index_path = Path(getattr(args, "summary_index", getattr(args, "spotlight", ""))).resolve()
+
+    try:
+        from dotenv import load_dotenv  # type: ignore
+
+        load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
+        load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
+        load_dotenv(dotenv_path=str((REPO_ROOT.parent.parent / ".env").resolve()))
+        load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
+    except Exception as _exc:
+        pass
+    if apply_story_map_env_aliases:
+        apply_story_map_env_aliases()
+
+    latest_html = _scan_latest_html(story_map_dir)
+    geocode_city = None
+    try:
+        sys.path.insert(0, str((REPO_ROOT / "storymap" / "script").resolve()))
+        from storymap.script.map.map_client import geocode_city as _geocode_city  # type: ignore
+
+        geocode_city = _geocode_city
+    except Exception as _exc:
+        geocode_city = None
+    geocode_limit = int(os.getenv("STELLAR_HOME_GEOCODE_LIMIT", "0") or "0")
+    geocode_used = 0
+
+    hist_index_path = data_corpus_file_path("historical_places_index.jsonl").resolve()
+    hist_index: Dict[str, Tuple[float, float]] = {}
+
+    def _norm_place_key(s: str) -> str:
+        t = str(s or "").strip()
+        if not t:
+            return ""
+        t = re.sub(r"[\\s\\(\\)（）\\[\\]【】<>《》“”‘’\"'·•,，。；;:：/\\\\-—]+", "", t)
+        return t.strip().lower()
+
+    def _load_hist_index() -> Dict[str, Tuple[float, float]]:
+        if not hist_index_path.exists():
+            return {}
+        mapping: Dict[str, Tuple[float, float]] = {}
+        try:
+            with hist_index_path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    s = (line or "").strip()
+                    if not s:
+                        continue
+                    try:
+                        obj = json.loads(s)
+                    except Exception as _exc:
+                        continue
+                    if not isinstance(obj, dict):
+                        continue
+                    ancient = str(obj.get("ancient_name") or "").strip()
+                    modern = str(obj.get("modern_name") or "").strip()
+                    lat = obj.get("lat")
+                    lon = obj.get("lon")
+                    try:
+                        lat_f = float(lat)
+                        lon_f = float(lon)
+                    except Exception as _exc:
+                        continue
+                    if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+                        continue
+                    for key in (ancient, modern):
+                        nk = _norm_place_key(key)
+                        if nk and nk not in mapping:
+                            mapping[nk] = (lat_f, lon_f)
+        except Exception as _exc:
+            return {}
+        return mapping
+
+    hist_index = _load_hist_index()
+
+    person_birth_coords: Dict[str, Tuple[float, float]] = {}
+    try:
+        if BIRTH_COORDS_WGS84_JSON.exists():
+            raw_pbc = json.loads(BIRTH_COORDS_WGS84_JSON.read_text(encoding="utf-8"))
+            if isinstance(raw_pbc, dict):
+                for k, v in raw_pbc.items():
+                    name = str(k or "").strip()
+                    if not name:
+                        continue
+                    if isinstance(v, list) and len(v) >= 2:
+                        try:
+                            lat = float(v[0])
+                            lng = float(v[1])
+                        except Exception as _exc:
+                            continue
+                        if -90 <= lat <= 90 and -180 <= lng <= 180:
+                            person_birth_coords[name] = (lat, lng)
+    except Exception as _exc:
+        person_birth_coords = {}
+
+    person_birth_coords_dirty = 0
+
+    def _set_person_birth_coord(person: str, lat: float, lng: float) -> None:
+        nonlocal person_birth_coords_dirty
+        p = str(person or "").strip()
+        if not p:
+            return
+        try:
+            la = float(lat)
+            lo = float(lng)
+        except Exception as _exc:
+            return
+        if not (-90 <= la <= 90 and -180 <= lo <= 180):
+            return
+        old = person_birth_coords.get(p)
+        if old and abs(old[0] - la) < 1e-7 and abs(old[1] - lo) < 1e-7:
+            return
+        person_birth_coords[p] = (la, lo)
+        person_birth_coords_dirty += 1
+
+    def _clear_person_birth_coord(person: str) -> None:
+        nonlocal person_birth_coords_dirty
+        p = str(person or "").strip()
+        if not p or p not in person_birth_coords:
+            return
+        person_birth_coords.pop(p, None)
+        person_birth_coords_dirty += 1
+
+    def _hist_lookup(*names: str) -> Optional[Tuple[float, float]]:
+        for name in names:
+            nk = _norm_place_key(name)
+            if not nk:
+                continue
+            coord = hist_index.get(nk)
+            if coord:
+                return coord
+        return None
+
+    def _lookup_birth_coord_from_coords_table(
+        coords_table: Dict[str, Tuple[float, float]],
+        birthplace_modern: str,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+    ) -> Optional[Tuple[float, float]]:
+        # Try both the cleaned birthplace text and its parenthetical-stripped variant because
+        # markdown coordinate tables may store either form.
+        for term in _birthplace_lookup_terms(birthplace_modern, birthplace_ancient, birthplace_raw):
+            nk = _norm_place_key(term)
+            if not nk:
+                continue
+            if nk in coords_table:
+                return coords_table[nk]
+            for coord_key, coord_value in coords_table.items():
+                if not coord_key:
+                    continue
+                if (coord_key in nk) or (nk in coord_key):
+                    return coord_value
+        return None
+
+    def _lookup_birth_coord_from_hist_index(
+        birthplace_modern: str,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+    ) -> Optional[Tuple[float, float]]:
+        terms = _birthplace_lookup_terms(birthplace_modern, birthplace_ancient, birthplace_raw)
+        if not terms:
+            return None
+        return _hist_lookup(*terms)
+
+    def _parse_coords_table_from_md(md_text: str) -> Dict[str, Tuple[float, float]]:
+        if not isinstance(md_text, str) or not md_text.strip():
+            return {}
+        lines = md_text.splitlines()
+        in_section = False
+        table_started = False
+        idx_name = None
+        idx_lat = None
+        idx_lng = None
+        out: Dict[str, Tuple[float, float]] = {}
+        for line in lines:
+            s = (line or "").strip()
+            if s.startswith("## "):
+                title = s.lstrip("#").strip()
+                in_section = "地点坐标" in title
+                table_started = False
+                idx_name = None
+                idx_lat = None
+                idx_lng = None
+                continue
+            if not in_section:
+                continue
+            if s.startswith("|") and (not table_started):
+                header = [c.strip() for c in s.strip("|").split("|")]
+                for i, c in enumerate(header):
+                    cl = c.lower()
+                    if ("现称" in c) or ("地点" in c) or ("location" in cl) or ("place" in cl):
+                        idx_name = i
+                    if ("纬度" in c) or ("lat" in cl):
+                        idx_lat = i
+                    if ("经度" in c) or ("lng" in cl) or ("lon" in cl) or ("long" in cl):
+                        idx_lng = i
+                table_started = True
+                continue
+            if table_started:
+                if (not s) or (not s.startswith("|")):
+                    break
+                cols = [c.strip() for c in s.strip("|").split("|")]
+                if idx_name is None or idx_lat is None or idx_lng is None:
+                    continue
+                if idx_name >= len(cols) or idx_lat >= len(cols) or idx_lng >= len(cols):
+                    continue
+                name = cols[idx_name]
+                if re.fullmatch(r":?-+:?", cols[idx_lat].replace(" ", "")) or re.fullmatch(
+                    r":?-+:?", cols[idx_lng].replace(" ", "")
+                ):
+                    continue
+                try:
+                    lat = float(cols[idx_lat])
+                    lng = float(cols[idx_lng])
+                except Exception as _exc:
+                    continue
+                if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+                    continue
+                raw_name = str(name or "").strip()
+                variants = [raw_name]
+                try:
+                    stripped = re.sub(r"[（(].*?[）)]", "", raw_name).strip()
+                    if stripped and stripped not in variants:
+                        variants.append(stripped)
+                    if "（" in raw_name:
+                        left = raw_name.split("（", 1)[0].strip()
+                        if left and left not in variants:
+                            variants.append(left)
+                    if "(" in raw_name:
+                        left = raw_name.split("(", 1)[0].strip()
+                        if left and left not in variants:
+                            variants.append(left)
+                    label_stripped = re.sub(r"^(?:出生地|去世地|重要地点)[:：]\s*", "", raw_name).strip()
+                    if label_stripped and label_stripped not in variants:
+                        variants.append(label_stripped)
+                    label_stripped_plain = re.sub(r"[（(].*?[）)]", "", label_stripped).strip()
+                    if label_stripped_plain and label_stripped_plain not in variants:
+                        variants.append(label_stripped_plain)
+                except Exception as _exc:
+                    pass
+                for v in variants:
+                    nk = _norm_place_key(v)
+                    if nk and nk not in out:
+                        out[nk] = (lat, lng)
+        return out
+
+    amap_key = (
+        os.getenv("locaion_api")
+        or os.getenv("location_api")
+        or os.getenv("LOCATION_API")
+        or os.getenv("AMAP_WEBSERVICE_KEY")
+        or os.getenv("AMAP_WEB_SERVICE_KEY")
+        or os.getenv("AMAP_REST_KEY")
+        or ""
+    ).strip()
+    amap_limit = int(os.getenv("STELLAR_HOME_AMAP_GEOCODE_LIMIT", "5000") or "5000")
+    amap_interval_s = float(os.getenv("STELLAR_HOME_AMAP_MIN_INTERVAL", "0.08") or "0.08")
+    amap_concurrency = int(os.getenv("STELLAR_HOME_AMAP_CONCURRENCY", "6") or "6")
+    amap_qps = float(os.getenv("STELLAR_HOME_AMAP_QPS", "8") or "8")
+    if not (amap_concurrency > 0):
+        amap_concurrency = 1
+    if not (amap_qps > 0):
+        amap_qps = 8.0
+    amap_min_interval_s = max(amap_interval_s, 1.0 / float(amap_qps))
+    amap_req_used = 0
+    amap_last_ts = 0.0
+    amap_lock = threading.Lock()
+    amap_cache_path = (REPO_ROOT / "cache" / "amap_geocode_cache.json").resolve()
+    amap_cache: Dict[str, Optional[Tuple[float, float]]] = {}
+    try:
+        if amap_cache_path.exists():
+            raw_cache = json.loads(amap_cache_path.read_text(encoding="utf-8"))
+            if isinstance(raw_cache, dict):
+                for k, v in raw_cache.items():
+                    if not isinstance(k, str) or not k.strip():
+                        continue
+                    kk = k.strip()
+                    if v is None:
+                        amap_cache[kk] = None
+                        continue
+                    if isinstance(v, list) and len(v) >= 2:
+                        try:
+                            lat = float(v[0])
+                            lng = float(v[1])
+                        except Exception as _exc:
+                            continue
+                        if -90 <= lat <= 90 and -180 <= lng <= 180:
+                            amap_cache[kk] = (lat, lng)
+    except Exception as _exc:
+        amap_cache = {}
+
+    def _amap_geocode(address: str) -> Optional[Tuple[float, float]]:
+        nonlocal amap_last_ts, amap_req_used
+        addr = str(address or "").strip()
+        if not addr or not amap_key:
+            return None
+        retry_none = str(os.getenv("STELLAR_HOME_AMAP_RETRY_NONE", "") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+        }
+        if addr in amap_cache and (amap_cache.get(addr) is not None or (not retry_none)):
+            return amap_cache.get(addr)
+        with amap_lock:
+            if amap_req_used >= amap_limit:
+                return None
+            amap_req_used += 1
+            now = time.time()
+            wait = (amap_last_ts + amap_min_interval_s) - now
+            amap_last_ts = max(amap_last_ts, now) + amap_min_interval_s
+        if wait > 0:
+            time.sleep(wait)
+
+        max_retries = 2
+        last_error = None
+        for attempt in range(max_retries + 1):
+            if attempt > 0:
+                time.sleep(min(2 ** attempt * 0.5, 4.0))
+            url = (
+                "https://restapi.amap.com/v3/geocode/geo"
+                f"?address={url_quote(addr, safe='')}&key={url_quote(amap_key, safe='')}"
+            )
+            data = None
+            try:
+                req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
+                with urlopen(req, timeout=12) as resp:
+                    data = json.loads(resp.read().decode("utf-8", errors="ignore"))
+            except Exception as exc:
+                last_error = exc
+                _logger.warning("AMap geocode attempt %d/%d failed for %s: %s",
+                                attempt + 1, max_retries + 1, addr[:80], str(exc)[:120])
+                continue
+
+            if not isinstance(data, dict) or str(data.get("status")) != "1":
+                # Non-retryable: invalid key, quota exceeded, etc. → cache as None.
+                if str(data.get("info", "") or "").lower() in ("daily_query_over_limit", "cuq_over_limit"):
+                    amap_cache[addr] = None
+                    return None
+                # Other API-level errors: retry if attempts remain.
+                last_error = ValueError(f"AMap status={data.get('status')} info={data.get('info')}")
+                continue
+
+            geocodes = data.get("geocodes")
+            if not isinstance(geocodes, list) or not geocodes:
+                amap_cache[addr] = None
+                return None
+            g0 = geocodes[0] if isinstance(geocodes[0], dict) else None
+            if not isinstance(g0, dict):
+                amap_cache[addr] = None
+                return None
+            loc = str(g0.get("location") or "").strip()
+            if not loc or "," not in loc:
+                amap_cache[addr] = None
+                return None
+            a, b = loc.split(",", 1)
+            try:
+                lng = float(a.strip())
+                lat = float(b.strip())
+            except Exception as _exc:
+                amap_cache[addr] = None
+                return None
+            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+                amap_cache[addr] = None
+                return None
+            res = (lat, lng)
+            amap_cache[addr] = res
+            return res
+
+        # All retries exhausted — cache failure to avoid hammering the API.
+        _logger.warning("AMap geocode all retries failed for %s: %s", addr[:80], str(last_error)[:120])
+        amap_cache[addr] = None
+        return None
+
+    def _looks_foreign_query(q: str) -> bool:
+        s = str(q or "").strip()
+        if not s:
+            return False
+        if re.search(r"[A-Za-z]", s):
+            return True
+        return bool(
+            re.search(
+                r"(美国|智利|法国|英国|俄罗斯|希腊|乌克兰|西班牙|意大利|德国|日本|韩国|朝鲜|越南|泰国|缅甸|斯里兰卡|印度尼西亚|印度|巴西|阿根廷|墨西哥|古巴|加拿大|澳大利亚|新西兰|南非|埃及|以色列|巴勒斯坦|土耳其|伊朗|伊拉克|叙利亚|阿富汗|巴基斯坦|挪威|瑞典|芬兰|丹麦|冰岛|荷兰|比利时|瑞士|奥地利|葡萄牙|波兰|捷克|匈牙利|罗马尼亚|保加利亚|塞尔维亚|克罗地亚|爱尔兰|苏联)",
+                s,
+            )
+        )
+
+    def _looks_like_geocode_query(q: str) -> bool:
+        s = str(q or "").strip()
+        if not s:
+            return False
+        if _looks_foreign_query(s):
+            return False
+        if re.search(r"(存疑|不详|无法确认|具体地点存疑|未知|待查证|无考|虚构|传说|小说|人物|文学作品|作品|未明确|未记载|记载有限|背景设定)", s):
+            return False
+        if _looks_like_date_or_period_text(s):
+            return False
+        return True
+
+    def _finalize_geocode_query(
+        raw_query: str,
+        *,
+        extra_prefix_pattern: str = "",
+        split_markers: str = "",
+    ) -> str:
+        # Normalize birthplace prose into a stable geocode query so the AMap/foreign/local fallback
+        # branches do not quietly diverge over time.
+        q = _strip_common_birthplace_prefixes(raw_query)
+        if extra_prefix_pattern:
+            q = re.sub(extra_prefix_pattern, "", q).strip()
+        q = re.sub(r"^(?:出生地|出生地是|出生地点|籍贯|祖籍|故里)[:：\\s]*", "", q).strip()
+        q = re.sub(r"^(?:今|现)?属\\s*", "", q).strip()
+        q = re.sub(r"^(?:今|现)?为\\s*", "", q).strip()
+        q = _strip_parenthetical_place_text(q)
+        base_split_markers = "当时|现|今|属|位于|位在|坐落于|附近|一带|境内|范围内|大致在"
+        if split_markers:
+            base_split_markers = f"{base_split_markers}|{split_markers}"
+        q = re.split(rf"(?:{base_split_markers})", q, maxsplit=1)[0].strip()
+        q = q.split("，", 1)[0].split(",", 1)[0].split("；", 1)[0].split(";", 1)[0].strip()
+        return q
+
+    def _make_geocode_query(birthplace_modern: str, birthplace_ancient: str, birthplace_raw: str) -> str:
+        return _finalize_geocode_query(birthplace_modern or birthplace_ancient or birthplace_raw or "")
+
+    def _amap_geocode_batch(addresses: List[str]) -> None:
+        if not amap_key:
+            return
+        retry_none = str(os.getenv("STELLAR_HOME_AMAP_RETRY_NONE", "") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+        }
+        uniq: List[str] = []
+        seen = set()
+        for a in addresses:
+            s = str(a or "").strip()
+            if not s or s in seen:
+                continue
+            seen.add(s)
+            if s in amap_cache and (amap_cache.get(s) is not None or (not retry_none)):
+                continue
+            if not _looks_like_geocode_query(s):
+                amap_cache[s] = None
+                continue
+            uniq.append(s)
+        if not uniq:
+            return
+
+        def worker(addr: str) -> Tuple[str, Optional[Tuple[float, float]]]:
+            return (addr, _amap_geocode(addr))
+
+        with ThreadPoolExecutor(max_workers=amap_concurrency) as ex:
+            futs = [ex.submit(worker, a) for a in uniq]
+            for fut in as_completed(futs):
+                try:
+                    addr, res = fut.result()
+                except Exception as _exc:
+                    continue
+                if not addr:
+                    continue
+                if addr not in amap_cache:
+                    amap_cache[addr] = res
+                    continue
+                if retry_none and amap_cache.get(addr) is None and res is not None:
+                    amap_cache[addr] = res
+
+    foreign_limit = int(os.getenv("STELLAR_HOME_FOREIGN_GEOCODE_LIMIT", "1500") or "1500")
+    foreign_concurrency = int(os.getenv("STELLAR_HOME_FOREIGN_CONCURRENCY", "6") or "6")
+    foreign_qps = float(os.getenv("STELLAR_HOME_FOREIGN_QPS", "6") or "6")
+    if not (foreign_concurrency > 0):
+        foreign_concurrency = 1
+    if not (foreign_qps > 0):
+        foreign_qps = 6.0
+    foreign_min_interval_s = max(1.0 / float(foreign_qps), 0.05)
+    foreign_req_used = 0
+    foreign_last_ts = 0.0
+    foreign_lock = threading.Lock()
+    foreign_cache_path = (REPO_ROOT / "cache" / "foreign_geocode_cache.json").resolve()
+    foreign_cache: Dict[str, Optional[Tuple[float, float]]] = {}
+    try:
+        if foreign_cache_path.exists():
+            raw_cache = json.loads(foreign_cache_path.read_text(encoding="utf-8"))
+            if isinstance(raw_cache, dict):
+                for k, v in raw_cache.items():
+                    if not isinstance(k, str) or not k.strip():
+                        continue
+                    kk = k.strip()
+                    if v is None:
+                        foreign_cache[kk] = None
+                        continue
+                    if isinstance(v, list) and len(v) >= 2:
+                        try:
+                            lat = float(v[0])
+                            lng = float(v[1])
+                        except Exception as _exc:
+                            continue
+                        if -90 <= lat <= 90 and -180 <= lng <= 180:
+                            foreign_cache[kk] = (lat, lng)
+    except Exception as _exc:
+        foreign_cache = {}
+
+    def _looks_like_foreign_geocode_query(q: str) -> bool:
+        s = str(q or "").strip()
+        if not s:
+            return False
+        if not _looks_foreign_query(s):
+            return False
+        if re.search(r"(存疑|不详|无法确认|具体地点存疑|未知)", s):
+            return False
+        if _looks_like_date_or_period_text(s):
+            return False
+        return True
+
+    def _foreign_geocode(address: str) -> Optional[Tuple[float, float]]:
+        nonlocal foreign_last_ts, foreign_req_used
+        addr = str(address or "").strip()
+        if not addr:
+            return None
+        retry_none = str(os.getenv("STELLAR_HOME_FOREIGN_RETRY_NONE", "") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+        }
+        if addr in foreign_cache:
+            cached = foreign_cache.get(addr)
+            if cached is not None or (not retry_none):
+                return cached
+        with foreign_lock:
+            if foreign_req_used >= foreign_limit:
+                return None
+            foreign_req_used += 1
+            now = time.time()
+            wait = (foreign_last_ts + foreign_min_interval_s) - now
+            foreign_last_ts = max(foreign_last_ts, now) + foreign_min_interval_s
+        if wait > 0:
+            time.sleep(wait)
+        data = None
+        try:
+            url = f"https://photon.komoot.io/api/?limit=1&q={url_quote(addr, safe='')}"
+            req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
+            with urlopen(req, timeout=18) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="ignore"))
+        except Exception as _exc:
+            data = None
+        lat = None
+        lng = None
+        if isinstance(data, dict):
+            feats = data.get("features")
+            if isinstance(feats, list) and feats:
+                f0 = feats[0] if isinstance(feats[0], dict) else None
+                geom = f0.get("geometry") if isinstance(f0, dict) else None
+                coords = geom.get("coordinates") if isinstance(geom, dict) else None
+                if isinstance(coords, list) and len(coords) >= 2:
+                    try:
+                        lng = float(coords[0])
+                        lat = float(coords[1])
+                    except Exception as _exc:
+                        lat = None
+                        lng = None
+        if lat is None or lng is None:
+            try:
+                url = f"https://nominatim.openstreetmap.org/search?format=json&limit=1&q={url_quote(addr, safe='')}"
+                req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
+                with urlopen(req, timeout=18) as resp:
+                    data2 = json.loads(resp.read().decode("utf-8", errors="ignore"))
+                if isinstance(data2, list) and data2:
+                    d0 = data2[0] if isinstance(data2[0], dict) else None
+                    if isinstance(d0, dict):
+                        lat = float(d0.get("lat"))
+                        lng = float(d0.get("lon"))
+            except Exception as _exc:
+                lat = None
+                lng = None
+        if lat is None or lng is None:
+            foreign_cache[addr] = None
+            return None
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            foreign_cache[addr] = None
+            return None
+        res = (float(lat), float(lng))
+        foreign_cache[addr] = res
+        return res
+
+    def _foreign_geocode_batch(addresses: List[str]) -> None:
+        retry_none = str(os.getenv("STELLAR_HOME_FOREIGN_RETRY_NONE", "") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+        }
+        uniq: List[str] = []
+        seen = set()
+        for a in addresses:
+            s = str(a or "").strip()
+            if not s or s in seen:
+                continue
+            seen.add(s)
+            if s in foreign_cache and (foreign_cache.get(s) is not None or (not retry_none)):
+                continue
+            if not _looks_like_foreign_geocode_query(s):
+                foreign_cache[s] = None
+                continue
+            uniq.append(s)
+        if not uniq:
+            return
+
+        def worker(addr: str) -> Tuple[str, Optional[Tuple[float, float]]]:
+            return (addr, _foreign_geocode(addr))
+
+        with ThreadPoolExecutor(max_workers=foreign_concurrency) as ex:
+            futs = [ex.submit(worker, a) for a in uniq]
+            for fut in as_completed(futs):
+                try:
+                    addr, res = fut.result()
+                except Exception as _exc:
+                    continue
+                if not addr:
+                    continue
+                if addr not in foreign_cache:
+                    foreign_cache[addr] = res
+                    continue
+                if retry_none and foreign_cache.get(addr) is None and res is not None:
+                    foreign_cache[addr] = res
+
+    md_names = _scan_people_from_story_md(story_md_dir)
+    requested_graph_source = str(args.graph_source or "auto").strip().lower()
+    configured_graph_backend = graph_backend_name() if graph_backend_name else "file"
+    active_redirects = person_redirects(md_names) if md_names else {}
+
+    should_try_neo4j = requested_graph_source == "neo4j" or (
+        requested_graph_source == "auto" and configured_graph_backend == "neo4j"
+    )
+    if should_try_neo4j and load_home_graph_payload_with_source:
+        try:
+            graph_payload, graph_payload_source = load_home_graph_payload_with_source(
+                backend="neo4j",
+                strict_backend=(requested_graph_source == "neo4j"),
+            )
+        except Exception as _exc:
+            graph_payload, graph_payload_source = {}, ""
+        if (
+            graph_payload_source == "neo4j"
+            and isinstance(graph_payload, dict)
+            and isinstance(graph_payload.get("nodes"), list)
+            and graph_payload.get("nodes")
+        ):
+            payload = _prepare_home_payload_for_output(
+                graph_payload,
+                default_start=int(args.default_start),
+                default_end=int(args.default_end),
+            )
+            outputs = _write_homepage_outputs(
+                story_map_dir=story_map_dir,
+                out_index_name=str(args.out_index),
+                out_data_name=str(args.out_data),
+                title=str(args.title),
+                payload=payload,
+                active_redirects=active_redirects,
+                sync_payload_to_neo4j=False,
+            )
+            print(json.dumps({"ok": True, **outputs, "source": "neo4j"}, ensure_ascii=False))
+            return 0
+        if requested_graph_source == "neo4j":
+            print(json.dumps({"ok": False, "error": "neo4j graph payload unavailable"}, ensure_ascii=False))
+            return 1
+
+    if not md_names:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": f"no story markdown found in {story_md_dir}",
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 1
+    # 首页只给“仍然只是别名”的名字生成跳转页；如果它已经有真实 Markdown，
+    # 就不能再被 redirect 覆盖。
+    story_name_entries = _canonical_story_name_entries(md_names)
+
+    spotlight_data = _read_json(summary_index_path) if summary_index_path.exists() and summary_index_path.is_file() else {}
+    spotlight_items = spotlight_data.get("items") if isinstance(spotlight_data, dict) else {}
+    if not isinstance(spotlight_items, dict):
+        spotlight_items = {}
+    work_summary_items = _load_work_summary_items(WORK_SUMMARY_INDEX_JSON)
+
+    strict_audit_dir = (DATA_REPORTS_DIR / "validation_reports" / "strict_audit").resolve()
+
+    def _load_person_audit(name: str) -> Tuple[str, object, object]:
+        try:
+            report_path = strict_audit_dir / f"{name}.json"
+            if not report_path.exists():
+                return "", None, None
+            payload = json.loads(report_path.read_text(encoding="utf-8"))
+            audit = payload.get("audit") if isinstance(payload, dict) else None
+            if not isinstance(audit, dict):
+                return "", None, None
+            risk_level = str(audit.get("risk_level") or "").strip()
+            overall_pass = audit.get("overall_pass")
+            entity_identity = audit.get("entity_identity")
+            uncertain = entity_identity.get("uncertain") if isinstance(entity_identity, dict) else None
+            return risk_level, overall_pass, uncertain
+        except Exception as _exc:
+            return "", None, None
+
+    def _resolve_spotlight_copy(name: str) -> Tuple[str, str]:
+        spot = spotlight_items.get(name)
+        quote = ""
+        review = ""
+        if isinstance(spot, dict):
+            quote = _pick_quote(spot)
+            review = _clean_review_text(str(spot.get("review") or ""))
+        if name == "武则天" and not review:
+            review = "千秋功过，后人评说。"
+        return quote, review
+
+    def _resolve_birth_context(
+        *,
+        name: str,
+        html_entry: Optional[HtmlEntry],
+        dynasty: str,
+        birthplace_raw: str,
+        birthplace_ancient: str,
+        birthplace_modern: str,
+        coords_table: Dict[str, Tuple[float, float]],
+    ) -> Dict[str, object]:
+        nonlocal geocode_used
+        birth_lat = None
+        birth_lng = None
+        html_birth_lat = None
+        html_birth_lng = None
+        pending_amap_query = ""
+        pending_foreign_query = ""
+
+        resolved_dynasty = dynasty
+        resolved_birthplace_raw = birthplace_raw
+        resolved_birthplace_ancient = birthplace_ancient
+        resolved_birthplace_modern = birthplace_modern
+
+        if html_entry:
+            lat, lng, birthplace_text, dynasty_hint = _extract_birth_from_story_map_html(story_map_dir / html_entry.file)
+            if lat is not None and lng is not None:
+                html_birth_lat = float(lat)
+                html_birth_lng = float(lng)
+            if not resolved_dynasty and dynasty_hint:
+                resolved_dynasty = dynasty_hint
+            if not resolved_birthplace_raw and birthplace_text:
+                resolved_birthplace_raw, resolved_birthplace_ancient, resolved_birthplace_modern = _extract_birthplace_from_md(
+                    f"**出生**：{birthplace_text}"
+                )
+
+        lookup_terms = _birthplace_lookup_terms(
+            resolved_birthplace_modern,
+            resolved_birthplace_ancient,
+            resolved_birthplace_raw,
+        )
+
+        if (birth_lat is None or birth_lng is None) and coords_table and lookup_terms:
+            picked = _lookup_birth_coord_from_coords_table(
+                coords_table,
+                resolved_birthplace_modern,
+                resolved_birthplace_ancient,
+                resolved_birthplace_raw,
+            )
+            if picked:
+                birth_lat = float(picked[0])
+                birth_lng = float(picked[1])
+
+        if (birth_lat is None or birth_lng is None) and hist_index and lookup_terms:
+            coord0 = _lookup_birth_coord_from_hist_index(
+                resolved_birthplace_modern,
+                resolved_birthplace_ancient,
+                resolved_birthplace_raw,
+            )
+            if coord0:
+                birth_lat = float(coord0[0])
+                birth_lng = float(coord0[1])
+
+        if birth_lat is None or birth_lng is None:
+            cached_birth = person_birth_coords.get(name)
+            if cached_birth and isinstance(cached_birth, tuple) and len(cached_birth) >= 2:
+                try:
+                    birth_lat = float(cached_birth[0])
+                    birth_lng = float(cached_birth[1])
+                except Exception as _exc:
+                    birth_lat = None
+                    birth_lng = None
+
+        if birth_lat is None or birth_lng is None:
+            if html_birth_lat is not None and html_birth_lng is not None and lookup_terms:
+                birth_lat = html_birth_lat
+                birth_lng = html_birth_lng
+
+        if birth_lat is None or birth_lng is None:
+            q = _make_geocode_query(resolved_birthplace_modern, resolved_birthplace_ancient, resolved_birthplace_raw)
+            if amap_key and _looks_like_geocode_query(q):
+                pending_amap_query = q
+            if _looks_like_foreign_geocode_query(q):
+                pending_foreign_query = q
+
+        if geocode_city and geocode_used < geocode_limit and (birth_lat is None or birth_lng is None):
+            q = _finalize_geocode_query(
+                resolved_birthplace_modern or resolved_birthplace_ancient or resolved_birthplace_raw or "",
+                extra_prefix_pattern=r"^(?:祖籍|籍贯|故里|家乡|古称|传说中|传说人物)[:：\\s]*",
+                split_markers=r"传说|小说|虚构|待查证|无考|不详",
+            )
+            if q and re.search(r"(世纪|年间|年|月|日|号|时期|当时|属|人物|传说|小说)", q) and not re.search(
+                r"(省|市|县|区|州|郡|国|府|镇|乡|村|旗|盟|自治区|直辖|特区|都|城|岛|港|湾)",
+                q,
+            ):
+                q = ""
+            if q and (not (_looks_like_geocode_query(q) or _looks_like_foreign_geocode_query(q))):
+                q = ""
+            if q:
+                try:
+                    coord = geocode_city(q)
+                except Exception as _exc:
+                    coord = None
+                if coord and isinstance(coord, tuple) and len(coord) >= 2:
+                    birth_lat = float(coord[0])
+                    birth_lng = float(coord[1])
+                    geocode_used += 1
+
+        if birth_lat is not None and birth_lng is not None:
+            _set_person_birth_coord(name, birth_lat, birth_lng)
+        elif not lookup_terms:
+            _clear_person_birth_coord(name)
+
+        return {
+            "dynasty": resolved_dynasty,
+            "birthplace_raw": resolved_birthplace_raw,
+            "birthplace_ancient": resolved_birthplace_ancient,
+            "birthplace_modern": resolved_birthplace_modern,
+            "birth_lat": birth_lat,
+            "birth_lng": birth_lng,
+            "pending_amap_query": pending_amap_query,
+            "pending_foreign_query": pending_foreign_query,
+        }
+
+    def _compute_time_year(dynasty: str, birth_year: Optional[int], death_year: Optional[int]) -> Optional[int]:
+        by = birth_year if isinstance(birth_year, int) else None
+        dy = death_year if isinstance(death_year, int) else None
+        if by is not None and dy is not None:
+            a0 = min(by, dy)
+            b0 = max(by, dy)
+            year_range = _dynasty_range_from_label(dynasty) or _dynasty_range_from_label(_pick_main_dynasty_by_years(by, dy))
+            if year_range:
+                a = max(a0, int(year_range[0]))
+                b = min(b0, int(year_range[1]))
+                if a < b:
+                    return int(round((a + b) / 2))
+            return int(round((a0 + b0) / 2))
+        time_year = by if by is not None else dy
+        if time_year is None and dynasty:
+            return _dynasty_mid_year(dynasty)
+        return time_year
+
+    def _register_pending_birth_queries(node_idx: int, pending_amap_query: str, pending_foreign_query: str) -> None:
+        if pending_amap_query:
+            pending_amap[node_idx] = pending_amap_query
+        if pending_foreign_query:
+            pending_foreign[node_idx] = pending_foreign_query
+
+    def _build_person_node(
+        *,
+        name: str,
+        birth_year: Optional[int],
+        death_year: Optional[int],
+        dynasty: str,
+        quote: str,
+        review: str,
+        aliases: List[str],
+        foreign_name: str,
+        domain_tags: List[str],
+        main_role_band: str,
+        main_role_label: str,
+        audit_risk_level: str,
+        audit_overall_pass: object,
+        audit_uncertain: object,
+        birthplace_ancient: str,
+        birthplace_raw: str,
+        birthplace_modern: str,
+        native_place_ancient: str,
+        native_place_raw: str,
+        native_place_modern: str,
+        birth_lat: object,
+        birth_lng: object,
+        html_entry: Optional[HtmlEntry],
+        has_story: bool,
+        relations: List[str],
+        relations_meta: List[Dict[str, str]],
+        search_fields: Dict[str, object],
+        works: List[str],
+        work_summaries: Dict[str, Dict[str, Any]],
+        is_foreign: bool,
+    ) -> Dict[str, object]:
+        return {
+            "person": name,
+            "birth_year": birth_year,
+            "death_year": death_year,
+            "time_year": _compute_time_year(dynasty, birth_year, death_year),
+            "dynasty": dynasty,
+            "quote": _strip_markdown_markers(quote),
+            "review": review,
+            "aliases": [_strip_markdown_markers(a) for a in aliases],
+            "foreign_name": _strip_markdown_markers(foreign_name),
+            "domain_tags": domain_tags,
+            "main_role_band": main_role_band,
+            "main_role_label": main_role_label,
+            "risk_level": audit_risk_level,
+            "audit_pass": audit_overall_pass,
+            "audit_uncertain": audit_uncertain,
+            "birthplace": birthplace_ancient,
+            "birthplace_raw": _strip_markdown_markers(birthplace_raw),
+            "birthplace_modern": birthplace_modern,
+            "native_place": native_place_ancient,
+            "native_place_raw": native_place_raw,
+            "native_place_modern": native_place_modern,
+            "birth_lat_wgs84": birth_lat,
+            "birth_lng_wgs84": birth_lng,
+            "birth_lat": birth_lat,
+            "birth_lng": birth_lng,
+            "birth_coord_system": "WGS84" if birth_lat is not None and birth_lng is not None else "",
+            "file": html_entry.file if html_entry else "",
+            "has_story": has_story,
+            "seed": _sha1_int(name),
+            "relations": relations,
+            "relations_meta": relations_meta,
+            "search_keys": search_fields.get("search_keys", []),
+            "search_tokens": search_fields.get("search_tokens", []),
+            "search_pinyin": search_fields.get("search_pinyin", []),
+            "works": works,
+            "work_summaries": work_summaries,
+            "is_foreign": bool(is_foreign),
+        }
+
+    nodes: List[Dict[str, Any]] = []
+    min_year: Optional[int] = None
+    max_year: Optional[int] = None
+    pending_amap: Dict[int, str] = {}
+    pending_foreign: Dict[int, str] = {}
+    for name, source_name, redirect_aliases in story_name_entries:
+        md_path = story_md_dir / f"{source_name}.md"
+        has_story = md_path.exists()
+        md_text = ""
+        birth_year = None
+        death_year = None
+        dynasty = ""
+        relations: List[str] = []
+        relations_meta: List[Dict[str, str]] = []
+        aliases: List[str] = []
+        foreign_name = ""
+        domain_tags: List[str] = []
+        birthplace_raw = ""
+        birthplace_ancient = ""
+        birthplace_modern = ""
+        native_place_raw = ""
+        native_place_ancient = ""
+        native_place_modern = ""
+        coords_table: Dict[str, Tuple[float, float]] = {}
+        works: List[str] = []
+        work_summaries: Dict[str, Dict[str, Any]] = {}
+        if has_story:
+            md_text = md_path.read_text(encoding="utf-8")
+            birth_year, death_year = _extract_years_from_md(md_text)
+            dynasty = _dynasty_hint_from_md(md_text)
+            llm_cache = _load_llm_relations_cache()
+            if name in llm_cache and llm_cache[name]:
+                relations_meta = llm_cache[name]
+                relations = [r["name"] for r in relations_meta if isinstance(r, dict) and r.get("name")]
+            else:
+                relations, relations_meta = _extract_relations(md_text)
+            aliases, foreign_name, domain_tags = _extract_disambiguation(md_text)
+            birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(md_text)
+            native_place_raw, native_place_ancient, native_place_modern = _extract_basic_place_from_md(
+                md_text,
+                ("籍贯", "祖籍"),
+            )
+            coords_table = _parse_coords_table_from_md(md_text)
+        audit_risk_level, audit_overall_pass, audit_uncertain = _load_person_audit(name)
+        if birth_year is not None:
+            min_year = birth_year if min_year is None else min(min_year, birth_year)
+            max_year = birth_year if max_year is None else max(max_year, birth_year)
+        if death_year is not None:
+            min_year = death_year if min_year is None else min(min_year, death_year)
+            max_year = death_year if max_year is None else max(max_year, death_year)
+
+        html_entry = latest_html.get(name) or latest_html.get(source_name)
+        quote, review = _resolve_spotlight_copy(name)
+        works = _resolve_person_works(spotlight_items.get(name), md_text)
+        # Post-filter: strip markdown artifacts from each title
+        cleaned = []
+        for title in works:
+            title = _strip_markdown_markers(title)
+            if title:
+                cleaned.append(title)
+        works = cleaned
+        # Exclude misattributed works per person
+        _HOME_WORK_EXCLUSIONS = {
+            "元稹": {"西厢记"},
+        }
+        excl = _HOME_WORK_EXCLUSIONS.get(name, set())
+        if excl:
+            works = [w for w in works if w not in excl]
+        main_role_band, main_role_label = _resolve_main_role_band(
+            md_text=md_text,
+            domain_tags=domain_tags,
+            review=review,
+            quote=quote,
+        )
+        birth_context = _resolve_birth_context(
+            name=name,
+            html_entry=html_entry,
+            dynasty=dynasty,
+            birthplace_raw=birthplace_raw,
+            birthplace_ancient=birthplace_ancient,
+            birthplace_modern=birthplace_modern,
+            coords_table=coords_table,
+        )
+        dynasty = str(birth_context["dynasty"] or "")
+        birthplace_raw = str(birth_context["birthplace_raw"] or "")
+        birthplace_ancient = str(birth_context["birthplace_ancient"] or "")
+        birthplace_modern = str(birth_context["birthplace_modern"] or "")
+        birth_lat = birth_context.get("birth_lat")
+        birth_lng = birth_context.get("birth_lng")
+        pending_amap_query = str(birth_context.get("pending_amap_query") or "")
+        pending_foreign_query = str(birth_context.get("pending_foreign_query") or "")
+        preferred_birth_coord = None
+        lookup_terms = _birthplace_lookup_terms(birthplace_modern, birthplace_ancient, birthplace_raw)
+        if coords_table and lookup_terms:
+            preferred_birth_coord = _lookup_birth_coord_from_coords_table(
+                coords_table,
+                birthplace_modern,
+                birthplace_ancient,
+                birthplace_raw,
+            )
+        if preferred_birth_coord:
+            birth_lat = float(preferred_birth_coord[0])
+            birth_lng = float(preferred_birth_coord[1])
+            pending_amap_query = ""
+            pending_foreign_query = ""
+            _set_person_birth_coord(name, birth_lat, birth_lng)
+        elif not lookup_terms and birth_lat is None and birth_lng is None:
+            # Only clear if we don't already have valid coords from _resolve_birth_context (e.g. from corpus cache)
+            pending_amap_query = ""
+            pending_foreign_query = ""
+            _clear_person_birth_coord(name)
+        node_idx = len(nodes)
+        _register_pending_birth_queries(node_idx, pending_amap_query, pending_foreign_query)
+        aliases = [str(x).strip() for x in aliases if str(x).strip()]
+        for alias_name in redirect_aliases:
+            if alias_name not in aliases and alias_name != name:
+                aliases.append(alias_name)
+        search_fields = build_search_fields(name, aliases, foreign_name)
+        dynasty = _normalize_dynasty_label(person=name, dynasty_raw=dynasty, birth_year=birth_year, death_year=death_year)
+        is_foreign = _is_foreign_person(
+            foreign_name=foreign_name,
+            birthplace_modern=birthplace_modern,
+            birthplace_raw=birthplace_raw,
+            dynasty=dynasty,
+        )
+        nodes.append(
+            _build_person_node(
+                name=name,
+                birth_year=birth_year,
+                death_year=death_year,
+                dynasty=dynasty,
+                quote=quote,
+                review=review,
+                aliases=aliases,
+                foreign_name=foreign_name,
+                domain_tags=domain_tags,
+                main_role_band=main_role_band,
+                main_role_label=main_role_label,
+                audit_risk_level=audit_risk_level,
+                audit_overall_pass=audit_overall_pass,
+                audit_uncertain=audit_uncertain,
+                birthplace_ancient=birthplace_ancient,
+                birthplace_raw=birthplace_raw,
+                birthplace_modern=birthplace_modern,
+                native_place_ancient=native_place_ancient,
+                native_place_raw=native_place_raw,
+                native_place_modern=native_place_modern,
+                birth_lat=birth_lat,
+                birth_lng=birth_lng,
+                html_entry=html_entry,
+                has_story=has_story,
+                relations=relations,
+                relations_meta=relations_meta,
+                search_fields=search_fields,
+                works=works,
+                work_summaries=work_summaries,
+                is_foreign=is_foreign,
+            )
+        )
+
+    if amap_key and pending_amap:
+        _amap_geocode_batch(list(pending_amap.values()))
+        for idx, q in pending_amap.items():
+            if idx < 0 or idx >= len(nodes):
+                continue
+            coord = amap_cache.get(q)
+            if coord and isinstance(coord, tuple) and len(coord) >= 2:
+                try:
+                    lat_g = float(coord[0])
+                    lng_g = float(coord[1])
+                except Exception as _exc:
+                    continue
+                lat_w, lng_w = _gcj02_to_wgs84(lat_g, lng_g)
+                nodes[idx]["birth_lat_wgs84"] = float(lat_w)
+                nodes[idx]["birth_lng_wgs84"] = float(lng_w)
+                nodes[idx]["birth_lat"] = float(lat_w)
+                nodes[idx]["birth_lng"] = float(lng_w)
+                try:
+                    _set_person_birth_coord(str(nodes[idx].get("person") or ""), float(lat_w), float(lng_w))
+                except Exception as _exc:
+                    pass
+    if pending_foreign:
+        _foreign_geocode_batch(list(pending_foreign.values()))
+        for idx, q in pending_foreign.items():
+            if idx < 0 or idx >= len(nodes):
+                continue
+            coord = foreign_cache.get(q)
+            if coord and isinstance(coord, tuple) and len(coord) >= 2:
+                try:
+                    lat_w = float(coord[0])
+                    lng_w = float(coord[1])
+                except Exception as _exc:
+                    continue
+                nodes[idx]["birth_lat_wgs84"] = float(lat_w)
+                nodes[idx]["birth_lng_wgs84"] = float(lng_w)
+                nodes[idx]["birth_lat"] = float(lat_w)
+                nodes[idx]["birth_lng"] = float(lng_w)
+                try:
+                    _set_person_birth_coord(str(nodes[idx].get("person") or ""), float(lat_w), float(lng_w))
+                except Exception as _exc:
+                    pass
+
+    person_to_idx: Dict[str, int] = {}
+    for i, node in enumerate(nodes):
+        person_name = str(node.get("person") or "").strip()
+        if person_name and person_name not in person_to_idx:
+            person_to_idx[person_name] = i
+        for alias_name in node.get("aliases") if isinstance(node.get("aliases"), list) else []:
+            alias_text = str(alias_name or "").strip()
+            if alias_text and alias_text not in person_to_idx:
+                person_to_idx[alias_text] = i
+    edges: List[Dict[str, Any]] = []
+    kg_edges: List[Dict[str, int]] = []
+
+    max_edges = 2200
+    edge_set: Dict[Tuple[int, int], int] = {}
+
+    def add_edge(i: int, j: int, meta: Optional[Dict[str, Any]] = None) -> None:
+        nonlocal edges
+        if i == j:
+            return
+        a, b = (i, j) if i < j else (j, i)
+        key = (a, b)
+        if key in edge_set:
+            idx = edge_set[key]
+            cur = edges[idx] if 0 <= idx < len(edges) else None
+            if isinstance(cur, dict) and isinstance(meta, dict):
+                try:
+                    cc = float(cur.get("confidence"))
+                except Exception as _exc:
+                    cc = 0.0
+                try:
+                    nc = float(meta.get("confidence"))
+                except Exception as _exc:
+                    nc = 0.0
+                if nc > cc:
+                    cur.update(meta)
+            return
+        edge_set[key] = len(edges)
+        e: Dict[str, Any] = {"a": a, "b": b}
+        if isinstance(meta, dict):
+            e.update(meta)
+        edges.append(e)
+
+    for i, n in enumerate(nodes):
+        rels_meta = n.get("relations_meta") if isinstance(n.get("relations_meta"), list) else []
+        if rels_meta:
+            for r in rels_meta:
+                if not isinstance(r, dict):
+                    continue
+                nm = str(r.get("name") or "").strip()
+                if not nm:
+                    continue
+                j = person_to_idx.get(nm)
+                if j is None or j == i:
+                    continue
+                label = str(r.get("label") or "亲友").strip() or "亲友"
+                add_edge(i, j, {"type": "bio", "label": label, "confidence": 0.55})
+                if len(edges) >= max_edges:
+                    break
+        else:
+            rels = n.get("relations") if isinstance(n.get("relations"), list) else []
+            for r in rels:
+                j = person_to_idx.get(r)
+                if j is None or j == i:
+                    continue
+                add_edge(i, j, {"type": "bio", "label": "文本提及", "confidence": 0.55})
+                if len(edges) >= max_edges:
+                    break
+        if len(edges) >= max_edges:
+            break
+
+    try:
+        kg = _read_json(KNOWLEDGE_GRAPH_JSON)
+        raw_edges = kg.get("edges") if isinstance(kg, dict) else None
+        if isinstance(raw_edges, list):
+            for e in raw_edges:
+                if not isinstance(e, dict):
+                    continue
+                typ = str(e.get("type") or "").strip().lower()
+                w = e.get("weight")
+                try:
+                    if int(w or 0) < 2:
+                        continue
+                except Exception as _exc:
+                    continue
+                if typ != "manual":
+                    continue
+                a = str(e.get("source") or "").strip()
+                b = str(e.get("target") or "").strip()
+                ia = person_to_idx.get(a)
+                ib = person_to_idx.get(b)
+                if ia is None or ib is None or ia == ib:
+                    continue
+                conf = None
+                try:
+                    conf = float(e.get("relation_confidence"))
+                except Exception as _exc:
+                    conf = None
+                if conf is None or not (0.0 <= conf <= 1.0):
+                    conf = 0.90
+                label = str(e.get("relation_label") or "").strip() or "人工关系"
+                add_edge(ia, ib, {"type": typ, "label": label, "confidence": float(conf), "weight": int(w or 0)})
+                if len(edges) >= max_edges:
+                    break
+    except Exception as _exc:
+        kg_edges = []
+
+    payload = _prepare_home_payload_for_output(
+        {
+            "min_year": MIN_YEAR,
+            "max_year": MAX_YEAR,
+            "nodes": nodes,
+            "edges": edges,
+            "kg_edges": kg_edges,
+        },
+        default_start=int(args.default_start),
+        default_end=int(args.default_end),
+    )
+    try:
+        amap_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        payload_cache: Dict[str, Any] = {}
+        for k, v in amap_cache.items():
+            if not isinstance(k, str) or not k.strip():
+                continue
+            if v is None:
+                payload_cache[k] = None
+            else:
+                payload_cache[k] = [float(v[0]), float(v[1])]
+        amap_cache_path.write_text(json.dumps(payload_cache, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as _exc:
+        pass
+    try:
+        foreign_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        payload_cache2: Dict[str, Any] = {}
+        for k, v in foreign_cache.items():
+            if not isinstance(k, str) or not k.strip():
+                continue
+            if v is None:
+                payload_cache2[k] = None
+            else:
+                payload_cache2[k] = [float(v[0]), float(v[1])]
+        foreign_cache_path.write_text(json.dumps(payload_cache2, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as _exc:
+        pass
+    try:
+        if person_birth_coords_dirty > 0:
+            BIRTH_COORDS_WGS84_JSON.parent.mkdir(parents=True, exist_ok=True)
+            payload_pbc: Dict[str, Any] = {}
+            for k in sorted(person_birth_coords.keys()):
+                v = person_birth_coords.get(k)
+                if not v:
+                    continue
+                payload_pbc[k] = [float(v[0]), float(v[1])]
+            BIRTH_COORDS_WGS84_JSON.write_text(json.dumps(payload_pbc, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as _exc:
+        pass
+    outputs = _write_homepage_outputs(
+        story_map_dir=story_map_dir,
+        out_index_name=str(args.out_index),
+        out_data_name=str(args.out_data),
+        title=str(args.title),
+        payload=payload,
+        active_redirects=active_redirects,
+        sync_payload_to_neo4j=True,
+    )
+    print(json.dumps({"ok": True, **outputs, "source": "build"}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
