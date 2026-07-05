@@ -1,4 +1,4 @@
-"""转发层：实际实现已迁移至 `tools.debug.repair_profile_artifacts`。"""
+"""转发层：实际实现已迁移至 `tools.build.extract_relations_llm`。"""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from pathlib import Path as _Path
 if __package__ in {None, ""}:
     _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
 
-from tools.debug.repair_profile_artifacts import *  # noqa: F401,F403
-from tools.debug import repair_profile_artifacts as _impl
+from tools.build.extract_relations_llm import *  # noqa: F401,F403
+from tools.build import extract_relations_llm as _impl
 
 _sys.modules[__name__] = _impl
 

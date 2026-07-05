@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  data-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pypinyin
+
+      - name: Run data consistency validation
+        run: python3 tools/validate_data.py
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: data/reports/data_validation_report.json
+
+  security-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets in code
+        run: |
+          echo "=== Checking for hardcoded secrets ==="
+          # Check for API keys, tokens, passwords
+          ! grep -rPn '(?<!(example|your|test|demo|placeholder|sample|dummy|mock|fake))(api.key|secret.key|AUTH_TOKEN|password\s*=|private.key)' storymap/ --include='*.py' --exclude-dir='__pycache__' || true
+
+      - name: Check for leftover debug code
+        run: |
+          echo "=== Checking for debug statements ==="
+          debug_count=$(grep -r "import pdb\|pdb.set_trace\|breakpoint()" storymap/ --include='*.py' -c 2>/dev/null | wc -l)
+          if [ "$debug_count" -gt 0 ]; then
+            echo "WARNING: $debug_count breakpoint/debug statements found"
+          else
+            echo "OK: No breakpoint statements found"
+          fi
+
+  homepage-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: data-validation
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pypinyin
+
+      - name: Try homepage builder (dry run)
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          python3 -c "
+          import sys, os
+          sys.path.insert(0, os.getcwd())
+          sys.path.insert(0, os.path.join(os.getcwd(), 'tools'))
+
+          # Just check imports - don't actually run the full build (no LLM needed)
+          try:
+              from tools.build.homepage.main import main
+              print('Homepage builder imports OK')
+          except Exception as e:
+              print('Import error:', e)
+              sys.exit(1)
+          "

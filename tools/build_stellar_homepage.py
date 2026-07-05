@@ -1,17 +1,15 @@
-"""转发层：实际实现已迁移至 `tools.build.build_stellar_homepage`。"""
+"""转发层：实际实现已迁移至 `tools.build.homepage`（新 package）。
+导入本模块时将自动加载新版实现。
+"""
 
 from __future__ import annotations
 
 import sys as _sys
-from pathlib import Path as _Path
+import importlib as _importlib
 
-if __package__ in {None, ""}:
-    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
-
-from tools.build.build_stellar_homepage import *  # noqa: F401,F403
-from tools.build import build_stellar_homepage as _impl
-
-_sys.modules[__name__] = _impl
+_ORIGINAL = "tools.build.homepage.main"
+_mod = _importlib.import_module(_ORIGINAL)
+_sys.modules[__name__] = _mod
 
 if __name__ == "__main__":
-    raise SystemExit(_impl.main())
+    raise SystemExit(_mod.main())

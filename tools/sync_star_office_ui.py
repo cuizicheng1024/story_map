@@ -1,0 +1,17 @@
+"""转发层：实际实现已迁移至 `tools.build.sync_star_office_ui`。"""
+
+from __future__ import annotations
+
+import sys as _sys
+from pathlib import Path as _Path
+
+if __package__ in {None, ""}:
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
+
+from tools.build.sync_star_office_ui import *  # noqa: F401,F403
+
+_sys.modules[__name__] = _sys.modules["tools.build.sync_star_office_ui"]
+
+if __name__ == "__main__":
+    from tools.build.sync_star_office_ui import sync_star_office_ui
+    sync_star_office_ui()

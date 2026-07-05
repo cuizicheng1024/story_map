@@ -1,5 +1,5 @@
 /* StoryMap Service Worker — 缓存静态资源，二次访问几乎零网络请求 */
-const CACHE_NAME = 'storymap-v1';
+const CACHE_NAME = `storymap-${new Date().toISOString().replace(/[:.]/g, '-')}`;
 
 const STATIC_ASSETS = [
   '/',           // 首页
