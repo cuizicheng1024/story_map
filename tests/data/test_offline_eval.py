@@ -1,12 +1,6 @@
-import sys
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.agent import offline_eval
-
 
 GT_MD = """# 李白
 
@@ -33,7 +27,6 @@ GT_MD = """# 李白
 | 762年 | 当涂 | 安徽省马鞍山市当涂县 | 去世 |
 """
 
-
 PRED_MD = """# 李白
 
 ## 人物档案
@@ -59,7 +52,6 @@ PRED_MD = """# 李白
 | 762年 | 当涂 | 安徽省马鞍山市当涂县 | 去世 |
 """
 
-
 def test_compare_markdown_against_ground_truth_scores_expected_fields():
     report = offline_eval.compare_markdown_against_ground_truth(
         person="李白",
@@ -75,7 +67,6 @@ def test_compare_markdown_against_ground_truth_scores_expected_fields():
     assert report["scores"]["place_recall"] == 1.0
     assert report["weighted_accuracy"] >= 0.8
 
-
 def test_compare_markdown_against_ground_truth_accepts_bare_numeric_years():
     pred_md = PRED_MD.replace("公元701年", "701").replace("公元762年", "762")
 
@@ -88,12 +79,10 @@ def test_compare_markdown_against_ground_truth_accepts_bare_numeric_years():
     assert report["scores"]["birth_year_accuracy"] == 1.0
     assert report["scores"]["death_year_accuracy"] == 1.0
 
-
 def test_extract_year_handles_bce_dates():
     assert offline_eval._extract_year("公元前221年") == -221
     assert offline_eval._extract_year("前559年") == -559
     assert offline_eval._extract_year("约公元前428/427年") == -428
-
 
 def test_evaluate_people_aggregates_results(tmp_path):
     gt_dir = tmp_path / "storymap" / "examples" / "story"
@@ -112,7 +101,6 @@ def test_evaluate_people_aggregates_results(tmp_path):
     assert report["aggregate"]["scores"]["name_accuracy"] == 1.0
     assert report["aggregate"]["weighted_accuracy"] >= 0.8
 
-
 def test_load_benchmark_people_filters_missing_ground_truth(tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -130,11 +118,9 @@ def test_load_benchmark_people_filters_missing_ground_truth(tmp_path):
 
     assert people == ["李白"]
 
-
 def test_default_project_root_uses_repo_root():
     assert offline_eval._project_root() == REPO_ROOT
     assert offline_eval.load_ground_truth_markdown("李白").startswith("# 李白")
-
 
 def test_evaluate_people_returns_zero_score_when_generation_fails(tmp_path):
     gt_dir = tmp_path / "storymap" / "examples" / "story"

@@ -1,17 +1,39 @@
-"""转发层：实际实现已迁移至 `tools.build.build_people_summary_index`。"""
-
+"""兼容入口：PEP 人物 spotlight 索引构建。"""
 from __future__ import annotations
 
-import sys as _sys
-from pathlib import Path as _Path
+import json
+from pathlib import Path
+from typing import Any, Dict
 
-if __package__ in {None, ""}:
-    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
+from tools.build.build_people_summary_index import (  # noqa: F401
+    _person_sort_key,
+    _summarize,
+    pinyin_variants,
+    story_person_names,
+)
 
-from tools.build.build_people_summary_index import *  # noqa: F401,F403
-from tools.build import build_people_summary_index as _impl
+SUMMARY_INDEX_FILENAME = "people_summary_index.json"
 
-_sys.modules[__name__] = _impl
+
+def main() -> int:
+    file_path = Path(__file__).resolve()
+    repo_root = file_path.parents[1]
+    story_dir = repo_root / "storymap" / "examples" / "story"
+    out: Dict[str, Any] = {}
+    for name in sorted(story_person_names(story_dir), key=_person_sort_key):
+        path = story_dir / f"{name}.md"
+        if not path.is_file():
+            continue
+        md = path.read_text(encoding="utf-8", errors="ignore")
+        out[name] = _summarize(name, md)
+
+    payload = {"items": out, "meta": {"count": len(out)}}
+    output_path = repo_root / "data" / SUMMARY_INDEX_FILENAME
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(str(output_path))
+    return 0
+
 
 if __name__ == "__main__":
-    raise SystemExit(_impl.main())
+    raise SystemExit(main())

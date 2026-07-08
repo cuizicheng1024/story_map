@@ -1,4 +1,6 @@
+import logging
 import os
+
 from dotenv import load_dotenv
 
 
@@ -43,8 +45,8 @@ def load_project_env(*, from_file: str, override: bool = False) -> None:
     local_env = os.path.join(os.path.dirname(from_file), ".env")
     try:
         load_dotenv(dotenv_path=local_env, override=override)
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger("story_map.env").debug("跳过本地 .env 加载: %s: %s", local_env, exc)
     root = project_root(from_file)
     env_candidates = [
         os.path.join(root, ".env"),
@@ -58,6 +60,6 @@ def load_project_env(*, from_file: str, override: bool = False) -> None:
         try:
             if p and os.path.isfile(p):
                 load_dotenv(dotenv_path=p, override=override)
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.getLogger("story_map.env").debug("跳过备选 .env 加载: %s: %s", p, exc)
     apply_story_map_env_aliases()

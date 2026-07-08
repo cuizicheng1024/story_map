@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
+from ..core.public_url import public_url
 from .task_schema import TaskFileEntry, TaskMultiEntry, TaskResultSummary, build_task_result_summary
 
 
@@ -75,11 +76,20 @@ def compile_task_outcome(
             "markdown": relative_path(result.get("markdown_path", "")),
             "html": relative_path(result.get("html_path", "")),
         }
+        html_public_url = public_url(file_entry.get("html", ""))
+        if html_public_url:
+            file_entry["public_html"] = html_public_url
         exports = result.get("exports") or {}
         if exports.get("geojson"):
             file_entry["geojson"] = relative_path(exports.get("geojson", ""))
+            geojson_public_url = public_url(file_entry.get("geojson", ""))
+            if geojson_public_url:
+                file_entry["public_geojson"] = geojson_public_url
         if exports.get("csv"):
             file_entry["csv"] = relative_path(exports.get("csv", ""))
+            csv_public_url = public_url(file_entry.get("csv", ""))
+            if csv_public_url:
+                file_entry["public_csv"] = csv_public_url
         files.append(file_entry)
 
     multi_entry: Optional[TaskMultiEntry] = None
@@ -89,6 +99,15 @@ def compile_task_outcome(
             "geojson": relative_path(multi_exports.get("geojson", "")) if multi_exports else "",
             "csv": relative_path(multi_exports.get("csv", "")) if multi_exports else "",
         }
+        multi_public_html = public_url(multi_entry.get("html", ""))
+        if multi_public_html:
+            multi_entry["public_html"] = multi_public_html
+        multi_public_geojson = public_url(multi_entry.get("geojson", ""))
+        if multi_public_geojson:
+            multi_entry["public_geojson"] = multi_public_geojson
+        multi_public_csv = public_url(multi_entry.get("csv", ""))
+        if multi_public_csv:
+            multi_entry["public_csv"] = multi_public_csv
 
     summary: TaskResultSummary = build_task_result_summary(
         ok=(summary_status == "completed"),

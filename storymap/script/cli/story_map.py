@@ -18,7 +18,6 @@ from ..core.artifacts import (
     _active_story_map_dir,
     _extract_export_data_from_html,
     _public_story_map_dirs,
-    _project_root,
     _read_text,
     _relative_path,
     _story_paths,
@@ -27,9 +26,9 @@ from ..core.artifacts import (
     refresh_stellar_homepage,
     save_html,
 )
+from ..core.project_paths import project_root_path as _project_root, story_md_dir_path, story_person_names
 from ..core.env_utils import apply_story_map_env_aliases, load_project_env
 from ..core import parsers as parser_utils
-from ..core.project_paths import story_md_dir_path, story_person_names
 from ..map.map_client import (
     append_coords_section,
     compute_total_distance_km,
@@ -153,7 +152,7 @@ _GENERATION_API = story_generation_api_utils.create_generation_api(
     write_text=lambda path, content: _write_text(path, content),
     render_profile_html=lambda profile: render_profile_html(profile),
     load_profile_from_md=lambda md, *args, **kwargs: load_profile_from_md(md, *args, **kwargs),
-    normalize_markdown_tables=lambda md: parser_utils._normalize_markdown_tables(md),
+    normalize_markdown_tables=lambda md: parser_utils.normalize_markdown_tables(md),
     compute_total_distance_km=lambda md: compute_total_distance_km(md),
     insert_distance_intro=lambda md, km: insert_distance_intro(md, km),
     save_markdown=lambda person, md: save_markdown(person, md),
@@ -196,7 +195,7 @@ def run_interactive() -> None:
         generate_historical_markdown=generate_historical_markdown,
         enrich_markdown_for_map=lambda md: generation_service_utils.enrich_markdown_for_map(
             md,
-            normalize_markdown_tables=parser_utils._normalize_markdown_tables,
+            normalize_markdown_tables=parser_utils.normalize_markdown_tables,
             geocode_markdown=append_coords_section,
             compute_total_distance_km=compute_total_distance_km,
             insert_distance_intro=insert_distance_intro,

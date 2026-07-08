@@ -1,9 +1,80 @@
+"""
+============================================================================
+  agent.generation_pipeline — 生成阶段、断点续传与失败重试
+============================================================================
+  本模块负责把 "生成一份人物页" 切成若干阶段 (GenerationStages)，
+  并提供两类持久化能力：
+    1. GenerationCheckpointStore —— 把当前人物已到达的阶段写盘，下次可以 resume
+    2. run_generation_with_retry —— 自动按 GenerationRetryPolicy 重新生成 markdown
+
+  阶段定义（顺序）
+    start → markdown_generation → build_profile → rendering → render_done → done
+                                                          ↘ failed
+
+----------------------------------------------------------------------------
+  一、Tool / Memory Plan（工具与记忆计划）
+----------------------------------------------------------------------------
+  本模块不直接调用 LLM，仅暴露：
+    - GenerationStages               : 字符串常量集，给上层 UI / 日志展示阶段
+    - GenerationCheckpoint           : 不可变 dataclass，描述 "从哪里来、可以续到哪里"
+    - GenerationFailureInfo          : 失败的分类 / 是否可重试 / 错误文案
+    - GenerationRetryPolicy          : 最多重试次数（默认 2，受环境变量调节）
+    - FileGenerationCheckpointStore  : 基于 JSON 文件的实现，支持线程锁
+    - Protocol: GenerationCheckpointStore  : 上层可注入自定义后端（DB、Redis 等）
+    - build_generation_checkpoint    : 快速构造 checkpoint 字典
+    - decorate_generation_result     : 把 stage/retry/checkpoint/error_info 注入 result
+    - extract_generation_failure_info: 从 LLM client.latest_trace 抽取分类信息
+    - run_generation_with_retry      : 调度重试循环
+
+  记忆写入位置（默认）
+    - <repo_root>/data/runtime/generation_checkpoints.json
+    - 可由 MAP_STORY_GENERATION_CHECKPOINT_JSON 环境变量覆盖
+  重试次数
+    - 由 MAP_STORY_GENERATE_MARKDOWN_ATTEMPTS 控制，默认 2
+
+----------------------------------------------------------------------------
+  二、PDCA 循环（计划 / 执行 / 检查 / 处理）
+----------------------------------------------------------------------------
+  Plan
+    - 调用方需先确定：markdown 是否已存在？HTML 是否已存在？是否有 checkpoint？
+      这三条决定了 generation_service 走 缓存 / 复用 / 全量 三条路径中的哪一条
+    - 调 GenerationRetryPolicy.from_env() 而非直接实例化，以便响应环境变量
+  Do
+    - FileGenerationCheckpointStore.save() 在生成过程中被频繁调用 (每个阶段)
+    - run_generation_with_retry 在 markdown 生成失败且分类为 retryable 时自循环
+  Check
+    - run_generation_with_retry 返回值是三元组 (markdown, retry_count, error_info)
+      任意一个为空都表示失败，必须读 error_info.classification 才能定位根因
+    - 失败分类为 "negative_cache"（命中失败缓存）属于 "不可立即重试"，
+      run_generation_with_retry 已经写入 "命中失败缓存，请稍后重试" 文案
+  Act
+    - 当新增 "失败但可恢复" 的错误类型时，更新 GenerationFailureInfo 的 to_dict()，
+      并在 run_generation_with_retry 的 "retryable" 判定中显式列出新分类
+
+----------------------------------------------------------------------------
+  三、5M1E 分析（人 / 机 / 料 / 法 / 测 / 环）
+----------------------------------------------------------------------------
+  Man(人)        : 维护者修改本文件前必须明确 GenerationStages 的顺序语义
+                   (resume_stage == "markdown_saved" 是关键判据)
+  Machine(机)   : 需要文件系统能原子写 (write_text 会 truncate + write)；
+                   在 NFS / 网络盘上可能产生损坏 — 高并发场景建议替换为 DB 后端
+  Material(料)  : checkpoint JSON 文件可能存在敏感人物名；写入时已 ensure_ascii=False
+                   保留中文，不要误改
+  Method(法)    : 复用 dataclass(frozen=True) 保证不可变；Protocol 允许注入
+                   不同后端，但所有实现必须自己处理并发锁
+  Measurement(测): 没有指标面板；监控请在调用方读取 result["stage"] / result["retry_count"]
+  Environment(环): 线程安全 — FileGenerationCheckpointStore 内置 self._lock；
+                   跨进程不安全（多个 Python 进程同时写同一 JSON 文件会丢失更新）
+============================================================================
+"""
+
 from __future__ import annotations
 
 import json
 import os
-import threading
 import time
+import threading
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional, Protocol, Tuple
@@ -165,7 +236,11 @@ class FileGenerationCheckpointStore:
 
     def _write_payload(self, payload: Dict[str, Dict[str, object]]) -> None:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
-        self.file_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        # Atomic write via temporary file to prevent checkpoint corruption if the
+        # process crashes mid-write (e.g. OOM, SIGKILL, power loss).
+        tmp_path = self.file_path.with_name(f"{self.file_path.name}.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex}.tmp")
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        tmp_path.replace(self.file_path)
 
 
 def _default_checkpoint_store_path() -> Path:
@@ -217,9 +292,22 @@ def extract_generation_failure_info(client: object, error: Optional[Exception] =
                 trace = dict(raw)
         except Exception:
             trace = {}
+    # Fallback: classify empty-markdown / network flake as retryable
+    classification = str(trace.get("classification") or getattr(error, "classification", "") or "").strip()
+    if not classification:
+        err_msg = str(trace.get("error") or error or "").strip()
+        if not err_msg or "empty" in err_msg.lower():
+            classification = "empty_response"
+    if not classification:
+        classification = "unknown"
     failure = GenerationFailureInfo(
-        classification=str(trace.get("classification") or getattr(error, "classification", "") or "unknown").strip() or "unknown",
-        retryable=bool(trace.get("retryable")) if "retryable" in trace else bool(getattr(error, "retryable", False)),
+        classification=classification,
+        retryable=bool(trace.get("retryable"))
+            if "retryable" in trace
+            else (
+                bool(getattr(error, "retryable", False))
+                or classification in {"empty_response", "timeout", "rate_limited", "network_error"}
+            ),
         error=str(trace.get("error") or error or "").strip(),
     )
     if not failure.error and failure.classification == "negative_cache":

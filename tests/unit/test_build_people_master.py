@@ -1,12 +1,7 @@
 import importlib
 import json
 import sys
-
-
 from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_collect_people_filters_placeholder_story_names(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_people_master")
@@ -25,7 +20,6 @@ def test_collect_people_filters_placeholder_story_names(tmp_path, monkeypatch):
 
     assert people == ["李白"]
 
-
 def test_collect_people_filters_non_authentic_story_names(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_people_master")
     data_dir = tmp_path / "data"
@@ -41,7 +35,6 @@ def test_collect_people_filters_non_authentic_story_names(tmp_path, monkeypatch)
     people = module._collect_people()
 
     assert people == ["苏轼"]
-
 
 def test_main_marks_non_authentic_story_as_unpublished(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_people_master")
@@ -69,7 +62,6 @@ def test_main_marks_non_authentic_story_as_unpublished(tmp_path, monkeypatch):
     assert people["嫦娥"]["has_story"] is False
     assert people["嫦娥"]["story_md"] == ""
 
-
 def test_ensure_story_md_skips_non_authentic_targets_from_raw_people_lists(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_people_master")
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -82,7 +74,6 @@ def test_ensure_story_md_skips_non_authentic_targets_from_raw_people_lists(tmp_p
     result = module._ensure_story_md(["苏轼", "苏东坡", "嫦娥"], True, 0, True, 2)
 
     assert result == {"attempted": 0, "created": 0, "failures": []}
-
 
 def test_pick_years_keeps_bce_years_negative():
     module = importlib.import_module("tools.build_people_master")
@@ -97,7 +88,6 @@ def test_pick_years_keeps_bce_years_negative():
     assert birth == -563
     assert death == -483
 
-
 def test_pick_years_normalizes_bce_order():
     module = importlib.import_module("tools.build_people_master")
     md = "- **生卒年**：前139年—前128年"
@@ -106,7 +96,6 @@ def test_pick_years_normalizes_bce_order():
 
     assert birth == -139
     assert death == -128
-
 
 def test_pick_birthplace_strips_bce_prefix():
     module = importlib.import_module("tools.build_people_master")
@@ -117,7 +106,6 @@ def test_pick_birthplace_strips_bce_prefix():
     assert raw == "匈奴"
     assert ancient == "匈奴"
     assert modern == ""
-
 
 def test_pick_birthplace_strips_bce_ambiguous_year_prefix():
     module = importlib.import_module("tools.build_people_master")

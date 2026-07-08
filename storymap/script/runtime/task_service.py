@@ -1,10 +1,12 @@
 import json
+import logging
 import os
 import re
 import threading
 import time
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple
 
 from ..core.observability import structured_log
@@ -44,6 +46,39 @@ _TERMINAL_TASK_STATUSES = {"completed", "failed", "partial_failed", "interrupted
 _ACTIVE_TASK_STATUSES = {"queued", "running"}
 
 
+@dataclass(frozen=True)
+class TaskAgentDeps:
+    """LLM 与人物抽取/生成相关的核心依赖。"""
+    get_llm_client: Callable[..., object]
+    extract_historical_figures: Callable[[object, str], List[str]]
+    generate_for_person: Callable[..., Dict[str, object]]
+
+
+@dataclass(frozen=True)
+class TaskExportDeps:
+    """导出/输出相关依赖（HTML、CSV、重合度等）。"""
+    ensure_profile_exports: Callable[..., Dict[str, str]]
+    ensure_multi_exports: Callable[..., Dict[str, str]]
+    compute_overlaps: Callable[[List[Dict[str, object]]], List[Dict[str, object]]]
+    build_conclusion: Callable[[List[Dict[str, object]], bool], str]
+    render_multi_html: Callable[[Dict[str, object]], str]
+    save_html: Callable[[str, str], str]
+    relative_path: Callable[[str], str]
+
+
+@dataclass(frozen=True)
+class TaskConfig:
+    """任务调度配置（并发度、调色板、日志器等）。"""
+    logger: object
+    max_concurrency: int
+    color_palette: Tuple[str, ...]
+    project_root: Callable[[], str]
+    format_seconds: Callable[[float], str]
+    validate_input_text: Callable[[str], str]
+    task_ttl_seconds: int = 3600
+    max_tasks: int = 200
+
+
 class _TaskCancelled(RuntimeError):
     pass
 
@@ -68,49 +103,94 @@ class TaskService:
     def __init__(
         self,
         *,
-        logger: object,
-        max_concurrency: int,
-        color_palette: Tuple[str, ...],
-        project_root: Callable[[], str],
-        format_seconds: Callable[[float], str],
-        validate_input_text: Callable[[str], str],
-        get_llm_client: Callable[..., object],
-        extract_historical_figures: Callable[[object, str], List[str]],
-        generate_for_person: Callable[..., Dict[str, object]],
-        refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]],
+        config: Optional[TaskConfig] = None,
+        agent: Optional[TaskAgentDeps] = None,
+        exports: Optional[TaskExportDeps] = None,
+        refresh_stellar_homepage: Optional[Callable[[str], Dict[str, object]]] = None,
         enqueue_background_job: Optional[Callable[..., object]] = None,
-        ensure_profile_exports: Callable[..., Dict[str, str]],
-        ensure_multi_exports: Callable[..., Dict[str, str]],
-        compute_overlaps: Callable[[List[Dict[str, object]]], List[Dict[str, object]]],
-        build_conclusion: Callable[[List[Dict[str, object]], bool], str],
-        render_multi_html: Callable[[Dict[str, object]], str],
-        save_html: Callable[[str, str], str],
-        relative_path: Callable[[str], str],
+        logger: Optional[object] = None,
+        max_concurrency: int = 2,
+        color_palette: Tuple[str, ...] = (),
+        project_root: Optional[Callable[[], str]] = None,
+        format_seconds: Optional[Callable[[float], str]] = None,
+        validate_input_text: Optional[Callable[[str], Optional[str]]] = None,
+        get_llm_client: Optional[Callable[..., object]] = None,
+        extract_historical_figures: Optional[Callable[[object, str], List[str]]] = None,
+        generate_for_person: Optional[Callable[..., Dict[str, object]]] = None,
+        ensure_profile_exports: Optional[Callable[..., Dict[str, str]]] = None,
+        ensure_multi_exports: Optional[Callable[..., Dict[str, str]]] = None,
+        compute_overlaps: Optional[Callable[[List[Dict[str, object]]], List[Dict[str, object]]]] = None,
+        build_conclusion: Optional[Callable[[List[Dict[str, object]], bool], str]] = None,
+        render_multi_html: Optional[Callable[[Dict[str, object]], str]] = None,
+        save_html: Optional[Callable[[str, str], str]] = None,
+        relative_path: Optional[Callable[[str], str]] = None,
         task_ttl_seconds: int = 3600,
         max_tasks: int = 200,
     ) -> None:
-        self._logger = logger
-        self._max_concurrency = max_concurrency
-        self._color_palette = color_palette
-        self._project_root = project_root
-        self._format_seconds = format_seconds
-        self._validate_input_text = validate_input_text
-        self._get_llm_client = get_llm_client
-        self._extract_historical_figures = extract_historical_figures
-        self._generate_for_person = generate_for_person
+        if config is None:
+            config = TaskConfig(
+                logger=logger or logging.getLogger(__name__),
+                max_concurrency=max_concurrency,
+                color_palette=tuple(color_palette or ()),
+                project_root=project_root or (lambda: os.getcwd()),
+                format_seconds=format_seconds or (lambda sec: f"{sec:.2f}s"),
+                validate_input_text=validate_input_text or (lambda text: None if str(text).strip() else "empty"),
+                task_ttl_seconds=task_ttl_seconds,
+                max_tasks=max_tasks,
+            )
+        if agent is None:
+            if get_llm_client is None or extract_historical_figures is None or generate_for_person is None:
+                raise TypeError("TaskService requires agent deps or legacy generation callbacks")
+            agent = TaskAgentDeps(
+                get_llm_client=get_llm_client,
+                extract_historical_figures=extract_historical_figures,
+                generate_for_person=generate_for_person,
+            )
+        if exports is None:
+            missing = [
+                name for name, value in {
+                    "ensure_profile_exports": ensure_profile_exports,
+                    "ensure_multi_exports": ensure_multi_exports,
+                    "compute_overlaps": compute_overlaps,
+                    "build_conclusion": build_conclusion,
+                    "render_multi_html": render_multi_html,
+                    "save_html": save_html,
+                    "relative_path": relative_path,
+                }.items() if value is None
+            ]
+            if missing:
+                raise TypeError(f"TaskService requires export deps or legacy callbacks: {', '.join(missing)}")
+            exports = TaskExportDeps(
+                ensure_profile_exports=ensure_profile_exports,
+                ensure_multi_exports=ensure_multi_exports,
+                compute_overlaps=compute_overlaps,
+                build_conclusion=build_conclusion,
+                render_multi_html=render_multi_html,
+                save_html=save_html,
+                relative_path=relative_path,
+            )
+        self._logger = config.logger
+        self._max_concurrency = config.max_concurrency
+        self._color_palette = config.color_palette
+        self._project_root = config.project_root
+        self._format_seconds = config.format_seconds
+        self._validate_input_text = config.validate_input_text
+        self._task_ttl_seconds = max(int(config.task_ttl_seconds), 60)
+        self._max_tasks = max(int(config.max_tasks), 20)
+        self._get_llm_client = agent.get_llm_client
+        self._extract_historical_figures = agent.extract_historical_figures
+        self._generate_for_person = agent.generate_for_person
+        self._ensure_profile_exports = exports.ensure_profile_exports
+        self._ensure_multi_exports = exports.ensure_multi_exports
+        self._compute_overlaps = exports.compute_overlaps
+        self._build_conclusion = exports.build_conclusion
+        self._render_multi_html = exports.render_multi_html
+        self._save_html = exports.save_html
+        self._relative_path = exports.relative_path
         self._refresh_stellar_homepage = refresh_stellar_homepage
         self._enqueue_background_job = enqueue_background_job
-        self._ensure_profile_exports = ensure_profile_exports
-        self._ensure_multi_exports = ensure_multi_exports
-        self._compute_overlaps = compute_overlaps
-        self._build_conclusion = build_conclusion
-        self._render_multi_html = render_multi_html
-        self._save_html = save_html
-        self._relative_path = relative_path
-        self._task_ttl_seconds = max(int(task_ttl_seconds), 60)
-        self._max_tasks = max(int(max_tasks), 20)
 
-        self._executor = ThreadPoolExecutor(max_workers=max_concurrency)
+        self._executor = ThreadPoolExecutor(max_workers=config.max_concurrency)
         self._archive_executor = ThreadPoolExecutor(max_workers=1)
         self._shutting_down = False
         self._queue_lock = threading.Lock()
@@ -557,7 +637,12 @@ class TaskService:
                 ),
                 key=lambda item: (float(item[1].get("created_at") or 0), str(item[0])),
             )
-            for position, (_task_id, task) in enumerate(queued, start=1):
+            position = 0
+            for _task_id, task in queued:
+                pending_queue = dict(task.get("queue") or {})
+                if pending_queue.get("active") == 0 and position == 0:
+                    continue
+                position += 1
                 queue = dict(task.get("queue") or {})
                 queue["position"] = position
                 queue["limit"] = self._max_concurrency
@@ -661,7 +746,7 @@ class TaskService:
             if not task:
                 return {"ok": False, "error": "task not found"}
             if not self._retry_allowed_for_task(task):
-                return {"ok": False, "error": f"task not retryable", "status": str(task.get('status') or '')}
+                return {"ok": False, "error": "task not retryable", "status": str(task.get('status') or '')}
             text = str(task.get("text") or "").strip()
             current_retry_count = self._retry_count_for_task(task)
         if not text:

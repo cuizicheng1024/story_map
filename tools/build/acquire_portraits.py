@@ -103,7 +103,7 @@ WIKIMEDIA_PORTRAITS: Dict[str, str] = {
 }
 
 
-def try_wikimedia(name: str) -> Optional[Path]:
+def try_wikimedia(name: str, *, force: bool = False) -> Optional[Path]:
     """从 Wikimedia Commons 拉取公开域历史画像（最权威）。"""
     fname = WIKIMEDIA_PORTRAITS.get(name)
     if not fname:
@@ -114,7 +114,7 @@ def try_wikimedia(name: str) -> Optional[Path]:
     if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
         ext = ".jpg"
     dest = base.with_suffix(ext)
-    if dest.exists() and dest.stat().st_size > 2048:
+    if dest.exists() and dest.stat().st_size > 2048 and not force:
         return dest
     # 维基 Special:FilePath 会 302 跳转到真实 CDN URL
     url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{quote(fname)}"
@@ -393,6 +393,8 @@ def main() -> int:
     parser.add_argument("--report", type=str, default="")
     parser.add_argument("--style", type=str, default="ink_wash",
                         choices=["ink_wash", "gongbi", "realistic", "cartoon"])
+    parser.add_argument("--refresh-cached", action="store_true",
+                        help="即使本地已有缓存，也重新去 Wikimedia 拉取真实历史画像")
     args = parser.parse_args()
 
     PORTRAIT_DIR.mkdir(parents=True, exist_ok=True)
@@ -421,7 +423,7 @@ def main() -> int:
 
     for idx, (md, canon, raw, dyn) in enumerate(figures, 1):
         cached = has_cached_portrait(canon) or has_cached_portrait(raw)
-        if cached and not args.force_svg:
+        if cached and not args.force_svg and not args.refresh_cached:
             stats["skipped"] += 1
             rows.append((canon, dyn, "cached", str(cached)))
             print(f"[{idx:>3}/{len(figures)}] {canon} — cached {Path(cached).name}")
@@ -433,7 +435,7 @@ def main() -> int:
         if not args.no_wiki and not args.force_svg:
             try:
                 # 仅对在 WIKIMEDIA_PORTRAITS 表中的人物尝试 Wiki
-                p = try_wikimedia(canon)
+                p = try_wikimedia(canon, force=args.refresh_cached)
                 if p and p.exists() and p.stat().st_size > 2048:
                     path = p
                     stats["wiki_ok"] += 1

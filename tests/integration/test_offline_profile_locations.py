@@ -1,14 +1,7 @@
-import sys
-
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.cli import story_map as sm
 from storymap.script.profile import builder as profile_builder
-
 
 def test_offline_profile_uses_local_index_when_geocode_disabled(monkeypatch):
     md = """# 测试人物
@@ -70,7 +63,6 @@ def test_offline_profile_uses_local_index_when_geocode_disabled(monkeypatch):
     assert profile["person"]["birth"]["lat"] is not None
     assert profile["person"]["death"]["lat"] is not None
 
-
 def test_offline_profile_keeps_longzhong_location_when_coords_table_uses_scenic_name():
     md = """# 诸葛亮
 
@@ -103,7 +95,6 @@ def test_offline_profile_keeps_longzhong_location_when_coords_table_uses_scenic_
     assert profile is not None
     names = [str(item.get("name") or "") for item in profile["locations"]]
     assert "襄阳隆中" in names
-
 
 def test_profile_locations_are_sorted_by_time_bounds_for_wang_bo_style_ranges():
     md = """# 王勃
@@ -149,7 +140,6 @@ def test_profile_locations_are_sorted_by_time_bounds_for_wang_bo_style_ranges():
     names = [str(item.get("name") or "") for item in profile["locations"]]
     assert names == ["洪州", "交趾", "广州"]
 
-
 def test_profile_locations_do_not_treat_finally_arrived_text_as_death():
     md = """# 测试人物
 
@@ -192,12 +182,10 @@ def test_profile_locations_do_not_treat_finally_arrived_text_as_death():
     names = [str(item.get("name") or "") for item in profile["locations"]]
     assert names == ["长安", "汴州", "洛阳"]
 
-
 def test_extract_location_time_bounds_does_not_treat_range_dash_as_negative_sign():
     assert profile_builder._extract_location_time_bounds("1949年-1975年") == (1949, 1975)
     assert profile_builder._extract_location_time_bounds("1975年4月5日") == (1975, 1975)
     assert profile_builder._extract_location_time_bounds("前221年-前210年") == (-221, -210)
-
 
 def test_profile_locations_are_sorted_chronologically_for_jiang_jieshi_ranges():
     md = (REPO_ROOT / "storymap" / "examples" / "story" / "蒋介石.md").read_text(encoding="utf-8")
@@ -207,7 +195,6 @@ def test_profile_locations_are_sorted_chronologically_for_jiang_jieshi_ranges():
     assert profile is not None
     names = [str(item.get("name") or "") for item in profile["locations"]]
     assert names[:9] == ["溪口", "保定", "东京", "上海", "广州", "南京", "重庆", "台北", "台北士林官邸"]
-
 
 def test_profile_locations_are_sorted_chronologically_for_huoqubing_bce_years():
     md = (REPO_ROOT / "storymap" / "examples" / "story" / "霍去病.md").read_text(encoding="utf-8")

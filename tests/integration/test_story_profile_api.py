@@ -1,15 +1,8 @@
-import sys
 from types import SimpleNamespace
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.api import profile_api as story_profile_api
 from storymap.script.core import parsers
 from storymap.script.profile import builder as profile_builder
-
 
 def test_create_profile_api_from_geocode_api_queues_unresolved_profile_location():
     queued = []
@@ -71,7 +64,6 @@ def test_create_profile_api_from_geocode_api_queues_unresolved_profile_location(
     assert queued[0]["person"] == "苏轼"
     assert queued[0]["reason"] == "profile_resolve_place_coord_failed"
     assert "build_profile_data" in str(queued[0]["context"] or "")
-
 
 def test_create_profile_api_build_points_queues_geocode_miss():
     queued = []

@@ -1,13 +1,6 @@
-import sys
 import time
 
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 from storymap.script.cli.tooling import invoke_tool, tool
-
 
 def test_invoke_tool_retries_and_records_trace():
     calls = {"count": 0}
@@ -42,7 +35,6 @@ def test_invoke_tool_retries_and_records_trace():
     assert traces[1]["input_summary"] == "'li bai'"
     assert traces[1]["output_summary"] == "'LI BAI'"
 
-
 def test_invoke_tool_rejects_input_schema_mismatch():
     @tool(
         name="strict_tool",
@@ -59,7 +51,6 @@ def test_invoke_tool_rejects_input_schema_mismatch():
         assert "输入不符合 schema" in str(exc)
     else:
         raise AssertionError("expected schema validation failure")
-
 
 def test_invoke_tool_marks_timeout_in_trace():
     @tool(
@@ -84,7 +75,6 @@ def test_invoke_tool_marks_timeout_in_trace():
     assert len(traces) == 1
     assert traces[0]["timed_out"] is True
     assert traces[0]["success"] is False
-
 
 def test_invoke_tool_timeout_does_not_wait_for_worker_completion():
     @tool(

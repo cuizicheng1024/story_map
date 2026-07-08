@@ -53,7 +53,7 @@ artifacts/story_map/{人物}.html
 ```
 artifacts/story_map/*.html  (扫 __EXPORT_DATA__)
   + storymap/examples/story/*.md  (补朝代/出生地)
-  ↓  tools/build_stellar_homepage.py
+  ↓  tools/build/homepage/main.py
   ↓
 artifacts/story_map/index.html
 artifacts/story_map/stellar_home_data.json
@@ -98,8 +98,8 @@ scripts/start_storymap.sh
 ## 四、关键约束（维护前必须知道）
 
 1. **远端 systemd 入口** = `scripts/start_storymap.sh` → `storymap/script/story_map.py`
-2. **CI 入口** = `cli/generate_pure_story_map.py`、`tools/build_all.py`、`tools/build_stellar_homepage.py`、`tools/validate_story_markdown.py`
+2. **CI 入口** = `cli/generate_pure_story_map.py`、`tools/build_all.py`、`tools/build/homepage/main.py`、`tools/validate_story_markdown.py`
 3. **静态资源源文件** = `assets/orange.png`，构建后会复制到 `artifacts/story_map/orange.png`，页面仍引用 `./orange.png`
-4. **首页吉祥物图片候选路径**（`tools/build_stellar_homepage.py`）现以 `assets/orange.png` 为主，兼容回退保留 `tools/orange.png`、`./orange.png`、`./orange.PNG`
+4. **首页吉祥物图片候选路径**（`tools/build/homepage/main.py`）现以 `assets/orange.png` 为主，兼容回退保留 `tools/orange.png`、`./orange.png`、`./orange.PNG`
 5. **人物 Markdown 语料路径** = `storymap/examples/story/`，被 GitHub Actions 的 path filter 监控（参见 `.github/workflows/deploy-pages.yml`）
 6. **`data/` 兼容层** = 真实读写路径已切到 `data/corpus/`、`data/reports/`、`data/runtime/`；根目录 `data/*.json` / `data/*.md` 暂保留兼容软链（例如 `data/people_master.json`、`data/markdown_smoke_report.json`、`data/hard_place_review_queue.{json,md}`），新增脚本应优先使用新路径辅助函数

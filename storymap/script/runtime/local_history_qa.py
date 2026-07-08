@@ -11,7 +11,7 @@ from .local_history_qa_answering import build_local_history_answer
 from .local_history_qa_request import extract_last_user, resolve_person_name
 
 
-@dataclass(slots=True)
+@dataclass
 class QAResult:
     handled: bool
     content: str = ""

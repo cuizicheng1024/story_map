@@ -4,9 +4,6 @@ import time
 from pathlib import Path
 
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.agent import generation_service
 from storymap.script.agent.generation_pipeline import (
@@ -20,10 +17,8 @@ from storymap.script.cli import story_map as sm
 from storymap.script.map import map_client
 from storymap.script.runtime import support as runtime_support
 
-
 def _run_background_job_inline(job, **_kwargs):
     return job()
-
 
 def test_generation_tools_expose_tool_metadata():
     geocode_tool = sm._GENERATION_TOOLS["geocode_markdown"]
@@ -35,7 +30,6 @@ def test_generation_tools_expose_tool_metadata():
     assert parse_tool.__tool__.name == "parse_story_markdown"
     assert validate_tool.__tool__.name == "validate_story_markdown"
     assert tool_names == {"geocode_markdown", "parse_story_markdown", "validate_story_markdown"}
-
 
 def test_generate_for_person_can_render_existing_markdown_offline(tmp_path, monkeypatch):
     sample_md = REPO_ROOT / "storymap" / "examples" / "story" / "霍去病.md"
@@ -72,7 +66,6 @@ def test_generate_for_person_can_render_existing_markdown_offline(tmp_path, monk
     assert "霍去病" in html
     assert "河西走廊" in html
 
-
 def test_render_html_builds_profile_without_online_geocode():
     calls = []
 
@@ -93,7 +86,6 @@ def test_render_html_builds_profile_without_online_geocode():
 
     assert html == "<html>蒙恬</html>"
     assert calls == [{"md": "# 蒙恬", "fallback_person": "蒙恬", "allow_geocode": False}]
-
 
 def test_generate_for_person_refreshes_cached_html_when_markdown_is_newer(tmp_path, monkeypatch):
     person = "霍去病"
@@ -121,7 +113,6 @@ def test_generate_for_person_refreshes_cached_html_when_markdown_is_newer(tmp_pa
     assert "NEW_MARKDOWN" in html_path.read_text(encoding="utf-8")
     assert "OLD" not in html_path.read_text(encoding="utf-8")
 
-
 def test_render_html_uses_title_as_profile_name_fallback():
     html = generation_service.render_html(
         "李四光",
@@ -139,7 +130,6 @@ def test_render_html_uses_title_as_profile_name_fallback():
     )
 
     assert html == "<html>李四光</html>"
-
 
 def test_generate_for_person_rebuilds_when_cached_export_data_is_empty(tmp_path):
     person = "霍去病"
@@ -185,7 +175,6 @@ def test_generate_for_person_rebuilds_when_cached_export_data_is_empty(tmp_path)
     assert result["_profile"]["person"]["name"] == person
     assert result["_profile"]["markdown"] == "# 霍去病\n\nNEW_MARKDOWN\n"
 
-
 def test_generate_for_person_rebuilds_when_cached_export_data_lacks_person_name(tmp_path):
     person = "霍去病"
     md_path = tmp_path / f"{person}.md"
@@ -229,7 +218,6 @@ def test_generate_for_person_rebuilds_when_cached_export_data_lacks_person_name(
     assert result["refreshed"] is True
     assert result["_profile"]["person"]["name"] == person
     assert result["_profile"]["locations"] == [{"name": "河西走廊"}]
-
 
 def test_generate_for_person_hits_cache_for_new_runtime_config_loader_html(tmp_path):
     person = "霍去病"
@@ -277,7 +265,6 @@ def test_generate_for_person_hits_cache_for_new_runtime_config_loader_html(tmp_p
     assert result.get("refreshed") is not True
     assert html_path.read_text(encoding="utf-8").endswith("OLD</body></html>")
 
-
 def test_generate_for_person_refreshes_cache_when_geovis_loader_is_missing(tmp_path):
     person = "霍去病"
     md_path = tmp_path / f"{person}.md"
@@ -321,7 +308,6 @@ def test_generate_for_person_refreshes_cache_when_geovis_loader_is_missing(tmp_p
     assert result["cached"] is True
     assert result["refreshed"] is True
     assert "GEOVIS" in html_path.read_text(encoding="utf-8")
-
 
 def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, monkeypatch):
     person = "李四光"
@@ -419,6 +405,12 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert result["_agent_runtime"]["state"]["memory_misses"] == {"place_map": 1}
     assert result["_agent_runtime"]["state"]["validation"]["issues"] == []
     assert result["_agent_runtime"]["state"]["validation"]["metrics"]["coords"] == 1
+    assert result["_profile"]["locations"]
+    assert result["_profile"]["locations"][0]["name"] == "黄冈"
+    assert result["_state"]["quality_issues"] == []
+    assert "黄冈" in md_path.read_text(encoding="utf-8")
+    assert "30.45" in md_path.read_text(encoding="utf-8")
+    assert out_html.exists()
     assert result["_agent_runtime"]["state"]["validation_stage"] == "final_output"
     assert result["_state"]["agent_runtime"]["state"]["llm_calls_limit"] == 4
     assert result["_state"]["agent_runtime"]["tool_specs"] == [{"name": "search_person_info"}]
@@ -428,7 +420,6 @@ def test_generate_for_person_can_add_new_historical_person_end_to_end(tmp_path, 
     assert "地点坐标" in md_path.read_text(encoding="utf-8")
     assert person in out_html.read_text(encoding="utf-8")
     assert "黄冈" in out_html.read_text(encoding="utf-8")
-
 
 def test_story_map_generate_for_person_canonicalizes_alias_request(tmp_path, monkeypatch):
     requested_person = "苏东坡"
@@ -471,7 +462,6 @@ def test_story_map_generate_for_person_canonicalizes_alias_request(tmp_path, mon
     assert result["_state"]["person"] == canonical_person
     assert result["_state"]["requested_person"] == requested_person
 
-
 def test_story_map_generate_for_person_preserves_alias_when_alias_is_real_story_source(tmp_path, monkeypatch):
     requested_person = "苏东坡"
     md_path = tmp_path / f"{requested_person}.md"
@@ -509,7 +499,6 @@ def test_story_map_generate_for_person_preserves_alias_when_alias_is_real_story_
     assert result["html_path"] == str(out_html)
     assert generated == [requested_person]
     assert refreshed == [requested_person]
-
 
 def test_generate_for_person_inserts_distance_intro_after_geocoding(tmp_path, monkeypatch):
     person = "李四光"
@@ -572,7 +561,6 @@ def test_generate_for_person_inserts_distance_intro_after_geocoding(tmp_path, mo
     assert "| 坐标系 |" in saved_md
     assert "WGS84" in saved_md
 
-
 def test_generate_for_person_marks_render_failure_as_degraded_when_reusing_markdown(tmp_path):
     person = "王昭君"
     md_path = tmp_path / f"{person}.md"
@@ -614,7 +602,6 @@ def test_generate_for_person_marks_render_failure_as_degraded_when_reusing_markd
     assert result["fallback_html_path"] == str(html_path)
     assert result["render_error"] == "boom"
 
-
 def test_generate_for_person_marks_render_failure_as_degraded_for_new_generation(tmp_path):
     person = "李四光"
     md_path = tmp_path / f"{person}.md"
@@ -654,7 +641,6 @@ def test_generate_for_person_marks_render_failure_as_degraded_for_new_generation
     assert result["fallback_html_path"] == str(html_path)
     assert result["render_error"] == "render failed"
 
-
 def test_generate_for_person_loads_profile_without_online_geocode_for_new_generation(tmp_path):
     person = "蒙恬"
     md_path = tmp_path / f"{person}.md"
@@ -693,7 +679,6 @@ def test_generate_for_person_loads_profile_without_online_geocode_for_new_genera
     assert load_calls
     assert load_calls[-1]["fallback_person"] == person
     assert load_calls[-1]["allow_geocode"] is False
-
 
 def test_generate_for_person_marks_quality_issues_as_degraded_when_reusing_markdown(tmp_path):
     person = "王昭君"
@@ -736,7 +721,6 @@ def test_generate_for_person_marks_quality_issues_as_degraded_when_reusing_markd
     assert result["html_path"] == str(html_path)
     assert result["quality_issue_summary"] == "重要地点段落缺失或为空"
 
-
 def test_generate_for_person_marks_quality_issues_as_degraded_for_new_generation(tmp_path):
     person = "李四光"
     md_path = tmp_path / f"{person}.md"
@@ -778,7 +762,6 @@ def test_generate_for_person_marks_quality_issues_as_degraded_for_new_generation
     assert result["quality_issue_summary"] == "地点坐标表缺失或为空"
     assert result["_validation"]["issues"] == ["地点坐标表缺失或为空"]
 
-
 def test_story_map_wrapper_refreshes_homepage_for_degraded_result(tmp_path, monkeypatch):
     person = "王昭君"
     md_path = tmp_path / f"{person}.md"
@@ -808,7 +791,6 @@ def test_story_map_wrapper_refreshes_homepage_for_degraded_result(tmp_path, monk
     assert result["_state"]["stage"] == "build_profile"
     assert result["_homepage_refresh"] == {"ok": True}
     assert refreshed == [person]
-
 
 def test_story_map_wrapper_preserves_quality_degraded_result_as_usable(tmp_path, monkeypatch):
     person = "王昭君"
@@ -843,7 +825,6 @@ def test_story_map_wrapper_preserves_quality_degraded_result_as_usable(tmp_path,
     assert result["_state"]["quality_issues"] == ["重要地点段落缺失或为空"]
     assert result["_homepage_refresh"] == {"ok": True}
     assert refreshed == [person]
-
 
 def test_story_map_wrapper_marks_homepage_refresh_failure_as_degraded(tmp_path, monkeypatch):
     person = "霍去病"
@@ -883,7 +864,6 @@ def test_story_map_wrapper_marks_homepage_refresh_failure_as_degraded(tmp_path, 
     assert "首页刷新失败" in result["error"]
     assert result["_homepage_refresh"]["ok"] is False
 
-
 def test_story_map_wrapper_schedules_homepage_refresh_in_background(tmp_path, monkeypatch):
     person = "霍去病"
     md_path = tmp_path / f"{person}.md"
@@ -921,7 +901,6 @@ def test_story_map_wrapper_schedules_homepage_refresh_in_background(tmp_path, mo
     assert refreshed == []
     assert queued
     assert queued[0]["label"] == f"homepage-refresh:{person}"
-
 
 def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(monkeypatch, tmp_path):
     monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
@@ -964,7 +943,6 @@ def test_generate_for_person_marks_runtime_config_write_failure_as_degraded(monk
     assert result["runtime_config_failed"] is True
     assert result["runtime_config_error"] == "amap config failed"
     assert "运行时地图配置写入失败" in result["error"]
-
 
 def test_generate_for_person_retries_retryable_markdown_failure_once(tmp_path):
     person = "李四光"
@@ -1030,7 +1008,6 @@ def test_generate_for_person_retries_retryable_markdown_failure_once(tmp_path):
     assert result["checkpoint"]["source"] == "generated_markdown"
     assert result["checkpoint"]["resume_stage"] == "markdown_saved"
 
-
 def test_generate_for_person_exposes_non_retryable_markdown_failure(tmp_path):
     person = "霍去病"
     md_path = tmp_path / f"{person}.md"
@@ -1081,7 +1058,6 @@ def test_generate_for_person_exposes_non_retryable_markdown_failure(tmp_path):
     assert result["error_retryable"] is False
     assert result["checkpoint"]["source"] == "none"
     assert result["checkpoint"]["resume_stage"] == "start"
-
 
 def test_generate_for_person_resumes_from_checkpoint_store_when_allow_cache_disabled(tmp_path):
     person = "李白"
@@ -1141,7 +1117,6 @@ def test_generate_for_person_resumes_from_checkpoint_store_when_allow_cache_disa
     assert saved_state["checkpoint"]["resume_stage"] == "markdown_saved"
     assert saved_state["ok"] is True
 
-
 def test_story_map_wrapper_passes_checkpoint_store_into_generation_service(monkeypatch):
     captured = {}
 
@@ -1169,7 +1144,6 @@ def test_story_map_wrapper_passes_checkpoint_store_into_generation_service(monke
     assert hasattr(captured["checkpoint_store"], "load")
     assert hasattr(captured["checkpoint_store"], "save")
 
-
 def test_should_refresh_stellar_home_when_homepage_artifacts_are_missing(tmp_path):
     html_path = tmp_path / "霍去病.html"
     html_path.write_text("<html></html>", encoding="utf-8")
@@ -1185,7 +1159,6 @@ def test_should_refresh_stellar_home_when_homepage_artifacts_are_missing(tmp_pat
     )
 
     assert result is True
-
 
 def test_should_skip_refresh_when_cached_result_has_homepage_artifacts(tmp_path):
     html_path = tmp_path / "霍去病.html"
@@ -1204,7 +1177,6 @@ def test_should_skip_refresh_when_cached_result_has_homepage_artifacts(tmp_path)
     )
 
     assert result is False
-
 
 def test_run_person_generation_treats_degraded_output_as_usable(capsys):
     story_cli.run_person_generation(
@@ -1226,7 +1198,6 @@ def test_run_person_generation_treats_degraded_output_as_usable(capsys):
     assert "已生成（降级）：霍去病" in out
     assert "未取得：霍去病" not in out
     assert "失败 0" in out
-
 
 def test_run_interactive_marks_quality_degraded_output(capsys, monkeypatch):
     inputs = iter(["霍去病", "q"])
@@ -1256,7 +1227,6 @@ def test_run_interactive_marks_quality_degraded_output(capsys, monkeypatch):
     assert "重要地点段落缺失或为空" in out
     assert "失败 0" in out
 
-
 def test_build_conclusion_counts_degraded_results_as_success():
     results = [
         {"ok": False, "status": "degraded", "person": "霍去病"},
@@ -1265,7 +1235,6 @@ def test_build_conclusion_counts_degraded_results_as_success():
 
     assert runtime_support.build_conclusion(results, multi=False) == "生成完成：人物 1，失败 1"
     assert runtime_support.build_conclusion(results, multi=True) == "合并视图完成：人物 1，失败 1"
-
 
 def test_append_coords_section_skips_event_column_when_timeline_has_no_place_headers(monkeypatch):
     md = """## 四、生平时间线
@@ -1278,7 +1247,6 @@ def test_append_coords_section_skips_event_column_when_timeline_has_no_place_hea
     monkeypatch.setattr(map_client, "geocode_city", lambda _name: (_ for _ in ()).throw(AssertionError("should not geocode event column")))
 
     assert map_client.append_coords_section(md) == md
-
 
 def test_append_coords_section_removes_stale_auto_coords_when_no_place_columns(monkeypatch):
     md = """## 四、生平时间线
@@ -1299,7 +1267,6 @@ def test_append_coords_section_removes_stale_auto_coords_when_no_place_columns(m
 
     assert "地点坐标（自动地理编码）" not in result
     assert "39.913704" not in result
-
 
 def test_append_coords_section_rebuilds_existing_auto_coords_section(monkeypatch):
     md = """## 四、生平时间线
@@ -1322,7 +1289,6 @@ def test_append_coords_section_rebuilds_existing_auto_coords_section(monkeypatch
     assert "30.048300 | 103.831800" in result
     assert "39.913704" not in result
 
-
 def test_append_coords_section_reuses_valid_existing_auto_coords_section(monkeypatch):
     md = """## 四、生平时间线
 
@@ -1340,7 +1306,6 @@ def test_append_coords_section_reuses_valid_existing_auto_coords_section(monkeyp
 
     assert map_client.append_coords_section(md) == md
 
-
 def test_compute_total_distance_km_supports_auto_generated_coords_table():
     md = """## 地点坐标（自动地理编码）
 | 现称 | 现代搜索地名 | 纬度 | 经度 | 坐标系 |
@@ -1353,7 +1318,6 @@ def test_compute_total_distance_km_supports_auto_generated_coords_table():
 
     assert isinstance(total, float)
     assert total > 0
-
 
 def test_enrich_markdown_for_map_runs_shared_pipeline_once():
     calls = []
@@ -1386,7 +1350,6 @@ def test_enrich_markdown_for_map_runs_shared_pipeline_once():
     assert calls == ["normalize", "geocode", "compute", "insert:123.0"]
     assert "总里程=123.0" in enriched
 
-
 def test_enrich_markdown_for_map_normalizes_basic_info_birth_fields_before_geocode():
     seen = {}
 
@@ -1404,7 +1367,6 @@ def test_enrich_markdown_for_map_normalizes_basic_info_birth_fields_before_geoco
 
     assert enriched == seen["markdown"]
     assert "- **出生**：约公元前428/427年（存疑），雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）" in enriched
-
 
 def test_generate_for_person_refreshes_cached_html_when_code_dependency_is_newer(tmp_path):
     md_path = tmp_path / "诸葛亮.md"
@@ -1455,7 +1417,6 @@ def test_generate_for_person_refreshes_cached_html_when_code_dependency_is_newer
     assert result["cached"] is True
     assert result["refreshed"] is True
     assert result["_profile"]["person"]["name"] == "新诸葛亮"
-
 
 def test_generate_for_person_refreshes_cached_html_when_template_signature_is_stale(tmp_path):
     md_path = tmp_path / "诸葛亮.md"
@@ -1511,7 +1472,6 @@ def test_generate_for_person_refreshes_cached_html_when_template_signature_is_st
     assert result["refreshed"] is True
     assert result["_profile"]["person"]["name"] == "新诸葛亮"
 
-
 def test_generate_for_person_writes_runtime_map_config_files_next_to_html(monkeypatch, tmp_path):
     monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
     md_path = tmp_path / "关羽.md"
@@ -1551,7 +1511,6 @@ def test_generate_for_person_writes_runtime_map_config_files_next_to_html(monkey
     assert result["ok"] is True
     assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";'
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
-
 
 def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(monkeypatch, tmp_path):
     monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
@@ -1599,7 +1558,6 @@ def test_generate_for_person_cache_hit_self_heals_missing_runtime_map_configs(mo
     assert result["cached"] is True
     assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="demo";window.AMAP_SECURITY="sec";'
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
-
 
 def test_generate_for_person_cache_hit_marks_degraded_when_runtime_config_write_fails(monkeypatch, tmp_path):
     monkeypatch.setenv("MAP_STORY_EMIT_PUBLIC_MAP_CONFIG", "1")
@@ -1663,7 +1621,6 @@ def test_generate_for_person_cache_hit_marks_degraded_when_runtime_config_write_
     assert not (tmp_path / "amap-config.js").exists()
     assert not (tmp_path / "geovis-config.js").exists()
 
-
 def test_cli_target_resolution_does_not_fallback_to_question_sentence():
     targets = story_cli.resolve_targets_from_text(
         client=object(),
@@ -1674,7 +1631,6 @@ def test_cli_target_resolution_does_not_fallback_to_question_sentence():
 
     assert targets == []
 
-
 def test_cli_target_resolution_can_fallback_to_plain_person_name():
     targets = story_cli.resolve_targets_from_text(
         client=object(),
@@ -1684,7 +1640,6 @@ def test_cli_target_resolution_can_fallback_to_plain_person_name():
     )
 
     assert targets == ["辛弃疾"]
-
 
 def test_story_agents_save_markdown_sanitizes_unsafe_name(tmp_path, monkeypatch):
     monkeypatch.setattr(story_agents, "_project_root", lambda: str(tmp_path))

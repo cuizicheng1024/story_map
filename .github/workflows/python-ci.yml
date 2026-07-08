@@ -27,6 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e '.[dev]'
 
+      - name: Lint with ruff
+        run: ruff check storymap/ cli/ tools/ tests/ --select E,F,I
+
       - name: Run StoryMap Smoke Checks
         run: |
           chmod +x scripts/test_storymap.sh
@@ -43,3 +46,50 @@ jobs:
 
       - name: Run data tests
         run: python -m pytest tests/data -q
+
+  agent-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+      STORY_MAP_STRICT_STARTUP: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]' pytest pytest-cov
+
+      - name: Syntax check (all Python files)
+        run: |
+          echo "=== Agent 模块语法检查 ==="
+          python -m py_compile tools/build/agents/searcher.py
+          python -m py_compile tools/build/agents/editor.py
+          python -m py_compile tools/build/agents/reviewer.py
+          python -m py_compile tools/build/agents/geolocator.py
+          python -m py_compile tools/build/agents/assembler.py
+          python -m py_compile tools/build/agents/base.py
+          python -m py_compile tools/build/agents/_shared.py
+          python -m py_compile tools/build/build_all.py
+          echo "✓ 全部通过"
+
+      - name: Agent unit tests
+        run: python tools/build/test_agents.py
+
+      - name: Pipeline regression tests
+        run: python tools/build/test_pipeline.py
+
+      - name: E2E pipeline tests
+        run: python tools/build/test_e2e_pipeline.py
+
+      - name: Coverage report
+        run: |
+          python -m pytest tools/build/test_agents.py tools/build/test_pipeline.py \
+            --cov=tools.build.agents --cov=tools.build \
+            --cov-report=term --cov-report=html --cov-fail-under=70

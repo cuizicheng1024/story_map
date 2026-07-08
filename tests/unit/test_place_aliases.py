@@ -1,14 +1,6 @@
-import sys
-
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.map import geocode_service as gs
 from storymap.script.cli import story_map as sm
-
 
 def test_place_aliases_can_resolve_direct_coords_without_network(monkeypatch):
     monkeypatch.setattr(gs, "_PLACE_ALIASES", None)
@@ -29,7 +21,6 @@ def test_place_aliases_can_resolve_direct_coords_without_network(monkeypatch):
     assert coord is not None
     assert round(coord[0], 4) == 40.0030
     assert round(coord[1], 4) == 116.3269
-
 
 def test_place_aliases_can_resolve_foreign_historical_places_without_network(monkeypatch):
     monkeypatch.setattr(gs, "_PLACE_ALIASES", None)
@@ -55,7 +46,6 @@ def test_place_aliases_can_resolve_foreign_historical_places_without_network(mon
     assert round(city_coord[0], 4) == 38.4667
     assert round(city_coord[1], 4) == 23.6000
 
-
 def test_place_aliases_can_resolve_foreign_modern_places_without_network(monkeypatch):
     monkeypatch.setattr(gs, "_PLACE_ALIASES", None)
     monkeypatch.setattr(gs, "_HISTORICAL_INDEX", {})
@@ -80,10 +70,9 @@ def test_place_aliases_can_resolve_foreign_modern_places_without_network(monkeyp
     assert round(petrovichi_coord[0], 4) == 53.9750
     assert round(petrovichi_coord[1], 4) == 32.1589
 
-
 def test_resolve_place_coord_skips_non_place_candidates_before_network(monkeypatch):
     monkeypatch.setattr(gs, "_PLACE_ALIASES", {})
-    monkeypatch.setattr(gs, "lookup_coords_from_historical_index", lambda *_args: None)
+    monkeypatch.setattr(gs, "lookup_coords_from_historical_index", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(gs, "_tgaz_query", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         gs,

@@ -3,7 +3,6 @@ import sys
 
 from tests_support import REPO_ROOT
 
-
 def test_legacy_story_map_script_entrypoint_supports_help():
     script_path = REPO_ROOT / "storymap" / "script" / "story_map.py"
 

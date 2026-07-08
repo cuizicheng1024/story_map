@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Tuple, TypedDict
 from .app import create_app as _create_api_app
 from .proxy import ProxyService
 from .static import StaticService
-from ..runtime.task_service import TaskService
+from ..runtime.task_service import TaskAgentDeps, TaskConfig, TaskExportDeps, TaskService
 
 
 class StoryMapRuntime(TypedDict):
@@ -71,24 +71,30 @@ def create_story_map_runtime(
     )
 
     task_service = TaskService(
-        logger=logger,
-        max_concurrency=max_concurrency,
-        color_palette=color_palette,
-        project_root=project_root,
-        format_seconds=format_seconds,
-        validate_input_text=validate_input_text,
-        get_llm_client=get_llm_client,
-        extract_historical_figures=extract_historical_figures,
-        generate_for_person=generate_for_person,
+        config=TaskConfig(
+            logger=logger,
+            max_concurrency=max_concurrency,
+            color_palette=color_palette,
+            project_root=project_root,
+            format_seconds=format_seconds,
+            validate_input_text=validate_input_text,
+        ),
+        agent=TaskAgentDeps(
+            get_llm_client=get_llm_client,
+            extract_historical_figures=extract_historical_figures,
+            generate_for_person=generate_for_person,
+        ),
+        exports=TaskExportDeps(
+            ensure_profile_exports=ensure_profile_exports,
+            ensure_multi_exports=ensure_multi_exports,
+            compute_overlaps=compute_overlaps,
+            build_conclusion=build_conclusion,
+            render_multi_html=render_multi_html,
+            save_html=save_html,
+            relative_path=relative_path,
+        ),
         refresh_stellar_homepage=refresh_stellar_homepage,
         enqueue_background_job=enqueue_background_job,
-        ensure_profile_exports=ensure_profile_exports,
-        ensure_multi_exports=ensure_multi_exports,
-        compute_overlaps=compute_overlaps,
-        build_conclusion=build_conclusion,
-        render_multi_html=render_multi_html,
-        save_html=save_html,
-        relative_path=relative_path,
     )
 
     def coords_bulk_update(data: object) -> Tuple[int, Dict[str, object]]:

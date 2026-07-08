@@ -4,9 +4,7 @@ import subprocess
 
 from tests_support import REPO_ROOT
 
-
 SCRIPT_PATH = REPO_ROOT / "scripts" / "deploy_storymap_release.sh"
-
 
 def test_deploy_script_refuses_builtin_default_target():
     result = subprocess.run(
@@ -18,7 +16,6 @@ def test_deploy_script_refuses_builtin_default_target():
 
     assert result.returncode != 0
     assert "refusing to deploy to built-in default target" in result.stderr
-
 
 def test_deploy_script_allows_explicit_target_when_upload_and_remote_are_skipped(tmp_path):
     identity = tmp_path / "storymap-key.pem"

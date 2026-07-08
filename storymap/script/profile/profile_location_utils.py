@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import logging
 import re
+from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
 
 from ..core import parsers as parser_utils
+
+_LOGGER = logging.getLogger(__name__)
 
 
 Coord = Tuple[float, float]
 _SPECULATIVE_LOCATION_PATTERNS = (
     r"推断",
+    r"推测",
     r"存疑",
     r"待考",
     r"说法不一",
@@ -23,7 +28,7 @@ _SPECULATIVE_LOCATION_PATTERNS = (
 
 
 def loose_place_key(text: str) -> str:
-    cleaned = parser_utils._pick_geocode_name(str(text or ""))
+    cleaned = parser_utils.pick_geocode_name(str(text or ""))
     if not cleaned:
         return ""
     cleaned = re.sub(r"[（(].*?[）)]", "", cleaned)
@@ -157,11 +162,18 @@ def collapse_sparse_single_site_locations(
         if any(not is_speculative_location_item(item) for item in items)
     ]
     if len(concrete_keys) == 1:
-        return [merge_location_cluster(groups[concrete_keys[0]], extract_works=extract_works)]
+        concrete_items = [item for item in groups[concrete_keys[0]] if not is_speculative_location_item(item)]
+        # Only collapse when there is truly a single non-speculative location.
+        # If multiple distinct events share the same rounded coordinates (e.g. birth, battle
+        # and death all in the same city), keep them as separate markers.
+        if len(concrete_items) <= 1:
+            # 仅合并非推测性项目，避免推测性数据污染确定信息
+            return [merge_location_cluster(concrete_items or groups[concrete_keys[0]], extract_works=extract_works)]
 
     if len(groups) == 1:
         key = next(iter(groups.keys()))
-        return [merge_location_cluster(groups[key], extract_works=extract_works)]
+        non_speculative = [item for item in groups[key] if not is_speculative_location_item(item)]
+        return [merge_location_cluster(non_speculative or groups[key], extract_works=extract_works)]
 
     return loc_items
 
@@ -181,13 +193,51 @@ def extract_location_time_bounds(raw: object) -> Tuple[Optional[int], Optional[i
         years.append(-value if era else value)
     has_explicit_year = bool(re.search(r"(?:公元前|前)?\s*\d{1,4}\s*年(?!代)", text))
     if not years and ("世纪" in text or "年代" in text) and not has_explicit_year:
-        return None, None
-    if not years:
-        for match in re.finditer(r"(?<!\d)(-?\d{1,4})(?!\d)(?!\s*世纪)", text):
+        # Convert century/decade expressions to approximate years for sorting.
+        # e.g. "公元前3世纪" → -250,  "3世纪中叶" → 250,  "60年代" → 60,
+        #      "12世纪80年代" → 1180 (prefer decade over century midpoint).
+        century_match = re.search(r"(公元前|前)?\s*(\d{1,2})\s*世纪", text)
+        decade_match = re.search(r"(公元前|前)?\s*(\d{2,4})\s*年代", text)
+        if decade_match:
             try:
-                years.append(int(match.group(1)))
+                decade_num = int(decade_match.group(2))
+            except Exception:
+                decade_num = None
+            if decade_num is not None:
+                era_bc = bool(str(decade_match.group(1) or "").strip())
+                if century_match:
+                    try:
+                        century_num = int(century_match.group(2))
+                    except Exception:
+                        century_num = None
+                    if century_num is not None and 1 <= century_num <= 30:
+                        base = (century_num - 1) * 100
+                        approx = -(base + decade_num) if era_bc else (base + decade_num)
+                        years.append(approx)
+                else:
+                    approx = -decade_num if era_bc else decade_num
+                    years.append(approx)
+        elif century_match:
+            try:
+                century_num = int(century_match.group(2))
+            except Exception:
+                century_num = None
+            if century_num is not None and 1 <= century_num <= 30:
+                era = str(century_match.group(1) or "").strip()
+                approx = -(century_num - 1) * 100 - 50 if era else (century_num - 1) * 100 + 50
+                years.append(approx)
+    if not years:
+        for match in re.finditer(r"(?:公元前|前)?\s*(?<!\d)(-?\d{1,4})(?!\d)(?!\s*世纪)", text):
+            try:
+                value = int(match.group(1))
             except Exception:
                 continue
+            # 检查数字前是否有"公元前"/"前"标记
+            prefix = text[max(0, match.start() - 4):match.start()]
+            if re.search(r"(公元前|前)\s*$", prefix):
+                years.append(-value)
+            else:
+                years.append(value)
     if not years:
         return None, None
     if len(years) == 1:
@@ -256,6 +306,24 @@ def sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str,
     kinds = [_kind(item) for item in loc_items]
     propagated_start: List[Optional[int]] = [b[0] for b in bounds]
     propagated_end: List[Optional[int]] = [b[1] for b in bounds]
+
+    # When all locations lack explicit time info, sort deterministically:
+    # birth → normal events (markdown order) → death
+    if all(s is None for s in propagated_start):
+        indexed = list(enumerate(loc_items))
+        def _time_less_key(entry: Tuple[int, Dict[str, object]]) -> Tuple[int, int]:
+            idx, _item = entry
+            kind = kinds[idx]
+            if kind == "birth":
+                rank = 0
+            elif kind == "death":
+                rank = 2
+            else:
+                rank = 1
+            return (rank, idx)
+        indexed.sort(key=_time_less_key)
+        return [item for _, item in indexed]
+
     for i, start in enumerate(propagated_start):
         if start is not None:
             continue
@@ -315,9 +383,9 @@ def resolve_life_event_coord(
 ) -> Optional[Coord]:
     if not geocode_loc:
         return None
-    geo_name = parser_utils._pick_geocode_name(modern_loc or geocode_loc or raw_loc)
+    geo_name = parser_utils.pick_geocode_name(modern_loc or geocode_loc or raw_loc)
     coord = (
-        parser_utils._extract_inline_coord_pair(raw_text)
+        parser_utils.extract_inline_coord_pair(raw_text)
         or fuzzy_coord_lookup(coords_cache, [geo_name, modern_loc, geocode_loc, raw_loc])
     )
     if not coord:
@@ -327,37 +395,66 @@ def resolve_life_event_coord(
     return coord
 
 
-def build_location_items(
-    *,
-    locations: List[Dict[str, object]],
-    coords_cache: Dict[str, Coord],
-    coords_search_map: Dict[str, str],
-    person_name: str,
-    fallback_person: str,
-    allow_geocode: bool,
-    event_callback: Optional[callable],
-    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
-    fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
-    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
-    resolve_place_coord: Callable[..., Optional[Coord]],
-    extract_works: Callable[[str], List[str]],
-    split_quote_lines: Callable[[str], List[str]],
-) -> List[Dict[str, object]]:
+@dataclass(frozen=True)
+class LocationBuildContext:
+    """封装 build_location_items 的所有参数，避免 14 个零散关键字参数。"""
+
+    locations: List[Dict[str, object]] = field(default_factory=list)
+    coords_cache: Dict[str, Coord] = field(default_factory=dict)
+    coords_search_map: Dict[str, str] = field(default_factory=dict)
+    person_name: str = ""
+    fallback_person: str = ""
+    allow_geocode: bool = False
+    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]] = field(
+        default=lambda text, _cb=None: (text, text)
+    )
+    fuzzy_coord_lookup: Callable[
+        [Dict[str, Coord], List[str]], Optional[Coord]
+    ] = field(default=lambda _cache, _candidates: None)
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]] = field(
+        default=lambda *_: None
+    )
+    resolve_place_coord: Callable[..., Optional[Coord]] = field(
+        default=lambda *_: None
+    )
+    extract_works: Callable[[str], List[str]] = field(
+        default=lambda _: []
+    )
+    split_quote_lines: Callable[[str], List[str]] = field(
+        default=lambda _: []
+    )
+    event_callback: Optional[callable] = None
+
+
+def build_location_items(ctx: LocationBuildContext) -> List[Dict[str, object]]:
+    locations = ctx.locations
+    coords_cache = ctx.coords_cache
+    coords_search_map = ctx.coords_search_map
+    person_name = ctx.person_name
+    fallback_person = ctx.fallback_person
+    allow_geocode = ctx.allow_geocode
+    split_ancient_modern = ctx.split_ancient_modern
+    fuzzy_coord_lookup = ctx.fuzzy_coord_lookup
+    lookup_coords_from_historical_index = ctx.lookup_coords_from_historical_index
+    resolve_place_coord = ctx.resolve_place_coord
+    extract_works = ctx.extract_works
+    split_quote_lines = ctx.split_quote_lines
+    event_callback = ctx.event_callback
     loc_items: List[Dict[str, object]] = []
     for loc in locations:
         loc_text = loc.get("location") or loc.get("name") or ""
         ancient, modern = split_ancient_modern(loc_text, event_callback)
-        geo_name = parser_utils._pick_geocode_name(modern or loc_text or loc.get("name") or ancient)
+        geo_name = parser_utils.pick_geocode_name(modern or loc_text or loc.get("name") or ancient)
         coord_candidates = [geo_name, modern, loc_text, loc.get("name") or "", ancient]
-        coord = parser_utils._extract_inline_coord_pair(loc_text) or fuzzy_coord_lookup(coords_cache, coord_candidates)
+        coord = parser_utils.extract_inline_coord_pair(loc_text) or fuzzy_coord_lookup(coords_cache, coord_candidates)
         if not coord:
             coord = loose_coord_lookup(coords_cache, coord_candidates)
         search_name = ""
         for candidate_key in [
             geo_name,
-            parser_utils._pick_geocode_name(modern) if modern else "",
-            parser_utils._pick_geocode_name(loc_text) if loc_text else "",
-            parser_utils._pick_geocode_name(loc.get("name") or "") if loc.get("name") else "",
+            parser_utils.pick_geocode_name(modern) if modern else "",
+            parser_utils.pick_geocode_name(loc_text) if loc_text else "",
+            parser_utils.pick_geocode_name(loc.get("name") or "") if loc.get("name") else "",
         ]:
             if candidate_key and candidate_key in coords_search_map:
                 search_name = coords_search_map[candidate_key]
@@ -395,17 +492,29 @@ def build_location_items(
                     year = int(match.group(1)) if match else None
                 except Exception:
                     year = None
-                coord = resolve_place_coord(
-                    candidate,
-                    year,
-                    ancient,
-                    modern,
-                    loc_text,
-                    loc.get("name") or "",
-                )
+                try:
+                    coord = resolve_place_coord(
+                        candidate,
+                        year,
+                        ancient,
+                        modern,
+                        loc_text,
+                        loc.get("name") or "",
+                    )
+                except Exception as exc:
+                    _LOGGER.warning(
+                        "resolve_place_coord failed (candidate=%r, year=%s, ancient=%r, modern=%r): %s",
+                        candidate, year, ancient, modern, exc,
+                    )
+                    coord = None
                 if coord:
                     break
         if not coord:
+            _LOGGER.warning(
+                "No coordinate for location '%s' (person=%s), skipped map marker",
+                loc.get("name") or loc.get("location") or "?",
+                person_name or fallback_person,
+            )
             continue
         works = extract_works(" ".join([loc.get("event", ""), loc.get("significance", "")]))
         quote_lines = split_quote_lines(loc.get("quotes", ""))

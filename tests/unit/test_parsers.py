@@ -1,13 +1,5 @@
-import sys
-
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.core import parsers
-
 
 def test_parse_story_document_collects_core_sections():
     md = """# 苏轼
@@ -66,7 +58,6 @@ def test_parse_story_document_collects_core_sections():
     assert "《念奴娇》" in parsed.exam_points
     assert parsed.historical_reviews == ["旷达豪放"]
 
-
 def test_normalize_markdown_tables_inserts_missing_separator():
     md = """## 四、生平时间线
 | 年份 | 现称 | 事件 |
@@ -78,7 +69,6 @@ def test_normalize_markdown_tables_inserts_missing_separator():
 
     assert lines[1] == "| 年份 | 现称 | 事件 |"
     assert lines[2] == "| --- | --- | --- |"
-
 
 def test_parse_story_document_prefers_timeline_table_over_coords_table():
     md = """# 人物甲
@@ -101,17 +91,14 @@ def test_parse_story_document_prefers_timeline_table_over_coords_table():
     assert parsed.timeline_header == ["年份", "阶段", "关键事件"]
     assert parsed.timeline_rows == [["1900", "出生", "生于甲地"]]
 
-
 def test_pick_geocode_name_collapses_foreign_admin_chain_to_city_leaf():
     assert parsers._pick_geocode_name("美国纽约州纽约市") == "纽约市"
     assert parsers._pick_geocode_name("纽约州纽约市") == "纽约市"
     assert parsers._pick_geocode_name("韩国庆尚北道庆州市") == "庆州市"
 
-
 def test_pick_geocode_name_keeps_plain_city_name():
     assert parsers._pick_geocode_name("纽约市") == "纽约市"
     assert parsers._pick_geocode_name("巴黎") == "巴黎"
-
 
 def test_parse_date_location_details_treats_alive_marker_as_no_death():
     date, loc, geocode_loc = parsers._parse_date_location_details("健在（截至2024年7月）", ["卒于", "去世于", "卒"])
@@ -119,7 +106,6 @@ def test_parse_date_location_details_treats_alive_marker_as_no_death():
     assert date == ""
     assert loc == ""
     assert geocode_loc == ""
-
 
 def test_parse_date_location_details_strips_parenthetical_native_place_from_birthplace():
     date, loc, geocode_loc = parsers._parse_date_location_details(
@@ -130,7 +116,6 @@ def test_parse_date_location_details_strips_parenthetical_native_place_from_birt
     assert date == "1957年"
     assert loc == "北京"
     assert geocode_loc == "北京"
-
 
 def test_extract_native_place_from_story_text_can_fallback_to_overview():
     md = """# 王安石
@@ -146,7 +131,6 @@ def test_extract_native_place_from_story_text_can_fallback_to_overview():
 """
 
     assert parsers._extract_native_place_from_story_text(md) == "抚州临川"
-
 
 def test_parse_date_location_details_drops_birthplace_when_birth_field_only_declares_native_place():
     date, loc, geocode_loc = parsers._parse_date_location_details(

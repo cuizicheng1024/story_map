@@ -4,14 +4,7 @@ import time
 import threading
 from pathlib import Path
 
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 from storymap.script.core import artifacts
-
 
 def test_active_story_map_dir_uses_artifact_directory(tmp_path, monkeypatch):
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -21,7 +14,6 @@ def test_active_story_map_dir_uses_artifact_directory(tmp_path, monkeypatch):
 
     assert artifacts._active_story_map_dir() == str(artifact_dir)
 
-
 def test_public_story_map_dirs_only_return_artifact_directory(tmp_path, monkeypatch):
     artifact_dir = tmp_path / "artifacts" / "story_map"
     artifact_dir.mkdir(parents=True)
@@ -29,7 +21,6 @@ def test_public_story_map_dirs_only_return_artifact_directory(tmp_path, monkeypa
     monkeypatch.setattr(artifacts, "_story_artifacts_dir", lambda: str(artifact_dir))
 
     assert artifacts._public_story_map_dirs() == [str(artifact_dir)]
-
 
 def test_save_outputs_sanitize_unsafe_names(tmp_path, monkeypatch):
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -44,7 +35,6 @@ def test_save_outputs_sanitize_unsafe_names(tmp_path, monkeypatch):
     assert Path(html_path).name == "苏轼_黄州.html"
     assert Path(geojson_path).name == "苏轼_黄州.geojson"
     assert Path(csv_path).name == "苏轼_黄州.csv"
-
 
 def test_update_home_coords_writes_wgs84_fields_and_coord_system(tmp_path, monkeypatch):
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -66,7 +56,6 @@ def test_update_home_coords_writes_wgs84_fields_and_coord_system(tmp_path, monke
     assert node["birth_lng_wgs84"] == 120.16
     assert node["birth_coord_system"] == "WGS84"
 
-
 def test_update_home_coords_invalidates_renderer_cache(tmp_path, monkeypatch):
     artifact_dir = tmp_path / "artifacts" / "story_map"
     artifact_dir.mkdir(parents=True)
@@ -82,7 +71,6 @@ def test_update_home_coords_invalidates_renderer_cache(tmp_path, monkeypatch):
     assert status == 200
     assert payload["ok"] is True
     assert invalidated == [True]
-
 
 def test_refresh_stellar_homepage_invalidates_renderer_cache_on_success(monkeypatch):
     invalidated = []
@@ -115,14 +103,13 @@ def test_refresh_stellar_homepage_invalidates_renderer_cache_on_success(monkeypa
         [sys.executable, "tools/build_work_summary_index.py"],
         [
             sys.executable,
-            "tools/build_stellar_homepage.py",
+            "tools/build/homepage/main.py",
             "--story-map-dir",
             "/tmp/story_map",
             "--story-md-dir",
             "/tmp/story",
         ],
     ]
-
 
 def test_refresh_stellar_homepage_passes_timeout_to_subprocess(monkeypatch):
     invalidated = []
@@ -152,7 +139,6 @@ def test_refresh_stellar_homepage_passes_timeout_to_subprocess(monkeypatch):
     assert timeouts == [33, 33, 33]
     assert invalidated == [True]
 
-
 def test_refresh_stellar_homepage_returns_timeout_result_without_invalidating_cache(monkeypatch):
     invalidated = []
     commands = []
@@ -178,7 +164,6 @@ def test_refresh_stellar_homepage_returns_timeout_result_without_invalidating_ca
     assert "slow stdout" in result["output"]
     assert invalidated == []
     assert commands == [[sys.executable, "tools/build_people_summary_index.py"]]
-
 
 def test_refresh_stellar_homepage_serializes_concurrent_calls(monkeypatch):
     entered = []

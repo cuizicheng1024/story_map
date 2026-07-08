@@ -4,9 +4,7 @@ import subprocess
 
 from tests_support import REPO_ROOT
 
-
 SCRIPT_PATH = REPO_ROOT / "scripts" / "quick_deploy_storymap.sh"
-
 
 def test_quick_deploy_script_refuses_builtin_default_target_for_volc():
     result = subprocess.run(
@@ -18,7 +16,6 @@ def test_quick_deploy_script_refuses_builtin_default_target_for_volc():
 
     assert result.returncode != 0
     assert "refusing to deploy to built-in default target" in result.stderr
-
 
 def test_quick_deploy_script_allows_explicit_target_for_volc(tmp_path):
     identity = tmp_path / "storymap-key.pem"
@@ -45,7 +42,6 @@ def test_quick_deploy_script_allows_explicit_target_for_volc(tmp_path):
 
     assert result.returncode == 0
     assert "[quick-deploy] done" in result.stdout
-
 
 def test_quick_deploy_script_supports_opendeploy_dry_run():
     result = subprocess.run(

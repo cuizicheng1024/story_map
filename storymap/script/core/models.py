@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 
-@dataclass(slots=True)
+@dataclass
 class BasicInfo:
     name: str = ""
     dynasty: str = ""
@@ -17,7 +17,7 @@ class BasicInfo:
     raw: Dict[str, str] = field(default_factory=dict)
 
 
-@dataclass(slots=True)
+@dataclass
 class LocationEntry:
     name: str = ""
     location_text: str = ""
@@ -41,7 +41,7 @@ class LocationEntry:
         }
 
 
-@dataclass(slots=True)
+@dataclass
 class ParsedStoryDocument:
     raw_markdown: str
     normalized_markdown: str

@@ -19,12 +19,9 @@ import json
 import logging
 import os
 import threading
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from typing import Dict, List, Tuple
 from urllib.request import Request, urlopen
 
 from ..core.env_utils import load_project_env
@@ -115,9 +112,7 @@ def portrait_cache_path(name: str) -> Path:
             if p.exists() and p.stat().st_size > 0:
                 return p
     # 兜底：使用传入 name 的 .png 路径（让调用方决定）
-    return portrait_dir() / _safe_filename(name) / _safe_filename(name) if False else (
-        (portrait_dir() / _safe_filename(name)).with_suffix(".png")
-    )
+    return (portrait_dir() / _safe_filename(name)).with_suffix(".png")
 
 
 # ---------------------------------------------------------------------------

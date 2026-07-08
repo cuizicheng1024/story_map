@@ -1,0 +1,39 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key
+
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        args: ["--line-length=100", "--target-version=py39"]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: ["--select=E,F,I", "--fix"]
+        files: ^(storymap/|cli/|tools/build/)
+
+  - repo: local
+    hooks:
+      - id: py-compile
+        name: Python syntax check (tools/build)
+        entry: bash -c 'for f in tools/build/agents/*.py tools/build/*.py; do python3 -m py_compile "$f" || exit 1; done'
+        language: system
+        files: ^tools/build/
+        pass_filenames: false

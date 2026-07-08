@@ -3,10 +3,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Any
 
-try:
-    from tools.homepage_search import normalize_search_text, pinyin_variants
-except Exception:
-    from homepage_search import normalize_search_text, pinyin_variants
+from tools.build.homepage_search import normalize_search_text, pinyin_variants
 from storymap.script.core import parsers as parser_utils
 from storymap.script.profile import builder as profile_builder
 from storymap.script.core.project_paths import data_corpus_output_path, story_person_names

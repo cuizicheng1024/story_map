@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Dict, Optional
 
 from .env_utils import apply_story_map_env_aliases, load_project_env
@@ -27,13 +28,28 @@ def _google_analytics_head_html() -> str:
     if not measurement_id:
         return ""
     quoted_id = json.dumps(measurement_id, ensure_ascii=False)
+    # 跨域 linker: 同一用户跨配置的多个域名时,GA 会视为同一 user
+    linker_raw = first_env("MAP_STORY_GA_LINKER_DOMAINS", "GA_LINKER_DOMAINS")
+    linker_cfg_js = ""
+    if linker_raw:
+        domains = [d.strip() for d in re.split(r"[,,，；;\s]+", linker_raw) if d.strip()]
+        if domains:
+            domains_json = json.dumps(domains, ensure_ascii=False)
+            linker_cfg_js = (
+                "gtag('config', "
+                + quoted_id
+                + ", { linker: { domains: "
+                + domains_json
+                + ", accept_incoming: true } });"
+            )
+    config_line = linker_cfg_js or f"gtag('config', {quoted_id});"
     return (
         f'<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>'
         "<script>"
         "window.dataLayer=window.dataLayer||[];"
         "function gtag(){dataLayer.push(arguments);}"
         "gtag('js', new Date());"
-        f"gtag('config', {quoted_id});"
+        + config_line +
         "</script>"
     )
 
@@ -149,7 +165,7 @@ def _volcengine_apm_head_html(
         "readable_pid:window.__storyMapApmPid,"
         "page_title:document.title,"
         "hostname:window.location.hostname"
-        "}})"
+        "})"
         "});"
         "</script>"
     )

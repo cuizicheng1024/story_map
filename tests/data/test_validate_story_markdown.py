@@ -1,13 +1,8 @@
 import importlib.util
 import sys
 
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 TOOLS_DIR = REPO_ROOT / "tools"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 
 def _load_validator_module():
     module_path = TOOLS_DIR / "validate_story_markdown.py"
@@ -17,7 +12,6 @@ def _load_validator_module():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
-
 
 def test_validator_accepts_unnumbered_required_sections(tmp_path):
     validator = _load_validator_module()
@@ -60,7 +54,6 @@ def test_validator_accepts_unnumbered_required_sections(tmp_path):
     result = validator.validate_markdown(file_path)
 
     assert not any("缺少必需章节" in msg for msg in result.errors)
-
 
 def test_validator_reports_low_offline_hit_rate(tmp_path):
     validator = _load_validator_module()
@@ -121,7 +114,6 @@ def test_validator_reports_low_offline_hit_rate(tmp_path):
     result = validator.validate_markdown(file_path)
 
     assert any("离线命中率过低" in msg for msg in result.errors)
-
 
 def test_validator_allows_exactly_half_of_precise_locations_to_resolve(tmp_path):
     validator = _load_validator_module()
@@ -184,7 +176,6 @@ def test_validator_allows_exactly_half_of_precise_locations_to_resolve(tmp_path)
     assert not any("离线命中率过低" in msg for msg in result.errors)
     assert any("地点解析存在落差" in msg for msg in result.warnings)
 
-
 def test_validator_accepts_extended_timeline_header_used_by_story_examples(tmp_path):
     validator = _load_validator_module()
     file_path = tmp_path / "人物丙.md"
@@ -226,7 +217,6 @@ def test_validator_accepts_extended_timeline_header_used_by_story_examples(tmp_p
     result = validator.validate_markdown(file_path)
 
     assert not any("生平时间线" in msg for msg in result.errors)
-
 
 def test_validator_rejects_vague_locations(tmp_path):
     validator = _load_validator_module()
@@ -276,7 +266,6 @@ def test_validator_rejects_vague_locations(tmp_path):
     result = validator.validate_markdown(file_path)
 
     assert any("存在泛地名" in msg for msg in result.errors)
-
 
 def test_validator_accepts_inline_coordinates_and_variant_coord_headers(tmp_path):
     validator = _load_validator_module()
@@ -336,7 +325,6 @@ def test_validator_accepts_inline_coordinates_and_variant_coord_headers(tmp_path
     assert not any("离线命中率过低" in msg for msg in result.errors)
     assert not any("离线坐标未命中" in msg for msg in result.warnings)
 
-
 def test_validator_allows_sparse_single_site_without_generic_count_warning(tmp_path):
     validator = _load_validator_module()
     file_path = tmp_path / "人物己.md"
@@ -371,7 +359,6 @@ def test_validator_allows_sparse_single_site_without_generic_count_warning(tmp_p
     result = validator.validate_markdown(file_path)
 
     assert not any("仅解析出 1 个地点" in msg for msg in result.warnings)
-
 
 def test_validator_skips_death_warning_for_living_people(tmp_path):
     validator = _load_validator_module()
@@ -427,7 +414,6 @@ def test_validator_skips_death_warning_for_living_people(tmp_path):
     result = validator.validate_markdown(file_path)
 
     assert "未解析出去世地" not in result.warnings
-
 
 def test_validator_skips_placeholder_birth_death_and_count_gap(tmp_path):
     validator = _load_validator_module()

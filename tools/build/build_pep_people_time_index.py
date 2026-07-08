@@ -107,6 +107,8 @@ def main() -> int:
         },
     }
     out_path = data_corpus_output_path("pep_people_time_index.json", project_root=repo_root)
+    if file_path.parent.name != "build":
+        out_path = repo_root / "data" / "pep_people_time_index.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(str(out_path))

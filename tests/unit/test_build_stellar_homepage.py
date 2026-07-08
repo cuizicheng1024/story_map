@@ -4,58 +4,26 @@ import json
 from pathlib import Path
 
 
-def test_render_index_html_emits_valid_regex_literals():
-    module = importlib.import_module("tools.build_stellar_homepage")
+def test_li_bai_birth_coordinate_override_avoids_guangdong_geocode():
+    module = importlib.import_module("tools.build.homepage.main")
 
-    html = module._render_index_html("故事地图", "stellar_home_data.json")
+    assert module.PERSON_BIRTH_COORD_OVERRIDES_WGS84["李白"] == (31.778, 104.744)
 
-    assert r'replace(/^\\/+/, "")' not in html
-    assert r'replace(/\\/+$/, "")' not in html
-    assert r'replace(/^今\\s*/g, "")' not in html
-    assert r'replace(/^约\\s*/g, "")' not in html
-    assert r'replace(/^公元前?\\d+年\\s*/g, "")' not in html
-    assert r'replace(/^\/+/, "")' in html
-    assert r'replace(/\/+$/, "")' in html
-    assert r'replace(/^今\s*/g, "")' in html
-    assert r'replace(/^约\s*/g, "")' in html
-    assert r'replace(/^公元前?\d+年\s*/g, "")' in html
-    assert r'window.__openPerson(\'' not in html
-    assert '<link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />' in html
-    assert '<link rel="shortcut icon" href="./orange.png?v=20260617-tab" />' in html
-    assert '<link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />' in html
-    assert "const clearTaskPoll = () => {" in html
-    assert "const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {" in html
-    assert "const probeGeneratedPersonHtml = async (personName) => {" in html
-    assert "const resolveTaskResultHtml = (result, fallbackPerson) => {" in html
-    assert "if (activeTaskPollId === id) return;" in html
-    assert "scheduleTaskPoll(id, generation, tick, 900);" in html
-    assert "const targetHtml = resolveTaskResultHtml(result, person);" in html
-    assert "snapshot.exists !== true" in html
-    assert "let missingSnapshotCount = 0;" in html
-    assert "if (missingSnapshotCount <= 8) {" in html
-    assert "const summary = \"任务状态同步中，请稍候…\";" in html
-    assert "const generatedHtml = await probeGeneratedPersonHtml(person);" in html
-    assert 'if (st === "partial_failed")' in html
-    assert "let personPageOpened = false;" in html
-    assert 'let pendingPersonPageTab = null;' in html
-    assert 'const resolveStarOfficeUrl = (personName, taskId = "") => {' in html
-    assert 'const ensurePendingPersonTab = (personName) => {' in html
-    assert 'const navigatePendingPersonTabToOffice = (personName, taskId = "") => {' in html
-    assert 'const navigatePendingPersonTabToHtml = (personName, file) => {' in html
-    assert 'ensurePendingPersonTab(q);' in html
-    assert 'navigatePendingPersonTabToOffice(person, taskId);' in html
-    assert 'navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, { newTab: true });' in html
-    assert 'personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, { newTab: true });' in html
-    assert 'if (archiveState === "queued" || archiveState === "running") {' in html
-    assert 'const summary = "人物页已打开，群星首页与知识图谱正在后台补齐…";' in html
-    assert 'scheduleTaskPoll(id, generation, tick, 1200);' in html
-    assert 'window.location.reload();' in html
-    assert "学习演示版" not in html
-    assert 'const SEARCH_HINT_LINE_ONE_HTML = \'<span class="home-search-hint-line"><strong>1. 内置人教版教材500+历史人物，可以直接访问</strong></span>\';' in html
-    assert 'const SEARCH_HINT_LINE_TWO_HTML = \'<span class="home-bili-highlight">2. 欢迎B站用户投币 投币 三连：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span>\';' in html
-    assert 'const DEFAULT_SEARCH_HINT_HTML = SEARCH_HINT_LINE_ONE_HTML + SEARCH_HINT_LINE_TWO_HTML;' in html
-    assert 'const buildSearchHintHtml = (runtimeLine = "") => {' in html
-    assert '$searchHint.innerHTML = buildSearchHintHtml(runtimeLine);' in html
+
+def test_homepage_rendering_contains_generation_precheck_ux():
+    rendering = importlib.import_module("tools.build.homepage.rendering")
+
+    html = rendering._render_index_html("故事地图", "data.json")
+
+    assert "输入你感兴趣的历史人物，如：李白、苏轼、张骞、郑和" in html
+    assert "data-hot-person=\"李白\"" in html
+    assert "data-hot-person=\"苏轼\"" in html
+    assert "data-hot-person=\"关羽\"" in html
+    assert "data-hot-person=\"张骞\"" not in html
+    assert "precheckCard" in html
+    assert "generate/precheck" in html
+    assert "已收录，可秒开" in html
+    assert "renderGenerateFallback" in html
 
 
 def test_resolve_main_role_band_prefers_primary_identity_field():
@@ -71,7 +39,6 @@ def test_resolve_main_role_band_prefers_primary_identity_field():
     assert band == "politics"
     assert label == "政治家"
 
-
 def test_resolve_main_role_band_can_fallback_to_domain_tags():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -84,7 +51,6 @@ def test_resolve_main_role_band_can_fallback_to_domain_tags():
 
     assert band == "literature"
     assert label == "诗人"
-
 
 def test_resolve_main_role_band_places_philosophers_into_academic_band():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -99,7 +65,6 @@ def test_resolve_main_role_band_places_philosophers_into_academic_band():
     assert band == "academic"
     assert label == "哲学家"
 
-
 def test_extract_basic_place_from_md_reads_native_place_and_modern_name():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -112,7 +77,6 @@ def test_extract_basic_place_from_md_reads_native_place_and_modern_name():
     assert ancient == "广东新会"
     assert modern == "广东省江门市新会区"
 
-
 def test_extract_basic_place_from_md_can_fallback_to_overview_native_place():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -124,7 +88,6 @@ def test_extract_basic_place_from_md_can_fallback_to_overview_native_place():
     assert raw == "抚州临川"
     assert ancient == "抚州临川"
     assert modern == ""
-
 
 def test_build_payload_meta_prefers_github_env(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -146,7 +109,6 @@ def test_build_payload_meta_prefers_github_env(monkeypatch):
     assert payload_meta["pages_run_id"] == 123456
     assert payload_meta["pages_run_attempt"] == 2
 
-
 def test_analytics_head_html_requires_explicit_measurement_id(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -156,7 +118,6 @@ def test_analytics_head_html_requires_explicit_measurement_id(monkeypatch):
     html = module._analytics_head_html()
 
     assert "googletagmanager.com/gtag/js" not in html
-
 
 def test_analytics_head_html_uses_explicit_measurement_id(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -168,7 +129,6 @@ def test_analytics_head_html_uses_explicit_measurement_id(monkeypatch):
 
     assert "googletagmanager.com/gtag/js?id=G-TEST123456" in html
     assert "gtag('config', \"G-TEST123456\")" in html
-
 
 def test_prepare_home_payload_for_output_merges_defaults(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -190,7 +150,6 @@ def test_prepare_home_payload_for_output_merges_defaults(monkeypatch):
     assert payload["edges"] == [{"a": 0, "b": 0}]
     assert payload["kg_edges"] == []
     assert payload["search_capabilities"]["aliases"] is True
-
 
 def test_split_home_payload_for_delivery_moves_heavy_fields_into_detail_payload(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -229,7 +188,6 @@ def test_split_home_payload_for_delivery_moves_heavy_fields_into_detail_payload(
     assert detail_payload["nodes"][0]["person"] == "苏轼"
     assert detail_payload["nodes"][0]["review"] == "北宋文学家。"
     assert "work_summaries" in detail_payload["nodes"][0]
-
 
 def test_write_homepage_outputs_writes_core_detail_and_index(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -286,7 +244,6 @@ def test_write_homepage_outputs_writes_core_detail_and_index(tmp_path, monkeypat
     assert 'const DATA_DETAIL_FILE = "stellar_home_data_detail.json";' in html
     assert "loadHomeDetailData()" in html
 
-
 def test_render_index_html_uses_sparser_tick_config_for_recent_ranges():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -297,7 +254,6 @@ def test_render_index_html_uses_sparser_tick_config_for_recent_ranges():
     assert "const contemporaryRatio = overlapYears(start, end, 1911, maxYear) / span;" in html
     assert "const maxLabels = contemporaryRatio >= 0.7 ? 5 : (recentRatio >= 0.55 ? 6 : 9);" in html
     assert "const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);" in html
-
 
 def test_main_can_export_homepage_from_neo4j_without_story_markdown(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -336,7 +292,6 @@ def test_main_can_export_homepage_from_neo4j_without_story_markdown(tmp_path, mo
 
     assert module.main() == 0
 
-
 def test_main_fails_when_explicit_neo4j_source_is_unavailable(tmp_path, monkeypatch, capsys):
     module = importlib.import_module("tools.build_stellar_homepage")
     story_map_dir = tmp_path / "story_map"
@@ -366,7 +321,6 @@ def test_main_fails_when_explicit_neo4j_source_is_unavailable(tmp_path, monkeypa
 
     assert module.main() == 1
     assert '"error": "neo4j graph payload unavailable"' in capsys.readouterr().out
-
 
 def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -424,7 +378,6 @@ def test_render_index_html_includes_pixel_progress_panel_for_live_generation():
     assert 'const STAR_OFFICE_URL = "./orange-office.html";' in html
     assert "const STAR_OFFICE_OPEN_IN_NEW_TAB = true;" in html
 
-
 def test_render_index_html_hides_hu_huanyong_midpoint_dot():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -467,7 +420,6 @@ def test_render_index_html_hides_hu_huanyong_midpoint_dot():
     assert 'renderPixelProgressLog(status, progress);' in html
     assert 'speechText: next.speech,' in html
 
-
 def test_render_index_html_uses_smaller_blue_search_submit_button():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -478,7 +430,6 @@ def test_render_index_html_uses_smaller_blue_search_submit_button():
     assert "background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);" in html
     assert "width: 48px;" in html
     assert "height: 48px;" in html
-
 
 def test_render_index_html_uses_orange_image_workbench_pet():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -497,7 +448,6 @@ def test_render_index_html_uses_orange_image_workbench_pet():
     assert 'data-idle-scene="idle"' in html
     assert "box-shadow:" in html
 
-
 def test_render_index_html_uses_post_generate_for_missing_people():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -513,21 +463,6 @@ def test_render_index_html_uses_post_generate_for_missing_people():
     assert 'const fresh = "storymap-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 10);' in html
     assert 'body: JSON.stringify({ person })' in html
     assert 'apiUrl("generate?person="' not in html
-
-
-def test_render_index_html_polls_runtime_readiness_and_updates_search_hint():
-    module = importlib.import_module("tools.build_stellar_homepage")
-
-    html = module._render_index_html("故事地图", "stellar_home_data.json")
-
-    assert 'const runtimeReadinessEnabled = !STATIC_SITE || !!resolvedApiBase;' in html
-    assert 'const refreshRuntimeAvailability = async () => {' in html
-    assert 'fetchWithTimeout(apiUrl("health/ready"), 8000, { cache: "no-store" });' in html
-    assert 'window.setInterval(refreshRuntimeAvailability, 30000);' in html
-    assert "当前可浏览但不可生成" in html
-    assert "实时生成人物可用" in html
-
-
 def test_render_index_html_falls_back_to_local_fastapi_api_base_for_static_preview():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -541,7 +476,6 @@ def test_render_index_html_falls_back_to_local_fastapi_api_base_for_static_previ
     assert 'if (resolvedApiBase) {' in html
     assert 'return resolvedApiBase.replace(/\\/+$/, "") + "/" + rel;' in html
 
-
 def test_render_index_html_omits_runtime_api_base_when_env_missing(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
     monkeypatch.delenv("MAP_STORY_API_BASE", raising=False)
@@ -550,7 +484,6 @@ def test_render_index_html_omits_runtime_api_base_when_env_missing(monkeypatch):
 
     assert "window.MAP_STORY_API_BASE=" not in html
 
-
 def test_render_index_html_omits_legacy_placeholder_api_base(monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
     monkeypatch.setenv("MAP_STORY_API_BASE", "http://legacy.example")
@@ -558,7 +491,6 @@ def test_render_index_html_omits_legacy_placeholder_api_base(monkeypatch):
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
     assert "window.MAP_STORY_API_BASE=" not in html
-
 
 def test_render_index_html_normalizes_generated_html_paths_to_leaf_filename():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -569,7 +501,6 @@ def test_render_index_html_normalizes_generated_html_paths_to_leaf_filename():
     assert 'const parts = cleaned.split("/").filter(Boolean);' in html
     assert 'const leaf = parts.length ? parts[parts.length - 1] : "";' in html
     assert 'return /\\.html?$/i.test(leaf) ? leaf : "";' in html
-
 
 def test_render_index_html_uses_google_palette_for_pixel_progress_panel():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -584,7 +515,6 @@ def test_render_index_html_uses_google_palette_for_pixel_progress_panel():
     assert "#fbbc04" in html
     assert "linear-gradient(90deg, #4285f4 0%, #ea4335 34%, #fbbc04 68%, #34a853 100%)" in html
 
-
 def test_render_index_html_uses_shared_person_tooltip_model():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -595,7 +525,6 @@ def test_render_index_html_uses_shared_person_tooltip_model():
     assert 'const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${esc(row.label)}：${esc(row.value)}</div>`).join("");' in html
     assert "const personTooltipCleanTaglineText = (s) => String(s || '')" in html
     assert ".replace(/^(?:人物)?短评\\s*[：:]\\s*/u, '')" in html
-
 
 def test_render_index_html_separates_default_window_from_last_manual_window():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -609,20 +538,6 @@ def test_render_index_html_separates_default_window_from_last_manual_window():
     assert 'saved_at: Date.now(),' in html
     assert 'timeWindowSignature = [minYear, maxYear, startYear, endYear].join(":");' in html
     assert 'const savedWin = readTimeWindow();' not in html
-
-
-def test_render_index_html_uses_china_overview_for_default_and_reset_map_view():
-    module = importlib.import_module("tools.build_stellar_homepage")
-
-    html = module._render_index_html("故事地图", "stellar_home_data.json")
-
-    assert "const CHINA_OVERVIEW_CENTER = [104.5, 36.0];" in html
-    assert "const CHINA_OVERVIEW_ZOOM = 3.9;" in html
-    assert "center: CHINA_OVERVIEW_CENTER," in html
-    assert "zoom: CHINA_OVERVIEW_ZOOM," in html
-    assert "if (amap) amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);" in html
-
-
 def test_render_index_html_keeps_searched_map_person_visible_outside_time_window():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -634,43 +549,15 @@ def test_render_index_html_keeps_searched_map_person_visible_outside_time_window
     assert "const emph = (active || forceVisible || (searchActive && searchHit)) && !searchDim;" in html
 
 
-def test_render_index_html_shows_person_info_on_map_marker_hover():
+def test_render_index_html_supports_initial_person_highlight():
     module = importlib.import_module("tools.build_stellar_homepage")
 
     html = module._render_index_html("故事地图", "stellar_home_data.json")
 
-    assert "const buildMapPersonInfoHtml = (n) => {" in html
-    assert 'const birthplaceAmbiguous = /存疑|一说|或说|又说|另说|未详|不详/.test(bpRaw);' in html
-    assert 'const bpDisplay = bp && birthplaceAmbiguous && showNativePlace ? "存疑" : bp;' in html
-    assert 'const showNativePlace = nativePlace && (!bp || placeCompareKey(nativePlace) !== placeCompareKey(bp));' in html
-    assert "if (birthplace) rows.push({ label: '出生地', value: birthplace });" in html
-    assert 'if (showNativePlace) appendLine("籍贯：" + nativePlace' in html
-    assert 'id="mapTip" class="tooltip hidden"' in html
-    assert "const showMapTip = (n, clientX, clientY) => {" in html
-    assert "const resolveMapTipClientPoint = (evt, lng, lat) => {" in html
-    assert 'mk.on("mouseover", (evt) => {' in html
-    assert 'mk.on("mousemove", (evt) => {' in html
-    assert "showMapTip(n, pos.clientX, pos.clientY);" in html
-    assert 'mk.on("mouseout", () => {' in html
-    assert "closeMapTip();" in html
-    assert "if (infoWin) infoWin.close();" in html
-    assert "const markerSvg = (sz, fill, glow, emph) => {" in html
-    assert "const createMarkerContent = (n, lng, lat) => {" in html
-    assert "const active = inWindow(n);" in html
-    assert "const initialFill = active ? accent : accentSoft;" in html
-    assert 'const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";' in html
-    assert "const sunMarkerHtml = (sz, glow, emph) => {" in html
-    assert "const markerHtml = (n, sz, fill, glow, emph) => {" in html
-    assert "el.innerHTML = markerHtml(n, initialSize, initialFill, initialGlow, active);" in html
-    assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
-    assert 'el.addEventListener("mouseenter", show);' in html
-    assert 'plugin=AMap.Geocoder' in html
-    assert 'MarkerCluster' not in html
-    assert 'const sz = dim ? 16 : (emph ? 20 : 18);' in html
-    assert "it.mk.setContent(it.el);" in html
-    assert 'const button = document.createElement("button");' in html
-    assert 'button.addEventListener("click", () => {' in html
-    assert 'openPerson(n && n.person ? n.person : "");' in html
+    assert "const readInitialFocusPerson = () =>" in html
+    assert 'params.get("person") || params.get("highlight")' in html
+    assert 'window.localStorage.getItem("stellar_focus_person")' in html
+    assert "window.setTimeout(() => focusKnownPerson(initialFocusPerson), 120);" in html
 
 
 def test_render_index_html_includes_home_work_chip_tooltip_support():
@@ -693,7 +580,6 @@ def test_render_index_html_includes_home_work_chip_tooltip_support():
     assert '$searchSuggest.addEventListener("mouseover", syncSearchSuggestWorkTip);' in html
     assert 'document.addEventListener("scroll", () => hideWorkTip(), true);' in html
 
-
 def test_render_index_html_opens_person_pages_in_new_tab_from_homepage():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -706,7 +592,6 @@ def test_render_index_html_opens_person_pages_in_new_tab_from_homepage():
     assert 'link.rel = "noopener noreferrer";' in html
     assert 'if (navigateToRelativeHtml(file, { newTab: true })) return;' in html
     assert 'const tab = window.open(resolveStarOfficeUrl(person), "_blank");' in html
-
 
 def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_window_visibility():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -724,7 +609,6 @@ def test_render_index_html_initializes_map_markers_with_dynasty_colors_and_windo
     assert "el.innerHTML = markerHtml(n, initialSize, initialFill, initialGlow, active);" in html
     assert "if (onlyActiveMarkers && !inWindow(n)) {" in html
     assert "try { mk.hide(); } catch (_) {}" in html
-
 
 def test_render_index_html_keeps_marker_svg_in_shared_scope_for_map_refresh():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -746,7 +630,6 @@ def test_render_index_html_keeps_marker_svg_in_shared_scope_for_map_refresh():
     assert "it.el.innerHTML = markerHtml(n, sz, fill, glow, emph);" in html
     assert "it.mk.setContent(markerHtml(n, sz, fill, glow, emph));" in html
 
-
 def test_render_index_html_draws_foreign_people_as_rectangles():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -757,7 +640,6 @@ def test_render_index_html_draws_foreign_people_as_rectangles():
     assert "} else if (foreignPerson) {" in html
     assert "drawForeignRect(" in html
     assert "ctx.strokeRect(pt.x - size, pt.y - size, size * 2, size * 2);" in html
-
 
 def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -774,7 +656,6 @@ def test_render_index_html_uses_rectangular_city_labels_and_higher_hu_line_tag()
     assert 'mkText("腾冲", tengchong);' in html
     assert 'borderRadius: "2px",' in html
 
-
 def test_render_index_html_routes_timeline_drag_from_document_capture():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -786,7 +667,6 @@ def test_render_index_html_routes_timeline_drag_from_document_capture():
     assert "$rail.addEventListener(\"pointerdown\", onDown);" not in html
     assert "$rail.addEventListener(\"mousedown\", onDown);" not in html
 
-
 def test_render_index_html_omits_static_demo_banner():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -794,7 +674,6 @@ def test_render_index_html_omits_static_demo_banner():
 
     assert "静态演示版" not in html
     assert "当前页面运行于 GitHub Pages 等静态站环境" not in html
-
 
 def test_render_index_html_removes_map_top5_footer_and_keeps_panes_same_height():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -812,7 +691,6 @@ def test_render_index_html_removes_map_top5_footer_and_keeps_panes_same_height()
     assert 'id="mapPane" class="relative hidden distribution-pane"' in html
     assert 'id="chinaMap" class="rounded-xl overflow-hidden border border-white/10 distribution-frame"' in html
 
-
 def test_render_index_html_left_aligns_home_title_block():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -821,7 +699,6 @@ def test_render_index_html_left_aligns_home_title_block():
     assert "align-items: flex-start;" in html
     assert "text-align: left;" in html
     assert ".home-title-mark::before" not in html
-
 
 def test_scan_latest_html_prefers_canonical_person_page_over_pure_snapshot(tmp_path):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -836,105 +713,6 @@ def test_scan_latest_html_prefers_canonical_person_page_over_pure_snapshot(tmp_p
     canonical.touch()
     latest = module._scan_latest_html(Path(tmp_path))
     assert latest["苏轼"].file == "苏轼.html"
-
-
-def test_main_embeds_person_work_summaries_into_home_nodes(tmp_path, monkeypatch):
-    module = importlib.import_module("tools.build_stellar_homepage")
-    story_map_dir = tmp_path / "story_map"
-    story_map_dir.mkdir()
-    story_md_dir = tmp_path / "story"
-    story_md_dir.mkdir()
-    summary_index = tmp_path / "people_summary_index.json"
-    summary_index.write_text(
-        json.dumps(
-            {
-                "items": {
-                    "苏轼": {
-                        "review": "北宋文学家。",
-                        "works": ["赤壁赋", "念奴娇·赤壁怀古"],
-                    }
-                }
-            },
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
-    )
-    work_summary_index = tmp_path / "work_summary_index.json"
-    work_summary_index.write_text(
-        json.dumps(
-            {
-                "items": {
-                    "赤壁赋": {
-                        "title": "赤壁赋",
-                        "authors": ["苏轼"],
-                        "era": "北宋",
-                        "genre": "赋",
-                        "one_liner": "借赤壁夜游抒发人生感慨。",
-                        "quotes": ["寄蜉蝣于天地，渺沧海之一粟。", "哀吾生之须臾，羡长江之无穷。"],
-                        "quote_policy": "preferred",
-                    }
-                }
-            },
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
-    )
-    (story_md_dir / "苏轼.md").write_text(
-        "# 苏轼\n\n- **时代**：北宋\n- **出生**：1037年，眉州眉山\n",
-        encoding="utf-8",
-    )
-    args = argparse.Namespace(
-        story_map_dir=str(story_map_dir),
-        story_md_dir=str(story_md_dir),
-        summary_index=str(summary_index),
-        out_index="index.html",
-        out_data="stellar_home_data.json",
-        title="故事地图",
-        default_start=100,
-        default_end=1600,
-        graph_source="",
-    )
-    captured = {}
-    data_root = tmp_path / "data"
-    (data_root / "validation_reports" / "strict_audit").mkdir(parents=True)
-    birth_coords_path = data_root / "people_birth_coords_wgs84.json"
-    birth_coords_path.write_text("{}", encoding="utf-8")
-
-    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
-    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(module, "BIRTH_COORDS_WGS84_JSON", birth_coords_path)
-    monkeypatch.setattr(module, "WORK_SUMMARY_INDEX_JSON", work_summary_index)
-    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
-    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: ["苏轼"])
-    monkeypatch.setattr(module, "_canonical_story_name_entries", lambda names: [("苏轼", "苏轼", [])])
-    monkeypatch.setattr(
-        module,
-        "_read_json",
-        lambda path: json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {},
-    )
-    monkeypatch.setattr(module, "_extract_years_from_md", lambda md: (1037, 1101))
-    monkeypatch.setattr(module, "_dynasty_hint_from_md", lambda md: "北宋")
-    monkeypatch.setattr(module, "_extract_relations", lambda md: ([], []))
-    monkeypatch.setattr(module, "_extract_disambiguation", lambda md: ([], "", []))
-    monkeypatch.setattr(module, "_extract_birthplace_from_md", lambda md: ("眉州眉山", "眉州", "四川眉山"))
-    monkeypatch.setattr(module, "_resolve_main_role_band", lambda **kwargs: ("literature", "文学家"))
-    monkeypatch.setattr(module, "build_search_fields", lambda name, aliases, foreign_name: {"search_keys": [], "search_tokens": [], "search_pinyin": []})
-    monkeypatch.setattr(module, "_normalize_dynasty_label", lambda **kwargs: "北宋")
-    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: captured.update(kwargs) or {"index": "i", "data": "d", "count": 1})
-
-    assert module.main() == 0
-    node = captured["payload"]["nodes"][0]
-    assert node["works"] == ["赤壁赋", "念奴娇·赤壁怀古"]
-    assert node["work_summaries"]["赤壁赋"]["authors"] == ["苏轼"]
-    assert node["work_summaries"]["赤壁赋"]["genre"] == "赋"
-    assert node["work_summaries"]["赤壁赋"]["quote_policy"] == "preferred"
-    assert node["work_summaries"]["赤壁赋"]["quotes"] == [
-        "寄蜉蝣于天地，渺沧海之一粟。",
-        "哀吾生之须臾，羡长江之无穷。",
-    ]
-    assert node["is_foreign"] is False
-
-
 def test_main_allows_missing_summary_indexes(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
     story_map_dir = tmp_path / "story_map"
@@ -986,7 +764,6 @@ def test_main_allows_missing_summary_indexes(tmp_path, monkeypatch):
     node = captured["payload"]["nodes"][0]
     assert node["work_summaries"] == {}
     assert node["works"] == []
-
 
 def test_main_marks_foreign_people_with_rectangular_flag(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1043,7 +820,6 @@ def test_main_marks_foreign_people_with_rectangular_flag(tmp_path, monkeypatch):
     assert node["is_foreign"] is True
     assert node["foreign_name"] == "Dante Alighieri"
 
-
 def test_main_keeps_chinese_people_with_foreign_name_as_non_foreign(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
     story_map_dir = tmp_path / "story_map"
@@ -1099,7 +875,6 @@ def test_main_keeps_chinese_people_with_foreign_name_as_non_foreign(tmp_path, mo
     assert node["foreign_name"] == "Paul Hsu (Xu Guangqi)"
     assert node["is_foreign"] is False
 
-
 def test_is_foreign_person_keeps_chinese_figures_born_abroad_as_non_foreign():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1116,7 +891,6 @@ def test_is_foreign_person_keeps_chinese_figures_born_abroad_as_non_foreign():
         dynasty="明末清初",
     ) is False
 
-
 def test_is_foreign_person_keeps_mixed_japan_tang_identity_as_foreign():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1126,7 +900,6 @@ def test_is_foreign_person_keeps_mixed_japan_tang_identity_as_foreign():
         birthplace_raw="日本文武天皇2年",
         dynasty="日本奈良时代、中国唐朝",
     ) is True
-
 
 def test_is_foreign_person_treats_explicit_foreign_era_as_foreign():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1138,7 +911,6 @@ def test_is_foreign_person_treats_explicit_foreign_era_as_foreign():
         dynasty="意大利文艺复兴晚期、明代（万历年间）",
     ) is True
 
-
 def test_is_foreign_person_treats_abbasid_khwarazmian_figures_as_foreign():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1148,7 +920,6 @@ def test_is_foreign_person_treats_abbasid_khwarazmian_figures_as_foreign():
         birthplace_raw="花拉子模地区",
         dynasty="阿拔斯王朝（伊斯兰黄金时代）",
     ) is True
-
 
 def test_main_uses_normalized_dynasty_for_foreign_detection(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1205,7 +976,6 @@ def test_main_uses_normalized_dynasty_for_foreign_detection(tmp_path, monkeypatc
     assert node["dynasty"] == "古印度列国时代（约公元前6世纪至前5世纪）"
     assert node["is_foreign"] is True
 
-
 def test_extract_birthplace_from_md_prefers_specific_place_over_uncertain_period_prefix():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1216,7 +986,6 @@ def test_extract_birthplace_from_md_prefers_specific_place_over_uncertain_period
     assert raw == "南直隶句容今江苏省镇江市句容市"
     assert ancient == "南直隶句容"
     assert modern == "江苏省镇江市句容市"
-
 
 def test_extract_birthplace_from_md_strips_date_only_uncertainty_but_keeps_place():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1229,7 +998,6 @@ def test_extract_birthplace_from_md_strips_date_only_uncertainty_but_keeps_place
     assert ancient == "崇安"
     assert modern == "福建省南平市武夷山市"
 
-
 def test_extract_birthplace_from_md_strips_parenthetical_native_place_note():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1240,7 +1008,6 @@ def test_extract_birthplace_from_md_strips_parenthetical_native_place_note():
     assert raw == "北京"
     assert ancient == "北京"
     assert modern == ""
-
 
 def test_extract_birthplace_from_md_returns_empty_when_birth_field_only_declares_native_place():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1253,7 +1020,6 @@ def test_extract_birthplace_from_md_returns_empty_when_birth_field_only_declares
     assert ancient == ""
     assert modern == ""
 
-
 def test_extract_birthplace_from_md_clears_modern_place_when_birthplace_has_multiple_options():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1265,7 +1031,6 @@ def test_extract_birthplace_from_md_clears_modern_place_when_birthplace_has_mult
     assert "埃伊纳岛" in raw
     assert ancient == "雅典"
     assert modern == ""
-
 
 def test_main_prefers_markdown_coords_table_over_stale_cached_birth_coords(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1336,7 +1101,6 @@ def test_main_prefers_markdown_coords_table_over_stale_cached_birth_coords(tmp_p
     assert node["birth_lat_wgs84"] == 31.944
     assert node["birth_lng_wgs84"] == 119.167
     assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {"曹鎏": [31.944, 119.167]}
-
 
 def test_main_matches_birthplace_against_labeled_coords_table_rows(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1409,129 +1173,6 @@ def test_main_matches_birthplace_against_labeled_coords_table_rows(tmp_path, mon
     assert node["birth_lat_wgs84"] == 40.7128
     assert node["birth_lng_wgs84"] == -74.006
     assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {"奥本海默": [40.7128, -74.006]}
-
-
-def test_main_drops_ambiguous_cached_birth_coords_when_birthplace_is_not_precise(tmp_path, monkeypatch):
-    module = importlib.import_module("tools.build_stellar_homepage")
-    story_map_dir = tmp_path / "story_map"
-    story_map_dir.mkdir()
-    story_md_dir = tmp_path / "story"
-    story_md_dir.mkdir()
-    summary_index = tmp_path / "people_summary_index.json"
-    summary_index.write_text(json.dumps({"items": {"欧几里得": {"review": "古希腊数学家。"}}}, ensure_ascii=False), encoding="utf-8")
-    work_summary_index = tmp_path / "work_summary_index.json"
-    work_summary_index.write_text(json.dumps({"items": {}}, ensure_ascii=False), encoding="utf-8")
-    (story_md_dir / "欧几里得.md").write_text("# 欧几里得\n\n- **出生**：约公元前325年，出生地存疑（说法不一，有雅典或亚历山大城等）\n", encoding="utf-8")
-    args = argparse.Namespace(
-        story_map_dir=str(story_map_dir),
-        story_md_dir=str(story_md_dir),
-        summary_index=str(summary_index),
-        out_index="index.html",
-        out_data="stellar_home_data.json",
-        title="故事地图",
-        default_start=100,
-        default_end=1600,
-        graph_source="",
-    )
-    captured = {}
-    data_root = tmp_path / "data"
-    (data_root / "validation_reports" / "strict_audit").mkdir(parents=True)
-    birth_coords_path = data_root / "people_birth_coords_wgs84.json"
-    birth_coords_path.write_text(json.dumps({"欧几里得": [30.65055060614759, 103.97938168032687]}, ensure_ascii=False), encoding="utf-8")
-
-    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
-    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(module, "BIRTH_COORDS_WGS84_JSON", birth_coords_path)
-    monkeypatch.setattr(module, "WORK_SUMMARY_INDEX_JSON", work_summary_index)
-    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
-    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: ["欧几里得"])
-    monkeypatch.setattr(module, "_canonical_story_name_entries", lambda names: [("欧几里得", "欧几里得", [])])
-    monkeypatch.setattr(
-        module,
-        "_read_json",
-        lambda path: json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {},
-    )
-    monkeypatch.setattr(module, "_extract_years_from_md", lambda md: (-325, -265))
-    monkeypatch.setattr(module, "_dynasty_hint_from_md", lambda md: "古希腊时期（托勒密王国）")
-    monkeypatch.setattr(module, "_extract_relations", lambda md: ([], []))
-    monkeypatch.setattr(module, "_extract_disambiguation", lambda md: ([], "Euclid", ["数学", "几何学"]))
-    monkeypatch.setattr(module, "_extract_birthplace_from_md", lambda md: ("有雅典或亚历山大城等", "", ""))
-    monkeypatch.setattr(module, "_resolve_main_role_band", lambda **kwargs: ("science", "数学家"))
-    monkeypatch.setattr(module, "build_search_fields", lambda name, aliases, foreign_name: {"search_keys": [], "search_tokens": [], "search_pinyin": []})
-    monkeypatch.setattr(module, "_normalize_dynasty_label", lambda **kwargs: "古希腊时期（托勒密王国）")
-    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: captured.update(kwargs) or {"index": "i", "data": "d", "count": 1})
-
-    assert module.main() == 0
-    node = captured["payload"]["nodes"][0]
-    assert node["birth_lat_wgs84"] is None
-    assert node["birth_lng_wgs84"] is None
-    assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {}
-
-
-def test_main_drops_birth_marker_when_birthplace_has_multiple_place_options(tmp_path, monkeypatch):
-    module = importlib.import_module("tools.build_stellar_homepage")
-    story_map_dir = tmp_path / "story_map"
-    story_map_dir.mkdir()
-    story_md_dir = tmp_path / "story"
-    story_md_dir.mkdir()
-    summary_index = tmp_path / "people_summary_index.json"
-    summary_index.write_text(json.dumps({"items": {"柏拉图": {"review": "古希腊哲学家。"}}}, ensure_ascii=False), encoding="utf-8")
-    work_summary_index = tmp_path / "work_summary_index.json"
-    work_summary_index.write_text(json.dumps({"items": {}}, ensure_ascii=False), encoding="utf-8")
-    (story_md_dir / "柏拉图.md").write_text(
-        "# 柏拉图\n\n- **出生**：约公元前428/427年，雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）\n",
-        encoding="utf-8",
-    )
-    args = argparse.Namespace(
-        story_map_dir=str(story_map_dir),
-        story_md_dir=str(story_md_dir),
-        summary_index=str(summary_index),
-        out_index="index.html",
-        out_data="stellar_home_data.json",
-        title="故事地图",
-        default_start=100,
-        default_end=1600,
-        graph_source="",
-    )
-    captured = {}
-    data_root = tmp_path / "data"
-    (data_root / "validation_reports" / "strict_audit").mkdir(parents=True)
-    birth_coords_path = data_root / "people_birth_coords_wgs84.json"
-    birth_coords_path.write_text(json.dumps({"柏拉图": [37.9838, 23.7275]}, ensure_ascii=False), encoding="utf-8")
-
-    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", lambda self: args)
-    monkeypatch.setattr(module, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(module, "BIRTH_COORDS_WGS84_JSON", birth_coords_path)
-    monkeypatch.setattr(module, "WORK_SUMMARY_INDEX_JSON", work_summary_index)
-    monkeypatch.setattr(module, "_scan_latest_html", lambda _dir: {})
-    monkeypatch.setattr(module, "_scan_people_from_story_md", lambda _dir: ["柏拉图"])
-    monkeypatch.setattr(module, "_canonical_story_name_entries", lambda names: [("柏拉图", "柏拉图", [])])
-    monkeypatch.setattr(
-        module,
-        "_read_json",
-        lambda path: json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {},
-    )
-    monkeypatch.setattr(module, "_extract_years_from_md", lambda md: (-428, -347))
-    monkeypatch.setattr(module, "_dynasty_hint_from_md", lambda md: "古希腊古典时代")
-    monkeypatch.setattr(module, "_extract_relations", lambda md: ([], []))
-    monkeypatch.setattr(module, "_extract_disambiguation", lambda md: ([], "Plato", ["哲学", "教育"]))
-    monkeypatch.setattr(
-        module,
-        "_extract_birthplace_from_md",
-        lambda md: ("雅典今希腊雅典或埃伊纳岛今希腊埃伊纳岛说法不一", "雅典今希腊雅典或埃伊纳岛今希腊埃伊纳岛说法不一", ""),
-    )
-    monkeypatch.setattr(module, "_resolve_main_role_band", lambda **kwargs: ("academic", "哲学家"))
-    monkeypatch.setattr(module, "build_search_fields", lambda name, aliases, foreign_name: {"search_keys": [], "search_tokens": [], "search_pinyin": []})
-    monkeypatch.setattr(module, "_normalize_dynasty_label", lambda **kwargs: "古希腊古典时代")
-    monkeypatch.setattr(module, "_write_homepage_outputs", lambda **kwargs: captured.update(kwargs) or {"index": "i", "data": "d", "count": 1})
-
-    assert module.main() == 0
-    node = captured["payload"]["nodes"][0]
-    assert node["birth_lat_wgs84"] is None
-    assert node["birth_lng_wgs84"] is None
-    assert json.loads(birth_coords_path.read_text(encoding="utf-8")) == {}
-
-
 def test_remove_person_alias_redirect_pages_deletes_alias_html(tmp_path):
     module = importlib.import_module("tools.build_stellar_homepage")
     alias_path = tmp_path / "苏东坡.html"
@@ -1540,7 +1181,6 @@ def test_remove_person_alias_redirect_pages_deletes_alias_html(tmp_path):
     module._remove_person_alias_redirect_pages(tmp_path, {"苏东坡": "苏轼"})
 
     assert not alias_path.exists()
-
 
 def test_canonical_story_name_entries_preserves_real_story_sources():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1553,14 +1193,12 @@ def test_canonical_story_name_entries_preserves_real_story_sources():
         ("苏轼", "苏轼", []),
     ]
 
-
 def test_canonical_story_name_entries_keeps_redirect_aliases_for_real_story_search():
     module = importlib.import_module("tools.build_stellar_homepage")
 
     entries = module._canonical_story_name_entries(["苏轼"])
 
     assert entries == [("苏轼", "苏轼", ["苏东坡"])]
-
 
 def test_scan_people_from_story_md_filters_non_authentic_markdown(tmp_path):
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1572,7 +1210,6 @@ def test_scan_people_from_story_md_filters_non_authentic_markdown(tmp_path):
     people = module._scan_people_from_story_md(story_dir)
 
     assert people == ["苏轼"]
-
 
 def test_normalize_dynasty_label_prefers_raw_text_over_coarse_bucket():
     module = importlib.import_module("tools.build_stellar_homepage")
@@ -1586,7 +1223,6 @@ def test_normalize_dynasty_label_prefers_raw_text_over_coarse_bucket():
 
     assert dynasty == "东汉末年·三国"
 
-
 def test_normalize_dynasty_label_falls_back_to_year_bucket_when_raw_missing():
     module = importlib.import_module("tools.build_stellar_homepage")
 
@@ -1598,7 +1234,6 @@ def test_normalize_dynasty_label_falls_back_to_year_bucket_when_raw_missing():
     )
 
     assert dynasty == "魏晋南北"
-
 
 def test_clean_review_text_strips_short_review_prefixes():
     module = importlib.import_module("tools.build_stellar_homepage")

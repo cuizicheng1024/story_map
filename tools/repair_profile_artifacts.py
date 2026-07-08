@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import sys as _sys
-from pathlib import Path as _Path
 
-if __package__ in {None, ""}:
-    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
+import tools._bootstrap  # noqa: F401
 
 from tools.debug.repair_profile_artifacts import *  # noqa: F401,F403
 from tools.debug import repair_profile_artifacts as _impl

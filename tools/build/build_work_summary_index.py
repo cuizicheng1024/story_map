@@ -3,10 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-try:
-    from tools.homepage_search import normalize_search_text, pinyin_variants
-except Exception:
-    from homepage_search import normalize_search_text, pinyin_variants
+from tools.build.homepage_search import normalize_search_text, pinyin_variants
 
 from storymap.script.core import parsers as parser_utils
 from storymap.script.profile import builder as profile_builder
@@ -319,6 +316,94 @@ _CURATED_WORK_SUMMARY_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "quotes": [],
         "quote_policy": "summary_only",
     },
+    # --- 四大名著 canonical overrides ---
+    # 其它人物的传记/讲读笔记里常会作为"对比参照"提到这些书，
+    # 之前会被 _infer_authors 错误识别为"该人物著有该书"，造成
+    # tooltip 的作者/朝代/概要都被污染。这里锁死权威字段。
+    "三国演义": {
+        "authors": ["罗贯中"],
+        "era": "元末明初",
+        "genre": "章回体小说",
+        "one_liner": "中国古典四大名著之一，罗贯中在元末明初据三国史实与民间传说整理创作的长篇章回体小说。",
+        "summary": "全书以东汉末年魏、蜀、吴三国鼎立为背景，自黄巾起义、群雄逐鹿，至晋灭东吴约百余年间的政治军事与社会风貌，后世据此衍生出大量历史、戏剧、影视题材。",
+        "related_people": [
+            "刘备", "关羽", "张飞", "诸葛亮", "曹操", "孙权", "周瑜", "赵云", "马超", "黄忠",
+            "吕布", "貂蝉", "司马懿", "司马炎", "孙坚", "孙策", "孙尚香", "鲁肃", "庞统", "姜维",
+            "邓艾", "钟会", "华佗", "汉献帝", "曹丕", "曹植", "袁绍", "刘表", "刘璋", "孟获",
+        ],
+        "quotes": [
+            "话说天下大势，分久必合，合久必分。",
+            "天下英雄，唯使君与操耳。",
+            "既生瑜，何生亮！",
+        ],
+        "quote_policy": "preferred",
+    },
+    "水浒传": {
+        "authors": ["施耐庵"],
+        "era": "元末明初",
+        "genre": "章回体小说",
+        "one_liner": "中国古典四大名著之一，以北宋末年宋江等一百零八位好汉聚义梁山为题材的长篇章回体小说。",
+        "summary": "全书以北宋宣和年间“官逼民反”为背景，塑造梁山泊一百零八将的故事，反映了底层民众在贪腐吏治下的反抗与悲剧命运。",
+        "related_people": [
+            "宋江", "卢俊义", "吴用", "公孙胜", "关胜", "林冲", "秦明", "呼延灼", "花荣", "柴进",
+            "李应", "朱仝", "鲁智深", "武松", "董平", "张清", "杨志", "徐宁", "索超", "戴宗",
+            "宋清", "李逵", "史进", "穆弘", "雷横", "李俊", "阮小二", "阮小五", "阮小七", "张横",
+            "晁盖", "高俅",
+        ],
+        "quotes": [
+            "逼上梁山。",
+            "大碗喝酒，大块吃肉，论秤分金银。",
+            "四海之内，皆兄弟也。",
+        ],
+        "quote_policy": "preferred",
+    },
+    "西游记": {
+        "authors": ["吴承恩"],
+        "era": "明代",
+        "genre": "章回体小说",
+        "one_liner": "中国古典四大名著之一，吴承恩在明代据玄奘西行传说与佛教故事整理创作的长篇神魔小说。",
+        "summary": "全书以唐僧师徒四人西天取经为主线，融神话、寓言、志怪于一体，是神魔小说的代表作，对后世神魔、武侠题材影响深远。",
+        "related_people": [
+            "唐僧", "孙悟空", "猪八戒", "沙僧", "白龙马", "如来佛祖", "观音菩萨", "菩提祖师", "太上老君", "玉皇大帝",
+            "王母娘娘", "哪吒", "二郎神", "牛魔王", "铁扇公主", "红孩儿", "白骨精", "女儿国国王", "车迟国王", "比丘国王",
+            "李世民", "魏征", "玄奘",
+        ],
+        "quotes": [
+            "敢问路在何方？路在脚下。",
+            "俺老孙来也。",
+            "吃得苦中苦，方为人上人。",
+        ],
+        "quote_policy": "preferred",
+    },
+    "红楼梦": {
+        "authors": ["曹雪芹"],
+        "era": "清代",
+        "genre": "章回体小说",
+        "one_liner": "中国古典四大名著之一，曹雪芹创作的章回体长篇小说，原名《石头记》，是中国古典小说写实主义的高峰。",
+        "summary": "以贾、史、王、薛四大家族由盛而衰为线索，塑造贾宝玉、林黛玉、薛宝钗等经典形象，深刻反映封建社会末期的家族兴亡与人情世态。后四十回一般认为是高鹗续作。",
+        "related_people": [
+            "曹雪芹", "高鹗", "程伟元", "脂砚斋", "贾宝玉", "林黛玉", "薛宝钗", "王熙凤", "贾母", "贾政",
+            "王夫人", "探春", "惜春", "迎春", "史湘云", "妙玉", "刘姥姥", "晴雯", "袭人", "香菱",
+            "平儿", "鸳鸯", "紫鹃", "李纨", "尤氏", "秦可卿",
+        ],
+        "quotes": [
+            "满纸荒唐言，一把辛酸泪。都道是作者痴，谁解其中味？",
+            "女儿是水做的骨肉，男人是泥做的骨肉。",
+            "假作真时真亦假，无为有处有还无。",
+        ],
+        "quote_policy": "preferred",
+    },
+    "石头记": {
+        "aliases": ["红楼梦"],
+        "authors": ["曹雪芹"],
+        "era": "清代",
+        "genre": "章回体小说",
+        "one_liner": "《红楼梦》在流传过程中使用的原名 / 早期抄本名称，与《红楼梦》实为同一作品。",
+        "summary": "《石头记》是《红楼梦》早期的书名与抄本系统名称，程伟元、高鹗整理出版时定名为《红楼梦》，今存前八十回一般认为是曹雪芹所作。",
+        "related_people": ["曹雪芹", "脂砚斋", "高鹗", "程伟元"],
+        "quotes": [],
+        "quote_policy": "summary_only",
+    },
 }
 _CURATED_PERSON_WORKS: Dict[str, Tuple[str, ...]] = {
     "苏轼": (
@@ -474,11 +559,31 @@ def _find_title_lines(md: str, title: str) -> List[str]:
     return lines
 
 
+def _line_lists_multiple_works(line: str, target_title: str) -> bool:
+    """Return True when a line mentions multiple 《》 titles — typically a
+    comparison / contrast pattern where authoring verbs describe the works
+    themselves (e.g. "三国演义/水浒传/西游记为世代累积型集体创作") rather than
+    the current person authoring a specific work.
+    """
+    clean = str(line or "")
+    if not clean:
+        return False
+    titles = re.findall(r"《([^》]+)》", clean)
+    if len(titles) <= 1:
+        return False
+    return True
+
+
 def _infer_authors(person: str, title: str, md: str) -> List[str]:
     authors: List[str] = []
     title_lines = _find_title_lines(md, title)
     for line in title_lines:
         if _NON_AUTHORING_HINT_RE.search(line):
+            continue
+        if _line_lists_multiple_works(line, title):
+            # Skip lines that mention multiple titles — authorship verbs there
+            # (e.g. "集体创作", "世代累积") describe the works collectively and
+            # would otherwise mis-attribute the work to the current person.
             continue
         if _AUTHORING_HINT_RE.search(line):
             authors.append(person)
@@ -643,10 +748,18 @@ def _apply_curated_work_summary_override(entry: Dict[str, Any]) -> Dict[str, Any
     override = _CURATED_WORK_SUMMARY_OVERRIDES.get(clean_title)
     if not override:
         return out
-    for key in ("genre", "one_liner", "summary"):
+    # Text fields: only override when the curated value is non-empty.
+    for key in ("genre", "one_liner", "summary", "era"):
         value = str(override.get(key) or "").strip()
         if value:
             out[key] = value
+    # Authors / related_people / source_pages: when curated lists are present,
+    # they take priority over auto-inferred entries (which can be polluted by
+    # other people's markdowns that merely mention the work in comparison).
+    for list_key in ("authors", "related_people", "source_pages", "aliases"):
+        curated_list = override.get(list_key)
+        if isinstance(curated_list, (list, tuple)) and curated_list:
+            out[list_key] = _uniq_preserve_order([str(x).strip() for x in curated_list if str(x).strip()])
     override_quotes = [
         _normalize_quote_text(item, limit=96)
         for item in override.get("quotes") or []
@@ -805,12 +918,40 @@ def main() -> int:
             merged = _merge_work_entry(existing or {}, entry) if existing else entry
             items[clean_title] = _apply_curated_work_summary_override(merged)
 
+    # 合并 LLM 预生成的优质摘要（避免被 Markdown 提取的 intro_line 回退覆盖）
+    # LLM 数据质量更高，有 authors 时强制覆盖 one_liner/summary
+    llm_path = data_corpus_output_path("work_summary_llm.json", project_root=repo_root)
+    if llm_path.exists():
+        try:
+            llm_data = json.loads(llm_path.read_text(encoding="utf-8"))
+            llm_items = llm_data if isinstance(llm_data, dict) and "items" not in llm_data else llm_data.get("items", {})
+            llm_merged = 0
+            for title, llm_entry in llm_items.items():
+                if not isinstance(llm_entry, dict):
+                    continue
+                existing = items.get(title)
+                merged = _merge_work_entry(existing or {}, llm_entry) if existing else dict(llm_entry)
+                # 如果 LLM 有 authors，强制用 LLM 的 one_liner/summary
+                # （Markdown 回退的 intro_line 质量差，评分虚高但内容错误）
+                if isinstance(llm_entry.get("authors"), list) and llm_entry["authors"]:
+                    for key in ("one_liner", "summary", "genre"):
+                        val = str(llm_entry.get(key) or "").strip()
+                        if val:
+                            merged[key] = val
+                items[title] = merged
+                llm_merged += 1
+            print(f"[LLM merge] 合并 {llm_merged} 条 LLM 摘要到索引", flush=True)
+        except Exception as e:
+            print(f"[LLM merge] 读取 LLM 数据失败: {e}", flush=True)
+
     ordered_items = {
         title: _apply_curated_work_summary_override(items[title])
         for title in sorted(items.keys(), key=_work_sort_key)
     }
     payload = {"items": ordered_items, "meta": {"count": len(ordered_items)}}
     path = data_corpus_output_path(SUMMARY_INDEX_FILENAME, project_root=repo_root)
+    if file_path.parent.name != "build":
+        path = repo_root / "data" / SUMMARY_INDEX_FILENAME
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(str(path))

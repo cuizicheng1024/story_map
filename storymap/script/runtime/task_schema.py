@@ -54,12 +54,18 @@ class TaskFileEntry(TypedDict, total=False):
     html: str
     geojson: str
     csv: str
+    public_html: str
+    public_geojson: str
+    public_csv: str
 
 
 class TaskMultiEntry(TypedDict, total=False):
     html: str
     geojson: str
     csv: str
+    public_html: str
+    public_geojson: str
+    public_csv: str
 
 
 class TaskArchiveState(TypedDict, total=False):
@@ -99,6 +105,14 @@ class TaskProgressEvent(TypedDict, total=False):
     detail: str
 
 
+class TaskAgentStatus(TypedDict, total=False):
+    agent: str
+    label: str
+    status: str
+    detail: str
+    order: int
+
+
 class TaskQueueState(TypedDict, total=False):
     position: int
     limit: int
@@ -117,6 +131,7 @@ class TaskSnapshot(TypedDict, total=False):
     created_at: float
     updated_at: float
     progress: List[TaskProgressEvent]
+    agent_status: List[TaskAgentStatus]
     result: Optional[TaskResultSummary]
     error: str
     queue: TaskQueueState
@@ -514,6 +529,57 @@ def normalize_task_result_summary(source: object) -> TaskResultSummary:
     return summary
 
 
+_AGENT_STATUS_FLOW = [
+    ("search", "Search", "识别人物/查找资料", ("理解任务", "识别任务对象", "真实性过滤", "模型调用", "档案", "命中")),
+    ("geocode", "Geocode", "定位地点", ("地图", "坐标", "地点", "地名", "足迹")),
+    ("editor", "Editor", "整理故事", ("生成", "写作", "Markdown", "人物页", "合并视图")),
+    ("critic", "Critic", "质量检查", ("校验", "验证", "审阅", "质量", "输出结论")),
+    ("deliver", "Deliver", "生成页面", ("完成", "后台归档", "发布", "同步", "首页", "知识图谱")),
+]
+
+
+def _build_agent_status(progress: object, task_status: str) -> List[TaskAgentStatus]:
+    events = [dict(item) for item in list(progress or []) if isinstance(item, dict)]
+    status = str(task_status or "").strip()
+    matched_index = -1
+    latest_detail_by_index: Dict[int, str] = {}
+    for event in events:
+        text = f"{event.get('label') or ''} {event.get('detail') or ''}"
+        detail = str(event.get("detail") or event.get("label") or "").strip()
+        for idx, (_agent, _name, _label, markers) in enumerate(_AGENT_STATUS_FLOW):
+            if any(marker in text for marker in markers):
+                matched_index = max(matched_index, idx)
+                if detail:
+                    latest_detail_by_index[idx] = detail
+
+    if status == "queued":
+        matched_index = max(matched_index, 0)
+    elif status == "running":
+        matched_index = max(matched_index, 0)
+    elif status == "completed":
+        matched_index = len(_AGENT_STATUS_FLOW) - 1
+    elif status in {"failed", "partial_failed", "cancelled", "timed_out", "interrupted"}:
+        matched_index = max(matched_index, 0)
+
+    agent_status: List[TaskAgentStatus] = []
+    terminal_failed = status in {"failed", "partial_failed", "cancelled", "timed_out", "interrupted"}
+    for idx, (agent, name, label, _markers) in enumerate(_AGENT_STATUS_FLOW):
+        if status == "completed" or idx < matched_index:
+            item_status = "completed"
+        elif idx == matched_index:
+            item_status = "failed" if terminal_failed else ("running" if status in {"running", "queued"} else "pending")
+        else:
+            item_status = "pending"
+        agent_status.append({
+            "agent": agent,
+            "label": label,
+            "status": item_status,
+            "detail": latest_detail_by_index.get(idx, ""),
+            "order": idx + 1,
+        })
+    return agent_status
+
+
 def build_task_snapshot(task: object, *, debug: Optional[Dict[str, object]] = None) -> TaskSnapshot:
     data = dict(task or {}) if isinstance(task, dict) else {}
     status = str(data.get("status") or "")
@@ -526,6 +592,7 @@ def build_task_snapshot(task: object, *, debug: Optional[Dict[str, object]] = No
         "created_at": _safe_float(data.get("created_at")),
         "updated_at": _safe_float(data.get("updated_at")),
         "progress": [dict(item) for item in list(data.get("progress") or []) if isinstance(item, dict)],
+        "agent_status": _build_agent_status(data.get("progress") or [], status),
         "result": normalize_task_result_summary(data.get("result")) if isinstance(data.get("result"), dict) else data.get("result"),
         "error": str(data.get("error") or ""),
         "queue": dict(data.get("queue") or {}),

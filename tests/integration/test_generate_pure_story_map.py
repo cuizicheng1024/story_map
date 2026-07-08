@@ -3,21 +3,16 @@ import importlib
 import os
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from types import SimpleNamespace
 
 import pytest
-
-
-from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def _touch(path: Path, ts: float) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("", encoding="utf-8")
     os.utime(path, (ts, ts))
-
 
 def test_scan_people_from_story_md_filters_placeholder_names(tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -30,7 +25,6 @@ def test_scan_people_from_story_md_filters_placeholder_names(tmp_path):
 
     assert people == {"李白"}
 
-
 def test_scan_people_from_story_md_filters_non_authentic_markdown(tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     story_dir = tmp_path / "story"
@@ -42,7 +36,6 @@ def test_scan_people_from_story_md_filters_non_authentic_markdown(tmp_path):
 
     assert people == {"苏轼"}
 
-
 def test_generate_pure_html_rejects_non_authentic_markdown(tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     md_path = tmp_path / "嫦娥.md"
@@ -50,7 +43,6 @@ def test_generate_pure_html_rejects_non_authentic_markdown(tmp_path):
 
     with pytest.raises(RuntimeError, match="人物真实性过滤拦截"):
         module.generate_pure_html(str(md_path), out_path=str(tmp_path / "嫦娥.html"))
-
 
 def test_changed_people_rebuilds_when_profile_builder_is_newer(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -72,7 +64,6 @@ def test_changed_people_rebuilds_when_profile_builder_is_newer(tmp_path, monkeyp
 
     assert changed == [("苏轼", "template_newer")]
 
-
 def test_changed_people_rebuilds_when_design_tokens_css_is_newer(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     root = tmp_path / "repo"
@@ -93,7 +84,6 @@ def test_changed_people_rebuilds_when_design_tokens_css_is_newer(tmp_path, monke
     changed = module._changed_people(md_dir, html_dir)
 
     assert changed == [("苏轼", "template_newer")]
-
 
 def test_changed_people_rebuilds_when_shared_person_registry_is_newer(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -117,7 +107,6 @@ def test_changed_people_rebuilds_when_shared_person_registry_is_newer(tmp_path, 
     changed = module._changed_people(md_dir, html_dir)
 
     assert changed == [("苏轼", "template_newer")]
-
 
 def test_changed_people_rebuilds_when_signature_is_stale_even_if_html_is_newer(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -150,7 +139,6 @@ def test_changed_people_rebuilds_when_signature_is_stale_even_if_html_is_newer(t
 
     assert changed == [("苏轼", "template_newer")]
 
-
 def test_render_all_people_html_defaults_to_nogeocode(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -175,7 +163,6 @@ def test_render_all_people_html_defaults_to_nogeocode(tmp_path, monkeypatch):
     assert captured["mode"] == "nogeocode"
     assert captured["allow_cache"] is False
     assert captured["alias_sync"] == tmp_path / "html"
-
 
 def test_render_all_people_html_refreshes_homepage_once_in_cache_mode(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -207,7 +194,6 @@ def test_render_all_people_html_refreshes_homepage_once_in_cache_mode(tmp_path, 
     assert captured["homepage_refresh"] == 1
     assert captured["alias_sync"] == tmp_path / "html"
 
-
 def test_render_missing_people_html_defaults_to_nogeocode(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -233,7 +219,6 @@ def test_render_missing_people_html_defaults_to_nogeocode(tmp_path, monkeypatch)
     assert captured["allow_cache"] is True
     assert captured["alias_sync"] == tmp_path / "html"
 
-
 def test_scan_people_from_story_map_html_ignores_alias_redirect_stub(tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     html_dir = tmp_path / "html"
@@ -250,7 +235,6 @@ def test_scan_people_from_story_map_html_ignores_alias_redirect_stub(tmp_path):
     people = module._scan_people_from_story_map_html(html_dir)
 
     assert people == {"苏轼"}
-
 
 def test_render_missing_people_html_rebuilds_when_only_alias_redirect_html_exists(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -277,7 +261,6 @@ def test_render_missing_people_html_rebuilds_when_only_alias_redirect_html_exist
     assert captured["allow_cache"] is True
     assert captured["alias_sync"] == tmp_path / "html"
 
-
 def test_render_changed_people_html_defaults_to_nogeocode(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -303,7 +286,6 @@ def test_render_changed_people_html_defaults_to_nogeocode(tmp_path, monkeypatch)
     assert captured["allow_cache"] is False
     assert captured["alias_sync"] == tmp_path / "html"
 
-
 def test_render_changed_people_html_still_syncs_alias_redirects_when_nothing_changed(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -315,7 +297,6 @@ def test_render_changed_people_html_still_syncs_alias_redirects_when_nothing_cha
 
     assert module.render_changed_people_html() == 0
     assert captured["alias_sync"] == tmp_path / "html"
-
 
 def test_main_render_all_falls_back_to_nogeocode_when_mode_is_empty(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -352,7 +333,6 @@ def test_main_render_all_falls_back_to_nogeocode_when_mode_is_empty(monkeypatch)
         assert exc.code == 0
 
     assert captured["mode"] == "nogeocode"
-
 
 def test_generate_pure_html_syncs_alias_redirect_pages(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -405,10 +385,9 @@ def test_generate_pure_html_syncs_alias_redirect_pages(monkeypatch, tmp_path):
     assert (tmp_path / "amap-config.js").read_text(encoding="utf-8") == 'window.AMAP_KEY="amap";'
     assert (tmp_path / "geovis-config.js").read_text(encoding="utf-8") == 'window.GEOVIS_TOKEN="geo";'
 
-
 def test_sync_alias_redirect_pages_keeps_dynamic_empty_redirects(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
-    homepage = importlib.import_module("tools.build_stellar_homepage")
+    homepage = importlib.import_module("tools.build.homepage.main")
 
     def fake_cleanup(html_dir, redirects):
         _ = redirects
@@ -426,7 +405,6 @@ def test_sync_alias_redirect_pages_keeps_dynamic_empty_redirects(monkeypatch, tm
     module._sync_alias_redirect_pages(tmp_path / "html")
 
     assert not (tmp_path / "html" / "苏东坡.html").exists()
-
 
 def test_render_people_disables_per_person_homepage_refresh_in_cache_mode(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -453,7 +431,6 @@ def test_render_people_disables_per_person_homepage_refresh_in_cache_mode(monkey
     assert captured["allow_cache"] is False
     assert captured["refresh_homepage"] is False
 
-
 def test_render_people_marks_degraded_cache_results_as_failure(monkeypatch, tmp_path, capsys):
     module = importlib.import_module("cli.generate_pure_story_map")
 
@@ -477,7 +454,6 @@ def test_render_people_marks_degraded_cache_results_as_failure(monkeypatch, tmp_
     assert "WARN 苏轼" in out
     assert "degraded=1" in out
 
-
 def test_render_all_people_html_fails_when_homepage_refresh_fails_in_cache_mode(tmp_path, monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -491,7 +467,6 @@ def test_render_all_people_html_fails_when_homepage_refresh_fails_in_cache_mode(
 
     assert module.render_all_people_html(mode="cache") == 2
     assert captured["alias_sync"] == tmp_path / "html"
-
 
 def test_accept_person_html_writes_canonical_person_page(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -515,7 +490,6 @@ def test_accept_person_html_writes_canonical_person_page(monkeypatch, tmp_path):
     assert captured["out_path"] == str(tmp_path / "苏轼.html")
     assert captured["no_geocode"] is False
 
-
 def test_accept_person_html_prefers_real_story_source_over_alias_redirect(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -538,7 +512,6 @@ def test_accept_person_html_prefers_real_story_source_over_alias_redirect(monkey
     assert captured["md_path"] == str(tmp_path / "苏东坡.md")
     assert captured["out_path"] == str(tmp_path / "苏东坡.html")
     assert captured["no_geocode"] is False
-
 
 def test_accept_person_html_cache_mode_refreshes_homepage_once(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -576,7 +549,6 @@ def test_accept_person_html_cache_mode_refreshes_homepage_once(monkeypatch, tmp_
     assert captured["homepage_refresh"] == 1
     assert captured["alias_sync"] == tmp_path / "html"
 
-
 def test_accept_person_html_cache_mode_fails_when_homepage_refresh_fails(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     story_dir = tmp_path / "story"
@@ -593,7 +565,6 @@ def test_accept_person_html_cache_mode_fails_when_homepage_refresh_fails(monkeyp
     with pytest.raises(RuntimeError, match="首页刷新失败"):
         module.accept_person_html("苏轼", mode="cache", no_browser=True)
 
-
 def test_accept_person_html_rejects_non_authentic_person_in_cache_mode(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     story_dir = tmp_path / "story"
@@ -606,7 +577,6 @@ def test_accept_person_html_rejects_non_authentic_person_in_cache_mode(monkeypat
     with pytest.raises(RuntimeError, match="人物真实性过滤拦截"):
         module.accept_person_html("嫦娥", mode="cache", no_browser=True)
 
-
 def test_accept_person_html_rejects_unknown_person_in_cache_mode(monkeypatch, tmp_path):
     module = importlib.import_module("cli.generate_pure_story_map")
     story_dir = tmp_path / "story"
@@ -618,7 +588,6 @@ def test_accept_person_html_rejects_unknown_person_in_cache_mode(monkeypatch, tm
 
     with pytest.raises(RuntimeError, match="人物真实性过滤拦截"):
         module.accept_person_html("海绵宝宝", mode="cache", no_browser=True)
-
 
 def test_impact_render_html_delegates_to_render_changed(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -634,7 +603,6 @@ def test_impact_render_html_delegates_to_render_changed(monkeypatch):
     assert module.impact_render_html(mode="cache", max_people=7) == 0
     assert captured == {"mode": "cache", "max_people": 7}
 
-
 def test_publish_all_html_delegates_to_render_all(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -647,7 +615,6 @@ def test_publish_all_html_delegates_to_render_all(monkeypatch):
 
     assert module.publish_all_html(mode="nogeocode") == 0
     assert captured == {"mode": "nogeocode"}
-
 
 def test_main_accept_person_uses_accept_mode(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
@@ -694,7 +661,6 @@ def test_main_accept_person_uses_accept_mode(monkeypatch):
 
     assert captured == {"person": "苏轼", "mode": "cache", "no_browser": True}
 
-
 def test_main_impact_render_uses_impact_mode(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")
     captured = {}
@@ -738,7 +704,6 @@ def test_main_impact_render_uses_impact_mode(monkeypatch):
         assert exc.code == 0
 
     assert captured == {"mode": "cache", "max_people": 5}
-
 
 def test_main_publish_all_uses_publish_mode(monkeypatch):
     module = importlib.import_module("cli.generate_pure_story_map")

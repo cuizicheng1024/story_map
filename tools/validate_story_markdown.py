@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import sys as _sys
-from pathlib import Path as _Path
 
-if __package__ in {None, ""}:
-    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
+import tools._bootstrap  # noqa: F401
 
 from tools.reports.validate_story_markdown import *  # noqa: F401,F403
 from tools.reports import validate_story_markdown as _impl

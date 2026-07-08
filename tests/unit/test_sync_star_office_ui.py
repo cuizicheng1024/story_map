@@ -4,7 +4,6 @@ import tools.build.sync_star_office_ui as module
 
 from tools.build.sync_star_office_ui import _disable_embedded_debug_reporter
 
-
 def test_disable_embedded_debug_reporter_removes_local_debug_post_target():
     html = """
         let loadingText;
@@ -26,7 +25,6 @@ def test_disable_embedded_debug_reporter_removes_local_debug_post_target():
     assert "window.addEventListener('error'" not in sanitized
     assert "function orangeOfficeDebugReport() {}" in sanitized
     assert "function boot() {}" in sanitized
-
 
 def test_sync_star_office_ui_writes_into_requested_target_dir(tmp_path, monkeypatch):
     frontend_dir = tmp_path / "frontend"
@@ -67,4 +65,11 @@ def test_sync_star_office_ui_writes_into_requested_target_dir(tmp_path, monkeypa
     html = (target_dir / "orange-office.html").read_text(encoding="utf-8")
     assert "http://127.0.0.1:7777/event" not in html
     assert "function orangeOfficeDebugReport() {}" in html
+    assert "storymap-gen-progress-bar" in html
+    assert "storymap-gen-steps" in html
+    assert "agent_status" in html
+    assert "normalizedAgentStatus" in html
+    assert "识别人物" in html
+    assert "定位地点" in html
+    assert "质量检查" in html
     assert (target_dir / "static" / "assets" / "desk.txt").read_text(encoding="utf-8") == "desk"

@@ -1,7 +1,6 @@
 import importlib
 import json
 
-
 def test_build_report_confirms_latest_pages_deploy():
     module = importlib.import_module("tools.check_pages_deploy")
 
@@ -44,7 +43,6 @@ def test_build_report_confirms_latest_pages_deploy():
     assert report["live_site"]["pages_run_id"] == 27249749717
     assert all(item["ok"] for item in report["checks"])
 
-
 def test_with_cache_bust_preserves_existing_query_parameters():
     module = importlib.import_module("tools.check_pages_deploy")
 
@@ -52,7 +50,6 @@ def test_with_cache_bust_preserves_existing_query_parameters():
 
     assert "a=1" in url
     assert "_ts=42" in url
-
 
 def test_main_reports_error_as_json(monkeypatch, capsys):
     module = importlib.import_module("tools.check_pages_deploy")

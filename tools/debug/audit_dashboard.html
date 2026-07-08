@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>知识审计仪表板</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:960px;margin:40px auto;padding:0 20px;background:#0d1117;color:#c9d1d9}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:16px 0}
+.big{font-size:48px;font-weight:bold;margin:0}
+.green{color:#3fb950}.red{color:#f85149}.yellow{color:#d29922}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.stat{text-align:center}.stat label{display:block;color:#8b949e;font-size:12px;margin-bottom:4px}
+.bar{height:8px;border-radius:4px;background:#30363d;margin:8px 0}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #30363d}
+th{color:#8b949e;font-weight:600;font-size:12px;text-transform:uppercase}
+tr:hover{background:#1c2128}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;margin:1px 2px;color:#fff}
+.tag-think_leak{background:#f85149}.tag-chapter{background:#d29922}.tag-coord{background:#58a6ff}
+.tag-short_review{background:#7ee787;color:#0d1117}.tag-markdown{background:#bc8cff}.tag-other{background:#8b949e}
+a{color:#58a6ff;text-decoration:none}a:hover{text-decoration:underline}
+.err-detail{color:#8b949e;font-size:12px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+input[type=text]{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:6px 12px;color:#c9d1d9;width:200px;font-size:14px}
+input[type=text]:focus{outline:none;border-color:#58a6ff}
+.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar label{color:#8b949e;font-size:13px}
+.chart{position:relative;height:120px}
+.chart-line{fill:none;stroke:#3fb950;stroke-width:2}
+.chart-dot{fill:#3fb950}
+.chart-label{fill:#8b949e;font-size:10px}
+</style></head>
+<body>
+<h1>📊 知识审计仪表板</h1>
+<div class="grid">
+<div class="card stat"><label>总文件数</label><div class="big">537</div></div>
+<div class="card stat"><label>问题文件</label><div class="big green">0</div></div>
+<div class="card stat"><label>健康率</label><div class="big green">100.0%</div></div>
+</div>
+<div class="card">
+<h3>分类统计</h3>
+<div>LLM 泄露: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+<div>章节错误: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+<div>坐标缺失: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+<div>short_review: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+<div>占位符: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+<div>关系措辞: 0 <div class="bar"><div class="bar-fill" style="width:0%;background:#3fb950"></div></div></div>
+</div>
+<div class="card">
+<h3>📈 历史趋势 (最近 30 次)</h3>
+<svg class="chart" viewBox="0 0 860 120" preserveAspectRatio="none" style="width:100%">
+<polyline fill="none" stroke="#3fb950" stroke-width="2" points="0,120 29,120 59,120 88,120 118,120 148,120 177,120 207,120 237,120 266,120 296,120 326,120 355,120 385,120 415,120 444,120 474,120 504,120 533,120 563,120 593,120 622,120 652,120 682,120 711,120 741,120 771,120 800,120 830,120 860,120"/>
+</svg>
+<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:#8b949e">
+<span>07-08 18:39</span><span>07-08 18:39</span><span>07-08 18:46</span><span>07-08 18:47</span><span>07-08 18:47</span><span>07-08 18:47</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:19</span><span>07-08 19:20</span><span>07-08 19:20</span><span>07-08 19:20</span><span>07-08 19:21</span><span>07-08 19:22</span><span>07-08 19:22</span><span>07-08 19:22</span><span>07-08 19:22</span><span>07-08 19:40</span><span>07-08 19:40</span><span>07-08 19:40</span><span>07-08 19:40</span><span>07-08 19:47</span><span>07-08 19:47</span><span>07-08 19:47</span><span>07-08 19:47</span>
+</div>
+</div>
+<div class="card">
+<h3>🔍 问题文件明细 (0)</h3>
+<div class="filter-bar">
+<label>筛选:</label>
+<input type="text" id="filterName" placeholder="文件名..." oninput="filterTable()">
+<span style="color:#8b949e;font-size:12px;margin-left:8px" id="resultCount"></span>
+</div>
+<table><thead><tr><th>人物</th><th>错误类型</th><th>详情</th></tr></thead>
+<tbody id="fileTable"></tbody></table>
+</div>
+<p style="color:#8b949e;font-size:12px;text-align:center;margin-top:20px">由拼接 Agent 自动生成 | 2026-07-08 19:47:24</p>
+<script>
+function filterTable(){
+var q=document.getElementById('filterName').value.toLowerCase();
+var rows=document.querySelectorAll('#fileTable tr');
+var count=0;
+rows.forEach(function(r){
+var name=r.getAttribute('data-name')||'';
+var visible=name.toLowerCase().includes(q);
+r.style.display=visible?'':'none';
+if(visible)count++;
+});
+document.getElementById('resultCount').textContent=count+'/'+rows.length;
+}
+filterTable();
+</script>
+</body></html>

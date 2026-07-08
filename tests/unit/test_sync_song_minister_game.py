@@ -4,7 +4,6 @@ import zipfile
 
 import tools.build.sync_song_minister_game as module
 
-
 def test_sync_song_minister_game_extracts_index_and_assets(tmp_path, monkeypatch):
     repo_root = tmp_path / "repo"
     repo_root.mkdir(parents=True)

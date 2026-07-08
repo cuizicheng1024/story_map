@@ -19,6 +19,9 @@ def create_profile_api(
     build_info_panel_html: Callable[..., str],
     render_amap_html: Callable[..., str],
 ) -> Dict[str, Callable[..., object]]:
+    import logging as _profile_api_logging
+    _pa_logger = _profile_api_logging.getLogger(__name__)
+
     def _queue_unresolved_place(
         place_name: object,
         *,
@@ -40,8 +43,14 @@ def create_profile_api(
                     "reason": str(reason or "profile_coord_unresolved").strip() or "profile_coord_unresolved",
                 }
             )
-        except Exception:
-            return
+        except Exception as exc:
+            _pa_logger.warning(
+                "queue_unresolved_place failed place=%s person=%s reason=%s: %s",
+                normalized,
+                str(fallback_person or "").strip(),
+                str(reason or "profile_coord_unresolved").strip(),
+                str(exc).strip() or type(exc).__name__,
+            )
 
     def build_points(
         places: List[Dict[str, str]],

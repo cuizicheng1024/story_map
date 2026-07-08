@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>人类群星闪耀时 — 故事地图</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>" />
+<style>
+:root {
+  --c-primary: #1a73e8;
+  --c-primary-hover: #1765cc;
+  --c-text: #202124;
+  --c-text-secondary: #5f6368;
+  --c-text-tertiary: #80868b;
+  --c-surface: rgba(255,255,255,0.92);
+  --c-bg: #f8f9fa;
+  --c-border: #dadce0;
+  --c-white: #ffffff;
+  --c-stargold: #f0c060;
+  --c-success: #34a853;
+  --c-warning: #fbbc04;
+  --c-danger: #ea4335;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --font: "Inter","SF Pro Display","PingFang SC","Noto Sans SC",sans-serif;
+  --font-serif: "Noto Serif SC","Songti SC",serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:var(--font);color:var(--c-text);
+  background:linear-gradient(175deg,#0a0f1e 0%,#0d1528 30%,#111d38 60%,#0a1226 100%);
+  min-height:100vh;overflow-x:hidden;line-height:1.6;
+}
+
+/* ── stars canvas ── */
+#stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── nebula blobs ── */
+.nebula{position:fixed;border-radius:50%;filter:blur(130px);opacity:0.25;pointer-events:none;z-index:0}
+.n1{width:700px;height:700px;background:radial-gradient(circle,rgba(26,115,232,0.45),transparent 70%);top:-160px;left:-120px}
+.n2{width:560px;height:560px;background:radial-gradient(circle,rgba(240,192,96,0.28),transparent 70%);bottom:-100px;right:-80px}
+.n3{width:420px;height:420px;background:radial-gradient(circle,rgba(52,168,83,0.22),transparent 70%);top:40%;left:55%}
+
+/* ── main layout ── */
+.landing{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:60px 24px 80px;min-height:100vh}
+
+/* ── hero ── */
+.hero{text-align:center;max-width:720px;margin-top:clamp(40px,10vh,100px);animation:fadeUp 1s var(--ease) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:.85rem;font-weight:600;letter-spacing:.12em;
+  color:var(--c-stargold);text-transform:uppercase;margin-bottom:24px;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:"";display:block;width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--c-stargold))}
+.hero-eyebrow::after{background:linear-gradient(90deg,var(--c-stargold),transparent)}
+
+.hero-title{font-family:var(--font-serif);font-size:clamp(2.4rem,5vw,3.8rem);font-weight:700;line-height:1.2;color:var(--c-white);margin-bottom:8px;letter-spacing:.04em}
+.hero-title .accent{background:linear-gradient(135deg,#6cb4ff 0%,#f0c060 55%,#ffd180 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.1rem;color:rgba(255,255,255,0.55);line-height:1.7;margin-top:16px;max-width:500px;margin-inline:auto}
+
+.hero-actions{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:36px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:10px;padding:14px 32px;
+  border-radius:var(--radius-xl);font-size:1rem;font-weight:600;
+  font-family:var(--font);text-decoration:none;cursor:pointer;
+  border:none;transition:all .22s var(--ease);
+}
+.btn-primary{background:linear-gradient(135deg,var(--c-primary),#4094f0);color:var(--c-white);box-shadow:0 8px 28px rgba(26,115,232,0.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(26,115,232,0.45)}
+.btn-ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);backdrop-filter:blur(8px)}
+.btn-ghost:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:var(--c-white)}
+
+/* ── features ── */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;max-width:920px;width:100%;margin-top:72px;animation:fadeUp 1s .2s var(--ease) both}
+.f-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:28px 24px;backdrop-filter:blur(8px);transition:all .3s var(--ease)}
+.f-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);transform:translateY(-3px)}
+.f-card .icon{font-size:2rem;margin-bottom:14px;display:block}
+.f-card h3{font-size:1.05rem;font-weight:600;color:var(--c-white);margin-bottom:8px}
+.f-card p{font-size:.9rem;color:rgba(255,255,255,.5);line-height:1.6}
+
+/* ── pipeline section ── */
+.pipeline-section{width:100%;max-width:880px;margin-top:80px;animation:fadeUp 1s .35s var(--ease) both}
+.pipeline-header{text-align:center;margin-bottom:44px}
+.pipeline-header h2{font-family:var(--font-serif);font-size:1.8rem;color:var(--c-white);margin-bottom:8px}
+.pipeline-header p{font-size:.95rem;color:rgba(255,255,255,.45)}
+
+/* input */
+.pipeline-input-row{display:flex;gap:12px;justify-content:center;margin-bottom:44px;flex-wrap:wrap}
+.pipeline-input-row input{
+  padding:14px 20px;border-radius:var(--radius-xl);
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  color:var(--c-white);font-size:1rem;font-family:var(--font);width:280px;max-width:100%;
+  outline:none;transition:all .22s var(--ease);backdrop-filter:blur(8px);
+}
+.pipeline-input-row input:focus{border-color:var(--c-primary);background:rgba(26,115,232,.08);box-shadow:0 0 0 3px rgba(26,115,232,.15)}
+.pipeline-input-row input::placeholder{color:rgba(255,255,255,.3)}
+
+/* flow */
+.pipeline-flow{display:flex;align-items:flex-start;justify-content:center;gap:0;flex-wrap:wrap;position:relative;padding:0 8px}
+
+.pipeline-node{display:flex;flex-direction:column;align-items:center;text-align:center;width:130px;position:relative}
+.pipeline-node .dot{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);
+  font-size:1.25rem;transition:all .35s var(--ease);position:relative;z-index:1;
+}
+.pipeline-node.active .dot{border-color:var(--c-primary);background:rgba(26,115,232,.18);box-shadow:0 0 20px rgba(26,115,232,.3)}
+.pipeline-node.done .dot{border-color:var(--c-success);background:rgba(52,168,83,.18);box-shadow:0 0 16px rgba(52,168,83,.2)}
+.pipeline-node.error .dot{border-color:var(--c-danger);background:rgba(234,67,53,.14);box-shadow:0 0 16px rgba(234,67,53,.18)}
+.pipeline-node .dot .check{display:none;font-size:.85rem;font-weight:700;color:var(--c-success)}
+.pipeline-node.done .dot .emoji{display:none}
+.pipeline-node.done .dot .check{display:block}
+.pipeline-node .label{font-size:.8rem;color:rgba(255,255,255,.45);margin-top:10px;font-weight:500;transition:color .3s}
+.pipeline-node.active .label,.pipeline-node.done .label{color:rgba(255,255,255,.8)}
+.pipeline-node .sublabel{font-size:.7rem;color:rgba(255,255,255,.25);margin-top:2px}
+
+.pipeline-connector{display:flex;align-items:center;padding:0 4px;margin-top:22px}
+.pipeline-connector .line{width:36px;height:2px;background:rgba(255,255,255,.1);border-radius:1px;transition:background .4s}
+.pipeline-connector.done .line{background:rgba(52,168,83,.4)}
+.pipeline-connector.active .line{background:rgba(26,115,232,.4);animation:pulse-line .8s infinite alternate}
+@keyframes pulse-line{from{opacity:.4}to{opacity:1}}
+
+.pipeline-status{text-align:center;margin-top:36px;min-height:28px}
+.pipeline-status .msg{font-size:.9rem;color:rgba(255,255,255,.4);transition:all .3s}
+.pipeline-status .msg.active{color:rgba(255,255,255,.7)}
+.pipeline-status .msg.error{color:var(--c-danger)}
+.pipeline-status .msg.done{color:var(--c-success)}
+.pipeline-status .result-link{display:inline-block;margin-left:8px;color:var(--c-primary);text-decoration:none;font-weight:600}
+.pipeline-status .result-link:hover{text-decoration:underline}
+
+/* ── stats ── */
+.stats-row{display:flex;flex-wrap:wrap;gap:32px 56px;justify-content:center;margin-top:72px;animation:fadeUp 1s .45s var(--ease) both}
+.stat-item{text-align:center}
+.stat-num{font-family:var(--font-serif);font-size:2.4rem;font-weight:700;color:var(--c-white);line-height:1.2}
+.stat-num.acc{background:linear-gradient(135deg,#6cb4ff,#f0c060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:.82rem;color:rgba(255,255,255,.4);margin-top:4px}
+
+/* ── footer ── */
+.landing-footer{margin-top:80px;text-align:center;font-size:.78rem;color:rgba(255,255,255,.2);animation:fadeUp 1s .55s var(--ease) both}
+
+/* ── responsive ── */
+@media(max-width:780px){
+  .pipeline-flow{flex-direction:column;align-items:center;gap:0}
+  .pipeline-connector{transform:rotate(90deg);margin:4px 0}
+  .pipeline-connector .line{width:28px}
+}
+@media(max-width:640px){
+  .landing{padding:40px 16px 60px}
+  .hero-title{font-size:2rem}
+  .features{grid-template-columns:1fr}
+  .stats-row{gap:24px 36px}
+  .pipeline-node{width:100px}
+  .pipeline-node .dot{width:38px;height:38px;font-size:1.1rem}
+  .pipeline-connector .line{width:24px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+<div class="nebula n1"></div>
+<div class="nebula n2"></div>
+<div class="nebula n3"></div>
+
+<main class="landing">
+
+  <!-- hero -->
+  <section class="hero">
+    <div class="hero-eyebrow">故事地图</div>
+    <h1 class="hero-title">人类<span class="accent">群星闪耀</span>时</h1>
+    <p class="hero-sub">跨越五千年的文明星空，每一位历史人物都是一颗恒星。<br>在时间的长河里追溯足迹，在空间的地图上见证命运。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="./index.html">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a7 7 0 0 0-7 7c0 3.87 7 11 7 11s7-7.13 7-11a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>
+        探索故事地图
+      </a>
+    </div>
+  </section>
+
+  <!-- features -->
+  <section class="features">
+    <div class="f-card"><span class="icon">⏳</span><h3>时间分布</h3><p>沿时间轴浏览人物节点，洞察朝代更迭与历史脉络，发现同时代人物的隐秘关联。</p></div>
+    <div class="f-card"><span class="icon">🗺️</span><h3>空间分布</h3><p>在地图上纵览所有人物的出生地与活动轨迹，感受文明在空间中的展开与交汇。</p></div>
+    <div class="f-card"><span class="icon">📍</span><h3>人物足迹</h3><p>深入每人的生命旅程，从出生到离世，跟随他们在地图上走过的每一步。</p></div>
+  </section>
+
+  <!-- pipeline -->
+  <section class="pipeline-section" id="pipeline">
+    <div class="pipeline-header">
+      <h2>生成新人物</h2>
+      <p>输入历史人物姓名，AI 将自动检索生平、生成足迹并导出可交互地图</p>
+    </div>
+    <div class="pipeline-input-row">
+      <input type="text" id="person-input" placeholder="输入历史人物姓名…" autocomplete="off" />
+      <button class="btn btn-primary" id="generate-btn" onclick="startGeneration()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1v16M1 9h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        开始生成
+      </button>
+    </div>
+
+    <div class="pipeline-flow" id="pipeline-flow">
+      <div class="pipeline-node" data-stage="retrieve">
+        <div class="dot"><span class="emoji">🔍</span><span class="check">✓</span></div>
+        <div class="label">人物检索</div>
+        <div class="sublabel">资料收集</div>
+      </div>
+      <div class="pipeline-connector"><div class="line"></div></div>
+      <div class="pipeline-node" data-stage="markdown">
+        <div class="dot"><span class="emoji">📝</span><span class="check">✓</span></div>
+        <div class="label">Markdown 生成</div>
+        <div class="sublabel">LLM 撰写生平</div>
+      </div>
+      <div class="pipeline-connector"><div class="line"></div></div>
+      <div class="pipeline-node" data-stage="geocode">
+        <div class="dot"><span class="emoji">📍</span><span class="check">✓</span></div>
+        <div class="label">地理编码</div>
+        <div class="sublabel">坐标解析</div>
+      </div>
+      <div class="pipeline-connector"><div class="line"></div></div>
+      <div class="pipeline-node" data-stage="render">
+        <div class="dot"><span class="emoji">🗺️</span><span class="check">✓</span></div>
+        <div class="label">地图渲染</div>
+        <div class="sublabel">交互地图生成</div>
+      </div>
+      <div class="pipeline-connector"><div class="line"></div></div>
+      <div class="pipeline-node" data-stage="done">
+        <div class="dot"><span class="emoji">✨</span><span class="check">✓</span></div>
+        <div class="label">完成</div>
+        <div class="sublabel">页面已生成</div>
+      </div>
+    </div>
+
+    <div class="pipeline-status" id="pipeline-status">
+      <span class="msg">等待输入人物姓名…</span>
+    </div>
+  </section>
+
+  <!-- stats -->
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num acc">528</div><div class="stat-label">已收录人物</div></div>
+    <div class="stat-item"><div class="stat-num">2,000+</div><div class="stat-label">历史年份跨度</div></div>
+    <div class="stat-item"><div class="stat-num">6,000+</div><div class="stat-label">地点数据点</div></div>
+  </div>
+
+  <footer class="landing-footer">故事地图 · 人类群星闪耀时 &copy; 2026 by 崔成</footer>
+</main>
+
+<script>
+// ── starfield ──
+(function(){
+  var c=document.getElementById("stars-canvas"),ctx=c.getContext("2d"),stars=[],tp=0;
+  function rs(){c.width=window.innerWidth;c.height=window.innerHeight}
+  rs();window.addEventListener("resize",rs);
+  var n=Math.min(180,Math.floor((c.width*c.height)/8500));
+  for(var i=0;i<n;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.6+.4,ba:Math.random()*.5+.35,sp:Math.random()*.012+.004,off:Math.random()*Math.PI*2});
+  function draw(t){ctx.clearRect(0,0,c.width,c.height);tp=t*.0004;for(var i=0;i<stars.length;i++){var s=stars[i],a=s.ba+Math.sin(tp*s.sp*60+s.off)*.2;a=Math.max(.15,Math.min(.9,a));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,"+a.toFixed(2)+")";ctx.fill()}requestAnimationFrame(draw)}
+  requestAnimationFrame(draw);
+
+  var nebs=document.querySelectorAll(".nebula");
+  document.addEventListener("mousemove",function(e){
+    var x=e.clientX/window.innerWidth-.5,y=e.clientY/window.innerHeight-.5;
+    if(nebs[0])nebs[0].style.transform="translate("+(x*30)+"px,"+(y*30)+"px)";
+    if(nebs[1])nebs[1].style.transform="translate("+(-x*22)+"px,"+(-y*22)+"px)";
+    if(nebs[2])nebs[2].style.transform="translate("+(x*14)+"px,"+(-y*14)+"px)";
+  });
+})();
+
+// ── pipeline state machine ──
+var PIPELINE_STAGES=["retrieve","markdown","geocode","render","done"];
+var currentStage=-1;
+var isRunning=false;
+
+function resetPipeline(){
+  currentStage=-1;isRunning=false;
+  document.querySelectorAll(".pipeline-node").forEach(function(n){n.classList.remove("active","done","error")});
+  document.querySelectorAll(".pipeline-connector").forEach(function(n){n.classList.remove("active","done")});
+  setStatus("等待输入人物姓名…","");
+  document.getElementById("generate-btn").disabled=false;
+}
+
+function setStage(index,cls){
+  if(index<0||index>=PIPELINE_STAGES.length)return;
+  var stage=PIPELINE_STAGES[index];
+  var node=document.querySelector('.pipeline-node[data-stage="'+stage+'"]');
+  if(node){node.classList.remove("active","done","error");node.classList.add(cls)}
+  // connectors: mark connector BEFORE this node
+  if(index>0){
+    var connectors=document.querySelectorAll(".pipeline-connector");
+    if(connectors[index-1]){connectors[index-1].classList.remove("active","done");if(cls==="done")connectors[index-1].classList.add("done");else if(cls==="active")connectors[index-1].classList.add("active")}
+  }
+}
+
+function setStatus(msg,cls){
+  var el=document.getElementById("pipeline-status");
+  var span=el.querySelector(".msg");
+  span.textContent=msg;
+  span.className="msg "+(cls||"");
+}
+
+function rememberStellarFocus(name){
+  try{localStorage.setItem("stellar_focus_person",String(name||"").trim())}catch(_){}
+}
+
+function stellarHighlightUrl(name){
+  return "./index.html?person="+encodeURIComponent(String(name||"").trim());
+}
+
+function startGeneration(){
+  if(isRunning)return;
+  var input=document.getElementById("person-input");
+  var name=input.value.trim();
+  if(!name){setStatus("请输入人物姓名","error");input.focus();return}
+  if(name.length>20){setStatus("姓名过长，请精简","error");return}
+
+  resetPipeline();
+  isRunning=true;
+  document.getElementById("generate-btn").disabled=true;
+
+  // Check if this person already has a profile page
+  var profileUrl="./"+encodeURIComponent(name)+".html";
+  fetch(profileUrl,{method:"HEAD",signal:AbortSignal.timeout(5000)})
+    .then(function(r){
+      if(r.ok){
+        // Already exists — fast-track to completion and redirect
+        for(var i=0;i<PIPELINE_STAGES.length;i++)setStage(i,"done");
+        rememberStellarFocus(name);
+        setStatus("人物已存在，正在打开人物页…","done");
+        var linkEl=document.createElement("span");
+        linkEl.className="result-link";
+        linkEl.innerHTML=' <a href="'+stellarHighlightUrl(name)+'" class="btn btn-primary" style="padding:8px 18px;font-size:.85rem;margin-left:12px">在人类群星闪耀时高亮</a>';
+        document.getElementById("pipeline-status").appendChild(linkEl);
+        setTimeout(function(){window.location.href=profileUrl},350);
+        isRunning=false;
+        document.getElementById("generate-btn").disabled=false;
+      }else{
+        // Not found — start generation via API
+        setStatus("开始生成「"+name+"」…","active");
+        setTimeout(function(){advanceStage(0,"retrieve","正在检索「"+name+"」的历史资料…",1200)},400);
+        callGenerateAPI(name);
+      }
+    })
+    .catch(function(){
+      // Network error or file check failed — proceed with API generation
+      setStatus("开始生成「"+name+"」…","active");
+      setTimeout(function(){advanceStage(0,"retrieve","正在检索「"+name+"」的历史资料…",1200)},400);
+      callGenerateAPI(name);
+    });
+}
+
+function advanceStage(idx,stage,msg,delay){
+  currentStage=idx;
+  // mark all previous as done
+  for(var i=0;i<idx;i++)setStage(i,"done");
+  setStage(idx,"active");
+  setStatus(msg,"active");
+}
+
+function callGenerateAPI(person){
+  var API_BASE=(window.MAP_STORY_API_BASE||"");
+  var url=API_BASE+"/api/generate?person="+encodeURIComponent(person);
+
+  // Try API
+  fetch(url,{method:"GET",signal:AbortSignal.timeout(180000)})
+    .then(function(r){return r.json()})
+    .then(function(data){
+      if(!isRunning)return;
+      if(data&&data.ok){
+        // Success: mark all stages done
+        for(var i=0;i<PIPELINE_STAGES.length;i++)setStage(i,"done");
+        setStatus("生成完成！", "done");
+        var linkEl=document.createElement("span");
+        linkEl.className="result-link";
+        linkEl.innerHTML=' <a href="./'+encodeURIComponent(person)+'.html" class="btn btn-primary" style="padding:8px 18px;font-size:.85rem;margin-left:12px">查看「'+person+'」</a>';
+        document.getElementById("pipeline-status").appendChild(linkEl);
+        isRunning=false;
+        document.getElementById("generate-btn").disabled=false;
+      }else{
+        handleAPIError(data&&data.error||"生成失败");
+      }
+    })
+    .catch(function(err){
+      if(!isRunning)return;
+      // API unavailable, show simulated pipeline
+      simulatePipeline();
+    });
+}
+
+function simulatePipeline(){
+  var stages=[
+    {delay:800,msg:"检索到人物基本信息…"},
+    {delay:2000,msg:"AI 正在撰写生平故事…"},
+    {delay:3500,msg:"解析地理位置并编码…"},
+    {delay:5000,msg:"生成交互地图…"},
+  ];
+
+  function go(i){
+    if(!isRunning||i>=PIPELINE_STAGES.length-1)return;
+    advanceStage(i,PIPELINE_STAGES[i],stages[i]?stages[i].msg:PIPELINE_STAGES[i],0);
+    setTimeout(function(){go(i+1)},(stages[i]?stages[i].delay:1200));
+  }
+
+  setTimeout(function(){go(0)},600);
+
+  // Final: show API notice
+  setTimeout(function(){
+    if(!isRunning)return;
+    for(var i=0;i<4;i++)setStage(i,"done");
+    setStatus("后端未连接 — 请通过命令行生成：python3 -m storymap.script.cli.story_map -p \""+document.getElementById("person-input").value.trim()+"\"","error");
+    isRunning=false;
+    document.getElementById("generate-btn").disabled=false;
+  },7000);
+}
+
+function handleAPIError(msg){
+  setStatus(msg,"error");
+  isRunning=false;
+  document.getElementById("generate-btn").disabled=false;
+}
+
+// Enter key triggers generation
+document.getElementById("person-input").addEventListener("keydown",function(e){
+  if(e.key==="Enter")startGeneration();
+});
+</script>
+
+</body>
+</html>

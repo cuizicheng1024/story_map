@@ -15,6 +15,14 @@ def sync_song_minister_game(target_dir: Path | None = None) -> Path:
         raise FileNotFoundError(f"missing game archive: {ZIP_PATH}")
 
     resolved_target = Path(target_dir) if target_dir is not None else TARGET_DIR
+
+    # Skip sync if target already exists and ZIP hasn't changed since last extraction.
+    if resolved_target.exists():
+        zip_mtime = ZIP_PATH.stat().st_mtime
+        target_mtime = resolved_target.stat().st_mtime
+        if target_mtime >= zip_mtime:
+            return resolved_target
+
     extract_root = resolved_target.parent
     temp_root = extract_root / ".song-minister-game-sync"
     extracted_dir = temp_root / resolved_target.name

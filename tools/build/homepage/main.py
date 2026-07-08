@@ -1,4824 +1,163 @@
 #!/usr/bin/env python3
 
 from __future__ import annotations
-import logging
-_logger = logging.getLogger(__name__)
 
 import argparse
-import hashlib
 import json
-import math
 import os
 import re
-import shutil
-import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as url_quote
 from urllib.request import Request, urlopen
 
-from storymap.script.core.project_paths import (
-    data_corpus_file_path,
-    data_corpus_dir_path,
-    data_reports_dir_path,
-    is_valid_person_name,
-    person_name_from_filename,
-    project_root_path,
-    story_artifacts_dir_path,
-    story_md_dir_path,
-    story_person_names,
-)
-from storymap.script.core.person_registry import canonical_story_name_entries as registry_canonical_story_name_entries, person_redirects
-from storymap.script.core.analytics import analytics_head_html
-from storymap.script.profile.tooltip_js import person_tooltip_js
 from storymap.script.core.build_meta import build_artifact_meta
-from storymap.script.core import parsers as parser_utils
+from storymap.script.core.person_registry import (
+    canonical_story_name_entries as registry_canonical_story_name_entries,
+    person_redirects,
+)
+from storymap.script.core.project_paths import data_corpus_file_path
 
-try:
-    from tools.build.homepage_search import HAS_PINYIN, build_search_fields
-except Exception as _exc:
+from tools.build.homepage.config import (
+    BIRTH_COORDS_WGS84_JSON,
+    DATA_REPORTS_DIR,
+    GRAPH_ARTIFACT_DIR,
+    HOME_DETAIL_NODE_FIELDS,
+    HOMEPAGE_PET_ASSET_CANDIDATES,
+    HOMEPAGE_PET_ASSET_OUTPUT_NAME,
+    KNOWLEDGE_GRAPH_JSON,
+    MAX_YEAR,
+    MIN_YEAR,
+    REPO_ROOT,
+    STORY_MAP_DIR,
+    STORY_MD_DIR,
+    SUMMARY_INDEX_JSON,
+    WORK_SUMMARY_INDEX_JSON,
+    apply_story_map_env_aliases,
+    graph_backend_name,
+    load_home_graph_payload_with_source,
+    should_sync_to_neo4j,
+    sync_graph_payload_to_neo4j,
+    write_normalized_graph_json,
+)
+from tools.build.homepage import loaders as _loaders
+from tools.build.homepage import normalizers as _normalizers
+from tools.build.homepage.rendering import _analytics_head_html, _design_tokens_style_tag, _render_index_html, _runtime_api_base_env
+from tools.build.homepage.assets import _sync_embedded_apps, _sync_homepage_pet_asset
+from tools.build.homepage.assets import _sync_vendor_assets as _assets_sync_vendor_assets
+
+
+def _sync_vendor_assets(story_map_dir: Path) -> None:
+    import shutil
+    src = REPO_ROOT / "vendor"
+    if not src.is_dir():
+        return
+    shutil.copytree(src, story_map_dir / "vendor", dirs_exist_ok=True)
+from tools.build.homepage.indexes import _derive_home_detail_file_name
+
+
+# 首页“空间视角”以中国读者常用出生/成长地点展示。
+# 李白出生地存在“碎叶城/蜀中青莲乡”两说；高德会把“碎叶城”误解析到广东，
+# 因此这里固定到四川江油青莲一带，避免空间视角出现明显错误。
+PERSON_BIRTH_COORD_OVERRIDES_WGS84: Dict[str, Tuple[float, float]] = {
+    "李白": (31.778, 104.744),
+    "列子": (34.7466, 113.6254),
+    "高适": (34.4143, 115.6564),
+}
+from tools.build.homepage_search import HAS_PINYIN, build_search_fields
+
+globals().update({k: v for k, v in vars(_normalizers).items() if k.startswith("_")})
+globals().update({k: v for k, v in vars(_loaders).items() if k.startswith("_") or k == "HtmlEntry"})
+
+
+def _canonical_story_name_entries(raw_names: List[str]) -> List[Tuple[str, str, List[str]]]:
+    return registry_canonical_story_name_entries(raw_names)
+
+
+def _remove_person_alias_redirect_pages(story_map_dir: Path, redirects: dict[str, str]) -> None:
+    for alias, canonical in (redirects or {}).items():
+        alias_name = str(alias or "").strip()
+        canonical_name = str(canonical or "").strip()
+        if not alias_name or not canonical_name or alias_name == canonical_name:
+            continue
+        try:
+            alias_path = Path(story_map_dir) / f"{alias_name}.html"
+            if alias_path.exists():
+                alias_path.unlink()
+        except Exception:
+            continue
+
+
+def _now() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _build_payload_meta() -> Dict[str, object]:
+    return build_artifact_meta(component="stellar_homepage", build_at=_now().replace(" ", "T"))
+
+
+def _prepare_home_payload_for_output(base_payload: Dict[str, Any], *, default_start: int, default_end: int) -> Dict[str, Any]:
+    from tools.build.homepage.indexes import _prepare_home_payload_for_output as impl
+    original = impl.__globals__["_build_payload_meta"]
+    impl.__globals__["_build_payload_meta"] = _build_payload_meta
     try:
-        from tools.homepage_search import HAS_PINYIN, build_search_fields
-    except Exception as _exc:
-        from homepage_search import HAS_PINYIN, build_search_fields
+        return impl(base_payload, default_start=default_start, default_end=default_end)
+    finally:
+        impl.__globals__["_build_payload_meta"] = original
 
-try:
-    from tools.build.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
-except Exception as _exc:
+
+def _split_home_payload_for_delivery(payload: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    from tools.build.homepage.indexes import _split_home_payload_for_delivery as impl
+    original = impl.__globals__["_build_payload_meta"]
+    impl.__globals__["_build_payload_meta"] = _build_payload_meta
     try:
-        from tools.sync_star_office_ui import sync_star_office_ui as _sync_orange_office_ui_impl
-    except Exception as _exc:
-        _sync_orange_office_ui_impl = None
-
-
-REPO_ROOT = project_root_path()
-try:
-    from dotenv import load_dotenv  # type: ignore
-except Exception as _exc:
-    load_dotenv = None
-try:
-    from storymap.script.core.env_utils import apply_story_map_env_aliases, env_flag
-    from storymap.script.profile.graph_service import (
-        graph_backend_name,
-        load_home_graph_payload_with_source,
-        should_sync_to_neo4j,
-        sync_graph_payload_to_neo4j,
-        write_normalized_graph_json,
-    )
-except Exception as _exc:
-    apply_story_map_env_aliases = None
-    env_flag = None
-    graph_backend_name = None
-    load_home_graph_payload_with_source = None
-    should_sync_to_neo4j = None
-    sync_graph_payload_to_neo4j = None
-    write_normalized_graph_json = None
-if load_dotenv:
-    load_dotenv(dotenv_path=str((REPO_ROOT / ".env").resolve()))
-    load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
-    load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
-if apply_story_map_env_aliases:
-    apply_story_map_env_aliases()
-STORY_MD_DIR = story_md_dir_path()
-STORY_MAP_DIR = story_artifacts_dir_path()
-GRAPH_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "graph"
-DATA_CORPUS_DIR = data_corpus_dir_path()
-DATA_REPORTS_DIR = data_reports_dir_path()
-SUMMARY_INDEX_JSON = data_corpus_file_path("people_summary_index.json")
-WORK_SUMMARY_INDEX_JSON = data_corpus_file_path("work_summary_index.json")
-KNOWLEDGE_GRAPH_JSON = data_corpus_file_path("people_knowledge_graph.json")
-BIRTH_COORDS_WGS84_JSON = data_corpus_file_path("people_birth_coords_wgs84.json")
-HOMEPAGE_PET_ASSET_OUTPUT_NAME = "orange.png"
-HOMEPAGE_PET_ASSET_CANDIDATES = [
-    REPO_ROOT / "assets" / "orange.png",
-    REPO_ROOT / "tools" / "orange.png",
-    REPO_ROOT / "orange.png",
-    REPO_ROOT / "orange.PNG",
-    REPO_ROOT / "tools" / "orange-avatar.png",
-    REPO_ROOT / "orange-avatar.png",
-]
-HOME_DETAIL_NODE_FIELDS: Tuple[str, ...] = (
-    "review",
-    "work_summaries",
-    "relations",
-    "relations_meta",
-    "domain_tags",
-    "risk_level",
-    "audit_pass",
-    "audit_uncertain",
-)
-MIN_YEAR = -800
-MAX_YEAR = 2000
-ROLE_BAND_SPECS: List[Tuple[str, str, Tuple[str, ...]]] = [
-    ("military", "军事", ("军事家", "兵家", "将领", "将军", "武将", "统帅", "元帅", "名将", "军人", "起义军领袖")),
-    ("politics", "政治", ("政治家", "改革家", "革命家", "外交家", "领袖", "君主", "帝王", "皇帝", "总统", "丞相", "宰相", "大臣", "官员", "赞普", "首领")),
-    ("literature", "文学", ("文学家", "诗人", "词人", "作家", "文豪", "散文家", "小说家", "剧作家", "文人", "辞赋家", "翻译家")),
-    ("academic", "学术思想", ("哲学家", "教育家", "史学家", "历史学家", "学者", "理学家", "儒学家", "经学家", "古文字学家", "考古学家", "思想史家")),
-    ("thought", "思想", ("思想家", "宗教家", "社会活动家", "启蒙思想家", "理论家", "法家代表人物")),
-    ("science", "科学", ("科学家", "数学家", "物理学家", "化学家", "生物学家", "医学家", "医家", "发明家", "工程师", "农学家", "天文学家", "地理学家", "地质学家", "飞机设计师", "航空工程师")),
-    ("art", "艺术", ("艺术家", "画家", "书法家", "音乐家", "戏剧家", "戏曲家", "建筑师", "雕塑家", "设计师")),
-]
-ROLE_BAND_ORDER: List[str] = [item[0] for item in ROLE_BAND_SPECS] + ["other"]
-ROLE_BAND_LABELS: Dict[str, str] = {key: label for key, label, _ in ROLE_BAND_SPECS}
-ROLE_BAND_LABELS["other"] = "其他"
-PERSON_PAGE_REDIRECTS: Dict[str, str] = person_redirects()
-
-
-
-from tools.build.homepage.utils import (
-    HtmlEntry,
-    _analytics_head_html,
-    _canonical_story_name_entries,
-    _design_tokens_style_tag,
-    _extract_birth_from_story_map_html,
-    _gcj02_to_wgs84,
-    _is_inside_china,
-    _now,
-    _read_json,
-    _remove_person_alias_redirect_pages,
-    _scan_latest_html,
-    _sha1_int,
-    _transform_lat,
-    _transform_lng,
-    _wgs84_to_gcj02,
-    _runtime_api_base_env,
-)
-from tools.build.homepage.md_extract import (
-    _birthplace_has_multiple_place_options,
-    _birthplace_lookup_terms,
-    _birthplace_source_values,
-    _birthplace_text_is_ambiguous,
-    _clean_review_text,
-    _dynasty_hint_from_md,
-    _dynasty_mid_year,
-    _dynasty_range_from_label,
-    _extract_basic_place_from_md,
-    _extract_birthplace_from_md,
-    _extract_disambiguation,
-    _extract_relations,
-    _extract_work_titles_from_text,
-    _extract_years_from_md,
-    _is_foreign_person,
-    _load_llm_relations_cache,
-    _load_work_summary_items,
-    _looks_like_date_or_period_text,
-    _match_role_band,
-    _normalize_dynasty_label,
-    _normalize_home_work_title,
-    _pick_main_dynasty_by_years,
-    _pick_markdown_field,
-    _pick_person_work_summaries,
-    _pick_quote,
-    _resolve_main_role_band,
-    _resolve_person_works,
-    _scan_people_from_story_md,
-    _split_role_parts,
-    _strip_birthplace_date_ambiguity_text,
-    _strip_common_birthplace_prefixes,
-    _strip_markdown_markers,
-    _strip_parenthetical_place_text,
-)
-from tools.build.homepage.output import (
-    _derive_home_detail_file_name,
-    _prepare_home_payload_for_output,
-    _split_home_payload_for_delivery,
-    _sync_embedded_apps,
-    _sync_homepage_pet_asset,
-    _sync_vendor_assets,
-    _write_homepage_outputs,
-)
-
-def _render_index_html(title: str, data_file: str, detail_file: str = "") -> str:
-    safe_title = title.strip() or "故事地图"
-    design_tokens = _design_tokens_style_tag()
-    # Always render a fresh index.html instead of patching an existing template.
-    # This prevents older inline JS/CSS (e.g. outdated AMap style) from lingering.
-    static_site = bool(env_flag("MAP_STORY_STATIC_SITE", "GITHUB_PAGES_STATIC")) if env_flag else False
-    api_base = _runtime_api_base_env()
-    amap_key = str(os.getenv("AMAP_KEY", "")).strip()
-    amap_sec = str(os.getenv("AMAP_SECURITY", "")).strip()
-    amap_inline = ""
-    if amap_key or amap_sec:
-        parts = []
-        if amap_key:
-            parts.append(f"window.AMAP_KEY={json.dumps(amap_key, ensure_ascii=False)};")
-        if amap_sec:
-            parts.append(f"window.AMAP_SECURITY={json.dumps(amap_sec, ensure_ascii=False)};")
-        amap_inline = "<script>" + "".join(parts) + "</script>"
-    runtime_parts = [f"window.MAP_STORY_STATIC_SITE={'true' if static_site else 'false'};"]
-    if api_base:
-        runtime_parts.append(f"window.MAP_STORY_API_BASE={json.dumps(api_base, ensure_ascii=False)};")
-    runtime_inline = "<script>" + "".join(runtime_parts) + "</script>"
-    analytics_head = _analytics_head_html()
-    shared_person_tooltip_js = person_tooltip_js()
-    demo_banner = ""
-    return rf"""<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{safe_title}</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="./orange.png?v=20260617-tab" />
-    <link rel="shortcut icon" href="./orange.png?v=20260617-tab" />
-    <link rel="apple-touch-icon" href="./orange.png?v=20260617-tab" />
-    {analytics_head}
-    {amap_inline}
-    {runtime_inline}
-    {design_tokens}
-    <script src="./vendor/tailwindcss.js"></script>
-    <link rel="stylesheet" href="./index.css?v=202607031" />
-  </head>
-  <body class="min-h-screen">
-    <div class="max-w-[1310px] mx-auto px-4 py-6 space-y-4">
-      {demo_banner}
-      <div class="glass card theme-card home-search-card px-6 py-5 relative z-30 overflow-visible">
-        <div class="home-title-wrap">
-          <div class="home-title-mark">STORY MAP</div>
-          <a class="home-title home-title-link" href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noreferrer">
-            <span class="home-title-char">故</span>
-            <span class="home-title-char">事</span>
-            <span class="home-title-char">地</span>
-            <span class="home-title-char">图</span>
-          </a>
-        </div>
-        <div class="relative">
-          <div class="home-search-row">
-            <input id="q" class="theme-input flex-1 px-4 py-2.5 rounded-xl" placeholder="例如：苏轼 / 李白 / 杜甫" />
-            <button id="go" class="home-search-submit" type="button" aria-label="开始分析" title="开始分析" data-loading="false">
-              <span class="home-search-submit-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                  <path d="M12 18V6"></path>
-                  <path d="M6.5 11.5L12 6l5.5 5.5"></path>
-                </svg>
-              </span>
-              <span class="sr-only home-search-submit-label">开始分析</span>
-            </button>
-          </div>
-          <div id="searchValidation" class="hidden mt-2 text-xs text-amber-200"></div>
-          <div id="searchHint" class="home-title-sub mt-2"><span class="home-bili-highlight">B站视频：<a href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">「我把2000年中国名人做成了动态地图，还能和李白聊天」</a></span></div>
-          <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span class="theme-subtitle">快速体验：</span>
-            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./李白.html">李白</a>
-            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./苏轼.html">苏轼</a>
-            <a class="theme-button-secondary px-3 py-1.5 rounded-xl" href="./关羽.html">关羽</a>
-          </div>
-          <div id="searchSuggest" class="theme-card hidden absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl bg-white/95 backdrop-blur shadow-2xl overflow-hidden"></div>
-        </div>
-        <div id="genStatus" class="hidden mt-2 text-xs theme-subtitle"></div>
-      </div>
-      <div class="glass card theme-card px-6 py-4 relative z-10">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="home-bili-icon" style="width:24px;height:24px;font-size:14px;">B</div>
-          <div class="text-sm font-bold text-slate-700">B站视频推荐</div>
-          <div class="text-[11px] text-slate-400">了解更多故事地图的创作与使用</div>
-        </div>
-        <div class="home-bili-card">
-          <a class="home-bili-item" href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">
-            <div class="home-bili-icon">B</div>
-            <div class="home-bili-text">我把2000年中国名人做成了动态地图</div>
-          </a>
-          <a class="home-bili-item" href="https://space.bilibili.com/3706950059559006" target="_blank" rel="noopener noreferrer">
-            <div class="home-bili-icon">B</div>
-            <div class="home-bili-text">橙子科技崔子橙</div>
-          </a>
-        </div>
-        <div class="mt-3 text-[12px] text-blue-500 font-medium">如果喜欢这个项目，欢迎去 B站视频<a class="text-blue-600 underline font-bold" href="https://www.bilibili.com/video/BV1u3LX66Eh7/" target="_blank" rel="noopener noreferrer">点赞、投币、收藏</a>，支持我继续完善人物库</div>
-      </div>
-      <div id="pixelGenPanel" class="pixel-progress-shell is-collapsed" role="status" aria-live="polite" aria-label="系统状态：待命中" title="系统状态：只读展示，不能手动暂停或恢复">
-        <div class="pixel-progress-panel">
-          <div class="pixel-progress-header">
-            <div class="pixel-progress-title">
-              <div id="pixelGenLamp" class="pixel-progress-lamp"></div>
-              <div id="pixelGenCompactText" class="pixel-progress-compact">待命中</div>
-              <div class="pixel-progress-meta">
-                <div class="pixel-progress-caption">Story Console</div>
-                <div id="pixelGenPerson" class="pixel-progress-person">橙子Agent</div>
-              </div>
-              <div id="pixelGenStatusBadge" class="pixel-progress-badge is-idle">待命</div>
-            </div>
-            <div class="pixel-progress-actions">
-              <button id="pixelGenToggle" class="pixel-progress-icon-btn" type="button" aria-expanded="false" aria-label="查看 Orange Office 详情（状态只读）" title="查看 Orange Office 详情（状态只读，不能手动暂停或恢复）">↗</button>
-            </div>
-          </div>
-          <div id="pixelGenBody" class="pixel-progress-body is-star-office-only" style="display:none">
-            <div class="pixel-progress-iframe-shell">
-              <div class="pixel-progress-iframe-head">
-                <span>Star Office</span>
-              </div>
-              <iframe
-                id="pixelGenOfficeFrame"
-                class="pixel-progress-iframe"
-                src="./orange-office.html"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-                title="Star Office UI 工作台"
-              ></iframe>
-            </div>
-            <div id="pixelGenScene" class="pixel-progress-scene">
-              <div id="pixelGenSceneTitle" class="pixel-progress-scene-title">工位</div>
-              <div id="pixelGenSceneLights" class="pixel-progress-status-lights">
-                <div class="pixel-progress-scene-light"></div>
-                <div class="pixel-progress-scene-light"></div>
-                <div class="pixel-progress-scene-light"></div>
-              </div>
-              <div class="pixel-progress-workbench">
-                <div id="pixelOcelotWrap" class="pixel-orange-pet-wrap" data-idle-scene="idle">
-                  <img class="pixel-orange-pet-img" src="./{HOMEPAGE_PET_ASSET_OUTPUT_NAME}" alt="橙子工位形象" loading="eager" decoding="async" onerror="this.style.display='none';" />
-                  <div class="pixel-orange-pet-fallback" aria-hidden="true"></div>
-                </div>
-                <div class="pixel-progress-bubble">
-                  <div class="pixel-progress-bubble-title">状态</div>
-                  <div id="pixelGenSpeech" class="pixel-progress-speech">空闲中</div>
-                </div>
-              </div>
-              <div class="pixel-progress-scene-floor"></div>
-            </div>
-            <div class="pixel-progress-stage-wrap">
-              <div id="pixelGenStage" class="pixel-progress-stage">空闲中</div>
-              <div id="pixelGenStatusText" class="pixel-progress-status">待命</div>
-            </div>
-            <div id="pixelGenOpsBar" class="pixel-progress-opsbar">
-              <div id="pixelGenOpsServe" class="pixel-progress-opschip is-muted">
-                <div class="pixel-progress-opschip-label">浏览态</div>
-                <div class="pixel-progress-opschip-value">检查中</div>
-              </div>
-              <div id="pixelGenOpsGenerate" class="pixel-progress-opschip is-muted">
-                <div class="pixel-progress-opschip-label">生成态</div>
-                <div class="pixel-progress-opschip-value">检查中</div>
-              </div>
-              <div id="pixelGenOpsQueue" class="pixel-progress-opschip is-muted">
-                <div class="pixel-progress-opschip-label">队列</div>
-                <div class="pixel-progress-opschip-value">等待采样</div>
-              </div>
-              <div id="pixelGenOpsDeps" class="pixel-progress-opschip is-muted">
-                <div class="pixel-progress-opschip-label">依赖</div>
-                <div class="pixel-progress-opschip-value">等待采样</div>
-              </div>
-            </div>
-            <div class="pixel-progress-group">
-              <div class="pixel-progress-group-label">流程阶段</div>
-              <div id="pixelGenSteps" class="pixel-progress-steps"></div>
-            </div>
-            <div class="pixel-progress-group">
-              <div class="pixel-progress-group-label">执行模块</div>
-              <div id="pixelGenAgents" class="pixel-progress-agents"></div>
-            </div>
-            <div id="pixelGenDetailCard" class="pixel-progress-card is-clickable">
-              <div class="pixel-progress-card-head">
-                <div class="pixel-progress-card-title">摘要</div>
-                <div id="pixelGenDetailHint" class="pixel-progress-card-hint">点击展开</div>
-              </div>
-              <div id="pixelGenDetail" class="pixel-progress-detail"></div>
-            </div>
-            <div class="pixel-progress-card">
-              <div class="pixel-progress-card-head">
-                <div class="pixel-progress-card-title">最近日志</div>
-              </div>
-              <div id="pixelGenLog" class="pixel-progress-log"></div>
-            </div>
-            <div class="pixel-progress-footer">
-              <div id="pixelGenFooterText">空闲中</div>
-              <div class="pixel-progress-mini">
-                <span id="pixelGenPercent">0%</span>
-                <div class="pixel-progress-mini-bar">
-                  <div id="pixelGenFill" class="pixel-progress-mini-fill"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card graph theme-graph-panel overflow-hidden relative z-10">
-        <div class="px-5 py-4 text-sm font-bold text-white/90 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div>人类群星闪耀时</div>
-            <div class="flex items-center gap-1 text-[11px] font-normal">
-              <button id="tabGraph" class="px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90">时间分布</button>
-              <button id="tabMap" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10">空间分布</button>
-            </div>
-          </div>
-          <div class="text-[11px] font-normal text-white/60 flex items-center gap-2 flex-wrap justify-end">
-            窗口内：<span id="activeCount">-</span>
-          </div>
-        </div>
-        <div class="px-5 pb-2 -mt-2 text-[11px] text-white/60">拖动时间窗筛选人物；悬停查看简介；点击节点进入人物页</div>
-        <div class="px-5 pb-2 -mt-1 text-[11px] text-white/55 flex items-center justify-between gap-3 flex-wrap">
-          <div class="flex items-center gap-x-4 gap-y-1 flex-wrap">
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#34a853"></span><span>先秦/公元前</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ea4335"></span><span>秦汉</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4285f4"></span><span>魏晋南北朝</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#fbbc04"></span><span>隋</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#1a73e8"></span><span>唐</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#7e57c2"></span><span>宋元</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#0f9d58"></span><span>明清</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ff7043"></span><span>近代</span></div>
-            <div class="flex items-center gap-2"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#c0ca33"></span><span>现代</span></div>
-          </div>
-          <div id="mapToolbar" class="hidden items-center gap-2 text-[11px] text-white/70 relative">
-            <div class="relative">
-              <input id="mapSearchInput" type="text" placeholder="按省份查找"
-                class="pl-2 pr-6 py-1 rounded-lg bg-white/10 border border-white/15 text-white/85 placeholder-white/40 outline-none focus:ring-2 focus:ring-white/20 w-[160px]"
-                autocomplete="off" />
-              <button id="mapSearchClear" class="hidden absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 leading-[14px] text-center rounded-full bg-white/15 text-white/70 hover:bg-white/25" type="button" aria-label="清除">×</button>
-              <div id="mapSearchSuggest" class="hidden absolute right-0 top-full mt-1 z-30 w-[240px] max-h-[240px] overflow-y-auto rounded-xl bg-[rgba(8,15,36,0.92)] border border-white/15 shadow-2xl backdrop-blur-md"></div>
-            </div>
-            <button id="resetMap" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/70 hover:bg-white/15">重置视图</button>
-          </div>
-        </div>
-
-        <div class="relative px-6 pb-4 overflow-hidden">
-          <div id="tabTrack" class="relative">
-            <div id="graphPane" class="relative distribution-pane">
-              <div class="rounded-xl overflow-hidden border border-white/10 distribution-frame">
-                <canvas id="c" width="900" height="500"></canvas>
-              </div>
-              <div class="absolute left-5 top-5 z-10 flex flex-col gap-2 text-[11px] text-white/80">
-              </div>
-              <div id="tip" class="tooltip hidden"></div>
-            </div>
-            <div id="mapPane" class="relative hidden distribution-pane">
-              <div id="chinaMap" class="rounded-xl overflow-hidden border border-white/10 distribution-frame"></div>
-              <div id="mapTip" class="tooltip hidden"></div>
-              <div id="provinceCurvePanel" class="hidden absolute right-4 bottom-4 z-10 w-[280px] max-w-[calc(100%-32px)] px-3 py-2 rounded-xl bg-[rgba(8,15,36,0.72)] border border-white/10 backdrop-blur-md shadow-[0_18px_50px_rgba(15,23,42,0.28)]">
-                <div class="flex items-center justify-between text-[11px]">
-                  <div class="text-white/80 font-bold">各省份名人数量 Top5</div>
-                </div>
-                <div class="mt-1 text-[10px] text-white/50">按出生地汇总</div>
-                <div id="provinceBars" class="mt-2 max-h-[136px] overflow-y-auto pr-1" style="scrollbar-width: thin;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="px-6 pb-6">
-          <div class="range-rail relative px-3 py-3">
-            <div class="absolute top-2 h-[12px] rounded-lg band flex items-start justify-between px-2 pt-[1px] text-[10px] text-white/55" id="bands" style="left:18px;right:18px;"></div>
-            <div id="ticks" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl bg-white/5 border border-white/10 ticks" style="left:18px;right:18px;"></div>
-            <div id="maskL" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-mask"></div>
-            <div id="maskR" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-mask"></div>
-            <div id="sel" class="absolute top-1/2 -translate-y-1/2 h-[34px] rounded-xl range-sel"></div>
-            <div id="lifeBar" class="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/15 border border-white/20 hidden"></div>
-            <div id="mBirth" class="absolute top-1/2 -translate-y-1/2 h-[34px] w-[2px] bg-emerald-300/70 hidden"></div>
-            <div id="mDeath" class="absolute top-1/2 -translate-y-1/2 h-[34px] w-[2px] bg-rose-300/70 hidden"></div>
-            <div id="h1" class="handle absolute top-1/2 -translate-y-1/2"></div>
-            <div id="h2" class="handle absolute top-1/2 -translate-y-1/2"></div>
-            <div class="absolute left-5 bottom-2 text-[10px] text-white/55" id="minLabel"></div>
-            <div class="absolute right-5 bottom-2 text-[10px] text-white/55 text-right" id="maxLabel"></div>
-            <div class="absolute left-1/2 -translate-x-1/2 bottom-2 text-[10px] text-white/55" id="midLabel"></div>
-          </div>
-          <div class="flex items-center justify-between mt-2 text-[11px] text-white/55">
-            <div class="flex items-center gap-2">
-              <span>起：</span>
-              <input id="startYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
-            </div>
-            <div>窗口跨度：约 <span id="spanYear">-</span> 年</div>
-            <div class="flex items-center gap-2">
-              <span>止：</span>
-              <input id="endYearInput" class="w-24 px-2 py-1 rounded-lg bg-white/10 border border-white/15 text-white/80 outline-none focus:ring-2 focus:ring-white/10" type="number" min="{MIN_YEAR}" max="{MAX_YEAR}" step="1" inputmode="numeric" />
-            </div>
-          </div>
-          <div id="timeRangeHint" class="hidden mt-2 text-[11px] text-amber-200"></div>
-          <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3 text-[11px] text-white/60 max-w-[1020px] mx-auto" id="presetBar">
-            <button data-preset="all" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">全部</button>
-            <button data-preset="preqin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">春秋战国</button>
-            <button data-preset="qin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">秦</button>
-            <button data-preset="han" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">汉</button>
-            <button data-preset="weijin" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">魏晋南北</button>
-            <button data-preset="sui" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">隋</button>
-            <button data-preset="tang" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">唐</button>
-            <button data-preset="song" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">宋</button>
-            <button data-preset="yuan" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">元</button>
-            <button data-preset="ming" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">明</button>
-            <button data-preset="qing" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">清</button>
-            <button data-preset="modern" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">近代</button>
-            <button data-preset="contemporary" class="px-2 py-1 rounded-lg bg-white/10 border border-white/15 hover:bg-white/15 text-white/72 transition-all duration-150">现代</button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div id="workTip" class="home-work-tooltip hidden"></div>
-
-    <script>
-      const DATA_FILE = "{data_file}";
-      const DATA_DETAIL_FILE = "{detail_file}";
-      const STATIC_SITE = window.MAP_STORY_STATIC_SITE === true;
-      const API_BASE = (typeof window.MAP_STORY_API_BASE === "string" ? window.MAP_STORY_API_BASE : "").trim();
-      const resolvedApiBase = (() => {{
-        if (API_BASE) return API_BASE;
-        try {{
-          const loc = window.location;
-          const host = String(loc && loc.hostname ? loc.hostname : "").trim().toLowerCase();
-          const isLocalHost = host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".localhost");
-          const isPrivateIPv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
-          const isDevHost = isLocalHost || isPrivateIPv4 || host.endsWith(".local");
-          if (!loc || loc.protocol === "file:" || !isDevHost) return "";
-          if (!STATIC_SITE) return "";
-          const runtimeHost = host === "::1" ? "127.0.0.1" : (loc.hostname || "127.0.0.1");
-          return loc.protocol + "//" + runtimeHost + ":8765";
-        }} catch (_) {{
-          return "";
-        }}
-      }})();
-      const apiUrl = (path) => {{
-        const rel = String(path || "").replace(/^\/+/, "");
-        if (!rel) return "./";
-        if (resolvedApiBase) {{
-          return resolvedApiBase.replace(/\/+$/, "") + "/" + rel;
-        }}
-        return "./" + rel;
-      }};
-      const requireBackend = (actionText) => {{
-        const action = String(actionText || "该功能").trim() || "该功能";
-        return action + " 需要单独部署 FastAPI 后端；静态站当前仅支持浏览已生成内容。";
-      }};
-      const $q = document.getElementById("q");
-      const $go = document.getElementById("go");
-      const $goLabel = $go ? $go.querySelector(".home-search-submit-label") : null;
-      const $searchValidation = document.getElementById("searchValidation");
-      const $searchHint = document.getElementById("searchHint");
-      const $searchSuggest = document.getElementById("searchSuggest");
-      const $c = document.getElementById("c");
-      const ctx = $c.getContext("2d");
-      const $tip = document.getElementById("tip");
-      const $mapTip = document.getElementById("mapTip");
-      const $workTip = document.getElementById("workTip");
-      const $h1 = document.getElementById("h1");
-      const $h2 = document.getElementById("h2");
-      const $sel = document.getElementById("sel");
-      const $maskL = document.getElementById("maskL");
-      const $maskR = document.getElementById("maskR");
-      const $rail = $sel.parentElement;
-      const $bands = document.getElementById("bands");
-      const $mBirth = document.getElementById("mBirth");
-      const $mDeath = document.getElementById("mDeath");
-      const $lifeBar = document.getElementById("lifeBar");
-      const $ticks = document.getElementById("ticks");
-      const $activeCount = document.getElementById("activeCount");
-      const $spanYear = document.getElementById("spanYear");
-      const $startYearInput = document.getElementById("startYearInput");
-      const $endYearInput = document.getElementById("endYearInput");
-      const $timeRangeHint = document.getElementById("timeRangeHint");
-      const $minLabel = document.getElementById("minLabel");
-      const $maxLabel = document.getElementById("maxLabel");
-      const $midLabel = document.getElementById("midLabel");
-      const $tabTrack = document.getElementById("tabTrack");
-      const $graphPane = document.getElementById("graphPane");
-      const $tabGraph = document.getElementById("tabGraph");
-      const $tabMap = document.getElementById("tabMap");
-      const $mapPane = document.getElementById("mapPane");
-      const $chinaMap = document.getElementById("chinaMap");
-      const $provinceCurvePanel = document.getElementById("provinceCurvePanel");
-      const $provinceBars = document.getElementById("provinceBars");
-      const $genStatus = document.getElementById("genStatus");
-      const $pixelGenPanel = document.getElementById("pixelGenPanel");
-      const $pixelGenBody = document.getElementById("pixelGenBody");
-      const $pixelGenLamp = document.getElementById("pixelGenLamp");
-      const $pixelGenPerson = document.getElementById("pixelGenPerson");
-      const $pixelGenStatusBadge = document.getElementById("pixelGenStatusBadge");
-      const $pixelGenScene = document.getElementById("pixelGenScene");
-      const $pixelGenSceneTitle = document.getElementById("pixelGenSceneTitle");
-      const $pixelOcelotWrap = document.getElementById("pixelOcelotWrap");
-      const $pixelGenStage = document.getElementById("pixelGenStage");
-      const $pixelGenStatusText = document.getElementById("pixelGenStatusText");
-      const $pixelGenSteps = document.getElementById("pixelGenSteps");
-      const $pixelGenAgents = document.getElementById("pixelGenAgents");
-      const $pixelGenSpeech = document.getElementById("pixelGenSpeech");
-      const $pixelGenDetailCard = document.getElementById("pixelGenDetailCard");
-      const $pixelGenDetailHint = document.getElementById("pixelGenDetailHint");
-      const $pixelGenDetail = document.getElementById("pixelGenDetail");
-      const $pixelGenLog = document.getElementById("pixelGenLog");
-      const $pixelGenFooterText = document.getElementById("pixelGenFooterText");
-      const $pixelGenPercent = document.getElementById("pixelGenPercent");
-      const $pixelGenFill = document.getElementById("pixelGenFill");
-      const $pixelGenToggle = document.getElementById("pixelGenToggle");
-      const $pixelGenCompactText = document.getElementById("pixelGenCompactText");
-      const $pixelGenOpsServe = document.getElementById("pixelGenOpsServe");
-      const $pixelGenOpsGenerate = document.getElementById("pixelGenOpsGenerate");
-      const $pixelGenOpsQueue = document.getElementById("pixelGenOpsQueue");
-      const $pixelGenOpsDeps = document.getElementById("pixelGenOpsDeps");
-      const pixelGenSceneLights = Array.from(document.querySelectorAll("#pixelGenSceneLights .pixel-progress-scene-light"));
-      const STAR_OFFICE_URL = "./orange-office.html";
-      const STAR_OFFICE_OPEN_IN_NEW_TAB = true;
-      const YEAR_INPUT_MIN = {MIN_YEAR};
-      const YEAR_INPUT_MAX = {MAX_YEAR};
-      const PERSON_NAME_MAX_LENGTH = 12;
-      const PERSON_NAME_ALLOWED_RE = /^[A-Za-z\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF\u3007\u00B7.\-'\s]+$/u;
-      const $resetMap = document.getElementById("resetMap");
-      const $mapToolbar = document.getElementById("mapToolbar");
-      const $mapSearchInput = document.getElementById("mapSearchInput");
-      const $mapSearchClear = document.getElementById("mapSearchClear");
-      const $mapSearchSuggest = document.getElementById("mapSearchSuggest");
-      const $presetBar = document.getElementById("presetBar");
-
-      let W = $c.width;
-      let H = $c.height;
-      const pad = 18;
-      const syncCanvasSize = () => {{
-        if (!$c || !ctx) return;
-        const rect = $c.getBoundingClientRect();
-        const cssW = Math.max(1, Math.round(rect.width || $c.width || 1));
-        const cssH = Math.max(1, Math.round(rect.height || $c.height || 1));
-        const dpr = Math.max(1, Number(window.devicePixelRatio || 1));
-        W = cssW;
-        H = cssH;
-        const pixelW = Math.max(1, Math.round(cssW * dpr));
-        const pixelH = Math.max(1, Math.round(cssH * dpr));
-        if ($c.width !== pixelW || $c.height !== pixelH) {{
-          $c.width = pixelW;
-          $c.height = pixelH;
-        }}
-        try {{
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }} catch (_) {{}}
-      }};
-      syncCanvasSize();
-
-      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-      const lerp = (a, b, t) => a + (b - a) * t;
-      const hash = (s) => {{
-        let h = 2166136261;
-        for (let i=0;i<s.length;i++) {{ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }}
-        return (h >>> 0);
-      }};
-      const rand01 = (seed) => {{
-        let x = seed >>> 0;
-        x ^= x << 13; x >>>= 0;
-        x ^= x >> 17; x >>>= 0;
-        x ^= x << 5; x >>>= 0;
-        return (x >>> 0) / 4294967296;
-      }};
-
-      const colorByYear = (y) => {{
-        if (y == null) return "rgba(255,255,255,0.75)";
-        if (y < 0) return "#34a853";
-        if (y < 220) return "#ea4335";
-        if (y < 589) return "#4285f4";
-        if (y < 618) return "#fbbc04";
-        if (y < 907) return "#1a73e8";
-        if (y < 1368) return "#7e57c2";
-        if (y < 1840) return "#0f9d58";
-        if (y < 1911) return "#ff7043";
-        return "#c0ca33";
-      }};
-
-      const hexToRgba = (hex, a) => {{
-        const s = String(hex || "").trim();
-        const alpha = Number.isFinite(Number(a)) ? Number(a) : 1;
-        if (!s.startsWith("#")) return s;
-        const h = s.slice(1);
-        if (!(h.length === 3 || h.length === 6)) return s;
-        const full = h.length === 3 ? (h[0] + h[0] + h[1] + h[1] + h[2] + h[2]) : h;
-        const r = parseInt(full.slice(0, 2), 16);
-        const g = parseInt(full.slice(2, 4), 16);
-        const b = parseInt(full.slice(4, 6), 16);
-        if (![r, g, b].every((x) => Number.isFinite(x))) return s;
-        return `rgba(${{r}},${{g}},${{b}},${{alpha}})`;
-      }};
-
-      const _isInsideChina = (lat, lng) => {{
-        const la = Number(lat);
-        const lo = Number(lng);
-        if (!Number.isFinite(la) || !Number.isFinite(lo)) return false;
-        return la >= 17.5 && la <= 55.5 && lo >= 72.0 && lo <= 136.5;
-      }};
-      const _PI = Math.PI;
-      const _A = 6378245.0;
-      const _EE = 0.00669342162296594323;
-      const _transformLat = (x, y) => {{
-        let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
-        ret += (20.0 * Math.sin(6.0 * x * _PI) + 20.0 * Math.sin(2.0 * x * _PI)) * 2.0 / 3.0;
-        ret += (20.0 * Math.sin(y * _PI) + 40.0 * Math.sin(y / 3.0 * _PI)) * 2.0 / 3.0;
-        ret += (160.0 * Math.sin(y / 12.0 * _PI) + 320.0 * Math.sin(y * _PI / 30.0)) * 2.0 / 3.0;
-        return ret;
-      }};
-      const _transformLng = (x, y) => {{
-        let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
-        ret += (20.0 * Math.sin(6.0 * x * _PI) + 20.0 * Math.sin(2.0 * x * _PI)) * 2.0 / 3.0;
-        ret += (20.0 * Math.sin(x * _PI) + 40.0 * Math.sin(x / 3.0 * _PI)) * 2.0 / 3.0;
-        ret += (150.0 * Math.sin(x / 12.0 * _PI) + 300.0 * Math.sin(x / 30.0 * _PI)) * 2.0 / 3.0;
-        return ret;
-      }};
-      const wgs84ToGcj02 = (lat, lng) => {{
-        const la = Number(lat);
-        const lo = Number(lng);
-        if (!_isInsideChina(la, lo)) return {{ lat: la, lng: lo }};
-        let dLat = _transformLat(lo - 105.0, la - 35.0);
-        let dLng = _transformLng(lo - 105.0, la - 35.0);
-        const radLat = (la / 180.0) * _PI;
-        let magic = Math.sin(radLat);
-        magic = 1 - _EE * magic * magic;
-        const sqrtMagic = Math.sqrt(magic);
-        dLat = (dLat * 180.0) / (((_A * (1 - _EE)) / (magic * sqrtMagic)) * _PI);
-        dLng = (dLng * 180.0) / ((_A / sqrtMagic) * Math.cos(radLat) * _PI);
-        return {{ lat: la + dLat, lng: lo + dLng }};
-      }};
-      const gcj02ToWgs84 = (lat, lng) => {{
-        const la = Number(lat);
-        const lo = Number(lng);
-        if (!_isInsideChina(la, lo)) return {{ lat: la, lng: lo }};
-        const mg = wgs84ToGcj02(la, lo);
-        return {{ lat: la * 2.0 - mg.lat, lng: lo * 2.0 - mg.lng }};
-      }};
-
-      const esc = (s) => String(s || "").replace(/[&<>\"']/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}})[c]);
-      {shared_person_tooltip_js}
-      const normalizeSearchText = (s) => {{
-        let t = String(s || "").trim().toLowerCase();
-        if (!t) return "";
-        t = t.replace(/[·・•‧]/g, "");
-        t = t.replace(/[“”"'`‘’]/g, "");
-        t = t.replace(/[\s\-_./,，、:：;；()（）\[\]{{}}<>《》]+/g, "");
-        t = t.replace(/[^0-9a-z\u4e00-\u9fff]+/g, "");
-        return t.trim();
-      }};
-      const uniqStrings = (items) => {{
-        const out = [];
-        const seen = new Set();
-        for (const item of (Array.isArray(items) ? items : [])) {{
-          const s = String(item || "").trim();
-          if (!s || seen.has(s)) continue;
-          seen.add(s);
-          out.push(s);
-        }}
-        return out;
-      }};
-      const normalizeHomeWorkTitle = (value) => {{
-        let text = String(value || "").trim();
-        if (!text) return "";
-        text = text.replace(/[*_`]+/g, "").trim();
-        if (text.startsWith("《") && text.endsWith("》") && text.length > 2) {{
-          text = text.slice(1, -1).trim();
-        }}
-        return text.replace(/\s+/g, " ").trim();
-      }};
-      const cleanWorkTooltipText = (value, maxLen = 120) => {{
-        let text = String(value || "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
-        if (!text) return "";
-        if (text.length > maxLen) text = text.slice(0, maxLen).trimEnd() + "…";
-        return text;
-      }};
-      const resolveNodeWorkSummary = (node, title) => {{
-        const cleanTitle = normalizeHomeWorkTitle(title);
-        if (!cleanTitle || !node || typeof node !== "object") return null;
-        const summaries = node.work_summaries && typeof node.work_summaries === "object" ? node.work_summaries : {{}};
-        for (const [key, value] of Object.entries(summaries)) {{
-          if (normalizeHomeWorkTitle(key) === cleanTitle && value && typeof value === "object") {{
-            return value;
-          }}
-        }}
-        return null;
-      }};
-      const hasWorkSummaryContent = (item) => {{
-        if (!item || typeof item !== "object") return false;
-        return Boolean(
-          cleanWorkTooltipText(item.one_liner, 160) ||
-          cleanWorkTooltipText(item.summary, 180) ||
-          cleanWorkTooltipText(item.quote, 120) ||
-          uniqStrings(Array.isArray(item.quotes) ? item.quotes : []).length ||
-          cleanWorkTooltipText(item.era, 60) ||
-          cleanWorkTooltipText(item.genre, 40) ||
-          uniqStrings(Array.isArray(item.authors) ? item.authors : []).length
-        );
-      }};
-      const buildWorkTooltipInnerHtml = (title, item) => {{
-        const cleanTitle = normalizeHomeWorkTitle(title) || "相关作品";
-        const authors = uniqStrings(Array.isArray(item?.authors) ? item.authors : []).join(" / ");
-        const era = cleanWorkTooltipText(item?.era, 60);
-        const genre = cleanWorkTooltipText(item?.genre, 40);
-        const lead = cleanWorkTooltipText(item?.one_liner || item?.summary, 140);
-        const quotePolicy = String(item?.quote_policy || '').trim();
-        const quoteItems = uniqStrings(Array.isArray(item?.quotes) ? item.quotes : [])
-          .map((value) => cleanWorkTooltipText(value, 96))
-          .filter(Boolean)
-          .slice(0, 3);
-        const singleQuote = cleanWorkTooltipText(item?.quote, 96);
-        if (!quoteItems.length && singleQuote) quoteItems.push(singleQuote);
-        const rows = [
-          authors ? `<div class="text-slate-500 text-[11px] mt-1">作者：${{esc(authors)}}</div>` : "",
-          era ? `<div class="text-slate-500 text-[11px] mt-1">时代：${{esc(era)}}</div>` : "",
-          genre ? `<div class="text-slate-500 text-[11px] mt-1">体裁：${{esc(genre)}}</div>` : "",
-        ].filter(Boolean).join("");
-        const leadHtml = lead ? `<div class="text-slate-700 text-[12px] mt-1 whitespace-pre-wrap">${{esc(lead)}}</div>` : "";
-        const quoteHtml = quoteItems.length
-          ? `<div class="text-slate-500 text-[11px] mt-1 whitespace-pre-wrap">${{quoteItems.map((quote) => esc(quote)).join("<br>")}}</div>`
-          : "";
-        const quotePolicyHtml = quotePolicy === "summary_only" && !quoteItems.length
-          ? `<div class="text-slate-400 text-[11px] mt-1">名句展示：此类作品默认仅展示摘要</div>`
-          : "";
-        return `<div class="font-semibold text-slate-900">${{esc(cleanTitle)}}</div>${{leadHtml}}${{rows}}${{quoteHtml}}${{quotePolicyHtml}}`;
-      }};
-      const hideWorkTip = () => {{
-        if ($workTip) $workTip.classList.add("hidden");
-      }};
-      const placeWorkTip = (clientX, clientY) => {{
-        if (!$workTip) return;
-        const pad = 12;
-        const rect = $workTip.getBoundingClientRect();
-        const vw = window.innerWidth || document.documentElement.clientWidth || 0;
-        const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-        let left = Number(clientX) + 12;
-        let top = Number(clientY) + 12;
-        if (left + rect.width > vw - pad) left = Math.max(pad, Number(clientX) - rect.width - 12);
-        if (top + rect.height > vh - pad) top = Math.max(pad, Number(clientY) - rect.height - 12);
-        $workTip.style.left = `${{left}}px`;
-        $workTip.style.top = `${{top}}px`;
-      }};
-      const showWorkTip = (title, item, clientX, clientY) => {{
-        if (!$workTip || !hasWorkSummaryContent(item)) {{
-          hideWorkTip();
-          return;
-        }}
-        $workTip.innerHTML = buildWorkTooltipInnerHtml(title, item);
-        $workTip.classList.remove("hidden");
-        placeWorkTip(clientX, clientY);
-      }};
-      const searchSummaryLabel = (reason) => {{
-        const r = String(reason || "").trim();
-        if (r === "person_exact") return "本名精确";
-        if (r === "alias_exact") return "别名精确";
-        if (r === "foreign_exact") return "外文精确";
-        if (r === "pinyin_exact") return "拼音精确";
-        if (r === "person_prefix") return "本名前缀";
-        if (r === "alias_prefix") return "别名前缀";
-        if (r === "foreign_prefix") return "外文前缀";
-        if (r === "pinyin_prefix") return "拼音前缀";
-        if (r === "person_fuzzy") return "本名模糊";
-        if (r === "alias_fuzzy") return "别名模糊";
-        if (r === "foreign_fuzzy") return "外文模糊";
-        if (r === "token_fuzzy") return "关键词模糊";
-        return "相关结果";
-      }};
-
-      let nodes = [];
-      let edges = [];
-      let edgesAll = [];
-      let neigh = [];
-      let edgeMeta = new Map();
-      let minYear = -800;
-      let maxYear = 1840;
-      let startYear = 0;
-      let endYear = 1840;
-      let timeWindowSignature = "";
-      let dragMode = "";
-      let dragStartX = 0;
-      let dragStartA = 0;
-      let dragStartB = 0;
-      let brushStartX = 0;
-      let brushStartYear = 0;
-      let hover = null;
-      let selectedIdx = -1;
-      let selected = null;
-      let spotlightIdx = -1;
-      let spotlight = null;
-      let _clickTimer = null;
-      let homeDetailLoaded = false;
-      let homeDetailPending = false;
-
-      const detailNodeKey = (node) => {{
-        if (!node || typeof node !== "object") return "";
-        const person = String(node.person || "").trim();
-        if (person) return "person:" + person;
-        const file = String(node.file || "").trim();
-        return file ? "file:" + file : "";
-      }};
-      const mergeNodeDetail = (node, patch) => {{
-        if (!node || typeof node !== "object" || !patch || typeof patch !== "object") return node;
-        Object.assign(node, patch);
-        return node;
-      }};
-      const applyHomeDetailData = (detailData) => {{
-        if (!detailData || typeof detailData !== "object") return;
-        const detailNodes = Array.isArray(detailData.nodes) ? detailData.nodes : [];
-        if (!detailNodes.length || !nodes.length) {{
-          homeDetailLoaded = true;
-          return;
-        }}
-        const nodeMap = new Map();
-        nodes.forEach((node) => {{
-          const key = detailNodeKey(node);
-          if (key) nodeMap.set(key, node);
-        }});
-        detailNodes.forEach((detailNode) => {{
-          const key = detailNodeKey(detailNode);
-          if (!key || !nodeMap.has(key)) return;
-          mergeNodeDetail(nodeMap.get(key), detailNode);
-        }});
-        homeDetailLoaded = true;
-        try {{
-          if ($q && String($q.value || "").trim()) renderSearchSuggest($q.value);
-        }} catch (_) {{}}
-        try {{ draw(); }} catch (_) {{}}
-      }};
-      const loadHomeDetailData = () => {{
-        if (!DATA_DETAIL_FILE || homeDetailLoaded || homeDetailPending) return Promise.resolve(null);
-        homeDetailPending = true;
-        return fetch(DATA_DETAIL_FILE)
-          .then((r) => (r && r.ok ? r.json() : null))
-          .then((detail) => {{
-            if (detail) applyHomeDetailData(detail);
-            return detail;
-          }})
-          .catch(() => null)
-          .finally(() => {{
-            homeDetailPending = false;
-          }});
-      }};
-
-      const isSpecialSunPerson = (n) => String((n && n.person) || "").trim() === "毛泽东";
-
-      let camScale = 1.0;
-      let camOffX = 0.0;
-      let camOffY = 0.0;
-
-      const worldToScreen = (x, y) => {{
-        return {{
-          x,
-          y: y * camScale + camOffY,
-        }};
-      }};
-      const screenToWorld = (x, y) => {{
-        return {{
-          x,
-          y: (y - camOffY) / camScale,
-        }};
-      }};
-      const setSelected = (n) => {{
-        if (!n || typeof n._idx !== "number") {{
-          pendingMapFocusPerson = "";
-          selectedIdx = -1;
-          selected = null;
-          spotlightIdx = -1;
-          spotlight = null;
-          showTip(null);
-          setLifeBar(null);
-          draw();
-          updateMapMarkers();
-          return;
-        }}
-        selectedIdx = n._idx;
-        selected = n;
-        spotlightIdx = -1;
-        spotlight = null;
-        showTip(null);
-        setLifeBar(selected);
-        draw();
-        updateMapMarkers();
-      }};
-      const setSpotlight = (n, clientX, clientY) => {{
-        if (!n || typeof n._idx !== "number") {{
-          spotlightIdx = -1;
-          spotlight = null;
-          setLifeBar(selected);
-          draw();
-          updateMapMarkers();
-          return;
-        }}
-        spotlightIdx = n._idx;
-        spotlight = n;
-        showTip(n, clientX, clientY);
-        setLifeBar(spotlight);
-        draw();
-        updateMapMarkers();
-      }};
-
-      const timelineSegments = () => {{
-        const segments = [
-          {{ a: minYear, b: Math.min(maxYear, 1840), w: 0.62 }},
-          {{ a: Math.max(minYear, 1840), b: Math.min(maxYear, 1911), w: 0.16 }},
-          {{ a: Math.max(minYear, 1911), b: maxYear, w: 0.22 }},
-        ].filter((seg) => Number.isFinite(seg.a) && Number.isFinite(seg.b) && seg.b > seg.a);
-        if (!segments.length) return [{{ a: minYear, b: maxYear, w: 1 }}];
-        const totalW = segments.reduce((sum, seg) => sum + Number(seg.w || 0), 0) || 1;
-        let acc = 0;
-        return segments.map((seg, idx) => {{
-          const w = Number(seg.w || 0) / totalW;
-          const start = acc;
-          const end = idx === segments.length - 1 ? 1 : (acc + w);
-          acc = end;
-          return {{ ...seg, start, end }};
-        }});
-      }};
-      const toT = (year) => {{
-        const y = Number(year);
-        if (!Number.isFinite(y)) return 0;
-        const segments = timelineSegments();
-        if (y <= segments[0].a) return 0;
-        for (const seg of segments) {{
-          if (y <= seg.b) {{
-            const local = clamp((y - seg.a) / Math.max(1, seg.b - seg.a), 0, 1);
-            return seg.start + local * (seg.end - seg.start);
-          }}
-        }}
-        return 1;
-      }};
-      const fromT = (t) => {{
-        const tt = clamp(Number(t) || 0, 0, 1);
-        const segments = timelineSegments();
-        for (const seg of segments) {{
-          if (tt <= seg.end || seg === segments[segments.length - 1]) {{
-            const width = Math.max(1e-6, seg.end - seg.start);
-            const local = clamp((tt - seg.start) / width, 0, 1);
-            return Math.round(seg.a + local * (seg.b - seg.a));
-          }}
-        }}
-        return maxYear;
-      }};
-
-      const formatYear = (y) => {{
-        const yy = Math.round(Number(y));
-        if (!Number.isFinite(yy)) return "";
-        if (yy === 0) return "公元1";
-        if (yy < 0) return `前${{-yy}}`;
-        return String(yy);
-      }};
-
-      const formatYearRange = (a, b) => {{
-        const hasA = a != null && Number.isFinite(Number(a));
-        const hasB = b != null && Number.isFinite(Number(b));
-        const dash = " \u2013 ";
-        if (hasA && hasB) return `${{formatYear(a)}}${{dash}}${{formatYear(b)}}`;
-        if (hasA) return `${{formatYear(a)}}${{dash}}?`;
-        if (hasB) return `?${{dash}}${{formatYear(b)}}`;
-        return "未知";
-      }};
-
-      const mainYear = (n) => {{
-        if (!n) return null;
-        const ty = n.time_year;
-        if (typeof ty === "number" && Number.isFinite(ty)) return ty;
-        const by = n.birth_year;
-        if (typeof by === "number" && Number.isFinite(by)) return by;
-        const dy = n.death_year;
-        if (typeof dy === "number" && Number.isFinite(dy)) return dy;
-        return null;
-      }};
-
-      const pickTickStep = (span) => {{
-        const s = Math.max(1, Math.round(Number(span) || 1));
-        if (s <= 60) return 5;
-        if (s <= 120) return 10;
-        if (s <= 240) return 20;
-        if (s <= 500) return 50;
-        if (s <= 900) return 100;
-        if (s <= 1600) return 200;
-        return 500;
-      }};
-      const overlapYears = (a0, a1, b0, b1) => {{
-        const lo = Math.max(Math.min(Number(a0), Number(a1)), Math.min(Number(b0), Number(b1)));
-        const hi = Math.min(Math.max(Number(a0), Number(a1)), Math.max(Number(b0), Number(b1)));
-        return Math.max(0, hi - lo);
-      }};
-      const pickTickConfig = (start, end) => {{
-        const span = Math.max(1, Math.round(Math.abs((Number(end) || 0) - (Number(start) || 0))));
-        let step = pickTickStep(span);
-        const recentRatio = overlapYears(start, end, 1840, maxYear) / span;
-        const contemporaryRatio = overlapYears(start, end, 1911, maxYear) / span;
-        if (contemporaryRatio >= 0.7) {{
-          if (span <= 90) step = Math.max(step, 20);
-          else if (span <= 180) step = Math.max(step, 25);
-          else if (span <= 360) step = Math.max(step, 50);
-          else if (span <= 700) step = Math.max(step, 100);
-        }} else if (recentRatio >= 0.55) {{
-          if (span <= 80) step = Math.max(step, 15);
-          else if (span <= 160) step = Math.max(step, 25);
-          else if (span <= 320) step = Math.max(step, 50);
-          else if (span <= 620) step = Math.max(step, 100);
-        }}
-        const maxLabels = contemporaryRatio >= 0.7 ? 5 : (recentRatio >= 0.55 ? 6 : 9);
-        const minPxPerLabel = contemporaryRatio >= 0.7 ? 108 : (recentRatio >= 0.55 ? 88 : 56);
-        return {{ step, maxLabels, minPxPerLabel }};
-      }};
-
-      const formatTickLabel = (y, span, step) => {{
-        let yy = Math.round(Number(y));
-        if (!Number.isFinite(yy)) return "";
-        if (yy === 0) yy = 1;
-        if (span >= 1200 || step >= 200) {{
-          if (yy < 0) {{
-            const c = Math.floor(((-yy) - 1) / 100) + 1;
-            return `前${{c}}世纪`;
-          }}
-          const c = Math.floor((yy - 1) / 100) + 1;
-          return `${{c}}世纪`;
-        }}
-        return formatYear(yy);
-      }};
-
-      const renderTicks = () => {{
-        if (!$ticks) return;
-        const span = Math.max(1, endYear - startYear);
-        const tickConfig = pickTickConfig(startYear, endYear);
-        const step = tickConfig.step;
-        const r = $ticks.getBoundingClientRect();
-        const w = r.width || 1;
-        const density = Math.max(1, Math.floor((span / step)));
-        const pxPerStep = Math.max(1, Math.abs(clamp(toT(startYear + step), 0, 1) - clamp(toT(startYear), 0, 1)) * w);
-        const maxLabels = tickConfig.maxLabels;
-        const minPxPerLabel = tickConfig.minPxPerLabel;
-        let labelEvery = Math.max(1, Math.ceil(density / maxLabels));
-        labelEvery = Math.max(labelEvery, Math.ceil(minPxPerLabel / Math.max(1, pxPerStep)));
-        let y0 = Math.floor(startYear / step) * step;
-        if (y0 > startYear) y0 -= step;
-        let html = "";
-        let idx = 0;
-        for (let y = y0; y <= endYear + step; y += step) {{
-          if (y < startYear - step) continue;
-          if (y > endYear + step) break;
-          const left = clamp(toT(y), 0, 1) * w;
-          const major = (idx % labelEvery) === 0;
-          const h = major ? 16 : 10;
-          const op = major ? 0.32 : 0.14;
-          html += `<div style="position:absolute;left:${{left.toFixed(2)}}px;bottom:6px;width:1px;height:${{h}}px;background:rgba(255,255,255,${{op}})"></div>`;
-          if (major) {{
-            const lab = formatTickLabel(y, span, step);
-            if (lab) {{
-              html += `<div style="position:absolute;left:${{left.toFixed(2)}}px;top:2px;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,0.56);white-space:nowrap">${{esc(lab)}}</div>`;
-            }}
-          }}
-          idx += 1;
-        }}
-        $ticks.innerHTML = html;
-      }};
-
-      const setLifeBar = (n) => {{
-        if (!$lifeBar) return;
-        const pick = n && typeof n === "object" ? n : null;
-        const b = pick ? pick.birth_year : null;
-        const d = pick ? pick.death_year : null;
-        if (b == null && d == null) {{
-          $lifeBar.classList.add("hidden");
-          return;
-        }}
-        const m = railMetrics();
-        const w = m.innerW || 1;
-        let a = (b != null) ? b : d;
-        let z = (d != null) ? d : b;
-        if (a == null || z == null) {{
-          $lifeBar.classList.add("hidden");
-          return;
-        }}
-        if (a > z) {{ const t = a; a = z; z = t; }}
-        const t1 = clamp(toT(a), 0, 1);
-        const t2 = clamp(toT(z), 0, 1);
-        const minW = 6 / w;
-        const tt2 = Math.max(t2, t1 + minW);
-        $lifeBar.style.left = `${{(m.inset + t1 * w).toFixed(2)}}px`;
-        $lifeBar.style.width = `${{Math.max(6, (tt2 - t1) * w).toFixed(2)}}px`;
-        $lifeBar.classList.remove("hidden");
-      }};
-
-      const zoomToFitWindowNodes = () => {{
-        if (!nodes || !nodes.length) return;
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        let c = 0;
-        for (const n of nodes) {{
-          if (!inWindow(n)) continue;
-          if (typeof n.x !== "number" || typeof n.y !== "number") continue;
-          minX = Math.min(minX, n.x);
-          minY = Math.min(minY, n.y);
-          maxX = Math.max(maxX, n.x);
-          maxY = Math.max(maxY, n.y);
-          c += 1;
-        }}
-        if (c < 2 || !Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) return;
-        const bw = Math.max(10, maxX - minX);
-        const bh = Math.max(10, maxY - minY);
-        const margin = 36;
-        const sx = (W - margin * 2) / bw;
-        const sy = (H - margin * 2) / bh;
-        camScale = clamp(Math.min(sx, sy), 0.35, 3.8);
-        camOffX = (W - (minX + maxX) * camScale) / 2;
-        camOffY = (H - (minY + maxY) * camScale) / 2;
-      }};
-
-      const getPresetRanges = () => ({{
-        all: [minYear, maxYear],
-        preqin: [-800, -221],
-        qin: [-221, -206],
-        han: [-206, 220],
-        weijin: [220, 589],
-        sui: [581, 618],
-        tang: [618, 907],
-        song: [960, 1279],
-        yuan: [1271, 1368],
-        ming: [1368, 1644],
-        qing: [1644, 1840],
-        modern: [1840, 1911],
-        contemporary: [1911, maxYear],
-      }});
-      const syncPresetButtons = () => {{
-        if (!$presetBar) return;
-        const presets = getPresetRanges();
-        let activeKey = "";
-        for (const [key, rawRange] of Object.entries(presets)) {{
-          const a = clamp(rawRange[0], minYear, maxYear);
-          let b = clamp(rawRange[1], minYear, maxYear);
-          if (a >= b) b = clamp(a + 1, minYear, maxYear);
-          if (startYear === a && endYear === b) {{
-            activeKey = key;
-            break;
-          }}
-        }}
-        const buttons = $presetBar.querySelectorAll("button[data-preset]");
-        buttons.forEach((btn) => {{
-          const key = String(btn.getAttribute("data-preset") || "");
-          const active = key === activeKey;
-          btn.style.background = active ? "linear-gradient(135deg, rgba(59,130,246,0.52), rgba(34,197,94,0.42))" : "rgba(255,255,255,0.10)";
-          btn.style.borderColor = active ? "rgba(255,255,255,0.54)" : "rgba(255,255,255,0.15)";
-          btn.style.color = active ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.72)";
-          btn.style.fontWeight = active ? "700" : "500";
-          btn.style.transform = active ? "translateY(-1px)" : "translateY(0)";
-          btn.style.boxShadow = active ? "0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 26px rgba(37,99,235,0.28), 0 0 18px rgba(34,197,94,0.20)" : "none";
-        }});
-      }};
-      const railMetrics = () => {{
-        const r = $rail.getBoundingClientRect();
-        const outerW = r.width || 1;
-        const inset = 18;
-        const innerW = Math.max(1, outerW - inset * 2);
-        return {{ outerW, innerW, inset }};
-      }};
-      const setSearchValidation = (txt) => {{
-        if (!$searchValidation) return;
-        const msg = String(txt || "").trim();
-        if (!msg) {{
-          $searchValidation.textContent = "";
-          $searchValidation.classList.add("hidden");
-          return;
-        }}
-        $searchValidation.textContent = msg;
-        $searchValidation.classList.remove("hidden");
-      }};
-      const setTimeRangeHint = (txt) => {{
-        if (!$timeRangeHint) return;
-        const msg = String(txt || "").trim();
-        if (!msg) {{
-          $timeRangeHint.textContent = "";
-          $timeRangeHint.classList.add("hidden");
-          return;
-        }}
-        $timeRangeHint.textContent = msg;
-        $timeRangeHint.classList.remove("hidden");
-      }};
-      const validatePersonInput = (rawValue, options = {{}}) => {{
-        const allowEmpty = !!(options && options.allowEmpty);
-        const normalized = String(rawValue || "").replace(/\s+/g, " ").trim();
-        if (!normalized) {{
-          return {{
-            value: "",
-            hasValue: false,
-            ok: allowEmpty,
-            reason: allowEmpty ? "" : "请输入历史人物姓名",
-          }};
-        }}
-        if (normalized.length > PERSON_NAME_MAX_LENGTH) {{
-          return {{
-            value: normalized,
-            hasValue: true,
-            ok: false,
-            reason: "人物姓名最多支持 12 个字符",
-          }};
-        }}
-        if (!PERSON_NAME_ALLOWED_RE.test(normalized)) {{
-          return {{
-            value: normalized,
-            hasValue: true,
-            ok: false,
-            reason: "请输入 12 字以内的历史人物姓名，仅支持汉字、字母和常见人名连接符",
-          }};
-        }}
-        if (!/[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFFA-Za-z]/u.test(normalized)) {{
-          return {{
-            value: normalized,
-            hasValue: true,
-            ok: false,
-            reason: "请输入有效的历史人物姓名",
-          }};
-        }}
-        return {{
-          value: normalized,
-          hasValue: true,
-          ok: true,
-          reason: "",
-        }};
-      }};
-      const syncSearchActionState = (options = {{}}) => {{
-        const showReason = !!(options && options.showReason);
-        const generating = !!(options && options.generating);
-        const validation = validatePersonInput($q ? $q.value : "", {{ allowEmpty: true }});
-        if (generating) {{
-          if ($go) $go.disabled = true;
-          return validation;
-        }}
-        const disabled = !validation.hasValue || !validation.ok;
-        if ($go) $go.disabled = disabled;
-        if (!validation.hasValue) {{
-          setSearchValidation("");
-        }} else if (!validation.ok && showReason) {{
-          setSearchValidation(validation.reason);
-        }} else if (validation.ok) {{
-          setSearchValidation("");
-        }}
-        return validation;
-      }};
-      const normalizeYearInputRange = (a, b) => {{
-        let start = Math.round(a);
-        let end = Math.round(b);
-        const notes = [];
-        if (start > end) {{
-          const temp = start;
-          start = end;
-          end = temp;
-          notes.push("起止年份已自动按先后顺序调整");
-        }}
-        const rawStart = start;
-        const rawEnd = end;
-        start = clamp(start, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        end = clamp(end, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        if (start !== rawStart || end !== rawEnd) {{
-          notes.push(`年份范围已限制在 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}}`);
-        }}
-        if (start === end) {{
-          end = clamp(start + 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-          if (end === start) start = clamp(end - 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-          notes.push("时间窗口至少需要 1 年跨度");
-        }}
-        return {{
-          start,
-          end,
-          message: notes.join("；"),
-        }};
-      }};
-      const setYearInputs = () => {{
-        if ($startYearInput) $startYearInput.value = String(startYear);
-        if ($endYearInput) $endYearInput.value = String(endYear);
-      }};
-      const applyYearInputs = () => {{
-        const a = $startYearInput ? Number($startYearInput.value) : NaN;
-        const b = $endYearInput ? Number($endYearInput.value) : NaN;
-        if (!Number.isFinite(a) || !Number.isFinite(b)) {{
-          setTimeRangeHint(`请输入 ${{YEAR_INPUT_MIN}} 到 ${{YEAR_INPUT_MAX}} 之间的年份`);
-          setYearInputs();
-          return;
-        }}
-        const normalized = normalizeYearInputRange(a, b);
-        startYear = normalized.start;
-        endYear = normalized.end;
-        setTimeRangeHint(normalized.message);
-        setHandles();
-        updateActiveCount();
-        updateCoordCount();
-        updateMapMarkers();
-        draw();
-      }};
-
-      const handlePosPx = () => {{
-        const m = railMetrics();
-        const x1 = m.inset + toT(startYear) * m.innerW;
-        const x2 = m.inset + toT(endYear) * m.innerW;
-        return {{ x1, x2, w: m.outerW }};
-      }};
-
-      const setHoverMarkers = (n) => {{
-        if (!n) {{
-          $mBirth.classList.add("hidden");
-          $mDeath.classList.add("hidden");
-          return;
-        }}
-        const m = railMetrics();
-        const show = (el, year) => {{
-          if (year == null) {{
-            el.classList.add("hidden");
-            return;
-          }}
-          const t = clamp(toT(year), 0, 1);
-          el.style.left = `${{(m.inset + t * m.innerW).toFixed(2)}}px`;
-          el.classList.remove("hidden");
-        }};
-        show($mBirth, n.birth_year);
-        show($mDeath, n.death_year);
-      }};
-
-      const setHandles = () => {{
-        const m = railMetrics();
-        const t1 = clamp(toT(startYear), 0, 1);
-        const t2 = clamp(toT(endYear), 0, 1);
-        const leftPx = m.inset + t1 * m.innerW;
-        const rightPx = m.inset + t2 * m.innerW;
-        $h1.style.left = `${{(leftPx - 7).toFixed(2)}}px`;
-        $h2.style.left = `${{(rightPx - 7).toFixed(2)}}px`;
-        $sel.style.left = `${{leftPx.toFixed(2)}}px`;
-        $sel.style.width = `${{Math.max(1, rightPx - leftPx).toFixed(2)}}px`;
-        if ($maskL) {{
-          $maskL.style.left = `${{m.inset.toFixed(2)}}px`;
-          $maskL.style.width = `${{Math.max(0, leftPx - m.inset).toFixed(2)}}px`;
-        }}
-        if ($maskR) {{
-          $maskR.style.left = `${{rightPx.toFixed(2)}}px`;
-          $maskR.style.width = `${{Math.max(0, (m.outerW - m.inset) - rightPx).toFixed(2)}}px`;
-        }}
-        $spanYear.textContent = String(Math.max(0, endYear - startYear));
-        setYearInputs();
-        $minLabel.textContent = formatYear(minYear);
-        $maxLabel.textContent = formatYear(maxYear);
-        $midLabel.textContent = formatYear(Math.round((startYear + endYear) / 2));
-        renderTicks();
-        syncPresetButtons();
-        setLifeBar(spotlight || selected);
-        persistTimeWindow();
-        scheduleMapFit();
-        updateProvinceBars();
-      }};
-
-      const inWindow = (n) => {{
-        const y = mainYear(n);
-        if (y == null) return false;
-        return y >= startYear && y <= endYear;
-      }};
-
-      const updateActiveCount = () => {{
-        let c = 0;
-        for (const n of nodes) {{
-          if (inWindow(n)) c += 1;
-        }}
-        if ($activeCount) $activeCount.textContent = String(c);
-      }};
-
-      const updateCoordCount = () => {{
-        let c = 0;
-        for (const n of nodes) {{
-          if (typeof n.birth_lat === "number" && typeof n.birth_lng === "number") c += 1;
-        }}
-      }};
-
-      const provinceOf = (n) => {{
-        const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
-        if (!raw) return "";
-        const s = raw.replace(/^今\s*/g, "");
-        const m = s.match(/(北京市|天津市|上海市|重庆市|香港特别行政区|澳门特别行政区|台湾省|内蒙古自治区|广西壮族自治区|宁夏回族自治区|新疆维吾尔自治区|西藏自治区|黑龙江省|吉林省|辽宁省|河北省|山西省|陕西省|山东省|河南省|江苏省|浙江省|安徽省|江西省|福建省|广东省|海南省|四川省|贵州省|云南省|湖北省|湖南省|甘肃省|青海省)/);
-        if (m) {{
-          const t = String(m[1] || "").trim();
-          if (t.endsWith("省")) return t.slice(0, -1);
-          if (t.endsWith("市")) return t.slice(0, -1);
-          if (t.endsWith("特别行政区")) return t.replace(/特别行政区$/, "");
-          if (t.endsWith("自治区")) return t.replace(/自治区$/, "");
-          return t;
-        }}
-        const m2 = s.match(/(北京|天津|上海|重庆|香港|澳门|台湾|内蒙古|广西|宁夏|新疆|西藏|黑龙江|吉林|辽宁|河北|山西|陕西|山东|河南|江苏|浙江|安徽|江西|福建|广东|海南|四川|贵州|云南|湖北|湖南|甘肃|青海)/);
-        if (m2) return String(m2[1] || "").trim();
-        return "";
-      }};
-
-      const cityOf = (n) => {{
-        const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "").trim();
-        if (!raw) return "";
-        // Strip leading "今"; take first segment before separators; remove parentheses.
-        let s = raw.replace(/^今\s*/g, "");
-        s = s.split(/[；;，,、]/)[0].replace(/[（(].*?[）)]/g, "").trim();
-        // After province prefix (xx省 / xx市 / xx自治区 / xx特别行政区), pull out the city / 地级 / 县级 token.
-        const m = s.match(/(?:[^省市区]+?省|[^省市区]+?自治区|[^省市区]+?特别行政区)?\s*([\u4e00-\u9fa5]{{2,}}?(?:市|地区|盟|州|县|区))/);
-        if (m && m[1]) {{
-          return String(m[1]).trim();
-        }}
-        // If string itself ends with 市/县/州/区/地区/盟, return the whole short token.
-        const m2 = s.match(/^([\u4e00-\u9fa5]{{2,}}?(?:市|地区|盟|州|县|区))$/);
-        if (m2 && m2[1]) return String(m2[1]).trim();
-        return "";
-      }};
-
-      let mapSearchQuery = "";
-      let mapSearchSuggestIdx = -1;
-      const mapSearchHighlightSet = new Set();
-      const _normalizeMapSearch = (raw) => {{
-        const txt = String(raw == null ? "" : raw).trim();
-        if (!txt) return "";
-        return txt.replace(/^今\s*/g, "").replace(/(省|市|地区|盟|州|县|区|特别行政区|自治区)$/g, "").trim();
-      }};
-      const matchPersonByPlace = (n, qNorm) => {{
-        if (!qNorm) return false;
-        const raw = String((n && (n.birthplace_modern || n.birthplace || n.birthplace_raw)) || "");
-        if (!raw) return false;
-        const hay = raw.replace(/\s+/g, "");
-        if (hay.indexOf(qNorm) >= 0) return true;
-        const prov = provinceOf(n);
-        if (prov && prov.indexOf(qNorm) >= 0) return true;
-        const city = cityOf(n);
-        if (city && _normalizeMapSearch(city).indexOf(qNorm) >= 0) return true;
-        return false;
-      }};
-      const collectMapSearchMatches = (qRaw, limit) => {{
-        const qNorm = _normalizeMapSearch(qRaw);
-        const out = [];
-        if (!qNorm) return out;
-        const cap = Math.max(1, Number(limit) || 30);
-        for (const n of nodes) {{
-          if (!n) continue;
-          if (!matchPersonByPlace(n, qNorm)) continue;
-          out.push(n);
-          if (out.length >= cap) break;
-        }}
-        return out;
-      }};
-      const _hexColorByYearOrDefault = (n) => {{
-        try {{
-          const c = colorByYear(n && n.time_year);
-          return c || "rgba(148,163,184,0.85)";
-        }} catch (_) {{
-          return "rgba(148,163,184,0.85)";
-        }}
-      }};
-      const renderMapSearchSuggest = () => {{
-        if (!$mapSearchSuggest) return;
-        const matches = collectMapSearchMatches(mapSearchQuery, 30);
-        if (!matches.length) {{
-          if (!mapSearchQuery) {{
-            $mapSearchSuggest.classList.add("hidden");
-            $mapSearchSuggest.innerHTML = "";
-            return;
-          }}
-          $mapSearchSuggest.classList.remove("hidden");
-          $mapSearchSuggest.innerHTML = '<div class="px-3 py-2 text-[11px] text-white/55">未匹配到人物</div>';
-          return;
-        }}
-        const parts = [];
-        for (let i = 0; i < matches.length; i += 1) {{
-          const n = matches[i];
-          const active = i === mapSearchSuggestIdx ? "bg-white/15" : "hover:bg-white/10";
-          const color = _hexColorByYearOrDefault(n);
-          const place = String(n.birthplace_modern || n.birthplace || n.birthplace_raw || "").replace(/^今\s*/g, "");
-          parts.push(
-            '<div data-msi="' + String(i) + '" data-mperson="' + esc(String(n.person || "")) + '" class="cursor-pointer px-3 py-1.5 ' + active + ' flex items-center gap-2">' +
-              '<span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:' + esc(String(color)) + '"></span>' +
-              '<span class="text-[12px] text-white/90 truncate">' + esc(String(n.person || "")) + '</span>' +
-              '<span class="ml-auto text-[10px] text-white/55 truncate max-w-[120px]" title="' + esc(place) + '">' + esc(place) + '</span>' +
-            '</div>'
-          );
-        }}
-        $mapSearchSuggest.innerHTML = parts.join("");
-        $mapSearchSuggest.classList.remove("hidden");
-      }};
-      const recomputeMapSearchHighlights = () => {{
-        mapSearchHighlightSet.clear();
-        const qNorm = _normalizeMapSearch(mapSearchQuery);
-        if (!qNorm) return;
-        for (const n of nodes) {{
-          if (n && typeof n._idx === "number" && matchPersonByPlace(n, qNorm)) {{
-            mapSearchHighlightSet.add(n._idx);
-          }}
-        }}
-      }};
-      const focusMapOnSearchMatch = () => {{
-        if (!amap || currentTab !== "map") return;
-        const matches = collectMapSearchMatches(mapSearchQuery, 200);
-        if (!matches.length) return;
-        try {{
-          const positions = [];
-          for (const n of matches) {{
-            const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
-            const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
-            if (!Number.isFinite(latW) || !Number.isFinite(lngW)) continue;
-            const p = wgs84ToGcj02(latW, lngW);
-            if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) positions.push([p.lng, p.lat]);
-          }}
-          if (!positions.length) return;
-          if (positions.length === 1) {{
-            const z = Math.max(7, Number(amap.getZoom ? amap.getZoom() : 7) || 7);
-            amap.setZoomAndCenter(Math.min(10, z), positions[0]);
-            mapCameraTouched = true;
-            return;
-          }}
-          if (window.AMap && window.AMap.Bounds) {{
-            let minLng = positions[0][0], maxLng = positions[0][0];
-            let minLat = positions[0][1], maxLat = positions[0][1];
-            for (const pos of positions) {{
-              if (pos[0] < minLng) minLng = pos[0];
-              if (pos[0] > maxLng) maxLng = pos[0];
-              if (pos[1] < minLat) minLat = pos[1];
-              if (pos[1] > maxLat) maxLat = pos[1];
-            }}
-            const bounds = new window.AMap.Bounds([minLng, minLat], [maxLng, maxLat]);
-            try {{
-              amap.setBounds(bounds, false, [56, 56, 56, 56]);
-              mapCameraTouched = true;
-            }} catch (e) {{
-              // setBounds 失败时不要把 mapCameraTouched 置为 true,
-              // 否则后续 scheduleMapFit 会因为这个标志而永远不再自动 fit。
-              try {{ console.warn("[stellar-map] setBounds failed", e); }} catch (_) {{}}
-            }}
-          }}
-        }} catch (_) {{}}
-      }};
-      const applyMapSearch = (raw, opts) => {{
-        const next = String(raw == null ? "" : raw);
-        const same = next === mapSearchQuery;
-        mapSearchQuery = next;
-        if ($mapSearchClear) {{
-          if (mapSearchQuery) $mapSearchClear.classList.remove("hidden");
-          else $mapSearchClear.classList.add("hidden");
-        }}
-        recomputeMapSearchHighlights();
-        mapSearchSuggestIdx = -1;
-        renderMapSearchSuggest();
-        if (currentTab === "map") {{
-          updateMapMarkers();
-          if (opts && opts.fit && !same) focusMapOnSearchMatch();
-        }}
-      }};
-
-      const _curvePathFromPoints = (pts) => {{
-        if (!Array.isArray(pts) || pts.length < 2) return "";
-        const p = pts.map((x) => [Number(x[0]), Number(x[1])]).filter((x) => Number.isFinite(x[0]) && Number.isFinite(x[1]));
-        if (p.length < 2) return "";
-        const cr = (p0, p1, p2, p3) => {{
-          const x1 = p1[0] + (p2[0] - p0[0]) / 6;
-          const y1 = p1[1] + (p2[1] - p0[1]) / 6;
-          const x2 = p2[0] - (p3[0] - p1[0]) / 6;
-          const y2 = p2[1] - (p3[1] - p1[1]) / 6;
-          return [x1, y1, x2, y2, p2[0], p2[1]];
-        }};
-        let d = `M ${{p[0][0].toFixed(2)}} ${{p[0][1].toFixed(2)}}`;
-        for (let i = 0; i < p.length - 1; i += 1) {{
-          const p0 = p[Math.max(0, i - 1)];
-          const p1 = p[i];
-          const p2 = p[i + 1];
-          const p3 = p[Math.min(p.length - 1, i + 2)];
-          const c = cr(p0, p1, p2, p3);
-          d += ` C ${{c[0].toFixed(2)}} ${{c[1].toFixed(2)}}, ${{c[2].toFixed(2)}} ${{c[3].toFixed(2)}}, ${{c[4].toFixed(2)}} ${{c[5].toFixed(2)}}`;
-        }}
-        return d;
-      }};
-
-      const updateProvinceBars = () => {{
-        if (!$provinceBars) return;
-        const counts = new Map();
-        let total = 0;
-        for (const n of nodes) {{
-          if (!inWindow(n)) continue;
-          const prov = provinceOf(n);
-          if (!prov) continue;
-          total += 1;
-          counts.set(prov, (counts.get(prov) || 0) + 1);
-        }}
-        const items = Array.from(counts.entries()).sort((a, b) => (b[1] - a[1]) || String(a[0]).localeCompare(String(b[0])));
-        const top = items.slice(0, 5);
-        const maxV = top.reduce((m, it) => Math.max(m, Number(it[1] || 0)), 1) || 1;
-        const parts = [];
-        for (const [prov, v0] of top) {{
-          const v = Number(v0 || 0);
-          const pct = Math.max(2, Math.round((v / maxV) * 100));
-          parts.push(
-            '<div class=\"flex items-center gap-2 mb-1\">' +
-              '<div class=\"w-10 text-[11px] text-white/70 truncate\" title=\"' + esc(String(prov)) + '\">' + esc(String(prov)) + '</div>' +
-              '<div class=\"flex-1\">' +
-                '<div class=\"h-[10px] rounded-full bg-white/10 border border-white/10 overflow-hidden\">' +
-                  '<div class=\"h-full rounded-full\" style=\"width:' + String(pct) + '%;background:rgba(34,197,94,0.70)\"></div>' +
-                '</div>' +
-              '</div>' +
-              '<div class=\"w-10 text-right text-[11px] text-white/70\">' + esc(String(v)) + '</div>' +
-            '</div>'
-          );
-        }}
-        $provinceBars.innerHTML = parts.join('') || '<div class=\"text-[11px] text-white/55\">当前时间窗无中国人物</div>';
-      }};
-
-      const renderBands = () => {{
-        if (!$bands) return;
-        const bands = [
-          {{ name: "春秋战国", a: -800, b: -221 }},
-          {{ name: "秦", a: -221, b: -206 }},
-          {{ name: "汉", a: -206, b: 220 }},
-          {{ name: "魏晋南北", a: 220, b: 589 }},
-          {{ name: "隋", a: 581, b: 618 }},
-          {{ name: "唐", a: 618, b: 907 }},
-          {{ name: "宋", a: 960, b: 1279 }},
-          {{ name: "元", a: 1271, b: 1368 }},
-          {{ name: "明", a: 1368, b: 1644 }},
-          {{ name: "清", a: 1644, b: 1840 }},
-          {{ name: "近代", a: 1840, b: 1911 }},
-          {{ name: "现代", a: 1911, b: 2000 }},
-        ];
-        const bandColors = [
-          "rgba(56,189,248,0.12)",
-          "rgba(34,197,94,0.10)",
-          "rgba(239,68,68,0.10)",
-          "rgba(96,165,250,0.10)",
-          "rgba(245,158,11,0.10)",
-          "rgba(168,85,247,0.10)",
-          "rgba(16,185,129,0.10)",
-          "rgba(249,115,22,0.10)",
-          "rgba(234,179,8,0.10)",
-        ];
-        const pieces = [];
-        for (let i = 0; i < bands.length; i++) {{
-          const b = bands[i];
-          const l = clamp(toT(b.a), 0, 1);
-          const r = clamp(toT(b.b), 0, 1);
-          if (r <= 0 || l >= 1) continue;
-          const left = (l * 100).toFixed(4) + "%";
-          const width = ((r - l) * 100).toFixed(4) + "%";
-          const bg = bandColors[i % bandColors.length];
-          pieces.push(`<div style="position:absolute;left:${{left}};width:${{width}};top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:visible;background:${{bg}};border-right:1px solid rgba(255,255,255,0.12);"><span style="white-space:nowrap;padding:0 6px;text-shadow:0 1px 0 rgba(0,0,0,0.25)">${{esc(b.name)}}</span></div>`);
-        }}
-        $bands.innerHTML = pieces.join("");
-        $bands.style.position = "absolute";
-      }};
-
-      const draw = () => {{
-        ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = "rgba(0,0,0,0)";
-        ctx.fillRect(0, 0, W, H);
-
-        ctx.globalCompositeOperation = "source-over";
-        const selectedSet = new Set();
-        if (selectedIdx >= 0 && neigh[selectedIdx]) {{
-          selectedSet.add(selectedIdx);
-          for (const j of (neigh[selectedIdx] || [])) selectedSet.add(j);
-        }}
-        if (edges.length) {{
-          ctx.lineWidth = 1;
-          for (const e of edges) {{
-            const typ = String((e && e.type) || "bio").trim().toLowerCase();
-            const conf = Number((e && (e.confidence ?? e.conf)) ?? 0);
-            const c = Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : 0;
-            const baseA = 0.05 + c * 0.22;
-            ctx.globalAlpha = Math.max(0.04, Math.min(0.20, baseA));
-            ctx.strokeStyle = typ === "manual"
-              ? "rgba(147,197,253,0.70)"
-              : (typ === "same_book" ? "rgba(148,163,184,0.55)" : "rgba(255,255,255,0.55)");
-            const a = nodes[e.a];
-            const b = nodes[e.b];
-            if (!a || !b) continue;
-            const pa = worldToScreen(a.x, a.y);
-            const pb = worldToScreen(b.x, b.y);
-            ctx.beginPath();
-            ctx.moveTo(pa.x, pa.y);
-            ctx.lineTo(pb.x, pb.y);
-            ctx.stroke();
-          }}
-          ctx.globalAlpha = 1.0;
-
-          for (const e of edges) {{
-            const typ = String((e && e.type) || "bio").trim().toLowerCase();
-            const conf = Number((e && (e.confidence ?? e.conf)) ?? 0);
-            const c = Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : 0;
-            const baseA = 0.12 + c * 0.35;
-            ctx.globalAlpha = Math.max(0.10, Math.min(0.38, baseA));
-            ctx.strokeStyle = typ === "manual"
-              ? "rgba(147,197,253,0.92)"
-              : (typ === "same_book" ? "rgba(203,213,225,0.78)" : "rgba(255,255,255,0.78)");
-            const a = nodes[e.a];
-            const b = nodes[e.b];
-            if (!a || !b) continue;
-            if (!(inWindow(a) && inWindow(b))) continue;
-            const pa = worldToScreen(a.x, a.y);
-            const pb = worldToScreen(b.x, b.y);
-            ctx.beginPath();
-            ctx.moveTo(pa.x, pa.y);
-            ctx.lineTo(pb.x, pb.y);
-            ctx.stroke();
-          }}
-          ctx.globalAlpha = 1.0;
-
-          const hiIdx = selectedIdx >= 0
-            ? selectedIdx
-            : (spotlightIdx >= 0
-                ? spotlightIdx
-                : (hover && typeof hover._idx === "number" ? hover._idx : -1));
-          if (hiIdx >= 0) {{
-            const ns = neigh[hiIdx] || [];
-            ctx.strokeStyle = "rgba(34,197,94,0.85)";
-            ctx.lineWidth = 1.8;
-            ctx.globalAlpha = 0.70;
-            for (const j of ns) {{
-              const a = nodes[hiIdx];
-              const b = nodes[j];
-              if (!a || !b) continue;
-              if (!(inWindow(a) && inWindow(b))) continue;
-              const pa = worldToScreen(a.x, a.y);
-              const pb = worldToScreen(b.x, b.y);
-              ctx.beginPath();
-              ctx.moveTo(pa.x, pa.y);
-              ctx.lineTo(pb.x, pb.y);
-              ctx.stroke();
-            }}
-            ctx.globalAlpha = 1.0;
-            ctx.lineWidth = 1;
-
-            if (selectedIdx >= 0) {{
-              ctx.save();
-              ctx.font = "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-              ctx.textAlign = "center";
-              ctx.textBaseline = "middle";
-              for (let ii = 0; ii < ns.length; ii += 1) {{
-                const j = ns[ii];
-                const a = nodes[hiIdx];
-                const b = nodes[j];
-                if (!a || !b) continue;
-                if (!(inWindow(a) && inWindow(b))) continue;
-                const lo = Math.min(hiIdx, j);
-                const hi = Math.max(hiIdx, j);
-                const meta = edgeMeta.get(`${{lo}},${{hi}}`) || null;
-                const label = meta && meta.label ? String(meta.label) : "";
-                if (!label) continue;
-                const pa = worldToScreen(a.x, a.y);
-                const pb = worldToScreen(b.x, b.y);
-                const mx = (pa.x + pb.x) / 2;
-                const my = (pa.y + pb.y) / 2;
-                const dx = pb.x - pa.x;
-                const dy = pb.y - pa.y;
-                const len = Math.hypot(dx, dy) || 1;
-                const nx = (-dy) / len;
-                const ny = dx / len;
-                const sign = (ii % 2 === 0) ? 1 : -1;
-                const ox = nx * 10 * sign;
-                const oy = ny * 10 * sign;
-                const x = mx + ox;
-                const y = my + oy;
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = "rgba(15,23,42,0.55)";
-                ctx.fillStyle = "rgba(255,255,255,0.88)";
-                try {{ ctx.strokeText(label, x, y); }} catch (_) {{}}
-                ctx.fillText(label, x, y);
-              }}
-              ctx.restore();
-            }}
-          }}
-        }}
-
-        ctx.globalCompositeOperation = "source-over";
-        const drawForeignRect = (pt, size, fillStyle, strokeStyle, lineAlpha, activeGlowAlpha) => {{
-          const w = size * 2;
-          const h = size * 2;
-          const x = pt.x - w / 2;
-          const y = pt.y - h / 2;
-          ctx.fillStyle = fillStyle;
-          ctx.fillRect(x, y, w, h);
-          ctx.strokeStyle = strokeStyle;
-          ctx.globalAlpha = lineAlpha;
-          ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
-          ctx.strokeRect(x + 0.4, y + 0.4, Math.max(0.8, w - 0.8), Math.max(0.8, h - 0.8));
-          if (activeGlowAlpha > 0) {{
-            ctx.strokeStyle = "rgba(255,255,255,0.22)";
-            ctx.globalAlpha = activeGlowAlpha;
-            ctx.lineWidth = 1 * camScale;
-            ctx.strokeRect(x - 2.2 * camScale, y - 2.2 * camScale, w + 4.4 * camScale, h + 4.4 * camScale);
-          }}
-        }};
-        for (const n of nodes) {{
-          const p = (typeof n.p === "number") ? clamp(n.p, 0, 1) : (inWindow(n) ? 1 : 0);
-          const active = p > 0.55;
-          const specialSun = isSpecialSunPerson(n);
-          const foreignPerson = isForeignPerson(n);
-          let r = (4.4 + p * 2.8) * camScale;
-          let alpha = 0.10 + p * 0.88;
-          let col = p > 0 ? colorByYear(mainYear(n)) : "rgba(255,255,255,0.30)";
-          const i = n._idx;
-          const hovered = hover && hover.person === n.person;
-          const selectedHere = selected && selected.person === n.person;
-          const spotlightHere = (selectedIdx < 0) && spotlight && spotlight.person === n.person;
-          if (selectedIdx >= 0) {{
-            if (!selectedSet.has(i)) {{
-              alpha *= 0.12;
-              col = "rgba(255,255,255,0.22)";
-            }} else {{
-              alpha = Math.max(alpha, 0.70);
-            }}
-          }}
-          if (hovered) {{
-            r = 9.2 * camScale;
-            alpha = 1.0;
-            col = "#fbbf24";
-          }}
-          if (selectedHere) {{
-            r = 10.5 * camScale;
-            alpha = 1.0;
-            col = "#fbbf24";
-          }}
-          if (spotlightHere) {{
-            r = 11.0 * camScale;
-            alpha = 1.0;
-            col = "#fbbf24";
-          }}
-          const pt = worldToScreen(n.x, n.y);
-          if (specialSun) {{
-            const rayOuter = r + 4.2 * camScale;
-            const rayInner = r + 1.1 * camScale;
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = "rgba(251,191,36,0.98)";
-            ctx.lineWidth = Math.max(1.4, 1.8 * camScale);
-            for (let rayIdx = 0; rayIdx < 8; rayIdx += 1) {{
-              const angle = (Math.PI * 2 * rayIdx) / 8 - Math.PI / 2;
-              const x1 = pt.x + Math.cos(angle) * rayInner;
-              const y1 = pt.y + Math.sin(angle) * rayInner;
-              const x2 = pt.x + Math.cos(angle) * rayOuter;
-              const y2 = pt.y + Math.sin(angle) * rayOuter;
-              ctx.beginPath();
-              ctx.moveTo(x1, y1);
-              ctx.lineTo(x2, y2);
-              ctx.stroke();
-            }}
-            ctx.beginPath();
-            ctx.fillStyle = "rgba(250,204,21,0.98)";
-            ctx.arc(pt.x, pt.y, Math.max(1.2, r - 0.3 * camScale), 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.strokeStyle = "rgba(255,255,255,0.92)";
-            ctx.globalAlpha = Math.min(1, alpha * 0.95);
-            ctx.lineWidth = Math.max(1.1, 1.5 * camScale);
-            ctx.arc(pt.x, pt.y, Math.max(0.8, r - 0.55 * camScale), 0, Math.PI * 2);
-            ctx.stroke();
-          }} else if (foreignPerson) {{
-            ctx.globalAlpha = alpha;
-            drawForeignRect(
-              pt,
-              r,
-              col,
-              active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)",
-              Math.min(1, alpha * (active ? 0.80 : 0.62)),
-              active ? (0.35 + p * 0.35) : 0
-            );
-          }} else {{
-            ctx.beginPath();
-            ctx.fillStyle = col;
-            ctx.globalAlpha = alpha;
-            ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.strokeStyle = active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)";
-            ctx.globalAlpha = Math.min(1, alpha * (active ? 0.80 : 0.62));
-            ctx.lineWidth = Math.max(0.9, 1.1 * camScale);
-            ctx.arc(pt.x, pt.y, Math.max(0.6, r - 0.25 * camScale), 0, Math.PI * 2);
-            ctx.stroke();
-            if (active) {{
-              ctx.beginPath();
-              ctx.strokeStyle = "rgba(255,255,255,0.22)";
-              ctx.globalAlpha = 0.35 + p * 0.35;
-              ctx.lineWidth = 1 * camScale;
-              ctx.arc(pt.x, pt.y, r + 2.6 * camScale, 0, Math.PI * 2);
-              ctx.stroke();
-            }}
-          }}
-        }}
-        ctx.globalAlpha = 1.0;
-        ctx.lineWidth = 1;
-
-        if (hover || (selectedIdx >= 0 && selected)) {{
-          const n = hover || selected;
-          const pt = worldToScreen(n.x, n.y);
-          if (isForeignPerson(n) && !isSpecialSunPerson(n)) {{
-            const size = 10 * camScale;
-            ctx.strokeStyle = "rgba(255,255,255,0.75)";
-            ctx.lineWidth = 2 * camScale;
-            ctx.strokeRect(pt.x - size, pt.y - size, size * 2, size * 2);
-          }} else {{
-            ctx.beginPath();
-            ctx.strokeStyle = isSpecialSunPerson(n) ? "rgba(251,191,36,0.98)" : "rgba(255,255,255,0.75)";
-            ctx.lineWidth = 2 * camScale;
-            ctx.arc(pt.x, pt.y, isSpecialSunPerson(n) ? 13 * camScale : 10 * camScale, 0, Math.PI * 2);
-            ctx.stroke();
-          }}
-        }}
-      }};
-
-      const reduceMotion = (() => {{
-        try {{
-          return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        }} catch (_) {{
-          return false;
-        }}
-      }})();
-
-      const animate = (nowMs) => {{
-        if (reduceMotion) return;
-        const t = (nowMs || 0) * 0.001;
-        for (const n of nodes) {{
-          const target = inWindow(n) ? 1 : 0;
-          if (typeof n.p !== "number") n.p = target;
-          n.p = n.p + (target - n.p) * 0.10;
-          const seed = hash(n.person || "");
-          const oy = Math.cos(t * 0.50 + (seed % 777) * 0.01) * 1.8 + Math.cos(t * 0.19 + (seed % 83)) * 0.8;
-          const bx = n.bx != null ? n.bx : n.x;
-          const by = n.by != null ? n.by : n.y;
-          n.x = clamp(bx, pad, W - pad);
-          n.y = clamp(by + oy, pad, H - pad);
-        }}
-        draw();
-        window.requestAnimationFrame(animate);
-      }};
-
-      const pickNode = (mx, my) => {{
-        const w = screenToWorld(mx, my);
-        let best = null;
-        let bestD = 999999;
-        for (const n of nodes) {{
-          const dx = w.x - n.x;
-          const dy = w.y - n.y;
-          const d = dx*dx + dy*dy;
-          const thr = (16 / camScale);
-          if (d < bestD && d < thr*thr) {{
-            bestD = d;
-            best = n;
-          }}
-        }}
-        return best;
-      }};
-
-      const buildTooltipInnerHtml = (n) => {{
-        const tipModel = buildPersonTooltipModel(n, {{ fallbackName: '相关人物' }});
-        const rowHtml = tipModel.rows.map((row) => `<div class="text-white/70 text-[11px] mt-1">${{esc(row.label)}}：${{esc(row.value)}}</div>`).join("");
-        const tline = tipModel.tagline ? `<div class="text-amber-200/95 text-[11px] mt-1 whitespace-pre-wrap">“${{esc(tipModel.tagline)}}”</div>` : "";
-        const badge = !tipModel.hasStory ? ` <span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/30 text-amber-100 text-[10px] font-medium align-middle">${{esc(tipModel.badgeText)}}</span>` : "";
-        const primaryName = String(tipModel.displayName || tipModel.name || "").trim();
-        const secondaryName = String(tipModel.secondaryName || "").trim();
-        const secondaryHtml = secondaryName && secondaryName !== primaryName
-          ? `<div class="text-white/55 text-[11px] mt-0.5 font-normal">${{esc(secondaryName)}}</div>`
-          : "";
-        return `<div class="font-bold text-white/95">${{esc(primaryName)}}${{badge}}</div>${{secondaryHtml}}${{rowHtml}}${{tline}}`;
-      }};
-      const hideTooltipEl = (el) => {{
-        if (!el) return;
-        el.classList.add("hidden");
-        // 清空 DOM,避免大名单下大量残留的旧 tooltip 节点留在内存里。
-        try {{ el.innerHTML = ""; }} catch (_) {{}}
-      }};
-      const placeTooltipEl = (el, hostRect, clientX, clientY) => {{
-        if (!el || !hostRect) return;
-        const safeClientX = Number.isFinite(Number(clientX)) ? Number(clientX) : (hostRect.left + hostRect.width / 2);
-        const safeClientY = Number.isFinite(Number(clientY)) ? Number(clientY) : (hostRect.top + hostRect.height / 2);
-        let left = safeClientX - hostRect.left + 10;
-        let top = safeClientY - hostRect.top + 10;
-        const tw = 260;
-        const th = 146;
-        if (left + tw > hostRect.width - 8) left = Math.max(8, safeClientX - hostRect.left - tw - 10);
-        if (top + th > hostRect.height - 8) top = Math.max(8, safeClientY - hostRect.top - th - 10);
-        el.style.left = left + "px";
-        el.style.top = top + "px";
-        el.classList.remove("hidden");
-      }};
-      const showTip = (n, clientX, clientY) => {{
-        if (!n) {{
-          hideTooltipEl($tip);
-          setHoverMarkers(null);
-          return;
-        }}
-        $tip.innerHTML = buildTooltipInnerHtml(n);
-        placeTooltipEl($tip, $c.getBoundingClientRect(), clientX, clientY);
-        setHoverMarkers(n);
-      }};
-      const showMapTip = (n, clientX, clientY) => {{
-        if (!n || !$mapTip || !$chinaMap) {{
-          hideTooltipEl($mapTip);
-          return;
-        }}
-        $mapTip.innerHTML = buildTooltipInnerHtml(n);
-        placeTooltipEl($mapTip, $chinaMap.getBoundingClientRect(), clientX, clientY);
-      }};
-      const closeMapTip = () => {{
-        hideTooltipEl($mapTip);
-      }};
-      const resolveMapTipClientPoint = (evt, lng, lat) => {{
-        const eventClientX = Number(evt && evt.originEvent ? evt.originEvent.clientX : evt && evt.clientX);
-        const eventClientY = Number(evt && evt.originEvent ? evt.originEvent.clientY : evt && evt.clientY);
-        if (Number.isFinite(eventClientX) && Number.isFinite(eventClientY)) {{
-          return {{ clientX: eventClientX, clientY: eventClientY }};
-        }}
-        try {{
-          if (amap && typeof amap.lngLatToContainer === "function" && $chinaMap) {{
-            const pixel = amap.lngLatToContainer([lng, lat]);
-            const px = Number(pixel && pixel.x);
-            const py = Number(pixel && pixel.y);
-            if (Number.isFinite(px) && Number.isFinite(py)) {{
-              const rect = $chinaMap.getBoundingClientRect();
-              return {{ clientX: rect.left + px, clientY: rect.top + py }};
-            }}
-          }}
-        }} catch (_) {{}}
-        const rect = $chinaMap ? $chinaMap.getBoundingClientRect() : {{ left: 0, top: 0, width: 0, height: 0 }};
-        return {{
-          clientX: rect.left + rect.width / 2,
-          clientY: rect.top + rect.height / 2,
-        }};
-      }};
-
-      const applyEdgeFilters = () => {{
-        edgesAll = [];
-        edges = [];
-        neigh = [];
-        edgeMeta = new Map();
-        draw();
-        if (currentTab === "map") {{
-          updateMapMarkers();
-        }}
-      }};
-
-      const PIXEL_STAGE_FLOW = [
-        {{ key: "queued", label: "排队" }},
-        {{ key: "search", label: "检索" }},
-        {{ key: "map", label: "定位" }},
-        {{ key: "draft", label: "成稿" }},
-        {{ key: "review", label: "审阅" }},
-        {{ key: "deliver", label: "交付" }},
-      ];
-      const PIXEL_AGENT_CARDS = [
-        {{ key: "search", label: "Search", role: "检索史料" }},
-        {{ key: "map", label: "Map", role: "校正地点" }},
-        {{ key: "draft", label: "Editor", role: "组织成稿" }},
-        {{ key: "review", label: "Critic", role: "审阅校验" }},
-        {{ key: "deliver", label: "Deliver", role: "保存交付" }},
-      ];
-      const PIXEL_IDLE_STATES = [
-        {{
-          key: "idle",
-          person: "橙子Agent",
-          sceneTitle: "待命",
-          stage: "待命",
-          speech: "待命中",
-          summary: "暂无任务，正在工位待命。",
-          footer: "空闲中",
-        }},
-        {{
-          key: "nap",
-          person: "橙子Agent",
-          sceneTitle: "小睡",
-          stage: "打盹",
-          speech: "打盹中",
-          summary: "暂无任务，正在工位小睡。",
-          footer: "空闲中",
-        }},
-        {{
-          key: "stroll",
-          person: "橙子Agent",
-          sceneTitle: "巡查",
-          stage: "遛弯",
-          speech: "巡查中",
-          summary: "暂无任务，正在附近巡查。",
-          footer: "空闲中",
-        }},
-      ];
-      let pixelGenCollapsed = true;
-      let pixelGenPinnedExpanded = false;
-      let pixelGenHovering = false;
-      let pixelGenDetailExpanded = false;
-      let pixelGenTypingSeq = 0;
-      let pixelGenTypingTimer = null;
-      let pixelIdleSceneTimer = null;
-      let pixelGenState = {{
-        visible: true,
-        person: "橙子Agent",
-        status: "idle",
-        sceneTitle: "工位",
-        idleStageLabel: "空闲中",
-        summary: "暂无任务。",
-        footerText: "空闲中",
-        progress: [],
-        stageKey: "queued",
-        speechText: "",
-        idleSceneKey: "idle",
-      }};
-      let currentGeneratePerson = "";
-      let pendingPersonPageTab = null;
-      let pendingPersonPageTabPerson = "";
-      const runtimeReadinessEnabled = true;
-      let runtimeAvailability = {{
-        checked: false,
-        backendExpected: true,
-        backendAvailable: false,
-        serveReady: false,
-        generateReady: false,
-        mode: "checking",
-        summary: "正在检查实时生成服务…",
-        queuePending: 0,
-        queueLimit: 0,
-        dependencySummary: "检查中",
-        alerts: [],
-      }};
-      const renderOpsChip = (el, tone, value) => {{
-        if (!el) return;
-        const normalizedTone = String(tone || "muted").trim() || "muted";
-        el.className = "pixel-progress-opschip is-" + normalizedTone;
-        const valueEl = el.querySelector(".pixel-progress-opschip-value");
-        if (valueEl) valueEl.textContent = String(value || "").trim() || "待命";
-      }};
-      const resolveRuntimeBlockMessage = () => {{
-        if (runtimeAvailability.mode === "browser_only") return requireBackend("实时人物分析");
-        if (runtimeAvailability.mode === "backend_unreachable") return "后端暂时不可达，当前仅支持浏览已生成人物页，请稍后再试。";
-        if (runtimeAvailability.mode === "serve_unready") return "服务正在恢复，当前可稍后再试实时生成。";
-        if (runtimeAvailability.mode === "generate_paused") return "实时生成人物暂时暂停，可先浏览已有内容，稍后再试。";
-        return "";
-      }};
-      const syncRuntimeOpsBoard = () => {{
-        const queueValue = runtimeAvailability.checked
-          ? (runtimeAvailability.queueLimit > 0 ? `${{runtimeAvailability.queuePending}} / ${{runtimeAvailability.queueLimit}}` : String(runtimeAvailability.queuePending || 0))
-          : "等待采样";
-        renderOpsChip(
-          $pixelGenOpsServe,
-          runtimeAvailability.mode === "serve_unready" || runtimeAvailability.mode === "backend_unreachable" ? "error" : "success",
-          runtimeAvailability.mode === "backend_unreachable" ? "后端离线" : (runtimeAvailability.serveReady ? "可浏览" : "恢复中"),
-        );
-        renderOpsChip(
-          $pixelGenOpsGenerate,
-          runtimeAvailability.generateReady ? "success" : (runtimeAvailability.mode === "generate_paused" ? "warning" : "error"),
-          runtimeAvailability.generateReady ? "可生成" : (runtimeAvailability.mode === "browser_only" ? "需后端" : "已暂停"),
-        );
-        renderOpsChip(
-          $pixelGenOpsQueue,
-          runtimeAvailability.queuePending > 0 ? "warning" : "muted",
-          queueValue,
-        );
-        renderOpsChip(
-          $pixelGenOpsDeps,
-          runtimeAvailability.generateReady ? "success" : (runtimeAvailability.checked ? "warning" : "muted"),
-          runtimeAvailability.dependencySummary || "等待采样",
-        );
-      }};
-      const pickPixelIdleState = (excludeKey = "") => {{
-        const states = PIXEL_IDLE_STATES.filter((item) => item && item.key !== excludeKey);
-        const pool = states.length ? states : PIXEL_IDLE_STATES;
-        const idx = Math.floor(Math.random() * Math.max(1, pool.length));
-        return pool[idx] || PIXEL_IDLE_STATES[0];
-      }};
-      const applyPixelIdleScene = (key) => {{
-        const safeKey = String(key || "idle").trim() || "idle";
-        if ($pixelOcelotWrap) $pixelOcelotWrap.dataset.idleScene = safeKey;
-        if ($pixelGenScene) $pixelGenScene.dataset.idleScene = safeKey;
-      }};
-      const clearPixelIdleSceneRotation = () => {{
-        if (pixelIdleSceneTimer) {{
-          try {{ clearTimeout(pixelIdleSceneTimer); }} catch (_) {{}}
-          pixelIdleSceneTimer = null;
-        }}
-      }};
-      const schedulePixelIdleSceneRotation = () => {{
-        clearPixelIdleSceneRotation();
-        pixelIdleSceneTimer = window.setTimeout(() => {{
-          if (String(pixelGenState.status || "").trim() !== "idle") return;
-          const next = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
-          updatePixelProgressPanel({{
-            status: "idle",
-            idleSceneKey: next.key,
-            person: next.person,
-            sceneTitle: next.sceneTitle,
-            idleStageLabel: next.stage,
-            summary: next.summary,
-            footerText: next.footer,
-            speechText: next.speech,
-          }});
-        }}, 7000 + Math.floor(Math.random() * 5000));
-      }};
-      const resolvePixelStageKey = (status, lastTxt, lastDetail, progress) => {{
-        const head = String(lastTxt || "").trim();
-        const detail = String(lastDetail || "").trim();
-        const tail = Array.isArray(progress) && progress.length ? String(progress[progress.length - 1].label || "").trim() : "";
-        const text = `${{head}} ${{detail}} ${{tail}}`.toLowerCase();
-        if (status === "idle") return "queued";
-        if (status === "queued") return "queued";
-        if (status === "completed" || status === "failed" || status === "partial_failed") return "deliver";
-        if (text.includes("searchagent") || text.includes("检索") || text.includes("理解任务")) return "search";
-        if (text.includes("mapagent") || text.includes("古今地名") || text.includes("坐标") || text.includes("解析地点")) return "map";
-        if (text.includes("editoragent") || text.includes("首稿") || text.includes("markdown") || text.includes("生成人物档案")) return "draft";
-        if (text.includes("criticagent") || text.includes("审阅") || text.includes("检查")) return "review";
-        if (text.includes("保存") || text.includes("输出结论") || text.includes("构建时空结果") || text.includes("打开人物页") || text.includes("完成")) return "deliver";
-        return "search";
-      }};
-      const resolvePixelStageLabel = (status, stageKey) => {{
-        if (status === "idle") return String(pixelGenState.idleStageLabel || "").trim() || "空闲中";
-        if (status === "queued") return "排队分发任务";
-        if (status === "completed") return "交付完成";
-        if (status === "failed") return "生成失败";
-        if (status === "partial_failed") return "部分完成";
-        if (stageKey === "search") return "检索人物资料";
-        if (stageKey === "map") return "补齐地点坐标";
-        if (stageKey === "draft") return "生成正文初稿";
-        if (stageKey === "review") return "审阅与校验";
-        if (stageKey === "deliver") return "保存并准备打开";
-        return "等待开始";
-      }};
-      const resolvePixelLampClass = (status) => {{
-        if (status === "idle") return "is-idle";
-        if (status === "queued") return "is-queued";
-        if (status === "failed" || status === "partial_failed") return "is-failed";
-        if (status === "completed") return "is-completed";
-        if (status === "running") return "is-running";
-        return "";
-      }};
-      const resolvePixelBadgeClass = (status) => {{
-        if (status === "idle") return "is-idle";
-        if (status === "queued") return "is-queued";
-        if (status === "failed" || status === "partial_failed") return "is-failed";
-        if (status === "completed") return "is-completed";
-        if (status === "running") return "is-running";
-        return "is-idle";
-      }};
-      const renderPixelSceneLights = (status, stageKey) => {{
-        if (!pixelGenSceneLights.length) return;
-        const defs = [
-          {{ on: status === "idle" || status === "queued", tint: status === "idle" ? "is-cyan" : "is-amber" }},
-          {{ on: status === "running" || stageKey === "review", tint: "is-green" }},
-          {{ on: stageKey === "deliver" || status === "completed", tint: "is-cyan" }},
-        ];
-        pixelGenSceneLights.forEach((el, idx) => {{
-          const conf = defs[idx] || {{ on: false, tint: "" }};
-          el.className = "pixel-progress-scene-light" + (conf.tint ? ` ${{conf.tint}}` : "") + (conf.on ? " is-on" : "");
-        }});
-      }};
-      const setPixelPanelCollapsed = (collapsed) => {{
-        pixelGenCollapsed = !!collapsed;
-        if ($pixelGenBody) $pixelGenBody.style.display = pixelGenCollapsed ? "none" : "";
-        if ($pixelGenPanel) $pixelGenPanel.classList.toggle("is-collapsed", pixelGenCollapsed);
-        if ($pixelGenPanel) {{
-          $pixelGenPanel.setAttribute("aria-label", `系统状态：${{resolvePixelCompactText(String(pixelGenState.status || "idle"), String(pixelGenState.stageKey || ""))}}`);
-          $pixelGenPanel.setAttribute("title", "系统状态：只读展示，不能手动暂停或恢复");
-        }}
-        if ($pixelGenToggle) {{
-          if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
-            $pixelGenToggle.textContent = "↗";
-            $pixelGenToggle.setAttribute("aria-expanded", "false");
-            $pixelGenToggle.setAttribute("aria-label", "查看 Orange Office 详情（状态只读）");
-            $pixelGenToggle.setAttribute("title", "查看 Orange Office 详情（状态只读，不能手动暂停或恢复）");
-          }} else {{
-            $pixelGenToggle.textContent = pixelGenCollapsed ? "+" : "-";
-            $pixelGenToggle.setAttribute("aria-expanded", pixelGenCollapsed ? "false" : "true");
-            $pixelGenToggle.setAttribute("aria-label", pixelGenCollapsed ? "展开看板" : "收起看板");
-            $pixelGenToggle.setAttribute("title", pixelGenCollapsed ? "展开看板" : "收起看板");
-          }}
-        }}
-      }};
-      const setPixelPanelPinnedExpanded = (expanded) => {{
-        pixelGenPinnedExpanded = !!expanded;
-      }};
-      const openStarOfficeInNewTab = () => {{
-        try {{
-          const nextTab = window.open(STAR_OFFICE_URL, "_blank", "noopener");
-          if (nextTab) return;
-        }} catch (_) {{}}
-        try {{
-          window.location.href = STAR_OFFICE_URL;
-        }} catch (_) {{}}
-      }};
-      const shouldOpenStarOfficeFromPanelEvent = (target) => {{
-        if (!STAR_OFFICE_OPEN_IN_NEW_TAB) return false;
-        if (!$pixelGenPanel) return false;
-        const node = target instanceof Element ? target : null;
-        if (!node) return true;
-        if ($pixelGenToggle && ($pixelGenToggle === node || $pixelGenToggle.contains(node))) return false;
-        const interactive = node.closest("button, a, input, select, textarea, label, summary, iframe");
-        if (!interactive) return true;
-        return $pixelGenPanel === interactive;
-      }};
-      const openPixelPanelTemporarily = () => {{
-        if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
-        pixelGenHovering = true;
-        if (!pixelGenPinnedExpanded && pixelGenCollapsed) setPixelPanelCollapsed(false);
-      }};
-      const maybeCollapsePixelPanel = () => {{
-        if (STAR_OFFICE_OPEN_IN_NEW_TAB) return;
-        pixelGenHovering = false;
-        if (!pixelGenPinnedExpanded) setPixelPanelCollapsed(true);
-      }};
-      const setPixelSpeechText = (text) => {{
-        if ($pixelGenSpeech) $pixelGenSpeech.textContent = String(text || "").trim() || "等待任务状态更新…";
-      }};
-      const resolvePixelSceneSpeech = (status) => {{
-        if (status === "idle") return String(pixelGenState.speechText || runtimeAvailability.summary || "").trim() || "空闲中";
-        if (status === "queued") return "排队中";
-        if (status === "completed") return "已完成";
-        if (status === "failed") return "执行失败";
-        if (status === "partial_failed") return "部分完成";
-        if (status === "running") return "执行中";
-        return "等待任务状态更新…";
-      }};
-      const typePixelSpeech = (text) => {{
-        const value = String(text || "").trim() || "等待任务状态更新…";
-        pixelGenTypingSeq += 1;
-        const seq = pixelGenTypingSeq;
-        if (pixelGenTypingTimer) {{
-          try {{ clearTimeout(pixelGenTypingTimer); }} catch (_) {{}}
-          pixelGenTypingTimer = null;
-        }}
-        if (reduceMotion || value.length <= 18) {{
-          setPixelSpeechText(value);
-          return;
-        }}
-        const showChars = (count) => {{
-          if (seq !== pixelGenTypingSeq) return;
-          setPixelSpeechText(value.slice(0, count));
-          if (count >= value.length) return;
-          const nextCount = Math.min(value.length, count + (count < 20 ? 3 : 2));
-          pixelGenTypingTimer = setTimeout(() => showChars(nextCount), 24);
-        }};
-        showChars(1);
-      }};
-      const setPixelDetailText = (text) => {{
-        if (!$pixelGenDetail) return;
-        const value = String(text || "").trim();
-        const safe = value || "等待任务状态更新…";
-        $pixelGenDetail.textContent = safe;
-        const longText = safe.length > 54;
-        $pixelGenDetail.classList.toggle("is-collapsed", longText && !pixelGenDetailExpanded);
-        if ($pixelGenDetailHint) {{
-          $pixelGenDetailHint.textContent = longText ? (pixelGenDetailExpanded ? "点击收起" : "点击展开") : "自动摘要";
-        }}
-      }};
-      const renderPixelProgressSteps = (status, stageKey) => {{
-        if (!$pixelGenSteps) return;
-        const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
-        const isIdle = status === "idle";
-        $pixelGenSteps.innerHTML = PIXEL_STAGE_FLOW.map((item, idx) => {{
-          const done = !isIdle && (status === "completed" ? true : idx < stageIdx);
-          const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === stageIdx;
-          const cls = "pixel-progress-step" + (done ? " is-done" : "") + (active ? " is-active" : "");
-          return `<div class="${{cls}}">${{item.label}}</div>`;
-        }}).join("");
-      }};
-      const resolvePixelStatusText = (status) => {{
-        if (status === "idle") {{
-          if (runtimeAvailability.mode === "browser_only") return "只读";
-          if (runtimeAvailability.mode === "backend_unreachable" || runtimeAvailability.mode === "serve_unready") return "恢复中";
-          if (runtimeAvailability.mode === "generate_paused") return "降级";
-          return "待命";
-        }}
-        if (status === "queued") return "排队";
-        if (status === "running") return "执行中";
-        if (status === "completed") return "已完成";
-        if (status === "failed") return "失败";
-        if (status === "partial_failed") return "部分完成";
-        return String(status || "").trim() || "待命";
-      }};
-      const resolvePixelCompactText = (status, stageKey) => {{
-        if (status === "running") return `进行中 · ${{resolvePixelStageLabel(status, stageKey)}}`;
-        if (status === "queued") return "排队中";
-        if (status === "completed") return "已生成";
-        if (status === "failed" || status === "partial_failed") return "查看异常";
-        if (runtimeAvailability.mode === "browser_only") return "系统 · 只读";
-        if (runtimeAvailability.mode === "backend_unreachable") return "系统 · 离线";
-        if (runtimeAvailability.mode === "serve_unready") return "系统 · 恢复中";
-        if (runtimeAvailability.mode === "generate_paused") return "系统 · 生成暂停";
-        return "系统 · 待命";
-      }};
-      const renderPixelAgentCards = (status, stageKey) => {{
-        if (!$pixelGenAgents) return;
-        const activeIdx = Math.max(0, PIXEL_AGENT_CARDS.findIndex((item) => item.key === stageKey || (stageKey === "queued" && item.key === "search")));
-        const isIdle = status === "idle";
-        $pixelGenAgents.innerHTML = PIXEL_AGENT_CARDS.map((item, idx) => {{
-          const done = !isIdle && (status === "completed" ? true : idx < activeIdx);
-          const active = !isIdle && status !== "completed" && status !== "failed" && status !== "partial_failed" && idx === activeIdx;
-          const cls = "pixel-progress-agent" + (done ? " is-done" : "") + (active ? " is-active" : "");
-          const stateText = isIdle ? "待命" : (active ? "处理中" : (done ? "已完成" : "等待"));
-          return `<div class="${{cls}}"><div class="pixel-progress-agent-name">${{item.label}}</div><div class="pixel-progress-agent-role">${{item.role}}</div><div class="pixel-progress-agent-status">${{stateText}}</div></div>`;
-        }}).join("");
-      }};
-      const escapePixelLogHtml = (value) => {{
-        return String(value || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
-      }};
-      const renderPixelProgressLog = (status, progress) => {{
-        if (!$pixelGenLog) return;
-        const items = (Array.isArray(progress) ? progress : []).slice(-5);
-        if (!items.length) {{
-          $pixelGenLog.innerHTML = status === "idle"
-            ? '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">空闲中</div><div class="pixel-progress-log-detail">输入人物后开始生成。</div></div>'
-            : '<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">等待中</div><div class="pixel-progress-log-detail">任务创建后会在这里持续显示最新执行步骤。</div></div>';
-          return;
-        }}
-        $pixelGenLog.innerHTML = items.map((item) => {{
-          const label = String((item && item.label) || "进度更新").trim() || "进度更新";
-          const detail = String((item && item.detail) || "").trim();
-          const time = String((item && item.time) || "").trim();
-          const labelText = time ? `${{label}} · ${{time}}` : label;
-          const safeLabelText = escapePixelLogHtml(labelText);
-          const detailHtml = detail ? `<div class="pixel-progress-log-detail">${{escapePixelLogHtml(detail)}}</div>` : "";
-          return `<div class="pixel-progress-log-item"><div class="pixel-progress-log-label">${{safeLabelText}}</div>${{detailHtml}}</div>`;
-        }}).join("");
-      }};
-      const updatePixelProgressPanel = (patch = {{}}) => {{
-        if (!$pixelGenPanel) return;
-        const prevState = pixelGenState;
-        pixelGenState = Object.assign({{}}, pixelGenState, patch || {{}});
-        const person = String(pixelGenState.person || "").trim();
-        const summary = String(pixelGenState.summary || "").trim();
-        const progress = Array.isArray(pixelGenState.progress) ? pixelGenState.progress : [];
-        const visible = pixelGenState.visible !== false;
-        if (!visible) {{
-          $pixelGenPanel.classList.add("hidden");
-          return;
-        }}
-        const status = String(pixelGenState.status || "running").trim() || "running";
-        const stageKey = String(pixelGenState.stageKey || "search").trim() || "search";
-        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && (status === "queued" || status === "running") && prevState && prevState.status === "idle" && pixelGenCollapsed) {{
-          setPixelPanelPinnedExpanded(true);
-          setPixelPanelCollapsed(false);
-        }}
-        if (!STAR_OFFICE_OPEN_IN_NEW_TAB && status === "idle" && prevState && prevState.status && prevState.status !== "idle" && !pixelGenHovering) {{
-          setPixelPanelPinnedExpanded(false);
-          setPixelPanelCollapsed(true);
-        }}
-        const stageIdx = Math.max(0, PIXEL_STAGE_FLOW.findIndex((item) => item.key === stageKey));
-        const basePercent = status === "idle"
-          ? 0
-          : (status === "completed"
-            ? 100
-            : Math.round(((stageIdx + (status === "queued" ? 0 : 1)) / PIXEL_STAGE_FLOW.length) * 100));
-        $pixelGenPanel.classList.remove("hidden");
-        applyPixelIdleScene(String(pixelGenState.idleSceneKey || "idle"));
-        if ($pixelGenPerson) $pixelGenPerson.textContent = person || "橙子Agent";
-        if ($pixelGenSceneTitle) {{
-          $pixelGenSceneTitle.textContent = status === "idle"
-            ? (String(pixelGenState.sceneTitle || "").trim() || "工位")
-            : "工位";
-        }}
-        if ($pixelGenStage) $pixelGenStage.textContent = resolvePixelStageLabel(status, stageKey);
-        if ($pixelGenStatusText) $pixelGenStatusText.textContent = resolvePixelStatusText(status);
-        if ($pixelGenLamp) $pixelGenLamp.className = "pixel-progress-lamp " + resolvePixelLampClass(status);
-        if ($pixelGenStatusBadge) {{
-          $pixelGenStatusBadge.className = "pixel-progress-badge " + resolvePixelBadgeClass(status);
-          $pixelGenStatusBadge.textContent = resolvePixelStatusText(status);
-        }}
-        if ($pixelGenCompactText) {{
-          $pixelGenCompactText.textContent = resolvePixelCompactText(status, stageKey);
-        }}
-        if ($pixelGenFooterText) {{
-          $pixelGenFooterText.textContent = status === "idle"
-            ? (String(pixelGenState.footerText || "").trim() || "空闲中")
-            : (status === "queued"
-            ? "任务已进入排队，等待分配算力"
-            : (status === "completed"
-              ? "产物已生成，正在准备打开页面"
-              : (status === "failed" || status === "partial_failed"
-                ? "任务已停止，请查看上方错误信息"
-                : "橙子Agent 正在持续汇报 agent 的执行进度")));
-        }}
-        if ($pixelGenPercent) $pixelGenPercent.textContent = `${{basePercent}}%`;
-        if ($pixelGenFill) $pixelGenFill.style.width = `${{basePercent}}%`;
-        if (status === "idle") schedulePixelIdleSceneRotation();
-        else clearPixelIdleSceneRotation();
-        renderPixelSceneLights(status, stageKey);
-        const sceneSpeech = resolvePixelSceneSpeech(status);
-        setPixelDetailText(summary);
-        if (sceneSpeech !== String(prevState?.speechText || "")) {{
-          typePixelSpeech(sceneSpeech);
-        }} else if (!$pixelGenSpeech || !String($pixelGenSpeech.textContent || "").trim()) {{
-          setPixelSpeechText(sceneSpeech);
-        }}
-        pixelGenState.speechText = sceneSpeech;
-        renderPixelProgressSteps(status, stageKey);
-        renderPixelAgentCards(status, stageKey);
-        renderPixelProgressLog(status, progress);
-      }};
-      try {{
-        if ($pixelGenToggle) {{
-          $pixelGenToggle.addEventListener("click", () => {{
-            if (STAR_OFFICE_OPEN_IN_NEW_TAB) {{
-              openStarOfficeInNewTab();
-              return;
-            }}
-            if (pixelGenCollapsed) {{
-              setPixelPanelPinnedExpanded(true);
-              setPixelPanelCollapsed(false);
-            }} else {{
-              setPixelPanelPinnedExpanded(false);
-              setPixelPanelCollapsed(true);
-            }}
-          }});
-        }}
-        if ($pixelGenPanel) {{
-          $pixelGenPanel.addEventListener("mouseenter", openPixelPanelTemporarily);
-          $pixelGenPanel.addEventListener("mouseleave", maybeCollapsePixelPanel);
-          $pixelGenPanel.addEventListener("focusin", openPixelPanelTemporarily);
-          $pixelGenPanel.addEventListener("focusout", () => {{
-            try {{
-              if ($pixelGenPanel.contains(document.activeElement)) return;
-            }} catch (_) {{}}
-            maybeCollapsePixelPanel();
-          }});
-        }}
-        if ($pixelGenDetailCard) {{
-          $pixelGenDetailCard.addEventListener("click", () => {{
-            const safe = String(pixelGenState.summary || "").trim();
-            if (safe.length <= 54) return;
-            pixelGenDetailExpanded = !pixelGenDetailExpanded;
-            setPixelDetailText(safe);
-          }});
-        }}
-      }} catch (_) {{}}
-      setPixelPanelCollapsed(true);
-      const initialIdleState = pickPixelIdleState();
-      pixelGenState = Object.assign({{}}, pixelGenState, {{
-        idleSceneKey: initialIdleState.key,
-        person: initialIdleState.person,
-        sceneTitle: initialIdleState.sceneTitle,
-        idleStageLabel: initialIdleState.stage,
-        summary: initialIdleState.summary,
-        footerText: initialIdleState.footer,
-        speechText: initialIdleState.speech,
-      }});
-      updatePixelProgressPanel(pixelGenState);
-
-      const setGenStatus = (txt) => {{
-        const t = String(txt || "").trim();
-        updatePixelProgressPanel({{
-          visible: true,
-          summary: t,
-        }});
-        if (!$genStatus) return;
-        if (!t) {{
-          $genStatus.classList.add("hidden");
-          $genStatus.textContent = "";
-          return;
-        }}
-        $genStatus.textContent = t;
-        $genStatus.classList.remove("hidden");
-      }};
-      const clearGenerateRequestKey = (personName) => {{
-        const person = String(personName || "").trim();
-        if (!person) return;
-        try {{
-          const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
-          const payload = raw ? JSON.parse(raw) : {{}};
-          if (!payload || typeof payload !== "object") return;
-          delete payload[person];
-          sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(payload));
-        }} catch (_) {{}}
-      }};
-      const isSafeGenerateRequestKey = (value) => /^[A-Za-z0-9._:-]+$/.test(String(value || "").trim());
-      const getGenerateRequestKey = (personName) => {{
-        const person = String(personName || "").trim();
-        if (!person) return "";
-        try {{
-          const raw = sessionStorage.getItem("stellar_gen_idempotency_v1") || "";
-          const payload = raw ? JSON.parse(raw) : {{}};
-          const now = Date.now();
-          const hit = payload && typeof payload === "object" ? payload[person] : null;
-          if (hit && typeof hit === "object") {{
-            const createdAt = Number(hit.created_at || 0);
-            const key = String(hit.key || "").trim();
-            if (key && isSafeGenerateRequestKey(key) && createdAt > 0 && (now - createdAt) < 10 * 60 * 1000) return key;
-          }}
-          const fresh = "storymap-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 10);
-          const next = payload && typeof payload === "object" ? payload : {{}};
-          next[person] = {{ key: fresh, created_at: now }};
-          sessionStorage.setItem("stellar_gen_idempotency_v1", JSON.stringify(next));
-          return fresh;
-        }} catch (_) {{
-          return "storymap-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
-        }}
-      }};
-      const clearGenTask = () => {{
-        clearTaskPoll();
-        try {{ localStorage.removeItem("stellar_gen_task_v1"); }} catch (_) {{}}
-        if (currentGeneratePerson) clearGenerateRequestKey(currentGeneratePerson);
-        currentGeneratePerson = "";
-        pendingPersonPageTab = null;
-        pendingPersonPageTabPerson = "";
-      }};
-      const setGeneratingUI = (isGenerating) => {{
-        const on = !!isGenerating;
-        try {{
-          if ($go) {{
-            $go.dataset.loading = on ? "true" : "false";
-            $go.setAttribute("aria-label", on ? "分析中" : "开始分析");
-            $go.setAttribute("title", on ? "分析中" : "开始分析");
-          }}
-          if ($goLabel) $goLabel.textContent = on ? "分析中" : "开始分析";
-        }} catch (_) {{}}
-        try {{
-          if (on) {{
-            $go.classList.add("opacity-60");
-            $go.classList.add("cursor-not-allowed");
-          }} else {{
-            $go.classList.remove("opacity-60");
-            $go.classList.remove("cursor-not-allowed");
-          }}
-        }} catch (_) {{}}
-        syncSearchActionState({{ generating: on }});
-      }};
-      const fetchWithTimeout = (url, ms, init) => {{
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), ms || 12000);
-        return fetch(url, Object.assign({{ cache: "no-store", signal: controller.signal }}, init || {{}})).finally(() => clearTimeout(id));
-      }};
-      const normalizeRelativeHtmlFile = (file) => {{
-        const raw = String(file || "").trim();
-        if (!raw) return "";
-        const cleaned = raw.split("#")[0].split("?")[0].replace(/\\/g, "/").replace(/^[.\/]+/, "");
-        if (!cleaned) return "";
-        const parts = cleaned.split("/").filter(Boolean);
-        const leaf = parts.length ? parts[parts.length - 1] : "";
-        return /\.html?$/i.test(leaf) ? leaf : "";
-      }};
-      const navigateToRelativeHtml = (file, options = {{}}) => {{
-        const target = normalizeRelativeHtmlFile(file);
-        if (!target) return false;
-        const targetUrl = "./" + encodeURIComponent(target);
-        const useNewTab = !!(options && options.newTab);
-        if (useNewTab) {{
-          try {{
-            const link = document.createElement("a");
-            link.href = targetUrl;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            return true;
-          }} catch (_) {{}}
-        }}
-        window.location.href = targetUrl;
-        return true;
-      }};
-      const resolveStarOfficeUrl = (personName, taskId = "") => {{
-        const params = new URLSearchParams();
-        const person = String(personName || "").trim();
-        const task = String(taskId || "").trim();
-        if (person) params.set("person", person);
-        if (task) params.set("task", task);
-        const query = params.toString();
-        return query ? (STAR_OFFICE_URL + "?" + query) : STAR_OFFICE_URL;
-      }};
-      const ensurePendingPersonTab = (personName) => {{
-        const person = String(personName || "").trim();
-        pendingPersonPageTabPerson = person;
-        if (pendingPersonPageTab && !pendingPersonPageTab.closed) return pendingPersonPageTab;
-        try {{
-          const tab = window.open(resolveStarOfficeUrl(person), "_blank");
-          if (!tab) return null;
-          pendingPersonPageTab = tab;
-          return tab;
-        }} catch (_) {{
-          return null;
-        }}
-      }};
-      const navigatePendingPersonTabToOffice = (personName, taskId = "") => {{
-        const person = String(personName || "").trim();
-        if (!person) return false;
-        if (pendingPersonPageTabPerson !== person) return false;
-        const tab = pendingPersonPageTab;
-        if (!tab || tab.closed) return false;
-        try {{
-          tab.location.href = resolveStarOfficeUrl(person, taskId);
-          return true;
-        }} catch (_) {{
-          return false;
-        }}
-      }};
-      const navigatePendingPersonTabToHtml = (personName, file) => {{
-        const person = String(personName || "").trim();
-        if (!person) return false;
-        if (pendingPersonPageTabPerson !== person) return false;
-        const tab = pendingPersonPageTab;
-        if (!tab || tab.closed) return false;
-        const target = normalizeRelativeHtmlFile(file);
-        if (!target) return false;
-        try {{
-          tab.location.href = "./" + encodeURIComponent(target);
-          pendingPersonPageTab = null;
-          pendingPersonPageTabPerson = "";
-          return true;
-        }} catch (_) {{
-          return false;
-        }}
-      }};
-      const probeGeneratedPersonHtml = async (personName) => {{
-        const person = String(personName || "").trim();
-        if (!person) return "";
-        const target = person + ".html";
-        try {{
-          const resp = await fetch("./" + encodeURIComponent(target), {{ method: "HEAD", cache: "no-store" }});
-          if (resp && resp.ok) return target;
-        }} catch (_) {{}}
-        return "";
-      }};
-      const resolveTaskResultHtml = (result, fallbackPerson) => {{
-        const files = Array.isArray(result && result.files) ? result.files : [];
-        for (const item of files) {{
-          const html = normalizeRelativeHtmlFile(item && item.html);
-          if (html) return html;
-        }}
-        const multiHtml = normalizeRelativeHtmlFile(result && result.multi ? result.multi.html : "");
-        if (multiHtml) return multiHtml;
-        const people = Array.isArray(result && result.people) ? result.people : [];
-        const preferredNames = [];
-        const primaryName = String(people.length ? people[0] : (fallbackPerson || "")).trim();
-        const fallbackName = String(fallbackPerson || "").trim();
-        if (primaryName) preferredNames.push(primaryName);
-        if (fallbackName && !preferredNames.includes(fallbackName)) preferredNames.push(fallbackName);
-        for (const name of preferredNames) {{
-          const found = nodes.find((n) => n && String(n.person || "").trim() === name) || null;
-          const html = normalizeRelativeHtmlFile(found && found.file ? found.file : (name ? (name + ".html") : ""));
-          if (html) return html;
-        }}
-        return "";
-      }};
-      let activeTaskPollId = "";
-      let activeTaskPollGeneration = 0;
-      let activeTaskPollTimer = 0;
-      const clearTaskPoll = () => {{
-        activeTaskPollId = "";
-        activeTaskPollGeneration += 1;
-        if (activeTaskPollTimer) {{
-          clearTimeout(activeTaskPollTimer);
-          activeTaskPollTimer = 0;
-        }}
-      }};
-      const scheduleTaskPoll = (taskId, generation, tick, ms = 900) => {{
-        if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
-        if (activeTaskPollTimer) clearTimeout(activeTaskPollTimer);
-        activeTaskPollTimer = setTimeout(() => {{
-          activeTaskPollTimer = 0;
-          if (activeTaskPollId !== taskId || generation !== activeTaskPollGeneration) return;
-          tick();
-        }}, ms);
-      }};
-
-      const openPerson = (name) => {{
-        const q = String(name || "").trim();
-        if (!q) return;
-        const found = nodes.find((n) => n && String(n.person || "").trim() === q) || null;
-        if (found && found.has_story === false) {{
-          setGenStatus("「" + q + "」暂未收录人物页，正在尝试创建分析任务");
-          ensurePendingPersonTab(q);
-          ensurePersonGenerated(q);
-          return;
-        }}
-        const file = found && found.file ? String(found.file) : "";
-        if (navigateToRelativeHtml(file, {{ newTab: true }})) return;
-        ensurePendingPersonTab(q);
-        ensurePersonGenerated(q);
-      }};
-      window.__openPerson = openPerson;
-
-      const pollTask = (taskId, personName) => {{
-        const id = String(taskId || "").trim();
-        if (!id) return;
-        if (activeTaskPollId === id) return;
-        clearTaskPoll();
-        activeTaskPollId = id;
-        activeTaskPollGeneration += 1;
-        const generation = activeTaskPollGeneration;
-        const person = String(personName || "").trim();
-        currentGeneratePerson = person;
-        let missingSnapshotCount = 0;
-        let lastKnownProgress = [];
-        let lastKnownSummary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…";
-        let lastKnownStageKey = "queued";
-      let personPageOpened = false;
-        const tick = async () => {{
-          if (activeTaskPollId !== id || generation !== activeTaskPollGeneration) return;
-          let snapshot = null;
-          try {{
-            const taskUrl = apiUrl("task?id=" + encodeURIComponent(id));
-            const resp = await fetchWithTimeout(taskUrl, 12000);
-            snapshot = await resp.json();
-          }} catch (e) {{
-            snapshot = null;
-          }}
-          if (!snapshot || snapshot.exists !== true) {{
-            missingSnapshotCount += 1;
-            const generatedHtml = await probeGeneratedPersonHtml(person);
-            if (generatedHtml) {{
-              const summary = "分析完成，正在打开人物页…";
-              setGenStatus(summary);
-              updatePixelProgressPanel({{
-                visible: true,
-                person,
-                status: "completed",
-                summary,
-                progress: lastKnownProgress,
-                stageKey: "deliver",
-              }});
-              setGeneratingUI(false);
-              navigatePendingPersonTabToHtml(person, generatedHtml) || navigateToRelativeHtml(generatedHtml, {{ newTab: true }});
-              clearGenTask();
-              return;
-            }}
-            if (missingSnapshotCount <= 8) {{
-              const summary = "任务状态同步中，请稍候…";
-              setGenStatus(summary);
-              updatePixelProgressPanel({{
-                visible: true,
-                person,
-                status: "running",
-                summary,
-                progress: lastKnownProgress,
-                stageKey: lastKnownStageKey,
-              }});
-              setGeneratingUI(true);
-              scheduleTaskPoll(id, generation, tick, missingSnapshotCount >= 3 ? 1800 : 1100);
-              return;
-            }}
-            const summary = lastKnownSummary ? (lastKnownSummary + "；任务状态同步失败，请稍后重试。") : "分析任务查询失败，请稍后重试";
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: "failed",
-              summary,
-              progress: lastKnownProgress,
-              stageKey: "deliver",
-            }});
-            setGeneratingUI(false);
-            clearGenTask();
-            return;
-          }}
-          missingSnapshotCount = 0;
-          const st = String(snapshot.status || "").trim();
-          const queue = snapshot.queue || {{}};
-          const pos = queue.position ? String(queue.position) : "";
-          const active = queue.active_at_start ? String(queue.active_at_start) : (queue.active ? String(queue.active) : "");
-          const limit = queue.limit ? String(queue.limit) : "";
-          const progress = Array.isArray(snapshot.progress) ? snapshot.progress : [];
-          const last = progress.length ? progress[progress.length - 1] : null;
-          const lastTxt = last && last.label ? String(last.label) : "";
-          const lastDetail = last && last.detail ? String(last.detail) : "";
-          if (st === "queued") {{
-            const qtxt = (pos && limit) ? ("排队中（" + pos + "/" + limit + "）") : "排队中";
-            const summary = "未找到本地人物「" + person + "」，正在创建分析任务，请稍候… " + qtxt;
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: st,
-              summary,
-              progress,
-              stageKey: "queued",
-            }});
-            setGeneratingUI(true);
-            lastKnownProgress = progress;
-            lastKnownSummary = summary;
-            lastKnownStageKey = "queued";
-            scheduleTaskPoll(id, generation, tick, 900);
-            return;
-          }}
-          if (st === "running") {{
-            const ptxt = lastDetail ? (lastTxt + "：" + lastDetail) : lastTxt;
-            const head = "未找到本地人物「" + person + "」，正在分析并生成结果，请稍候…";
-            const tail = ptxt ? ("（" + ptxt + "）") : (active && limit ? ("（执行中 " + active + "/" + limit + "）") : "");
-            const summary = head + tail;
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: st,
-              summary,
-              progress,
-              stageKey: resolvePixelStageKey(st, lastTxt, lastDetail, progress),
-            }});
-            setGeneratingUI(true);
-            lastKnownProgress = progress;
-            lastKnownSummary = summary;
-            lastKnownStageKey = resolvePixelStageKey(st, lastTxt, lastDetail, progress);
-            scheduleTaskPoll(id, generation, tick, 900);
-            return;
-          }}
-          if (st === "failed") {{
-            const summary = "分析失败：" + String(snapshot.error || "未知错误");
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: st,
-              summary,
-              progress,
-              stageKey: "deliver",
-            }});
-            setGeneratingUI(false);
-            clearGenTask();
-            return;
-          }}
-          if (st === "partial_failed") {{
-            const result = snapshot.result || {{}};
-            const detail = String(snapshot.error || result.conclusion || "部分任务未成功");
-            const summary = "分析部分完成：" + detail;
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: st,
-              summary,
-              progress,
-              stageKey: "deliver",
-            }});
-            setGeneratingUI(false);
-            clearGenTask();
-            return;
-          }}
-          if (st === "completed") {{
-            const result = snapshot.result || {{}};
-            const ok = result && result.ok === true;
-            const archive = result.archive || {{}};
-            const archiveState = String(archive.state || "").trim();
-            if (!ok) {{
-              const summary = "分析失败：" + String(result.conclusion || snapshot.error || "未生成成功");
-              setGenStatus(summary);
-              updatePixelProgressPanel({{
-                visible: true,
-                person,
-                status: "failed",
-                summary,
-                progress,
-                stageKey: "deliver",
-              }});
-              setGeneratingUI(false);
-              clearGenTask();
-              return;
-            }}
-            const targetHtml = resolveTaskResultHtml(result, person);
-            if (!targetHtml) {{
-              setGenStatus("分析完成，但未找到可打开的人物页");
-              setGeneratingUI(false);
-              clearGenTask();
-              return;
-            }}
-            if (!personPageOpened) {{
-              personPageOpened = navigatePendingPersonTabToHtml(person, targetHtml) || navigateToRelativeHtml(targetHtml, {{ newTab: true }});
-            }}
-            if (!personPageOpened) {{
-              setGenStatus("分析完成，但未找到可打开的人物页");
-              setGeneratingUI(false);
-              clearGenTask();
-              return;
-            }}
-            if (archiveState === "queued" || archiveState === "running") {{
-              const summary = "人物页已打开，群星首页与关系图谱正在后台补齐…";
-              setGenStatus(summary);
-              updatePixelProgressPanel({{
-                visible: true,
-                person,
-                status: "running",
-                summary,
-                progress,
-                stageKey: "deliver",
-              }});
-              setGeneratingUI(false);
-              lastKnownProgress = progress;
-              lastKnownSummary = summary;
-              lastKnownStageKey = "deliver";
-              scheduleTaskPoll(id, generation, tick, 1200);
-              return;
-            }}
-            clearGenTask();
-            const summary = archiveState === "completed"
-              ? "人物页已打开，群星首页与关系图谱已补齐，正在刷新首页…"
-              : "分析完成，人物页已打开";
-            setGenStatus(summary);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: st,
-              summary,
-              progress,
-              stageKey: "deliver",
-            }});
-            setGeneratingUI(false);
-              clearGenTask();
-            if (archiveState === "completed") {{
-              setTimeout(() => {{
-                try {{
-                  window.location.reload();
-                }} catch (_err) {{}}
-              }}, 320);
-            }}
-            return;
-          }}
-          setGenStatus("分析任务状态异常，请稍后重试");
-          setGeneratingUI(false);
-          clearGenTask();
-        }};
-        tick();
-      }};
-
-      const ensurePersonGenerated = async (personName) => {{
-        const person = String(personName || "").trim();
-        if (!person) return;
-        const blockedMessage = resolveRuntimeBlockMessage();
-        if (blockedMessage) {{
-          setGenStatus(blockedMessage);
-          updatePixelProgressPanel({{
-            visible: true,
-            person,
-            status: "idle",
-            summary: blockedMessage,
-            progress: [],
-            stageKey: "queued",
-          }});
-          setGeneratingUI(false);
-          return;
-        }}
-        try {{
-          const existingHtml = await probeGeneratedPersonHtml(person);
-          if (existingHtml) {{
-            setGenStatus("");
-            setGeneratingUI(false);
-            navigateToRelativeHtml(existingHtml);
-            return;
-          }}
-        }} catch (_) {{}}
-        currentGeneratePerson = person;
-        setGeneratingUI(true);
-        setGenStatus("未找到本地人物「" + person + "」，正在创建分析任务，请稍候…");
-        updatePixelProgressPanel({{
-          visible: true,
-          person,
-          status: "queued",
-          summary: "未找到本地人物「" + person + "」，正在创建分析任务，请稍候…",
-          progress: [],
-          stageKey: "queued",
-        }});
-        try {{
-          const generateUrl = apiUrl("generate");
-          const requestKey = getGenerateRequestKey(person);
-          const resp = await fetchWithTimeout(generateUrl, 12000, {{
-            method: "POST",
-            headers: {{ "Content-Type": "application/json", "X-Idempotency-Key": requestKey }},
-            body: JSON.stringify({{ person }}),
-          }});
-          const data = await resp.json();
-          if (!data || data.ok !== true || !data.task_id) {{
-            const msg = data && data.error ? String(data.error) : "分析任务创建失败";
-            const isPaused = msg === "service not ready for generate";
-            setGenStatus(msg);
-            updatePixelProgressPanel({{
-              visible: true,
-              person,
-              status: isPaused ? "idle" : "failed",
-              summary: msg,
-              progress: [],
-              stageKey: isPaused ? "queued" : "deliver",
-            }});
-            setGeneratingUI(false);
-            return;
-          }}
-          const taskId = String(data.task_id || "").trim();
-          try {{ localStorage.setItem("stellar_gen_task_v1", JSON.stringify({{ id: taskId, person }})); }} catch (_) {{}}
-          navigatePendingPersonTabToOffice(person, taskId);
-          pollTask(taskId, person);
-        }} catch (e) {{
-          setGenStatus("分析请求失败，请稍后重试");
-          updatePixelProgressPanel({{
-            visible: true,
-            person,
-            status: "failed",
-            summary: "分析请求失败，请稍后重试",
-            progress: [],
-            stageKey: "deliver",
-          }});
-          setGeneratingUI(false);
-          clearGenerateRequestKey(person);
-          currentGeneratePerson = "";
-        }}
-      }};
-
-      const resumeGenTask = () => {{
-        let raw = "";
-        try {{ raw = localStorage.getItem("stellar_gen_task_v1") || ""; }} catch (_) {{}}
-        if (!raw) return;
-        try {{
-          const obj = JSON.parse(raw);
-          const id = obj && obj.id ? String(obj.id) : "";
-          const person = obj && obj.person ? String(obj.person) : "";
-          if (id && person) {{
-            pollTask(id, person);
-            return;
-          }}
-        }} catch (_) {{}}
-        clearGenTask();
-        setGenStatus("");
-      }};
-      try {{
-        document.addEventListener("visibilitychange", () => {{
-          if (!document.hidden) resumeGenTask();
-        }});
-      }} catch (_) {{}}
-      setTimeout(resumeGenTask, 300);
-
-      const hideSearchSuggest = () => {{
-        hideWorkTip();
-        searchSuggestItems = [];
-        searchSuggestActive = -1;
-        if ($searchSuggest) {{
-          $searchSuggest.classList.add("hidden");
-          $searchSuggest.innerHTML = "";
-        }}
-      }};
-      const syncIdleRuntimeStateToPanel = () => {{
-        if (activeTaskPollId || currentGeneratePerson) return;
-        if (String(pixelGenState.status || "").trim() !== "idle") return;
-        const idleState = pickPixelIdleState(String(pixelGenState.idleSceneKey || ""));
-        let idleStageLabel = idleState.stage;
-        let summary = idleState.summary;
-        let footerText = idleState.footer;
-        let speechText = idleState.speech;
-        if (runtimeAvailability.mode === "browser_only") {{
-          idleStageLabel = "只读模式";
-          summary = requireBackend("实时人物分析");
-          footerText = "当前仅支持浏览已生成内容";
-          speechText = "只读浏览";
-        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
-          idleStageLabel = "等待恢复";
-          summary = "后端暂时不可达，当前可继续浏览已有人物页。";
-          footerText = "后端离线，暂不可生成";
-          speechText = "等待恢复";
-        }} else if (runtimeAvailability.mode === "serve_unready") {{
-          idleStageLabel = "恢复中";
-          summary = "服务正在恢复，浏览能力和生成能力将陆续恢复。";
-          footerText = "服务恢复中";
-          speechText = "恢复中";
-        }} else if (runtimeAvailability.mode === "generate_paused") {{
-          idleStageLabel = "降级运行";
-          summary = "浏览能力正常，但实时生成人物已暂停，可稍后再试。";
-          footerText = "可浏览，生成暂停";
-          speechText = "生成暂停";
-        }} else if (runtimeAvailability.mode === "active") {{
-          summary = "服务在线，可以继续查询或发起实时人物生成。";
-          footerText = "服务在线";
-          speechText = "待命中";
-        }}
-        updatePixelProgressPanel({{
-          visible: true,
-          person: idleState.person,
-          status: "idle",
-          idleSceneKey: idleState.key,
-          sceneTitle: idleState.sceneTitle,
-          idleStageLabel,
-          summary,
-          footerText,
-          speechText,
-        }});
-      }};
-      const setSearchHint = () => {{
-        if (!$searchHint) return;
-        let runtimeLine = "";
-        if (runtimeAvailability.mode === "browser_only") {{
-          runtimeLine = '<span class="text-amber-200">当前为只读浏览模式，实时生成人物需要单独部署 FastAPI 后端。</span>';
-        }} else if (runtimeAvailability.mode === "backend_unreachable") {{
-          runtimeLine = '<span class="text-rose-200">当前后端不可达，仅建议浏览已有人物页；实时生成稍后再试。</span>';
-        }} else if (runtimeAvailability.mode === "serve_unready") {{
-          runtimeLine = '<span class="text-rose-200">服务正在恢复中，浏览与生成能力都可能受影响，请稍后重试。</span>';
-        }} else if (runtimeAvailability.mode === "generate_paused") {{
-          runtimeLine = '<span class="text-amber-200">当前可浏览但不可生成，系统正在等待 LLM / 地理编码依赖恢复。</span>';
-        }} else if (runtimeAvailability.mode === "active") {{
-          runtimeLine = '<span class="home-runtime-note">实时生成人物可用，若遇到排队或重试，橙子 Agent 会持续汇报进度。</span>';
-        }} else if (runtimeAvailability.mode === "checking") {{
-          runtimeLine = '<span class="text-sky-200">正在检查实时生成服务与依赖健康，请稍候…</span>';
-        }}
-        $searchHint.innerHTML = runtimeLine;
-      }};
-      const refreshRuntimeAvailability = async () => {{
-        if (!runtimeReadinessEnabled) {{
-          setSearchHint();
-          syncRuntimeOpsBoard();
-          syncIdleRuntimeStateToPanel();
-          return;
-        }}
-        try {{
-          const response = await fetchWithTimeout(apiUrl("health/ready"), 8000, {{ cache: "no-store" }});
-          const payload = await response.json();
-          const queue = payload && payload.task && payload.task.queue ? payload.task.queue : {{}};
-          const deps = payload && payload.dependency_status ? payload.dependency_status : {{}};
-          const llmOk = !!(deps.llm && deps.llm.ok);
-          const geocodeOk = !!(deps.geocode && deps.geocode.ok);
-          runtimeAvailability = {{
-            checked: true,
-            backendExpected: true,
-            backendAvailable: true,
-            serveReady: !!(payload && payload.serve_ready),
-            generateReady: !!(payload && payload.generate_ready),
-            mode: !payload || payload.serve_ready === false ? "serve_unready" : (payload.generate_ready === false ? "generate_paused" : "active"),
-            summary: !payload || payload.serve_ready === false
-              ? "服务正在恢复中"
-              : (payload.generate_ready === false ? "生成依赖暂未就绪" : "实时生成服务在线"),
-            queuePending: Number(queue.pending || 0),
-            queueLimit: Number(queue.limit || 0),
-            dependencySummary: llmOk && geocodeOk ? "LLM / 地理编码正常" : (llmOk ? "地理编码待恢复" : (geocodeOk ? "LLM 待恢复" : "依赖待恢复")),
-            alerts: Array.isArray(payload && payload.alerts) ? payload.alerts : [],
-          }};
-        }} catch (_) {{
-          runtimeAvailability = {{
-            checked: true,
-            backendExpected: true,
-            backendAvailable: false,
-            serveReady: false,
-            generateReady: false,
-            mode: "backend_unreachable",
-            summary: "后端暂时不可达",
-            queuePending: 0,
-            queueLimit: 0,
-            dependencySummary: "后端离线",
-            alerts: [],
-          }};
-        }}
-        setSearchHint();
-        syncRuntimeOpsBoard();
-        syncIdleRuntimeStateToPanel();
-      }};
-      setSearchHint();
-      syncRuntimeOpsBoard();
-      syncIdleRuntimeStateToPanel();
-      if (runtimeReadinessEnabled) {{
-        setTimeout(() => {{
-          refreshRuntimeAvailability();
-          try {{
-            window.setInterval(refreshRuntimeAvailability, 30000);
-          }} catch (_) {{}}
-        }}, 120);
-      }}
-      const scoreNodeMatch = (n, rawQuery) => {{
-        const qRaw = String(rawQuery || "").trim();
-        const q = normalizeSearchText(qRaw);
-        if (!qRaw || !q) return null;
-        const person = String(n.person || "").trim();
-        const personNorm = normalizeSearchText(person);
-        const aliases = uniqStrings(Array.isArray(n.aliases) ? n.aliases : []);
-        const aliasNorms = aliases.map((x) => normalizeSearchText(x)).filter(Boolean);
-        const foreignName = String(n.foreign_name || "").trim();
-        const foreignNorm = normalizeSearchText(foreignName);
-        const searchKeys = uniqStrings(Array.isArray(n.search_keys) ? n.search_keys : []);
-        const searchTokens = uniqStrings(Array.isArray(n.search_tokens) ? n.search_tokens : []);
-        const searchPinyin = uniqStrings(Array.isArray(n.search_pinyin) ? n.search_pinyin : []);
-
-        if (person === qRaw) return {{ score: 1200, reason: "person_exact" }};
-        if (personNorm === q) return {{ score: 1160, reason: "person_exact" }};
-        if (aliases.some((x) => x === qRaw) || aliasNorms.includes(q)) return {{ score: 1120, reason: "alias_exact" }};
-        if (foreignName && (foreignName === qRaw || foreignNorm === q)) return {{ score: 1090, reason: "foreign_exact" }};
-        if (searchPinyin.includes(q)) return {{ score: 1060, reason: "pinyin_exact" }};
-
-        if (personNorm && personNorm.startsWith(q)) return {{ score: 980, reason: "person_prefix" }};
-        if (aliasNorms.some((x) => x.startsWith(q))) return {{ score: 950, reason: "alias_prefix" }};
-        if (foreignNorm && foreignNorm.startsWith(q)) return {{ score: 930, reason: "foreign_prefix" }};
-        if (searchPinyin.some((x) => x.startsWith(q))) return {{ score: 900, reason: "pinyin_prefix" }};
-
-        if (q.length >= 2) {{
-          if (personNorm && personNorm.includes(q)) return {{ score: 860, reason: "person_fuzzy" }};
-          if (aliasNorms.some((x) => x.includes(q))) return {{ score: 830, reason: "alias_fuzzy" }};
-          if (foreignNorm && foreignNorm.includes(q)) return {{ score: 810, reason: "foreign_fuzzy" }};
-          if (searchTokens.some((x) => x.includes(q))) return {{ score: 760, reason: "token_fuzzy" }};
-          if (searchKeys.some((x) => normalizeSearchText(x).includes(q))) return {{ score: 740, reason: "token_fuzzy" }};
-        }}
-        return null;
-      }};
-      const findPersonMatches = (query, limit = 8) => {{
-        const qRaw = String(query || "").trim();
-        const q = normalizeSearchText(qRaw);
-        if (!qRaw || !q) return [];
-        const matches = [];
-        for (const n of nodes) {{
-          const scored = scoreNodeMatch(n, qRaw);
-          if (!scored) continue;
-          matches.push({{ node: n, score: scored.score, reason: scored.reason }});
-        }}
-        matches.sort((a, b) => {{
-          if (b.score !== a.score) return b.score - a.score;
-          const ah = a.node && a.node.has_story === false ? 0 : 1;
-          const bh = b.node && b.node.has_story === false ? 0 : 1;
-          if (bh !== ah) return bh - ah;
-          const ay = Number(a.node?.time_year ?? a.node?.birth_year ?? 0);
-          const by = Number(b.node?.time_year ?? b.node?.birth_year ?? 0);
-          if (by !== ay) return by - ay;
-          return String(a.node?.person || "").localeCompare(String(b.node?.person || ""), "zh-Hans-CN");
-        }});
-        return matches.slice(0, Math.max(1, limit | 0));
-      }};
-      const renderSearchSuggest = (query) => {{
-        if (!$searchSuggest) return;
-        const matches = findPersonMatches(query, 8);
-        searchSuggestItems = matches;
-        searchSuggestActive = matches.length ? 0 : -1;
-        if (!matches.length) {{
-          hideSearchSuggest();
-          return;
-        }}
-        $searchSuggest.innerHTML = matches.map((item, idx) => {{
-          const n = item.node || {{}};
-          const personRaw = String(n.person || "").trim();
-          const foreignRaw = String(n.foreign_name || "").trim();
-          const isForeign = n.is_foreign === true && foreignRaw && foreignRaw !== personRaw;
-          const primaryDisplay = isForeign ? foreignRaw : personRaw;
-          const person = esc(primaryDisplay || personRaw);
-          const reason = esc(searchSummaryLabel(item.reason));
-          const years = esc(formatYearRange(n.birth_year, n.death_year));
-          const aliasText = uniqStrings(Array.isArray(n.aliases) ? n.aliases : []).slice(0, 2).join(" / ");
-          const secondaryParts = [];
-          if (isForeign && personRaw) secondaryParts.push(personRaw);
-          if (!isForeign && foreignRaw) secondaryParts.push(foreignRaw);
-          if (aliasText) secondaryParts.push(aliasText);
-          const meta = secondaryParts.filter(Boolean).join(" · ");
-          const metaLine = meta ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate">${{esc(meta)}}</div>` : "";
-          const works = uniqStrings(Array.isArray(n.works) ? n.works : [])
-            .filter((work) => hasWorkSummaryContent(resolveNodeWorkSummary(n, work)))
-            .slice(0, 3);
-          const worksHtml = works.length
-            ? `<div class="mt-2 flex flex-wrap gap-1.5">${{works.map((work) => `<span class="home-work-chip" data-search-idx="${{idx}}" data-work-title="${{esc(normalizeHomeWorkTitle(work))}}">《${{esc(normalizeHomeWorkTitle(work))}}》</span>`).join("")}}</div>`
-            : "";
-          const badge = n.has_story === false
-            ? '<span class="ml-2 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-medium">暂未生成</span>'
-            : "";
-          const activeCls = idx === searchSuggestActive ? "bg-slate-50" : "bg-white";
-          return (
-            `<button type="button" data-search-idx="${{idx}}" class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 ${{activeCls}}">` +
-              `<div class="flex items-center justify-between gap-3">` +
-                `<div class="min-w-0">` +
-                  `<div class="text-sm font-semibold text-slate-800 truncate">${{person}}${{badge}}</div>` +
-                  `<div class="text-[11px] text-slate-400 mt-0.5">${{years}}</div>` +
-                  `${{metaLine}}` +
-                  `${{worksHtml}}` +
-                `</div>` +
-                `<div class="shrink-0 text-[11px] text-slate-400">${{reason}}</div>` +
-              `</div>` +
-            `</button>`
-          );
-        }}).join("");
-        $searchSuggest.classList.remove("hidden");
-      }};
-      const pickSearchMatch = (fallbackName) => {{
-        if (!searchSuggestItems.length) {{
-          const list = findPersonMatches(fallbackName, 1);
-          return list.length ? list[0] : null;
-        }}
-        if (searchSuggestActive >= 0 && searchSuggestActive < searchSuggestItems.length) return searchSuggestItems[searchSuggestActive];
-        return searchSuggestItems[0] || null;
-      }};
-      const findPersonNode = (name) => {{
-        const picked = pickSearchMatch(name);
-        return picked ? picked.node : null;
-      }};
-      const focusKnownPerson = (name) => {{
-        const n = findPersonNode(name);
-        if (!n) return false;
-        setSelected(n);
-        // 搜索/推荐命中一个人物:停留在当前 tab,不做跨 tab 切换。
-        if (currentTab === "map") {{
-          setTimeout(() => {{
-            const ok = centerMapOnPerson(n);
-            pendingMapFocusPerson = ok ? "" : String(n.person || "").trim();
-          }}, 260);
-        }}
-        return true;
-      }};
-
-      const onSearch = (ev) => {{
-        const validation = validatePersonInput($q ? $q.value : "");
-        if (!validation.ok) {{
-          setSearchValidation(validation.reason);
-          syncSearchActionState({{ showReason: true }});
-          return;
-        }}
-        const rawName = validation.value;
-        if ($q && rawName) $q.value = rawName;
-        const picked = pickSearchMatch(rawName);
-        const name = picked && picked.node ? String(picked.node.person || "").trim() : rawName;
-        if (name) $q.value = name;
-        hideSearchSuggest();
-        if (focusKnownPerson(name)) return;
-        const shouldGenerate = window.confirm(`该人物未收录，是否仍要尝试生成「${{rawName}}」？`);
-        if (!shouldGenerate) return;
-        openPerson(name || rawName);
-      }};
-
-      $go.addEventListener("click", (ev) => onSearch(ev));
-      $q.addEventListener("input", () => {{
-        syncSearchActionState();
-        renderSearchSuggest($q.value);
-      }});
-      $q.addEventListener("focus", () => {{
-        syncSearchActionState();
-        renderSearchSuggest($q.value);
-      }});
-      $q.addEventListener("keydown", (e) => {{
-        if (e.key === "ArrowDown") {{
-          if (!searchSuggestItems.length) {{
-            renderSearchSuggest($q.value);
-          }} else {{
-            searchSuggestActive = (searchSuggestActive + 1 + searchSuggestItems.length) % searchSuggestItems.length;
-            renderSearchSuggest($q.value);
-          }}
-          e.preventDefault();
-          return;
-        }}
-        if (e.key === "ArrowUp") {{
-          if (searchSuggestItems.length) {{
-            searchSuggestActive = (searchSuggestActive - 1 + searchSuggestItems.length) % searchSuggestItems.length;
-            renderSearchSuggest($q.value);
-          }}
-          e.preventDefault();
-          return;
-        }}
-        if (e.key === "Escape") {{
-          hideSearchSuggest();
-          return;
-        }}
-        if (e.key === "Enter") {{
-          onSearch(e);
-        }}
-      }});
-      if ($searchSuggest) {{
-        $searchSuggest.addEventListener("mousedown", (e) => e.preventDefault());
-        const syncSearchSuggestWorkTip = (e) => {{
-          const chip = e && e.target && e.target.closest ? e.target.closest("[data-work-title][data-search-idx]") : null;
-          if (!chip || !$searchSuggest.contains(chip)) {{
-            hideWorkTip();
-            return;
-          }}
-          const idx = Number(chip.getAttribute("data-search-idx"));
-          const workTitle = normalizeHomeWorkTitle(chip.getAttribute("data-work-title") || "");
-          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length || !workTitle) {{
-            hideWorkTip();
-            return;
-          }}
-          const item = searchSuggestItems[idx] && searchSuggestItems[idx].node
-            ? resolveNodeWorkSummary(searchSuggestItems[idx].node, workTitle)
-            : null;
-          if (!item) {{
-            hideWorkTip();
-            return;
-          }}
-          showWorkTip(workTitle, item, e.clientX, e.clientY);
-        }};
-        $searchSuggest.addEventListener("mouseover", syncSearchSuggestWorkTip);
-        $searchSuggest.addEventListener("mousemove", syncSearchSuggestWorkTip);
-        $searchSuggest.addEventListener("mouseleave", () => hideWorkTip());
-        $searchSuggest.addEventListener("click", (e) => {{
-          const btn = e.target && e.target.closest ? e.target.closest("[data-search-idx]") : null;
-          if (!btn) return;
-          const idx = Number(btn.getAttribute("data-search-idx"));
-          if (!Number.isFinite(idx) || idx < 0 || idx >= searchSuggestItems.length) return;
-          searchSuggestActive = idx;
-          const picked = searchSuggestItems[idx];
-          const person = picked && picked.node ? String(picked.node.person || "").trim() : "";
-          if (person) {{
-            $q.value = person;
-            onSearch(e);
-          }}
-        }});
-      }}
-      try {{
-        document.addEventListener("click", (e) => {{
-          const t = e.target;
-          if (t === $q || t === $go) return;
-          if ($searchSuggest && t && $searchSuggest.contains(t)) return;
-          hideSearchSuggest();
-        }});
-      }} catch (_) {{}}
-      try {{
-        window.addEventListener("resize", () => hideWorkTip());
-        document.addEventListener("scroll", () => hideWorkTip(), true);
-      }} catch (_) {{}}
-
-      let currentTab = "graph";
-      let mapInited = false;
-      let markers = [];
-      let amap = null;
-      let amapLoading = false;
-      let mapInitializing = false;
-      let coordFillRunning = false;
-      let coordFillAddMarker = null;
-      let pendingMapFocusPerson = "";
-      let clusterer = null;
-      let mapCameraTouched = false;
-      let mapInitError = "";
-      const onlyActiveMarkers = true;
-      let _fitMapTimer = null;
-      let _persistTimer = null;
-      let mapStyleValue = "amap://styles/light";
-      let markerStyleValue = "circle";
-      let searchCapabilities = {{ aliases: true, foreign_name: true, pinyin: false }};
-      let searchSuggestItems = [];
-      let searchSuggestActive = -1;
-
-      // 说明:之前 _setMapStyleValue / _initMapStyleValue 中存在以下死代码:
-      // 1) 三元 `s === "amap://styles/macaron" ? "amap://styles/macaron" : "amap://styles/macaron"` 永远返回 macaron;
-      // 2) `$mapStyle = document.getElementById("mapStyle")` 永远是 null(HTML 中并无此元素);
-      // 3) 监听 localStorage 但 UI 不存在,等于完全无操作。
-      // 现阶段页面只支持一种地图风格,直接保留默认常量即可。如未来要扩展多风格,
-      // 请同时新增 <select id="mapStyle"> 并补全上述判断。
-
-      const _getAmapKey = () => {{
-        let k = "";
-        try {{
-          k = (new URLSearchParams(window.location.search).get("amapKey") || "").trim();
-        }} catch (_) {{}}
-        if (!k) k = (window.AMAP_KEY || localStorage.getItem("AMAP_KEY") || "").trim();
-        return k;
-      }};
-      const _getAmapSecurity = () => {{
-        let s = "";
-        try {{
-          s = (new URLSearchParams(window.location.search).get("amapSec") || "").trim();
-        }} catch (_) {{}}
-        if (!s) s = (window.AMAP_SECURITY || localStorage.getItem("AMAP_SECURITY") || "").trim();
-        return s;
-      }};
-      const _ensureAmap = () => new Promise((resolve, reject) => {{
-        if (window.AMap && typeof window.AMap.Map === "function") return resolve(true);
-        const key = _getAmapKey();
-        if (!key) return reject(new Error("AMAP_KEY_REQUIRED"));
-        const sec = _getAmapSecurity();
-        if (sec) {{
-          window._AMapSecurityConfig = {{ securityJsCode: sec }};
-        }}
-        if (amapLoading) {{
-          const t0 = Date.now();
-          const tick = () => {{
-            if (window.AMap && typeof window.AMap.Map === "function") return resolve(true);
-            if (Date.now() - t0 > 12000) return reject(new Error("AMAP_LOAD_TIMEOUT"));
-            setTimeout(tick, 80);
-          }};
-          return tick();
-        }}
-        amapLoading = true;
-        const sEl = document.createElement("script");
-        sEl.async = true;
-        // Load AMap JS with geocoder plugin only; markers remain individual so color + hover stay stable.
-        sEl.src = `https://webapi.amap.com/maps?v=2.0&key=${{encodeURIComponent(key)}}&plugin=AMap.Geocoder`;
-        sEl.onload = () => {{
-          amapLoading = false;
-          if (window.AMap && typeof window.AMap.Map === "function") resolve(true);
-          else reject(new Error("AMAP_LOAD_FAILED"));
-        }};
-        sEl.onerror = () => {{
-          amapLoading = false;
-          reject(new Error("AMAP_LOAD_FAILED"));
-        }};
-        document.head.appendChild(sEl);
-      }});
-
-      const COORD_CACHE_KEY = "stellar_birth_coords_wgs84_v1";
-      const COORD_CACHE_OLD_KEY = "stellar_birth_coords_v1";
-      const migrateCoordCache = () => {{
-        try {{
-          const oldRaw = localStorage.getItem(COORD_CACHE_OLD_KEY);
-          if (!oldRaw) return;
-          const oldObj = JSON.parse(oldRaw);
-          if (!oldObj || typeof oldObj !== "object") return;
-          const out = {{}};
-          for (const k of Object.keys(oldObj)) {{
-            const v = oldObj[k];
-            if (!Array.isArray(v) || v.length < 2) continue;
-            const latG = Number(v[0]);
-            const lngG = Number(v[1]);
-            if (!Number.isFinite(latG) || !Number.isFinite(lngG)) continue;
-            const w = gcj02ToWgs84(latG, lngG);
-            out[k] = [w.lat, w.lng];
-          }}
-          localStorage.setItem(COORD_CACHE_KEY, JSON.stringify(out));
-          localStorage.removeItem(COORD_CACHE_OLD_KEY);
-        }} catch (_) {{}}
-      }};
-      const readCoordCache = () => {{
-        try {{
-          const raw = localStorage.getItem(COORD_CACHE_KEY);
-          const obj = raw ? JSON.parse(raw) : null;
-          return (obj && typeof obj === "object") ? obj : {{}};
-        }} catch (_) {{
-          return {{}};
-        }}
-      }};
-      const writeCoordCache = (cache) => {{
-        try {{
-          localStorage.setItem(COORD_CACHE_KEY, JSON.stringify(cache));
-        }} catch (_) {{}}
-      }};
-      let _coordDirty = {{}};
-      let _coordDirtyCount = 0;
-      let _coordFlushTimer = null;
-      const _flushCoordsToServer = () => {{
-        const items = _coordDirty;
-        const n = _coordDirtyCount;
-        _coordDirty = {{}};
-        _coordDirtyCount = 0;
-        if (_coordFlushTimer) {{
-          clearTimeout(_coordFlushTimer);
-          _coordFlushTimer = null;
-        }}
-        if (!n) return;
-        if (STATIC_SITE && !API_BASE) return;
-        try {{
-          fetch(apiUrl("coords/bulk"), {{
-            method: "POST",
-            headers: {{ "Content-Type": "application/json" }},
-            body: JSON.stringify({{ items }}),
-          }}).catch(() => {{}});
-        }} catch (_) {{}}
-      }};
-      const _markCoordDirty = (person, lat, lng) => {{
-        const p = String(person || "").trim();
-        if (!p) return;
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-        _coordDirty[p] = [lat, lng];
-        _coordDirtyCount += 1;
-        if (_coordFlushTimer) return;
-        _coordFlushTimer = setTimeout(_flushCoordsToServer, 1200);
-      }};
-      const applyCoordCacheToNodes = (cache) => {{
-        if (!cache) return;
-        for (const n of nodes) {{
-          const k = String(n.person || "").trim();
-          const v = k ? cache[k] : null;
-          const has = (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") || (typeof n.birth_lat === "number" && typeof n.birth_lng === "number");
-          if (v && !has && Array.isArray(v) && v.length >= 2) {{
-            const lat = Number(v[0]);
-            const lng = Number(v[1]);
-            if (Number.isFinite(lat) && Number.isFinite(lng)) {{
-              n.birth_lat_wgs84 = lat;
-              n.birth_lng_wgs84 = lng;
-              n.birth_lat = lat;
-              n.birth_lng = lng;
-            }}
-          }}
-        }}
-      }};
-
-      const LEGACY_TIME_WINDOW_KEY = "stellar_time_window_v2";
-      const LAST_MANUAL_TIME_WINDOW_KEY = "stellar_last_manual_time_window_v1";
-      const clearLegacyTimeWindow = () => {{
-        try {{
-          localStorage.removeItem(LEGACY_TIME_WINDOW_KEY);
-        }} catch (_) {{}}
-      }};
-      const persistTimeWindow = () => {{
-        if (_persistTimer) clearTimeout(_persistTimer);
-        _persistTimer = setTimeout(() => {{
-          try {{
-            localStorage.setItem(LAST_MANUAL_TIME_WINDOW_KEY, JSON.stringify({{
-              a: startYear,
-              b: endYear,
-              sig: timeWindowSignature,
-              saved_at: Date.now(),
-            }}));
-          }} catch (_) {{}}
-        }}, 260);
-      }};
-
-      const scheduleMapFit = (force = false) => {{
-        if (_fitMapTimer) clearTimeout(_fitMapTimer);
-        _fitMapTimer = setTimeout(() => {{
-          if (currentTab !== "map" || !mapInited || !amap) return;
-          if (mapCameraTouched && !force) return;
-          try {{
-            const markersForFit = markers
-              .map((item) => item && item.mk)
-              .filter((item) => item && typeof item.getPosition === "function");
-            if (!markersForFit.length) {{
-              // 还没拿到任何 marker(geocode 异步补点中或全失败):回退到中国全景,
-              // 避免地图停留在默认位置时用户感知不到 fit 调度已经触发。
-              applyChinaOverview();
-              return;
-            }}
-            amap.setFitView(markersForFit, false, [56, 56, 56, 56], 4);
-          }} catch (_) {{}}
-        }}, 220);
-      }};
-
-      const centerMapOnPerson = (n) => {{
-        if (!n || !amap) return false;
-        const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
-        const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
-        const p = wgs84ToGcj02(latW, lngW);
-        const lat = p.lat;
-        const lng = p.lng;
-        if (typeof lat !== "number" || typeof lng !== "number") return false;
-        try {{
-          const z = Math.max(6, Number(amap.getZoom ? amap.getZoom() : 6) || 6);
-          amap.setZoomAndCenter(Math.min(10, z), [lng, lat]);
-          return true;
-        }} catch (_) {{}}
-        return false;
-      }};
-      const geocodeText = (n) => {{
-        const m = String(n.birthplace_modern || "").trim().replace(/^今\s*/g, "");
-        if (m) return m;
-        const raw = String(n.birthplace_raw || "").trim();
-        if (raw) {{
-          const t = raw.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").replace(/^约\s*/g, "").replace(/^公元前?\d+年\s*/g, "").trim();
-          if (t) return t;
-        }}
-        const bp = String(n.birthplace || "").trim();
-        return bp.split(/[；;，,]/)[0].replace(/[（(].*?[）)]/g, "").trim();
-      }};
-      const runSharedCoordFill = (cache, addMarkerIfReady) => {{
-        if (addMarkerIfReady) coordFillAddMarker = addMarkerIfReady;
-        if (coordFillRunning) return;
-        const key = _getAmapKey();
-        if (!key) return;
-        coordFillRunning = true;
-        applyCoordCacheToNodes(cache);
-        updateCoordCount();
-        _ensureAmap().then(() => {{
-          if (!window.AMap || !window.AMap.Geocoder) {{
-            coordFillRunning = false;
-            return;
-          }}
-          const geocoder = new window.AMap.Geocoder({{ city: "全国" }});
-          let idx = 0;
-          const tick = () => {{
-            while (idx < nodes.length) {{
-              const n = nodes[idx++];
-              if (!n) continue;
-              if (typeof n.birth_lat_wgs84 === "number" && typeof n.birth_lng_wgs84 === "number") {{
-                if (coordFillAddMarker && mapInited && amap) coordFillAddMarker(n);
-                continue;
-              }}
-              const q = geocodeText(n);
-              const person = String(n.person || "").trim();
-              if (!q || !person) continue;
-              geocoder.getLocation(q, (status, result) => {{
-                if (status === "complete" && result && result.geocodes && result.geocodes.length) {{
-                  const loc = result.geocodes[0].location;
-                  if (loc && typeof loc.getLng === "function" && typeof loc.getLat === "function") {{
-                    const lng = Number(loc.getLng());
-                    const lat = Number(loc.getLat());
-                    if (Number.isFinite(lat) && Number.isFinite(lng)) {{
-                      const w = gcj02ToWgs84(lat, lng);
-                      n.birth_lat_wgs84 = w.lat;
-                      n.birth_lng_wgs84 = w.lng;
-                      n.birth_lat = w.lat;
-                      n.birth_lng = w.lng;
-                      cache[person] = [w.lat, w.lng];
-                      writeCoordCache(cache);
-                      updateCoordCount();
-                      _markCoordDirty(person, w.lat, w.lng);
-                      if (coordFillAddMarker && mapInited && amap) {{
-                        coordFillAddMarker(n);
-                        updateMapMarkers();
-                      }}
-                      if (
-                        pendingMapFocusPerson &&
-                        currentTab === "map" &&
-                        person === pendingMapFocusPerson &&
-                        centerMapOnPerson(n)
-                      ) {{
-                        pendingMapFocusPerson = "";
-                      }}
-                    }}
-                  }}
-                }}
-                if (idx >= nodes.length) {{
-                  coordFillRunning = false;
-                  _flushCoordsToServer();
-                  return;
-                }}
-                setTimeout(tick, 140);
-              }});
-              return;
-            }}
-            coordFillRunning = false;
-            writeCoordCache(cache);
-            updateCoordCount();
-            _flushCoordsToServer();
-          }};
-          setTimeout(tick, 400);
-        }}).catch(() => {{
-          coordFillRunning = false;
-        }});
-      }};
-      const prefillCoordsNoMap = () => {{
-        const cache = readCoordCache();
-        applyCoordCacheToNodes(cache);
-        updateCoordCount();
-        runSharedCoordFill(cache, null);
-      }};
-
-      const refreshVisibleMapViewport = () => {{
-        if (currentTab !== "map") return;
-        const doRefresh = () => {{
-          if (!mapInited || !amap || currentTab !== "map") return;
-          try {{
-            if (typeof amap.resize === "function") amap.resize();
-          }} catch (e) {{
-            try {{ console.warn("[stellar-map] amap.resize failed", e); }} catch (_) {{}}
-          }}
-          try {{
-            updateMapMarkers();
-          }} catch (_) {{}}
-          if (mapSearchQuery) {{
-            try {{
-              focusMapOnSearchMatch();
-            }} catch (_) {{}}
-          }}
-        }};
-        if (!mapInited || !amap) {{
-          // AMap 还没就绪: 等下一帧再试一次(覆盖首次切到地图 tab 的场景)
-          if (typeof window.requestAnimationFrame === "function") {{
-            window.requestAnimationFrame(doRefresh);
-          }} else {{
-            setTimeout(doRefresh, 32);
-          }}
-          return;
-        }}
-        doRefresh();
-      }};
-      const setTab = (tab) => {{
-        currentTab = tab;
-        if ($graphPane) {{
-          if (tab === "graph") $graphPane.classList.remove("hidden");
-          else $graphPane.classList.add("hidden");
-        }}
-        if ($mapPane) {{
-          if (tab === "map") $mapPane.classList.remove("hidden");
-          else $mapPane.classList.add("hidden");
-        }}
-        if ($tabGraph && $tabMap) {{
-          if (tab === "graph") {{
-            $tabGraph.className = "px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90";
-            $tabMap.className = "px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10";
-          }} else {{
-            $tabGraph.className = "px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10";
-            $tabMap.className = "px-3 py-1 rounded-lg bg-white/15 border border-white/20 text-white/90";
-          }}
-        }}
-        if (tab === "map") {{
-          initMapOnce();
-          refreshVisibleMapViewport();
-        }}
-        if ($mapToolbar) {{
-          if (tab === "map") $mapToolbar.classList.remove("hidden");
-          else $mapToolbar.classList.add("hidden");
-        }}
-        if (tab !== "map" && $mapSearchSuggest) {{
-          $mapSearchSuggest.classList.add("hidden");
-        }}
-        if ($provinceCurvePanel) {{
-          if (tab === "map") {{
-            $provinceCurvePanel.classList.remove("hidden");
-            updateProvinceBars();
-          }} else {{
-            $provinceCurvePanel.classList.add("hidden");
-          }}
-        }}
-      }};
-
-      const CHINA_OVERVIEW_CENTER = [104.5, 36.0];
-      const CHINA_OVERVIEW_ZOOM = 3.9;
-      const isSpecialSunMarker = (n) => String((n && n.person) || "").trim() === "毛泽东";
-      const isForeignPerson = (n) => Boolean(n && n.is_foreign);
-
-      const markerSvg = (sz, fill, glow, emph) => {{
-        const glowRadius = emph ? 10 : 6;
-        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.001)"></circle><circle cx="12" cy="12" r="6.7" fill="${{fill}}"></circle><circle cx="12" cy="12" r="6.0" fill="${{fill}}" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"></circle></svg>`;
-      }};
-      const foreignMarkerSvg = (sz, fill, glow, emph) => {{
-        const glowRadius = emph ? 10 : 6;
-        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 24 24" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><rect x="2.5" y="2.5" width="19" height="19" rx="2.2" fill="rgba(255,255,255,0.001)"></rect><rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.8" fill="${{fill}}"></rect><rect x="5.8" y="5.8" width="12.4" height="12.4" rx="1.6" fill="${{fill}}" stroke="rgba(255,255,255,0.28)" stroke-width="0.9"></rect></svg>`;
-      }};
-      const markerHtml = (n, sz, fill, glow, emph) => {{
-        if (isSpecialSunMarker(n)) return sunMarkerHtml(sz, glow, emph);
-        if (isForeignPerson(n)) return foreignMarkerSvg(sz, fill, glow, emph);
-        return markerSvg(sz, fill, glow, emph);
-      }};
-
-      const sunMarkerHtml = (sz, glow, emph) => {{
-        const glowRadius = emph ? 12 : 8;
-        const core = Math.max(7.2, sz * 0.4);
-        const rayOuter = Math.max(core + 3.4, sz * 0.48);
-        const rayInner = Math.max(core + 1.0, sz * 0.32);
-        const stroke = Math.max(1.5, sz * 0.1);
-        const center = sz / 2;
-        const rays = Array.from({{ length: 8 }}, (_, idx) => {{
-          const angle = (Math.PI * 2 * idx) / 8 - Math.PI / 2;
-          const x1 = center + Math.cos(angle) * rayInner;
-          const y1 = center + Math.sin(angle) * rayInner;
-          const x2 = center + Math.cos(angle) * rayOuter;
-          const y2 = center + Math.sin(angle) * rayOuter;
-          return `<line x1="${{x1.toFixed(2)}}" y1="${{y1.toFixed(2)}}" x2="${{x2.toFixed(2)}}" y2="${{y2.toFixed(2)}}" stroke="rgba(251,191,36,0.98)" stroke-width="${{stroke.toFixed(2)}}" stroke-linecap="round"></line>`;
-        }}).join("");
-        return `<svg width="${{sz}}" height="${{sz}}" viewBox="0 0 ${{sz}} ${{sz}}" style="overflow:visible;filter:drop-shadow(0 0 ${{glowRadius}}px ${{glow}});"><circle cx="${{center}}" cy="${{center}}" r="${{core.toFixed(2)}}" fill="rgba(250,204,21,0.98)" stroke="rgba(255,255,255,0.92)" stroke-width="${{Math.max(1.4, sz * 0.08).toFixed(2)}}"></circle>${{rays}}</svg>`;
-      }};
-
-      const applyChinaOverview = () => {{
-        if (!amap) return;
-        if ($chinaMap && $chinaMap.offsetWidth <= 0) {{
-          // 容器还没布局好:推迟到下一帧再调用,避免 setZoomAndCenter 在 size=0 时抛错。
-          const doApply = () => {{
-            if (!amap) return;
-            try {{
-              amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);
-            }} catch (e) {{
-              try {{ console.warn("[stellar-map] setZoomAndCenter failed", e); }} catch (_) {{}}
-            }}
-          }};
-          if (typeof window.requestAnimationFrame === "function") {{
-            window.requestAnimationFrame(doApply);
-          }} else {{
-            setTimeout(doApply, 32);
-          }}
-          return;
-        }}
-        try {{
-          amap.setZoomAndCenter(CHINA_OVERVIEW_ZOOM, CHINA_OVERVIEW_CENTER);
-        }} catch (e) {{
-          try {{ console.warn("[stellar-map] setZoomAndCenter failed", e); }} catch (_) {{}}
-        }}
-      }};
-
-      const showMapInitError = (msg) => {{
-        if (!$chinaMap) return;
-        try {{
-          mapInitError = String(msg || "");
-          $chinaMap.innerHTML = "";
-          const wrap = document.createElement("div");
-          wrap.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6;background:rgba(8,15,36,0.6);border-radius:12px;";
-          wrap.innerHTML = `<div><div style="font-weight:700;font-size:15px;margin-bottom:8px;">地图加载失败</div><div style="color:rgba(255,255,255,0.7);">${{mapInitError}}</div><div style="margin-top:12px;color:rgba(255,255,255,0.5);font-size:11px;">请检查 AMAP_KEY 配置或网络连接后刷新页面。</div></div>`;
-          $chinaMap.appendChild(wrap);
-        }} catch (_) {{}}
-      }};
-
-      const initMapOnce = () => {{
-        if (mapInited || mapInitializing) return;
-        if (!$chinaMap) return;
-        if (!$chinaMap.style.position) $chinaMap.style.position = "relative";
-        mapInitializing = true;
-        _ensureAmap().then(() => {{
-          if (!window.AMap) {{
-            mapInitializing = false;
-            return;
-          }}
-          try {{
-            amap = new window.AMap.Map($chinaMap, {{
-              zoom: CHINA_OVERVIEW_ZOOM,
-              center: CHINA_OVERVIEW_CENTER,
-              viewMode: "2D",
-              mapStyle: mapStyleValue || "amap://styles/whitesmoke",
-              resizeEnable: true,
-            }});
-            // 容器刚由 hidden 切到可见时,AMap 拿到的尺寸可能尚未稳定;
-            // 推迟到下一帧 + resize,保证首屏瓦片不被拉伸/错位。
-            try {{
-              const doResize = () => {{
-                if (!amap) return;
-                if (typeof amap.resize === "function") amap.resize();
-              }};
-              if (typeof window.requestAnimationFrame === "function") {{
-                window.requestAnimationFrame(doResize);
-              }} else {{
-                setTimeout(doResize, 32);
-              }}
-            }} catch (_) {{}}
-          }} catch (e) {{
-            mapInitializing = false;
-            mapInited = false;
-            try {{ console.warn("[stellar-map] amap.Map constructor failed", e); }} catch (_) {{}}
-            showMapInitError("地图实例初始化失败");
-            return;
-          }}
-          mapInited = true;
-          mapInitializing = false;
-          try {{
-            if (typeof amap.on === "function") {{
-              const markTouched = () => {{
-                mapCameraTouched = true;
-              }};
-              amap.on("dragstart", () => {{
-                markTouched();
-                closeMarkerInfo();
-                closeMapTip();
-              }});
-              amap.on("mousewheel", markTouched);
-              amap.on("zoomstart", () => {{
-                markTouched();
-                closeMarkerInfo();
-                closeMapTip();
-              }});
-              amap.on("touchstart", () => {{
-                markTouched();
-                closeMarkerInfo();
-                closeMapTip();
-              }});
-              amap.on("click", () => {{
-                closeMarkerInfo();
-                closeMapTip();
-              }});
-            }}
-          }} catch (_) {{}}
-          try {{
-            const heihe = [127.500, 50.250];
-            const tengchong = [98.490, 25.020];
-            const mid = [
-              heihe[0] + (tengchong[0] - heihe[0]) / 3,
-              heihe[1] + (tengchong[1] - heihe[1]) / 3,
-            ];
-            const line = new window.AMap.Polyline({{
-              path: [heihe, tengchong],
-              strokeColor: "rgba(249,115,22,0.92)",
-              strokeWeight: 3,
-              strokeStyle: "dashed",
-              strokeDasharray: [10, 8],
-              zIndex: 300,
-            }});
-            line.setMap(amap);
-            const dx = tengchong[0] - heihe[0];
-            const dy = tengchong[1] - heihe[1];
-            const len = Math.hypot(dx, dy) || 1;
-            let nx = (-dy) / len;
-            let ny = dx / len;
-            if (ny < 0) {{
-              nx = -nx;
-              ny = -ny;
-            }}
-            const offsetDeg = 1.32;
-            const labelPos = [mid[0] + nx * offsetDeg, mid[1] + ny * offsetDeg];
-            const ang = 0;
-            const label = new window.AMap.Marker({{
-              position: labelPos,
-              anchor: "center",
-              offset: new window.AMap.Pixel(0, -5),
-              clickable: false,
-              content:
-                '<div style="transform:rotate(' +
-                String(ang.toFixed(2)) +
-                'deg);transform-origin:center;background:rgba(15,23,42,0.72);border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.96);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap">胡焕庸线</div>',
-              zIndex: 320,
-            }});
-            label.setMap(amap);
-            const mkText = (text, pos) => {{
-              const t = new window.AMap.Text({{
-                text,
-                position: pos,
-                offset: new window.AMap.Pixel(0, -16),
-                style: {{
-                  background: "rgba(255,255,255,0.92)",
-                  border: "1px solid rgba(15,23,42,0.18)",
-                  color: "rgba(15,23,42,0.92)",
-                  padding: "4px 8px",
-                  borderRadius: "2px",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                }},
-                zIndex: 320,
-              }});
-              t.setMap(amap);
-              return t;
-            }};
-            mkText("黑河", heihe);
-            mkText("腾冲", tengchong);
-          }} catch (e) {{
-            try {{ console.warn("[stellar-map] Hu Huanyong line init failed", e); }} catch (_) {{}}
-          }}
-          const coordCache = readCoordCache();
-          applyCoordCacheToNodes(coordCache);
-
-          let infoWin = null;
-          try {{
-            infoWin = new window.AMap.InfoWindow({{ offset: new window.AMap.Pixel(0, -22) }});
-          }} catch (_) {{
-            infoWin = null;
-          }}
-
-          const buildMapPersonInfoHtml = (n) => {{
-            const years = formatYearRange(n.birth_year, n.death_year);
-            const dynasty = String(n.dynasty || "").trim();
-            const bp = formatBirthplace(n.birthplace, n.birthplace_modern);
-            const bpRaw = String(n.birthplace_raw || n.birthplace || "").trim();
-            const nativePlace = formatBirthplace(n.native_place, n.native_place_modern);
-            const placeCompareKey = value => String(value || "")
-              .replace(/^今\s*/g, "")
-              .replace(/[（(][^）)]*[）)]/g, "")
-              .replace(/[省市县区州郡府道镇乡村]/g, "")
-              .replace(/\s+/g, "")
-              .trim();
-            const showNativePlace = nativePlace && (!bp || placeCompareKey(nativePlace) !== placeCompareKey(bp));
-            const birthplaceAmbiguous = /存疑|一说|或说|又说|另说|未详|不详/.test(bpRaw);
-            const bpDisplay = bp && birthplaceAmbiguous && showNativePlace ? "存疑" : bp;
-            const quote = stripMd(String(n.quote || "").trim());
-            const review = stripMd(String(n.review || "").trim());
-            const tagline = stripOuterQuotes(review || quote);
-            const root = document.createElement("div");
-            root.style.minWidth = "220px";
-            root.style.maxWidth = "280px";
-            const appendLine = (text, cssText) => {{
-              const el = document.createElement("div");
-              el.style.cssText = cssText;
-              el.textContent = text;
-              root.appendChild(el);
-            }};
-            appendLine(String(n.person || ""), "font-weight:800;color:#0f172a;font-size:14px");
-            appendLine("生卒：" + years, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (dynasty) appendLine("时代：" + dynasty, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (bpDisplay) appendLine("出生地：" + bpDisplay, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (showNativePlace) appendLine("籍贯：" + nativePlace, "margin-top:4px;color:rgba(15,23,42,0.70);font-size:12px");
-            if (tagline) appendLine(tagline, "margin-top:6px;color:rgba(245,158,11,0.95);font-size:12px;line-height:1.4");
-            const actions = document.createElement("div");
-            actions.style.marginTop = "8px";
-            const button = document.createElement("button");
-            button.type = "button";
-            button.textContent = "打开人物页";
-            button.style.cssText = "background:#0f172a;color:#fff;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer";
-            button.addEventListener("click", () => {{
-              openPerson(n && n.person ? n.person : "");
-            }});
-            actions.appendChild(button);
-            root.appendChild(actions);
-            return root;
-          }};
-
-          const openMarkerInfo = (n, lng, lat) => {{
-            if (!infoWin) return;
-            try {{
-              infoWin.setContent(buildMapPersonInfoHtml(n));
-              infoWin.open(amap, [lng, lat]);
-            }} catch (_) {{}}
-          }};
-
-          const closeMarkerInfo = () => {{
-            try {{
-              if (infoWin) infoWin.close();
-            }} catch (_) {{}}
-          }};
-
-          const createMarkerContent = (n, lng, lat) => {{
-            const el = document.createElement("div");
-            const active = inWindow(n);
-            const base = colorByYear(n.time_year);
-            const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
-            const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
-            const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
-            const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
-            const initialSize = active ? 20 : 18;
-            const initialFill = active ? accent : accentSoft;
-            const initialGlow = active ? glowStrong : glowSoft;
-            el.style.width = "18px";
-            el.style.height = "18px";
-            el.style.display = "flex";
-            el.style.alignItems = "center";
-            el.style.justifyContent = "center";
-            el.style.cursor = "pointer";
-            el.style.pointerEvents = "auto";
-            el.innerHTML = markerHtml(n, initialSize, initialFill, initialGlow, active);
-            el.style.animation = active ? "twinkle 2.2s ease-in-out infinite" : "none";
-            // 不在 DOM 元素上重复挂 mouseenter/mousemove/click 等事件:
-            // AMap 的 mk.on("mouseover"...) 已经接管,这里再挂一次会导致 tip 闪烁
-            // 并重复调用 resolveMapTipClientPoint。点击/双击也由 marker.on 处理。
-            return el;
-          }};
-
-          // Keep markers as individual points so historical colors and hover cards stay visible.
-          const addMarker = (n) => {{
-            if (n && n._mapMarkerAdded) return;
-            const latW = (typeof n.birth_lat_wgs84 === "number") ? n.birth_lat_wgs84 : n.birth_lat;
-            const lngW = (typeof n.birth_lng_wgs84 === "number") ? n.birth_lng_wgs84 : n.birth_lng;
-            if (typeof latW !== "number" || typeof lngW !== "number") return;
-            const p = wgs84ToGcj02(latW, lngW);
-            const lat = p.lat;
-            const lng = p.lng;
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-            const markerEl = createMarkerContent(n, lng, lat);
-            const mk = new window.AMap.Marker({{
-              position: [lng, lat],
-              offset: new window.AMap.Pixel(-9, -9),
-              content: markerEl,
-              anchor: "center",
-              clickable: true,
-            }});
-            mk.on("mouseover", (evt) => {{
-              const pos = resolveMapTipClientPoint(evt, lng, lat);
-              showMapTip(n, pos.clientX, pos.clientY);
-            }});
-            mk.on("mousemove", (evt) => {{
-              const pos = resolveMapTipClientPoint(evt, lng, lat);
-              showMapTip(n, pos.clientX, pos.clientY);
-            }});
-            mk.on("mouseout", () => {{
-              closeMapTip();
-            }});
-            mk.on("click", () => {{
-              try {{
-                openMarkerInfo(n, lng, lat);
-              }} catch (_) {{}}
-            }});
-            mk.on("dblclick", () => openPerson(n.person));
-            try {{ mk.setMap(amap); }} catch (_) {{}}
-            if (onlyActiveMarkers && !inWindow(n)) {{
-              try {{ mk.hide(); }} catch (_) {{}}
-            }}
-            n._mapMarkerAdded = true;
-            markers.push({{ mk, n, el: markerEl }});
-          }};
-
-          for (const n of nodes) addMarker(n);
-          updateCoordCount();
-          clusterer = null;
-          updateMapMarkers();
-          mapCameraTouched = false;
-
-          runSharedCoordFill(coordCache, addMarker);
-        }}).catch((e) => {{
-          mapInited = false;
-          mapInitializing = false;
-          try {{ console.warn("[stellar-map] amap init failed", e); }} catch (_) {{}}
-          const errMsg = (e && e.message) ? e.message : "高德地图脚本加载失败";
-          showMapInitError(errMsg);
-        }});
-      }};
-
-      const updateMapMarkers = () => {{
-        if (!mapInited || !amap) return;
-        const hiIdx = selectedIdx >= 0 ? selectedIdx : (spotlightIdx >= 0 ? spotlightIdx : -1);
-        const focusSet = hiIdx >= 0 ? (() => {{
-          const s = new Set();
-          s.add(hiIdx);
-          for (const j of (neigh[hiIdx] || [])) s.add(j);
-          return s;
-        }})() : null;
-        const searchActive = mapSearchHighlightSet.size > 0;
-        let shownCount = 0;
-        let hiddenCount = 0;
-        let forcedVisibleCount = 0;
-        for (const it of markers) {{
-          const n = it.n;
-          const idx = typeof n._idx === "number" ? n._idx : -1;
-          const active = inWindow(n);
-          const forceVisible = idx >= 0 && idx === hiIdx;
-          const searchHit = searchActive && idx >= 0 && mapSearchHighlightSet.has(idx);
-          if (forceVisible) forcedVisibleCount += 1;
-          if (onlyActiveMarkers && !active && !forceVisible && !searchHit) {{
-            hiddenCount += 1;
-            try {{ it.mk.hide(); }} catch (_) {{}}
-            continue;
-          }}
-          shownCount += 1;
-          try {{ it.mk.show(); }} catch (_) {{}}
-          const searchDim = searchActive && !searchHit && !forceVisible;
-          const dim = (focusSet && idx >= 0 && !focusSet.has(idx)) || searchDim;
-          const emph = (active || forceVisible || (searchActive && searchHit)) && !searchDim;
-          const sz = dim ? 16 : (emph ? 20 : 18);
-          const base = colorByYear(n.time_year);
-          const accent = base.startsWith("#") ? hexToRgba(base, 0.92) : base;
-          const accentSoft = base.startsWith("#") ? hexToRgba(base, 0.62) : base;
-          const glowStrong = base.startsWith("#") ? hexToRgba(base, 0.40) : "rgba(154,160,166,0.22)";
-          const glowSoft = base.startsWith("#") ? hexToRgba(base, 0.20) : "rgba(154,160,166,0.16)";
-          const fill = dim ? "rgba(232,234,237,0.18)" : (emph ? accent : accentSoft);
-          const glow = dim ? "rgba(154,160,166,0.08)" : (emph ? glowStrong : glowSoft);
-          if (it.el) {{
-            it.el.style.width = `${{sz}}px`;
-            it.el.style.height = `${{sz}}px`;
-            it.el.innerHTML = markerHtml(n, sz, fill, glow, emph);
-            it.el.style.animation = (!dim && emph) ? "twinkle 2.2s ease-in-out infinite" : "none";
-            try {{
-              it.mk.setContent(it.el);
-            }} catch (_) {{}}
-          }} else {{
-            it.mk.setContent(markerHtml(n, sz, fill, glow, emph));
-          }}
-          it.mk.setOffset(new window.AMap.Pixel(-Math.round(sz / 2), -Math.round(sz / 2)));
-        }}
-      }};
-
-      if ($tabGraph) $tabGraph.addEventListener("click", () => setTab("graph"));
-      if ($tabMap) $tabMap.addEventListener("click", () => setTab("map"));
-      if ($presetBar) {{
-        $presetBar.addEventListener("click", (e) => {{
-          const t = e && e.target ? e.target : null;
-          const btn = t && t.closest ? t.closest("button[data-preset]") : null;
-          const key = btn ? String(btn.getAttribute("data-preset") || "") : "";
-          if (!key) return;
-          const presets = getPresetRanges();
-          const r = presets[key];
-          if (!r) return;
-          startYear = clamp(r[0], minYear, maxYear);
-          endYear = clamp(r[1], minYear, maxYear);
-          if (startYear >= endYear) endYear = clamp(startYear + 1, minYear, maxYear);
-          setHandles();
-          updateActiveCount();
-          updateCoordCount();
-          updateMapMarkers();
-          draw();
-        }});
-      }}
-      const resetMapView = () => {{
-        try {{
-          mapCameraTouched = false;
-          applyChinaOverview();
-        }} catch (_) {{}}
-      }};
-      if ($resetMap) $resetMap.addEventListener("click", resetMapView);
-
-      let _mapSearchTimer = null;
-      const _scheduleMapSearch = (val, opts) => {{
-        if (_mapSearchTimer) clearTimeout(_mapSearchTimer);
-        _mapSearchTimer = setTimeout(() => {{
-          applyMapSearch(val, opts || {{}});
-        }}, 140);
-      }};
-      if ($mapSearchInput) {{
-        $mapSearchInput.addEventListener("input", (e) => {{
-          const v = e && e.target ? String(e.target.value || "") : "";
-          // 输入时同步缩放到匹配人物的边界框
-          _scheduleMapSearch(v, {{ fit: true }});
-        }});
-        $mapSearchInput.addEventListener("focus", () => {{
-          if (mapSearchQuery) renderMapSearchSuggest();
-        }});
-        $mapSearchInput.addEventListener("keydown", (e) => {{
-          if (!$mapSearchSuggest) return;
-          const key = e && e.key ? String(e.key) : "";
-          if (key === "Enter") {{
-            applyMapSearch($mapSearchInput.value || "", {{ fit: true }});
-            if (mapSearchSuggestIdx >= 0) {{
-              const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
-              const pick = items[mapSearchSuggestIdx];
-              if (pick && pick.person) {{
-                try {{ openPerson(pick.person); }} catch (_) {{}}
-              }}
-            }}
-            if (e.preventDefault) e.preventDefault();
-            return;
-          }}
-          if (key === "Escape") {{
-            $mapSearchInput.value = "";
-            applyMapSearch("", {{}});
-            if (e.preventDefault) e.preventDefault();
-            return;
-          }}
-          if (key === "ArrowDown" || key === "ArrowUp") {{
-            const items = collectMapSearchMatches($mapSearchInput.value || "", 30);
-            if (!items.length) return;
-            if (key === "ArrowDown") mapSearchSuggestIdx = Math.min(items.length - 1, mapSearchSuggestIdx + 1);
-            else mapSearchSuggestIdx = Math.max(0, mapSearchSuggestIdx - 1);
-            renderMapSearchSuggest();
-            if (e.preventDefault) e.preventDefault();
-          }}
-        }});
-      }}
-      if ($mapSearchClear) {{
-        $mapSearchClear.addEventListener("click", () => {{
-          if ($mapSearchInput) $mapSearchInput.value = "";
-          applyMapSearch("", {{}});
-          if ($mapSearchInput) $mapSearchInput.focus();
-        }});
-      }}
-      if ($mapSearchSuggest) {{
-        $mapSearchSuggest.addEventListener("mousedown", (e) => {{
-          const t = e && e.target ? e.target : null;
-          const row = t && t.closest ? t.closest("[data-mperson]") : null;
-          if (!row) return;
-          const person = String(row.getAttribute("data-mperson") || "").trim();
-          if (!person) return;
-          try {{ openPerson(person); }} catch (_) {{}}
-        }});
-      }}
-      document.addEventListener("click", (e) => {{
-        if (!$mapSearchSuggest || $mapSearchSuggest.classList.contains("hidden")) return;
-        const t = e && e.target ? e.target : null;
-        if ($mapSearchInput && t === $mapSearchInput) return;
-        if (t && $mapSearchSuggest.contains(t)) return;
-        $mapSearchSuggest.classList.add("hidden");
-      }});
-
-      setTab("graph");
-
-      const onMouseMove = (e) => {{
-        const rect = $c.getBoundingClientRect();
-        const mx = (e.clientX - rect.left) * (W / rect.width);
-        const my = (e.clientY - rect.top) * (H / rect.height);
-        const n = pickNode(mx, my);
-        hover = n;
-        if (n) showTip(n, e.clientX, e.clientY);
-        else showTip(null);
-        draw();
-      }};
-
-      $c.addEventListener("mousemove", onMouseMove);
-      $c.addEventListener("mouseleave", () => {{
-        hover = null;
-        showTip(null);
-        draw();
-      }});
-      $c.addEventListener("click", (event) => {{
-        const rect = $c.getBoundingClientRect();
-        const mx = (event.clientX - rect.left) * (W / rect.width);
-        const my = (event.clientY - rect.top) * (H / rect.height);
-        const n = pickNode(mx, my);
-        if (_clickTimer) clearTimeout(_clickTimer);
-        _clickTimer = setTimeout(() => {{
-          if (n) {{
-            if (selected && typeof selected._idx === "number" && selected._idx === n._idx) {{
-              openPerson(n.person);
-              _clickTimer = null;
-              return;
-            }}
-            setSelected(n);
-          }} else {{
-            setSelected(null);
-          }}
-          _clickTimer = null;
-        }}, 220);
-      }});
-      $c.addEventListener("dblclick", (event) => {{
-        if (_clickTimer) {{
-          clearTimeout(_clickTimer);
-          _clickTimer = null;
-        }}
-        const rect = $c.getBoundingClientRect();
-        const mx = (event.clientX - rect.left) * (W / rect.width);
-        const my = (event.clientY - rect.top) * (H / rect.height);
-        const n = pickNode(mx, my);
-        if (n) openPerson(n.person);
-      }});
-
-      let isPanning = false;
-      let panStartX = 0;
-      let panStartY = 0;
-      let panStartOffX = 0;
-      let panStartOffY = 0;
-      $c.addEventListener("mousedown", (e) => {{
-        if (!(e.button === 2 || (e.shiftKey && e.button === 0) || e.button === 1)) return;
-        isPanning = true;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        panStartOffX = camOffX;
-        panStartOffY = camOffY;
-        try {{ e.preventDefault(); }} catch (_) {{}}
-      }});
-      $c.addEventListener("contextmenu", (e) => {{
-        try {{ e.preventDefault(); }} catch (_) {{}}
-      }});
-      window.addEventListener("mouseup", () => {{
-        isPanning = false;
-      }});
-      window.addEventListener("mousemove", (e) => {{
-        if (!isPanning) return;
-        camOffX = panStartOffX + (e.clientX - panStartX) * (W / $c.getBoundingClientRect().width);
-        camOffY = panStartOffY + (e.clientY - panStartY) * (H / $c.getBoundingClientRect().height);
-        draw();
-      }});
-      const railRect = () => $rail.getBoundingClientRect();
-
-      const hitTestHandle = (e) => {{
-        const r = railRect();
-        const x = e.clientX - r.left;
-        const {{x1, x2}} = handlePosPx();
-        const px1 = x1;
-        const px2 = x2;
-        if (Math.abs(x - px1) < 18) return "left";
-        if (Math.abs(x - px2) < 18) return "right";
-        if (x > px1 && x < px2) return "mid";
-        return "";
-      }};
-
-      const isEventWithinRail = (e) => {{
-        if (!$rail || !e || typeof e.clientX !== "number" || typeof e.clientY !== "number") return false;
-        const r = railRect();
-        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-      }};
-
-      const onDown = (e) => {{
-        if (typeof e.button === "number" && e.button !== 0) return;
-        const r = railRect();
-        const rx = clamp(e.clientX - r.left, 0, r.width || 1);
-        const m = hitTestHandle(e);
-        if (!m) {{
-          dragMode = "brush";
-          brushStartX = rx;
-          brushStartYear = fromT(clamp(rx / (r.width || 1), 0, 1));
-          startYear = brushStartYear;
-          endYear = clamp(brushStartYear + 1, minYear, maxYear);
-        }} else {{
-          dragMode = m;
-          dragStartX = e.clientX;
-          dragStartA = startYear;
-          dragStartB = endYear;
-        }}
-        if ($rail.setPointerCapture) {{
-          try {{ $rail.setPointerCapture(e.pointerId); }} catch (_) {{}}
-        }}
-        if (e.stopPropagation) e.stopPropagation();
-        e.preventDefault();
-      }};
-
-      const onMove = (e) => {{
-        if (!dragMode) return;
-        const r = railRect();
-        if (dragMode === "brush") {{
-          const rx = clamp(e.clientX - r.left, 0, r.width || 1);
-          const y = fromT(clamp(rx / (r.width || 1), 0, 1));
-          let a = Math.min(brushStartYear, y);
-          let b = Math.max(brushStartYear, y);
-          a = clamp(a, minYear, maxYear);
-          b = clamp(b, minYear, maxYear);
-          if (a === b) b = clamp(a + 1, minYear, maxYear);
-          startYear = a;
-          endYear = b;
-        }} else {{
-          const dx = e.clientX - dragStartX;
-          const dt = dx / r.width;
-          const span = dragStartB - dragStartA;
-          if (dragMode === "left") {{
-            const t = clamp(toT(dragStartA) + dt, 0, toT(dragStartB) - 0.01);
-            startYear = fromT(t);
-          }} else if (dragMode === "right") {{
-            const t = clamp(toT(dragStartB) + dt, toT(dragStartA) + 0.01, 1);
-            endYear = fromT(t);
-          }} else if (dragMode === "mid") {{
-            const spanT = Math.max(0.01, toT(dragStartB) - toT(dragStartA));
-            const nextStartT = clamp(toT(dragStartA) + dt, 0, 1 - spanT);
-            const nextEndT = clamp(nextStartT + spanT, spanT, 1);
-            startYear = fromT(nextStartT);
-            endYear = fromT(nextEndT);
-          }}
-        }}
-        if (startYear >= endYear) {{
-          if (dragMode === "left") startYear = endYear - 1;
-          else endYear = startYear + 1;
-        }}
-        setHandles();
-        updateActiveCount();
-        updateCoordCount();
-        updateMapMarkers();
-        draw();
-      }};
-
-      const onUp = () => {{
-        if (!dragMode) return;
-        const wasBrush = (dragMode === "brush");
-        dragMode = "";
-        if (wasBrush && currentTab === "graph") draw();
-      }};
-
-      const routeDown = (e) => {{
-        if (!isEventWithinRail(e)) return;
-        onDown(e);
-      }};
-      document.addEventListener("pointerdown", routeDown, true);
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-      window.addEventListener("pointercancel", onUp);
-      document.addEventListener("mousedown", routeDown, true);
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-      $rail.addEventListener("dblclick", () => {{
-        startYear = 0;
-        endYear = 1840;
-        setHandles();
-        updateActiveCount();
-        updateCoordCount();
-        updateMapMarkers();
-        draw();
-      }});
-      if ($startYearInput) {{
-        $startYearInput.addEventListener("keydown", (e) => {{
-          if (e.key === "Enter") applyYearInputs();
-        }});
-        $startYearInput.addEventListener("change", applyYearInputs);
-        $startYearInput.addEventListener("blur", applyYearInputs);
-      }}
-      if ($endYearInput) {{
-        $endYearInput.addEventListener("keydown", (e) => {{
-          if (e.key === "Enter") applyYearInputs();
-        }});
-        $endYearInput.addEventListener("change", applyYearInputs);
-        $endYearInput.addEventListener("blur", applyYearInputs);
-      }}
-      window.addEventListener("resize", () => {{
-        syncCanvasSize();
-        renderBands();
-        setHandles();
-        syncSearchActionState();
-        draw();
-      }});
-
-      const groupKey = (n) => {{
-        const role = String(n.main_role_band || "").trim();
-        if (role) return role;
-        const d = String(n.dynasty || "").trim();
-        if (d) return d.slice(0, 6);
-        const name = String(n.person || "").trim();
-        return name ? name.slice(0, 1) : "？";
-      }};
-
-      const buildNeigh = () => {{
-        neigh = Array.from({{ length: nodes.length }}, () => []);
-        edgeMeta = new Map();
-        for (const e of edges) {{
-          if (!e) continue;
-          const a = e.a;
-          const b = e.b;
-          if (typeof a !== "number" || typeof b !== "number") continue;
-          if (!neigh[a]) neigh[a] = [];
-          if (!neigh[b]) neigh[b] = [];
-          neigh[a].push(b);
-          neigh[b].push(a);
-          const lo = Math.min(a, b);
-          const hi = Math.max(a, b);
-          const k = `${{lo}},${{hi}}`;
-          const conf = edgeConf(e);
-          const label = String((e && e.label) || "").trim();
-          const t = edgeType(e);
-          const prev = edgeMeta.get(k) || null;
-          if (!prev || conf >= (prev.confidence || 0)) {{
-            edgeMeta.set(k, {{ label, confidence: conf, type: t }});
-          }}
-        }}
-      }};
-
-      migrateCoordCache();
-      fetch(DATA_FILE).then((r) => r.json()).then((data) => {{
-        searchCapabilities = Object.assign({{ aliases: true, foreign_name: true, pinyin: false }}, data.search_capabilities || {{}});
-        setSearchHint();
-        minYear = data.min_year ?? -800;
-        maxYear = data.max_year ?? 1840;
-        const raw = (data.nodes || []);
-        const roleBandOrder = Array.isArray(data.role_band_order) && data.role_band_order.length
-          ? data.role_band_order
-          : ["military", "politics", "literature", "thought", "science", "art", "other"];
-        const roleBandIndex = new Map(roleBandOrder.map((key, idx) => [String(key || "").trim(), idx]));
-        const laneFor = (n) => {{
-          const band = String(n.main_role_band || "").trim();
-          const idx = roleBandIndex.has(band) ? roleBandIndex.get(band) : (roleBandOrder.length - 1);
-          return (idx + 0.5) / Math.max(1, roleBandOrder.length);
-        }};
-        const laneJitter = (n) => {{
-          const bandCount = Math.max(1, roleBandOrder.length);
-          const bandHeight = (H - pad * 2) / bandCount;
-          const seed = hash(String(n.person || ""));
-          const dynastySeed = hash(String(n.dynasty || ""));
-          const local = (rand01(seed + 2) - 0.5) * bandHeight * 0.42;
-          const dynastyBias = ((Math.abs(dynastySeed) % 5) - 2) * Math.min(6, bandHeight * 0.08);
-          return local + dynastyBias;
-        }};
-
-        const cell = 12;
-        const occ = new Set();
-        const key = (cx, cy) => `${{cx}},${{cy}}`;
-        const isFree = (x, y) => {{
-          const cx = Math.round(x / cell);
-          const cy = Math.round(y / cell);
-          const k = key(cx, cy);
-          if (occ.has(k)) return false;
-          occ.add(k);
-          return true;
-        }};
-
-        const placeAtY = (dy, wantX, wantY) => {{
-          const x = clamp(wantX, pad, W - pad);
-          const y = clamp(wantY + dy, pad, H - pad);
-          if (isFree(x, y)) return [x, y];
-          return null;
-        }};
-
-        const offsets = [];
-        offsets.push(0);
-        for (let r = 1; r <= 12; r++) {{
-          const step = 10;
-          offsets.push(r * step, -r * step);
-        }}
-
-        nodes = raw.map((n, idx) => {{
-          const seed = hash(n.person || "");
-          const my = mainYear(n);
-          const t = (typeof my === "number" && Number.isFinite(my)) ? clamp(toT(my), 0, 1) : null;
-          const x0 = t == null ? (pad + rand01(seed + 1) * (W - pad * 2)) : (pad + t * (W - pad * 2));
-          const yLane = laneFor(n);
-          const y0 = pad + yLane * (H - pad * 2) + laneJitter(n);
-
-          let best = null;
-          for (const dy of offsets) {{
-            const p = placeAtY(dy, x0, y0);
-            if (p) {{ best = p; break; }}
-          }}
-          if (!best) {{
-            best = [clamp(x0, pad, W - pad), clamp(y0, pad, H - pad)];
-          }}
-          const x = best[0];
-          const y = best[1];
-          return {{ ...n, x, y, bx: x, by: y, _idx: idx }};
-        }});
-        edgesAll = [];
-        startYear = data.default_start ?? 100;
-        endYear = data.default_end ?? 1600;
-        startYear = clamp(Math.round(startYear), YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        endYear = clamp(Math.round(endYear), YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        if (startYear >= endYear) endYear = clamp(startYear + 1, YEAR_INPUT_MIN, YEAR_INPUT_MAX);
-        timeWindowSignature = [minYear, maxYear, startYear, endYear].join(":");
-        clearLegacyTimeWindow();
-        applyEdgeFilters();
-        renderBands();
-        setHandles();
-        updateActiveCount();
-        updateCoordCount();
-        prefillCoordsNoMap();
-        syncSearchActionState();
-        window.requestAnimationFrame(animate);
-        if (DATA_DETAIL_FILE) {{
-          if (typeof window.requestIdleCallback === "function") {{
-            window.requestIdleCallback(() => loadHomeDetailData(), {{ timeout: 1200 }});
-          }} else {{
-            window.setTimeout(() => loadHomeDetailData(), 180);
-          }}
-        }}
-      }});
-    </script>
-  </body>
-</html>
-"""
+        return impl(payload)
+    finally:
+        impl.__globals__["_build_payload_meta"] = original
+
+
+def _write_homepage_outputs(
+    *,
+    story_map_dir: Path,
+    out_index_name: str,
+    out_data_name: str,
+    title: str,
+    payload: Dict[str, Any],
+    active_redirects: Dict[str, str],
+    sync_payload_to_neo4j: bool,
+) -> Dict[str, Any]:
+    out_data = story_map_dir / str(out_data_name)
+    out_detail = story_map_dir / _derive_home_detail_file_name(str(out_data_name))
+    out_index = story_map_dir / str(out_index_name)
+    core_payload, detail_payload = _split_home_payload_for_delivery(payload)
+    if write_normalized_graph_json:
+        try:
+            write_normalized_graph_json(payload, GRAPH_ARTIFACT_DIR / "normalized_graph.json")
+        except Exception:
+            pass
+    if sync_payload_to_neo4j and should_sync_to_neo4j and sync_graph_payload_to_neo4j:
+        try:
+            if should_sync_to_neo4j():
+                sync_graph_payload_to_neo4j(payload, replace=True)
+        except Exception:
+            pass
+    out_data.write_text(json.dumps(core_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_detail.write_text(json.dumps(detail_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_index.write_text(_render_index_html(title, out_data.name, out_detail.name), encoding="utf-8")
+    _remove_person_alias_redirect_pages(story_map_dir, active_redirects)
+    _sync_vendor_assets(story_map_dir)
+    _sync_embedded_apps(story_map_dir)
+    _sync_homepage_pet_asset(story_map_dir)
+    return {
+        "index": str(out_index),
+        "data": str(out_data),
+        "detail": str(out_detail),
+        "count": len(core_payload.get("nodes") if isinstance(core_payload.get("nodes"), list) else []),
+    }
 
 
 def main() -> int:
@@ -4845,7 +184,7 @@ def main() -> int:
         load_dotenv(dotenv_path=str((REPO_ROOT.parent / ".env").resolve()))
         load_dotenv(dotenv_path=str((REPO_ROOT.parent.parent / ".env").resolve()))
         load_dotenv(dotenv_path=str((REPO_ROOT / "data" / ".env").resolve()))
-    except Exception as _exc:
+    except Exception:
         pass
     if apply_story_map_env_aliases:
         apply_story_map_env_aliases()
@@ -4853,11 +192,10 @@ def main() -> int:
     latest_html = _scan_latest_html(story_map_dir)
     geocode_city = None
     try:
-        sys.path.insert(0, str((REPO_ROOT / "storymap" / "script").resolve()))
-        from storymap.script.map.map_client import geocode_city as _geocode_city  # type: ignore
+        from storymap.script.map.map_client import geocode_city as _geocode_city
 
         geocode_city = _geocode_city
-    except Exception as _exc:
+    except Exception:
         geocode_city = None
     geocode_limit = int(os.getenv("STELLAR_HOME_GEOCODE_LIMIT", "0") or "0")
     geocode_used = 0
@@ -4884,7 +222,7 @@ def main() -> int:
                         continue
                     try:
                         obj = json.loads(s)
-                    except Exception as _exc:
+                    except Exception:
                         continue
                     if not isinstance(obj, dict):
                         continue
@@ -4895,7 +233,7 @@ def main() -> int:
                     try:
                         lat_f = float(lat)
                         lon_f = float(lon)
-                    except Exception as _exc:
+                    except Exception:
                         continue
                     if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
                         continue
@@ -4903,7 +241,7 @@ def main() -> int:
                         nk = _norm_place_key(key)
                         if nk and nk not in mapping:
                             mapping[nk] = (lat_f, lon_f)
-        except Exception as _exc:
+        except Exception:
             return {}
         return mapping
 
@@ -4922,11 +260,11 @@ def main() -> int:
                         try:
                             lat = float(v[0])
                             lng = float(v[1])
-                        except Exception as _exc:
+                        except Exception:
                             continue
                         if -90 <= lat <= 90 and -180 <= lng <= 180:
                             person_birth_coords[name] = (lat, lng)
-    except Exception as _exc:
+    except Exception:
         person_birth_coords = {}
 
     person_birth_coords_dirty = 0
@@ -4939,7 +277,7 @@ def main() -> int:
         try:
             la = float(lat)
             lo = float(lng)
-        except Exception as _exc:
+        except Exception:
             return
         if not (-90 <= la <= 90 and -180 <= lo <= 180):
             return
@@ -5048,7 +386,7 @@ def main() -> int:
                 try:
                     lat = float(cols[idx_lat])
                     lng = float(cols[idx_lng])
-                except Exception as _exc:
+                except Exception:
                     continue
                 if not (-90 <= lat <= 90 and -180 <= lng <= 180):
                     continue
@@ -5072,7 +410,7 @@ def main() -> int:
                     label_stripped_plain = re.sub(r"[（(].*?[）)]", "", label_stripped).strip()
                     if label_stripped_plain and label_stripped_plain not in variants:
                         variants.append(label_stripped_plain)
-                except Exception as _exc:
+                except Exception:
                     pass
                 for v in variants:
                     nk = _norm_place_key(v)
@@ -5118,11 +456,11 @@ def main() -> int:
                         try:
                             lat = float(v[0])
                             lng = float(v[1])
-                        except Exception as _exc:
+                        except Exception:
                             continue
                         if -90 <= lat <= 90 and -180 <= lng <= 180:
                             amap_cache[kk] = (lat, lng)
-    except Exception as _exc:
+    except Exception:
         amap_cache = {}
 
     def _amap_geocode(address: str) -> Optional[Tuple[float, float]]:
@@ -5147,66 +485,45 @@ def main() -> int:
             amap_last_ts = max(amap_last_ts, now) + amap_min_interval_s
         if wait > 0:
             time.sleep(wait)
-
-        max_retries = 2
-        last_error = None
-        for attempt in range(max_retries + 1):
-            if attempt > 0:
-                time.sleep(min(2 ** attempt * 0.5, 4.0))
-            url = (
-                "https://restapi.amap.com/v3/geocode/geo"
-                f"?address={url_quote(addr, safe='')}&key={url_quote(amap_key, safe='')}"
-            )
-            data = None
-            try:
-                req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
-                with urlopen(req, timeout=12) as resp:
-                    data = json.loads(resp.read().decode("utf-8", errors="ignore"))
-            except Exception as exc:
-                last_error = exc
-                _logger.warning("AMap geocode attempt %d/%d failed for %s: %s",
-                                attempt + 1, max_retries + 1, addr[:80], str(exc)[:120])
-                continue
-
-            if not isinstance(data, dict) or str(data.get("status")) != "1":
-                # Non-retryable: invalid key, quota exceeded, etc. → cache as None.
-                if str(data.get("info", "") or "").lower() in ("daily_query_over_limit", "cuq_over_limit"):
-                    amap_cache[addr] = None
-                    return None
-                # Other API-level errors: retry if attempts remain.
-                last_error = ValueError(f"AMap status={data.get('status')} info={data.get('info')}")
-                continue
-
-            geocodes = data.get("geocodes")
-            if not isinstance(geocodes, list) or not geocodes:
-                amap_cache[addr] = None
-                return None
-            g0 = geocodes[0] if isinstance(geocodes[0], dict) else None
-            if not isinstance(g0, dict):
-                amap_cache[addr] = None
-                return None
-            loc = str(g0.get("location") or "").strip()
-            if not loc or "," not in loc:
-                amap_cache[addr] = None
-                return None
-            a, b = loc.split(",", 1)
-            try:
-                lng = float(a.strip())
-                lat = float(b.strip())
-            except Exception as _exc:
-                amap_cache[addr] = None
-                return None
-            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
-                amap_cache[addr] = None
-                return None
-            res = (lat, lng)
-            amap_cache[addr] = res
-            return res
-
-        # All retries exhausted — cache failure to avoid hammering the API.
-        _logger.warning("AMap geocode all retries failed for %s: %s", addr[:80], str(last_error)[:120])
-        amap_cache[addr] = None
-        return None
+        url = (
+            "https://restapi.amap.com/v3/geocode/geo"
+            f"?address={url_quote(addr, safe='')}&key={url_quote(amap_key, safe='')}"
+        )
+        try:
+            req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
+            with urlopen(req, timeout=12) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="ignore"))
+        except Exception:
+            amap_cache[addr] = None
+            return None
+        if not isinstance(data, dict) or str(data.get("status")) != "1":
+            amap_cache[addr] = None
+            return None
+        geocodes = data.get("geocodes")
+        if not isinstance(geocodes, list) or not geocodes:
+            amap_cache[addr] = None
+            return None
+        g0 = geocodes[0] if isinstance(geocodes[0], dict) else None
+        if not isinstance(g0, dict):
+            amap_cache[addr] = None
+            return None
+        loc = str(g0.get("location") or "").strip()
+        if not loc or "," not in loc:
+            amap_cache[addr] = None
+            return None
+        a, b = loc.split(",", 1)
+        try:
+            lng = float(a.strip())
+            lat = float(b.strip())
+        except Exception:
+            amap_cache[addr] = None
+            return None
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            amap_cache[addr] = None
+            return None
+        res = (lat, lng)
+        amap_cache[addr] = res
+        return res
 
     def _looks_foreign_query(q: str) -> bool:
         s = str(q or "").strip()
@@ -5291,7 +608,7 @@ def main() -> int:
             for fut in as_completed(futs):
                 try:
                     addr, res = fut.result()
-                except Exception as _exc:
+                except Exception:
                     continue
                 if not addr:
                     continue
@@ -5329,11 +646,11 @@ def main() -> int:
                         try:
                             lat = float(v[0])
                             lng = float(v[1])
-                        except Exception as _exc:
+                        except Exception:
                             continue
                         if -90 <= lat <= 90 and -180 <= lng <= 180:
                             foreign_cache[kk] = (lat, lng)
-    except Exception as _exc:
+    except Exception:
         foreign_cache = {}
 
     def _looks_like_foreign_geocode_query(q: str) -> bool:
@@ -5378,7 +695,7 @@ def main() -> int:
             req = Request(url, headers={"User-Agent": "StoryMap/1.0"})
             with urlopen(req, timeout=18) as resp:
                 data = json.loads(resp.read().decode("utf-8", errors="ignore"))
-        except Exception as _exc:
+        except Exception:
             data = None
         lat = None
         lng = None
@@ -5392,7 +709,7 @@ def main() -> int:
                     try:
                         lng = float(coords[0])
                         lat = float(coords[1])
-                    except Exception as _exc:
+                    except Exception:
                         lat = None
                         lng = None
         if lat is None or lng is None:
@@ -5406,7 +723,7 @@ def main() -> int:
                     if isinstance(d0, dict):
                         lat = float(d0.get("lat"))
                         lng = float(d0.get("lon"))
-            except Exception as _exc:
+            except Exception:
                 lat = None
                 lng = None
         if lat is None or lng is None:
@@ -5450,7 +767,7 @@ def main() -> int:
             for fut in as_completed(futs):
                 try:
                     addr, res = fut.result()
-                except Exception as _exc:
+                except Exception:
                     continue
                 if not addr:
                     continue
@@ -5474,7 +791,7 @@ def main() -> int:
                 backend="neo4j",
                 strict_backend=(requested_graph_source == "neo4j"),
             )
-        except Exception as _exc:
+        except Exception:
             graph_payload, graph_payload_source = {}, ""
         if (
             graph_payload_source == "neo4j"
@@ -5539,7 +856,7 @@ def main() -> int:
             entity_identity = audit.get("entity_identity")
             uncertain = entity_identity.get("uncertain") if isinstance(entity_identity, dict) else None
             return risk_level, overall_pass, uncertain
-        except Exception as _exc:
+        except Exception:
             return "", None, None
 
     def _resolve_spotlight_copy(name: str) -> Tuple[str, str]:
@@ -5617,11 +934,11 @@ def main() -> int:
 
         if birth_lat is None or birth_lng is None:
             cached_birth = person_birth_coords.get(name)
-            if cached_birth and isinstance(cached_birth, tuple) and len(cached_birth) >= 2:
+            if cached_birth and isinstance(cached_birth, tuple) and len(cached_birth) >= 2 and lookup_terms:
                 try:
                     birth_lat = float(cached_birth[0])
                     birth_lng = float(cached_birth[1])
-                except Exception as _exc:
+                except Exception:
                     birth_lat = None
                     birth_lng = None
 
@@ -5653,7 +970,7 @@ def main() -> int:
             if q:
                 try:
                     coord = geocode_city(q)
-                except Exception as _exc:
+                except Exception:
                     coord = None
                 if coord and isinstance(coord, tuple) and len(coord) >= 2:
                     birth_lat = float(coord[0])
@@ -5739,10 +1056,10 @@ def main() -> int:
             "death_year": death_year,
             "time_year": _compute_time_year(dynasty, birth_year, death_year),
             "dynasty": dynasty,
-            "quote": _strip_markdown_markers(quote),
+            "quote": quote,
             "review": review,
-            "aliases": [_strip_markdown_markers(a) for a in aliases],
-            "foreign_name": _strip_markdown_markers(foreign_name),
+            "aliases": aliases,
+            "foreign_name": foreign_name,
             "domain_tags": domain_tags,
             "main_role_band": main_role_band,
             "main_role_label": main_role_label,
@@ -5750,7 +1067,7 @@ def main() -> int:
             "audit_pass": audit_overall_pass,
             "audit_uncertain": audit_uncertain,
             "birthplace": birthplace_ancient,
-            "birthplace_raw": _strip_markdown_markers(birthplace_raw),
+            "birthplace_raw": birthplace_raw,
             "birthplace_modern": birthplace_modern,
             "native_place": native_place_ancient,
             "native_place_raw": native_place_raw,
@@ -5803,12 +1120,7 @@ def main() -> int:
             md_text = md_path.read_text(encoding="utf-8")
             birth_year, death_year = _extract_years_from_md(md_text)
             dynasty = _dynasty_hint_from_md(md_text)
-            llm_cache = _load_llm_relations_cache()
-            if name in llm_cache and llm_cache[name]:
-                relations_meta = llm_cache[name]
-                relations = [r["name"] for r in relations_meta if isinstance(r, dict) and r.get("name")]
-            else:
-                relations, relations_meta = _extract_relations(md_text)
+            relations, relations_meta = _extract_relations(md_text)
             aliases, foreign_name, domain_tags = _extract_disambiguation(md_text)
             birthplace_raw, birthplace_ancient, birthplace_modern = _extract_birthplace_from_md(md_text)
             native_place_raw, native_place_ancient, native_place_modern = _extract_basic_place_from_md(
@@ -5827,20 +1139,7 @@ def main() -> int:
         html_entry = latest_html.get(name) or latest_html.get(source_name)
         quote, review = _resolve_spotlight_copy(name)
         works = _resolve_person_works(spotlight_items.get(name), md_text)
-        # Post-filter: strip markdown artifacts from each title
-        cleaned = []
-        for title in works:
-            title = _strip_markdown_markers(title)
-            if title:
-                cleaned.append(title)
-        works = cleaned
-        # Exclude misattributed works per person
-        _HOME_WORK_EXCLUSIONS = {
-            "元稹": {"西厢记"},
-        }
-        excl = _HOME_WORK_EXCLUSIONS.get(name, set())
-        if excl:
-            works = [w for w in works if w not in excl]
+        work_summaries = _pick_person_work_summaries(works, work_summary_items)
         main_role_band, main_role_label = _resolve_main_role_band(
             md_text=md_text,
             domain_tags=domain_tags,
@@ -5873,14 +1172,22 @@ def main() -> int:
                 birthplace_ancient,
                 birthplace_raw,
             )
-        if preferred_birth_coord:
+        override_birth_coord = PERSON_BIRTH_COORD_OVERRIDES_WGS84.get(name)
+        if override_birth_coord:
+            birth_lat = float(override_birth_coord[0])
+            birth_lng = float(override_birth_coord[1])
+            pending_amap_query = ""
+            pending_foreign_query = ""
+            _set_person_birth_coord(name, birth_lat, birth_lng)
+        elif preferred_birth_coord:
             birth_lat = float(preferred_birth_coord[0])
             birth_lng = float(preferred_birth_coord[1])
             pending_amap_query = ""
             pending_foreign_query = ""
             _set_person_birth_coord(name, birth_lat, birth_lng)
-        elif not lookup_terms and birth_lat is None and birth_lng is None:
-            # Only clear if we don't already have valid coords from _resolve_birth_context (e.g. from corpus cache)
+        elif not lookup_terms:
+            birth_lat = None
+            birth_lng = None
             pending_amap_query = ""
             pending_foreign_query = ""
             _clear_person_birth_coord(name)
@@ -5943,7 +1250,7 @@ def main() -> int:
                 try:
                     lat_g = float(coord[0])
                     lng_g = float(coord[1])
-                except Exception as _exc:
+                except Exception:
                     continue
                 lat_w, lng_w = _gcj02_to_wgs84(lat_g, lng_g)
                 nodes[idx]["birth_lat_wgs84"] = float(lat_w)
@@ -5952,7 +1259,7 @@ def main() -> int:
                 nodes[idx]["birth_lng"] = float(lng_w)
                 try:
                     _set_person_birth_coord(str(nodes[idx].get("person") or ""), float(lat_w), float(lng_w))
-                except Exception as _exc:
+                except Exception:
                     pass
     if pending_foreign:
         _foreign_geocode_batch(list(pending_foreign.values()))
@@ -5964,7 +1271,7 @@ def main() -> int:
                 try:
                     lat_w = float(coord[0])
                     lng_w = float(coord[1])
-                except Exception as _exc:
+                except Exception:
                     continue
                 nodes[idx]["birth_lat_wgs84"] = float(lat_w)
                 nodes[idx]["birth_lng_wgs84"] = float(lng_w)
@@ -5972,7 +1279,7 @@ def main() -> int:
                 nodes[idx]["birth_lng"] = float(lng_w)
                 try:
                     _set_person_birth_coord(str(nodes[idx].get("person") or ""), float(lat_w), float(lng_w))
-                except Exception as _exc:
+                except Exception:
                     pass
 
     person_to_idx: Dict[str, int] = {}
@@ -6002,11 +1309,11 @@ def main() -> int:
             if isinstance(cur, dict) and isinstance(meta, dict):
                 try:
                     cc = float(cur.get("confidence"))
-                except Exception as _exc:
+                except Exception:
                     cc = 0.0
                 try:
                     nc = float(meta.get("confidence"))
-                except Exception as _exc:
+                except Exception:
                     nc = 0.0
                 if nc > cc:
                     cur.update(meta)
@@ -6057,9 +1364,9 @@ def main() -> int:
                 try:
                     if int(w or 0) < 2:
                         continue
-                except Exception as _exc:
+                except Exception:
                     continue
-                if typ != "manual":
+                if typ not in {"same_book", "manual"}:
                     continue
                 a = str(e.get("source") or "").strip()
                 b = str(e.get("target") or "").strip()
@@ -6067,18 +1374,46 @@ def main() -> int:
                 ib = person_to_idx.get(b)
                 if ia is None or ib is None or ia == ib:
                     continue
+                if typ == "same_book":
+                    continue
                 conf = None
                 try:
                     conf = float(e.get("relation_confidence"))
-                except Exception as _exc:
+                except Exception:
                     conf = None
                 if conf is None or not (0.0 <= conf <= 1.0):
-                    conf = 0.90
-                label = str(e.get("relation_label") or "").strip() or "人工关系"
+                    try:
+                        ww = int(w or 0)
+                    except Exception:
+                        ww = 0
+                    if typ == "same_book":
+                        conf = max(0.15, min(0.60, 0.15 + 0.07 * max(0, ww - 2)))
+                    else:
+                        conf = 0.90
+                label = str(e.get("relation_label") or "").strip()
+                if not label:
+                    if typ == "same_book":
+                        da = str(nodes[ia].get("dynasty") or "").strip()
+                        db = str(nodes[ib].get("dynasty") or "").strip()
+                        if da and db and da[:2] == db[:2]:
+                            label = "同朝共现"
+                            conf = min(1.0, float(conf) + 0.10)
+                        else:
+                            ta = nodes[ia].get("domain_tags") if isinstance(nodes[ia].get("domain_tags"), list) else []
+                            tb = nodes[ib].get("domain_tags") if isinstance(nodes[ib].get("domain_tags"), list) else []
+                            sa = {str(x).strip() for x in ta if str(x).strip()}
+                            sb = {str(x).strip() for x in tb if str(x).strip()}
+                            if sa and sb and (sa & sb):
+                                label = "同领域共现"
+                                conf = min(1.0, float(conf) + 0.08)
+                            else:
+                                label = "同册共现"
+                    else:
+                        label = "人工关系"
                 add_edge(ia, ib, {"type": typ, "label": label, "confidence": float(conf), "weight": int(w or 0)})
                 if len(edges) >= max_edges:
                     break
-    except Exception as _exc:
+    except Exception:
         kg_edges = []
 
     payload = _prepare_home_payload_for_output(
@@ -6103,7 +1438,7 @@ def main() -> int:
             else:
                 payload_cache[k] = [float(v[0]), float(v[1])]
         amap_cache_path.write_text(json.dumps(payload_cache, ensure_ascii=False, indent=2), encoding="utf-8")
-    except Exception as _exc:
+    except Exception:
         pass
     try:
         foreign_cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -6116,7 +1451,7 @@ def main() -> int:
             else:
                 payload_cache2[k] = [float(v[0]), float(v[1])]
         foreign_cache_path.write_text(json.dumps(payload_cache2, ensure_ascii=False, indent=2), encoding="utf-8")
-    except Exception as _exc:
+    except Exception:
         pass
     try:
         if person_birth_coords_dirty > 0:
@@ -6128,7 +1463,7 @@ def main() -> int:
                     continue
                 payload_pbc[k] = [float(v[0]), float(v[1])]
             BIRTH_COORDS_WGS84_JSON.write_text(json.dumps(payload_pbc, ensure_ascii=False, indent=2), encoding="utf-8")
-    except Exception as _exc:
+    except Exception:
         pass
     outputs = _write_homepage_outputs(
         story_map_dir=story_map_dir,

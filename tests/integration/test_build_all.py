@@ -3,11 +3,7 @@ import json
 import sys
 from pathlib import Path
 
-
 from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
@@ -78,7 +74,7 @@ def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monk
                 encoding="utf-8",
             )
             return 0
-        if "tools/build_stellar_homepage.py" in cmd_text:
+        if "tools/build/homepage/main.py" in cmd_text:
             module.HOME_DATA.write_text(
                 json.dumps(
                     {
@@ -128,10 +124,9 @@ def test_build_all_generates_core_artifacts_for_minimal_story_set(tmp_path, monk
     assert perf_payload["files"]["stellar_home_data_detail"]["exists"] is True
     summary_index_idx = next(i for i, cmd in enumerate(commands) if "tools/build_people_summary_index.py" in " ".join(cmd))
     work_summary_index_idx = next(i for i, cmd in enumerate(commands) if "tools/build_work_summary_index.py" in " ".join(cmd))
-    homepage_idx = next(i for i, cmd in enumerate(commands) if "tools/build_stellar_homepage.py" in " ".join(cmd))
+    homepage_idx = next(i for i, cmd in enumerate(commands) if "tools/build/homepage/main.py" in " ".join(cmd))
     assert summary_index_idx < homepage_idx
     assert work_summary_index_idx < homepage_idx
-
 
 def test_build_all_fails_fast_when_validation_report_has_errors(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
@@ -168,7 +163,6 @@ def test_build_all_fails_fast_when_validation_report_has_errors(tmp_path, monkey
 
     assert rc == 2
 
-
 def test_build_all_can_explicitly_allow_validation_errors(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -203,7 +197,6 @@ def test_build_all_can_explicitly_allow_validation_errors(tmp_path, monkeypatch)
     rc = module.main()
 
     assert rc == 0
-
 
 def test_build_all_uses_nogeocode_mode_for_changed_html_by_default(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
@@ -242,7 +235,7 @@ def test_build_all_uses_nogeocode_mode_for_changed_html_by_default(tmp_path, mon
         if "build_people_master.py" in " ".join(cmd):
             out_path = Path(cmd[cmd.index("--out") + 1])
             out_path.write_text(json.dumps({"people": [], "count": 0}, ensure_ascii=False), encoding="utf-8")
-        elif "build_stellar_homepage.py" in " ".join(cmd):
+        elif "tools/build/homepage/main.py" in " ".join(cmd):
             module.HOME_DATA.write_text(json.dumps({"nodes": []}, ensure_ascii=False), encoding="utf-8")
             module.HOME_DETAIL_DATA.write_text(json.dumps({"details": {}}, ensure_ascii=False), encoding="utf-8")
             (story_map_dir / "index.html").write_text("<html>index</html>", encoding="utf-8")
@@ -259,7 +252,6 @@ def test_build_all_uses_nogeocode_mode_for_changed_html_by_default(tmp_path, mon
     assert rc == 0
     render_cmd = next(cmd for cmd in commands if "cli/generate_pure_story_map.py" in " ".join(cmd))
     assert render_cmd[render_cmd.index("--changed-mode") + 1] == "nogeocode"
-
 
 def test_build_performance_baseline_summarizes_home_payload_and_profile_pages(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
@@ -348,7 +340,6 @@ def test_build_performance_baseline_summarizes_home_payload_and_profile_pages(tm
     assert baseline["files"]["stellar_home_data_detail"]["gzip_size"] is not None
     assert baseline["profile_pages"][0]["person"] == "李白"
 
-
 def test_build_validation_report_flags_stale_profile_template(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -381,7 +372,6 @@ def test_build_validation_report_flags_stale_profile_template(tmp_path, monkeypa
     assert report["ok"] is False
     stale_issue = next(item for item in report["errors"] if item["code"] == "story_html_template_stale")
     assert stale_issue["samples"] == ["李白"]
-
 
 def test_patch_has_story_uses_publishable_story_people(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
@@ -442,7 +432,6 @@ def test_patch_has_story_uses_publishable_story_people(tmp_path, monkeypatch):
         {"person": "嫦娥", "has_story": False},
     ]
 
-
 def test_build_validation_report_ignores_non_publishable_story_markdown(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -485,7 +474,6 @@ def test_build_validation_report_ignores_non_publishable_story_markdown(tmp_path
     assert report["ok"] is True
     samples = [sample for issue in report["errors"] + report["warnings"] for sample in issue.get("samples", [])]
     assert "嫦娥" not in samples
-
 
 def test_build_validation_report_ignores_alias_redirect_stub_html(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_all")

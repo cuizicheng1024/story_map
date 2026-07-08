@@ -1,17 +1,11 @@
-import sys
 from pathlib import Path
 
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.api.static import StaticService
-
 
 def _build_service(homepage_dir: Path, artifact_dir: Path) -> StaticService:
     return StaticService(
@@ -23,20 +17,20 @@ def _build_service(homepage_dir: Path, artifact_dir: Path) -> StaticService:
         vendor_lock=__import__("threading").Lock(),
     )
 
-
 def test_static_service_prefers_homepage_index_but_can_find_generated_artifact(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"
     homepage_dir.mkdir(parents=True)
     artifact_dir.mkdir(parents=True)
     (homepage_dir / "index.html").write_text("<html>home</html>", encoding="utf-8")
+    (homepage_dir / "landing.html").write_text("<html>landing</html>", encoding="utf-8")
     (artifact_dir / "霍去病.html").write_text("<html>artifact</html>", encoding="utf-8")
 
     service = _build_service(homepage_dir, artifact_dir)
 
-    assert service.static_target_path("/") == homepage_dir / "index.html"
+    assert service.static_target_path("/") == homepage_dir / "landing.html"
+    assert service.static_target_path("/index.html") == homepage_dir / "index.html"
     assert service.static_target_path("/artifacts/story_map/霍去病.html") == artifact_dir / "霍去病.html"
-
 
 def test_static_service_disables_cache_for_html_pages(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
@@ -55,7 +49,6 @@ def test_static_service_disables_cache_for_html_pages(tmp_path):
     assert response.headers["pragma"] == "no-cache"
     assert response.headers["expires"] == "0"
 
-
 def test_static_service_prefers_artifact_pages_over_legacy_duplicates(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -68,7 +61,6 @@ def test_static_service_prefers_artifact_pages_over_legacy_duplicates(tmp_path):
     service = _build_service(homepage_dir, artifact_dir)
 
     assert service.static_target_path("/霍去病.html") == artifact_dir / "霍去病.html"
-
 
 def test_static_service_serves_export_files(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
@@ -86,7 +78,6 @@ def test_static_service_serves_export_files(tmp_path):
     assert service.guess_content_type("苏轼.geojson") == "application/geo+json; charset=utf-8"
     assert service.guess_content_type("苏轼.csv") == "text/csv; charset=utf-8"
 
-
 def test_static_service_serves_zip_downloads(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -100,7 +91,6 @@ def test_static_service_serves_zip_downloads(tmp_path):
     assert service.static_target_path("/song-minister-game.zip") == artifact_dir / "song-minister-game.zip"
     assert service.guess_content_type("song-minister-game.zip") == "application/zip"
 
-
 def test_static_service_serves_mp3_assets(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
     artifact_dir = tmp_path / "artifacts" / "story_map"
@@ -113,7 +103,6 @@ def test_static_service_serves_mp3_assets(tmp_path):
 
     assert service.static_target_path("/bgm.mp3") == artifact_dir / "bgm.mp3"
     assert service.guess_content_type("bgm.mp3") == "audio/mpeg"
-
 
 def test_static_service_prefers_local_vendor_files_over_remote_fetch(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"
@@ -138,7 +127,6 @@ def test_static_service_prefers_local_vendor_files_over_remote_fetch(tmp_path):
 
     assert isinstance(response, FileResponse)
     assert Path(response.path) == local_vendor
-
 
 def test_static_service_rejects_unsafe_paths(tmp_path):
     homepage_dir = tmp_path / "storymap" / "examples" / "story_map"

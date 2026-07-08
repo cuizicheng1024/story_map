@@ -1,15 +1,7 @@
 import os
-import sys
-
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.core.env_utils import apply_story_map_env_aliases
 from storymap.script.runtime.support import collect_startup_issues, strict_startup_enabled
-
 
 def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
     monkeypatch.delenv("AMAP_KEY", raising=False)
@@ -24,7 +16,6 @@ def test_apply_story_map_env_aliases_promotes_legacy_names(monkeypatch):
     assert os.getenv("AMAP_KEY") == "legacy-key"
     assert os.getenv("AMAP_SECURITY") == "legacy-sec"
     assert os.getenv("MAP_STORY_API_BASE") == "http://legacy.example"
-
 
 def test_collect_startup_issues_reports_missing_optional_keys(tmp_path, monkeypatch):
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -63,7 +54,6 @@ def test_collect_startup_issues_reports_missing_optional_keys(tmp_path, monkeypa
     assert any("缺少 AMAP_KEY" in item for item in issues["warnings"])
     assert any("缺少地理编码密钥" in item for item in issues["warnings"])
 
-
 def test_collect_startup_issues_accepts_monid_key_for_geocode(tmp_path, monkeypatch):
     story_dir = tmp_path / "storymap" / "examples" / "story"
     story_dir.mkdir(parents=True)
@@ -85,19 +75,16 @@ def test_collect_startup_issues_accepts_monid_key_for_geocode(tmp_path, monkeypa
     assert not any("缺少地理编码密钥" in item for item in issues["warnings"])
     assert any("地理编码配置可用" in item for item in issues["notes"])
 
-
 def test_collect_startup_issues_reports_missing_story_dir(tmp_path):
     issues = collect_startup_issues(str(tmp_path))
 
     assert any("缺少人物故事目录" in item for item in issues["errors"])
-
 
 def test_strict_startup_enabled_defaults_to_true(monkeypatch):
     monkeypatch.delenv("STORY_MAP_STRICT_STARTUP", raising=False)
     monkeypatch.delenv("MAP_STORY_STRICT_STARTUP", raising=False)
 
     assert strict_startup_enabled() is True
-
 
 def test_strict_startup_enabled_respects_explicit_false(monkeypatch):
     monkeypatch.setenv("STORY_MAP_STRICT_STARTUP", "0")

@@ -1,15 +1,12 @@
 import importlib
 import sys
 
-
 from tests_support import REPO_ROOT
-
 
 def _reload(module_name: str, *aliases: str):
     for name in (module_name, *aliases):
         sys.modules.pop(name, None)
     return importlib.import_module(module_name)
-
 
 def test_build_all_defaults_to_artifacts_dir(monkeypatch):
     monkeypatch.delenv("MAP_STORY_OUTPUT_DIR", raising=False)
@@ -19,7 +16,6 @@ def test_build_all_defaults_to_artifacts_dir(monkeypatch):
     assert module.STORY_MAP_DIR == REPO_ROOT / "artifacts" / "story_map"
     assert module.HOME_DATA == REPO_ROOT / "artifacts" / "story_map" / "stellar_home_data.json"
 
-
 def test_build_all_supports_relative_output_override(monkeypatch):
     monkeypatch.setenv("MAP_STORY_OUTPUT_DIR", "tmp/story-output")
 
@@ -27,14 +23,12 @@ def test_build_all_supports_relative_output_override(monkeypatch):
 
     assert module.STORY_MAP_DIR == REPO_ROOT / "tmp" / "story-output"
 
-
 def test_build_stellar_homepage_supports_relative_output_override(monkeypatch):
     monkeypatch.setenv("MAP_STORY_OUTPUT_DIR", "tmp/home-output")
 
     module = _reload("tools.build.build_stellar_homepage", "tools.build_stellar_homepage")
 
     assert module.STORY_MAP_DIR == REPO_ROOT / "tmp" / "home-output"
-
 
 def test_build_stellar_homepage_sync_vendor_assets(tmp_path, monkeypatch):
     module = _reload("tools.build.build_stellar_homepage", "tools.build_stellar_homepage")

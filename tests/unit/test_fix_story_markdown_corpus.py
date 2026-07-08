@@ -1,15 +1,10 @@
 import importlib.util
 import sys
 
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
 TOOLS_DIR = REPO_ROOT / "tools"
 # fix_story_markdown_corpus.py 已迁入 tools/oneshot/，本测试也跟随更新路径。
 ONESHOT_DIR = TOOLS_DIR / "oneshot"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 
 def _load_fix_module():
     module_path = ONESHOT_DIR / "fix_story_markdown_corpus.py"
@@ -19,7 +14,6 @@ def _load_fix_module():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
-
 
 def test_upgrade_legacy_three_column_timeline_promotes_age_into_event():
     fixer = _load_fix_module()
@@ -39,7 +33,6 @@ def test_upgrade_legacy_three_column_timeline_promotes_age_into_event():
     assert "| 1037年 |  |  | （年龄：1岁）生于眉州眉山。 |" in updated
     assert "| 1057年 |  |  | （年龄：21岁）进士及第。 |" in updated
 
-
 def test_upgrade_legacy_three_column_timeline_promotes_stage_into_event():
     fixer = _load_fix_module()
     md = """# 陈独秀
@@ -56,7 +49,6 @@ def test_upgrade_legacy_three_column_timeline_promotes_stage_into_event():
     assert "| 年份 | 古称 | 现称 | 事件 |" in updated
     assert "| 1897年 |  |  | （阶段：青年）入杭州求是书院学习。 |" in updated
 
-
 def test_upgrade_single_column_timeline_keeps_event_text():
     fixer = _load_fix_module()
     md = """# 夸父
@@ -71,7 +63,6 @@ def test_upgrade_single_column_timeline_keeps_event_text():
 
     assert "| 年份 | 古称 | 现称 | 事件 |" in updated
     assert "|  |  |  | 立下宏愿，从居住地出发，开始追逐太阳。 |" in updated
-
 
 def test_fill_timeline_locations_from_sections_uses_direct_place_matches():
     fixer = _load_fix_module()
@@ -111,7 +102,6 @@ def test_fill_timeline_locations_from_sections_uses_direct_place_matches():
     assert "| 1101年 | 常州 | 江苏省常州市 | 病逝于常州。 |" in updated
     assert "| 1065年 |  |  | 还朝任职。 |" in updated
 
-
 def test_fill_timeline_locations_from_sections_skips_ambiguous_matches():
     fixer = _load_fix_module()
     md = """# 人物甲
@@ -138,7 +128,6 @@ def test_fill_timeline_locations_from_sections_skips_ambiguous_matches():
     updated = fixer._fill_timeline_locations_from_sections(md)
 
     assert "| 1074年 |  |  | 奉诏转任地方。 |" in updated
-
 
 def test_fill_timeline_locations_from_sections_uses_position_when_label_is_generic():
     fixer = _load_fix_module()
@@ -167,7 +156,6 @@ def test_fill_timeline_locations_from_sections_uses_position_when_label_is_gener
 
     assert "| 701年 | 碎叶城 | 吉尔吉斯斯坦托克马克市 | 出生于碎叶城（存疑）。 |" in updated
     assert "| 756年 | 浔阳（庐山） | 江西省九江市 | 隐居庐山。 |" in updated
-
 
 def test_fill_timeline_locations_from_sections_replaces_placeholder_ancient_name():
     fixer = _load_fix_module()

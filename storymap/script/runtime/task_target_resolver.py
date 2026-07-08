@@ -53,9 +53,10 @@ def _load_known_people(story_dir: str) -> Set[str]:
         return set()
 
 
-def _load_known_authentic_people(story_dir: str, known_people: Set[str]) -> Set[str]:
+def _load_known_authentic_people(story_dir: str, known_people: Set[str], root: str = "") -> Set[str]:
     try:
-        return set(known_authentic_person_names(story_dir=Path(story_dir)))
+        root_path = Path(root) if root else None
+        return set(known_authentic_person_names(project_root=root_path, story_dir=Path(story_dir)))
     except Exception:
         return set(known_people)
 
@@ -82,10 +83,10 @@ def resolve_task_targets(
 ) -> ResolvedTaskTargets:
     text_clean = str(text or "").strip()
     explicit_single_person_input = looks_like_person_atom(text_clean)
-    story_dir = str(project_root() or "")
-    story_dir = f"{story_dir}/storymap/examples/story" if story_dir else ""
+    root_dir = str(project_root() or "")
+    story_dir = f"{root_dir}/storymap/examples/story" if root_dir else ""
     known_people = _load_known_people(story_dir)
-    known_authentic_people = _load_known_authentic_people(story_dir, known_people)
+    known_authentic_people = _load_known_authentic_people(story_dir, known_people, root_dir)
 
     targets: List[str] = []
     targets_from_extraction = False

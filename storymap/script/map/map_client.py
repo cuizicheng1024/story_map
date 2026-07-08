@@ -22,6 +22,7 @@ from . import geocode_http as geocode_http_utils
 from . import geocode_provider_bridge as geocode_provider_bridge_utils
 from . import geocode_providers as geocode_provider_utils
 from . import geocode_runtime_state as geocode_runtime_state_utils
+from ..core.project_paths import project_root_path
 
 
 _DEFAULT_USER_AGENT = "map-story/1.0"
@@ -29,59 +30,99 @@ _LOGGER = logging.getLogger("map_client")
 if not _LOGGER.handlers:
     logging.basicConfig(level=logging.INFO)
 
-_GEOCODE_CACHE: Dict[str, Tuple[float, float]] = {}
-_GEOCODE_CACHE_LOCK = threading.Lock()
-_GEOCODE_CACHE_PATH: Optional[str] = None
-_GEOCODE_CACHE_LAST_SAVE_TS = 0.0
-_GEOCODE_NEGATIVE_CACHE: Dict[str, Dict[str, object]] = {}
-_GEOCODE_NEGATIVE_CACHE_LOCK = threading.Lock()
-_GEOCODE_NEGATIVE_CACHE_PATH: Optional[str] = None
-_GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS = 0.0
-_GEOCODE_METRICS: Dict[str, int] = {
-    "lookups": 0,
-    "cache_hits": 0,
-    "negative_cache_hits": 0,
-    "misses": 0,
-    "successes": 0,
-    "failures": 0,
-    "timeouts": 0,
-    "amap_requests": 0,
-    "amap_successes": 0,
-    "amap_failures": 0,
-    "monid_requests": 0,
-    "monid_successes": 0,
-    "monid_failures": 0,
-    "nominatim_requests": 0,
-    "nominatim_successes": 0,
-    "nominatim_failures": 0,
-    "wikidata_requests": 0,
-    "wikidata_successes": 0,
-    "wikidata_failures": 0,
-}
-_GEOCODE_METRICS_LOCK = threading.Lock()
-_GEOCODE_HTTP_SEM = threading.Semaphore(geocode_config_utils.env_int("MAP_STORY_GEOCODE_HTTP_CONCURRENCY", 2))
-_GEOCODE_RL_LOCK = threading.Lock()
-_GEOCODE_LAST_REQ_TS = 0.0
-_AMAP_RL_LOCK = threading.Lock()
-_AMAP_LAST_REQ_TS = 0.0
+
+class _GeocodeState:
+    """Encapsulates all mutable geocode cache, metrics, and locks in one container.
+
+    This replaces the previous module-level ``global`` variables so that:
+    - unit tests can create isolated state instances
+    - multi-tenant deployments avoid shared-cache pollution
+    - the module API stays backward compatible via a module-level singleton
+    """
+
+    def __init__(self) -> None:
+        self.cache: Dict[str, Tuple[float, float]] = {}
+        self.cache_lock = threading.Lock()
+        self.cache_path: Optional[str] = None
+        self.cache_last_save_ts = 0.0
+        self.negative_cache: Dict[str, Dict[str, object]] = {}
+        self.negative_cache_lock = threading.Lock()
+        self.negative_cache_path: Optional[str] = None
+        self.negative_cache_last_save_ts = 0.0
+        self.metrics: Dict[str, int] = {
+            "lookups": 0,
+            "cache_hits": 0,
+            "negative_cache_hits": 0,
+            "misses": 0,
+            "successes": 0,
+            "failures": 0,
+            "timeouts": 0,
+            "amap_requests": 0,
+            "amap_successes": 0,
+            "amap_failures": 0,
+            "monid_requests": 0,
+            "monid_successes": 0,
+            "monid_failures": 0,
+            "nominatim_requests": 0,
+            "nominatim_successes": 0,
+            "nominatim_failures": 0,
+            "wikidata_requests": 0,
+            "wikidata_successes": 0,
+            "wikidata_failures": 0,
+        }
+        self.metrics_lock = threading.Lock()
+        self.http_sem = threading.Semaphore(geocode_config_utils.env_int("MAP_STORY_GEOCODE_HTTP_CONCURRENCY", 2))
+        self.rate_limit_lock = threading.Lock()
+        self.last_req_ts = 0.0
+        self.amap_rate_limit_lock = threading.Lock()
+        self.amap_last_req_ts = 0.0
 
 
-def _set_geocode_last_request_ts(value: float) -> None:
-    global _GEOCODE_LAST_REQ_TS
-    _GEOCODE_LAST_REQ_TS = float(value)
+# Module-level singleton — preserves backward compatibility.
+_state = _GeocodeState()
+_GEOCODE_CACHE = _state.cache
+_GEOCODE_CACHE_LOCK = _state.cache_lock
+_GEOCODE_CACHE_PATH = _state.cache_path
+_GEOCODE_CACHE_LAST_SAVE_TS = _state.cache_last_save_ts
+_GEOCODE_NEGATIVE_CACHE = _state.negative_cache
+_GEOCODE_NEGATIVE_CACHE_LOCK = _state.negative_cache_lock
+_GEOCODE_NEGATIVE_CACHE_PATH = _state.negative_cache_path
+_GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS = _state.negative_cache_last_save_ts
+_GEOCODE_METRICS = _state.metrics
+_GEOCODE_METRICS_LOCK = _state.metrics_lock
 
 
-def _set_amap_last_request_ts(value: float) -> None:
-    global _AMAP_LAST_REQ_TS
-    _AMAP_LAST_REQ_TS = float(value)
+def _sync_legacy_geocode_state() -> None:
+    global _GEOCODE_CACHE_PATH, _GEOCODE_CACHE_LAST_SAVE_TS
+    global _GEOCODE_NEGATIVE_CACHE_PATH, _GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS
+    _GEOCODE_CACHE_PATH = _state.cache_path
+    _GEOCODE_CACHE_LAST_SAVE_TS = _state.cache_last_save_ts
+    _GEOCODE_NEGATIVE_CACHE_PATH = _state.negative_cache_path
+    _GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS = _state.negative_cache_last_save_ts
+
+
+def _apply_legacy_geocode_state() -> None:
+    _state.cache_path = _GEOCODE_CACHE_PATH
+    _state.cache_last_save_ts = float(_GEOCODE_CACHE_LAST_SAVE_TS or 0.0)
+    _state.negative_cache_path = _GEOCODE_NEGATIVE_CACHE_PATH
+    _state.negative_cache_last_save_ts = float(_GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS or 0.0)
 
 
 def _geocode_rate_limit() -> None:
     geocode_http_utils.rate_limit(
-        lock=_GEOCODE_RL_LOCK,
-        get_last_request_ts=lambda: _GEOCODE_LAST_REQ_TS,
-        set_last_request_ts=_set_geocode_last_request_ts,
+        lock=_state.rate_limit_lock,
+        get_last_request_ts=lambda: _state.last_req_ts,
+        set_last_request_ts=lambda v: setattr(_state, "last_req_ts", float(v)),
         min_interval=geocode_config_utils.geocode_min_interval_seconds(),
+    )
+
+
+def _amap_rate_limit() -> None:
+    geocode_http_utils.rate_limit(
+        lock=_state.amap_rate_limit_lock,
+        get_last_request_ts=lambda: _state.amap_last_req_ts,
+        set_last_request_ts=lambda v: setattr(_state, "amap_last_req_ts", float(v)),
+        min_interval=geocode_config_utils.amap_min_interval_seconds(),
     )
 
 
@@ -89,7 +130,7 @@ def _resolve_geocode_cache_path() -> Optional[str]:
     env = (os.getenv("MAP_STORY_GEOCODE_CACHE") or "").strip()
     if env:
         return os.path.abspath(os.path.expanduser(env))
-    root = _project_root()
+    root = project_root_path()
     return os.path.join(root, ".cache", "map_story_geocode_cache.json")
 
 
@@ -97,7 +138,7 @@ def _resolve_geocode_negative_cache_path() -> Optional[str]:
     env = (os.getenv("MAP_STORY_GEOCODE_NEGATIVE_CACHE") or "").strip()
     if env:
         return os.path.abspath(os.path.expanduser(env))
-    root = _project_root()
+    root = project_root_path()
     return os.path.join(root, ".cache", "map_story_geocode_negative_cache.json")
 
 
@@ -130,13 +171,13 @@ def _monid_geocode_enabled() -> bool:
 
 
 def _record_geocode_metric(key: str, amount: int = 1) -> None:
-    with _GEOCODE_METRICS_LOCK:
-        geocode_runtime_state_utils.record_metric(_GEOCODE_METRICS, key, amount)
+    with _state.metrics_lock:
+        geocode_runtime_state_utils.record_metric(_state.metrics, key, amount)
 
 
 def geocode_metrics_snapshot() -> Dict[str, object]:
-    with _GEOCODE_METRICS_LOCK:
-        metrics = dict(_GEOCODE_METRICS)
+    with _state.metrics_lock:
+        metrics = dict(_state.metrics)
     return geocode_runtime_state_utils.build_metrics_snapshot(
         metrics,
         negative_cache_size=_geocode_negative_cache_size(),
@@ -144,23 +185,25 @@ def geocode_metrics_snapshot() -> Dict[str, object]:
 
 
 def _reset_geocode_runtime_state() -> None:
-    with _GEOCODE_CACHE_LOCK:
-        _GEOCODE_CACHE.clear()
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        with _GEOCODE_METRICS_LOCK:
-            geocode_runtime_state_utils.reset_runtime_state(_GEOCODE_NEGATIVE_CACHE, _GEOCODE_METRICS)
+    _apply_legacy_geocode_state()
+    with _state.cache_lock:
+        _state.cache.clear()
+    with _state.negative_cache_lock:
+        with _state.metrics_lock:
+            geocode_runtime_state_utils.reset_runtime_state(_state.negative_cache, _state.metrics)
+    _sync_legacy_geocode_state()
 
 
 def _prune_geocode_negative_cache(*, now: Optional[float] = None) -> bool:
     current = float(now if now is not None else time.time())
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        return geocode_runtime_state_utils.prune_negative_cache(_GEOCODE_NEGATIVE_CACHE, now=current)
+    with _state.negative_cache_lock:
+        return geocode_runtime_state_utils.prune_negative_cache(_state.negative_cache, now=current)
 
 
 def _geocode_negative_cache_size() -> int:
     _prune_geocode_negative_cache()
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        return len(_GEOCODE_NEGATIVE_CACHE)
+    with _state.negative_cache_lock:
+        return len(_state.negative_cache)
 
 
 def _geocode_negative_cache_get(name: str) -> Optional[Dict[str, object]]:
@@ -168,8 +211,8 @@ def _geocode_negative_cache_get(name: str) -> Optional[Dict[str, object]]:
     if not key:
         return None
     _prune_geocode_negative_cache()
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        return geocode_runtime_state_utils.negative_cache_get(_GEOCODE_NEGATIVE_CACHE, key)
+    with _state.negative_cache_lock:
+        return geocode_runtime_state_utils.negative_cache_get(_state.negative_cache, key)
 
 
 def _geocode_negative_cache_set(name: str, *, reason: str) -> None:
@@ -178,9 +221,9 @@ def _geocode_negative_cache_set(name: str, *, reason: str) -> None:
         return
     ttl = _geocode_negative_cache_ttl()
     now = time.time()
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
+    with _state.negative_cache_lock:
         geocode_runtime_state_utils.negative_cache_set(
-            _GEOCODE_NEGATIVE_CACHE,
+            _state.negative_cache,
             key,
             reason=reason,
             ttl_seconds=ttl,
@@ -190,80 +233,77 @@ def _geocode_negative_cache_set(name: str, *, reason: str) -> None:
 
 
 def _geocode_negative_cache_clear(*names: str) -> None:
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        changed = geocode_runtime_state_utils.negative_cache_clear(_GEOCODE_NEGATIVE_CACHE, *names)
+    with _state.negative_cache_lock:
+        changed = geocode_runtime_state_utils.negative_cache_clear(_state.negative_cache, *names)
     if changed:
         _save_geocode_negative_cache(force=False)
 
 
 def _load_geocode_cache() -> None:
-    global _GEOCODE_CACHE_PATH
-    _GEOCODE_CACHE_PATH = _resolve_geocode_cache_path()
-    p = _GEOCODE_CACHE_PATH
+    p = _resolve_geocode_cache_path()
+    _state.cache_path = p
     try:
         loaded = geocode_runtime_state_utils.load_coord_cache(p or "", is_valid_coord=_is_valid_coord)
     except Exception:
         return
     if not loaded:
         return
-    with _GEOCODE_CACHE_LOCK:
-        _GEOCODE_CACHE.clear()
-        _GEOCODE_CACHE.update(loaded)
+    with _state.cache_lock:
+        _state.cache.clear()
+        _state.cache.update(loaded)
 
 
 def _load_geocode_negative_cache() -> None:
-    global _GEOCODE_NEGATIVE_CACHE_PATH
-    _GEOCODE_NEGATIVE_CACHE_PATH = _resolve_geocode_negative_cache_path()
-    p = _GEOCODE_NEGATIVE_CACHE_PATH
+    _apply_legacy_geocode_state()
+    _state.negative_cache_path = _resolve_geocode_negative_cache_path()
+    p = _state.negative_cache_path
     now = time.time()
     loaded = geocode_runtime_state_utils.load_negative_cache(p or "", now=now)
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        _GEOCODE_NEGATIVE_CACHE.clear()
-        _GEOCODE_NEGATIVE_CACHE.update(loaded)
+    with _state.negative_cache_lock:
+        _state.negative_cache.clear()
+        _state.negative_cache.update(loaded)
+    _sync_legacy_geocode_state()
 
 
 def _save_geocode_cache(force: bool = False) -> None:
-    global _GEOCODE_CACHE_LAST_SAVE_TS
-    p = _GEOCODE_CACHE_PATH or _resolve_geocode_cache_path()
+    p = _state.cache_path or _resolve_geocode_cache_path()
     if not p:
         return
     now = time.time()
-    if (not force) and (now - _GEOCODE_CACHE_LAST_SAVE_TS < 2.0):
+    if (not force) and (now - _state.cache_last_save_ts < 2.0):
         return
-    with _GEOCODE_CACHE_LOCK:
-        saved = geocode_runtime_state_utils.save_coord_cache(p, _GEOCODE_CACHE)
+    with _state.cache_lock:
+        saved = geocode_runtime_state_utils.save_coord_cache(p, _state.cache)
     if saved:
-        _GEOCODE_CACHE_LAST_SAVE_TS = now
+        _state.cache_last_save_ts = now
 
 
 def _save_geocode_negative_cache(force: bool = False) -> None:
-    global _GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS
-    p = _GEOCODE_NEGATIVE_CACHE_PATH or _resolve_geocode_negative_cache_path()
+    _apply_legacy_geocode_state()
+    p = _state.negative_cache_path or _resolve_geocode_negative_cache_path()
     if not p:
         return
     now = time.time()
-    if (not force) and (now - _GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS < 2.0):
+    if (not force) and (now - _state.negative_cache_last_save_ts < 2.0):
         return
     _prune_geocode_negative_cache(now=now)
-    with _GEOCODE_NEGATIVE_CACHE_LOCK:
-        saved = geocode_runtime_state_utils.save_negative_cache(p, _GEOCODE_NEGATIVE_CACHE, now=now)
+    with _state.negative_cache_lock:
+        saved = geocode_runtime_state_utils.save_negative_cache(p, _state.negative_cache, now=now)
     if saved:
-        _GEOCODE_NEGATIVE_CACHE_LAST_SAVE_TS = now
+        _state.negative_cache_last_save_ts = now
+    _sync_legacy_geocode_state()
 
 
 def _geocode_cache_get(name: str) -> Optional[Tuple[float, float]]:
-    with _GEOCODE_CACHE_LOCK:
-        return geocode_runtime_state_utils.coord_cache_get(_GEOCODE_CACHE, name)
+    with _state.cache_lock:
+        return geocode_runtime_state_utils.coord_cache_get(_state.cache, name)
 
 
 def _geocode_cache_set(name: str, coord: Tuple[float, float]) -> None:
-    with _GEOCODE_CACHE_LOCK:
-        updated = geocode_runtime_state_utils.coord_cache_set(_GEOCODE_CACHE, name, coord)
+    with _state.cache_lock:
+        updated = geocode_runtime_state_utils.coord_cache_set(_state.cache, name, coord)
     if updated:
         _save_geocode_cache(force=False)
-
-def _project_root() -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 
 load_project_env(from_file=__file__, override=False)
@@ -290,11 +330,96 @@ def _is_inside_china(lat: object, lon: object) -> bool:
     return 17.5 <= lat_f <= 55.5 and 72.0 <= lon_f <= 136.5
 
 
+# 中国大陆(含海南岛,不含港澳台 + 不含越南/缅甸外溢区域)粗略多边形
+# 用于 _is_inside_china_mainland 这种更严的边界校验
+# 顶点按经度从东到西排列可保证 polygon-ray-casting 正常工作
+_CHINA_MAINLAND_POLY = (
+    (53.6, 123.6),
+    (53.4, 127.5),
+    (50.5, 131.4),
+    (47.5, 134.0),
+    (45.0, 131.5),
+    (42.5, 130.2),
+    (40.6, 124.4),
+    (39.4, 122.5),
+    (38.5, 121.5),
+    (37.4, 122.5),
+    (36.5, 121.0),
+    (33.0, 121.5),
+    (30.5, 121.6),
+    (29.4, 121.9),
+    (27.0, 120.6),
+    (25.5, 119.5),
+    (24.5, 117.8),
+    (22.8, 114.2),
+    (21.6, 110.6),
+    (21.0, 109.5),
+    (20.2, 110.2),
+    (18.5, 109.6),
+    (18.3, 108.6),
+    (19.6, 108.4),
+    (21.5, 108.0),
+    (22.0, 106.6),
+    (22.5, 104.5),
+    (23.6, 103.0),
+    (24.5, 100.5),
+    (26.0, 100.0),
+    (27.5, 100.5),
+    (28.5, 98.5),
+    (29.0, 96.5),
+    (31.0, 95.5),
+    (33.0, 94.0),
+    (35.5, 92.0),
+    (37.0, 91.0),
+    (38.0, 88.5),
+    (37.5, 85.0),
+    (38.0, 81.5),
+    (39.5, 78.5),
+    (40.5, 76.0),
+    (42.5, 80.0),
+    (45.0, 81.5),
+    (47.5, 84.0),
+    (49.5, 87.0),
+    (52.0, 87.0),
+    (52.5, 89.0),
+    (53.0, 92.0),
+    (53.2, 100.0),
+    (53.4, 110.0),
+    (53.5, 118.0),
+    (53.6, 123.6),
+)
+
+
+def _is_inside_china_mainland(lat: object, lon: object) -> bool:
+    """用大陆多边形判坐标是否落在国内,剔除越南/缅甸/俄罗斯溢出区域。
+
+    跟 ``_is_inside_china`` (矩形 bbox) 一起使用,作为更严的二次闸门:
+    - 矩形 bbox 通过 -> 落到 polygon 内 -> 接受
+    - 矩形 bbox 通过 + polygon 不通过 -> 拒绝 (例如 河内→越南 "河内郡")
+    """
+    if not _is_valid_coord(lat, lon):
+        return False
+    lat_f = float(lat)
+    lon_f = float(lon)
+    if not (17.5 <= lat_f <= 55.5 and 72.0 <= lon_f <= 136.5):
+        return False
+    inside = False
+    n = len(_CHINA_MAINLAND_POLY)
+    j = n - 1
+    for i in range(n):
+        yi, xi = _CHINA_MAINLAND_POLY[i]
+        yj, xj = _CHINA_MAINLAND_POLY[j]
+        if (yi > lat_f) != (yj > lat_f) and \
+                lon_f < (xj - xi) * (lat_f - yi) / (yj - yi) + xi:
+            inside = not inside
+        j = i
+    return inside
+
+
 # ---------------------------------------------------------------------------
 # Coordinate system conversion
 # - AMap (Gaode) geocoding result is typically GCJ-02.
-# - Leaflet + most public tiles are aligned to WGS84.
-# We therefore normalize coordinates to WGS84 as early as possible.
+# We normalize coordinates to WGS84 as early as possible.
 # ---------------------------------------------------------------------------
 
 _PI = math.pi
@@ -376,7 +501,7 @@ def _fetch_json(url: str, *, timeout: Optional[int] = None) -> Optional[object]:
         url,
         user_agent=_DEFAULT_USER_AGENT,
         timeout_seconds=int(timeout or _fetch_timeout_seconds()),
-        semaphore=_GEOCODE_HTTP_SEM,
+        semaphore=_state.http_sem,
         rate_limit_fn=_geocode_rate_limit,
         urlopen_fn=urlopen,
         record_timeout=lambda: _record_geocode_metric("timeouts"),
@@ -395,7 +520,7 @@ def _post_json(
         payload,
         user_agent=_DEFAULT_USER_AGENT,
         timeout_seconds=int(timeout or _fetch_timeout_seconds()),
-        semaphore=_GEOCODE_HTTP_SEM,
+        semaphore=_state.http_sem,
         rate_limit_fn=_geocode_rate_limit,
         urlopen_fn=urlopen,
         record_timeout=lambda: _record_geocode_metric("timeouts"),
@@ -438,22 +563,13 @@ def _geocode_nominatim(name: str, force_cn: bool = False) -> Optional[Tuple[floa
     )
 
 
-def _amap_rate_limit() -> None:
-    geocode_http_utils.rate_limit(
-        lock=_AMAP_RL_LOCK,
-        get_last_request_ts=lambda: _AMAP_LAST_REQ_TS,
-        set_last_request_ts=_set_amap_last_request_ts,
-        min_interval=geocode_config_utils.amap_min_interval_seconds(),
-    )
-
-
 def _amap_webservice_geocode(address: str) -> Optional[Tuple[float, float]]:
     def _fetch_with_amap_rate_limit(url: str, *, timeout: Optional[int] = None) -> Optional[object]:
         return geocode_provider_bridge_utils.fetch_json(
             url,
             user_agent=_DEFAULT_USER_AGENT,
             timeout_seconds=int(timeout or _fetch_timeout_seconds()),
-            semaphore=_GEOCODE_HTTP_SEM,
+            semaphore=_state.http_sem,
             rate_limit_fn=_amap_rate_limit,
             urlopen_fn=urlopen,
             record_timeout=lambda: _record_geocode_metric("timeouts"),

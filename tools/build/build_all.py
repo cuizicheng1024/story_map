@@ -16,14 +16,14 @@
 from __future__ import annotations
 
 import argparse
-import gzip
-import hashlib
 import json
-import re
+import os
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from importlib import import_module
 from pathlib import Path
 
 from storymap.script.core.project_paths import (
@@ -36,6 +36,10 @@ from storymap.script.core.project_paths import (
     story_person_names,
 )
 from storymap.script.profile.renderer import profile_template_signature
+from tools.build.pipeline import manifest as pipeline_manifest
+from tools.build.pipeline import performance as pipeline_performance
+from tools.build.pipeline import validation as pipeline_validation
+from tools.build.pipeline.reporting import PipelineReport, StepResult
 
 REPO_ROOT = project_root_path()
 STORY_DIR = story_md_dir_path()
@@ -52,18 +56,75 @@ PERF_BASELINE_JSON = data_reports_output_path("performance_baseline.json")
 
 
 def _data_corpus_input_path(filename: str) -> Path:
-    candidate = DATA_DIR / "corpus" / filename
-    return candidate if candidate.exists() else (DATA_DIR / filename)
+    corpus_path = DATA_DIR / "corpus" / filename
+    legacy_path = DATA_DIR / filename
+    if corpus_path.exists() or not legacy_path.exists():
+        return corpus_path
+    return legacy_path
 
 
 def _data_corpus_output_path(filename: str) -> Path:
-    corpus_dir = DATA_DIR / "corpus"
-    return (corpus_dir / filename) if corpus_dir.exists() else (DATA_DIR / filename)
+    path = DATA_DIR / "corpus" / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    legacy_path = DATA_DIR / filename
+    if not legacy_path.exists():
+        legacy_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            legacy_path.write_text("{}", encoding="utf-8")
+        except OSError:
+            pass
+    return path
 
 
 def _print_section(title: str) -> None:
     bar = "─" * 60
     print(f"\n{bar}\n  {title}\n{bar}", flush=True)
+
+
+def _load_hooks() -> dict[str, dict[str, list[str]]]:
+    """加载管线 Hooks 配置（从环境变量 BUILD_HOOKS 或 config 文件）。
+
+    格式: JSON dict，key 为步骤名如 "1/10"，value 为 {"pre": [...], "post": [...]}
+    每个 hook 条目为 shell 命令字符串或 "python:module.func" 格式。
+    """
+    hooks_raw = os.environ.get("BUILD_HOOKS", "")
+    if not hooks_raw:
+        config_path = REPO_ROOT / "tools" / "build" / "hooks.json"
+        if config_path.exists():
+            hooks_raw = config_path.read_text(encoding="utf-8")
+    if not hooks_raw:
+        return {}
+    try:
+        return json.loads(hooks_raw)
+    except Exception:
+        return {}
+
+
+def _run_hook(step_name: str, phase: str, hooks_config: dict[str, dict[str, list[str]]]) -> None:
+    """执行指定步骤的 pre/post hooks。"""
+    step_hooks = hooks_config.get(step_name, {}).get(phase, [])
+    if not step_hooks:
+        return
+
+    for hook in step_hooks:
+        try:
+            if hook.startswith("python:"):
+                # Python 函数钩子: "python:module.path.func_name"
+                func_path = hook[len("python:"):]
+                parts = func_path.split(".")
+                module_name = ".".join(parts[:-1])
+                func_name = parts[-1]
+                mod = import_module(module_name)
+                getattr(mod, func_name)(step_name, phase)
+            else:
+                # Shell 命令钩子
+                subprocess.run(
+                    hook, shell=True, cwd=str(REPO_ROOT),
+                    timeout=60, check=False,
+                    env={**os.environ, "BUILD_STEP": step_name, "BUILD_PHASE": phase},
+                )
+        except Exception as exc:
+            print(f"  ⚠ Hook [{phase} {step_name}] 失败: {exc}", flush=True)
 
 
 def _run(cmd: list[str], cwd: str | None = None) -> int:
@@ -108,7 +169,7 @@ def _run_markdown_smoke_check(scope: str) -> int:
         return 0
     cmd = [
         sys.executable,
-        "tools/validate_story_markdown.py",
+        "tools/reports/validate_story_markdown.py",
         "--report-json",
         str(MARKDOWN_SMOKE_JSON),
         "--files",
@@ -197,6 +258,21 @@ def _cleanup_non_publishable_artifacts() -> dict:
             removed.append(path.name)
         except Exception:
             continue
+    # 同时清理 portraits 目录中被 BAD_PERSON_NAMES 污染的文件
+    portraits_dir = STORY_MAP_DIR / "portraits"
+    if portraits_dir.exists() and portraits_dir.is_dir():
+        for path in sorted(portraits_dir.iterdir()):
+            if not path.is_file():
+                continue
+            stem = str(path.stem or "").strip()
+            # 文件名格式: <人物名>-<hash>，提取人物名部分
+            person_part = stem.rsplit("-", 1)[0] if "-" in stem else stem
+            if person_part in BAD_PERSON_NAMES or person_part in rejected_people:
+                try:
+                    path.unlink()
+                    removed.append(f"portraits/{path.name}")
+                except Exception:
+                    continue
     return {"removed": len(removed), "samples": removed[:20]}
 
 
@@ -210,430 +286,94 @@ def _write_json(path: Path, payload: object) -> None:
 
 
 def _sha1_file(path: Path) -> str:
-    h = hashlib.sha1()
-    with path.open("rb") as f:
-        while True:
-            chunk = f.read(1024 * 1024)
-            if not chunk:
-                break
-            h.update(chunk)
-    return h.hexdigest()
+    return pipeline_performance.sha1_file(path)
 
 
 def _file_meta(path: Path) -> dict:
-    if not path.exists():
-        return {"exists": False}
-    stat = path.stat()
-    return {
-        "exists": True,
-        "size": stat.st_size,
-        "mtime": round(stat.st_mtime, 3),
-        "sha1": _sha1_file(path)[:12],
-        "path": str(path.relative_to(REPO_ROOT)),
-    }
+    return pipeline_performance.file_meta(path, REPO_ROOT)
 
 
 def _gzip_size_bytes(path: Path) -> int | None:
-    if not path.exists() or not path.is_file():
-        return None
-    try:
-        return len(gzip.compress(path.read_bytes(), compresslevel=6))
-    except Exception:
-        return None
+    return pipeline_performance.gzip_size_bytes(path)
 
 
 def _safe_int(value: object) -> int | None:
-    try:
-        if value in (None, ""):
-            return None
-        return int(value)  # type: ignore[arg-type]
-    except Exception:
-        return None
+    return pipeline_performance.safe_int(value)
 
 
 def _home_payload_metrics(path: Path) -> dict:
-    if not path.exists():
-        return {
-            "nodes": 0,
-            "edges": 0,
-            "kg_edges": 0,
-            "nodes_with_coords": 0,
-            "nodes_with_story": 0,
-            "nodes_with_work_summaries": 0,
-            "total_aliases": 0,
-            "total_works": 0,
-            "total_work_summaries": 0,
-            "year_range": {"min_year": None, "max_year": None},
-        }
-    try:
-        payload = _read_json(path)
-    except Exception:
-        payload = {}
-    nodes = payload.get("nodes") if isinstance(payload, dict) and isinstance(payload.get("nodes"), list) else []
-    edges = payload.get("edges") if isinstance(payload, dict) and isinstance(payload.get("edges"), list) else []
-    kg_edges = payload.get("kg_edges") if isinstance(payload, dict) and isinstance(payload.get("kg_edges"), list) else []
-    nodes_with_coords = 0
-    nodes_with_story = 0
-    nodes_with_work_summaries = 0
-    total_aliases = 0
-    total_works = 0
-    total_work_summaries = 0
-    min_year: int | None = None
-    max_year: int | None = None
-    for node in nodes:
-        if not isinstance(node, dict):
-            continue
-        if _has_home_coords(node):
-            nodes_with_coords += 1
-        if node.get("has_story") is True:
-            nodes_with_story += 1
-        aliases = node.get("aliases") if isinstance(node.get("aliases"), list) else []
-        works = node.get("works") if isinstance(node.get("works"), list) else []
-        work_summaries = node.get("work_summaries") if isinstance(node.get("work_summaries"), dict) else {}
-        total_aliases += len([x for x in aliases if str(x or "").strip()])
-        total_works += len([x for x in works if str(x or "").strip()])
-        total_work_summaries += len(work_summaries)
-        if work_summaries:
-            nodes_with_work_summaries += 1
-        birth_year = _safe_int(node.get("birth_year"))
-        death_year = _safe_int(node.get("death_year"))
-        for year in (birth_year, death_year):
-            if year is None:
-                continue
-            min_year = year if min_year is None else min(min_year, year)
-            max_year = year if max_year is None else max(max_year, year)
-    return {
-        "nodes": len(nodes),
-        "edges": len(edges),
-        "kg_edges": len(kg_edges),
-        "nodes_with_coords": nodes_with_coords,
-        "nodes_with_story": nodes_with_story,
-        "nodes_with_work_summaries": nodes_with_work_summaries,
-        "total_aliases": total_aliases,
-        "total_works": total_works,
-        "total_work_summaries": total_work_summaries,
-        "year_range": {"min_year": min_year, "max_year": max_year},
-    }
+    return pipeline_performance.home_payload_metrics(path)
 
 
 def _sample_profile_pages(limit: int = 3) -> list[dict]:
-    rows: list[dict] = []
-    if not STORY_MAP_DIR.exists():
-        return rows
-    for path in sorted(STORY_MAP_DIR.glob("*.html")):
-        if not _is_export_profile_html(path):
-            continue
-        stem = path.stem.strip()
-        meta = _file_meta(path)
-        rows.append(
-            {
-                "person": stem,
-                "path": meta.get("path"),
-                "size": meta.get("size", 0),
-                "gzip_size": _gzip_size_bytes(path),
-            }
-        )
-    rows.sort(key=lambda item: int(item.get("size") or 0), reverse=True)
-    return rows[:limit]
+    return pipeline_performance.sample_profile_pages(STORY_MAP_DIR, REPO_ROOT, _is_export_profile_html, limit=limit)
 
 
 def _baseline_file_metrics(path: Path) -> dict:
-    meta = _file_meta(path)
-    return {
-        **meta,
-        "gzip_size": _gzip_size_bytes(path),
-    }
+    return pipeline_performance.baseline_file_metrics(path, REPO_ROOT)
 
 
 def _build_performance_baseline() -> dict:
-    home_metrics = _home_payload_metrics(HOME_DATA)
-    profile_pages = _sample_profile_pages(limit=3)
-    return {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "budgets": {
-            "homepage_index_html_max_bytes": 250_000,
-            "homepage_data_max_bytes": 1_500_000,
-            "homepage_detail_data_max_bytes": 2_000_000,
-            "profile_html_max_bytes": 900_000,
-        },
-        "files": {
-            "index_html": _baseline_file_metrics(STORY_MAP_DIR / "index.html"),
-            "stellar_home_data": _baseline_file_metrics(HOME_DATA),
-            "stellar_home_data_detail": _baseline_file_metrics(HOME_DETAIL_DATA),
-            "people_summary_index": _baseline_file_metrics(_data_corpus_input_path("people_summary_index.json")),
-            "work_summary_index": _baseline_file_metrics(_data_corpus_input_path("work_summary_index.json")),
-            "people_birth_coords_wgs84": _baseline_file_metrics(_data_corpus_input_path("people_birth_coords_wgs84.json")),
-        },
-        "homepage_payload": home_metrics,
-        "profile_pages": profile_pages,
-        "acceptance": {
-            "homepage_index_html": "关注 index.html 原始/gzip 体积，后续缓存与模板优化以此对比。",
-            "homepage_data": "关注首页 core/detail 数据包原始/gzip 体积，以及 nodes/edges/kg_edges 数量变化。",
-            "profile_pages": "关注典型人物页体积，地图延迟加载后应优先下降大页体积或首屏阻塞成本。",
-        },
-    }
+    return pipeline_performance.build_performance_baseline(
+        repo_root=REPO_ROOT,
+        story_map_dir=STORY_MAP_DIR,
+        home_data=HOME_DATA,
+        home_detail_data=HOME_DETAIL_DATA,
+        data_corpus_input_path=_data_corpus_input_path,
+        is_export_profile_html=_is_export_profile_html,
+    )
 
 
 def _print_performance_summary(baseline: dict) -> None:
-    files = baseline.get("files") if isinstance(baseline.get("files"), dict) else {}
-    home = baseline.get("homepage_payload") if isinstance(baseline.get("homepage_payload"), dict) else {}
-    index_size = ((files.get("index_html") or {}) if isinstance(files.get("index_html"), dict) else {}).get("size")
-    home_size = ((files.get("stellar_home_data") or {}) if isinstance(files.get("stellar_home_data"), dict) else {}).get("size")
-    home_detail_size = ((files.get("stellar_home_data_detail") or {}) if isinstance(files.get("stellar_home_data_detail"), dict) else {}).get("size")
-    print(
-        "[perf] "
-        f"index.html={index_size or 0}B "
-        f"stellar_home_data.json={home_size or 0}B "
-        f"stellar_home_data_detail.json={home_detail_size or 0}B "
-        f"nodes={home.get('nodes', 0)} "
-        f"edges={home.get('edges', 0)} "
-        f"kg_edges={home.get('kg_edges', 0)} "
-        f"coords={home.get('nodes_with_coords', 0)}/{home.get('nodes', 0)}"
-    )
+    pipeline_performance.print_performance_summary(baseline)
 
 
 def _load_people_index(path: Path, key: str) -> dict[str, dict]:
-    if not path.exists():
-        return {}
-    try:
-        obj = _read_json(path)
-    except Exception:
-        return {}
-    items = obj.get(key, []) if isinstance(obj, dict) else []
-    out: dict[str, dict] = {}
-    if not isinstance(items, list):
-        return out
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        name = str(item.get("person", "")).strip()
-        if not name:
-            continue
-        out[name] = item
-    return out
+    return pipeline_manifest.load_people_index(path, key)
 
 
 def _load_coords_index(path: Path) -> dict[str, list[float]]:
-    if not path.exists():
-        return {}
-    try:
-        obj = _read_json(path)
-    except Exception:
-        return {}
-    if not isinstance(obj, dict):
-        return {}
-    out: dict[str, list[float]] = {}
-    for k, v in obj.items():
-        name = str(k or "").strip()
-        if not name:
-            continue
-        if isinstance(v, list) and len(v) >= 2:
-            out[name] = v
-    return out
+    return pipeline_manifest.load_coords_index(path)
 
 
 def _has_home_coords(node: dict) -> bool:
-    try:
-        lat = node.get("birth_lat_wgs84")
-        lng = node.get("birth_lng_wgs84")
-        return isinstance(lat, (int, float)) and isinstance(lng, (int, float))
-    except Exception:
-        return False
+    return pipeline_performance.has_home_coords(node)
 
 
 def _extract_html_template_signature(path: Path) -> str:
-    if not path.exists():
-        return ""
-    try:
-        text = path.read_text(encoding="utf-8", errors="ignore")
-    except Exception:
-        return ""
-    m = re.search(r'"templateSignature"\s*:\s*"([^"]+)"', text)
-    if not m:
-        return ""
-    return str(m.group(1) or "").strip()
+    return pipeline_validation.extract_html_template_signature(path)
 
 
 def _issue(code: str, items: list[str], level: str, message: str, limit: int = 20) -> dict | None:
-    if not items:
-        return None
-    return {
-        "code": code,
-        "level": level,
-        "message": message,
-        "count": len(items),
-        "samples": items[:limit],
-    }
+    return pipeline_validation.issue(code, items, level, message, limit=limit)
 
 
 def _build_manifest() -> dict:
-    story_people = _story_people()
-    html_people = _canonical_html_people()
-    master = _load_people_index(_data_corpus_input_path("people_master.json"), "people")
-    pep = _load_people_index(_data_corpus_input_path("people_master_pep.json"), "people")
-    home = _load_people_index(HOME_DATA, "nodes")
-    coords = _load_coords_index(_data_corpus_input_path("people_birth_coords_wgs84.json"))
-    people_union = sorted(set(story_people) | set(html_people) | set(master.keys()) | set(home.keys()) | set(coords.keys()))
-
-    people_rows = []
-    for name in people_union:
-        md_path = STORY_DIR / f"{name}.md"
-        html_path = STORY_MAP_DIR / f"{name}.html"
-        master_item = master.get(name) or {}
-        home_item = home.get(name) or {}
-        people_rows.append(
-            {
-                "person": name,
-                "md_exists": md_path.exists(),
-                "html_exists": html_path.exists(),
-                "in_master": name in master,
-                "in_pep": name in pep,
-                "in_home": name in home,
-                "in_coords": name in coords,
-                "master_has_story": master_item.get("has_story"),
-                "master_story_md": master_item.get("story_md"),
-                "home_has_story": home_item.get("has_story"),
-                "home_file": home_item.get("file"),
-                "home_has_coords": _has_home_coords(home_item) if home_item else False,
-                "md": _file_meta(md_path),
-                "html": _file_meta(html_path),
-            }
-        )
-
-    return {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "counts": {
-            "story_md": len(story_people),
-            "story_html": len(html_people),
-            "people_master": len(master),
-            "people_master_pep": len(pep),
-            "home_nodes": len(home),
-            "birth_coords": len(coords),
-        },
-        "files": {
-            "people_master": _file_meta(_data_corpus_input_path("people_master.json")),
-            "people_master_pep": _file_meta(_data_corpus_input_path("people_master_pep.json")),
-            "people_birth_coords_wgs84": _file_meta(_data_corpus_input_path("people_birth_coords_wgs84.json")),
-            "people_summary_index": _file_meta(_data_corpus_input_path("people_summary_index.json")),
-            "stellar_home_data": _file_meta(HOME_DATA),
-            "index_html": _file_meta(STORY_MAP_DIR / "index.html"),
-            "map_html_renderer": _file_meta(REPO_ROOT / "storymap" / "script" / "profile" / "renderer.py"),
-            "build_stellar_homepage": _file_meta(REPO_ROOT / "tools" / "build" / "build_stellar_homepage.py"),
-            "generate_pure_story_map": _file_meta(REPO_ROOT / "cli" / "generate_pure_story_map.py"),
-            "markdown_smoke_report": _file_meta(MARKDOWN_SMOKE_JSON),
-            "low_coverage_story_report_json": _file_meta(LOW_COVERAGE_JSON),
-            "low_coverage_story_report_md": _file_meta(LOW_COVERAGE_MD),
-            "performance_baseline": _file_meta(PERF_BASELINE_JSON),
-        },
-        "people": people_rows,
-    }
+    return pipeline_manifest.build_manifest(
+        repo_root=REPO_ROOT,
+        story_dir=STORY_DIR,
+        story_map_dir=STORY_MAP_DIR,
+        home_data=HOME_DATA,
+        markdown_smoke_json=MARKDOWN_SMOKE_JSON,
+        low_coverage_json=LOW_COVERAGE_JSON,
+        low_coverage_md=LOW_COVERAGE_MD,
+        perf_baseline_json=PERF_BASELINE_JSON,
+        story_people=_story_people,
+        canonical_html_people=_canonical_html_people,
+        data_corpus_input_path=_data_corpus_input_path,
+    )
 
 
 def _build_validation_report() -> dict:
-    story_people = set(_story_people())
-    html_people = set(_canonical_html_people())
-    master = _load_people_index(_data_corpus_input_path("people_master.json"), "people")
-    pep = _load_people_index(_data_corpus_input_path("people_master_pep.json"), "people")
-    home = _load_people_index(HOME_DATA, "nodes")
-    coords = _load_coords_index(_data_corpus_input_path("people_birth_coords_wgs84.json"))
-
-    master_people = set(master.keys())
-    pep_people = set(pep.keys())
-    home_people = set(home.keys())
-    coords_people = set(coords.keys())
-
-    errors: list[dict] = []
-    warnings: list[dict] = []
-
-    def push_issue(bucket: list[dict], entry: dict | None) -> None:
-        if entry:
-            bucket.append(entry)
-
-    push_issue(
-        errors,
-        _issue("story_missing_in_master", sorted(story_people - master_people), "error", "存在 Markdown 但未进入 people_master.json"),
+    return pipeline_validation.build_validation_report(
+        story_dir=STORY_DIR,
+        story_map_dir=STORY_MAP_DIR,
+        home_data=HOME_DATA,
+        story_people=_story_people,
+        canonical_html_people=_canonical_html_people,
+        data_corpus_input_path=_data_corpus_input_path,
+        profile_template_signature=profile_template_signature,
     )
-    push_issue(
-        errors,
-        _issue("story_missing_in_home", sorted(story_people - home_people), "error", "存在 Markdown 但未进入 stellar_home_data.json"),
-    )
-    push_issue(
-        errors,
-        _issue("story_missing_html", sorted(story_people - html_people), "error", "存在 Markdown 但缺少对应人物 HTML"),
-    )
-    push_issue(
-        warnings,
-        _issue("html_without_story", sorted(html_people - story_people), "warning", "存在人物 HTML，但没有对应 Markdown 源文件"),
-    )
-    push_issue(
-        warnings,
-        _issue("master_has_story_true_without_md", sorted([p for p, item in master.items() if bool(item.get("has_story")) and p not in story_people]), "warning", "people_master.json 中 has_story=true，但磁盘上无对应 Markdown"),
-    )
-    push_issue(
-        warnings,
-        _issue("home_without_story", sorted(home_people - story_people), "warning", "stellar_home_data.json 中存在节点，但磁盘上无对应 Markdown"),
-    )
-    push_issue(
-        warnings,
-        _issue("story_missing_coords", sorted(story_people - coords_people), "warning", "存在 Markdown 但出生地坐标缓存中没有对应人物"),
-    )
-    push_issue(
-        warnings,
-        _issue("pep_missing_in_master", sorted(pep_people - master_people), "warning", "people_master_pep.json 中的人物未出现在 people_master.json"),
-    )
-
-    master_has_story_false = []
-    master_story_md_mismatch = []
-    for p in sorted(story_people & master_people):
-        item = master[p]
-        if not bool(item.get("has_story")):
-            master_has_story_false.append(p)
-        expected_story_md = f"storymap/examples/story/{p}.md"
-        if str(item.get("story_md") or "").strip() != expected_story_md:
-            master_story_md_mismatch.append(p)
-    push_issue(errors, _issue("master_has_story_false", master_has_story_false, "error", "people_master.json 中 has_story 与 Markdown 不一致"))
-    push_issue(errors, _issue("master_story_md_mismatch", master_story_md_mismatch, "error", "people_master.json 中 story_md 路径与 Markdown 不一致"))
-
-    home_has_story_false = []
-    home_file_mismatch = []
-    home_missing_coords = []
-    stale_profile_html = []
-    expected_template_signature = profile_template_signature()
-    for p in sorted(story_people & home_people):
-        item = home[p]
-        if item.get("has_story") is not True:
-            home_has_story_false.append(p)
-        expected_file = f"{p}.html"
-        if str(item.get("file") or "").strip() != expected_file:
-            home_file_mismatch.append(p)
-        if not _has_home_coords(item):
-            home_missing_coords.append(p)
-    push_issue(errors, _issue("home_has_story_false", home_has_story_false, "error", "stellar_home_data.json 中 has_story 与 Markdown 不一致"))
-    push_issue(errors, _issue("home_file_mismatch", home_file_mismatch, "error", "stellar_home_data.json 中 file 字段与人物 HTML 文件名不一致"))
-    push_issue(warnings, _issue("home_missing_coords", home_missing_coords, "warning", "stellar_home_data.json 中存在节点，但缺少出生地坐标"))
-    for p in sorted(story_people & html_people):
-        html_path = STORY_MAP_DIR / f"{p}.html"
-        if _extract_html_template_signature(html_path) != expected_template_signature:
-            stale_profile_html.append(p)
-    push_issue(errors, _issue("story_html_template_stale", stale_profile_html, "error", "人物 HTML 未按当前共享模板重新生成"))
-
-    report = {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "ok": len(errors) == 0,
-        "summary": {
-            "story_md": len(story_people),
-            "story_html": len(html_people),
-            "people_master": len(master_people),
-            "people_master_pep": len(pep_people),
-            "home_nodes": len(home_people),
-            "birth_coords": len(coords_people),
-            "error_count": sum(int(x.get("count", 0)) for x in errors),
-            "warning_count": sum(int(x.get("count", 0)) for x in warnings),
-        },
-        "errors": errors,
-        "warnings": warnings,
-    }
-    return report
 
 
 def _patch_master_with_has_story(master_fp: Path) -> dict:
@@ -682,6 +422,81 @@ def _patch_home_with_has_story(home_fp: Path) -> dict:
     return {"updated": updated, "total": len(nodes)}
 
 
+# ═══════════════════════════════════════════════════════════════
+#  管线韧性：软依赖 + 结果汇总
+# ═══════════════════════════════════════════════════════════════
+
+def _sync_game_artifacts() -> int:
+    """同步游戏产物（软依赖，委托给 sync_games 模块）。"""
+    from tools.build.sync_games import sync_game_artifacts as _sync
+    return _sync()
+
+
+def _sync_knowledge_audit() -> int:
+    """知识审计 + 自动修复 + 坐标补全 + 记忆写入（软依赖）— 使用 AssemblerAgent 五 Agent 管线。"""
+    try:
+        # 修改前创建备份
+        from tools.build.backup import create_backup
+        backup_path = create_backup()
+        print(f"  ✓ 备份已创建: {backup_path.name}", flush=True)
+
+        from tools.build.agents.assembler import AssemblerAgent
+
+        assembler = AssemblerAgent(verbose=True, parallel=True)
+        report = assembler.run()
+        print(f"  ✓ 管线完成: {report.message}", flush=True)
+
+        if report.is_failed():
+            print(f"  ⚠ 部分 Agent 失败，详见上方日志", flush=True)
+            return 1
+
+        summary = report.details.get("summary", {})
+        for agent_name, agent_info in summary.items():
+            if isinstance(agent_info, dict):
+                dur = agent_info.get("duration", 0)
+                msg = agent_info.get("message", "")
+                status = agent_info.get("status", "?")
+                print(f"    · {agent_name} [{status}] ({dur:.1f}s): {msg}", flush=True)
+
+        return 0
+    except Exception as exc:
+        print(f"  ⚠ 知识审计跳过 ({exc})", flush=True)
+        return 1
+
+
+def _detect_data_drift() -> int:
+    """检测未经审计的新文件（对比 scan_cache.json）。"""
+    try:
+        cache_path = REPO_ROOT / "tools" / "debug" / "scan_cache.json"
+        html_dir = REPO_ROOT / "artifacts" / "story_map"
+
+        cached_files: set[str] = set()
+        if cache_path.exists():
+            cached_files = set(json.loads(cache_path.read_text(encoding="utf-8")).keys())
+
+        current_files = {f.stem for f in html_dir.glob("*.html")}
+
+        new_files = current_files - cached_files
+        removed_files = cached_files - current_files
+
+        if new_files:
+            print(f"  ⚠ 漂移检测: {len(new_files)} 个新文件未经审计", flush=True)
+            for name in sorted(new_files)[:10]:
+                print(f"    · {name}", flush=True)
+            if len(new_files) > 10:
+                print(f"    ... 等 {len(new_files)} 个", flush=True)
+            return 1
+
+        if removed_files:
+            print(f"  ℹ {len(removed_files)} 个文件已从缓存移除", flush=True)
+
+        print(f"  ✓ 漂移检测通过: {len(current_files)} 个文件全部已审计", flush=True)
+        return 0
+    except Exception as exc:
+        print(f"  ⚠ 漂移检测跳过 ({exc})", flush=True)
+        return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="数据单源构建入口（幂等）")
     ap.add_argument("--skip-master", action="store_true")
@@ -709,113 +524,177 @@ def main() -> int:
     html_files = _existing_htmls()
     print(f"[init] .md 源文件: {len(story_files)} 个, 已渲染 .html: {len(html_files)} 个")
 
-    _print_section("0/6 markdown smoke check")
-    rc = _run_markdown_smoke_check(args.markdown_smoke_check)
-    if rc != 0:
-        print(f"  ✗ Markdown 冒烟校验未通过，退出码 {rc}", flush=True)
-        return rc
+    report = PipelineReport()
+    hooks = _load_hooks()
+
+    def _step(name: str, label: str, fn, hard: bool = False) -> bool:
+        """执行一个管线步骤。hard=True 时失败会立即中止。返回是否继续。"""
+        _run_hook(name, "pre", hooks)
+        _print_section(f"{name} {label}")
+        t_start = time.time()
+        try:
+            rc = fn()
+            dur = time.time() - t_start
+            if isinstance(rc, int) and rc != 0:
+                sr = StepResult(name, label, "failed", f"退出码 {rc}", dur)
+                report.add(sr)
+                if hard:
+                    report.hard_failures.append(name)
+                    print(f"  ⛔ 硬依赖失败，管线中止", flush=True)
+                    return False
+                _run_hook(name, "post", hooks)
+                return True
+            sr = StepResult(name, label, "ok", duration=dur)
+            report.add(sr)
+            _run_hook(name, "post", hooks)
+            return True
+        except Exception as exc:
+            dur = time.time() - t_start
+            msg = str(exc)[:120]
+            sr = StepResult(name, label, "failed", msg, dur)
+            report.add(sr)
+            if hard:
+                report.hard_failures.append(name)
+                print(f"  ⛔ 硬依赖失败，管线中止", flush=True)
+                return False
+            print(f"  ⚠ 软依赖失败，继续执行 ({msg})", flush=True)
+            _run_hook(name, "post", hooks)
+            return True
+
+    def _parallel_steps(steps: list[tuple[str, str, callable]]) -> None:
+        """并发执行一组软依赖步骤。"""
+        if not steps:
+            return
+        if len(steps) == 1:
+            _step(steps[0][0], steps[0][1], steps[0][2])
+            return
+
+        labels = [l for _, l, _ in steps]
+        print(f"  ⚡ 并行组 [{', '.join(labels)}] 启动...", flush=True)
+        t_group = time.time()
+
+        with ThreadPoolExecutor(max_workers=len(steps)) as executor:
+            futures = {
+                executor.submit(fn): (name, label)
+                for name, label, fn in steps
+            }
+            for future in as_completed(futures):
+                name, label = futures[future]
+                t_start = time.time()
+                try:
+                    rc = future.result()
+                    dur = time.time() - t_start
+                    if isinstance(rc, int) and rc != 0:
+                        report.add(StepResult(name, label, "failed", f"退出码 {rc}", dur))
+                    else:
+                        report.add(StepResult(name, label, "ok", duration=dur))
+                except Exception as exc:
+                    dur = time.time() - t_start
+                    msg = str(exc)[:120]
+                    report.add(StepResult(name, label, "failed", msg, dur))
+
+        print(f"  ⚡ 并行组完成 ({time.time() - t_group:.1f}s)", flush=True)
+
+    # ── 0. Markdown 冒烟校验（硬依赖） ────────────────────────
+    if not _step("0/10", "markdown smoke check",
+                 lambda: _run_markdown_smoke_check(args.markdown_smoke_check),
+                 hard=True):
+        report.print_summary()
+        return 2
 
     if args.validate_only:
         manifest = _build_manifest()
-        report = _build_validation_report()
+        report2 = _build_validation_report()
         baseline = _build_performance_baseline()
         _write_json(MANIFEST_JSON, manifest)
-        _write_json(VALIDATION_JSON, report)
+        _write_json(VALIDATION_JSON, report2)
         _write_json(PERF_BASELINE_JSON, baseline)
         print(f"[validate-only] manifest: {MANIFEST_JSON}")
         print(f"[validate-only] report:   {VALIDATION_JSON}")
         print(f"[validate-only] perf:     {PERF_BASELINE_JSON}")
-        print(f"[validate-only] ok={report['ok']} errors={report['summary']['error_count']} warnings={report['summary']['warning_count']}")
+        print(f"[validate-only] ok={report2['ok']} errors={report2['summary']['error_count']} warnings={report2['summary']['warning_count']}")
         _print_performance_summary(baseline)
-        return 0 if report["ok"] else 2
+        return 0 if report2["ok"] else 2
 
-    # ── 1. people_master.json ───────────────────────────────────
+    # ── 1. people_master.json（硬依赖） ─────────────────────────
     if not args.skip_master:
-        _print_section("1/6 rebuild data/corpus/people_master.json")
-        rc = _run([
+        ok = _step("1/10", "rebuild people_master.json", lambda: _run([
             sys.executable, "tools/build_people_master.py",
             "--scope", "all",
             "--out", str(_data_corpus_output_path("people_master.json")),
             "--concurrency", str(args.concurrency),
-        ])
-        if rc != 0:
-            print(f"  ✗ build_people_master.py 退出码 {rc}", flush=True)
-            return rc
-        # 关键：用可发布 Markdown 口径强制覆盖 has_story
+        ]), hard=True)
+        if not ok:
+            report.print_summary()
+            return 2
         master_fp = _data_corpus_input_path("people_master.json")
         stat = _patch_master_with_has_story(master_fp)
         print(f"  ✓ has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
 
-    # ── 2. people_master_pep.json ────────────────────────────────
+    # ── 并行组 A: 2 + 5 + 6（均依赖步骤 1 people_master，互不依赖） ──
+    parallel_a: list[tuple[str, str, callable]] = []
     if not args.skip_pep:
-        _print_section("2/6 rebuild data/corpus/people_master_pep.json")
-        rc = _run([
-            sys.executable, "tools/build_people_master.py",
-            "--scope", "pep",
-            "--out", str(_data_corpus_output_path("people_master_pep.json")),
-            "--concurrency", str(args.concurrency),
-        ])
-        if rc != 0:
-            print(f"  ✗ build_people_master.py (pep) 退出码 {rc}", flush=True)
+        def _step2():
+            rc = _run([
+                sys.executable, "tools/build_people_master.py",
+                "--scope", "pep",
+                "--out", str(_data_corpus_output_path("people_master_pep.json")),
+                "--concurrency", str(args.concurrency),
+            ])
+            pep_fp = _data_corpus_input_path("people_master_pep.json")
+            if pep_fp.exists():
+                stat = _patch_master_with_has_story(pep_fp)
+                print(f"  ✓ pep has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
             return rc
-        # PEP 索引是教材口径的人物，用可发布 Markdown 口径刷 has_story
-        pep_fp = _data_corpus_input_path("people_master_pep.json")
-        stat = _patch_master_with_has_story(pep_fp)
-        print(f"  ✓ pep has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 人", flush=True)
+        parallel_a.append(("2/10", "rebuild people_master_pep.json", _step2))
+    if not args.skip_home:
+        parallel_a.append(("5/10", "rebuild people_summary_index.json",
+                           lambda: _run([sys.executable, "tools/build_people_summary_index.py"])))
+        parallel_a.append(("6/10", "rebuild work_summary_index.json",
+                           lambda: _run([sys.executable, "tools/build_work_summary_index.py"])))
+    _parallel_steps(parallel_a)
 
-    # ── 3. 增量重渲染人物页 ───────────────────────────────────────
+    # ── 3. 增量重渲染人物页（硬依赖） ────────────────────────────
     if not args.skip_html:
-        _print_section("3/6 render changed artifacts/story_map/*.html")
-        rc = _run([
+        ok = _step("3/10", "render changed artifacts/story_map/*.html", lambda: _run([
             sys.executable, "cli/generate_pure_story_map.py",
             "--render-changed",
             "--changed-mode", "nogeocode",
             "--changed-limit", "0",
-        ])
-        if rc != 0:
-            print(f"  ✗ generate_pure_story_map.py --render-changed 退出码 {rc}", flush=True)
-            return rc
+        ]), hard=True)
+        if not ok:
+            report.print_summary()
+            return 2
         cleanup = _cleanup_non_publishable_artifacts()
         print(f"  ✓ 已清理不可发布/临时产物: {cleanup['removed']} 个", flush=True)
         if cleanup["samples"]:
             print(f"    样例: {', '.join(cleanup['samples'])}", flush=True)
 
-    # ── 4. 出生地经纬度 ─────────────────────────────────────────
-    _print_section("4/6 sync data/corpus/people_birth_coords_wgs84.json")
-    if args.refresh_geocode:
-        print("  → 重新跑 build_stellar_homepage.py 以触发 geocode（如果有缺失）", flush=True)
-    # 后续 build_stellar_homepage 也会写 coords 文件，这里仅做提示
+    # ── 并行组 B: 4 + 8 + 9（均依赖步骤 3 HTML 渲染，互不依赖） ──
+    _parallel_steps([
+        ("4/10", "sync birth_coords_wgs84.json",
+         lambda: (print("  · 坐标由 homepage/main.py 统一生成，跳过") if not args.refresh_geocode else None) or 0),
+        ("8/10", "sync game artifacts", lambda: _sync_game_artifacts()),
+        ("9/10", "knowledge audit + auto-fix + coords", lambda: _sync_knowledge_audit()),
+    ])
 
-    # ── 5. people_summary_index.json ────────────────────────────
+    # ── 7. 首页数据（硬依赖，依赖步骤 3） ──────────────────────────
     if not args.skip_home:
-        _print_section("5/7 rebuild data/corpus/people_summary_index.json")
-        rc = _run([sys.executable, "tools/build_people_summary_index.py"])
-        if rc != 0:
-            print(f"  ✗ build_people_summary_index.py 退出码 {rc}", flush=True)
-            return rc
-        _print_section("6/7 rebuild data/corpus/work_summary_index.json")
-        rc = _run([sys.executable, "tools/build_work_summary_index.py"])
-        if rc != 0:
-            print(f"  ✗ build_work_summary_index.py 退出码 {rc}", flush=True)
-            return rc
-
-    # ── 7. stellar_home_data.json + index.html ──────────────────
-    if not args.skip_home:
-        _print_section("7/7 rebuild stellar_home_data.json + index.html")
-        rc = _run([
-            sys.executable, "tools/build_stellar_homepage.py",
+        ok = _step("7/10", "rebuild stellar_home_data.json + index.html", lambda: _run([
+            sys.executable, "tools/build/homepage/main.py",
             "--story-map-dir", str(STORY_MAP_DIR),
             "--story-md-dir", str(STORY_DIR),
-        ])
-        if rc != 0:
-            print(f"  ✗ build_stellar_homepage.py 退出码 {rc}", flush=True)
-            return rc
-        # 强制 home 节点与可发布 Markdown 口径一致
+        ]), hard=True)
+        if not ok:
+            report.print_summary()
+            return 2
         if HOME_DATA.exists():
             stat = _patch_home_with_has_story(HOME_DATA)
             print(f"  ✓ home has_story 字段按可发布 Markdown 强制刷新: {stat['updated']} 处变更, {stat['total']} 节点", flush=True)
 
     # ── 收尾统计 ────────────────────────────────────────────────
+    # 漂移检测（软依赖）
+    _step("D", "data drift detection", lambda: _detect_data_drift())
     elapsed = time.time() - t0
     story_files = _story_files()
     html_files = _existing_htmls()
@@ -824,11 +703,12 @@ def main() -> int:
         print("  ⚠ 警告：未找到 .md 源文件。请确认 storymap/examples/story/ 目录非空。")
 
     manifest = _build_manifest()
-    report = _build_validation_report()
+    validation = _build_validation_report()
     baseline = _build_performance_baseline()
     _write_json(MANIFEST_JSON, manifest)
-    _write_json(VALIDATION_JSON, report)
+    _write_json(VALIDATION_JSON, validation)
     _write_json(PERF_BASELINE_JSON, baseline)
+
     _print_section("coverage report")
     rc = _run(
         [
@@ -844,14 +724,20 @@ def main() -> int:
     )
     if rc != 0:
         print(f"  ✗ report_low_coverage_places.py 退出码 {rc}", flush=True)
-        return rc
-    manifest = _build_manifest()
-    _write_json(MANIFEST_JSON, manifest)
+
+    _write_json(MANIFEST_JSON, _build_manifest())
     print(f"[manifest] {MANIFEST_JSON}")
-    print(f"[validate] {VALIDATION_JSON}  ok={report['ok']} errors={report['summary']['error_count']} warnings={report['summary']['warning_count']}")
+    print(f"[validate] {VALIDATION_JSON}  ok={validation['ok']} errors={validation['summary']['error_count']} warnings={validation['summary']['warning_count']}")
     print(f"[perf] {PERF_BASELINE_JSON}")
     _print_performance_summary(baseline)
-    if (not report["ok"]) and (not args.allow_validation_errors):
+
+    # ── 管线汇总 ────────────────────────────────────────────
+    report.print_summary()
+
+    # 硬失败 → 非 0；仅软失败 + validation 无硬错误 → 0
+    if report.hard_failures:
+        return 2
+    if (not validation["ok"]) and (not args.allow_validation_errors):
         return 2
     return 0
 

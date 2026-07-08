@@ -1,6 +1,5 @@
 from storymap.script.agent import generation_service
 
-
 def test_validate_data_quality_skips_generic_places_without_coords():
     md = """# 黄仁宇 生平传记与足迹
 

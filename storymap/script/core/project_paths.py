@@ -80,44 +80,32 @@ def data_runtime_dir_path() -> Path:
 
 def data_corpus_file_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    candidate = data_root / "corpus" / filename
-    return candidate if candidate.exists() else data_root / filename
+    return root / "data" / "corpus" / filename
 
 
 def data_reports_file_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    candidate = data_root / "reports" / filename
-    return candidate if candidate.exists() else data_root / filename
+    return root / "data" / "reports" / filename
 
 
 def data_runtime_file_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    candidate = data_root / "runtime" / filename
-    return candidate if candidate.exists() else data_root / filename
+    return root / "data" / "runtime" / filename
 
 
 def data_corpus_output_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    corpus_dir = data_root / "corpus"
-    return (corpus_dir / filename) if corpus_dir.exists() else (data_root / filename)
+    return root / "data" / "corpus" / filename
 
 
 def data_reports_output_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    reports_dir = data_root / "reports"
-    return (reports_dir / filename) if reports_dir.exists() else (data_root / filename)
+    return root / "data" / "reports" / filename
 
 
 def data_runtime_output_path(filename: str, *, project_root: Path | None = None) -> Path:
     root = Path(project_root or project_root_path())
-    data_root = root / "data"
-    runtime_dir = data_root / "runtime"
-    return (runtime_dir / filename) if runtime_dir.exists() else (data_root / filename)
+    return root / "data" / "runtime" / filename
 
 
 def is_valid_person_name(name: object) -> bool:
@@ -245,14 +233,15 @@ def _known_authentic_person_names_cached(base_story_dir_str: str, root_str: str)
     root = Path(root_str)
     names = set()
     data_root = root / "data"
-    data_dir = data_root / "corpus" if (data_root / "corpus").exists() else data_root
+    data_dirs = (data_root / "corpus", data_root)
     for filename in (
         "pep_people_merged.json",
         "pep_junior_all_people.json",
         "pep_junior_all_people_by_book.json",
         "pep_history_figures_sample.json",
     ):
-        names.update(_collect_people_from_json(data_dir / filename))
+        for data_dir in data_dirs:
+            names.update(_collect_people_from_json(data_dir / filename))
     publishable_names = set(story_person_names(base_story_dir))
     names.update(publishable_names)
     names.difference_update(_collect_rejected_story_people(base_story_dir))

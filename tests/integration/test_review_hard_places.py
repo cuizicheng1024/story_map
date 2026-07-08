@@ -1,12 +1,7 @@
 import importlib
 import json
 import sys
-
-
 from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_collect_review_items_merges_negative_cache_and_low_coverage():
     module = importlib.import_module("tools.review_hard_places")
@@ -35,7 +30,6 @@ def test_collect_review_items_merges_negative_cache_and_low_coverage():
     assert target["negative_cache"]["reason"] == "no_result"
     assert any(ref["person"] == "唐东杰布" for ref in target["references"])
 
-
 def test_collect_review_items_skips_placeholder_noise():
     module = importlib.import_module("tools.review_hard_places")
     low_coverage_report = {
@@ -56,7 +50,6 @@ def test_collect_review_items_skips_placeholder_noise():
 
     names = [item["raw_place"] for item in items]
     assert names == ["后藏窝托加巴"]
-
 
 def test_enrich_items_with_llm_updates_review_fields():
     module = importlib.import_module("tools.review_hard_places")
@@ -98,7 +91,6 @@ def test_enrich_items_with_llm_updates_review_fields():
     assert enriched[0]["recommended_search_name"] == "纽约市"
     assert enriched[0]["country"] == "美国"
     assert enriched[0]["modern_candidates"] == ["纽约市", "New York City, United States"]
-
 
 def test_main_writes_review_queue_files(tmp_path, monkeypatch):
     module = importlib.import_module("tools.review_hard_places")
@@ -164,7 +156,6 @@ def test_main_writes_review_queue_files(tmp_path, monkeypatch):
     assert payload["items"][0]["raw_place"] == "后藏窝托加巴"
     assert "疑难地点人工审核队列" in out_md.read_text(encoding="utf-8")
 
-
 def test_apply_confirmed_items_writes_place_aliases_and_historical_index(tmp_path):
     module = importlib.import_module("tools.review_hard_places")
     place_aliases_path = tmp_path / "data" / "corpus" / "place_aliases.json"
@@ -217,7 +208,6 @@ def test_apply_confirmed_items_writes_place_aliases_and_historical_index(tmp_pat
     assert result["items"][0]["status"] == "applied"
     assert result["items"][1]["status"] == "applied"
     assert result["apply_summary"]["applied"] == 2
-
 
 def test_main_apply_confirmed_updates_queue_and_outputs(tmp_path, monkeypatch):
     module = importlib.import_module("tools.review_hard_places")

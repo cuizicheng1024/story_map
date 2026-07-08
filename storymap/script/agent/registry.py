@@ -7,6 +7,8 @@ import os
 import re
 from typing import List, Optional
 
+import requests
+
 from .llm_client import (
     LLMRequestError,
     StoryAgentLLM,
@@ -23,6 +25,10 @@ from ..runtime.legacy_agent import runtime as story_agent_runtime_utils
 
 
 load_project_env(from_file=__file__, override=False)
+
+
+def _project_root() -> str:
+    return project_root_path()
 
 
 def _is_plausible_person_name(text: str) -> bool:
@@ -98,6 +104,61 @@ def generate_historical_markdown(llm: "StoryAgentLLM", person: str) -> Optional[
                 error=error,
             )
         return None
+
+    # ── LLM 语义校验：拦截虚构人物、不当内容，检测模糊名称 ──
+    if llm is not None:
+        from .person_validator import validate_person_name
+
+        validation = validate_person_name(llm, person)
+        if validation.is_blocked:
+            error = (
+                f"LLM 校验拦截：{person} — {validation.reason}"
+                f" (status={validation.status})"
+            )
+            if hasattr(llm, "_emit"):
+                llm._emit(f"⛔ {error}")
+            llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(
+                person,
+                {
+                    "state": {
+                        "degraded_reasons": [
+                            f"llm_validation:{validation.status}:{validation.reason}"
+                        ],
+                        "execution_trace": ["finish_agent"],
+                    },
+                    "person_validation": {
+                        "status": validation.status,
+                        "reason": validation.reason,
+                    },
+                },
+                fallback="llm_validation_blocked",
+                error=error,
+            )
+            return None
+        if validation.needs_disambiguation:
+            error = f"人物名称模糊，需补充信息：{person} — {validation.reason}"
+            if hasattr(llm, "_emit"):
+                llm._emit(f"❓ {error}")
+            llm.last_agent_runtime = story_agent_runtime_utils.build_runtime_snapshot(
+                person,
+                {
+                    "state": {
+                        "degraded_reasons": [
+                            f"llm_validation:ambiguous:{validation.reason}"
+                        ],
+                        "execution_trace": ["finish_agent"],
+                    },
+                    "person_validation": {
+                        "status": validation.status,
+                        "reason": validation.reason,
+                        "candidates": validation.candidates,
+                    },
+                },
+                fallback="llm_validation_ambiguous",
+                error=error,
+            )
+            return None
+
     try:
         result = story_agent_graph_utils.generate_markdown_with_agents(llm, person)
         if llm is not None:
@@ -228,76 +289,3 @@ def save_markdown(person: str, content: str) -> str:
         f.write(clean_content)
     print(f"✅ 人物生平已保存: {path}")
     return path
-
-
-def run_interactive(llm: "StoryAgentLLM") -> None:
-    """
-    交互式输入人物并生成 Markdown。
-    """
-    while True:
-        try:
-            name = input("请输入历史人物（q/quit/exit 退出）：").strip()
-        except EOFError:
-            break
-        if not name:
-            continue
-        err = _validate_person(name)
-        if err:
-            print(err)
-            continue
-        if name.lower() in {"q", "quit", "exit"}:
-            print("已退出。")
-            break
-        targets = extract_historical_figures(llm, name)
-        if not targets:
-            print("未识别到历史人物，请重试。")
-            continue
-        for person in targets:
-            md = generate_historical_markdown(llm, person)
-            if md:
-                saved = save_markdown(person, md)
-                print(f"已生成：{saved}")
-                print(md)
-            else:
-                print(f"未取得「{person}」结果。")
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="基于环境变量配置的 LLM，生成历史人物的 Markdown 生平信息。"
-    )
-    parser.add_argument(
-        "-p", "--person", help="历史人物姓名，例如：李白、杜甫、诸葛亮", required=False
-    )
-    args = parser.parse_args()
-
-    if args.person:
-        try:
-            err = _validate_person(args.person)
-            if err:
-                print(err)
-                return
-            client = StoryAgentLLM()
-            targets = extract_historical_figures(client, args.person)
-            if not targets:
-                print("未识别到历史人物。")
-                return
-            for person in targets:
-                md = generate_historical_markdown(client, person)
-                if md:
-                    saved = save_markdown(person, md)
-                    print(f"已生成：{saved}")
-                    print(md)
-        except ValueError as e:
-            print(e)
-        return
-
-    try:
-        client = StoryAgentLLM()
-        run_interactive(client)
-    except ValueError as e:
-        print(e)
-
-
-if __name__ == "__main__":
-    main()

@@ -1268,6 +1268,54 @@
             font-size: 11px;
             color: rgba(255,255,255,0.74);
         }
+        #storymap-gen-progress-track {
+            margin-top: 12px;
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.10);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        #storymap-gen-progress-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #fb923c, #facc15, #4ade80);
+            transition: width .35s ease;
+        }
+        #storymap-gen-steps {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .storymap-gen-step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            color: rgba(255,255,255,0.56);
+            font-size: 11px;
+            line-height: 1.3;
+        }
+        .storymap-gen-step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            flex: 0 0 auto;
+            background: rgba(255,255,255,0.18);
+        }
+        .storymap-gen-step.is-done { color: rgba(255,255,255,0.78); }
+        .storymap-gen-step.is-done .storymap-gen-step-dot { background: #4ade80; }
+        .storymap-gen-step.is-active { color: #fff7ed; }
+        .storymap-gen-step.is-active .storymap-gen-step-dot {
+            background: #facc15;
+            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+        }
+        @media (max-width: 640px) {
+            #storymap-gen-banner { top: 10px; right: 10px; left: 10px; width: auto; }
+            #storymap-gen-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
 
     </style>
 </head>
@@ -1278,11 +1326,15 @@
         <div id="loading-progress-container">
             <div id="loading-progress-bar"></div>
         </div>
+        <div id="orange-office-loading-status" hidden style="margin-top:18px; color:#fca5a5; font-family:Arial,sans-serif; font-size:13px; text-align:center; max-width:420px; line-height:1.6;"></div>
+        <button id="orange-office-retry-btn" hidden onclick="location.reload()" style="margin-top:10px; padding:8px 16px; background:#e94560; color:#fff; border:2px solid #ffd700; border-radius:6px; font-family:Arial,sans-serif; font-size:13px; cursor:pointer;">刷新页面 / Reload</button>
     </div>
 
     <div id="storymap-gen-banner" hidden data-status="queued" aria-live="polite">
         <div id="storymap-gen-banner-title">正在生成人物页…</div>
         <div id="storymap-gen-banner-desc">已进入 Orange Office，正在准备生成进度。</div>
+        <div id="storymap-gen-progress-track"><div id="storymap-gen-progress-bar"></div></div>
+        <div id="storymap-gen-steps"></div>
         <div id="storymap-gen-banner-meta">任务进度同步中</div>
     </div>
 
@@ -1895,14 +1947,56 @@
             }, 260);
         }
 
-        // 兜底：某些移动网络/CDN 抖动时，避免一直卡在“加载中”遮罩
-        setTimeout(() => {
-            const overlay = loadingOverlay || document.getElementById('loading-overlay');
-            if (overlay && overlay.style.display !== 'none') {
-                loadingOverlay = overlay;
-                hideLoadingOverlay();
+        // 兜底：避免某些移动网络/CDN 抖动或资源加载异常时一直卡在“加载中”遮罩
+        // 6s 后如果遮罩还在，直接走 DOM 移除，避免依赖全局变量或 Phaser 回调
+        function _forceHideLoadingOverlay(reason) {
+            const overlay = document.getElementById('loading-overlay');
+            if (!overlay || overlay.dataset.hiddenByForce === '1') return;
+            overlay.dataset.hiddenByForce = '1';
+            try {
+                overlay.style.transition = 'opacity 0.3s ease';
+                overlay.style.opacity = '0';
+            } catch (e) {}
+            const finish = () => {
+                try {
+                    overlay.style.display = 'none';
+                } catch (e) {}
+                if (reason) {
+                    console.warn('[orange-office] loading overlay force-hidden:', reason);
+                }
+                // 给用户一个明确的恢复提示，避免“看起来加载完但无反应”的体验
+                const banner = document.getElementById('orange-office-loading-status');
+                if (banner && !banner.dataset.shown) {
+                    banner.dataset.shown = '1';
+                    banner.hidden = false;
+                    if (reason) {
+                        banner.textContent = '资源加载异常，已跳过等待。可以尝试刷新页面或继续使用：';
+                    } else {
+                        banner.textContent = '加载完成，可以继续使用：';
+                    }
+                    const retry = document.getElementById('orange-office-retry-btn');
+                    if (retry) retry.hidden = false;
+                }
+            };
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(() => requestAnimationFrame(finish));
+            } else {
+                setTimeout(finish, 320);
             }
-        }, 8000);
+        }
+        setTimeout(() => _forceHideLoadingOverlay('safety-timeout-6s'), 6000);
+        // 二次兜底：12s 后无论如何都收掉遮罩，防止反复出现的“卡加载”
+        setTimeout(() => _forceHideLoadingOverlay('safety-timeout-12s'), 12000);
+
+        // 捕获未处理错误，避免脚本抛错后没人收尾遮罩
+        window.addEventListener('error', (event) => {
+            console.error('[orange-office] window error:', event?.message || event);
+            _forceHideLoadingOverlay('window-error');
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('[orange-office] unhandled rejection:', event?.reason);
+            _forceHideLoadingOverlay('unhandled-rejection');
+        });
         
         // 懒加载逻辑已取消（体验优先：装饰首屏直接出现）
 
@@ -4793,21 +4887,20 @@ function toggleBrokerPanel() {
         const titleEl = document.getElementById('storymap-gen-banner-title');
         const descEl = document.getElementById('storymap-gen-banner-desc');
         const metaEl = document.getElementById('storymap-gen-banner-meta');
+        const barEl = document.getElementById('storymap-gen-progress-bar');
+        const stepsEl = document.getElementById('storymap-gen-steps');
         if (!banner || (!person && !taskId)) return;
 
+        const steps = [
+            { key: 'identify', label: '识别人物', percent: 12, match: /理解任务|识别任务对象|真实性过滤|排队/ },
+            { key: 'search', label: '查找资料', percent: 28, match: /模型调用|搜索|资料|档案|命中/ },
+            { key: 'geocode', label: '定位地点', percent: 46, match: /地图|坐标|地点|地名|足迹/ },
+            { key: 'write', label: '整理故事', percent: 64, match: /生成|写作|Markdown|人物页|合并视图/ },
+            { key: 'check', label: '质量检查', percent: 82, match: /校验|验证|审阅|质量|输出结论/ },
+            { key: 'deliver', label: '生成页面', percent: 96, match: /完成|后台归档|发布|同步|首页|知识图谱/ }
+        ];
         const defaultTitle = person ? `正在生成「${person}」的人物页…` : '正在生成人物页…';
         banner.hidden = false;
-
-        function render(status, detail, meta) {
-            const normalized = String(status || 'queued').trim() || 'queued';
-            banner.dataset.status = normalized;
-            if (titleEl) titleEl.textContent = defaultTitle;
-            if (descEl) descEl.textContent = detail || '已进入 Orange Office，正在同步生成进度。';
-            if (metaEl) metaEl.textContent = meta || '任务进度同步中';
-            try {
-                document.title = person ? `${person} 生成中 - Orange Office` : '人物生成中 - Orange Office';
-            } catch (_) {}
-        }
 
         function labelForStatus(status) {
             switch (status) {
@@ -4820,9 +4913,80 @@ function toggleBrokerPanel() {
             }
         }
 
-        function detailFromSnapshot(snapshot) {
+        function latestProgress(snapshot) {
             const progress = Array.isArray(snapshot && snapshot.progress) ? snapshot.progress : [];
-            const last = progress.length ? progress[progress.length - 1] : null;
+            return progress.length ? progress[progress.length - 1] : null;
+        }
+
+        function normalizedAgentStatus(snapshot) {
+            const raw = Array.isArray(snapshot && snapshot.agent_status) ? snapshot.agent_status : [];
+            if (!raw.length) return [];
+            return raw.map(function (item, index) {
+                return {
+                    label: String(item && item.label || steps[index] && steps[index].label || '').trim(),
+                    status: String(item && item.status || 'pending').trim(),
+                    detail: String(item && item.detail || '').trim()
+                };
+            });
+        }
+
+        function stepIndexFromSnapshot(snapshot) {
+            const agents = normalizedAgentStatus(snapshot);
+            if (agents.length) {
+                const active = agents.findIndex(function (item) { return item.status === 'running' || item.status === 'failed'; });
+                if (active >= 0) return active;
+                const done = agents.map(function (item, index) { return item.status === 'completed' ? index : -1; }).filter(function (index) { return index >= 0; });
+                return done.length ? Math.max.apply(null, done) : 0;
+            }
+            const status = String(snapshot && snapshot.status || '').trim();
+            if (status === 'completed') return steps.length - 1;
+            if (status === 'queued') return 0;
+            const progress = Array.isArray(snapshot && snapshot.progress) ? snapshot.progress : [];
+            let found = status === 'running' ? 1 : 0;
+            progress.forEach(function (event) {
+                const text = `${event && event.label || ''} ${event && event.detail || ''}`;
+                steps.forEach(function (step, index) {
+                    if (step.match.test(text)) found = Math.max(found, index);
+                });
+            });
+            return Math.min(found, steps.length - 1);
+        }
+
+        function progressPercent(snapshot, stepIndex) {
+            const agents = normalizedAgentStatus(snapshot);
+            if (agents.length) {
+                const completed = agents.filter(function (item) { return item.status === 'completed'; }).length;
+                const hasRunning = agents.some(function (item) { return item.status === 'running'; });
+                const hasFailed = agents.some(function (item) { return item.status === 'failed'; });
+                if (completed >= agents.length) return 100;
+                return Math.max(8, Math.round(((completed + (hasRunning || hasFailed ? 0.5 : 0)) / agents.length) * 100));
+            }
+            const status = String(snapshot && snapshot.status || '').trim();
+            if (status === 'completed') return 100;
+            if (status === 'failed' || status === 'partial_failed') return Math.max(8, steps[Math.max(stepIndex, 0)].percent);
+            return steps[Math.max(stepIndex, 0)].percent;
+        }
+
+        function renderSteps(activeIndex, status, snapshot) {
+            if (!stepsEl) return;
+            const agents = normalizedAgentStatus(snapshot);
+            if (agents.length) {
+                stepsEl.innerHTML = agents.map(function (item) {
+                    const cls = item.status === 'completed' ? 'is-done' : (item.status === 'running' ? 'is-active' : (item.status === 'failed' ? 'is-active' : ''));
+                    const title = item.detail ? ` title="${item.detail.replace(/"/g, '&quot;')}"` : '';
+                    return `<div class="storymap-gen-step ${cls}"${title}><span class="storymap-gen-step-dot"></span><span>${item.label}</span></div>`;
+                }).join('');
+                return;
+            }
+            const terminal = ['completed', 'failed', 'partial_failed'].includes(String(status || ''));
+            stepsEl.innerHTML = steps.map(function (step, index) {
+                const cls = index < activeIndex || (terminal && index <= activeIndex) ? 'is-done' : (index === activeIndex ? 'is-active' : '');
+                return `<div class="storymap-gen-step ${cls}"><span class="storymap-gen-step-dot"></span><span>${step.label}</span></div>`;
+            }).join('');
+        }
+
+        function detailFromSnapshot(snapshot) {
+            const last = latestProgress(snapshot);
             const label = last && last.label ? String(last.label).trim() : '';
             const detail = last && last.detail ? String(last.detail).trim() : '';
             if (label && detail) return `${label}：${detail}`;
@@ -4835,8 +4999,23 @@ function toggleBrokerPanel() {
             return '';
         }
 
+        function render(status, detail, meta, snapshot) {
+            const normalized = String(status || 'queued').trim() || 'queued';
+            const activeIndex = snapshot ? stepIndexFromSnapshot(snapshot) : 0;
+            const percent = snapshot ? progressPercent(snapshot, activeIndex) : (normalized === 'queued' ? 8 : 18);
+            banner.dataset.status = normalized;
+            if (titleEl) titleEl.textContent = defaultTitle;
+            if (descEl) descEl.textContent = detail || '已进入 Orange Office，正在同步生成进度。';
+            if (metaEl) metaEl.textContent = meta || '任务进度同步中';
+            if (barEl) barEl.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+            renderSteps(activeIndex, normalized);
+            try {
+                document.title = person ? `${person} 生成中 - Orange Office` : '人物生成中 - Orange Office';
+            } catch (_) {}
+        }
+
         if (!taskId) {
-            render('queued', '已进入 Orange Office，正在等待生成任务启动。', '任务尚未分配');
+            render('queued', '已进入 Orange Office，正在等待生成任务启动。', '任务尚未分配', { status: 'queued', progress: [] });
             return;
         }
 
@@ -4847,7 +5026,7 @@ function toggleBrokerPanel() {
                 const response = await fetch('/task?id=' + encodeURIComponent(taskId), { cache: 'no-store' });
                 const snapshot = await response.json();
                 if (!snapshot || snapshot.exists !== true) {
-                    render('queued', '已进入 Orange Office，正在等待任务进入队列。', '任务创建中');
+                    render('queued', '已进入 Orange Office，正在等待任务进入队列。', '任务创建中', { status: 'queued', progress: [] });
                     setTimeout(pollTask, 1200);
                     return;
                 }
@@ -4855,23 +5034,23 @@ function toggleBrokerPanel() {
                 const detail = detailFromSnapshot(snapshot);
                 const meta = taskId ? `${labelForStatus(status)} · 任务 ${taskId.slice(0, 8)}` : labelForStatus(status);
                 if (status === 'completed') {
-                    render(status, detail || '人物页已生成，正在自动跳转到对应页面。', meta);
+                    render(status, detail || '人物页已生成，正在自动跳转到对应页面。', meta, snapshot);
                     stopped = true;
                     return;
                 }
                 if (status === 'failed' || status === 'partial_failed') {
-                    render(status, detail || '任务结束，但未完全成功。', meta);
+                    render(status, detail || '任务结束，但未完全成功。', meta, snapshot);
                     stopped = true;
                     return;
                 }
-                render(status, detail || 'Orange Office 正在同步当前生成进度。', meta);
+                render(status, detail || 'Orange Office 正在同步当前生成进度。', meta, snapshot);
             } catch (_) {
-                render('queued', '进度同步稍有延迟，正在自动重试。', '任务进度同步中');
+                render('queued', '进度同步稍有延迟，正在自动重试。', '任务进度同步中', { status: 'queued', progress: [] });
             }
             if (!stopped) setTimeout(pollTask, 1200);
         }
 
-        render('queued', '已进入 Orange Office，正在同步当前生成进度。', taskId ? `任务 ${taskId.slice(0, 8)}` : '任务进度同步中');
+        render('queued', '已进入 Orange Office，正在同步当前生成进度。', taskId ? `任务 ${taskId.slice(0, 8)}` : '任务进度同步中', { status: 'queued', progress: [] });
         pollTask();
     })();
     </script>

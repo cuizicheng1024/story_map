@@ -43,6 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0   # 需要 git diff 比对提交历史，实现增量渲染
 
       - name: Write SSH key
         shell: bash
@@ -65,12 +66,57 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e '.[dev]'
 
-      - name: Build static artifacts
+      - name: Setup Node (for Tailwind CSS build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Tailwind CSS CLI
+        shell: bash
+        run: npm install -D tailwindcss @tailwindcss/cli
+
+      - name: Build static artifacts (incremental)
         shell: bash
         run: |
           set -euxo pipefail
-          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
-          python tools/build/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+          # 检测变更：若模板/构建代码变更则全量渲染，否则仅渲染变更的 .md
+          TEMPLATE_FILES=(
+            storymap/script/profile/templates/profile_page.html
+            storymap/script/profile/templates/design_tokens.css
+            storymap/script/profile/renderer.py
+            storymap/script/profile/builder.py
+            storymap/script/core/parsers.py
+            cli/generate_pure_story_map.py
+            tools/build/homepage/main.py
+            artifacts/story_map/vendor/
+          )
+          FULL_REBUILD=false
+          for f in "${TEMPLATE_FILES[@]}"; do
+            if git diff --name-only HEAD~1 -- "$f" | grep -q .; then
+              echo "Template/code change detected in $f → full rebuild"
+              FULL_REBUILD=true
+              break
+            fi
+          done
+
+          if $FULL_REBUILD; then
+            echo "[incremental] 全量渲染（模板/代码变更）"
+            python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          else
+            CHANGED_MD=$(git diff --name-only HEAD~1 -- 'storymap/examples/story/*.md' || true)
+            if [ -n "$CHANGED_MD" ]; then
+              echo "[incremental] 仅渲染变更人物:"
+              echo "$CHANGED_MD"
+              while IFS= read -r md_file; do
+                name=$(basename "$md_file" .md)
+                echo "  → $name"
+                python cli/generate_pure_story_map.py --person "$name" --no-geocode || true
+              done <<< "$CHANGED_MD"
+            else
+              echo "[incremental] 无 .md 变更，跳过人物页渲染"
+            fi
+          fi
+          python tools/build/homepage/main.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
 
       - name: Quick Deploy To 火山云
         shell: bash
@@ -101,6 +147,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0   # 需要 git diff 比对提交历史，实现增量渲染
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -126,6 +173,10 @@ jobs:
           npm install -g @opendeploydev/cli
           opendeploy --help >/dev/null
 
+      - name: Install Tailwind CSS CLI
+        shell: bash
+        run: npm install -D tailwindcss @tailwindcss/cli
+
       - name: Restore OpenDeploy auth context
         shell: bash
         run: |
@@ -134,12 +185,48 @@ jobs:
           printf '%s' "${{ secrets.OPENDEPLOY_HOME_TGZ_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/opendeploy-home.tgz"
           tar -xzf "$RUNNER_TEMP/opendeploy-home.tgz" -C "$HOME"
 
-      - name: Build static artifacts
+      - name: Build static artifacts (incremental)
         shell: bash
         run: |
           set -euxo pipefail
-          python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
-          python tools/build/build_stellar_homepage.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
+          # 检测变更：若模板/构建代码变更则全量渲染，否则仅渲染变更的 .md
+          TEMPLATE_FILES=(
+            storymap/script/profile/templates/profile_page.html
+            storymap/script/profile/templates/design_tokens.css
+            storymap/script/profile/renderer.py
+            storymap/script/profile/builder.py
+            storymap/script/core/parsers.py
+            cli/generate_pure_story_map.py
+            tools/build/homepage/main.py
+            artifacts/story_map/vendor/
+          )
+          FULL_REBUILD=false
+          for f in "${TEMPLATE_FILES[@]}"; do
+            if git diff --name-only HEAD~1 -- "$f" | grep -q .; then
+              echo "Template/code change detected in $f → full rebuild"
+              FULL_REBUILD=true
+              break
+            fi
+          done
+
+          if $FULL_REBUILD; then
+            echo "[incremental] 全量渲染（模板/代码变更）"
+            python cli/generate_pure_story_map.py --render-all --all-mode nogeocode
+          else
+            CHANGED_MD=$(git diff --name-only HEAD~1 -- 'storymap/examples/story/*.md' || true)
+            if [ -n "$CHANGED_MD" ]; then
+              echo "[incremental] 仅渲染变更人物:"
+              echo "$CHANGED_MD"
+              while IFS= read -r md_file; do
+                name=$(basename "$md_file" .md)
+                echo "  → $name"
+                python cli/generate_pure_story_map.py --person "$name" --no-geocode || true
+              done <<< "$CHANGED_MD"
+            else
+              echo "[incremental] 无 .md 变更，跳过人物页渲染"
+            fi
+          fi
+          python tools/build/homepage/main.py --story-map-dir artifacts/story_map --story-md-dir storymap/examples/story
 
       - name: Quick Deploy To OpenDeploy
         shell: bash

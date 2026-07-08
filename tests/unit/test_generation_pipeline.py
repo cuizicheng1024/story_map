@@ -8,7 +8,6 @@ from storymap.script.agent.generation_pipeline import (
     run_generation_with_retry,
 )
 
-
 def test_build_checkpoint_and_decorate_result_include_stage_retry_and_error_fields():
     checkpoint = build_generation_checkpoint(source="markdown_file", resume_stage=GenerationStages.BUILD_PROFILE)
 
@@ -27,7 +26,6 @@ def test_build_checkpoint_and_decorate_result_include_stage_retry_and_error_fiel
     assert result["error_retryable"] is True
     assert result["error"] == "request timed out"
 
-
 def test_extract_generation_failure_info_prefers_client_trace_and_normalizes_negative_cache():
     class DummyClient:
         def latest_trace(self):
@@ -40,7 +38,6 @@ def test_extract_generation_failure_info_prefers_client_trace_and_normalizes_neg
         "retryable": False,
         "error": "命中失败缓存，请稍后重试",
     }
-
 
 def test_run_generation_with_retry_retries_once_for_retryable_failures():
     calls = []
@@ -80,7 +77,6 @@ def test_run_generation_with_retry_retries_once_for_retryable_failures():
     assert calls == ["李白", "李白"]
     assert progress_messages == ["李白 首轮生成未完成，准备自动重试", "李白 生成人物档案重试（2/2）"]
     assert warnings == ["generate_markdown_retry person=李白 attempt=1 classification=timeout error=first attempt timeout"]
-
 
 def test_file_generation_checkpoint_store_persists_and_clears_entries(tmp_path):
     store = FileGenerationCheckpointStore(str(tmp_path / "generation_checkpoints.json"))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from dataclasses import asdict, dataclass, field
@@ -7,6 +8,19 @@ from typing import Callable, Dict, List, Optional, TypeVar, cast
 
 
 F = TypeVar("F", bound=Callable[..., object])
+
+# Reusable executor pool for invoke_tool timeouts. Creating/destroying a
+# ThreadPoolExecutor per invocation adds avoidable overhead.
+_tool_executor_lock = threading.Lock()
+_tool_executor: Optional[ThreadPoolExecutor] = None
+
+
+def _get_tool_executor() -> ThreadPoolExecutor:
+    global _tool_executor
+    with _tool_executor_lock:
+        if _tool_executor is None:
+            _tool_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="tool-")
+        return _tool_executor
 
 
 @dataclass(frozen=True)
@@ -103,9 +117,12 @@ def invoke_tool(
     spec = getattr(func, "__tool__", None)
     if spec is None:
         return func(*args, **kwargs)
+    # ── Schema 校验仅针对位置参数，extra kwargs（如 dynasty）绕过校验 ──
     input_payload: object
     if len(args) == 1 and not kwargs:
         input_payload = args[0]
+    elif len(args) == 1:
+        input_payload = args[0]  # extra kwargs 不参与 schema 校验
     else:
         input_payload = {"args": list(args), "kwargs": dict(kwargs)}
     input_errors = validate_schema(input_payload, spec.input_schema, path="$input")
@@ -117,15 +134,13 @@ def invoke_tool(
         started = time.perf_counter()
         timed_out = False
         try:
-            executor = ThreadPoolExecutor(max_workers=1)
+            executor = _get_tool_executor()
             future = executor.submit(func, *args, **kwargs)
             try:
                 result = future.result(timeout=max(0.001, float(spec.timeout_seconds)))
             except Exception:
                 future.cancel()
-                executor.shutdown(wait=False, cancel_futures=True)
                 raise
-            executor.shutdown(wait=False, cancel_futures=False)
             output_errors = validate_schema(result, spec.output_schema, path="$output")
             if output_errors:
                 raise ValueError(f"{spec.name} 输出不符合 schema: {'; '.join(output_errors)}")
@@ -145,7 +160,7 @@ def invoke_tool(
                     ).to_dict()
                 )
             return result
-        except FutureTimeoutError as exc:
+        except FutureTimeoutError:
             timed_out = True
             last_error = TimeoutError(f"{spec.name} 超时（>{spec.timeout_seconds}s）")
         except Exception as exc:  # noqa: BLE001

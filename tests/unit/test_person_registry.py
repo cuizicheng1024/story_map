@@ -1,6 +1,5 @@
 import importlib
 
-
 def test_person_registry_exposes_redirects_and_canonical_entries():
     module = importlib.import_module("storymap.script.core.person_registry")
 
@@ -20,7 +19,6 @@ def test_person_registry_exposes_redirects_and_canonical_entries():
         ("玄奘", "玄奘", ["唐三藏"]),
     ]
 
-
 def test_person_redirects_skip_aliases_that_have_real_story_sources():
     module = importlib.import_module("storymap.script.core.person_registry")
 
@@ -33,11 +31,9 @@ def test_person_redirects_skip_aliases_that_have_real_story_sources():
     assert module.canonical_person_name("玛丽·居里", ["玛丽·居里"]) == "玛丽·居里"
     assert module.canonical_person_name("阿达·洛夫莱斯", ["阿达·洛夫莱斯"]) == "阿达·洛夫莱斯"
 
-
 def test_map_html_renderer_uses_shared_person_registry():
     registry = importlib.import_module("storymap.script.core.person_registry")
     assert registry.canonical_person_name("苏东坡") == "苏轼"
-
 
 def test_canonical_story_name_entries_preserve_raw_story_filenames_with_middle_dot():
     module = importlib.import_module("storymap.script.core.person_registry")

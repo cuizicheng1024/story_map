@@ -1,9 +1,7 @@
 import importlib
 
-
 def _reload():
     return importlib.reload(importlib.import_module("tools.run_storymap_checks"))
-
 
 def test_python_bin_prefers_active_virtualenv(monkeypatch):
     module = _reload()
@@ -21,7 +19,6 @@ def test_python_bin_prefers_active_virtualenv(monkeypatch):
 
     assert module._python_bin() == active_python
 
-
 def test_python_bin_falls_back_to_sys_executable(monkeypatch):
     module = _reload()
     sys_python = "/usr/bin/python3"
@@ -33,7 +30,6 @@ def test_python_bin_falls_back_to_sys_executable(monkeypatch):
     monkeypatch.setattr(module, "_has_module", lambda python_bin, module_name: python_bin == sys_python)
 
     assert module._python_bin() == sys_python
-
 
 def test_main_runs_default_smoke_targets(monkeypatch):
     module = _reload()
@@ -50,7 +46,6 @@ def test_main_runs_default_smoke_targets(monkeypatch):
 
     assert module.main() == 0
     assert calls == [["/usr/bin/python3", "-m", "pytest", *module.DEFAULT_TESTS]]
-
 
 def test_main_runs_all_tests_when_requested(monkeypatch):
     module = _reload()

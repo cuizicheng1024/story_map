@@ -3,29 +3,31 @@ from __future__ import annotations
 import json
 import re
 from functools import lru_cache
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from ..core import parsers as parser_utils
 from ..core.project_paths import data_corpus_file_path
+from ..core.types import (
+    Coord,
+    CoordCache,
+    CoordSearchMap,
+    LocationItem,
+    PersonRecord,
+    ProfileData,
+)
 from . import profile_location_utils
 from . import profile_text_utils
 
+_extract_location_time_bounds = profile_location_utils.extract_location_time_bounds
+_work_title_aliases = profile_text_utils.work_title_aliases
 
-Coord = Tuple[float, float]
+
 _SUMMARY_INDEX_PATH = data_corpus_file_path("people_summary_index.json")
 _WORK_SUMMARY_INDEX_PATH = data_corpus_file_path("work_summary_index.json")
 
 
 def extract_works(text: str) -> List[str]:
     return profile_text_utils.extract_works(text)
-
-
-def _loose_place_key(text: str) -> str:
-    return profile_location_utils.loose_place_key(text)
-
-
-def _loose_coord_lookup(coords_cache: Dict[str, Coord], candidates: List[str]) -> Optional[Coord]:
-    return profile_location_utils.loose_coord_lookup(coords_cache, candidates)
 
 
 def _split_person_alias_values(*values: object) -> List[str]:
@@ -56,29 +58,41 @@ def _merge_unique_strings(*values: object) -> List[str]:
 
 
 _FOREIGN_ALIAS_PATH = data_corpus_file_path("foreign_name_aliases.json")
-_FOREIGN_ALIAS_CACHE: Dict[str, Dict[str, str]] = {}
-_FOREIGN_ALIAS_LOADED = False
 
 
+@lru_cache(maxsize=1)
 def _load_foreign_aliases() -> Dict[str, Dict[str, str]]:
-    global _FOREIGN_ALIAS_LOADED
-    if _FOREIGN_ALIAS_LOADED:
-        return _FOREIGN_ALIAS_CACHE
-    _FOREIGN_ALIAS_LOADED = True
     try:
         payload = json.loads(_FOREIGN_ALIAS_PATH.read_text(encoding="utf-8"))
     except Exception:
-        return _FOREIGN_ALIAS_CACHE
+        return {}
     entries = payload.get("entries") if isinstance(payload, dict) else {}
-    if isinstance(entries, dict):
-        for key, value in entries.items():
-            if isinstance(value, dict):
-                _FOREIGN_ALIAS_CACHE[str(key).strip()] = {
-                    str(k).strip(): str(v).strip()
-                    for k, v in value.items()
-                    if isinstance(v, (str, int, float))
-                }
-    return _FOREIGN_ALIAS_CACHE
+    if not isinstance(entries, dict):
+        return {}
+    out: Dict[str, Dict[str, str]] = {}
+    for key, value in entries.items():
+        if isinstance(value, dict):
+            out[str(key).strip()] = {
+                str(k).strip(): str(v).strip()
+                for k, v in value.items()
+                if isinstance(v, (str, int, float))
+            }
+    return out
+
+
+_HIGHLIGHTS_PATH = data_corpus_file_path("description_highlights.json")
+
+
+@lru_cache(maxsize=1)
+def _load_highlights() -> Dict[str, List[Dict[str, str]]]:
+    try:
+        return json.loads(_HIGHLIGHTS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _get_highlights(name: str) -> List[Dict[str, str]]:
+    return _load_highlights().get(str(name or "").strip(), [])
 
 
 def _lookup_foreign_alias(name: str) -> Tuple[str, str, str]:
@@ -109,6 +123,137 @@ def _load_people_summary_index() -> Dict[str, Dict[str, object]]:
     return out
 
 
+@lru_cache(maxsize=1)
+def _load_portraits_map() -> Dict[str, object]:
+    """Load person → portrait metadata mapping.
+
+    Supports two formats:
+      - Legacy: ``{"孔子": "孔子-abc.jpg"}``
+      - Modern: ``{"孔子": {"file": "孔子-abc.jpg", "source": "real", "source_label": "故宫藏画"}}``
+    """
+    try:
+        path = data_corpus_file_path("portraits_map.json")
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _resolve_portrait_filename(*candidates: str) -> str:
+    """Return the on-disk portrait filename for a person, trying each candidate name.
+
+    Looks up the curated ``portraits_map.json`` first (so we can pin explicit
+    filenames), and falls back to the runtime ``portrait_service`` so alias
+    overrides like ``孔丘 -> 孔子`` and `<safe>-<sha1>` filenames still work
+    even when the registry key is slightly different from the markdown name.
+    """
+    for raw in candidates:
+        clean = str(raw or "").strip()
+        if not clean:
+            continue
+        mapped = _load_portraits_map().get(clean)
+        if isinstance(mapped, str):
+            return mapped
+        if isinstance(mapped, dict):
+            return str(mapped.get("file") or "")
+    # 模糊匹配：全名 ↔ 肖像注册表中的简名（如"阿尔伯特·爱因斯坦"↔"爱因斯坦"）
+    portraits_map = _load_portraits_map()
+    for raw in candidates:
+        clean = str(raw or "").strip()
+        if not clean:
+            continue
+        for pm_key, pm_entry in portraits_map.items():
+            if not isinstance(pm_entry, dict):
+                continue
+            if pm_key in clean or clean in pm_key:
+                fn = str(pm_entry.get("file") or "")
+                if fn:
+                    return fn
+    try:
+        from ..map import portrait_service as _portrait_service
+        for raw in candidates:
+            clean = str(raw or "").strip()
+            if not clean:
+                continue
+            cached = _portrait_service.portrait_cache_path(clean)
+            if cached.exists() and cached.stat().st_size > 0:
+                return cached.name
+    except Exception:
+        pass
+    # Last resort: scan the portrait dir for a filename that contains the
+    # first candidate's SHA1. This handles the case where the canonical name
+    # in the markdown (e.g. ``陶潜``) is not in the curated map but a portrait
+    # has been downloaded under the historical alias (``陶渊明``).
+    try:
+        from ..map import portrait_service as _portrait_service
+        for raw in candidates:
+            clean = str(raw or "").strip()
+            if not clean:
+                continue
+            portrait_dir = _portrait_service.portrait_dir()
+            for ext in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
+                p = portrait_dir / f"{_portrait_service._safe_filename(clean)}.{ext.lstrip('.')}"
+                if p.exists() and p.stat().st_size > 0:
+                    return p.name
+    except Exception:
+        pass
+    return ""
+
+
+def _resolve_portrait_source(*candidates: str) -> dict:
+    """Return portrait source metadata for a person.
+
+    Returns ``{"source": "unknown", "source_label": ""}`` by default.
+    Source values: "real", "ai", "wiki", "unknown".
+    """
+    portraits_map = _load_portraits_map()
+    for raw in candidates:
+        clean = str(raw or "").strip()
+        if not clean:
+            continue
+        mapped = portraits_map.get(clean)
+        if isinstance(mapped, dict):
+            source = str(mapped.get("source") or "unknown").strip()
+            label = str(mapped.get("source_label") or "").strip()
+            if source:
+                return {"source": source, "source_label": label}
+    # 模糊匹配：全名 ↔ 简名
+    for raw in candidates:
+        clean = str(raw or "").strip()
+        if not clean:
+            continue
+        for pm_key, pm_entry in portraits_map.items():
+            if isinstance(pm_entry, dict) and (pm_key in clean or clean in pm_key):
+                source = str(pm_entry.get("source") or "unknown").strip()
+                label = str(pm_entry.get("source_label") or "").strip()
+                if source:
+                    return {"source": source, "source_label": label}
+    # 通过已解析的文件名回查 source（处理"孔丘"→"孔子"这类单字差异）
+    portrait_file = _resolve_portrait_filename(*candidates)
+    if portrait_file:
+        for pm_entry in portraits_map.values():
+            if isinstance(pm_entry, dict) and pm_entry.get("file") == portrait_file:
+                src = str(pm_entry.get("source") or "unknown").strip()
+                lbl = str(pm_entry.get("source_label") or "").strip()
+                if src:
+                    return {"source": src, "source_label": lbl}
+        if portrait_file.lower().endswith(".svg"):
+            return {"source": "ai", "source_label": "SVG 占位肖像"}
+    return {"source": "unknown", "source_label": ""}
+
+
+def _portrait_source_for_person(*candidates: str) -> dict:
+    """Return ``{"avatarSource": ..., "avatarSourceLabel": ...}`` for a person.
+
+    Calls ``_resolve_portrait_source`` once and maps the result into keys
+    matching the PersonRecord dict, so callers don't double-dip the disk scan.
+    """
+    info = _resolve_portrait_source(*candidates)
+    return {
+        "avatarSource": info.get("source", "unknown"),
+        "avatarSourceLabel": info.get("source_label", ""),
+    }
+
+
 def _get_person_summary_item(person_name: str) -> Dict[str, object]:
     name = str(person_name or "").strip()
     if not name:
@@ -132,11 +277,11 @@ def _load_work_summary_index() -> Dict[str, Dict[str, object]]:
             continue
         item = dict(value)
         item.setdefault("title", title)
-        for alias in _work_title_aliases(title):
+        for alias in profile_text_utils.work_title_aliases(title):
             if alias and alias not in out:
                 out[alias] = item
         for alias in item.get("aliases") or []:
-            for normalized in _work_title_aliases(str(alias or "")):
+            for normalized in profile_text_utils.work_title_aliases(str(alias or "")):
                 if normalized and normalized not in out:
                     out[normalized] = item
     return out
@@ -147,7 +292,7 @@ def _get_work_summary_item(title: str) -> Dict[str, object]:
     if not clean_title:
         return {}
     items = _load_work_summary_index()
-    for alias in _work_title_aliases(clean_title):
+    for alias in profile_text_utils.work_title_aliases(clean_title):
         item = items.get(alias)
         if isinstance(item, dict):
             return dict(item)
@@ -180,17 +325,19 @@ def _collect_profile_work_summaries(
     return out
 
 
-_LOCATION_POSTER_OVERRIDES: Dict[str, Dict[str, Dict[str, str]]] = {
-    "梁思成": {
-        "五台山佛光寺": {
-            "png": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Foguang_Temple_9.JPG"
-        }
-    }
-}
+_LOCATION_POSTER_OVERRIDES_PATH = data_corpus_file_path("location_poster_overrides.json")
+
+
+@lru_cache(maxsize=1)
+def _load_location_poster_overrides() -> Dict[str, Dict[str, Dict[str, str]]]:
+    try:
+        return json.loads(_LOCATION_POSTER_OVERRIDES_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 def _attach_location_posters(person_name: str, locations: List[Dict[str, object]]) -> List[Dict[str, object]]:
-    overrides = _LOCATION_POSTER_OVERRIDES.get(str(person_name or "").strip()) or {}
+    overrides = _load_location_poster_overrides().get(str(person_name or "").strip()) or {}
     if not overrides:
         return locations
     updated: List[Dict[str, object]] = []
@@ -210,179 +357,78 @@ def _attach_location_posters(person_name: str, locations: List[Dict[str, object]
     return updated
 
 
-def _coord_group_key(lat: object, lng: object) -> str:
-    return profile_location_utils.coord_group_key(lat, lng)
+# ── Person / work override data ──────────────────────────────────────────
+# All override data is stored in JSON files under data/corpus/ so that
+# corrections can be reviewed and edited independently of code.
+
+_PERSON_WORK_EXCLUSIONS_PATH = data_corpus_file_path("person_work_exclusions.json")
+_PERSON_PREFERRED_WORKS_PATH = data_corpus_file_path("person_preferred_works.json")
+_PERSON_ACHIEVEMENT_REPLACEMENTS_PATH = data_corpus_file_path("person_achievement_replacements.json")
+_PERSON_SUMMARY_OVERRIDES_PATH = data_corpus_file_path("person_summary_overrides.json")
+_PERSON_WORK_SUMMARY_OVERRIDES_PATH = data_corpus_file_path("person_work_summary_overrides.json")
 
 
-def _is_speculative_location_item(item: Dict[str, object]) -> bool:
-    return profile_location_utils.is_speculative_location_item(item)
+@lru_cache(maxsize=1)
+def _load_person_work_exclusions() -> Dict[str, Set[str]]:
+    try:
+        raw = json.loads(_PERSON_WORK_EXCLUSIONS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    out: Dict[str, Set[str]] = {}
+    for key, value in raw.items():
+        if isinstance(value, list):
+            out[str(key).strip()] = {str(v).strip() for v in value if str(v).strip()}
+    return out
 
 
-def _choose_primary_location(items: List[Dict[str, object]]) -> Dict[str, object]:
-    return profile_location_utils.choose_primary_location(items, extract_works=extract_works)
+@lru_cache(maxsize=1)
+def _load_person_preferred_works() -> Dict[str, List[str]]:
+    try:
+        return json.loads(_PERSON_PREFERRED_WORKS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
-def _merge_location_cluster(items: List[Dict[str, object]]) -> Dict[str, object]:
-    return profile_location_utils.merge_location_cluster(items, extract_works=extract_works)
+@lru_cache(maxsize=1)
+def _load_person_achievement_replacements() -> Dict[str, Dict[str, str]]:
+    try:
+        return json.loads(_PERSON_ACHIEVEMENT_REPLACEMENTS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
-def _collapse_sparse_single_site_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str, object]]:
-    return profile_location_utils.collapse_sparse_single_site_locations(loc_items, extract_works=extract_works)
+@lru_cache(maxsize=1)
+def _load_person_summary_overrides() -> Dict[str, Dict[str, object]]:
+    try:
+        return json.loads(_PERSON_SUMMARY_OVERRIDES_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
-def _extract_location_time_bounds(raw: object) -> Tuple[Optional[int], Optional[int]]:
-    return profile_location_utils.extract_location_time_bounds(raw)
-
-
-def _looks_like_death_location(item: Dict[str, object]) -> bool:
-    return profile_location_utils.looks_like_death_location(item)
-
-
-def _infer_location_significance(
-    item: Dict[str, object],
-    *,
-    person_name: str = "",
-) -> str:
-    return profile_location_utils.infer_location_significance(item, person_name=person_name)
-
-
-def _sort_profile_locations(loc_items: List[Dict[str, object]]) -> List[Dict[str, object]]:
-    return profile_location_utils.sort_profile_locations(loc_items)
-
-
-def _work_title_aliases(title: str) -> List[str]:
-    return profile_text_utils.work_title_aliases(title)
-
-
-_PERSON_WORK_EXCLUSIONS = {
-    "关羽": {"三国演义"},
-    "诸葛亮": {"三国演义"},
-    "班固": {"史记"},
-    "纪昀": {"聊斋志异"},
-    "董仲舒": {"春秋"},
-    "孟子": {"诗", "书", "诗经", "书经"},
-    "孟子，名轲": {"诗", "书", "诗经", "书经"},
-    "周敦颐": {"周易"},
-    "陈寿": {"三国志"},
-    "郦道元": {"水经"},
-    "闻一多": {"周易", "诗经", "庄子", "楚辞"},
-    "张思德": {"为人民服务"},
-    "严复": {"国闻报"},
-    "列宁": {"火星报"},
-    "弗拉基米尔·列宁": {"火星报"},
-    "弗拉基米尔·伊里奇·乌里扬诺夫": {"火星报"},
-    "袁鹰": {"人民日报"},
-    "陆定一": {"红星", "解放日报"},
-    "康有为": {"马关条约"},
-    "希特勒": {"凡尔赛条约"},
-    "阿道夫·希特勒": {"凡尔赛条约"},
-    "刘少奇": {"中国土地法大纲", "土地改革法", "中华人民共和国土地改革法"},
-    "华盛顿": {"美利坚合众国宪法", "美国宪法"},
-    "乔治·华盛顿": {"美利坚合众国宪法", "美国宪法"},
-    "马丁·路德": {"圣经"},
-    "李世民": {"氏族志", "贞观律"},
-    "利玛窦": {"几何原本"},
-    "大卫·劳合·乔治": {"凡尔赛和约", "国民保险法", "人民代表法"},
-    "劳合·乔治": {"凡尔赛和约", "国民保险法", "人民代表法"},
-    "姚鼐": {"四库全书"},
-    "孔丘": {"论语"},
-    "孔子": {"论语"},
-    "叶圣陶": {"小说月报"},
-    "玄奘": {"大般若经", "瑜伽师地论"},
-    "杜牧": {"孙子兵法"},
-    "康熙": {"古今图书集成", "康熙字典", "尼布楚条约"},
-    "康熙帝": {"古今图书集成", "康熙字典", "尼布楚条约"},
-    "爱新觉罗·玄烨": {"古今图书集成", "康熙字典", "尼布楚条约"},
-    "江竹筠": {"挺进报", "红岩"},
-    "瞿秋白": {"晨报"},
-    "陈独秀": {"新青年"},
-    "陈韪": {"三国志"},
-    "贾宪": {"九章算术"},
-    "陈伯达": {"红旗"},
-    "阿沛·阿旺晋美": {"十七条协议", "关于和平解放西藏办法的协议"},
-    "崔融": {"三教珠英"},
-    "卓文君": {"白头吟"},
-    "孙膑": {"史记", "史记·孙子吴起列传", "齐孙子"},
-    "蔡文姬": {"胡笳十八拍"},
-    "姚文元": {"海瑞罢官"},
-}
-
-
-_PERSON_PREFERRED_WORKS = {
-    "列宁": ["帝国主义是资本主义的最高阶段", "国家与革命"],
-    "弗拉基米尔·伊里奇·乌里扬诺夫": ["帝国主义是资本主义的最高阶段", "国家与革命"],
-    "刘少奇": ["论共产党员的修养"],
-    "希特勒": ["我的奋斗"],
-    "阿道夫·希特勒": ["我的奋斗"],
-    "康有为": ["新学伪经考", "孔子改制考", "大同书"],
-    "瞿秋白": ["赤都心史", "饿乡纪程"],
-    "陈独秀": ["敬告青年"],
-    "孙膑": ["孙膑兵法"],
-}
-
-
-_PERSON_ACHIEVEMENT_REPLACEMENTS = {
-    "方志敏": {
-        "创立中国工农红军第十军团": "创建中国工农红军第十军，并在红十军团成立后担任重要领导职务",
-    },
-    "常遇春": {
-        "鄱阳湖之战俘获陈友谅": "鄱阳湖之战重创陈友谅部，陈友谅最终败亡",
-    },
-}
-
-
-_PERSON_SUMMARY_OVERRIDES = {
-    "孙膑": {
-        "spotlight": "战国时期齐国军事家，因桂陵、马陵之战而名扬后世。",
-        "intro": "战国时期齐国军事家，因桂陵、马陵之战而名扬后世。",
-        "short_review": "辅佐田忌，策划桂陵、马陵之战，是中国古代兵家思想的重要代表人物之一。",
-        "status": "战国时期著名军事家，因桂陵、马陵之战而名扬后世，是中国古代兵家思想的重要代表人物之一。",
-        "identities": "军事家、兵家代表人物、齐国军师",
-        "achievements": "辅佐田忌，策划桂陵之战大败魏军；在马陵之战中以减灶之计诱敌深入，重创魏军；相传著有《孙膑兵法》，承继并发展孙武军事思想。",
-        "works": ["孙膑兵法"],
-    },
-    "蔡文姬": {
-        "short_review": "创作《悲愤诗》二首，为中国早期文人五言、骚体长篇叙事诗代表作。",
-        "achievements": "继承家学，博通经史音律，长于诗文、书法与琴艺；创作《悲愤诗》二首，为中国早期文人五言、骚体长篇叙事诗代表作；《胡笳十八拍》历来多附会于蔡文姬名下，作者归属存疑；默写其父蔡邕所藏典籍四百余篇，为保存汉代文献做出贡献",
-        "works": ["悲愤诗"],
-    },
-}
-
-
-_PERSON_WORK_SUMMARY_OVERRIDES = {
-    ("孙膑", "孙膑兵法"): {
-        "title": "孙膑兵法",
-        "authors": ["孙膑"],
-        "related_people": ["孙膑"],
-        "source_pages": ["孙膑"],
-        "era": "战国",
-        "genre": "兵书",
-        "one_liner": "相传为孙膑所撰或整理的兵书，继承并发展了先秦兵家思想。",
-        "summary": "相传为孙膑所撰或整理的兵书，继承并发展了先秦兵家思想。",
-        "quote": "今本《孙膑兵法》系银雀山汉墓竹简出土后重见天日，其具体成书情况与作者归属仍有讨论。",
-        "quotes": [
-            "今本《孙膑兵法》系银雀山汉墓竹简出土后重见天日，其具体成书情况与作者归属仍有讨论。"
-        ],
-        "quote_policy": "preferred",
-    },
-    ("蔡文姬", "悲愤诗"): {
-        "title": "悲愤诗",
-        "authors": ["蔡文姬"],
-        "related_people": ["蔡文姬"],
-        "source_pages": ["蔡文姬"],
-        "era": "东汉末年",
-        "genre": "诗",
-        "one_liner": "现存较能确定归于蔡文姬名下的代表作品，为中国早期文人叙事诗的重要篇章。",
-        "summary": "现存较能确定归于蔡文姬名下的代表作品，为中国早期文人叙事诗的重要篇章。",
-        "quote": "现存较能确定归于她名下的作品主要是《悲愤诗》二首。",
-        "quotes": ["现存较能确定归于她名下的作品主要是《悲愤诗》二首。"],
-        "quote_policy": "preferred",
-    },
-}
+@lru_cache(maxsize=1)
+def _load_person_work_summary_overrides() -> Dict[Tuple[str, str], Dict[str, object]]:
+    try:
+        raw = json.loads(_PERSON_WORK_SUMMARY_OVERRIDES_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(raw, list):
+        return {}
+    out: Dict[Tuple[str, str], Dict[str, object]] = {}
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        person = str(entry.get("person") or "").strip()
+        title = str(entry.get("title") or "").strip()
+        data = entry.get("data")
+        if person and title and isinstance(data, dict):
+            out[(person, title)] = data
+    return out
 
 
 def _filter_person_works(person_name: str, works: List[str]) -> List[str]:
-    exclusions = _PERSON_WORK_EXCLUSIONS.get(str(person_name or "").strip(), set())
+    exclusions = _load_person_work_exclusions().get(str(person_name or "").strip(), set())
     if not exclusions:
         return works
     return [title for title in works if str(title or "").strip() not in exclusions]
@@ -391,13 +437,13 @@ def _filter_person_works(person_name: str, works: List[str]) -> List[str]:
 def _sanitize_person_works(person_name: str, works: List[str]) -> List[str]:
     name = str(person_name or "").strip()
     filtered = _filter_person_works(name, list(works or []))
-    preferred = _PERSON_PREFERRED_WORKS.get(name) or []
+    preferred = _load_person_preferred_works().get(name) or []
     return _merge_unique_strings(filtered, preferred)
 
 
 def _normalize_person_achievements(person_name: str, achievements: str) -> str:
     text = str(achievements or "").strip()
-    replacements = _PERSON_ACHIEVEMENT_REPLACEMENTS.get(str(person_name or "").strip()) or {}
+    replacements = _load_person_achievement_replacements().get(str(person_name or "").strip()) or {}
     for source, target in replacements.items():
         if source:
             text = text.replace(source, target)
@@ -406,7 +452,7 @@ def _normalize_person_achievements(person_name: str, achievements: str) -> str:
 
 def _merge_person_summary_overrides(person_name: str, summary: Dict[str, object]) -> Dict[str, object]:
     merged = dict(summary or {})
-    overrides = _PERSON_SUMMARY_OVERRIDES.get(str(person_name or "").strip()) or {}
+    overrides = _load_person_summary_overrides().get(str(person_name or "").strip()) or {}
     if overrides:
         merged.update(overrides)
     return merged
@@ -418,7 +464,7 @@ def _apply_person_work_summary_override(
     item: Dict[str, object],
 ) -> Dict[str, object]:
     merged = dict(item or {})
-    overrides = _PERSON_WORK_SUMMARY_OVERRIDES.get((str(person_name or "").strip(), str(title or "").strip())) or {}
+    overrides = _load_person_work_summary_overrides().get((str(person_name or "").strip(), str(title or "").strip())) or {}
     if overrides:
         merged.update(overrides)
     return merged
@@ -519,7 +565,7 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
                 fields[k] = v
     if any(fields.values()):
         return fields
-    info = parser_utils._parse_basic_info(md)
+    info = parser_utils.parse_basic_info(md)
     if info:
         if not fields["朝代"]:
             fields["朝代"] = info.get("时代", "") or info.get("朝代", "")
@@ -532,8 +578,8 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
         if not fields["生卒年"]:
             birth_text = info.get("出生", "")
             death_text = info.get("去世", "")
-            birth_date, _ = parser_utils._parse_date_location(birth_text, ["出生于", "生于"])
-            death_date, _ = parser_utils._parse_date_location(death_text, ["卒于", "去世于", "卒"])
+            birth_date, _ = parser_utils.parse_date_location(birth_text, ["出生于", "生于"])
+            death_date, _ = parser_utils.parse_date_location(death_text, ["卒于", "去世于", "卒"])
             if birth_date or death_date:
                 fields["生卒年"] = f"{birth_date}-{death_date}".strip("-")
             else:
@@ -562,21 +608,13 @@ def extract_intro_fields(md: str) -> Dict[str, str]:
     return fields
 
 
-def build_profile_data(
+def _parse_md_and_fallback_info(
     md: str,
-    *,
-    fallback_person: str = "",
-    allow_geocode: bool = True,
-    event_callback: Optional[callable] = None,
-    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
-    batch_split_ancient_modern: Callable[[List[str], Optional[callable]], None],
-    fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
-    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
-    resolve_place_coord: Callable[..., Optional[Coord]],
-    build_points_fn: Callable[..., List[Dict[str, object]]],
-) -> Optional[Dict[str, object]]:
-    if not isinstance(md, str) or not md.strip():
-        return None
+) -> Tuple[Any, Dict[str, str], List[Dict[str, object]], Dict[str, Coord], Dict[str, str], str]:
+    """Parse markdown document and ensure info / locations are populated.
+
+    Returns (parsed_doc, info, locations, coords_cache, coords_search_map, normalized_md).
+    """
     parsed_doc = parser_utils.parse_story_document(md)
     normalized_md = parsed_doc.normalized_markdown
     info = dict(parsed_doc.basic_info_map)
@@ -627,12 +665,26 @@ def build_profile_data(
                 for key in coords_cache.keys()
                 if str(key or "").strip()
             ]
-        if not info and not locations:
-            return None
-    fallback_person = str(fallback_person or "").strip()
-    name_raw = str(info.get("姓名", "") or fallback_person).strip()
-    canonical_name = name_raw.split("（", 1)[0].strip() or name_raw
-    name = name_raw or canonical_name
+    return parsed_doc, info, locations, coords_cache, coords_search_map, normalized_md
+
+
+def _resolve_person_name_and_summary(
+    name_raw: str,
+    fallback_person: str,
+    info: Dict[str, str],
+    description: str,
+    locations: List[Dict[str, object]],
+    normalized_md: str,
+    work_texts: Dict[str, str],
+    parsed_doc: Any,
+) -> Tuple[str, str, str, str, str, List[str]]:
+    """Resolve canonical person name, title, description, works, and short review.
+
+    Returns (canonical_name, name, title, description, works, short_review).
+    """
+    # Strip trailing aliases / descriptions concatenated into 姓名
+    canonical_name = re.split(r"[，,、；;：（(]", name_raw, maxsplit=1)[0].strip() or name_raw
+    name = canonical_name or name_raw
     summary = _merge_person_summary_overrides(canonical_name, _get_person_summary_item(canonical_name))
     title = (
         str(summary.get("title") or summary.get("honor") or "").strip()
@@ -640,13 +692,11 @@ def build_profile_data(
         or extract_title_from_text(name_raw)
         or ""
     )
-    description = parsed_doc.overview
     if not description:
         description = "；".join([t for t in [info.get("历史地位", ""), info.get("主要成就", "")] if t])
     description = re.sub(r"-{3,}$", "", description).strip()
     works = extract_works(" ".join([description, info.get("主要成就", ""), info.get("历史地位", "")]))
     works = _sanitize_person_works(canonical_name, works)
-    work_texts = extract_work_texts(normalized_md)
     short_review = choose_short_review(
         info=info,
         locations=locations,
@@ -664,160 +714,155 @@ def build_profile_data(
         if summary_short_review:
             break
     short_review = summary_short_review or short_review
-    birth_text = info.get("出生", "")
-    death_text = info.get("去世", "")
-    birth_date, birth_loc, birth_geocode_loc = parser_utils._parse_date_location_details(birth_text, ["出生于", "生于"])
-    death_date, death_loc, death_geocode_loc = parser_utils._parse_date_location_details(death_text, ["卒于", "去世于", "卒"])
+    return canonical_name, name, title, description, works, short_review
 
-    if not locations:
+
+def _inject_xu_xiake_candidates(
+    person_key: str,
+    name_raw: str,
+    locations: List[Dict[str, object]],
+) -> List[Dict[str, object]]:
+    """Add candidate travel locations for 徐霞客 if missing from source data."""
+    if person_key not in {"徐霞客", "徐弘祖"} and "徐霞客" not in name_raw:
+        return locations
+    existing_keys = set()
+    for loc in locations:
+        if not isinstance(loc, dict):
+            continue
+        raw_loc = str(loc.get("location") or loc.get("name") or "").strip()
+        if raw_loc:
+            existing_keys.add(profile_location_utils.loose_place_key(raw_loc))
+    candidates = [
+        ("江苏江阴", "家乡江阴，出发与归终之地"),
+        ("浙江天台山", "天台山"),
+        ("浙江雁荡山", "雁荡山"),
+        ("安徽黄山", "黄山"),
+        ("安徽齐云山", "白岳（齐云山）"),
+        ("江西庐山", "庐山"),
+        ("福建武夷山", "武夷山"),
+        ("河南嵩山", "嵩山"),
+        ("陕西华山", "华山"),
+        ("湖北武当山", "武当山"),
+        ("广东罗浮山", "罗浮山"),
+        ("广西桂林", "桂林"),
+        ("广西阳朔", "阳朔"),
+        ("广西漓江", "漓江"),
+        ("贵州黄果树瀑布", "黄果树瀑布"),
+        ("云南鸡足山", "鸡足山"),
+        ("云南大理", "大理"),
+        ("云南丽江", "丽江"),
+        ("湖南衡山", "衡山"),
+        ("山东泰山", "泰山"),
+        ("山西五台山", "五台山"),
+        ("河北盘山", "盘山"),
+    ]
+    extra = []
+    for loc_text, note in candidates:
+        key = profile_location_utils.loose_place_key(loc_text)
+        if not key or key in existing_keys:
+            continue
+        existing_keys.add(key)
+        extra.append(
+            {
+                "name": loc_text,
+                "location": loc_text,
+                "type": "travel",
+                "time": "",
+                "duration": "",
+                "event": f"行旅至{note}" if note else "",
+                "significance": "",
+                "quotes": "",
+            }
+        )
+    if extra:
+        return list(locations) + extra
+    return locations
+
+
+def _resolve_fallback_locations(
+    locations: List[LocationItem],
+    parsed_doc: object,
+    build_points_fn: Callable[..., List[dict]],
+    *,
+    allow_geocode: bool,
+    event_callback: Optional[callable],
+) -> List[LocationItem]:
+    """Phase 3b: build location items from parsed places/events when no locations exist."""
+    if locations:
+        return locations
+    try:
+        pts = build_points_fn(
+            parsed_doc.places,
+            parsed_doc.events,
+            allow_geocode=allow_geocode,
+            event_callback=event_callback,
+        )
+    except Exception:
+        pts = []
+    loc_items: List[Dict[str, object]] = []
+    for p in pts:
+        if not isinstance(p, dict):
+            continue
+        name0 = str(p.get("name") or "").strip()
         try:
-            pts = build_points_fn(
-                parsed_doc.places,
-                parsed_doc.events,
-                allow_geocode=allow_geocode,
-                event_callback=event_callback,
-            )
+            lat = float(p.get("lat"))  # type: ignore[arg-type]
+            lng = float(p.get("lon"))  # type: ignore[arg-type]
         except Exception:
-            pts = []
-        loc_items: List[Dict[str, object]] = []
-        for p in pts:
-            if not isinstance(p, dict):
-                continue
-            name0 = str(p.get("name") or "").strip()
-            try:
-                lat = float(p.get("lat"))  # type: ignore[arg-type]
-                lng = float(p.get("lon"))  # type: ignore[arg-type]
-            except Exception:
-                continue
-            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
-                continue
-            loc_items.append(
-                {
-                    "name": name0,
-                    "location": name0,
-                    "ancient": name0,
-                    "modern": "",
-                    "lat": lat,
-                    "lng": lng,
-                    "type": "move",
-                    "time": "",
-                    "stay": "",
-                    "event": "",
-                    "meaning": "",
-                    "quote": "",
-                    "md": str(p.get("md") or ""),
-                }
-            )
-        if loc_items:
-            locations = loc_items
+            continue
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            continue
+        loc_items.append({
+            "name": name0, "location": name0, "ancient": name0, "modern": "",
+            "lat": lat, "lng": lng, "type": "move", "time": "",
+            "stay": "", "event": "", "meaning": "", "quote": "",
+            "md": str(p.get("md") or ""),
+        })
+    return loc_items
 
-    person_key = canonical_name or fallback_person
-    if person_key in {"徐霞客", "徐弘祖"} or "徐霞客" in name_raw:
-        existing_keys = set()
-        for loc in locations:
-            if not isinstance(loc, dict):
-                continue
-            raw_loc = str(loc.get("location") or loc.get("name") or "").strip()
-            if raw_loc:
-                existing_keys.add(profile_location_utils.loose_place_key(raw_loc))
-        candidates = [
-            ("江苏江阴", "家乡江阴，出发与归终之地"),
-            ("浙江天台山", "天台山"),
-            ("浙江雁荡山", "雁荡山"),
-            ("安徽黄山", "黄山"),
-            ("安徽齐云山", "白岳（齐云山）"),
-            ("江西庐山", "庐山"),
-            ("福建武夷山", "武夷山"),
-            ("河南嵩山", "嵩山"),
-            ("陕西华山", "华山"),
-            ("湖北武当山", "武当山"),
-            ("广东罗浮山", "罗浮山"),
-            ("广西桂林", "桂林"),
-            ("广西阳朔", "阳朔"),
-            ("广西漓江", "漓江"),
-            ("贵州黄果树瀑布", "黄果树瀑布"),
-            ("云南鸡足山", "鸡足山"),
-            ("云南大理", "大理"),
-            ("云南丽江", "丽江"),
-            ("湖南衡山", "衡山"),
-            ("山东泰山", "泰山"),
-            ("山西五台山", "五台山"),
-            ("河北盘山", "盘山"),
-        ]
-        extra = []
-        for loc_text, note in candidates:
-            key = profile_location_utils.loose_place_key(loc_text)
-            if not key or key in existing_keys:
-                continue
-            existing_keys.add(key)
-            extra.append(
-                {
-                    "name": loc_text,
-                    "location": loc_text,
-                    "type": "travel",
-                    "time": "",
-                    "duration": "",
-                    "event": f"行旅至{note}" if note else "",
-                    "significance": "",
-                    "quotes": "",
-                }
-            )
-        if extra:
-            locations = list(locations) + extra
 
-    loc_texts = [birth_loc, death_loc]
-    loc_texts.extend([loc.get("location") or loc.get("name") or "" for loc in locations])
-    batch_split_ancient_modern(loc_texts, event_callback=event_callback)
-    lifespan = info.get("享年", "")
-    birth_modern = split_ancient_modern(birth_geocode_loc or birth_loc, event_callback)[1]
-    death_modern = split_ancient_modern(death_geocode_loc or death_loc, event_callback)[1]
-    birth_coord = profile_location_utils.resolve_life_event_coord(
-        raw_text=birth_text,
-        raw_loc=birth_loc,
-        geocode_loc=birth_geocode_loc,
-        modern_loc=birth_modern,
-        coords_cache=coords_cache,
-        fuzzy_coord_lookup=fuzzy_coord_lookup,
-        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
-        resolve_place_coord=resolve_place_coord,
-        allow_geocode=allow_geocode,
-    )
-    death_coord = profile_location_utils.resolve_life_event_coord(
-        raw_text=death_text,
-        raw_loc=death_loc,
-        geocode_loc=death_geocode_loc,
-        modern_loc=death_modern,
-        coords_cache=coords_cache,
-        fuzzy_coord_lookup=fuzzy_coord_lookup,
-        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
-        resolve_place_coord=resolve_place_coord,
-        allow_geocode=allow_geocode,
-    )
-
+def _assemble_person_record(
+    *,
+    canonical_name: str,
+    name: str,
+    name_raw: str,
+    fallback_person: str,
+    title: str,
+    description: str,
+    short_review: str,
+    info: Dict[str, str],
+    birth_loc: str,
+    birth_date: str,
+    birth_coord: Optional[Coord],
+    death_loc: str,
+    death_date: str,
+    death_coord: Optional[Coord],
+    works: List[str],
+    normalized_md: str,
+    parsed_doc: object,
+) -> PersonRecord:
+    """Phase 5: assemble the person metadata record from parsed identity info."""
     dynasty = (info.get("时代", "") or info.get("朝代", "")).strip()
-    native_place = parser_utils._extract_native_place_from_story_text(
-        normalized_md,
-        basic_info_map=info,
-        overview=description,
+    native_place = parser_utils.extract_native_place_from_story_text(
+        normalized_md, basic_info_map=info, overview=description,
     )
-    highlight_status = str(summary.get("status") or info.get("历史地位", "") or "").strip()
-    highlight_identities = str(summary.get("identities") or info.get("主要身份", "") or "").strip()
+    highlight = _merge_person_summary_overrides(canonical_name, _get_person_summary_item(canonical_name))
+    highlight_status = str(highlight.get("status") or info.get("历史地位", "") or "").strip()
+    highlight_identities = str(highlight.get("identities") or info.get("主要身份", "") or "").strip()
     highlight_achievements = _normalize_person_achievements(
         canonical_name,
-        str(summary.get("achievements") or info.get("主要成就", "") or "").strip(),
+        str(highlight.get("achievements") or info.get("主要成就", "") or "").strip(),
     )
-    highlight_works = _sanitize_person_works(canonical_name, _merge_unique_strings(summary.get("works") or [], works))
-    summary_reviews = summary.get("reviews")
+    highlight_works = _sanitize_person_works(
+        canonical_name,
+        _merge_unique_strings(highlight.get("works") or [], works),
+    )
+    summary_reviews = highlight.get("reviews")
     if not isinstance(summary_reviews, list):
         summary_reviews = []
     highlight_reviews = _merge_unique_strings(summary_reviews, parsed_doc.historical_reviews)
+
     courtesy_name = str(info.get("字", "") or info.get("表字", "")).strip()
     art_name = str(info.get("号", "") or info.get("别号", "")).strip()
-    # When the source markdown writes the courtesy / art name in the
-    # `**姓名**` field (e.g. "王勃（字子安）") instead of using the
-    # dedicated `**字**` field, fall back to the parenthetical so it
-    # can still be surfaced in the introduction subtitle below the
-    # heading.
     if not courtesy_name or not art_name:
         paren_match = re.search(r"（([^（）]+)）", name_raw or "")
         if paren_match:
@@ -828,26 +873,38 @@ def build_profile_data(
                 courtesy_name = paren_value
             if not art_name and paren_value.startswith("号"):
                 art_name = paren_value[1:].strip() or art_name
+
     aliases = _split_person_alias_values(
-        info.get("别名", ""),
-        info.get("别称", ""),
-        info.get("曾用名", ""),
-        info.get("又名", ""),
-        courtesy_name,
-        art_name,
+        info.get("别名", ""), info.get("别称", ""), info.get("曾用名", ""),
+        info.get("又名", ""), courtesy_name, art_name,
     )
     foreign_name = str(info.get("外文名", "") or info.get("外文", "")).strip()
     if not foreign_name:
-        foreign_name, foreign_country, foreign_country_zh = _lookup_foreign_alias(name)
+        foreign_name = ""
+        foreign_country = ""
+        foreign_country_zh = ""
+        for candidate in (fallback_person, canonical_name, name, name_raw):
+            key = str(candidate or "").strip()
+            if not key or key == foreign_name:
+                continue
+            guess_name, guess_country, guess_country_zh = _lookup_foreign_alias(key)
+            if guess_name:
+                foreign_name = guess_name
+                foreign_country = guess_country
+                foreign_country_zh = guess_country_zh
+                break
+        if not foreign_name:
+            foreign_country = ""
+            foreign_country_zh = ""
     else:
         foreign_country = str(info.get("外文国家", "")).strip()
         foreign_country_zh = str(info.get("国家", "")).strip()
-    person = {
-        # Strip the parenthetical courtesy / art name from the display
-        # name so the heading only shows the person's actual name
-        # (e.g. "王勃" instead of "王勃（字子安）"). The courtesy name
-        # is preserved separately as courtesyName and can be rendered
-        # in the introduction subtitle below the heading.
+
+    canonical_name, name = _normalize_foreign_identity(
+        canonical_name, name, fallback_person, name_raw, info, foreign_name,
+    )
+
+    return {
         "name": canonical_name or "人物",
         "nameRaw": name,
         "foreignName": foreign_name,
@@ -855,6 +912,7 @@ def build_profile_data(
         "foreignCountryZh": foreign_country_zh,
         "title": title,
         "description": description,
+        "descriptionHighlights": _get_highlights(canonical_name),
         "quote": short_review or title,
         "shortReview": short_review or title,
         "dynasty": dynasty,
@@ -863,7 +921,8 @@ def build_profile_data(
         "aliases": aliases,
         "birthplace": birth_loc,
         "nativePlace": native_place,
-        "avatar": "",
+        "avatar": _resolve_portrait_filename(canonical_name, fallback_person, name_raw, name),
+        **_portrait_source_for_person(canonical_name, fallback_person, name_raw, name),
         "birth": {
             "date": birth_date,
             "location": birth_loc,
@@ -878,7 +937,7 @@ def build_profile_data(
             "lng": death_coord[1] if death_coord else None,
             "coordSystem": "WGS84" if death_coord else "",
         },
-        "lifespan": lifespan,
+        "lifespan": info.get("享年", ""),
         "highlights": {
             "honor": title,
             "status": highlight_status,
@@ -889,44 +948,78 @@ def build_profile_data(
         },
     }
 
+
+def _normalize_foreign_identity(
+    canonical_name: str,
+    name: str,
+    fallback_person: str,
+    name_raw: str,
+    info: Dict[str, str],
+    foreign_name: str,
+) -> Tuple[str, str]:
+    """Adjust canonical_name for foreign/Latin-name persons."""
+    name_field_has_latin = bool(re.search(r"[A-Za-z·]", str(info.get("姓名", "") or "")))
+    alias_entry = _load_foreign_aliases().get(str(canonical_name or "").strip()) or {}
+    alias_entry_fb = _load_foreign_aliases().get(str(fallback_person or "").strip()) or {}
+    is_chinese_native = bool(alias_entry.get("is_chinese_native")) or bool(alias_entry_fb.get("is_chinese_native"))
+    country_zh_hint = str(alias_entry.get("country_zh") or alias_entry_fb.get("country_zh") or "").strip()
+    if is_chinese_native or country_zh_hint == "中国":
+        return canonical_name, name
+    if name_field_has_latin and foreign_name and str(fallback_person or "").strip():
+        return str(fallback_person).strip(), str(fallback_person).strip()
+    return canonical_name, name
+
+
+def _finalize_profile(
+    person: Dict[str, object],
+    locations: List[Dict[str, object]],
+    canonical_name: str,
+    name: str,
+    fallback_person: str,
+    allow_geocode: bool,
+    birth_coord: Optional[Coord],
+    death_coord: Optional[Coord],
+    birth_loc: str,
+    death_loc: str,
+    birth_modern: str,
+    death_modern: str,
+    birth_date: str,
+    death_date: str,
+    coords_cache: Dict[str, Coord],
+    coords_search_map: Dict[str, List[Tuple[float, float, float]]],
+    event_callback: Optional[callable],
+    parsed_doc: object,
+    normalized_md: str,
+    highlight_works: List[str],
+    split_ancient_modern: Callable[..., Tuple[str, str]],
+    fuzzy_coord_lookup: Callable[..., Optional[Coord]],
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
+    resolve_place_coord: Callable[..., Optional[Coord]],
+) -> ProfileData:
+    """Phase 6: final assembly — build locations, attach summaries, return profile."""
     loc_items = profile_location_utils.build_location_items(
-        locations=locations,
-        coords_cache=coords_cache,
-        coords_search_map=coords_search_map,
-        person_name=name,
-        fallback_person=fallback_person,
-        allow_geocode=allow_geocode,
-        event_callback=event_callback,
-        split_ancient_modern=split_ancient_modern,
-        fuzzy_coord_lookup=fuzzy_coord_lookup,
-        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
-        resolve_place_coord=resolve_place_coord,
-        extract_works=extract_works,
-        split_quote_lines=split_quote_lines,
+        profile_location_utils.LocationBuildContext(
+            locations=locations, coords_cache=coords_cache,
+            coords_search_map=coords_search_map, person_name=name,
+            fallback_person=fallback_person, allow_geocode=allow_geocode,
+            event_callback=event_callback, split_ancient_modern=split_ancient_modern,
+            fuzzy_coord_lookup=fuzzy_coord_lookup,
+            lookup_coords_from_historical_index=lookup_coords_from_historical_index,
+            resolve_place_coord=resolve_place_coord,
+            extract_works=extract_works, split_quote_lines=split_quote_lines,
+        )
     )
     if not loc_items:
         loc_items = profile_location_utils.build_fallback_location_items(
-            coords_cache=coords_cache,
-            birth_coord=birth_coord,
-            death_coord=death_coord,
-            birth_loc=birth_loc,
-            death_loc=death_loc,
-            birth_modern=birth_modern,
-            death_modern=death_modern,
-            birth_date=birth_date,
-            death_date=death_date,
-            split_ancient_modern=split_ancient_modern,
-            event_callback=event_callback,
+            coords_cache=coords_cache, birth_coord=birth_coord, death_coord=death_coord,
+            birth_loc=birth_loc, death_loc=death_loc,
+            birth_modern=birth_modern, death_modern=death_modern,
+            birth_date=birth_date, death_date=death_date,
+            split_ancient_modern=split_ancient_modern, event_callback=event_callback,
         )
-    loc_items = _collapse_sparse_single_site_locations(loc_items)
-    loc_items = _sort_profile_locations(loc_items)
+    loc_items = profile_location_utils.collapse_sparse_single_site_locations(loc_items, extract_works=extract_works)
+    loc_items = profile_location_utils.sort_profile_locations(loc_items)
     loc_items = _attach_location_posters(canonical_name, loc_items)
-    work_summaries = _collect_profile_work_summaries(
-        normalized_md=normalized_md,
-        person_name=canonical_name,
-        highlight_works=highlight_works,
-        locations=loc_items,
-    )
     return {
         "person": person,
         "locations": loc_items,
@@ -941,9 +1034,128 @@ def build_profile_data(
         },
         "textbookPoints": parsed_doc.textbook_points,
         "examPoints": parsed_doc.exam_points,
-        "workTexts": work_texts,
-        "workSummaries": work_summaries,
+        "workTexts": extract_work_texts(normalized_md),
+        "workSummaries": _collect_profile_work_summaries(
+            normalized_md=normalized_md, person_name=canonical_name,
+            highlight_works=highlight_works, locations=loc_items,
+        ),
     }
+
+
+def build_profile_data(
+    md: str,
+    *,
+    fallback_person: str = "",
+    allow_geocode: bool = True,
+    event_callback: Optional[callable] = None,
+    split_ancient_modern: Callable[[str, Optional[callable]], Tuple[str, str]],
+    batch_split_ancient_modern: Callable[[List[str], Optional[callable]], None],
+    fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
+    lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
+    resolve_place_coord: Callable[..., Optional[Coord]],
+    build_points_fn: Callable[..., List[dict]],
+) -> Optional[ProfileData]:
+    if not isinstance(md, str) or not md.strip():
+        return None
+
+    # ── Phase 1: parse markdown ──
+    parsed_doc, info, locations, coords_cache, coords_search_map, normalized_md = (
+        _parse_md_and_fallback_info(md)
+    )
+    if not info and not locations:
+        return None
+
+    fallback_person = str(fallback_person or "").strip()
+    name_raw = str(info.get("姓名", "") or fallback_person).strip()
+
+    # ── Phase 2: resolve identity ──
+    canonical_name, name, title, description, works, short_review = (
+        _resolve_person_name_and_summary(
+            name_raw=name_raw,
+            fallback_person=fallback_person,
+            info=info,
+            description=parsed_doc.overview,
+            locations=locations,
+            normalized_md=normalized_md,
+            work_texts=extract_work_texts(normalized_md),
+            parsed_doc=parsed_doc,
+        )
+    )
+
+    # ── Phase 3: life events ──
+    birth_text = info.get("出生", "")
+    death_text = info.get("去世", "")
+    birth_date, birth_loc, birth_geocode_loc = parser_utils.parse_date_location_details(
+        birth_text, ["出生于", "生于"]
+    )
+    death_date, death_loc, death_geocode_loc = parser_utils.parse_date_location_details(
+        death_text, ["卒于", "去世于", "卒"]
+    )
+
+    # ── Phase 3b: fallback locations ──
+    locations = _resolve_fallback_locations(
+        locations, parsed_doc, build_points_fn,
+        allow_geocode=allow_geocode, event_callback=event_callback,
+    )
+
+    # ── Phase 3c: Xu Xiake candidates ──
+    person_key = canonical_name or fallback_person
+    locations = _inject_xu_xiake_candidates(person_key, name_raw, locations)
+
+    # ── Phase 4: coords ──
+    birth_text = info.get("出生", "")
+    death_text = info.get("去世", "")
+    loc_texts = [birth_loc, death_loc]
+    loc_texts.extend([loc.get("location") or loc.get("name") or "" for loc in locations])
+    batch_split_ancient_modern(loc_texts, event_callback=event_callback)
+    birth_modern = split_ancient_modern(birth_geocode_loc or birth_loc, event_callback)[1]
+    death_modern = split_ancient_modern(death_geocode_loc or death_loc, event_callback)[1]
+    birth_coord = profile_location_utils.resolve_life_event_coord(
+        raw_text=birth_text, raw_loc=birth_loc, geocode_loc=birth_geocode_loc,
+        modern_loc=birth_modern, coords_cache=coords_cache,
+        fuzzy_coord_lookup=fuzzy_coord_lookup,
+        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
+        resolve_place_coord=resolve_place_coord, allow_geocode=allow_geocode,
+    )
+    death_coord = profile_location_utils.resolve_life_event_coord(
+        raw_text=death_text, raw_loc=death_loc, geocode_loc=death_geocode_loc,
+        modern_loc=death_modern, coords_cache=coords_cache,
+        fuzzy_coord_lookup=fuzzy_coord_lookup,
+        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
+        resolve_place_coord=resolve_place_coord, allow_geocode=allow_geocode,
+    )
+
+    # ── Phase 5: person record ──
+    person = _assemble_person_record(
+        canonical_name=canonical_name, name=name, name_raw=name_raw,
+        fallback_person=fallback_person, title=title, description=description,
+        short_review=short_review, info=info, birth_loc=birth_loc,
+        birth_date=birth_date, birth_coord=birth_coord, death_loc=death_loc,
+        death_date=death_date, death_coord=death_coord, works=works,
+        normalized_md=normalized_md, parsed_doc=parsed_doc,
+    )
+
+    # ── Phase 6: final assembly ──
+    return _finalize_profile(
+        person=person, locations=locations, canonical_name=canonical_name,
+        name=name, fallback_person=fallback_person, allow_geocode=allow_geocode,
+        birth_coord=birth_coord, death_coord=death_coord, birth_loc=birth_loc,
+        death_loc=death_loc, birth_modern=birth_modern, death_modern=death_modern,
+        birth_date=birth_date, death_date=death_date, coords_cache=coords_cache,
+        coords_search_map=coords_search_map, event_callback=event_callback,
+        parsed_doc=parsed_doc, normalized_md=normalized_md,
+        highlight_works=_sanitize_person_works(
+            canonical_name,
+            _merge_unique_strings(
+                _merge_person_summary_overrides(canonical_name, _get_person_summary_item(canonical_name)).get("works") or [],
+                works,
+            ),
+        ),
+        split_ancient_modern=split_ancient_modern,
+        fuzzy_coord_lookup=fuzzy_coord_lookup,
+        lookup_coords_from_historical_index=lookup_coords_from_historical_index,
+        resolve_place_coord=resolve_place_coord,
+    )
 
 
 def load_profile_from_md(
@@ -957,8 +1169,8 @@ def load_profile_from_md(
     fuzzy_coord_lookup: Callable[[Dict[str, Coord], List[str]], Optional[Coord]],
     lookup_coords_from_historical_index: Callable[..., Optional[Coord]],
     resolve_place_coord: Callable[..., Optional[Coord]],
-    build_points_fn: Callable[..., List[Dict[str, object]]],
-) -> Optional[Dict[str, object]]:
+    build_points_fn: Callable[..., List[dict]],
+) -> Optional[ProfileData]:
     if not md:
         return None
     return build_profile_data(

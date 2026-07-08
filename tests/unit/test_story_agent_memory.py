@@ -1,16 +1,8 @@
-import sys
 import time
 import json
 
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 from storymap.script.runtime.legacy_agent import graph as story_agent_graph
 from storymap.script.runtime.legacy_agent import memory as story_agent_memory
-
 
 def test_story_agent_memory_store_persists_search_and_place_data(tmp_path):
     path = tmp_path / "story_agent_memory.json"
@@ -22,7 +14,6 @@ def test_story_agent_memory_store_persists_search_and_place_data(tmp_path):
 
     assert reloaded.get_person_search("李白") == {"person": "李白", "summary": "唐代诗人"}
     assert reloaded.get_place_map("碎叶城") == {"query": "碎叶城", "modern_name": "托克马克"}
-
 
 def test_story_markdown_agent_reuses_persisted_memory_across_agent_instances(tmp_path):
     calls = []
@@ -64,7 +55,6 @@ def test_story_markdown_agent_reuses_persisted_memory_across_agent_instances(tmp
     assert second["markdown"] == "# 李白\n"
     assert calls == ["search:李白"]
 
-
 def test_story_agent_memory_store_expires_entries_by_ttl(tmp_path):
     path = tmp_path / "story_agent_memory.json"
     payload = {
@@ -83,7 +73,6 @@ def test_story_agent_memory_store_expires_entries_by_ttl(tmp_path):
 
     assert store.get_person_search("李白") is None
 
-
 def test_story_agent_memory_store_invalidates_specific_entries(tmp_path):
     path = tmp_path / "story_agent_memory.json"
     store = story_agent_memory.StoryAgentMemoryStore(str(path))
@@ -96,7 +85,6 @@ def test_story_agent_memory_store_invalidates_specific_entries(tmp_path):
     reloaded = story_agent_memory.StoryAgentMemoryStore(str(path))
     assert reloaded.get_person_search("李白") is None
     assert reloaded.get_place_map("碎叶城") is None
-
 
 def test_story_agent_memory_store_ignores_old_schema_and_rewrites_new_payload(tmp_path):
     path = tmp_path / "story_agent_memory.json"

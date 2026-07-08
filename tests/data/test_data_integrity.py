@@ -18,13 +18,11 @@ from typing import Dict, Iterable, List
 
 import pytest
 
-
 from tests_support import REPO_ROOT
 
 ROOT = REPO_ROOT
 WORK_INDEX_PATH = ROOT / "data" / "corpus" / "work_summary_index.json"
 HOME_DATA_PATH = ROOT / "artifacts" / "story_map" / "stellar_home_data.json"
-
 
 CHINESE_DYNASTY_KEYWORDS = (
     "夏",
@@ -101,9 +99,7 @@ FOREIGN_DYNASTY_HINTS = (
     "阿拔斯",
 )
 
-
 # ---------- 共用加载 ---------- #
-
 
 @pytest.fixture(scope="module")
 def work_index() -> Dict[str, dict]:
@@ -115,7 +111,6 @@ def work_index() -> Dict[str, dict]:
         pytest.skip("work_summary_index.items 不是 dict")
     return items
 
-
 @pytest.fixture(scope="module")
 def home_nodes() -> List[dict]:
     if not HOME_DATA_PATH.exists():
@@ -126,9 +121,7 @@ def home_nodes() -> List[dict]:
         pytest.skip("stellar_home_data.nodes 为空")
     return [n for n in nodes if isinstance(n, dict)]
 
-
 # ---------- 1. 苏轼核心作品 tooltip 锁定 ---------- #
-
 
 SUSHI_REQUIRED_WORKS = {
     "水调歌头·明月几时有": {
@@ -163,7 +156,6 @@ SUSHI_REQUIRED_WORKS = {
     },
 }
 
-
 def _quote_texts(item: dict) -> List[str]:
     quotes = item.get("quotes") or []
     out: List[str] = []
@@ -175,7 +167,6 @@ def _quote_texts(item: dict) -> List[str]:
             if isinstance(text, str):
                 out.append(text)
     return out
-
 
 def test_sushi_core_works_tooltip_is_not_polluted(work_index: Dict[str, dict]) -> None:
     """苏轼 6 件核心作品 tooltip 字段必须命中关键关键字，且不允许串其他作品的代表句。"""
@@ -209,12 +200,9 @@ def test_sushi_core_works_tooltip_is_not_polluted(work_index: Dict[str, dict]) -
 
     assert not failures, "苏轼核心作品 tooltip 数据出现串条：\n" + "\n".join(failures)
 
-
 # ---------- 2. 作品摘要通用串条检测 ---------- #
 
-
 _WORK_TITLE_RE = re.compile(r"《([^《》\n]{1,30})》")
-
 
 def test_work_summary_does_not_mention_other_work_titles(work_index: Dict[str, dict]) -> None:
     """每个作品自己的摘要里，不应该出现其他作品的《xxx》标题。
@@ -223,6 +211,27 @@ def test_work_summary_does_not_mention_other_work_titles(work_index: Dict[str, d
     """
 
     allowed_self_mentions = {"前赤壁赋", "后赤壁赋"}
+
+    # 合法的“母作品引用其子篇 / 出处 / 别名”引用对：{母作品: {被引用作品, ...}}。
+    # 这些子篇/出处本身通常未单独收进索引，属于合理引用，不算串条。
+    allowed_reference_pairs = {
+        "爱情三部曲": {"雾", "雨", "电"},
+        "扁鹊见蔡桓公": {"韩非子·喻老"},
+        "步出夏门行": {"冬十月", "土不同"},
+        "二京赋": {"东京赋"},
+        "邯郸记": {"枕中记"},
+        "荐祢衡表": {"荐祢衡疏"},
+        "开皇律": {"唐律"},
+        "隆中对": {"三国志·诸葛亮传"},
+        "内外储": {"内储说", "外储说"},
+        "彷徨": {"伤逝", "孤独者"},
+        "让县自明本志令": {"述志令"},
+        "人·兽·鬼": {"上帝的梦", "猫", "灵感", "纪念"},
+        "神策军碑": {"皇帝巡幸左神策军纪圣德碑"},
+        "四书章句集注": {"中庸"},
+        "四洲志": {"地理全书"},
+        "天演论": {"进化论与伦理学"},
+    }
 
     violations: List[str] = []
     for name, item in work_index.items():
@@ -241,13 +250,14 @@ def test_work_summary_does_not_mention_other_work_titles(work_index: Dict[str, d
                 continue
             if ref in allowed_self_mentions or name in allowed_self_mentions:
                 continue
+            if ref in allowed_reference_pairs.get(name, set()):
+                continue
             # 允许当前作品名包含被引用作品名的情况：例如《和陶拟古九首》提到《拟古》
             # （苏轼"和陶诗"原本就是次韵陶渊明《拟古》系列）。
             if ref and ref in name:
                 continue
             # 允许真正存在的相关作品被引用，只要它本身在索引里且不是“当前作品名”的子串
             if ref in work_index and ref != name:
-                # 仅当不是本作品别名时才容忍
                 continue
             violations.append(f"《{name}》摘要里出现了无关作品标题《{ref}》")
         # 不允许在摘要里出现明显的“生平叙述”起始词
@@ -259,15 +269,12 @@ def test_work_summary_does_not_mention_other_work_titles(work_index: Dict[str, d
 
     assert not violations, "作品摘要存在串条嫌疑：\n" + "\n".join(violations[:30])
 
-
 # ---------- 3. 首页 is_foreign 与朝代一致性 ---------- #
-
 
 def _has_any(text: str, needles: Iterable[str]) -> bool:
     if not text:
         return False
     return any(n and n in text for n in needles)
-
 
 def test_is_foreign_consistent_with_dynasty(home_nodes: List[dict]) -> None:
     """is_foreign=True 的人物，其朝代不应仅包含中国朝代关键词；
@@ -294,12 +301,9 @@ def test_is_foreign_consistent_with_dynasty(home_nodes: List[dict]) -> None:
 
     assert not failures, "is_foreign 与朝代字段不一致：\n" + "\n".join(failures[:30])
 
-
 # ---------- 4. 已修复人物白名单 ---------- #
 
-
 REPAIRED_NON_FOREIGN_PEOPLE = ("徐光启", "梁思成", "郑成功")
-
 
 def test_repaired_people_should_not_be_foreign(home_nodes: List[dict]) -> None:
     """已经修复过的人物不应再次被画成方形。"""
@@ -315,13 +319,10 @@ def test_repaired_people_should_not_be_foreign(home_nodes: List[dict]) -> None:
 
     assert not failures, "白名单人物再次出现误判：\n" + "\n".join(failures)
 
-
 # ---------- 5. 字段缺失率不破基线 ---------- #
-
 
 MAX_MISSING_DYNASTY_RATIO = 0.05
 MAX_MISSING_BIRTHPLACE_RATIO = 0.30
-
 
 def test_field_missing_rate_within_baseline(home_nodes: List[dict]) -> None:
     """关键字段缺失率不应突破当前基线。

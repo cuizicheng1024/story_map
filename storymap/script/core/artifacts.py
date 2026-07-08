@@ -143,7 +143,7 @@ def _extract_export_data_from_html(html_text: str) -> Optional[Dict[str, object]
 
 
 def _relative_path(path: str) -> str:
-    root = _project_root()
+    root = project_root_path()
     if not path:
         return ""
     try:
@@ -224,7 +224,7 @@ def refresh_stellar_homepage(person: str = "") -> Dict[str, object]:
         [sys.executable, "tools/build_work_summary_index.py"],
         [
             sys.executable,
-            "tools/build_stellar_homepage.py",
+            "tools/build/homepage/main.py",
             "--story-map-dir",
             _story_artifacts_dir(),
             "--story-md-dir",
@@ -237,9 +237,14 @@ def refresh_stellar_homepage(person: str = "") -> Dict[str, object]:
     with _HOMEPAGE_REFRESH_LOCK:
         for command in commands:
             try:
+                env = dict(os.environ)
+                env["PYTHONPATH"] = os.pathsep.join(
+                    part for part in (_project_root(), env.get("PYTHONPATH", "")) if part
+                )
                 completed = subprocess.run(
                     command,
                     cwd=_project_root(),
+                    env=env,
                     capture_output=True,
                     text=True,
                     timeout=timeout_s,

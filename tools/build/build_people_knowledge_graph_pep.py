@@ -48,25 +48,7 @@ def main() -> int:
     for a, b, typ, w, ev in manual_edges:
         add_edge(a, b, typ, w, ev)
 
-    for tag, path in by_book_sources:
-        if not path.exists():
-            continue
-        obj = _load_json(path)
-        if not isinstance(obj, dict):
-            continue
-        for book, arr in obj.items():
-            if not isinstance(arr, list):
-                continue
-            cleaned = [str(x).strip() for x in arr if str(x).strip() in name_set]
-            cleaned = list(dict.fromkeys(cleaned))
-            for i in range(len(cleaned) - 1):
-                add_edge(
-                    cleaned[i],
-                    cleaned[i + 1],
-                    "same_book",
-                    2,
-                    f"同册（{tag}）：{book}",
-                )
+    # same_book 同册共现边已废弃，不再生成
 
     graph = {
         "nodes": [{"id": n, "label": n} for n in names],

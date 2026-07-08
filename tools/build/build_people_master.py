@@ -26,9 +26,16 @@ STORY_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _data_input_path(filename: str) -> Path:
-    if Path(DATA_DIR) != (REPO_ROOT / "data"):
-        corpus_path = Path(DATA_DIR) / "corpus" / filename
-        return corpus_path if corpus_path.exists() else (Path(DATA_DIR) / filename)
+    data_dir = Path(DATA_DIR)
+    if data_dir != Path(REPO_ROOT) / "data":
+        corpus_path = data_dir / "corpus" / filename
+        return corpus_path if corpus_path.exists() else (data_dir / filename)
+    direct_path = data_dir / filename
+    corpus_path = data_dir / "corpus" / filename
+    if direct_path.exists():
+        return direct_path
+    if corpus_path.exists():
+        return corpus_path
     return data_corpus_file_path(filename, project_root=REPO_ROOT)
 
 

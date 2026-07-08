@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """generate_pure_story_map.py
 
+import logging
+_logger = logging.getLogger(__name__)
 纯 HTML（高德地图）生成入口。
 
 目标：
@@ -51,18 +53,14 @@ def _repo_root() -> str:
     return str(project_root_path())
 
 
-def _story_artifacts_dir() -> str:
-    return str(story_artifacts_dir_path())
-
-
 def _add_import_paths() -> None:
     root = _repo_root()
-    new_path = os.path.join(root, "storymap", "script")
-    old_path = os.path.join(root, "map_story", "storymap", "script")
-    for p in [new_path, old_path]:
-        if p not in sys.path:
-            sys.path.insert(0, p)
+    if root not in sys.path:
+        sys.path.insert(0, root)
 
+
+def _story_artifacts_dir() -> str:
+    return str(story_artifacts_dir_path())
 
 def _default_md_path(person: str) -> str:
     return str(story_md_dir_path() / f"{person}.md")
@@ -76,7 +74,7 @@ def _read_text(path: str) -> str:
     try:
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
-    except Exception:
+    except Exception as _exc:
         return ""
 
 
@@ -111,7 +109,6 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
     if not accepted:
         raise RuntimeError(f"人物真实性过滤拦截：{Path(md_path).stem} ({reason})")
 
-    _add_import_paths()
     from storymap.script.cli import story_map as sm
     from storymap.script.profile import renderer
 
@@ -161,7 +158,7 @@ def generate_pure_html(md_path: str, out_path: Optional[str] = None, *, no_geoco
 
     try:
         _sync_alias_redirect_pages(Path(_story_artifacts_dir()).resolve())
-    except Exception:
+    except Exception as _exc:
         pass
     t3 = time.perf_counter()
 
@@ -187,7 +184,7 @@ def accept_person_html(person: str, *, mode: str = "pure", no_browser: bool = Tr
         # 否则像“苏东坡.md”这样的真实页面会被重新跳回别的人物页。
         redirects = person_redirects(_scan_people_from_story_md(md_dir))
         person_name = str(redirects.get(person_name, person_name) or "").strip() or person_name
-    except Exception:
+    except Exception as _exc:
         pass
     accepted, reason = classify_story_person_authenticity(person_name, md_dir, allow_unknown=False)
     if not accepted:
@@ -208,7 +205,7 @@ def accept_person_html(person: str, *, mode: str = "pure", no_browser: bool = Tr
     if not no_browser:
         try:
             webbrowser.open(f"file://{os.path.abspath(result['html_path'])}")
-        except Exception:
+        except Exception as _exc:
             pass
     return result
 
@@ -245,7 +242,7 @@ def _scan_people_from_story_map_html(story_map_dir: Path) -> Set[str]:
             continue
         try:
             text = p.read_text(encoding="utf-8", errors="ignore")
-        except Exception:
+        except Exception as _exc:
             text = ""
         # alias redirect stub 不应被当成“真实人物页已存在”，否则 render-missing
         # 会跳过本该补刷的独立人物页。
@@ -286,7 +283,7 @@ def _extract_html_template_signature(path: Path) -> str:
         return ""
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
-    except Exception:
+    except Exception as _exc:
         return ""
     m = re.search(r'"templateSignature"\s*:\s*"([^"]+)"', text)
     if not m:
@@ -311,7 +308,7 @@ def _changed_people(md_dir: Path, html_dir: Path) -> list[tuple[str, str]]:
         try:
             md_mtime = md_path.stat().st_mtime
             html_mtime = html_path.stat().st_mtime
-        except Exception:
+        except Exception as _exc:
             out.append((person, "stat_failed"))
             continue
         if md_mtime > html_mtime:
@@ -324,7 +321,6 @@ def _changed_people(md_dir: Path, html_dir: Path) -> list[tuple[str, str]]:
 
 
 def _render_people(people: list[str], *, md_dir: Path, html_dir: Path, mode: str, allow_cache: bool) -> int:
-    _add_import_paths()
     from storymap.script.cli import story_map as sm
 
     def work(person: str) -> tuple[str, str, float, str]:
@@ -383,11 +379,11 @@ def _refresh_homepage_once() -> bool:
         sys.path.insert(0, root)
     try:
         from storymap.script.core.artifacts import refresh_stellar_homepage  # type: ignore
-    except Exception:
+    except Exception as _exc:
         return False
     try:
         result = refresh_stellar_homepage("")
-    except Exception:
+    except Exception as _exc:
         return False
     return bool((result or {}).get("ok"))
 
@@ -396,15 +392,16 @@ def _sync_alias_redirect_pages(html_dir: Path) -> None:
     root = _repo_root()
     if root not in sys.path:
         sys.path.insert(0, root)
+    import importlib
     try:
-        from tools import build_stellar_homepage as homepage  # type: ignore
         from storymap.script.core.person_registry import person_redirects  # type: ignore
-    except Exception:
+        _homepage_main = importlib.import_module("tools.build.homepage.main")
+    except Exception as _exc:
         return
     # 这里必须保留动态过滤后的结果；如果过滤后为空，意味着当前磁盘上
     # 没有需要清理的 alias HTML，不能再回退到静态映射误删真实人物页。
-    redirects = person_redirects(_scan_people_from_story_md(story_md_dir_path()))
-    cleanup_redirects = getattr(homepage, "_remove_person_alias_redirect_pages", None)
+    redirects = person_redirects(_scan_people_from_story_md(Path(story_md_dir_path())))
+    cleanup_redirects = getattr(_homepage_main, "_remove_person_alias_redirect_pages", None)
     if not isinstance(redirects, dict) or not callable(cleanup_redirects):
         return
     html_dir.mkdir(parents=True, exist_ok=True)
@@ -492,6 +489,9 @@ def main() -> None:
     parser.add_argument("--changed-limit", type=int, default=0, help="render-changed 时最多处理多少人（0 表示不限制）")
     parser.add_argument("--no-geocode", action="store_true", help="生成单人 HTML 时不触发地理编码（只渲染现有坐标）")
     parser.add_argument("--no-browser", action="store_true", help="生成单人 HTML 后不自动打开浏览器")
+    parser.add_argument("--register", action="store_true", help="生成成功后自动注册到 corpus (people_master / summary / birth_coords)")
+    parser.add_argument("--rebuild-homepage", action="store_true", help="注册后再重跑 homepage/main.py 让首页出现新人物节点")
+    parser.add_argument("--async-summary-fill", action="store_true", help="把 LLM 摘要补全丢到后台线程,不阻塞生成流程")
     args = parser.parse_args()
 
     accept_person = getattr(args, "accept_person", None)
@@ -532,7 +532,12 @@ def main() -> None:
             raise SystemExit("需要提供 --md 或 --person")
         md_path = _default_md_path(args.person)
 
-    result = generate_pure_html(md_path=md_path, out_path=args.out, no_geocode=bool(args.no_geocode))
+    # 默认输出路径走 canonical <person>.html 而不是带时间戳的 __pure__<ts>.html,
+    # 这样 --register 的新人才能在 ``artifacts/story_map/<person>.html`` 上被
+    # 后续 homepage/main.py / 直接 URL 访问到。
+    out_path = args.out or (args.person and _canonical_html_path(args.person)) or None
+
+    result = generate_pure_html(md_path=md_path, out_path=out_path, no_geocode=bool(args.no_geocode))
 
     html_path = result["html_path"]
     file_url = "file://" + quote(os.path.abspath(html_path))
@@ -544,11 +549,32 @@ def main() -> None:
     if not args.no_browser:
         try:
             webbrowser.open(f"file://{os.path.abspath(html_path)}")
-        except Exception:
+        except Exception as _exc:
             pass
 
     d = result.get("duration") or {}
     print(f"耗时：解析 {d.get('parse')}，渲染 {d.get('render')}，写入 {d.get('write')}，总计 {d.get('total')}")
+
+    # 生成成功后,如果传了 --register, 自动把人物登记到 corpus 三层 index
+    if args.register and args.person:
+        try:
+            from storymap.script.agent.person_registry import register_new_person
+            reg = register_new_person(
+                args.person,
+                md_path=md_path,
+                html_path=html_path,
+                rebuild_homepage=bool(args.rebuild_homepage),
+                async_fill_summary=bool(args.async_summary_fill),
+            )
+            for k, v in reg.items():
+                if k == "person" or k == "md_chars":
+                    continue
+                if isinstance(v, tuple) and len(v) == 2:
+                    print(f"  registry.{k}: ok={v[0]}  detail={v[1]}")
+                else:
+                    print(f"  registry.{k}: {v}")
+        except Exception as exc:
+            print(f"[registry hook FAIL] {exc}")
 
 
 if __name__ == "__main__":

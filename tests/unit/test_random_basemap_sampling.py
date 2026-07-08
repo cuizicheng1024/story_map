@@ -3,10 +3,8 @@ import json
 import sys
 import types
 
-
 from tests_support import REPO_ROOT
 TOOLS_DIR = REPO_ROOT / "tools"
-
 
 def _load_module():
     fake_playwright = types.ModuleType("playwright")
@@ -30,7 +28,6 @@ def _load_module():
     spec.loader.exec_module(module)
     return module
 
-
 def test_candidate_pages_keeps_sparse_single_site_profiles(tmp_path):
     tool = _load_module()
     artifacts_dir = tmp_path / "artifacts"
@@ -52,7 +49,6 @@ def test_candidate_pages_keeps_sparse_single_site_profiles(tmp_path):
     assert len(candidates) == 1
     assert candidates[0]["person"] == "李春"
     assert candidates[0]["locations"] == 1
-
 
 def test_single_site_sampling_uses_zero_focus_and_skips_segment_requirement():
     _load_module()

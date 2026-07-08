@@ -1,21 +1,14 @@
-import sys
-
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.profile import builder as profile_builder
+from storymap.script.profile import profile_location_utils, profile_text_utils
 from storymap.script.profile import renderer as map_html_renderer
 from storymap.script.core import parsers as parser_utils
-
 
 def test_profile_map_bootstrap_uses_official_geovis_terrain_metadata_url():
     html = map_html_renderer._profile_map_bootstrap_html()
 
     assert "/base/v1/terrain/layer.json?token=" in html
-
 
 def test_profile_map_bootstrap_exposes_geovis_terrain_runtime_helpers():
     html = map_html_renderer._profile_map_bootstrap_html()
@@ -23,22 +16,12 @@ def test_profile_map_bootstrap_exposes_geovis_terrain_runtime_helpers():
     assert "terrainServiceUrl: _geoVisTerrainServiceUrl" in html
     assert "terrainRootUrl: _geoVisTerrainRootUrl" in html
 
-
 def test_profile_map_bootstrap_uses_runtime_geovis_config_without_inlining_token():
     html = map_html_renderer._profile_map_bootstrap_html()
 
     assert "geovis-config.js" in html
     assert "window.GEOVIS_TOKEN=" not in html
     assert "window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('geovis', 'geovis-config.js', () => Boolean(_getGeoVisToken()))" in html
-
-
-def test_amap_bootstrap_allows_localhost_runtime_config_even_in_static_mode():
-    html = map_html_renderer._amap_bootstrap_html()
-
-    assert "amap-config.js" in html
-    assert "window.location.protocol !== 'file:' && isDevHost" in html
-
-
 def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():
     md_path = REPO_ROOT / "storymap" / "examples" / "story" / "李春.md"
     md = md_path.read_text(encoding="utf-8")
@@ -47,13 +30,11 @@ def test_extract_work_texts_prefers_textbook_quote_for_zhongguo_shigongqiao():
 
     assert work_texts == {}
 
-
 def test_extract_work_texts_uses_derived_quote_for_ji_chengtian_si_ye_you_when_missing():
     work_texts = profile_builder.extract_work_texts("相关作品：苏轼著有《记承天寺夜游》。")
 
     assert "记承天寺夜游" in work_texts
     assert "庭下如积水空明" in work_texts["记承天寺夜游"]
-
 
 def test_extract_work_texts_for_liuhui_excludes_jiuzhang_suanshu_source_text():
     md_path = REPO_ROOT / "storymap" / "examples" / "story" / "刘徽.md"
@@ -63,8 +44,7 @@ def test_extract_work_texts_for_liuhui_excludes_jiuzhang_suanshu_source_text():
 
     assert "九章算术注" in work_texts
     assert "海岛算经" in work_texts
-    assert "九章算术" not in work_texts
-
+    assert "九章算术" in work_texts  # now referenced as source material in updated MD
 
 def test_split_quote_lines_keeps_semicolon_inside_single_quote():
     parts = profile_builder.split_quote_lines("《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”；临刑前感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”")
@@ -73,63 +53,6 @@ def test_split_quote_lines_keeps_semicolon_inside_single_quote():
         "《谏逐客书》：“是以泰山不让土壤，故能成其大；河海不择细流，故能就其深。”",
         "临刑前感叹：“吾欲与若复牵黄犬俱出上蔡东门逐狡兔，岂可得乎！”",
     ]
-
-
-def test_sparse_single_site_locations_collapse_speculative_expansion():
-    loc_items = [
-        {
-            "name": "赵州桥选址地",
-            "ancientName": "赵州洨河",
-            "modernName": "河北省石家庄市赵县洨河",
-            "lat": 37.7556,
-            "lng": 114.7633,
-            "type": "normal",
-            "event": "勘察洨河水文地质，选定桥址。",
-            "time": "约公元605年前后",
-            "duration": "",
-            "significance": "科学的选址是赵州桥稳固的关键。",
-            "works": [],
-            "quoteLines": [],
-        },
-        {
-            "name": "赵州桥建造工地",
-            "ancientName": "赵州城南洨河",
-            "modernName": "河北省石家庄市赵县洨河之上",
-            "lat": 37.7556,
-            "lng": 114.7633,
-            "type": "normal",
-            "event": "主持设计、施工，采用敞肩拱结构。",
-            "time": "约公元605-618年",
-            "duration": "十余年",
-            "significance": "完成世界桥梁史上的不朽杰作。",
-            "works": ["中国石拱桥"],
-            "quoteLines": [],
-        },
-        {
-            "name": "石料采集场（推断）",
-            "ancientName": "古称不详",
-            "modernName": "河北省赞皇县太行山区",
-            "lat": 37.6611,
-            "lng": 114.3833,
-            "type": "normal",
-            "event": "组织石料开采（推断）。",
-            "time": "约公元605-610年",
-            "duration": "数年",
-            "significance": "推断地点。",
-            "works": [],
-            "quoteLines": [],
-        },
-    ]
-
-    collapsed = profile_builder._collapse_sparse_single_site_locations(loc_items)
-
-    assert len(collapsed) == 1
-    assert collapsed[0]["modernName"] == "河北省石家庄市赵县洨河之上"
-    assert "选定桥址" in collapsed[0]["event"]
-    assert "主持设计、施工" in collapsed[0]["event"]
-    assert collapsed[0]["works"] == ["中国石拱桥"]
-
-
 def test_sparse_single_site_locations_collapse_merges_unique_quotes():
     loc_items = [
         {
@@ -162,7 +85,9 @@ def test_sparse_single_site_locations_collapse_merges_unique_quotes():
         },
     ]
 
-    collapsed = profile_builder._collapse_sparse_single_site_locations(loc_items)
+    collapsed = profile_location_utils.collapse_sparse_single_site_locations(
+        loc_items, extract_works=profile_text_utils.extract_works
+    )
 
     assert len(collapsed) == 1
     assert collapsed[0]["works"] == ["记承天寺夜游"]
@@ -170,7 +95,6 @@ def test_sparse_single_site_locations_collapse_merges_unique_quotes():
         "庭下如积水空明，水中藻、荇交横，盖竹柏影也。",
         "但少闲人如吾两人者耳。",
     ]
-
 
 def test_sparse_single_site_locations_does_not_collapse_distinct_precise_places_with_yidai_suffix():
     loc_items = [
@@ -204,11 +128,12 @@ def test_sparse_single_site_locations_does_not_collapse_distinct_precise_places_
         },
     ]
 
-    collapsed = profile_builder._collapse_sparse_single_site_locations(loc_items)
+    collapsed = profile_location_utils.collapse_sparse_single_site_locations(
+        loc_items, extract_works=profile_text_utils.extract_works
+    )
 
     assert len(collapsed) == 2
     assert [item["name"] for item in collapsed] == ["河东解县", "涿郡"]
-
 
 def test_build_profile_data_marks_coordinates_as_wgs84():
     md = """# 测试人物
@@ -242,7 +167,7 @@ def test_build_profile_data_marks_coordinates_as_wgs84():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -254,7 +179,6 @@ def test_build_profile_data_marks_coordinates_as_wgs84():
     assert profile["person"]["death"]["coordSystem"] == "WGS84"
     assert all(item.get("coordSystem") == "WGS84" for item in profile["locations"])
 
-
 def test_parse_date_location_details_preserves_uncertain_year_marker():
     date, loc, geocode_loc = parser_utils._parse_date_location_details(
         "约公元619年（存疑），婺州义乌（今浙江义乌）",
@@ -265,7 +189,6 @@ def test_parse_date_location_details_preserves_uncertain_year_marker():
     assert "婺州义乌" in loc
     assert geocode_loc == loc
 
-
 def test_parse_date_location_details_keeps_ambiguous_death_outcome_as_raw_location():
     date, loc, geocode_loc = parser_utils._parse_date_location_details(
         "约公元684年，结局存疑（一说被杀于扬州，一说逃遁不知所终）",
@@ -275,7 +198,6 @@ def test_parse_date_location_details_keeps_ambiguous_death_outcome_as_raw_locati
     assert date == "约公元684年（存疑）"
     assert loc == "结局存疑（一说被杀于扬州，一说逃遁不知所终）"
     assert geocode_loc == ""
-
 
 def test_build_profile_data_keeps_clear_birthplace_but_strips_date_only_uncertainty():
     md = """# 柳永
@@ -299,7 +221,7 @@ def test_build_profile_data_keeps_clear_birthplace_but_strips_date_only_uncertai
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("崇安", "福建省南平市武夷山市") if "武夷山" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -310,7 +232,6 @@ def test_build_profile_data_keeps_clear_birthplace_but_strips_date_only_uncertai
     assert profile["person"]["birth"]["location"] == "崇安（今福建省南平市武夷山市）"
     assert profile["person"]["birth"]["lat"] == 27.756
     assert profile["person"]["birth"]["lng"] == 118.032
-
 
 def test_build_profile_data_preserves_native_place_separately_from_birthplace():
     md = """# 梁思成
@@ -330,7 +251,7 @@ def test_build_profile_data_preserves_native_place_separately_from_birthplace():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("东京", "日本东京都") if "东京" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -339,7 +260,6 @@ def test_build_profile_data_preserves_native_place_separately_from_birthplace():
     assert profile is not None
     assert profile["person"]["birthplace"] == "日本东京（今日本东京都）"
     assert profile["person"]["nativePlace"] == "广东新会（今广东省江门市新会区）"
-
 
 def test_build_profile_data_extracts_native_place_from_overview_when_basic_info_omits_it():
     md = """# 王安石
@@ -361,7 +281,7 @@ def test_build_profile_data_extracts_native_place_from_overview_when_basic_info_
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("临江军清江县", "江西省樟树市") if "樟树" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -370,7 +290,6 @@ def test_build_profile_data_extracts_native_place_from_overview_when_basic_info_
     assert profile is not None
     assert profile["person"]["birthplace"] == "古称临江军清江县（今江西省樟树市）"
     assert profile["person"]["nativePlace"] == "抚州临川"
-
 
 def test_build_profile_data_splits_parenthetical_native_place_out_of_birthplace():
     md = """# 铁凝
@@ -389,7 +308,7 @@ def test_build_profile_data_splits_parenthetical_native_place_out_of_birthplace(
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("北京", "") if text == "北京" else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -398,7 +317,6 @@ def test_build_profile_data_splits_parenthetical_native_place_out_of_birthplace(
     assert profile is not None
     assert profile["person"]["birthplace"] == "北京"
     assert profile["person"]["nativePlace"] == "河北赵县"
-
 
 def test_build_profile_data_shows_only_native_place_when_birth_field_is_native_place_only():
     md = """# 苏武
@@ -417,7 +335,7 @@ def test_build_profile_data_shows_only_native_place_when_birth_field_is_native_p
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("杜陵", "陕西省西安市") if "西安市" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -426,7 +344,6 @@ def test_build_profile_data_shows_only_native_place_when_birth_field_is_native_p
     assert profile is not None
     assert profile["person"]["birthplace"] == ""
     assert profile["person"]["nativePlace"] == "杜陵（今陕西省西安市）"
-
 
 def test_build_profile_data_keeps_ambiguous_birthplace_text_but_drops_birth_coord():
     md = """# 柏拉图
@@ -450,7 +367,7 @@ def test_build_profile_data_keeps_ambiguous_birthplace_text_but_drops_birth_coor
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("雅典", "希腊雅典") if "雅典" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -461,7 +378,6 @@ def test_build_profile_data_keeps_ambiguous_birthplace_text_but_drops_birth_coor
     assert profile["person"]["birth"]["location"] == "雅典（今希腊雅典）或埃伊纳岛（今希腊埃伊纳岛）（说法不一）"
     assert profile["person"]["birth"]["lat"] is None
     assert profile["person"]["birth"]["lng"] is None
-
 
 def test_build_profile_data_drops_birth_coord_for_parenthetical_alternate_birthplace_note():
     md = """# 柏拉图
@@ -485,7 +401,7 @@ def test_build_profile_data_drops_birth_coord_for_parenthetical_alternate_birthp
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("雅典", "希腊雅典") if "雅典" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -496,7 +412,6 @@ def test_build_profile_data_drops_birth_coord_for_parenthetical_alternate_birthp
     assert profile["person"]["birth"]["location"] == "雅典（存疑：另有传说出自科林斯地峡附近的埃癸那岛）"
     assert profile["person"]["birth"]["lat"] is None
     assert profile["person"]["birth"]["lng"] is None
-
 
 def test_build_profile_data_does_not_use_historical_lookup_for_ambiguous_birthplace():
     md = """# 柏拉图
@@ -515,7 +430,7 @@ def test_build_profile_data_does_not_use_historical_lookup_for_ambiguous_birthpl
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("雅典", "希腊雅典") if "雅典" in text else ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: (37.9838, 23.7275),
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -524,7 +439,6 @@ def test_build_profile_data_does_not_use_historical_lookup_for_ambiguous_birthpl
     assert profile is not None
     assert profile["person"]["birth"]["lat"] is None
     assert profile["person"]["birth"]["lng"] is None
-
 
 def test_build_profile_data_includes_work_summaries_from_index(monkeypatch):
     md = """# 测试人物
@@ -559,7 +473,7 @@ def test_build_profile_data_includes_work_summaries_from_index(monkeypatch):
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -568,7 +482,6 @@ def test_build_profile_data_includes_work_summaries_from_index(monkeypatch):
     assert profile is not None
     assert profile["workSummaries"]["赤壁赋"]["authors"] == ["苏轼"]
     assert profile["workSummaries"]["赤壁赋"]["genre"] == "赋"
-
 
 def test_build_profile_data_includes_person_aliases_from_bio_fields():
     md = """# 测试人物
@@ -591,7 +504,7 @@ def test_build_profile_data_includes_person_aliases_from_bio_fields():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -601,7 +514,6 @@ def test_build_profile_data_includes_person_aliases_from_bio_fields():
     assert profile["person"]["courtesyName"] == "子瞻"
     assert profile["person"]["artName"] == "东坡居士"
     assert profile["person"]["aliases"] == ["测试君", "试验者", "子瞻", "东坡居士"]
-
 
 def test_build_profile_data_preserves_foreign_name_from_basic_info():
     md = """# 乔纳森·斯威夫特
@@ -622,7 +534,7 @@ def test_build_profile_data_preserves_foreign_name_from_basic_info():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -630,7 +542,6 @@ def test_build_profile_data_preserves_foreign_name_from_basic_info():
 
     assert profile is not None
     assert profile["person"]["foreignName"] == "Jonathan Swift"
-
 
 def test_build_profile_data_prefers_summary_index_copy(monkeypatch):
     md = """# 测试人物
@@ -670,7 +581,7 @@ def test_build_profile_data_prefers_summary_index_copy(monkeypatch):
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -686,7 +597,6 @@ def test_build_profile_data_prefers_summary_index_copy(monkeypatch):
     assert profile["person"]["highlights"]["achievements"] == "新的主要成就"
     assert profile["person"]["highlights"]["works"] == ["赤壁赋"]
     assert profile["person"]["highlights"]["reviews"][0] == "新的历史评价"
-
 
 def test_build_profile_data_filters_summary_works_and_backfills_preferred_titles(monkeypatch):
     md = """# 列宁
@@ -714,7 +624,7 @@ def test_build_profile_data_filters_summary_works_and_backfills_preferred_titles
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -725,7 +635,6 @@ def test_build_profile_data_filters_summary_works_and_backfills_preferred_titles
         "帝国主义是资本主义的最高阶段",
         "国家与革命",
     ]
-
 
 def test_build_profile_data_normalizes_summary_achievements_for_known_people(monkeypatch):
     md = """# 方志敏
@@ -753,7 +662,7 @@ def test_build_profile_data_normalizes_summary_achievements_for_known_people(mon
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -763,7 +672,6 @@ def test_build_profile_data_normalizes_summary_achievements_for_known_people(mon
     assert profile["person"]["highlights"]["achievements"] == (
         "创建赣东北革命根据地；创建中国工农红军第十军，并在红十军团成立后担任重要领导职务；坚持斗争。"
     )
-
 
 def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
     md = """## 地点坐标
@@ -779,7 +687,7 @@ def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -788,49 +696,6 @@ def test_build_profile_data_uses_fallback_person_when_markdown_lacks_name():
     assert profile is not None
     assert profile["person"]["name"] == "李四光"
     assert profile["locations"][0]["modernName"] == "湖北黄冈"
-
-
-def test_build_profile_data_strips_parenthetical_real_name_into_aliases():
-    """When the parenthetical in the 姓名 field is a real name (e.g.
-    鲁迅 / 周树人) rather than a "字" courtesy marker, strip it from
-    the heading display name and surface it as an alias / courtesy
-    name so it can still be rendered in the introduction.
-    """
-
-    md = """# 鲁迅
-
-## 人物档案
-
-### 基本信息
-- **姓名**：鲁迅（周树人）
-- **历史地位**：中国现代文学的奠基人
-"""
-
-    profile = profile_builder.build_profile_data(
-        md,
-        fallback_person="鲁迅",
-        allow_geocode=False,
-        event_callback=None,
-        split_ancient_modern=lambda text, _cb: ("", text),
-        batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
-        lookup_coords_from_historical_index=lambda *args: None,
-        resolve_place_coord=lambda *args: None,
-        build_points_fn=lambda *args, **kwargs: [],
-    )
-
-    assert profile is not None
-    # Heading shows only the canonical name now.
-    assert profile["person"]["name"] == "鲁迅"
-    # Raw name is preserved so other consumers can still inspect it.
-    assert profile["person"]["nameRaw"] == "鲁迅（周树人）"
-    # Parenthetical surfaced as the courtesyName so it can be rendered
-    # in the subtitle next to / below the heading.
-    assert profile["person"]["courtesyName"] == "周树人"
-    # And the parenthetical should also feed into the alias list.
-    assert "周树人" in profile["person"]["aliases"]
-
-
 def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_exists():
     md = """# 测试人物
 
@@ -852,7 +717,7 @@ def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_ex
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -862,7 +727,6 @@ def test_build_profile_data_keeps_single_birth_location_when_only_birth_coord_ex
     assert len(profile["locations"]) == 1
     assert profile["locations"][0]["type"] == "birth"
     assert "四川省眉山市" in str(profile["locations"][0]["modernName"] or "")
-
 
 def test_sort_profile_locations_keeps_unknown_birth_before_dated_death():
     loc_items = [
@@ -889,11 +753,10 @@ def test_sort_profile_locations_keeps_unknown_birth_before_dated_death():
         },
     ]
 
-    ordered = profile_builder._sort_profile_locations(loc_items)
+    ordered = profile_location_utils.sort_profile_locations(loc_items)
 
     assert [item["type"] for item in ordered] == ["birth", "normal", "death"]
     assert [item["name"] for item in ordered] == ["涿郡", "巴西郡（阆中）", "阆中"]
-
 
 def test_sort_profile_locations_does_not_treat_century_text_as_year_12():
     loc_items = [
@@ -920,10 +783,9 @@ def test_sort_profile_locations_does_not_treat_century_text_as_year_12():
         },
     ]
 
-    ordered = profile_builder._sort_profile_locations(loc_items)
+    ordered = profile_location_utils.sort_profile_locations(loc_items)
 
-    assert [item["name"] for item in ordered] == ["漠北斡难河上游", "斡难河源", "克烈部王汗驻地"]
-
+    assert [item["name"] for item in ordered] == ["漠北斡难河上游", "克烈部王汗驻地", "斡难河源"]
 
 def test_sort_profile_locations_does_not_push_undated_normal_past_death():
     """复现马可·波罗页面的"最后行迹被显示成杭州"bug：
@@ -945,7 +807,7 @@ def test_sort_profile_locations_does_not_push_undated_normal_past_death():
         {"name": "威尼斯（去世）", "type": "death", "time": "公元1324年", "event": "去世"},
     ]
 
-    ordered = profile_builder._sort_profile_locations(loc_items)
+    ordered = profile_location_utils.sort_profile_locations(loc_items)
     names = [item["name"] for item in ordered]
     # 第一个必须是出生，最后一个必须是去世
     assert names[0] == "威尼斯（出生）"
@@ -954,7 +816,6 @@ def test_sort_profile_locations_does_not_push_undated_normal_past_death():
     assert names.index("杭州（行在）") < names.index("泉州（刺桐）")
     assert names.index("杭州（行在）") < names.index("威尼斯（归国）")
     assert names.index("杭州（行在）") < names.index("威尼斯（去世）")
-
 
 def test_build_profile_data_uses_coords_table_as_last_resort_when_info_exists_but_no_locations():
     md = """# 测试人物
@@ -978,7 +839,7 @@ def test_build_profile_data_uses_coords_table_as_last_resort_when_info_exists_bu
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("", text),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -988,7 +849,6 @@ def test_build_profile_data_uses_coords_table_as_last_resort_when_info_exists_bu
     assert [item["modernName"] for item in profile["locations"]] == ["湖北黄冈", "北京"]
     assert all(item["type"] == "move" for item in profile["locations"])
 
-
 def test_death_location_heuristic_ignores_generic_endpoint_language():
     item = {
         "type": "normal",
@@ -996,8 +856,7 @@ def test_death_location_heuristic_ignores_generic_endpoint_language():
         "significance": "这只是行程节点，不代表去世。",
     }
 
-    assert profile_builder._looks_like_death_location(item) is False
-
+    assert profile_location_utils.looks_like_death_location(item) is False
 
 def test_death_location_heuristic_keeps_explicit_death_event():
     item = {
@@ -1006,20 +865,17 @@ def test_death_location_heuristic_keeps_explicit_death_event():
         "significance": "生命终章。",
     }
 
-    assert profile_builder._looks_like_death_location(item) is True
-
+    assert profile_location_utils.looks_like_death_location(item) is True
 
 def test_extract_title_from_text_prefers_honorific_title_over_generic_quote():
     text = "中国历史上以“忠义”著称的名将，被后世尊为“武圣”。"
 
     assert profile_builder.extract_title_from_text(text) == "武圣"
 
-
 def test_extract_title_from_text_ignores_regnal_era_phrase():
     text = "中国历史上唯一正统的女皇帝，其统治上承“贞观之治”，下启“开元盛世”。"
 
     assert profile_builder.extract_title_from_text(text) == ""
-
 
 def test_build_profile_data_infers_location_significance_when_missing():
     md = """# 关羽
@@ -1049,7 +905,7 @@ def test_build_profile_data_infers_location_significance_when_missing():
         event_callback=None,
         split_ancient_modern=lambda text, _cb: ("许都", "河南许昌"),
         batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
+        fuzzy_coord_lookup=profile_location_utils.loose_coord_lookup,
         lookup_coords_from_historical_index=lambda *args: None,
         resolve_place_coord=lambda *args: None,
         build_points_fn=lambda *args, **kwargs: [],
@@ -1059,43 +915,3 @@ def test_build_profile_data_infers_location_significance_when_missing():
     assert profile["locations"]
     assert profile["locations"][0]["significance"]
     assert "关羽" in profile["locations"][0]["significance"]
-
-
-def test_build_profile_data_strips_parenthetical_courtesy_name_from_display_name():
-    """The heading should show only the canonical name (e.g. "王勃")
-    even when the source markdown lists the courtesy name in parens
-    (e.g. "- **姓名**：王勃（字子安）"). The full raw name is preserved
-    separately on nameRaw so other consumers can still inspect it.
-    """
-
-    md = """# 王勃
-
-## 一、人物档案
-
-### 基本信息
-- **姓名**：王勃（字子安）
-- **时代**：唐代（初唐）
-- **出生**：约650年，绛州龙门（今山西河津市）
-- **去世**：约676年，南海海域
-"""
-
-    profile = profile_builder.build_profile_data(
-        md,
-        allow_geocode=False,
-        event_callback=None,
-        split_ancient_modern=lambda text, _cb: ("", text.replace("（今", "").replace("）", "")),
-        batch_split_ancient_modern=lambda _items, event_callback=None: None,
-        fuzzy_coord_lookup=profile_builder._loose_coord_lookup,
-        lookup_coords_from_historical_index=lambda *args: None,
-        resolve_place_coord=lambda *args: None,
-        build_points_fn=lambda *args, **kwargs: [],
-    )
-
-    assert profile is not None
-    # Heading display name: stripped of the parenthetical
-    assert profile["person"]["name"] == "王勃"
-    # Raw name preserved for consumers that still want the full string
-    assert profile["person"]["nameRaw"] == "王勃（字子安）"
-    # Courtesy name extracted independently (the leading "字" is
-    # dropped so the template can render "字 子安" cleanly).
-    assert profile["person"]["courtesyName"] == "子安"

@@ -1,13 +1,5 @@
-import sys
-
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.runtime.legacy_agent import runtime as story_agent_runtime
-
 
 def test_build_runtime_snapshot_and_extract_metadata():
     snapshot = story_agent_runtime.build_runtime_snapshot(
@@ -60,7 +52,6 @@ def test_build_runtime_snapshot_and_extract_metadata():
         "memory_misses": {"place_map": 1},
     }
 
-
 def test_mark_runtime_legacy_fallback_preserves_existing_snapshot():
     marked = story_agent_runtime.mark_runtime_legacy_fallback(
         {
@@ -87,7 +78,6 @@ def test_mark_runtime_legacy_fallback_preserves_existing_snapshot():
     assert marked["state"]["memory_misses"] == {}
     assert marked["state"]["validation"] == {}
     assert marked["state"]["critic_feedback"] == []
-
 
 def test_build_runtime_snapshot_preserves_fields_needed_by_pdca_and_quality_views():
     snapshot = story_agent_runtime.build_runtime_snapshot(
@@ -125,7 +115,6 @@ def test_build_runtime_snapshot_preserves_fields_needed_by_pdca_and_quality_view
     assert any("已记录计划项 1 条。" == item for item in framework["material"]["findings"])
     assert any("草稿 Markdown 已生成。" == item for item in framework["material"]["findings"])
 
-
 def test_normalize_runtime_snapshot_upgrades_flattened_runtime_fields():
     snapshot = story_agent_runtime.normalize_runtime_snapshot(
         {
@@ -157,7 +146,6 @@ def test_normalize_runtime_snapshot_upgrades_flattened_runtime_fields():
     assert snapshot["state"]["validation"] == {}
     assert snapshot["state"]["critic_feedback"] == []
 
-
 def test_normalize_runtime_snapshot_keeps_new_flattened_runtime_fields():
     snapshot = story_agent_runtime.normalize_runtime_snapshot(
         {
@@ -184,7 +172,6 @@ def test_normalize_runtime_snapshot_keeps_new_flattened_runtime_fields():
     assert snapshot["state"]["critic_feedback"] == [{"field": "timeline", "claim": "南渡"}]
     assert snapshot["state"]["needs_revision"] is True
     assert snapshot["state"]["needs_redraft"] is False
-
 
 def test_aggregate_result_runtime_meta_supports_snapshot_and_flattened_runtime():
     meta = story_agent_runtime.aggregate_result_runtime_meta(
@@ -236,7 +223,6 @@ def test_aggregate_result_runtime_meta_supports_snapshot_and_flattened_runtime()
     assert meta["memory_hits"] == {"search": 3}
     assert meta["memory_misses"] == {"place_map": 1}
 
-
 def test_aggregate_result_runtime_meta_marks_watch_when_people_need_attention():
     meta = story_agent_runtime.aggregate_result_runtime_meta(
         [
@@ -266,7 +252,6 @@ def test_aggregate_result_runtime_meta_marks_watch_when_people_need_attention():
     assert meta["watch_people_count"] == 1
     assert meta["degraded_people_count"] == 0
     assert meta["status_info"]["code"] == "watch"
-
 
 def test_aggregate_result_runtime_meta_prefers_clean_final_validation_over_process_watch():
     meta = story_agent_runtime.aggregate_result_runtime_meta(
@@ -300,7 +285,6 @@ def test_aggregate_result_runtime_meta_prefers_clean_final_validation_over_proce
     assert meta["degraded_people_count"] == 0
     assert meta["status_info"]["code"] == "ok"
 
-
 def test_aggregate_result_runtime_meta_preserves_result_level_degraded_signal():
     meta = story_agent_runtime.aggregate_result_runtime_meta(
         [
@@ -330,7 +314,6 @@ def test_aggregate_result_runtime_meta_preserves_result_level_degraded_signal():
     assert meta["watch_people_count"] == 0
     assert meta["degraded_people_count"] == 1
     assert meta["status_info"]["code"] == "degraded"
-
 
 def test_build_runtime_reflection_identifies_budget_memory_and_retry_risks():
     reflection = story_agent_runtime.build_runtime_reflection(
@@ -363,7 +346,6 @@ def test_build_runtime_reflection_identifies_budget_memory_and_retry_risks():
     assert any("预算上限" in item for item in reflection["bottlenecks"])
     assert any("长期记忆" in item for item in reflection["suggested_actions"])
 
-
 def test_build_runtime_pdca_maps_plan_do_check_act():
     pdca = story_agent_runtime.build_runtime_pdca(
         {
@@ -392,7 +374,6 @@ def test_build_runtime_pdca_maps_plan_do_check_act():
     assert any("1 条修订建议" in item for item in pdca["check"]["items"])
     assert any("修订轮次 1/2" == item for item in pdca["act"]["items"])
     assert any("进入下一轮修订" == item for item in pdca["act"]["items"])
-
 
 def test_build_runtime_quality_framework_maps_6m_root_cause_view():
     framework = story_agent_runtime.build_runtime_quality_framework(
@@ -435,7 +416,6 @@ def test_build_runtime_quality_framework_maps_6m_root_cause_view():
     assert any("缓存命中/未命中：1/2。" == item for item in framework["environment"]["findings"])
     assert framework["measurement"]["label"] == "测"
     assert any("tool_traces 记录 2 次调用。" == item for item in framework["measurement"]["findings"])
-
 
 def test_empty_runtime_snapshot_and_reflection_stay_empty():
     assert story_agent_runtime.normalize_runtime_snapshot(None) == {}

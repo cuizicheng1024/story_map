@@ -1,21 +1,13 @@
-import sys
-
-
 from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.core import project_paths
 from storymap.script.core import project_paths as core_project_paths
-
 
 def test_project_paths_shim_aliases_impl_module(monkeypatch):
     monkeypatch.setattr(project_paths, "project_root_path", lambda: REPO_ROOT)
 
     assert project_paths is core_project_paths
     assert core_project_paths.project_root_path() == REPO_ROOT
-
 
 def test_classify_story_person_authenticity_uses_known_registry_when_story_missing(tmp_path, monkeypatch):
     repo_root = tmp_path / "repo"
@@ -33,7 +25,6 @@ def test_classify_story_person_authenticity_uses_known_registry_when_story_missi
         "unknown_person",
     )
 
-
 def test_classify_story_person_authenticity_does_not_trust_raw_people_json_lists(tmp_path, monkeypatch):
     repo_root = tmp_path / "repo"
     story_dir = repo_root / "storymap" / "examples" / "story"
@@ -50,7 +41,6 @@ def test_classify_story_person_authenticity_does_not_trust_raw_people_json_lists
     assert project_paths.classify_story_person_authenticity("苏东坡", story_dir) == (True, "")
     assert project_paths.classify_story_person_authenticity("嫦娥", story_dir)[0] is False
 
-
 def test_story_person_names_filters_virtual_example_story(tmp_path):
     story_dir = tmp_path / "story"
     story_dir.mkdir(parents=True)
@@ -62,7 +52,6 @@ def test_story_person_names_filters_virtual_example_story(tmp_path):
     (story_dir / "苏轼.md").write_text("# 苏轼\n", encoding="utf-8")
 
     assert project_paths.story_person_names(story_dir) == ["苏轼"]
-
 
 def test_authentic_biography_is_not_rejected_by_late_fiction_reference(tmp_path):
     story_dir = tmp_path / "story"
@@ -80,7 +69,6 @@ def test_authentic_biography_is_not_rejected_by_late_fiction_reference(tmp_path)
     assert project_paths.classify_story_person_authenticity("董卓", story_dir) == (True, "")
     assert project_paths.story_person_names(story_dir) == ["董卓"]
 
-
 def test_known_authentic_person_names_ignores_derived_people_master_outputs(tmp_path, monkeypatch):
     repo_root = tmp_path / "repo"
     story_dir = repo_root / "storymap" / "examples" / "story"
@@ -96,7 +84,6 @@ def test_known_authentic_person_names_ignores_derived_people_master_outputs(tmp_
     assert "苏轼" in names
     assert "苏东坡" in names
     assert "海绵宝宝" not in names
-
 
 def test_data_path_helpers_prefer_new_subdirs_when_present(tmp_path):
     repo_root = tmp_path / "repo"
@@ -130,30 +117,30 @@ def test_data_path_helpers_prefer_new_subdirs_when_present(tmp_path):
         runtime_dir / "hard_place_review_queue.md"
     )
 
-
-def test_data_path_helpers_fall_back_to_data_root_without_new_subdirs(tmp_path):
+def test_data_path_helpers_always_return_subdir_paths(tmp_path):
+    """子目录存在时直接返回子目录路径，不存在时不回退到 data/ 根。"""
     repo_root = tmp_path / "repo"
     data_dir = repo_root / "data"
     data_dir.mkdir(parents=True)
-    (data_dir / "people_master.json").write_text("{}", encoding="utf-8")
-    (data_dir / "build_manifest.json").write_text("{}", encoding="utf-8")
-    (data_dir / "hard_place_review_queue.json").write_text("{}", encoding="utf-8")
+    corpus_dir = data_dir / "corpus"
+    reports_dir = data_dir / "reports"
+    runtime_dir = data_dir / "runtime"
 
     assert project_paths.data_corpus_file_path("people_master.json", project_root=repo_root) == (
-        data_dir / "people_master.json"
+        corpus_dir / "people_master.json"
     )
     assert project_paths.data_reports_file_path("build_manifest.json", project_root=repo_root) == (
-        data_dir / "build_manifest.json"
+        reports_dir / "build_manifest.json"
     )
     assert project_paths.data_runtime_file_path("hard_place_review_queue.json", project_root=repo_root) == (
-        data_dir / "hard_place_review_queue.json"
+        runtime_dir / "hard_place_review_queue.json"
     )
     assert project_paths.data_corpus_output_path("people_summary_index.json", project_root=repo_root) == (
-        data_dir / "people_summary_index.json"
+        corpus_dir / "people_summary_index.json"
     )
     assert project_paths.data_reports_output_path("performance_baseline.json", project_root=repo_root) == (
-        data_dir / "performance_baseline.json"
+        reports_dir / "performance_baseline.json"
     )
     assert project_paths.data_runtime_output_path("hard_place_review_queue.md", project_root=repo_root) == (
-        data_dir / "hard_place_review_queue.md"
+        runtime_dir / "hard_place_review_queue.md"
     )

@@ -1,8 +1,7 @@
 import importlib
 import warnings
 
-from tools import homepage_search
-
+from tools.build import homepage_search
 
 def test_build_search_fields_include_name_alias_and_foreign_name():
     fields = homepage_search.build_search_fields(
@@ -18,11 +17,9 @@ def test_build_search_fields_include_name_alias_and_foreign_name():
     assert "王昭君" in fields["search_tokens"]
     assert "zhaojunwang" in fields["search_tokens"]
 
-
 def test_normalize_search_text_strips_spacing_and_punctuation():
     assert homepage_search.normalize_search_text(" Zhaojun-Wang ") == "zhaojunwang"
     assert homepage_search.normalize_search_text("《王昭君》") == "王昭君"
-
 
 def test_reload_homepage_search_suppresses_pypinyin_codecs_deprecation_warning():
     with warnings.catch_warnings(record=True) as caught:

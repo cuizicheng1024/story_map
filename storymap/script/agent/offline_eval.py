@@ -11,7 +11,7 @@ from ..core.project_paths import data_corpus_file_path, project_root_path
 
 
 def _project_root() -> Path:
-    return Path(project_root_path())
+    return project_root_path()
 
 
 def _safe_read_json(path: Path) -> object:
@@ -127,7 +127,7 @@ def _place_token_set(md: str) -> set[str]:
         values.append(str(getattr(loc, "location_text", "") or ""))
     out = set()
     for value in values:
-        norm = parser_utils._normalize_place_key(value)
+        norm = parser_utils.normalize_place_key(value)
         if norm:
             out.add(norm)
     return out
@@ -140,7 +140,7 @@ def load_benchmark_people(
     limit: Optional[int] = None,
     root: Optional[Path] = None,
 ) -> List[str]:
-    repo_root = root or _project_root()
+    repo_root = root or project_root_path()
     selected: List[str] = []
     if people:
         selected = [str(item).strip() for item in people if str(item or "").strip()]
@@ -165,7 +165,7 @@ def load_benchmark_people(
 
 
 def load_ground_truth_markdown(person: str, *, root: Optional[Path] = None) -> str:
-    repo_root = root or _project_root()
+    repo_root = root or project_root_path()
     path = repo_root / "storymap" / "examples" / "story" / f"{person}.md"
     return path.read_text(encoding="utf-8")
 
@@ -191,7 +191,7 @@ def enrich_markdown_for_evaluation(md: str) -> str:
     if not isinstance(md, str) or not md.strip():
         return ""
     from ..map import map_client
-    enriched = parser_utils._normalize_markdown_tables(md)
+    enriched = parser_utils.normalize_markdown_tables(md)
     enriched = map_client.append_coords_section(enriched)
     distance_km = map_client.compute_total_distance_km(enriched)
     if isinstance(distance_km, float):
@@ -251,7 +251,7 @@ def evaluate_people(
     postprocess_markdown: Optional[Callable[[str], str]] = None,
     root: Optional[Path] = None,
 ) -> Dict[str, object]:
-    repo_root = root or _project_root()
+    repo_root = root or project_root_path()
     per_person: List[Dict[str, object]] = []
     for person in people:
         gt_md = load_ground_truth_markdown(person, root=repo_root)

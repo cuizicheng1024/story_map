@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 
-_BANNED_PLACE_KEYS = {"中国", "全国", "世界", "海外", "国内", "各地"}
+BANNED_PLACE_KEYS = {"中国", "全国", "世界", "海外", "国内", "各地"}
 
 from .models import BasicInfo, LocationEntry, ParsedStoryDocument
 from .project_paths import data_corpus_file_path
@@ -26,7 +26,7 @@ def _is_table_separator(line: str) -> bool:
     return all(re.fullmatch(r":?-{3,}:?", c) is not None for c in cells)
 
 
-def _pick_geocode_name(text: str) -> str:
+def pick_geocode_name(text: str) -> str:
     if not text:
         return ""
     match = re.search(r"今([^）)]+)", text)
@@ -94,13 +94,13 @@ def _extract_native_place_from_text(text: str) -> str:
     return ""
 
 
-def _extract_native_place_from_story_text(
+def extract_native_place_from_story_text(
     md_text: str,
     *,
     basic_info_map: Optional[Dict[str, str]] = None,
     overview: str = "",
 ) -> str:
-    info = basic_info_map or _parse_basic_info(md_text)
+    info = basic_info_map or parse_basic_info(md_text)
     direct = _clean_native_place_text(str((info or {}).get("籍贯", "") or (info or {}).get("祖籍", "")).strip())
     if direct:
         return direct
@@ -191,7 +191,7 @@ def _birthplace_has_alternate_place_note(text: str) -> bool:
     )
 
 
-def _normalize_place_key(text: str) -> str:
+def normalize_place_key(text: str) -> str:
     raw = str(text or "").strip()
     if not raw:
         return ""
@@ -274,7 +274,7 @@ def _load_historical_places_index() -> Dict[str, Tuple[float, float]]:
                 except Exception:
                     continue
                 for key in (ancient, modern):
-                    norm = _normalize_place_key(key)
+                    norm = normalize_place_key(key)
                     if norm and norm not in mapping:
                         mapping[norm] = (lat, lon)
     except Exception:
@@ -287,7 +287,7 @@ def _lookup_coords_from_historical_index(*names: str) -> Optional[Tuple[float, f
     if not mapping:
         return None
     for name in names:
-        norm = _normalize_place_key(name)
+        norm = normalize_place_key(name)
         if not norm:
             continue
         coord = mapping.get(norm)
@@ -306,15 +306,15 @@ def _fuzzy_coord_lookup(
     for candidate in raw_candidates:
         if candidate in coords_cache:
             return coords_cache.get(candidate)
-    candidate_norms = [_normalize_place_key(c) for c in raw_candidates]
+    candidate_norms = [normalize_place_key(c) for c in raw_candidates]
     candidate_norms = [n for n in candidate_norms if n]
     if not candidate_norms:
         return None
     scored: List[Tuple[int, str]] = []
     for key in coords_cache.keys():
         raw_key = str(key or "").strip()
-        norm_key = _normalize_place_key(raw_key)
-        if not norm_key or norm_key in _BANNED_PLACE_KEYS or len(norm_key) < 2:
+        norm_key = normalize_place_key(raw_key)
+        if not norm_key or norm_key in BANNED_PLACE_KEYS or len(norm_key) < 2:
             continue
         for candidate_norm in candidate_norms:
             if norm_key in candidate_norm or candidate_norm in norm_key:
@@ -384,7 +384,7 @@ def _parse_timeline_table(md: str) -> tuple[List[str], List[List[str]]]:
     return [], []
 
 
-def _parse_basic_info(md: str) -> Dict[str, str]:
+def parse_basic_info(md: str) -> Dict[str, str]:
     if not isinstance(md, str):
         return {}
     lines = md.splitlines()
@@ -547,7 +547,11 @@ def _parse_location_sections(md: str) -> List[Dict[str, str]]:
                 current = None
                 continue
             if in_section:
-                break
+                # 仅当标题明显不属于地点相关时才退出
+                _loc_kw = ("历程", "地点", "足迹", "行踪", "地理", "生平", "游历", "迁徙")
+                if not any(kw in title for kw in _loc_kw):
+                    break
+                continue
         if not in_section:
             continue
         if line.strip().startswith("### "):
@@ -594,7 +598,7 @@ def _parse_location_sections(md: str) -> List[Dict[str, str]]:
     return locations
 
 
-def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, str]:
+def parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, str]:
     raw_text = str(text or "").strip()
     if raw_text and re.search(r"(健在|在世|尚健在|仍健在)", raw_text):
         return "", "", ""
@@ -620,8 +624,8 @@ def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, 
                 "",
                 loc_raw,
             )
-    except Exception:
-        pass
+    except re.error:
+        pass  # 正则匹配失败保持原文不变
     loc_raw = _strip_birthplace_date_ambiguity_text(loc_raw)
     loc_raw = re.sub(
         r"^\s*(?:约|大约|约于)?\s*(公元前|公元|前)?\s*\d{1,4}(?:/\d{1,4})?\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号))?)?\s*[?？]?\s*[，,]?\s*",
@@ -630,7 +634,7 @@ def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, 
     ).strip("。；; ")
     loc_raw = re.sub(r"^\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号))?\s*[?？]?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
     loc_raw = re.sub(r"^\s*\d{1,2}\s*(?:日|号)\s*[?？]?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
-    loc_raw = re.sub(r"^\s*(?:约|大约|约于)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]?\s*", "", loc_raw).strip("。；; ")
+    loc_raw = re.sub(r"^\s*(?:约|大约|约于)?\s*(?:前|公元前|公元)?\s*\d{1,2}\s*世纪(?:初|中|末)?\s*[，,]\s*", "", loc_raw, count=1).strip("。；; ")
     raw_semantic_loc = _strip_birthplace_date_ambiguity_text(_strip_common_birthplace_prefixes(loc_raw)).strip("。；; ")
     if _location_text_is_native_place_only(raw_semantic_loc):
         return date, "", ""
@@ -679,8 +683,8 @@ def _parse_date_location_details(text: str, keys: List[str]) -> tuple[str, str, 
     return date, loc, geocode_loc
 
 
-def _parse_date_location(text: str, keys: List[str]) -> tuple[str, str]:
-    date, loc, _geocode_loc = _parse_date_location_details(text, keys)
+def parse_date_location(text: str, keys: List[str]) -> tuple[str, str]:
+    date, loc, _geocode_loc = parse_date_location_details(text, keys)
     return date, loc
 
 
@@ -709,7 +713,7 @@ def normalize_basic_info_birth_death_fields(md: str) -> str:
             if m:
                 prefix, label, raw = m.groups()
                 keys = ["出生于", "生于"] if label == "出生" else ["卒于", "去世于", "卒"]
-                date, location, _ = _parse_date_location_details(raw, keys)
+                date, location, _ = parse_date_location_details(raw, keys)
                 parts = [part for part in (date, location) if str(part or "").strip()]
                 updated.append(f"{prefix}{'，'.join(parts)}" if parts else f"{prefix}{str(raw or '').strip()}")
                 continue
@@ -721,6 +725,10 @@ def _parse_coord_cell(s: str) -> Optional[float]:
     t = str(s or "").strip()
     if not t:
         return None
+    # 先检测方向符号（W/S/西/南），再清洗格式后缀
+    neg = bool(re.search(r"(?i)[ws]", t)) or ("西" in t) or ("南" in t)
+    # 清洗格式：移除 ° N / °E / °W / ° S / ′ / ″ / " 等后缀
+    t = re.sub(r"\s*[°′″'\"]\s*[NSEWnsew]?\s*$", "", t).strip()
     m = re.search(r"-?\d+(?:\.\d+)?", t.replace("−", "-"))
     if not m:
         return None
@@ -728,7 +736,6 @@ def _parse_coord_cell(s: str) -> Optional[float]:
         v = float(m.group(0))
     except Exception:
         return None
-    neg = bool(re.search(r"(?i)[ws]", t)) or ("西" in t) or ("南" in t)
     if neg and v > 0:
         v = -v
     return v
@@ -768,7 +775,7 @@ def _parse_lat_lon_pair(text: str) -> Optional[tuple[float, float]]:
     return (av, bv)
 
 
-def _extract_inline_coord_pair(text: str) -> Optional[tuple[float, float]]:
+def extract_inline_coord_pair(text: str) -> Optional[tuple[float, float]]:
     t = str(text or "").replace("−", "-").strip()
     if not t:
         return None
@@ -836,7 +843,7 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
             if idx_name is None or idx_name >= len(row):
                 continue
             raw_name = re.sub(r"[（(].*?[）)]", "", row[idx_name]).strip()
-            name = _pick_geocode_name(row[idx_name])
+            name = pick_geocode_name(row[idx_name])
             lat = None
             lon = None
             if idx_lat is not None and idx_lon is not None and idx_lat < len(row) and idx_lon < len(row):
@@ -848,7 +855,7 @@ def _parse_coords_table(md: str) -> Dict[str, tuple[float, float]]:
                     lat, lon = pair
             if (lat is None or lon is None):
                 for cell in row:
-                    pair = _extract_inline_coord_pair(cell)
+                    pair = extract_inline_coord_pair(cell)
                     if pair:
                         lat, lon = pair
                         break
@@ -899,8 +906,8 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
             if idx_name is None or idx_search is None or idx_name >= len(row) or idx_search >= len(row):
                 continue
             raw_name = re.sub(r"[（(].*?[）)]", "", row[idx_name]).strip()
-            name = _pick_geocode_name(row[idx_name])
-            search = _pick_geocode_name(row[idx_search])
+            name = pick_geocode_name(row[idx_name])
+            search = pick_geocode_name(row[idx_search])
             if raw_name and search:
                 search_map[raw_name] = search
             if name and search:
@@ -908,7 +915,7 @@ def _parse_coords_search_map(md: str) -> Dict[str, str]:
     return search_map
 
 
-def _normalize_markdown_tables(md: str) -> str:
+def normalize_markdown_tables(md: str) -> str:
     if not isinstance(md, str):
         return md
     lines = md.splitlines()
@@ -1022,9 +1029,17 @@ def parse_events(md: str) -> List[Dict[str, str]]:
     return res
 
 
+_normalize_markdown_tables = normalize_markdown_tables
+_pick_geocode_name = pick_geocode_name
+_parse_date_location = parse_date_location
+_parse_date_location_details = parse_date_location_details
+_extract_native_place_from_story_text = extract_native_place_from_story_text
+_extract_inline_coord_pair = extract_inline_coord_pair
+
+
 def parse_story_document(md: str) -> ParsedStoryDocument:
-    normalized = _normalize_markdown_tables(md)
-    basic_info_map = _parse_basic_info(normalized)
+    normalized = normalize_markdown_tables(md)
+    basic_info_map = parse_basic_info(normalized)
     basic_info = BasicInfo(
         name=basic_info_map.get("姓名", ""),
         dynasty=(basic_info_map.get("时代", "") or basic_info_map.get("朝代", "")).strip(),
@@ -1074,26 +1089,29 @@ def parse_story_document(md: str) -> ParsedStoryDocument:
 
 
 __all__ = [
-    "_extract_inline_coord_pair",
+    "BANNED_PLACE_KEYS",
+    "extract_inline_coord_pair",
+    "extract_native_place_from_story_text",
+    "normalize_markdown_tables",
+    "normalize_place_key",
+    "parse_basic_info",
+    "parse_date_location",
+    "parse_date_location_details",
+    "pick_geocode_name",
     "_derive_exam_points_from_textbook_points",
     "_is_table_separator",
-    "_normalize_markdown_tables",
-    "_parse_basic_info",
     "_parse_coord_cell",
     "_parse_lat_lon_pair",
     "_parse_coords_search_map",
     "_parse_coords_table",
-    "_parse_date_location",
     "_parse_exam_points",
     "_parse_historical_reviews",
     "_parse_location_sections",
     "_fuzzy_coord_lookup",
     "_lookup_coords_from_historical_index",
-    "_normalize_place_key",
     "_parse_overview",
     "_parse_textbook_points",
     "_parse_timeline_table",
-    "_pick_geocode_name",
     "_split_ancient_modern",
     "parse_events",
     "parse_places",

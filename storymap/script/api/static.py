@@ -1,4 +1,6 @@
 import os
+import logging
+_logger = logging.getLogger(__name__)
 import re
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
@@ -29,7 +31,7 @@ class StaticService:
     def _local_vendor_roots(self) -> list[Path]:
         roots: list[Path] = []
         seen: set[Path] = set()
-        for base in [*self._public_story_map_dirs(), str(Path(self._project_root()) / "vendor")]:
+        for base in self._public_story_map_dirs():
             root = Path(base).resolve()
             if root in seen:
                 continue
@@ -45,7 +47,7 @@ class StaticService:
             target = (vendor_root / safe_name).resolve()
             try:
                 target.relative_to(vendor_root.resolve())
-            except Exception:
+            except Exception as _exc:
                 continue
             if target.exists() and target.is_file():
                 return target
@@ -89,19 +91,29 @@ class StaticService:
         lower = str(path or "").lower()
         if lower.endswith(".html"):
             # Generated HTML changes frequently during hotfixes; prevent browsers
-            # from pinning stale人物页 after redeploys.
+            # from pinning stale character pages after redeploys.
             return {
                 "Cache-Control": "no-store, max-age=0, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
             }
+        # Static assets with content-hash or cache-bust query params can be cached longer.
+        # vendor/  scripts: 7 days (URLs stable between deployments)
+        # static/  CSS/JS:  7 days (?v= fingerprint in URL handles cache bust)
+        # portraits images:  30 days (file hash in name guarantees unique URLs)
+        if "/vendor/" in lower or "/static/" in lower:
+            return {"Cache-Control": f"public, max-age={7 * 86400}"}
+        if "/portraits/" in lower:
+            return {"Cache-Control": f"public, max-age={30 * 86400}"}
+        if lower.endswith((".png", ".webp", ".jpg", ".jpeg", ".svg", ".ico", ".woff2", ".woff", ".ttf")):
+            return {"Cache-Control": f"public, max-age={7 * 86400}"}
         return {}
 
     def _resolve_target_in_root(self, static_root: Path, rel: str) -> Optional[Path]:
         target = (static_root / rel).resolve()
         try:
             target.relative_to(static_root)
-        except Exception:
+        except Exception as _exc:
             return None
         if not target.exists() or not target.is_file():
             return None
@@ -112,6 +124,10 @@ class StaticService:
         if rel.startswith("artifacts/story_map/"):
             rel = rel.split("artifacts/story_map/", 1)[-1]
         if parsed_path == "/" or rel == "":
+            for root in self._public_story_map_dirs():
+                landing = self._resolve_target_in_root(Path(root).resolve(), "landing.html")
+                if landing is not None:
+                    return landing
             rel = "index.html"
         if not re.search(r"\.(html|geojson|json|csv|css|js|png|webp|jpg|jpeg|svg|woff2|woff|ttf|txt|md|py|zip|mp3)$", rel, flags=re.IGNORECASE):
             return None
@@ -143,7 +159,7 @@ class StaticService:
             return Response(content=body, media_type=content_type)
         try:
             content_type, body = self._fetch_vendor_bytes(safe_name)
-        except Exception:
+        except Exception as _exc:
             return JSONResponse(
                 status_code=502,
                 content={"ok": False, "error": "vendor fetch failed", "name": safe_name},

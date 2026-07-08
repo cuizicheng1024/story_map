@@ -1,8 +1,7 @@
 import json
 from pathlib import Path
 
-from storymap.script.profile import graph_service
-
+from storymap.script.profile import graph_service, graph_store
 
 def test_normalize_graph_payload_emits_people_domains_and_relationships():
     payload = {
@@ -49,24 +48,22 @@ def test_normalize_graph_payload_emits_people_domains_and_relationships():
         }
     ]
 
-
 def test_load_home_graph_payload_falls_back_to_json_file(tmp_path: Path, monkeypatch):
     data_path = tmp_path / "stellar_home_data.json"
     payload = {"nodes": [{"person": "张骞"}], "edges": []}
     data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
-    monkeypatch.setattr(graph_service, "neo4j_enabled", lambda _backend=None: False)
+    monkeypatch.setattr(graph_store, "neo4j_enabled", lambda _backend=None: False)
 
     loaded = graph_service.load_home_graph_payload(data_path)
 
     assert loaded == payload
 
-
 def test_load_home_graph_payload_strict_neo4j_does_not_silently_fallback(tmp_path: Path, monkeypatch):
     data_path = tmp_path / "stellar_home_data.json"
     fallback_payload = {"nodes": [{"person": "文件版张骞"}], "edges": []}
     data_path.write_text(json.dumps(fallback_payload, ensure_ascii=False), encoding="utf-8")
-    monkeypatch.setattr(graph_service, "neo4j_enabled", lambda _backend=None: True)
-    monkeypatch.setattr(graph_service, "_build_payload_from_neo4j", lambda: (_ for _ in ()).throw(RuntimeError("neo4j down")))
+    monkeypatch.setattr(graph_store, "neo4j_enabled", lambda _backend=None: True)
+    monkeypatch.setattr(graph_store, "_build_payload_from_neo4j", lambda: (_ for _ in ()).throw(RuntimeError("neo4j down")))
 
     loaded, source = graph_service.load_home_graph_payload_with_source(
         data_path,
@@ -77,13 +74,12 @@ def test_load_home_graph_payload_strict_neo4j_does_not_silently_fallback(tmp_pat
     assert loaded == {}
     assert source == ""
 
-
 def test_load_home_graph_payload_non_strict_neo4j_can_fallback_to_json_file(tmp_path: Path, monkeypatch):
     data_path = tmp_path / "stellar_home_data.json"
     fallback_payload = {"nodes": [{"person": "文件版张骞"}], "edges": []}
     data_path.write_text(json.dumps(fallback_payload, ensure_ascii=False), encoding="utf-8")
-    monkeypatch.setattr(graph_service, "neo4j_enabled", lambda _backend=None: True)
-    monkeypatch.setattr(graph_service, "_build_payload_from_neo4j", lambda: (_ for _ in ()).throw(RuntimeError("neo4j down")))
+    monkeypatch.setattr(graph_store, "neo4j_enabled", lambda _backend=None: True)
+    monkeypatch.setattr(graph_store, "_build_payload_from_neo4j", lambda: (_ for _ in ()).throw(RuntimeError("neo4j down")))
 
     loaded, source = graph_service.load_home_graph_payload_with_source(
         data_path,
@@ -93,7 +89,6 @@ def test_load_home_graph_payload_non_strict_neo4j_can_fallback_to_json_file(tmp_
 
     assert loaded == fallback_payload
     assert source == "file"
-
 
 def test_write_normalized_graph_json_creates_snapshot(tmp_path: Path):
     payload = {"nodes": [{"person": "张骞", "domain_tags": ["外交"]}], "edges": []}
@@ -105,7 +100,6 @@ def test_write_normalized_graph_json_creates_snapshot(tmp_path: Path):
     assert result == out_path
     assert written["people"][0]["name"] == "张骞"
     assert written["domains"][0]["name"] == "外交"
-
 
 def test_normalize_graph_payload_preserves_homepage_search_and_audit_fields():
     payload = {
@@ -150,11 +144,9 @@ def test_normalize_graph_payload_preserves_homepage_search_and_audit_fields():
     assert person["search_tokens"] == ["zhangqian"]
     assert person["search_pinyin"] == ["zhangqian"]
 
-
 class _FakeRow(dict):
     def keys(self):
         return super().keys()
-
 
 class _FakeSession:
     def __init__(self, center_rows, neighbor_rows):
@@ -172,7 +164,6 @@ class _FakeSession:
             return [_FakeRow(item) for item in self._center_rows]
         return [_FakeRow(item) for item in self._neighbor_rows]
 
-
 class _FakeDriver:
     def __init__(self, center_rows, neighbor_rows):
         self._center_rows = center_rows
@@ -181,7 +172,6 @@ class _FakeDriver:
     def session(self, database=None):
         _ = database
         return _FakeSession(self._center_rows, self._neighbor_rows)
-
 
 class _FakePayloadSession:
     def __init__(self, node_rows, edge_rows):
@@ -199,7 +189,6 @@ class _FakePayloadSession:
             return [_FakeRow(item) for item in self._node_rows]
         return [_FakeRow(item) for item in self._edge_rows]
 
-
 class _FakePayloadDriver:
     def __init__(self, node_rows, edge_rows):
         self._node_rows = node_rows
@@ -208,7 +197,6 @@ class _FakePayloadDriver:
     def session(self, database=None):
         _ = database
         return _FakePayloadSession(self._node_rows, self._edge_rows)
-
 
 def test_get_related_people_graph_reads_neighbors_from_neo4j(monkeypatch):
     center_rows = [
@@ -266,7 +254,6 @@ def test_get_related_people_graph_reads_neighbors_from_neo4j(monkeypatch):
     assert any(str(node.get("name") or "") == "汉武帝" for node in (related.get("nodes") or []))
     assert any(str(link.get("label") or "") == "君臣" for link in (related.get("links") or []))
 
-
 def test_build_payload_from_neo4j_preserves_homepage_search_and_audit_fields(monkeypatch):
     node_rows = [
         {
@@ -305,11 +292,11 @@ def test_build_payload_from_neo4j_preserves_homepage_search_and_audit_fields(mon
     ]
     edge_rows = []
     monkeypatch.setattr(
-        graph_service,
+        graph_store,
         "neo4j_config",
-        lambda: graph_service.Neo4jConfig(uri="bolt://local", user="neo4j", password="pw", database="neo4j"),
+        lambda: graph_store.Neo4jConfig(uri="bolt://local", user="neo4j", password="pw", database="neo4j"),
     )
-    monkeypatch.setattr(graph_service, "_driver", lambda: _FakePayloadDriver(node_rows, edge_rows))
+    monkeypatch.setattr(graph_store, "_driver", lambda: _FakePayloadDriver(node_rows, edge_rows))
 
     payload = graph_service._build_payload_from_neo4j()
     node = payload["nodes"][0]
@@ -324,7 +311,6 @@ def test_build_payload_from_neo4j_preserves_homepage_search_and_audit_fields(mon
     assert node["search_keys"] == ["张骞", "博望侯"]
     assert node["search_tokens"] == ["zhangqian"]
     assert node["search_pinyin"] == ["zhangqian"]
-
 
 def test_get_related_people_graph_returns_empty_on_neo4j_failure(monkeypatch):
     monkeypatch.setattr(graph_service, "neo4j_enabled", lambda _backend=None: True)
@@ -344,7 +330,6 @@ def test_get_related_people_graph_returns_empty_on_neo4j_failure(monkeypatch):
     related = graph_service.get_related_people_graph({"name": "张骞"}, markdown="# 张骞")
 
     assert related == {}
-
 
 def test_get_related_people_graph_from_payload_dedupes_story_alias_pages():
     payload = {
@@ -369,7 +354,6 @@ def test_get_related_people_graph_from_payload_dedupes_story_alias_pages():
     assert names.count("苏轼") == 1
     assert names.count("苏东坡") == 0
 
-
 def test_get_related_people_graph_from_payload_prefers_manual_edge_for_gu_jiegang():
     payload = {
         "nodes": [
@@ -392,7 +376,6 @@ def test_get_related_people_graph_from_payload_prefers_manual_edge_for_gu_jiegan
     names = [str(node.get("name") or "") for node in (related.get("nodes") or [])]
     assert names[0] == "顾颉刚"
     assert "鲁迅" in names[1:]
-
 
 def test_get_related_people_graph_from_payload_marks_sima_guang_as_wang_anshi_opponent():
     payload = {
@@ -417,7 +400,6 @@ def test_get_related_people_graph_from_payload_marks_sima_guang_as_wang_anshi_op
 
     node_by_name = {str(node.get("name") or ""): node for node in (related.get("nodes") or [])}
     assert node_by_name["司马光"]["relationLabel"] == "对手"
-
 
 def test_get_related_people_graph_from_payload_prioritizes_liushan_core_relations():
     payload = {
@@ -448,7 +430,6 @@ def test_get_related_people_graph_from_payload_prioritizes_liushan_core_relation
     assert node_by_name["刘备"]["relationLabel"] == "父子"
     assert node_by_name["诸葛亮"]["relationLabel"] == "托孤辅政"
     assert node_by_name["姜维"]["relationLabel"] == "后期主战"
-
 
 def test_pick_display_year_range_normalizes_bce_order():
     person = {"birth": {"date": "前128年"}, "death": {"date": "前139年"}}

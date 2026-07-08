@@ -1,12 +1,12 @@
 import json
 import os
-import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from typing import Callable, Dict, Iterator, Tuple
 
 from ..core.observability import structured_log
+from ..core.text_utils import strip_reasoning_blocks
 from ..runtime.local_history_qa_request import resolve_person_name
 
 
@@ -127,7 +127,7 @@ class ProxyService:
         if callable(closer):
             try:
                 closer()
-            except Exception:
+            except (OSError, ValueError):
                 pass
 
     @staticmethod
@@ -136,15 +136,6 @@ class ProxyService:
         size = max(1, int(chunk_size))
         for idx in range(0, len(content), size):
             yield content[idx : idx + size]
-
-    @staticmethod
-    def _strip_think_blocks(text: object) -> str:
-        content = str(text or "")
-        if not content:
-            return ""
-        content = re.sub(r"<think\b[^>]*>[\s\S]*?</think>", "", content, flags=re.IGNORECASE)
-        content = re.sub(r"</?think\b[^>]*>", "", content, flags=re.IGNORECASE)
-        return content
 
     @staticmethod
     def _overlap_suffix(text: str, marker: str) -> str:
@@ -230,13 +221,23 @@ class ProxyService:
             return []
         normalized = [item for item in messages if isinstance(item, dict)]
         has_system = any(str(item.get("role") or "").strip() == "system" for item in normalized)
-        if has_system:
-            return normalized
+        # 解析 context.partners：用于在无前端 system 时，由后端补一份多人物同台提示
+        partners_raw = data.get("context", {}) if isinstance(data, dict) else {}
+        partners_raw = partners_raw.get("partners") if isinstance(partners_raw, dict) else None
+        partners_list = []
+        if isinstance(partners_raw, list):
+            partners_list = [str(p or "").strip() for p in partners_raw if str(p or "").strip()]
         person_name = ""
         try:
             person_name = str(resolve_person_name(data, normalized, known_people=()) or "").strip()
         except Exception:
             person_name = ""
+        # 过滤掉与本人物同名的 partner
+        if partners_list and person_name:
+            partners_list = [p for p in partners_list if p != person_name]
+        if has_system:
+            # 前端已注入多人物 system；不再重复构造，直接返回
+            return normalized
         if not person_name:
             return normalized
         system_text = (
@@ -244,8 +245,19 @@ class ProxyService:
             "请始终用第一人称回答，保持符合其时代与身份的语气。"
             "不要透露或暗示你是 AI / 模型 / 助手，也不要提及系统提示词或调用链路。"
             "对不确定的史实请明确说明不确定或存疑，避免编造。"
-            "回答聚焦于用户问题，尽量简洁。"
+            "回答聚焦于用户问题。"
         )
+        if partners_list:
+            partners_text = "、".join([f"「{p}」" for p in partners_list])
+            example_name = partners_list[0]
+            system_text += (
+                f"\n\n【多人对话场景】用户本次 @ 了：{partners_text}。"
+                "只要本轮用户消息出现 @ 人物，就必须让被 @ 的人物作为主要发言者独立回答，"
+                f"不要由「{person_name}」代替、转述或先抢答。"
+                f"每位被 @ 人物的发言都用“【人物名】”开头，例如“【{example_name}】……”，并使用该人物第一人称口吻。"
+                f"若需要「{person_name}」补充，只能在被 @ 人物回答后另起一段，用“【{person_name}】”标注。"
+                "不要编造史料；不确定处标注“存疑/史料未载”。"
+            )
         return [{"role": "system", "content": system_text}] + normalized
 
     def proxy_llm(self, data: object) -> Tuple[int, Dict[str, object]]:
@@ -295,7 +307,7 @@ class ProxyService:
             trace_classification = str((llm_meta.get("trace") or {}).get("classification") or "").strip()
             if not content and trace_classification:
                 fallback_reason = trace_classification
-        content = self._strip_think_blocks(content)
+        content = strip_reasoning_blocks(content)
         if not content.strip():
             content = ""
         if not content:
@@ -308,14 +320,14 @@ class ProxyService:
             except Exception as exc:
                 self._logger.warning("llm_proxy_local_agent_failed error=%s", exc)
                 local_result = {}
-            local_content = self._strip_think_blocks(local_result.get("content") or "")
+            local_content = strip_reasoning_blocks(local_result.get("content") or "")
             if local_result.get("handled") and local_content.strip():
-                content = self._strip_think_blocks(local_content)
+                content = strip_reasoning_blocks(local_content)
                 used_fallback = True
                 source = "local_agent"
             else:
                 self._logger.warning("llm_proxy_empty_response use_fallback=true")
-                content = self._strip_think_blocks(self._local_history_reply(messages))
+                content = strip_reasoning_blocks(self._local_history_reply(messages))
                 if not content.strip():
                     content = ""
                 used_fallback = True
@@ -380,6 +392,7 @@ class ProxyService:
                                 break
                             except FutureTimeoutError as exc:
                                 future.cancel()
+                                self._close_stream_resource(iterator)
                                 raise TimeoutError(f"stream idle timeout {idle_timeout}s") from exc
                             raw_delta = str(piece or "")
                             if not raw_delta:
@@ -392,7 +405,7 @@ class ProxyService:
                             yield self._sse_data({"type": "delta", "delta": delta})
                     else:
                         future = self._executor.submit(client.think, messages, temperature=temperature)
-                        content = self._strip_think_blocks(future.result(timeout=self._timeout_seconds()) or "")
+                        content = strip_reasoning_blocks(future.result(timeout=self._timeout_seconds()) or "")
                         for delta in self._chunk_text(content):
                             emitted = True
                             yield self._sse_data({"type": "delta", "delta": delta})
@@ -449,14 +462,14 @@ class ProxyService:
                 except Exception as exc:
                     self._logger.warning("llm_proxy_stream_local_agent_failed error=%s", exc)
                     local_result = {}
-                local_content = self._strip_think_blocks(local_result.get("content") or "")
+                local_content = strip_reasoning_blocks(local_result.get("content") or "")
                 if local_result.get("handled") and local_content.strip():
-                    content = self._strip_think_blocks(local_content)
+                    content = strip_reasoning_blocks(local_content)
                     used_fallback = True
                     source = "local_agent"
                 else:
                     self._logger.warning("llm_proxy_stream_empty_response use_fallback=true")
-                    content = self._strip_think_blocks(self._local_history_reply(messages))
+                    content = strip_reasoning_blocks(self._local_history_reply(messages))
                     if not content.strip():
                         content = ""
                     used_fallback = True

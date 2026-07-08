@@ -6,21 +6,23 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 
 VENDOR_SOURCES: Dict[str, List[str]] = {
-    # Frontend pages rely on CDN-hosted assets (React/Babel/Tailwind).
+    # Frontend pages rely on CDN-hosted assets (Preact/Babel).
     # In restricted networks these CDNs may be blocked; serving them via the
     # same origin avoids CORS/DNS issues and keeps pages usable.
-    "tailwindcss.js": [
-        "https://cdn.tailwindcss.com",
+    #
+    # Preact 三层加载顺序（缺一不可）：
+    #   1. preact.umd.js        → window.preact
+    #   2. hooks.umd.js         → window.preactHooks
+    #   3. compat.umd.js        → window.preactCompat（需前两者已存在）
+    #   加载完成后 HTML 模板内联脚本执行 React / ReactDOM 别名。
+    "preact.min.js": [
+        "https://cdn.jsdelivr.net/npm/preact@10/dist/preact.umd.js",
     ],
-    "react.production.min.js": [
-        "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js",
-        "https://unpkg.com/react@18/umd/react.production.min.js",
-        "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js",
+    "preact-hooks.min.js": [
+        "https://cdn.jsdelivr.net/npm/preact@10/hooks/dist/hooks.umd.js",
     ],
-    "react-dom.production.min.js": [
-        "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js",
-        "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
-        "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js",
+    "preact-compat.production.min.js": [
+        "https://cdn.jsdelivr.net/npm/preact@10/compat/dist/compat.umd.js",
     ],
     "babel.min.js": [
         "https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js",

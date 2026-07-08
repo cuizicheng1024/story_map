@@ -1,12 +1,5 @@
 import importlib
-import sys
 import json
-
-
-from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_parse_story_md_uses_repo_relative_source_path(tmp_path):
     module = importlib.import_module("tools.build_pep_people_time_index")
@@ -22,7 +15,6 @@ def test_parse_story_md_uses_repo_relative_source_path(tmp_path):
     item = module._parse_story_md(story_path, repo_root=repo_root)
 
     assert item["source"] == "storymap/examples/story/于谦.md"
-
 
 def test_main_filters_non_authentic_story_markdown(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_pep_people_time_index")

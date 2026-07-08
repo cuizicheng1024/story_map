@@ -1,13 +1,5 @@
-import sys
-
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from storymap.script.runtime.legacy_agent import router as story_agent_router
-
 
 def test_supervisor_prefers_editor_on_revision_when_budget_is_near_limit():
     update = story_agent_router.build_supervisor_update(
@@ -32,7 +24,6 @@ def test_supervisor_prefers_editor_on_revision_when_budget_is_near_limit():
     )
 
     assert update["next_step"] == "editor_agent"
-
 
 def test_supervisor_prefers_editor_when_tools_are_unstable_during_revision():
     update = story_agent_router.build_supervisor_update(
@@ -59,7 +50,6 @@ def test_supervisor_prefers_editor_when_tools_are_unstable_during_revision():
 
     assert update["next_step"] == "finish_agent"
 
-
 def test_supervisor_does_not_retry_map_when_location_feedback_coexists_with_failed_map_call():
     update = story_agent_router.build_supervisor_update(
         {
@@ -77,7 +67,6 @@ def test_supervisor_does_not_retry_map_when_location_feedback_coexists_with_fail
     )
 
     assert update["next_step"] == "editor_agent"
-
 
 def test_supervisor_prefers_editor_when_memory_miss_is_high_on_revision():
     update = story_agent_router.build_supervisor_update(

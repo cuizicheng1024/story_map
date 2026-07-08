@@ -15,10 +15,6 @@ from ..core.project_paths import data_runtime_output_path
 from .geocode_candidates import reject_geocode_candidate_reason, trim_geocode_candidate
 
 
-def _project_root() -> Path:
-    return Path(__file__).resolve().parents[3]
-
-
 def _parser_utils():
     from ..core import parsers as parser_utils
     return parser_utils
@@ -64,7 +60,7 @@ def _hard_place_queue_path(queue_json_path: str = "") -> Path:
     override = str(queue_json_path or "").strip() or str(os.getenv("STORY_HARD_PLACE_QUEUE_JSON") or "").strip()
     if override:
         return Path(override).expanduser().resolve()
-    return data_runtime_output_path("hard_place_review_queue.json", project_root=_project_root()).resolve()
+    return data_runtime_output_path("hard_place_review_queue.json", project_root=project_root_path()).resolve()
 
 
 def _looks_like_reviewable_place(place_name: str) -> bool:
@@ -151,7 +147,7 @@ def _build_agent_review_item(place_name: str, *, geocode_service_utils: object) 
     parser_utils = _parser_utils()
     raw_place = str(place_name or "").strip()
     ancient_name, modern_name = geocode_service_utils.split_ancient_modern(raw_place, event_callback=None)
-    recommended = parser_utils._pick_geocode_name(modern_name or raw_place or ancient_name)
+    recommended = parser_utils.pick_geocode_name(modern_name or raw_place or ancient_name)
     modern_candidates = _dedupe_strings([recommended, modern_name])
     place_type = _place_type_from_text(raw_place, ancient_name, modern_candidates)
     return {
@@ -280,11 +276,11 @@ def submit_hard_place_for_review(
 
 
 def create_geocode_api(*, geocode_service_utils: object) -> Dict[str, Callable[..., object]]:
-    def lookup_coords_from_historical_index(*names: str) -> Optional[Tuple[float, float]]:
-        return geocode_service_utils.lookup_coords_from_historical_index(*names)
+    def lookup_coords_from_historical_index(*names: str, dynasty: Optional[str] = None) -> Optional[Tuple[float, float]]:
+        return geocode_service_utils.lookup_coords_from_historical_index(*names, dynasty=dynasty)
 
-    def resolve_place_coord(place: str, year: Optional[int] = None, *aliases: str) -> Optional[Tuple[float, float]]:
-        return geocode_service_utils.resolve_place_coord(place, year, *aliases)
+    def resolve_place_coord(place: str, year: Optional[int] = None, *aliases: str, dynasty: Optional[str] = None) -> Optional[Tuple[float, float]]:
+        return geocode_service_utils.resolve_place_coord(place, year, *aliases, dynasty=dynasty)
 
     def batch_split_ancient_modern(
         loc_texts: List[str], event_callback: Optional[callable] = None

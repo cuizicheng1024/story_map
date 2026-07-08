@@ -1,15 +1,8 @@
 import json
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 from storymap.script.map import geocode_api as story_geocode_api
-
 
 class _FakeGeocodeService:
     @staticmethod
@@ -20,7 +13,6 @@ class _FakeGeocodeService:
     @staticmethod
     def normalize_place_key(text: str) -> str:
         return str(text or "").strip()
-
 
 def test_submit_hard_place_for_review_skips_invalid_place_name(tmp_path, monkeypatch):
     queue_path = tmp_path / "data" / "runtime" / "hard_place_review_queue.json"
@@ -39,7 +31,6 @@ def test_submit_hard_place_for_review_skips_invalid_place_name(tmp_path, monkeyp
     assert result["queued"] is False
     assert result["reason"] == "invalid_place_name"
     assert queue_path.exists() is False
-
 
 def test_submit_hard_place_for_review_keeps_all_entries_under_concurrency(tmp_path, monkeypatch):
     queue_path = tmp_path / "data" / "runtime" / "hard_place_review_queue.json"

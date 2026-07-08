@@ -1,18 +1,10 @@
 import logging
 import json
-import sys
 import threading
 import time
 from pathlib import Path
 
-
-from tests_support import REPO_ROOT
-SCRIPT_DIR = REPO_ROOT / "storymap" / "script"
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
 from storymap.script.runtime.task_service import TaskService
-
 
 def _make_story_dir(tmp_path: Path, *names: str) -> Path:
     story_dir = tmp_path / "storymap" / "examples" / "story"
@@ -20,7 +12,6 @@ def _make_story_dir(tmp_path: Path, *names: str) -> Path:
     for name in names:
         (story_dir / f"{name}.md").write_text(f"# {name}\n", encoding="utf-8")
     return story_dir
-
 
 def _build_service(tmp_path: Path, **overrides) -> TaskService:
     _make_story_dir(tmp_path, "霍去病", "李白", "杜甫")
@@ -64,7 +55,6 @@ def _build_service(tmp_path: Path, **overrides) -> TaskService:
     defaults.update(overrides)
     return TaskService(**defaults)
 
-
 def _wait_for_task(service: TaskService, task_id: str, *, timeout: float = 2.0) -> dict:
     end = time.time() + timeout
     while time.time() < end:
@@ -73,7 +63,6 @@ def _wait_for_task(service: TaskService, task_id: str, *, timeout: float = 2.0) 
             return snapshot
         time.sleep(0.02)
     raise AssertionError(f"task {task_id} did not finish in time")
-
 
 def _wait_for_archive(service: TaskService, task_id: str, *, timeout: float = 2.0) -> dict:
     end = time.time() + timeout
@@ -84,7 +73,6 @@ def _wait_for_archive(service: TaskService, task_id: str, *, timeout: float = 2.
             return snapshot
         time.sleep(0.02)
     raise AssertionError(f"archive for task {task_id} did not finish in time")
-
 
 def test_task_service_cleans_up_expired_finished_tasks(tmp_path):
     service = _build_service(tmp_path, task_ttl_seconds=60, max_tasks=50)
@@ -97,6 +85,18 @@ def test_task_service_cleans_up_expired_finished_tasks(tmp_path):
 
         assert fresh["ok"] is True
         assert service.snapshot_task(task_id)["ok"] is False
+    finally:
+        service.shutdown()
+
+def test_task_service_snapshot_includes_structured_agent_status(tmp_path):
+    service = _build_service(tmp_path)
+    try:
+        submit = service.submit_task("霍去病")
+        snapshot = _wait_for_task(service, submit["task_id"])
+
+        assert [item["agent"] for item in snapshot["agent_status"]] == ["search", "geocode", "editor", "critic", "deliver"]
+        assert [item["status"] for item in snapshot["agent_status"]] == ["completed", "completed", "completed", "completed", "completed"]
+        assert snapshot["agent_status"][0]["label"] == "识别人物/查找资料"
     finally:
         service.shutdown()
 
@@ -117,7 +117,6 @@ def test_task_service_marks_task_failed_when_generation_crashes(tmp_path):
     finally:
         service.shutdown()
 
-
 def test_task_service_marks_task_failed_when_all_people_return_errors(tmp_path):
     def _fail(_client, person, **_kwargs):
         return {"ok": False, "person": person, "error": f"{person} no data"}
@@ -134,7 +133,6 @@ def test_task_service_marks_task_failed_when_all_people_return_errors(tmp_path):
         assert labels[-2:] == ["失败", "完成"]
     finally:
         service.shutdown()
-
 
 def test_task_service_disables_blocking_homepage_refresh_for_generate_tasks(tmp_path):
     captured = {}
@@ -163,7 +161,6 @@ def test_task_service_disables_blocking_homepage_refresh_for_generate_tasks(tmp_
         assert captured == {"person": "霍去病", "refresh_homepage": False}
     finally:
         service.shutdown()
-
 
 def test_task_service_archives_homepage_in_background_after_person_page_is_ready(tmp_path):
     archive_started = threading.Event()
@@ -195,7 +192,6 @@ def test_task_service_archives_homepage_in_background_after_person_page_is_ready
     finally:
         release_archive.set()
         service.shutdown()
-
 
 def test_task_service_dedupes_active_requests(tmp_path):
     release = threading.Event()
@@ -232,7 +228,6 @@ def test_task_service_dedupes_active_requests(tmp_path):
         release.set()
         service.shutdown()
 
-
 def test_task_service_cancels_running_task(tmp_path):
     release = threading.Event()
 
@@ -267,7 +262,6 @@ def test_task_service_cancels_running_task(tmp_path):
         release.set()
         service.shutdown()
 
-
 def test_task_service_marks_long_running_task_timed_out(tmp_path, monkeypatch):
     monkeypatch.setenv("MAP_STORY_TASK_TIMEOUT_SECONDS", "1")
 
@@ -296,7 +290,6 @@ def test_task_service_marks_long_running_task_timed_out(tmp_path, monkeypatch):
     finally:
         service.shutdown()
 
-
 def test_task_service_builds_multi_person_summary(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -312,7 +305,6 @@ def test_task_service_builds_multi_person_summary(tmp_path):
         assert len(result["files"]) == 2
     finally:
         service.shutdown()
-
 
 def test_task_service_marks_partial_failures_with_structured_status(tmp_path):
     def _generate(_client, person, **_kwargs):
@@ -350,7 +342,6 @@ def test_task_service_marks_partial_failures_with_structured_status(tmp_path):
         assert snapshot["result"]["failed_people"] == ["杜甫"]
     finally:
         service.shutdown()
-
 
 def test_task_service_preserves_degraded_result_files(tmp_path):
     def _degraded(_client, person, **_kwargs):
@@ -407,7 +398,6 @@ def test_task_service_preserves_degraded_result_files(tmp_path):
     finally:
         service.shutdown()
 
-
 def test_task_service_rebuilds_exports_after_profile_refresh(tmp_path):
     export_calls = []
 
@@ -443,7 +433,6 @@ def test_task_service_rebuilds_exports_after_profile_refresh(tmp_path):
     finally:
         service.shutdown()
 
-
 def test_task_service_runtime_metrics_capture_bulk_completion(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -460,7 +449,6 @@ def test_task_service_runtime_metrics_capture_bulk_completion(tmp_path):
         assert metrics["counters"]["duration_seconds_total"] >= 0
     finally:
         service.shutdown()
-
 
 def test_task_service_marks_restart_recovery_as_interrupted_and_allows_manual_retry(tmp_path, monkeypatch):
     monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "0")
@@ -499,7 +487,6 @@ def test_task_service_marks_restart_recovery_as_interrupted_and_allows_manual_re
     finally:
         release.set()
         recovered.shutdown()
-
 
 def test_task_service_auto_retries_interrupted_task_on_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "1")
@@ -549,7 +536,6 @@ def test_task_service_auto_retries_interrupted_task_on_restart(tmp_path, monkeyp
         release.set()
         recovered.shutdown()
 
-
 def test_task_service_accepts_unknown_plain_person_name(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -560,7 +546,6 @@ def test_task_service_accepts_unknown_plain_person_name(tmp_path):
         assert snapshot["result"]["people"] == ["辛弃疾"]
     finally:
         service.shutdown()
-
 
 def test_task_service_accepts_authentic_person_extracted_by_llm(tmp_path):
     data_dir = tmp_path / "data"
@@ -582,7 +567,6 @@ def test_task_service_accepts_authentic_person_extracted_by_llm(tmp_path):
         assert snapshot["result"]["people"] == ["辛弃疾"]
     finally:
         service.shutdown()
-
 
 def test_task_service_blocks_non_authentic_story_people_before_generation(tmp_path):
     _make_story_dir(tmp_path, "奥楚蔑洛夫")
@@ -607,7 +591,6 @@ def test_task_service_blocks_non_authentic_story_people_before_generation(tmp_pa
     finally:
         service.shutdown()
 
-
 def test_task_service_blocks_unknown_persons_extracted_by_llm(tmp_path):
     generated = []
 
@@ -629,7 +612,6 @@ def test_task_service_blocks_unknown_persons_extracted_by_llm(tmp_path):
         assert generated == []
     finally:
         service.shutdown()
-
 
 def test_task_service_allows_explicit_single_person_input_not_in_registry(tmp_path):
     generated = []
@@ -663,7 +645,6 @@ def test_task_service_allows_explicit_single_person_input_not_in_registry(tmp_pa
     finally:
         service.shutdown()
 
-
 def test_task_service_marks_partially_blocked_targets_as_partial_failed(tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -693,7 +674,6 @@ def test_task_service_marks_partially_blocked_targets_as_partial_failed(tmp_path
     finally:
         service.shutdown()
 
-
 def test_task_service_rejects_question_like_input_when_no_person_found(tmp_path):
     service = _build_service(tmp_path)
     try:
@@ -704,7 +684,6 @@ def test_task_service_rejects_question_like_input_when_no_person_found(tmp_path)
         assert snapshot["error"] == "未识别到人物，请输入人物姓名，或先进入人物页再提问。"
     finally:
         service.shutdown()
-
 
 def test_task_service_recovers_completed_task_from_disk(tmp_path):
     service = _build_service(tmp_path)
@@ -724,7 +703,6 @@ def test_task_service_recovers_completed_task_from_disk(tmp_path):
         assert recovered["result"]["people"] == ["霍去病"]
     finally:
         restored.shutdown()
-
 
 def test_task_service_marks_inflight_tasks_interrupted_after_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "0")
@@ -747,7 +725,6 @@ def test_task_service_marks_inflight_tasks_interrupted_after_restart(tmp_path, m
         assert labels[-1] == "中断"
     finally:
         restored.shutdown()
-
 
 def test_task_service_migrates_legacy_json_state_into_sqlite(tmp_path):
     _make_story_dir(tmp_path, "霍去病")
@@ -788,7 +765,6 @@ def test_task_service_migrates_legacy_json_state_into_sqlite(tmp_path):
         assert sqlite_path.exists()
     finally:
         service.shutdown()
-
 
 def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
     service = _build_service(
@@ -871,7 +847,6 @@ def test_task_service_exposes_debug_snapshot_and_storage_queries(tmp_path):
     finally:
         service.shutdown()
 
-
 def test_task_service_uses_final_validation_to_suppress_runtime_watch_noise(tmp_path):
     service = _build_service(
         tmp_path,
@@ -921,7 +896,6 @@ def test_task_service_uses_final_validation_to_suppress_runtime_watch_noise(tmp_
     finally:
         service.shutdown()
 
-
 def test_task_debug_ui_banner_prefers_runtime_degraded_signal(tmp_path):
     service = _build_service(
         tmp_path,
@@ -961,7 +935,6 @@ def test_task_debug_ui_banner_prefers_runtime_degraded_signal(tmp_path):
         assert debug_snapshot["debug"]["ui"]["banner"]["code"] == "degraded"
     finally:
         service.shutdown()
-
 
 def test_task_debug_ui_banner_keeps_partial_failed_over_runtime_watch(tmp_path):
     def _generate(_client, person, **_kwargs):
@@ -1010,7 +983,6 @@ def test_task_debug_ui_banner_keeps_partial_failed_over_runtime_watch(tmp_path):
     finally:
         service.shutdown()
 
-
 def test_task_service_counts_partial_failed_in_storage_stats(tmp_path):
     def _generate(_client, person, **_kwargs):
         if person == "杜甫":
@@ -1038,7 +1010,6 @@ def test_task_service_counts_partial_failed_in_storage_stats(tmp_path):
         assert stats["partial_failed_count"] == 1
     finally:
         service.shutdown()
-
 
 def test_task_service_refreshes_waiting_queue_positions(tmp_path):
     release_first = threading.Event()
@@ -1081,7 +1052,6 @@ def test_task_service_refreshes_waiting_queue_positions(tmp_path):
         release_first.set()
         service.shutdown()
 
-
 def test_task_service_housekeep_interrupts_orphaned_running_task_and_auto_retries(tmp_path, monkeypatch):
     monkeypatch.setenv("MAP_STORY_AUTO_RETRY_INTERRUPTED", "1")
     monkeypatch.setenv("MAP_STORY_INTERRUPTED_RETRY_LIMIT", "2")
@@ -1108,7 +1078,6 @@ def test_task_service_housekeep_interrupts_orphaned_running_task_and_auto_retrie
         assert retried["status"] == "completed"
     finally:
         service.shutdown()
-
 
 def test_task_debug_payload_exposes_generation_state_fields():
     """看板应展示单人物的 stage / retry / checkpoint / error 分类 / 首页刷新状态。"""
@@ -1165,7 +1134,6 @@ def test_task_debug_payload_exposes_generation_state_fields():
     assert "markdown_file" in page_html
     assert "rate_limit" in page_html
     assert "queued" in page_html
-
 
 def test_task_debug_payload_handles_missing_generation_state_gracefully():
     """没有 _state 时 payload 仍应包含安全的默认 state 子结构。"""

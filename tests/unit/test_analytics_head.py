@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from storymap.script.core.analytics import analytics_head_html
 
-
 def test_analytics_head_html_returns_empty_without_explicit_config(monkeypatch):
     monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)
     monkeypatch.delenv("GA_MEASUREMENT_ID", raising=False)
@@ -10,7 +9,6 @@ def test_analytics_head_html_returns_empty_without_explicit_config(monkeypatch):
     monkeypatch.delenv("VOLCENGINE_APM_TOKEN", raising=False)
 
     assert analytics_head_html(page_type="homepage", page_name="首页") == ""
-
 
 def test_analytics_head_html_includes_google_analytics_when_configured(monkeypatch):
     monkeypatch.setenv("MAP_STORY_GA_MEASUREMENT_ID", "G-TEST123456")
@@ -21,7 +19,6 @@ def test_analytics_head_html_includes_google_analytics_when_configured(monkeypat
 
     assert "googletagmanager.com/gtag/js?id=G-TEST123456" in html
     assert "gtag('config', \"G-TEST123456\")" in html
-
 
 def test_analytics_head_html_includes_volcengine_apm_when_token_is_configured(monkeypatch):
     monkeypatch.delenv("MAP_STORY_GA_MEASUREMENT_ID", raising=False)

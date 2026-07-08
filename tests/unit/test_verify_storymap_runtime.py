@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from tools.reports.verify_storymap_runtime import verify_runtime
 
-
 def test_verify_runtime_reports_success_for_healthy_service():
     responses = {
         "http://story.test/health": {"ok": True, "service": "story_map"},
@@ -48,7 +47,6 @@ def test_verify_runtime_reports_success_for_healthy_service():
         "generate_submit",
         "generate_task_terminal",
     ]
-
 
 def test_verify_runtime_reports_failed_generation_task():
     responses = {

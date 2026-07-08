@@ -224,7 +224,7 @@ def answer_by_retrieval(
     if not scored:
         return ""
     hits = [f"{label}：{text}" for _, label, text in scored[:4]]
-    return f"根据本地人物档案，和你问题最相关的信息是：\n- " + "\n- ".join(hits)
+    return "根据本地人物档案，和你问题最相关的信息是：\n- " + "\n- ".join(hits)
 
 
 def build_retrieval_evidences(

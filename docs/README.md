@@ -30,6 +30,7 @@
 | --- | --- |
 | [`../install.md`](../install.md) | 火山云 ECS 部署细节、systemd 配置 |
 | [`./opendeploy_deployment_notes.md`](./opendeploy_deployment_notes.md) | OpenDeploy 部署经验、最终可用配置、排障记录 |
+| [`./deployment_platform_checklist.md`](./deployment_platform_checklist.md) | OpenDeploy / 火山云统一部署清单、环境变量模板、验收项 |
 | [`./monitoring_prometheus_alertmanager.md`](./monitoring_prometheus_alertmanager.md) | `/metrics` 指标清单、Prometheus 抓取示例、Alertmanager 告警路由建议 |
 | [`../scripts/`](../scripts/) | 部署/启动/回滚/线上自检脚本（每个文件顶部都有注释） |
 

@@ -1,24 +1,29 @@
 import hashlib
 import json
-import os
+import logging
 import re
 import subprocess
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+_LOGGER = logging.getLogger(__name__)
+
 from ..core.analytics import analytics_head_html
 from ..core.build_meta import build_artifact_meta
-from ..core.env_utils import apply_story_map_env_aliases, env_flag
+from ..core.env_utils import _first_env, apply_story_map_env_aliases, env_flag
 from ..core.person_registry import person_redirects
 from ..core.project_paths import project_root_path, story_artifacts_dir_path, story_md_dir_path, story_person_names
 from .graph_service import (
     build_home_graph_file_fallback,
     get_related_people_graph,
     get_related_people_graph_from_payload,
+    get_related_people_graph_from_sqlite,
+    home_graph_person_names,
     invalidate_graph_service_cache,
     load_home_graph_payload,
 )
+from .map_bootstrap_js import amap_bootstrap_js, map_bootstrap_js
 from .tooltip_js import person_tooltip_js
 
 
@@ -45,15 +50,13 @@ def profile_render_dependency_paths(root: Optional[Path] = None) -> tuple[Path, 
     base_root = Path(root or _REPO_ROOT).resolve()
     return (
         Path(__file__).resolve(),
-        base_root / "storymap" / "script" / "map_html_renderer.py",
-        base_root / "storymap" / "script" / "parsers.py",
-        base_root / "storymap" / "script" / "person_registry.py",
+        base_root / "storymap" / "script" / "core" / "parsers.py",
+        base_root / "storymap" / "script" / "core" / "person_registry.py",
+        base_root / "storymap" / "script" / "profile" / "map_bootstrap_js.py",
         base_root / "storymap" / "script" / "profile" / "tooltip_js.py",
-        base_root / "storymap" / "script" / "person_tooltip_js.py",
         base_root / "storymap" / "script" / "profile" / "graph_service.py",
-        base_root / "storymap" / "script" / "graph_service.py",
         base_root / "storymap" / "script" / "profile" / "builder.py",
-        base_root / "storymap" / "script" / "profile_builder.py",
+        base_root / "storymap" / "script" / "profile" / "profile_builder.py",
         _TEMPLATE_DIR / "profile_page.html",
         _TEMPLATE_DIR / "design_tokens.css",
         base_root / "storymap" / "script" / "story_map.py",
@@ -81,10 +84,11 @@ def _render_html_template(
     analytics_head: str,
 ) -> str:
     artifact_meta = build_artifact_meta(component="profile_page")
+    tpl_sig = profile_template_signature()
     return (
         template.replace("__TITLE__", title)
         .replace("__DATA__", data)
-        .replace("__DESIGN_TOKENS__", f"<style>\n{_design_tokens_css()}\n</style>")
+        .replace("__DESIGN_TOKENS__", '<link rel="stylesheet" href="./static/design-tokens.css">')
         .replace("__PERSON_TOOLTIP_JS__", person_tooltip_js())
         .replace("__RUNTIME_CONFIG__", runtime_config)
         .replace("__SITE_MODE_NOTICE__", site_mode_notice)
@@ -94,6 +98,7 @@ def _render_html_template(
         .replace("__BUILD_AT__", str(artifact_meta.get("build_at") or ""))
         .replace("__BUILD_SOURCE_COMMIT__", str(artifact_meta.get("source_commit") or ""))
         .replace("__BUILD_COMPONENT__", str(artifact_meta.get("artifact_component") or ""))
+        .replace("__TPL_SIG__", tpl_sig)
     )
 
 
@@ -112,6 +117,14 @@ def _compiled_profile_app_js() -> str:
     source = str(match.group(1) or "").strip()
     if not source:
         raise RuntimeError("profile_page.html text/babel app script is empty")
+    # 将数据初始化保留在 HTML 层面（不编译到外部 JS），避免 __DATA__ 占位符无法替换
+    source = source.replace("const data = __DATA__;", "")
+    source = source.replace("window.__EXPORT_DATA__ = data;", "")
+    # __PERSON_TOOLTIP_JS__ 占位符在 Babel 脚本块内，需在编译前替换为实际 JS
+    try:
+        source = source.replace("__PERSON_TOOLTIP_JS__", person_tooltip_js())
+    except Exception:
+        pass
     vendor_babel = _REPO_ROOT / "artifacts" / "story_map" / "vendor" / "babel.min.js"
     if not vendor_babel.exists():
         raise RuntimeError(f"missing Babel runtime for build-time compilation: {vendor_babel}")
@@ -133,6 +146,7 @@ process.stdout.write(String((result && result.code) || ''));
         text=True,
         capture_output=True,
         cwd=str(_REPO_ROOT),
+        timeout=30,
         check=False,
     )
     if proc.returncode != 0:
@@ -143,32 +157,118 @@ process.stdout.write(String((result && result.code) || ''));
     return compiled
 
 
+def _build_tailwind_css() -> None:
+    """使用 Tailwind v4 CLI 从模板中提取 class 名，生成构建时压缩 CSS。
+
+    替代了原先在浏览器中加载 tailwindcss.js 运行时编译的方案，
+    将 CSS 体积从 398KB JS 降低为约 60KB 静态 CSS 文件。
+    """
+    static_dir = story_artifacts_dir_path() / "static"
+    static_dir.mkdir(parents=True, exist_ok=True)
+    input_css = _TEMPLATE_DIR / "tailwind-input.css"
+    output_css = static_dir / "tailwind.css"
+    profile_template = _TEMPLATE_DIR / "profile_page.html"
+    landing_html = story_artifacts_dir_path() / "landing.html"
+    content_paths = [profile_template]
+    if landing_html.exists():
+        content_paths.append(landing_html)
+    try:
+        import shutil
+        npx = shutil.which("npx") or "/opt/homebrew/bin/npx"
+        cmd = [
+            npx, "tailwindcss",
+            "-i", str(input_css),
+            "-o", str(output_css),
+            "--minify",
+        ]
+        for cp in content_paths:
+            cmd.extend(["--content", str(cp)])
+        subprocess.run(
+            cmd,
+            cwd=str(_REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError, OSError) as exc:
+        _LOGGER.warning("Tailwind CSS build skipped: %s", exc)
+
+
+def _write_profile_static_assets() -> None:
+    """将编译后的 React App JS、design_tokens.css 与 tailwind.css 写入共享静态目录。
+
+    所有人物页共用这些文件（而非每个 HTML 内联一份副本）。UI 改
+    动时仅需重新编译写入这几个文件，无需渲染任何人物页。
+    """
+    static_dir = story_artifacts_dir_path() / "static"
+    static_dir.mkdir(parents=True, exist_ok=True)
+    js_path = static_dir / "profile-app.js"
+    css_path = static_dir / "design-tokens.css"
+    try:
+        compiled_js = _compiled_profile_app_js()
+    except (FileNotFoundError, RuntimeError, OSError, subprocess.SubprocessError):
+        return
+    js_path.write_text(compiled_js, encoding="utf-8")
+    css_path.write_text(_design_tokens_css(), encoding="utf-8")
+    _build_tailwind_css()
+    # 复制 Service Worker 到 artifacts 根目录
+    sw_src = _REPO_ROOT / "vendor" / "sw.js"
+    sw_dst = story_artifacts_dir_path() / "sw.js"
+    if sw_src.exists():
+        try:
+            sw_dst.write_text(sw_src.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
+
+
 @lru_cache(maxsize=1)
 def _compiled_profile_template() -> str:
     raw_template = _load_html_template("profile_page.html")
     try:
-        compiled_script = "<script>\n" + _compiled_profile_app_js() + "\n</script>"
+        _write_profile_static_assets()
     except (FileNotFoundError, RuntimeError, OSError, subprocess.SubprocessError):
         return raw_template
 
-    template = raw_template.replace('<script src="./vendor/babel.min.js"></script>\n', "")
-    template, count = _PROFILE_BABEL_SCRIPT_RE.subn(lambda _m: compiled_script, template, count=1)
+    # 将构建时编译的 Tailwind CSS 链接插入模板（替代已删除的 tailwindcss.js 运行时）
+    template = raw_template.replace(
+        '<!-- tailwind.css is built-time compiled; see scripts section in package.json -->',
+        '<link rel="stylesheet" href="./static/tailwind.css">',
+    )
+    template = template.replace('<link rel="preload" href="./vendor/babel.min.js" as="script" crossorigin="anonymous">', '')
+    template = template.replace('<script src="./vendor/babel.min.js"></script>\n', "")
+    # 静态资源指纹化：追加 ?v=SIG 确保浏览器不会缓存旧版本
+    tpl_sig = profile_template_signature()
+    cache_bust = f"?v={tpl_sig}"[:16]  # template sig 取前 8 字符即可
+    # 数据初始化保留在 HTML 中（__DATA__ 占位符由 _render_html_template 替换）
+    script_tag = f'<script>const data = __DATA__; window.__EXPORT_DATA__ = data;</script>\n<script src="./static/profile-app.js{cache_bust}"></script>\n'
+    template, count = _PROFILE_BABEL_SCRIPT_RE.subn(lambda _m: script_tag, template, count=1)
     if count != 1:
         return raw_template
+    # 也给 CSS 文件加指纹
+    template = template.replace(
+        '<link rel="stylesheet" href="./static/tailwind.css">',
+        f'<link rel="stylesheet" href="./static/tailwind.css{cache_bust}">',
+    )
+    template = template.replace(
+        './static/design-tokens.css',
+        f'./static/design-tokens.css{cache_bust}',
+    )
     return template
-
-
-def _first_env(*names: str) -> str:
-    for name in names:
-        value = os.getenv(name)
-        if value is not None and str(value).strip():
-            return str(value).strip()
-    return ""
 
 
 def _runtime_api_base_env() -> str:
     api_base = _first_env("MAP_STORY_API_BASE")
     if "legacy.example" in api_base.lower():
+        return ""
+    # 避免把开发用 / loopback 地址硬编码进静态页面：浏览器在用户机器上
+    # 访问 ECS / OpenDeploy 公网域名时，如果 API_BASE 是 127.0.0.1 / localhost，
+    # 前端 fetch 会全部回到用户本地的 8765，永远连不到真实后端。
+    # 这种情况让前端用相对路径（同源探测）才是正确行为。
+    lowered = api_base.lower()
+    if lowered.startswith("http://127.0.0.1") or lowered.startswith("http://localhost") or lowered.startswith("https://localhost"):
+        return ""
+    if lowered.startswith("http://[::1]") or lowered.startswith("https://[::1]"):
         return ""
     return api_base
 
@@ -248,407 +348,23 @@ def _site_mode_notice_html() -> str:
 
 
 def _amap_bootstrap_html() -> str:
-    loader = """<script>
-window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ = window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ || {};
-window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ = window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ || {};
-window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__ = window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__ || function(filename) {
-  const out = [];
-  const seen = new Set();
-  const push = (url) => {
-    const normalized = String(url || '').trim();
-    if (!normalized || seen.has(normalized)) return;
-    seen.add(normalized);
-    out.push(normalized);
-  };
-  try {
-    // Resolve the runtime config URL. In static production builds the
-    // page is served from file:// so we skip the relative resolve. We
-    // still allow localhost / private IPs (dev hosts) so that a
-    // developer can flip MAP_STORY_STATIC_SITE=true locally and keep
-    // fetching the live runtime config instead of using a stale cache.
-    const isDevHost = (function() {
-      try {
-        const host = String(window.location && window.location.hostname || '').trim();
-        if (!host) return false;
-        if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1') return true;
-        const ipv4 = new RegExp('^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$').exec(host);
-        if (ipv4) {
-          const a = Number(ipv4[1] || 0);
-          const b = Number(ipv4[2] || 0);
-          if (a === 10) return true;
-          if (a === 192 && b === 168) return true;
-          if (a === 172 && b >= 16 && b <= 31) return true;
-        }
-        return host.endsWith('.local');
-      } catch (_) { return false; }
-    })();
-    if (window.location && window.location.protocol !== 'file:' && isDevHost) {
-      push(new URL(`./${String(filename || '').replace(/^\\/+/, '')}`, window.location.href).toString());
-    }
-  } catch (_) {}
-  try {
-    const apiBase = String(window.MAP_STORY_API_BASE || '').trim();
-    if (apiBase) {
-      push(apiBase.replace(/\\/+$/, '') + '/' + String(filename || '').replace(/^\\/+/, ''));
-    }
-  } catch (_) {}
-  return out;
-};
-window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ = window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ || function(options) {
-  const opts = options && typeof options === 'object' ? options : {};
-  const cacheKey = String(opts.cacheKey || '').trim();
-  const src = String(opts.src || '').trim();
-  const checkReady = typeof opts.checkReady === 'function' ? opts.checkReady : null;
-  const timeoutMs = Math.max(1000, Number(opts.timeoutMs || 12000));
-  const loadError = String(opts.loadError || 'SCRIPT_LOAD_FAILED');
-  const timeoutError = String(opts.timeoutError || 'SCRIPT_LOAD_TIMEOUT');
-  if (checkReady && checkReady()) return Promise.resolve(true);
-  if (!cacheKey || !src) return Promise.reject(new Error('SCRIPT_SRC_REQUIRED'));
-  const registry = window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ || (window.__MAP_STORY_RUNTIME_SCRIPT_PROMISES__ = {});
-  if (registry[cacheKey]) return registry[cacheKey];
-  const promise = new Promise((resolve, reject) => {
-    let settled = false;
-    let timer = 0;
-    let script = document.querySelector(`script[data-runtime-key="${cacheKey}"]`);
-    if (script && script.getAttribute('data-runtime-state') === 'error') {
-      try { script.remove(); } catch (_) {}
-      script = null;
-    }
-    const cleanup = () => {
-      if (timer) {
-        try { window.clearTimeout(timer); } catch (_) {}
-        timer = 0;
-      }
-      if (!script) return;
-      try { script.removeEventListener('load', onLoad); } catch (_) {}
-      try { script.removeEventListener('error', onError); } catch (_) {}
-    };
-    const succeed = () => {
-      if (settled) return;
-      settled = true;
-      if (script) script.setAttribute('data-runtime-state', 'loaded');
-      cleanup();
-      registry[cacheKey] = Promise.resolve(true);
-      resolve(true);
-    };
-    const fail = (err) => {
-      if (settled) return;
-      settled = true;
-      if (script) script.setAttribute('data-runtime-state', 'error');
-      cleanup();
-      delete registry[cacheKey];
-      reject(err);
-    };
-    const onLoad = () => {
-      if (checkReady && !checkReady()) {
-        fail(new Error(loadError));
-        return;
-      }
-      succeed();
-    };
-    const onError = () => fail(new Error(loadError));
-    if (!script) {
-      script = document.createElement('script');
-      script.async = true;
-      script.src = src;
-      script.setAttribute('data-runtime-key', cacheKey);
-      script.setAttribute('data-runtime-state', 'loading');
-      document.head.appendChild(script);
-    } else if (script.getAttribute('data-runtime-state') === 'loaded' && (!checkReady || checkReady())) {
-      succeed();
-      return;
-    }
-    try { script.addEventListener('load', onLoad, { once: true }); } catch (_) {}
-    try { script.addEventListener('error', onError, { once: true }); } catch (_) {}
-    timer = window.setTimeout(() => {
-      if (checkReady && checkReady()) {
-        succeed();
-        return;
-      }
-      fail(new Error(timeoutError));
-    }, timeoutMs);
-  });
-  registry[cacheKey] = promise;
-  return promise;
-};
-window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ = window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ || function(kind, filename, isReady) {
-  if (typeof isReady === 'function' && isReady()) return Promise.resolve(true);
-  const registry = window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ || (window.__MAP_STORY_RUNTIME_CONFIG_PROMISES__ = {});
-  const cacheKey = `config:${String(kind || filename || 'runtime')}`;
-  if (registry[cacheKey]) return registry[cacheKey];
-  const promise = (async () => {
-    const urls = window.__MAP_STORY_RUNTIME_CONFIG_CANDIDATES__(filename);
-    for (let idx = 0; idx < urls.length; idx += 1) {
-      const url = urls[idx];
-      try {
-        await window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
-          cacheKey: `${cacheKey}:${idx}:${url}`,
-          src: url,
-          checkReady: isReady,
-          timeoutMs: 4000,
-          loadError: `${String(kind || 'config').toUpperCase()}_CONFIG_LOAD_FAILED`,
-          timeoutError: `${String(kind || 'config').toUpperCase()}_CONFIG_LOAD_TIMEOUT`,
-        });
-      } catch (_) {}
-      if (typeof isReady === 'function' && isReady()) return true;
-    }
-    return typeof isReady === 'function' ? isReady() : false;
-  })();
-  registry[cacheKey] = promise.finally(() => {
-    if (typeof isReady === 'function' && isReady()) {
-      registry[cacheKey] = Promise.resolve(true);
-    } else {
-      delete registry[cacheKey];
-    }
-  });
-  return registry[cacheKey];
-};
-const _getAmapKey = () => {
-  let k = '';
-  try {
-    k = (new URLSearchParams(window.location.search).get('amapKey') || '').trim();
-  } catch (_) {}
-  if (!k) k = String(window.AMAP_KEY || '').trim();
-  try {
-    if (!k) k = String(localStorage.getItem('AMAP_KEY') || '').trim();
-  } catch (_) {}
-  return k;
-};
-const _getAmapSecurity = () => {
-  let s = '';
-  try {
-    s = (new URLSearchParams(window.location.search).get('amapSec') || '').trim();
-  } catch (_) {}
-  if (!s) s = String(window.AMAP_SECURITY || '').trim();
-  try {
-    if (!s) s = String(localStorage.getItem('AMAP_SECURITY') || '').trim();
-  } catch (_) {}
-  return s;
-};
-const _ensureAmap = () => new Promise((resolve, reject) => {
-  if (window.AMap && typeof window.AMap.Map === 'function') return resolve(true);
-  const finish = async () => {
-    try {
-      await window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('amap', 'amap-config.js', () => Boolean(_getAmapKey()));
-    } catch (_) {}
-    const key = _getAmapKey();
-    if (!key) throw new Error('AMAP_KEY_REQUIRED');
-    const sec = _getAmapSecurity();
-    if (sec) {
-      window._AMapSecurityConfig = { securityJsCode: sec };
-    }
-    await window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
-      cacheKey: 'amap-sdk',
-      src: `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}&plugin=AMap.TileLayer.Satellite,AMap.TerrainLayer`,
-      checkReady: () => Boolean(window.AMap && typeof window.AMap.Map === 'function'),
-      timeoutMs: 12000,
-      loadError: 'AMAP_LOAD_FAILED',
-      timeoutError: 'AMAP_LOAD_TIMEOUT',
-    });
-    return true;
-  };
-  finish().then(resolve).catch(reject);
-});
-</script>"""
-    return loader
+    """高德地图 AMap 运行时脚本加载器（含 <script> 标签）。
+
+    JS 实现位于 map_bootstrap_js.py，便于独立维护与 lint。
+    """
+    return f"<script>\n{amap_bootstrap_js()}\n</script>"
 
 
 def _profile_map_bootstrap_html() -> str:
-    loader = """<script>
-const _getGeoVisToken = () => {
-  let token = '';
-  try {
-    token = (new URLSearchParams(window.location.search).get('geovisToken') || '').trim();
-  } catch (_) {}
-  if (!token) token = String(window.GEOVIS_TOKEN || '').trim();
-  try {
-    if (!token) token = String(localStorage.getItem('GEOVIS_TOKEN') || localStorage.getItem('DATACLOUD_TOKEN') || '').trim();
-  } catch (_) {}
-  return token;
-};
-const _appendCss = (href) => {
-  if (!href) return;
-  const key = `link[data-runtime-href="${href}"]`;
-  if (document.querySelector(key)) return;
-  const el = document.createElement('link');
-  el.rel = 'stylesheet';
-  el.href = href;
-  el.setAttribute('data-runtime-href', href);
-  document.head.appendChild(el);
-};
-const _appendScript = (src) => {
-  if (!src || document.querySelector(`script[data-runtime-src="${src}"]`)) return null;
-  const el = document.createElement('script');
-  el.async = true;
-  el.src = src;
-  el.setAttribute('data-runtime-src', src);
-  document.head.appendChild(el);
-  return el;
-};
-const _ensureMapLibre = () => new Promise((resolve, reject) => {
-  if (window.maplibregl && typeof window.maplibregl.Map === 'function') return resolve(true);
-  const cssHref = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
-  const jsSrc = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
-  _appendCss(cssHref);
-  if (typeof window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ !== 'function') {
-    return reject(new Error('MAPLIBRE_LOADER_UNAVAILABLE'));
-  }
-  window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
-    cacheKey: 'maplibre-sdk',
-    src: jsSrc,
-    checkReady: () => Boolean(window.maplibregl && typeof window.maplibregl.Map === 'function'),
-    timeoutMs: 12000,
-    loadError: 'MAPLIBRE_LOAD_FAILED',
-    timeoutError: 'MAPLIBRE_LOAD_TIMEOUT',
-  }).then(resolve).catch(reject);
-});
-const _ensureCesium = () => new Promise((resolve, reject) => {
-  if (window.Cesium && typeof window.Cesium.Viewer === 'function') return resolve(true);
-  const cssHref = 'https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/Widgets/widgets.css';
-  const jsSrc = 'https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/Cesium.js';
-  _appendCss(cssHref);
-  try {
-    if (!window.CESIUM_BASE_URL) {
-      window.CESIUM_BASE_URL = 'https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/';
-    }
-  } catch (_) {}
-  if (typeof window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__ !== 'function') {
-    return reject(new Error('CESIUM_LOADER_UNAVAILABLE'));
-  }
-  window.__MAP_STORY_ENSURE_RUNTIME_SCRIPT__({
-    cacheKey: 'cesium-sdk',
-    src: jsSrc,
-    checkReady: () => Boolean(window.Cesium && typeof window.Cesium.Viewer === 'function'),
-    timeoutMs: 16000,
-    loadError: 'CESIUM_LOAD_FAILED',
-    timeoutError: 'CESIUM_LOAD_TIMEOUT',
-  }).then(resolve).catch(reject);
-});
-const _geoVisTileUrl = (kind, format) => {
-  const token = _getGeoVisToken();
-  if (!token) throw new Error('GEOVIS_TOKEN_REQUIRED');
-  const fmt = encodeURIComponent(format || 'png');
-  return `https://tiles1.geovisearth.com/base/v1/${kind}/{z}/{x}/{y}?format=${fmt}&tmsIds=w&token=${encodeURIComponent(token)}`;
-};
-const _geoVisTerrainServiceUrl = () => {
-  const token = _getGeoVisToken();
-  if (!token) throw new Error('GEOVIS_TOKEN_REQUIRED');
-  return `https://tiles1.geovisearth.com/base/v1/terrain/layer.json?token=${encodeURIComponent(token)}`;
-};
-const _geoVisTerrainRootUrl = () => {
-  const token = _getGeoVisToken();
-  if (!token) throw new Error('GEOVIS_TOKEN_REQUIRED');
-  return `https://tiles1.geovisearth.com/base/v1/terrain/?token=${encodeURIComponent(token)}`;
-};
-const _probeGeoVisTile = (kind, format) => new Promise((resolve, reject) => {
-  let url = '';
-  try {
-    url = _geoVisTileUrl(kind || 'vec', format || 'png')
-      .replace('{z}', '0')
-      .replace('{x}', '0')
-      .replace('{y}', '0');
-  } catch (err) {
-    return reject(err);
-  }
-  const img = new Image();
-  let settled = false;
-  const done = (ok, err) => {
-    if (settled) return;
-    settled = true;
-    try { img.onload = null; img.onerror = null; } catch (_) {}
-    if (ok) resolve(true);
-    else reject(err || new Error('GEOVIS_TILE_PROBE_FAILED'));
-  };
-  const timer = setTimeout(() => done(false, new Error('GEOVIS_TILE_PROBE_TIMEOUT')), 6000);
-  img.onload = () => {
-    clearTimeout(timer);
-    done(true);
-  };
-  img.onerror = () => {
-    clearTimeout(timer);
-    done(false, new Error('GEOVIS_TILE_PROBE_FAILED'));
-  };
-  img.referrerPolicy = 'no-referrer';
-  img.src = url;
-});
-const _buildGeoVisMapLibreStyle = (layerType) => {
-  const mode = String(layerType || 'vector') === 'terrain-3d' ? 'vector' : String(layerType || 'vector');
-  const sources = {};
-  const layers = [];
-  const pushRaster = (id, kind, format, opacity) => {
-    sources[id] = {
-      type: 'raster',
-      tiles: [_geoVisTileUrl(kind, format)],
-      tileSize: 256
-    };
-    layers.push({
-      id,
-      type: 'raster',
-      source: id,
-      paint: typeof opacity === 'number' ? { 'raster-opacity': opacity } : {}
-    });
-  };
-  pushRaster('geovis-vec', 'vec', 'png');
-  pushRaster('geovis-img', 'img', 'webp');
-  pushRaster('geovis-cia', 'cia', 'png');
-  pushRaster('geovis-ter', 'ter', 'png');
-  pushRaster('geovis-cat', 'cat', 'png');
-  layers.forEach((layer) => {
-    const id = String(layer.id || '');
-    const visible = (
-      (mode === 'vector' && id === 'geovis-vec') ||
-      (mode === 'imagery' && (id === 'geovis-img' || id === 'geovis-cia')) ||
-      (mode === 'terrain' && (id === 'geovis-ter' || id === 'geovis-cat'))
-    );
-    layer.layout = { visibility: visible ? 'visible' : 'none' };
-  });
-  return {
-    version: 8,
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-    sources,
-    layers
-  };
-};
-const _applyGeoVisMapLibreMode = (map, layerType) => {
-  if (!map || typeof map.setLayoutProperty !== 'function') return;
-  const mode = String(layerType || 'vector') === 'terrain-3d' ? 'vector' : String(layerType || 'vector');
-  const visibleIds = new Set(
-    mode === 'imagery'
-      ? ['geovis-img', 'geovis-cia']
-      : mode === 'terrain'
-        ? ['geovis-ter', 'geovis-cat']
-        : ['geovis-vec']
-  );
-  ['geovis-vec', 'geovis-img', 'geovis-cia', 'geovis-ter', 'geovis-cat'].forEach((id) => {
-    try {
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', visibleIds.has(id) ? 'visible' : 'none');
-      }
-    } catch (_) {}
-  });
-};
-window.__MAP_STORY_GEOVIS__ = {
-  getToken: _getGeoVisToken,
-  ensureConfig: () => (
-    typeof window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__ === 'function'
-      ? window.__MAP_STORY_ENSURE_RUNTIME_CONFIG__('geovis', 'geovis-config.js', () => Boolean(_getGeoVisToken()))
-      : Promise.resolve(Boolean(_getGeoVisToken()))
-  ),
-  tileUrl: _geoVisTileUrl,
-  terrainServiceUrl: _geoVisTerrainServiceUrl,
-  terrainRootUrl: _geoVisTerrainRootUrl,
-  probeTile: _probeGeoVisTile,
-  ensureMapLibre: _ensureMapLibre,
-  ensureCesium: _ensureCesium,
-  buildMapLibreStyle: _buildGeoVisMapLibreStyle,
-  applyMapLibreMode: _applyGeoVisMapLibreMode
-};
-</script>"""
-    return loader
+    """MapLibre / Cesium / GeoVis 运行时引导 JS（含 <script> 标签）。
+
+    JS 实现位于 map_bootstrap_js.py，便于独立维护与 lint。
+    """
+    return f"<script>\n{map_bootstrap_js()}\n</script>"
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
 def invalidate_stellar_home_data_cache() -> None:
+    """清除首页图谱渲染缓存。首页数据变更后调用。"""
     _load_stellar_home_data.cache_clear()
     _build_stellar_home_fallback.cache_clear()
     invalidate_graph_service_cache()
@@ -670,23 +386,32 @@ def _build_related_people_graph(data: Dict[str, Any], limit: int = 6) -> Dict[st
     if not person_name:
         return {"center": {}, "nodes": [], "links": []}
 
-    markdown = str(data.get("markdown") or "")
+    # 1. 优先 SQLite（结构化数据库，人工维护的关系）
     try:
-        graph_result = get_related_people_graph(person, markdown=markdown, limit=limit)
-    except Exception:
+        graph_result = get_related_people_graph_from_sqlite(person_name, limit=limit)
+    except Exception as exc:
+        _LOGGER.debug("SQLite graph fallback failed for %r: %s", person_name, exc)
         graph_result = {}
     if isinstance(graph_result, dict) and isinstance(graph_result.get("nodes"), list) and graph_result.get("nodes"):
         return graph_result
 
+    # 2. 尝试 Neo4j（如果配置了）
+    markdown = str(data.get("markdown") or "")
+    try:
+        graph_result = get_related_people_graph(person, markdown=markdown, limit=limit)
+    except Exception as exc:
+        _LOGGER.debug("Neo4j graph fallback failed for %r: %s", person_name, exc)
+        graph_result = {}
+    if isinstance(graph_result, dict) and isinstance(graph_result.get("nodes"), list) and graph_result.get("nodes"):
+        return graph_result
+
+    # 3. 回退到 JSON payload（Markdown 语义提取 + 课本同册推理）
     payload = _load_stellar_home_data()
     return get_related_people_graph_from_payload(person, payload, markdown=markdown, limit=limit)
 
 
 def build_info_panel_html(_title: str, fields: Dict[str, str]) -> str:
-
-    """
-    构建基础地图页左上角的信息面板。
-    """
+    """构建基础地图页左上角的信息面板。"""
     order = ["朝代", "身份", "生卒年", "主要事件", "主要作品", "历史地位", "一生行程"]
     wrap = ['<div class="bio-panel"><div class="bio-body">']
     for k in order:
@@ -718,6 +443,11 @@ def render_profile_html(data: Dict[str, object]) -> str:
     except Exception:
         story_names = []
     payload_dict["personRedirects"] = person_redirects(story_names)
+    # 注入全量人物名列表，供聊天 @ 提及使用
+    try:
+        payload_dict["allPeopleNames"] = home_graph_person_names()
+    except Exception:
+        payload_dict["allPeopleNames"] = []
     payload_dict["templateSignature"] = profile_template_signature()
     payload_dict["artifactMeta"] = build_artifact_meta(component="profile_page")
     payload = json.dumps(payload_dict, ensure_ascii=False).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
@@ -751,7 +481,7 @@ def render_multi_html(data: Dict[str, object]) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
-<script src="./vendor/tailwindcss.js"></script>
+<link rel="stylesheet" href="./static/tailwind.css">
 __RUNTIME_CONFIG__
 __AMAP_BOOTSTRAP__
 __ANALYTICS_HEAD__

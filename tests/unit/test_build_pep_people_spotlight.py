@@ -1,12 +1,5 @@
 import importlib
 import json
-import sys
-
-
-from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_main_filters_non_authentic_story_markdown(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_pep_people_spotlight")
@@ -36,7 +29,6 @@ def test_main_filters_non_authentic_story_markdown(tmp_path, monkeypatch):
     assert payload["items"]["李白"]["review"] == "浪漫主义诗歌高峰。"
     assert payload["items"]["李白"]["short_review"] == "浪漫主义诗歌高峰。"
     assert payload["items"]["李白"]["title"] == ""
-
 
 def test_summarize_deduplicates_quotes_and_strips_outer_quotes():
     module = importlib.import_module("tools.build_pep_people_spotlight")
@@ -72,7 +64,6 @@ def test_summarize_deduplicates_quotes_and_strips_outer_quotes():
     assert summary["title"] == "塑料工业之父"
     assert summary["honor"] == "塑料工业之父"
     assert summary["reviews"][0] == "被誉为“塑料工业之父”，开启了新材料时代。"
-
 
 def test_main_orders_people_by_pinyin(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_pep_people_spotlight")

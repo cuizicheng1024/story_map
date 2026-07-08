@@ -1,12 +1,5 @@
 import importlib
 import json
-import sys
-
-
-from tests_support import REPO_ROOT
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 
 def test_main_builds_work_summary_index_with_author_and_non_author_cases(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
@@ -93,7 +86,6 @@ def test_main_builds_work_summary_index_with_author_and_non_author_cases(tmp_pat
     ]
     assert payload["items"]["典论·论文"]["quote_policy"] == "preferred"
 
-
 def test_main_prefers_author_page_quotes_and_injects_fallback_multi_quotes(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
     repo_root = tmp_path / "repo"
@@ -172,7 +164,6 @@ def test_main_prefers_author_page_quotes_and_injects_fallback_multi_quotes(tmp_p
         "此臣所以报先帝而忠陛下之职分也。",
     ]
 
-
 def test_main_marks_summary_only_works_and_injects_literary_fallback_quotes(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
     repo_root = tmp_path / "repo"
@@ -231,7 +222,6 @@ def test_main_marks_summary_only_works_and_injects_literary_fallback_quotes(tmp_
     assert payload["items"]["大卫"]["quotes"] == []
     assert payload["items"]["大卫"]["quote"] == ""
 
-
 def test_main_normalizes_markdown_wrapped_titles_and_extracts_prefixed_quotes(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
     repo_root = tmp_path / "repo"
@@ -271,7 +261,6 @@ def test_main_normalizes_markdown_wrapped_titles_and_extracts_prefixed_quotes(tm
     assert "**卖报歌**" not in payload["items"]
     assert any("我是卖报的小行家" in item for item in payload["items"]["卖报歌"]["quotes"])
     assert payload["items"]["毕业歌"]["quotes"][0] == "同学们，大家起来，担负起天下的兴亡！"
-
 
 def test_main_marks_non_quoteable_collections_and_research_as_summary_only(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
@@ -323,7 +312,6 @@ def test_main_marks_non_quoteable_collections_and_research_as_summary_only(tmp_p
     assert payload["items"]["颜氏家庙碑"]["quote_policy"] == "summary_only"
     assert payload["items"]["颜氏家庙碑"]["quotes"] == []
 
-
 def test_main_prefers_self_authored_curriculum_works_for_literary_figures(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
     repo_root = tmp_path / "repo"
@@ -370,7 +358,6 @@ def test_main_prefers_self_authored_curriculum_works_for_literary_figures(tmp_pa
     ]
     assert payload["items"]["将进酒"]["authors"] == ["李白"]
     assert payload["items"]["蜀道难"]["quote_policy"] == "preferred"
-
 
 def test_main_applies_curated_overrides_for_su_shi_work_tooltips(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
@@ -444,7 +431,6 @@ def test_main_applies_curated_overrides_for_su_shi_work_tooltips(tmp_path, monke
     ]
     assert items["寒食帖"]["quote_policy"] == "summary_only"
     assert items["寒食帖"]["quotes"] == []
-
 
 def test_main_backfills_curated_su_dongpo_works_and_normalizes_huangzhou_hanshi_title(tmp_path, monkeypatch):
     module = importlib.import_module("tools.build_work_summary_index")
